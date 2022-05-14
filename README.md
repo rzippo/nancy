@@ -7,10 +7,10 @@ Nancy is a C# library implementing min-plus and max-plus operators for ultimatel
     <img src="./img/01.png" alt="Plot of a generic NC curve"/>
 </figure>
 
-See [QuickIntro.md](./QuickIntro.md) for an introduction through examples, or play directly with code the [tutorial notebooks](./examples/).
+See the [webpage](rzippo.github.io/nancy/) for tutorials and the full documentation.
+See the [tutorial notebooks](./examples/) to play directly with code.
 
-<!-- Link to full documentation -->
-<!-- Link to nuget -->
+Prebuilt package on [NuGet](https://www.nuget.org/packages/Unipi.Nancy/).
 
 ## Language and requirements
 
