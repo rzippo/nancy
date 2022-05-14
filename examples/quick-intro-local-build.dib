@@ -5,9 +5,24 @@ This tutorials shows the code used for the examples in the *Quick Intro*.
 The following three cells are setup: they compile the library, reference the necessary packages, define the functions we use to plot.
 If I could abstract this out of view I would, alas you will have to scroll a bit.
 
+#!markdown
+
+**The following compiles and uses Nancy locally, instead of the public version on Nuget**
+
+#!pwsh
+
+# Compile the library
+# Warning: if you modified the source, restart the notebook kernel before re-compiling! Use ctrl+shift+P to find this command in VS Code
+dotnet publish -c Release ../Nancy/Nancy
+
 #!csharp
 
-#r "nuget: Unipi.Nancy, 1.0.0"
+// Load library and other dependencies 
+#r "../Nancy/Nancy/bin/Release/net6.0/publish/Unipi.Nancy.dll"
+#r "../Nancy/Nancy/bin/Release/net6.0/publish/NLog.dll"
+#r "../Nancy/Nancy/bin/Release/net6.0/publish/JsonSubTypes.dll"
+#r "../Nancy/Nancy/bin/Release/net6.0/publish/Newtonsoft.Json.dll"
+
 // The following is the package we use to plot inside notebooks
 #r "nuget: XPlot.Plotly.Interactive"
 
