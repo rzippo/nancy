@@ -1,0 +1,58 @@
+{
+  "type": "curve",
+  "sequence": {
+    "elements": [
+      {
+        "type": "point",
+        "value": 0,
+        "time": 0
+      },
+      {
+        "type": "segment",
+        "startTime": 0,
+        "endTime": 3,
+        "slope": 0,
+        "rightLimit": 0
+      },
+      {
+        "type": "point",
+        "value": 0,
+        "time": 3
+      },
+      {
+        "type": "segment",
+        "startTime": 3,
+        "endTime": 4,
+        "slope": 2,
+        "rightLimit": 0
+      },
+      {
+        "type": "point",
+        "value": 2,
+        "time": 4
+      },
+      {
+        "type": "segment",
+        "startTime": 4,
+        "endTime": 7,
+        "slope": 0,
+        "rightLimit": 2
+      },
+      {
+        "type": "point",
+        "value": 2,
+        "time": 7
+      },
+      {
+        "type": "segment",
+        "startTime": 7,
+        "endTime": 8,
+        "slope": 2,
+        "rightLimit": 2
+      }
+    ]
+  },
+  "periodStart": 7,
+  "periodLength": 1,
+  "periodHeight": 2
+}

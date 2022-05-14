@@ -1,0 +1,393 @@
+#!markdown
+
+This tutorials shows the code used for the examples in the *Quick Intro*.
+
+The following three cells are setup: they compile the library, reference the necessary packages, define the functions we use to plot.
+If I could abstract this out of view I would, alas you will have to scroll a bit.
+
+#!pwsh
+
+# Compile the library
+# Warning: if you modified the source, restart the notebook kernel before re-compiling! Use ctrl+shift+P to find this command in VS Code
+dotnet publish -c Release ../Nancy/Nancy
+
+# todo: replace with nuget reference when available
+
+#!csharp
+
+// Load library and other dependencies 
+#r "../Nancy/Nancy/bin/Release/net6.0/publish/Unipi.Nancy.dll"
+#r "../Nancy/Nancy/bin/Release/net6.0/publish/NLog.dll"
+#r "../Nancy/Nancy/bin/Release/net6.0/publish/JsonSubTypes.dll"
+#r "../Nancy/Nancy/bin/Release/net6.0/publish/Newtonsoft.Json.dll"
+
+// these load from NuGet the other libraries that we will use in the example
+#r "nuget: XPlot.Plotly.Interactive"
+
+#!csharp
+
+// Preamble code, see Tutorials.md for a quick reference on plot() 
+
+using XPlot.Plotly;
+using Unipi.Nancy.Numerics;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
+
+// the plot method, and its overloads, uses XPlot to plot the given curves
+// there is no particular reason in the choice of XPlot, only that it works well in this context - it can be replaced with other libraries in other context
+void plot(IEnumerable<Curve> curves, IEnumerable<string> names, Rational? upTo = null)
+{
+    //Console.WriteLine("plot(IEnumerable<(Curve curve, string name)> namedCurves, Rational? upTo = null)");
+    Rational t;
+    if(upTo is not null)
+        t = (Rational) upTo;
+    else
+        t = curves.Max(c => c.SecondPseudoPeriodEnd);
+    t = t == 0 ? 10 : t;
+    //Console.WriteLine(t);
+
+    var cuts = curves
+        .Select(c => c.Cut(0, t, isEndInclusive: true))
+        .ToList();
+    
+    plot(cuts, names);
+}
+
+void plot(Curve curve, string name, Rational? upTo = null)
+{
+    //Console.WriteLine("plot(Curve curve, string name, Rational? upTo = null)");
+    plot(new []{curve}, new []{name}, upTo);
+}
+
+void plot(IEnumerable<Curve> curves, Rational? upTo = null)
+{
+    //Console.WriteLine("plot(IEnumerable<Curve> curves, Rational? upTo = null)");
+    var names = curves.Select((_, i) => $"{(char)('a' + i)}");
+    plot(curves, names, upTo);
+}
+
+void plot(Curve curve, Rational? upTo = null)
+{
+    //Console.WriteLine("plot(Curve curve, Rational? upTo = null)");
+    plot(new []{curve}, new []{"a"}, upTo);
+}
+
+void plot(params Curve[] curves)
+{
+    //Console.WriteLine("plot(params Curve[] curves)");
+    plot(curves, null);
+}
+
+void plot(IEnumerable<Sequence> sequences, IEnumerable<string> names)
+{
+    //Console.WriteLine("plot(IEnumerable<(Sequence sequence, string name)> namedSequences)");
+    var colors = new List<string> {
+        "#636EFA",
+        "#EF553B",
+        "#00CC96",
+        "#AB63FA",
+        "#FFA15A",
+        "#19D3F3",
+        "#FF6692",
+        "#B6E880",
+        "#FF97FF",
+        "#FECB52"
+    };
+
+    var traces = Enumerable.Zip(sequences, names) 
+        .SelectMany((ns, i) => getTrace(ns.First, ns.Second, i));
+
+    var chart = Chart.Plot(traces);
+    
+    chart.WithLayout(
+        new Layout.Layout {
+            xaxis = new Xaxis { zeroline = true, showgrid = true, title = "time" },
+            yaxis = new Yaxis { zeroline = true, showgrid = true, title = "data" },
+            showlegend = true,
+            hovermode = "closest"
+        }
+    );
+
+    display(chart);
+    
+    IEnumerable<Scattergl> getTrace(Sequence sequence, string name, int index)
+    {
+        var color = colors[index % colors.Count];
+
+        if(sequence.IsContinuous)
+        {
+            var points = sequence.Elements
+                .Where(e => e is Point)
+                .Select(e => (Point) e)
+                .Select(p => (x: (decimal) p.Time, y: (decimal) p.Value))
+                .ToList();
+
+            if(sequence.IsRightOpen)
+            {
+                var tail = sequence.Elements.Last() as Segment;
+                points.Add((x: (decimal) tail.EndTime, y: (decimal) tail.LeftLimitAtEndTime));
+            }
+
+            var trace = new Scattergl {
+                x = points.Select(p => p.x).ToArray(),
+                y = points.Select(p => p.y).ToArray(),
+                name = name,
+                fillcolor = color,
+                mode = "lines+markers",
+                line = new Line {
+                    color = color
+                },
+                marker = new Marker {
+                    symbol = "circle",
+                    color = color
+                }
+            };
+            yield return trace;
+        }
+        else
+        {
+            var segments = new List<((decimal x, decimal y) a, (decimal x, decimal y) b)>();
+            var points = new List<(decimal x, decimal y)>();
+            var discontinuities = new List<(decimal x, decimal y)>();
+            
+            var breakpoints = sequence.EnumerateBreakpoints();
+            foreach(var (left, center, right) in breakpoints)
+            {
+                points.Add((x: (decimal) center.Time, y: (decimal) center.Value));
+                if(left is not null && left.LeftLimitAtEndTime != center.Value)
+                {
+                    discontinuities.Add((x: (decimal) center.Time, y: (decimal) left.LeftLimitAtEndTime));
+                }
+                if(right is not null)
+                {
+                    segments.Add((
+                        a: (x: (decimal) right.StartTime, y: (decimal) right.RightLimitAtStartTime),
+                        b: (x: (decimal) right.EndTime, y: (decimal) right.LeftLimitAtEndTime)
+                    ));
+                    if(right.RightLimitAtStartTime != center.Value)
+                    {
+                        discontinuities.Add((x: (decimal) center.Time, y: (decimal) right.RightLimitAtStartTime));
+                    }
+                }
+            }
+            if(sequence.IsRightOpen)
+            {
+                var tail = sequence.Elements.Last() as Segment;
+                segments.Add((
+                    a: (x: (decimal) tail.StartTime, y: (decimal) tail.RightLimitAtStartTime),
+                    b: (x: (decimal) tail.EndTime, y: (decimal) tail.LeftLimitAtEndTime)
+                ));
+            }
+
+            var segmentsLegend = segments.Any();
+
+            bool isFirst = true;
+            foreach(var (a, b) in segments)
+            {
+                var trace = new Scattergl {
+                    x = new []{ a.x, b.x },
+                    y = new []{ a.y, b.y },
+                    name = name,
+                    legendgroup = name,
+                    fillcolor = color,
+                    mode = "lines",
+                    line = new Line {
+                        color = color
+                    },
+                    showlegend = segmentsLegend && isFirst
+                };
+                yield return trace;
+                isFirst = false; 
+            }
+            
+            var pointsTrace = new Scattergl {
+                x = points.Select(p => p.x).ToArray(),
+                y = points.Select(p => p.y).ToArray(),
+                name = name,
+                legendgroup = name,
+                fillcolor = color,
+                mode = "markers",
+                line = new Line {
+                    color = color
+                },
+                marker = new Marker {
+                    symbol = "circle",
+                    color = color
+                },
+                showlegend = !segmentsLegend
+            };
+            yield return pointsTrace;
+
+            var discontinuitiesTrace = new Scattergl {
+                x = discontinuities.Select(p => p.x).ToArray(),
+                y = discontinuities.Select(p => p.y).ToArray(),
+                name = name,
+                legendgroup = name,
+                fillcolor = color,
+                mode = "markers",
+                line = new Line {
+                    color = color
+                },
+                marker = new Marker {
+                    symbol = "circle-open",
+                    color = color,
+                    line = new Line {
+                        color = color
+                    }
+                },
+                showlegend = false,
+            };
+            yield return discontinuitiesTrace;
+        }
+    }
+}
+
+void plot(Sequence sequence, string name)
+{
+    //Console.WriteLine("plot(Sequence sequence, string name)");
+    plot(new []{sequence}, new []{name});
+}
+
+void plot(IEnumerable<Sequence> sequences)
+{
+    //Console.WriteLine("plot(IEnumerable<Sequence> sequences)");
+    var names = sequences.Select((_, i) => $"{(char)('a' + i)}");
+    plot(sequences, names);
+}
+
+void plot(Sequence sequence)
+{
+    //Console.WriteLine("plot(Sequence sequence)");
+    plot(new []{sequence}, new []{"a"});
+}
+
+#!markdown
+
+**The tutorial starts here**.
+
+The first example shows the generic `Curve` constructor, which can be used to represent any UPP curve.
+
+#!csharp
+
+var c = new Curve(
+    baseSequence: new Sequence(new Element[]
+    {
+        new Point(time: 0, value: 0),
+        new Segment(startTime: 0, endTime: 2, rightLimitAtStartTime:0, slope: 1),
+        new Point(2, 2),
+        new Segment(2,  3, 2, 0),
+        new Point(3, 2),
+        new Segment(3, 4, 2, 1)
+    }),
+    pseudoPeriodStart: 2,
+    pseudoPeriodLength: 2,
+    pseudoPeriodHeight: 1
+);
+plot(c, "c", 10);
+
+#!markdown
+
+The library also provides simplified constructors for common types of curves.
+
+#!csharp
+
+var sc = new RateLatencyServiceCurve(rate: 3, latency: 3);
+var ac = new SigmaRhoArrivalCurve(sigma: 4, rho: 1);
+plot(new Curve[]{sc, ac}, new []{"sc", "ac"}, 10);
+
+#!markdown
+
+Example of delay bound, computed for the curves above.
+
+#!csharp
+
+var delay = Curve.HorizontalDeviation(ac, sc);
+Console.WriteLine(delay);
+
+#!markdown
+
+Another example of delay bound, for a trickier example (from [1, p. 121]).
+
+#!csharp
+
+var sc = Curve.Minimum(
+    new RateLatencyServiceCurve(3, 0),
+    new RateLatencyServiceCurve(3, 4) + 3
+);
+var ac = new SigmaRhoArrivalCurve(1, 1);
+plot(new Curve[]{sc, ac}, new []{"sc", "ac"});
+var delay = Curve.HorizontalDeviation(ac, sc);
+Console.WriteLine(delay);
+
+#!markdown
+
+Example of computing and plotting the FIFO residual service curve.
+
+#!csharp
+
+var beta = new RateLatencyServiceCurve(3, 2);
+var alpha = new SigmaRhoArrivalCurve(3, 2);
+var theta = 4;
+var delta_theta = new DelayServiceCurve(theta);
+
+var alpha_theta = Curve.Convolution(alpha, delta_theta);
+var diff = Curve.Subtraction(beta, alpha_theta, nonNegative: true);
+var residual = Curve.Minimum(diff, delta_theta);
+plot(residual, "residual sc", 10);
+
+#!markdown
+
+Example computing and plotting scrict service curve for IWRR.
+
+#!csharp
+
+var weights = new []{4, 6, 7, 10};
+var l_min = new []{4096, 3072, 4608, 3072};
+var l_max = new []{8704, 5632, 6656, 8192};
+var beta = new RateLatencyServiceCurve(
+    rate: 10000, // 10 Mb/s, but using ms as time unit
+    latency: 0
+);
+var unit_rate = new RateLatencyServiceCurve(1, 0);
+
+int Phi_i_j(int i, int j, int x)
+{
+    var a = (x / weights[i]) * weights[j];  // division between positive integers is already floored
+    var b = weights[j] - weights[i];
+    b = b > 0 ? b : 0;
+    var c = Math.Min(x % weights[i] + 1, weights[j]);
+    return a + b + c;
+}
+
+int Psi_i(int i, int x)
+{
+    var sum = x;
+    for(int j = 0; j < weights.Length; j++)
+        if(j != i)
+            sum += Phi_i_j(i, j, (x / l_min[i])) * l_max[j];
+    return sum;
+}
+
+int L_tot(int i)
+{
+    var sum = weights[i] * l_min[i];
+    for(int j = 0; j < weights.Length; j++)
+    {
+        if(i != j)
+            sum += weights[i] * l_max[i];
+    }
+    return sum;
+}
+
+int i = 0; // the flow of interest
+var stairs = new List<Curve>();
+for(int k = 0; k < weights[i]; k++)
+{
+    var stair = new StairCurve(l_min[i], L_tot(i));
+    var delayed_stair = stair.DelayBy(Psi_i(i, k * l_min[i])); 
+    stairs.Add( delayed_stair );
+}
+var U_i = Curve.Addition(stairs); // summation of min-plus curves
+var gamma_i = Curve.Convolution(unit_rate, U_i);
+var beta_i = Curve.Composition(gamma_i, beta);
+plot(beta_i, "iwrr sc");

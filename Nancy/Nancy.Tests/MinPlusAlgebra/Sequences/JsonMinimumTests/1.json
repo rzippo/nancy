@@ -1,0 +1,47 @@
+{
+  "a": {
+    "elements": [
+      {
+        "time": { "num": 0, "den": 1 },
+        "value": { "num": 0, "den": 1 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 0, "den": 1 },
+        "endTime": { "num": 150, "den": 1 },
+        "slope": { "num": 0, "den": 1 },
+        "rightLimit": { "num": 4, "den": 1 },
+        "type": "segment"
+      }
+    ]
+  },
+  "b": {
+    "elements": [
+      {
+        "time": { "num": 0, "den": 1 },
+        "value": { "num": 1, "den": 0 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 0, "den": 1 },
+        "endTime": { "num": 100, "den": 1 },
+        "slope": { "num": 1, "den": 0 },
+        "rightLimit": { "num": 1, "den": 0 },
+        "type": "segment"
+      },
+      {
+        "time": { "num": 100, "den": 1 },
+        "value": { "num": 8, "den": 1 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 100, "den": 1 },
+        "endTime": { "num": 150, "den": 1 },
+        "slope": { "num": 0, "den": 1 },
+        "rightLimit": { "num": 8, "den": 1 },
+        "type": "segment"
+      }
+    ]
+  },
+  "cutToOverlap": true
+}

@@ -1,0 +1,95 @@
+{
+  "a": {
+    "elements": [
+      {
+        "time": { "num": 0, "den": 1 },
+        "value": { "num": 0, "den": 1 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 0, "den": 1 },
+        "endTime": { "num": 4, "den": 1 },
+        "slope": { "num": 0, "den": 1 },
+        "rightLimit": { "num": 0, "den": 1 },
+        "type": "segment"
+      },
+      {
+        "time": { "num": 4, "den": 1 },
+        "value": { "num": 5, "den": 1 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 4, "den": 1 },
+        "endTime": { "num": 8, "den": 1 },
+        "slope": { "num": 0, "den": 1 },
+        "rightLimit": { "num": 5, "den": 1 },
+        "type": "segment"
+      },
+      {
+        "time": { "num": 8, "den": 1 },
+        "value": { "num": 1, "den": 0 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 8, "den": 1 },
+        "endTime": { "num": 12, "den": 1 },
+        "slope": { "num": 1, "den": 0 },
+        "rightLimit": { "num": 1, "den": 0 },
+        "type": "segment"
+      }
+    ]
+  },
+  "b": {
+    "elements": [
+      {
+        "time": { "num": 0, "den": 1 },
+        "value": { "num": 1, "den": 0 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 0, "den": 1 },
+        "endTime": { "num": 4, "den": 1 },
+        "slope": { "num": 1, "den": 0 },
+        "rightLimit": { "num": 1, "den": 0 },
+        "type": "segment"
+      },
+      {
+        "time": { "num": 4, "den": 1 },
+        "value": { "num": 5, "den": 1 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 4, "den": 1 },
+        "endTime": { "num": 8, "den": 1 },
+        "slope": { "num": 0, "den": 1 },
+        "rightLimit": { "num": 5, "den": 1 },
+        "type": "segment"
+      },
+      {
+        "time": { "num": 8, "den": 1 },
+        "value": { "num": 5, "den": 1 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 8, "den": 1 },
+        "endTime": { "num": 29, "den": 3 },
+        "slope": { "num": 3, "den": 1 },
+        "rightLimit": { "num": 5, "den": 1 },
+        "type": "segment"
+      },
+      {
+        "time": { "num": 29, "den": 3 },
+        "value": { "num": 10, "den": 1 },
+        "type": "point"
+      },
+      {
+        "startTime": { "num": 29, "den": 3 },
+        "endTime": { "num": 12, "den": 1 },
+        "slope": { "num": 0, "den": 1 },
+        "rightLimit": { "num": 10, "den": 1 },
+        "type": "segment"
+      }
+    ]
+  },
+  "cutToOverlap": true
+}

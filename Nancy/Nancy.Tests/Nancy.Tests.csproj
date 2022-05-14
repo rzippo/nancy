@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+
+    <AssemblyName>Unipi.Nancy.Tests</AssemblyName>
+    <RootNamespace>Unipi.Nancy.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\1.json" />
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\2.json" />
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\3.json" />
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\4.json" />
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\5.json" />
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\6.json" />
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\7.json" />
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\8.json" />
+    <EmbeddedResource Include="NetworkCalculus\CurveExamples\9.json" />
+
+    <EmbeddedResource Include="MinPlusAlgebra\Intervals\JsonComputeIntervals\convolution_1.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\Intervals\JsonComputeIntervals\convolution_2.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\Intervals\JsonComputeIntervals\deconvolution_1.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\Intervals\JsonComputeIntervals\deconvolution_2.json" />
+
+    <EmbeddedResource Include="MinPlusAlgebra\CurvesOptimization\JsonTestCases\1.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\CurvesOptimization\JsonTestCases\2.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\CurvesOptimization\JsonTestCases\3.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\CurvesOptimization\JsonTestCases\4.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\CurvesOptimization\JsonTestCases\5.json" />
+    
+    <EmbeddedResource Include="MinPlusAlgebra\Sequences\JsonLowerEnvelopeTests\1.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\Sequences\JsonLowerEnvelopeTests\8.json" />
+
+    <EmbeddedResource Include="MinPlusAlgebra\Sequences\JsonMergeTests\1.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\Sequences\JsonMergeTests\8.json" />
+
+    <EmbeddedResource Include="MinPlusAlgebra\Sequences\JsonMinimumTests\1.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\Sequences\JsonMinimumTests\2.json" />
+    
+    <EmbeddedResource Include="MinPlusAlgebra\Sequences\JsonConcatTests\1.json" />
+    
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nancy\Nancy.csproj" />
+  </ItemGroup>
+
+</Project>

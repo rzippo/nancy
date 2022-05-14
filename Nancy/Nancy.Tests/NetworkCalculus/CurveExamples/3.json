@@ -1,0 +1,109 @@
+﻿{
+  "type": "curve",
+  "sequence": {
+    "elements": [
+      {
+        "type": "point",
+        "value": {
+          "num": 0,
+          "den": 1
+        },
+        "time": {
+          "num": 0,
+          "den": 1
+        }
+      },
+      {
+        "type": "segment",
+        "startTime": {
+          "num": 0,
+          "den": 1
+        },
+        "endTime": {
+          "num": 9,
+          "den": 1
+        },
+        "slope": {
+          "num": 0,
+          "den": 1
+        },
+        "rightLimit": {
+          "num": 0,
+          "den": 1
+        }
+      },
+      {
+        "type": "point",
+        "value": {
+          "num": 0,
+          "den": 1
+        },
+        "time": {
+          "num": 9,
+          "den": 1
+        }
+      },
+      {
+        "type": "segment",
+        "startTime": {
+          "num": 9,
+          "den": 1
+        },
+        "endTime": {
+          "num": 67,
+          "den": 1
+        },
+        "slope": {
+          "num": 160,
+          "den": 1
+        },
+        "rightLimit": {
+          "num": 0,
+          "den": 1
+        }
+      },
+      {
+        "type": "point",
+        "value": {
+          "num": 9280,
+          "den": 1
+        },
+        "time": {
+          "num": 67,
+          "den": 1
+        }
+      },
+      {
+        "type": "segment",
+        "startTime": {
+          "num": 67,
+          "den": 1
+        },
+        "endTime": {
+          "num": 117,
+          "den": 1
+        },
+        "slope": {
+          "num": 160,
+          "den": 1
+        },
+        "rightLimit": {
+          "num": 9280,
+          "den": 1
+        }
+      }
+    ]
+  },
+  "periodStart": {
+    "num": 67,
+    "den": 1
+  },
+  "periodLength": {
+    "num": 50,
+    "den": 1
+  },
+  "periodHeight": {
+    "num": 8000,
+    "den": 1
+  }
+}

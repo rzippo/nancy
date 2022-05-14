@@ -1,0 +1,22 @@
+{
+    "type": "curve",
+    "sequence": {
+        "elements": [
+            {                
+                "type": "point",
+                "time": 0,
+                "value": 0
+            },
+            {
+                "type": "segment",
+                "startTime": 0,
+                "endTime": 30,
+                "slope": 0,
+                "rightLimit": 0
+            }
+        ]
+    },
+    "periodStart": 0,
+    "periodLength": 30,
+    "periodHeight": 10
+}

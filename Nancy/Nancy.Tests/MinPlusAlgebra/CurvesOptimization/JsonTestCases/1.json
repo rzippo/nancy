@@ -1,0 +1,1909 @@
+﻿{
+  "type": "curve",
+  "sequence": {
+    "elements": [
+      {
+        "time": {
+          "num": 0,
+          "den": 1
+        },
+        "value": {
+          "num": 1,
+          "den": 0
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 0,
+          "den": 1
+        },
+        "endTime": {
+          "num": 124,
+          "den": 1
+        },
+        "slope": {
+          "num": 1,
+          "den": 0
+        },
+        "rightLimit": {
+          "num": 1,
+          "den": 0
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 124,
+          "den": 1
+        },
+        "value": {
+          "num": 175,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 124,
+          "den": 1
+        },
+        "endTime": {
+          "num": 174,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 175,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 174,
+          "den": 1
+        },
+        "value": {
+          "num": 1175,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 174,
+          "den": 1
+        },
+        "endTime": {
+          "num": 224,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1175,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 224,
+          "den": 1
+        },
+        "value": {
+          "num": 650,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 224,
+          "den": 1
+        },
+        "endTime": {
+          "num": 274,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 650,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 274,
+          "den": 1
+        },
+        "value": {
+          "num": 475,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 274,
+          "den": 1
+        },
+        "endTime": {
+          "num": 324,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 475,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 324,
+          "den": 1
+        },
+        "value": {
+          "num": 775,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 324,
+          "den": 1
+        },
+        "endTime": {
+          "num": 374,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 775,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 374,
+          "den": 1
+        },
+        "value": {
+          "num": 1675,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 374,
+          "den": 1
+        },
+        "endTime": {
+          "num": 424,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1675,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 424,
+          "den": 1
+        },
+        "value": {
+          "num": 300,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 424,
+          "den": 1
+        },
+        "endTime": {
+          "num": 474,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 300,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 474,
+          "den": 1
+        },
+        "value": {
+          "num": 1925,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 474,
+          "den": 1
+        },
+        "endTime": {
+          "num": 524,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1925,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 524,
+          "den": 1
+        },
+        "value": {
+          "num": 1025,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 524,
+          "den": 1
+        },
+        "endTime": {
+          "num": 574,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1025,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 574,
+          "den": 1
+        },
+        "value": {
+          "num": 725,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 574,
+          "den": 1
+        },
+        "endTime": {
+          "num": 624,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 725,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 624,
+          "den": 1
+        },
+        "value": {
+          "num": 1150,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 624,
+          "den": 1
+        },
+        "endTime": {
+          "num": 674,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1150,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 674,
+          "den": 1
+        },
+        "value": {
+          "num": 2425,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 674,
+          "den": 1
+        },
+        "endTime": {
+          "num": 724,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2425,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 724,
+          "den": 1
+        },
+        "value": {
+          "num": 425,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 724,
+          "den": 1
+        },
+        "endTime": {
+          "num": 774,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 425,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 774,
+          "den": 1
+        },
+        "value": {
+          "num": 2675,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 774,
+          "den": 1
+        },
+        "endTime": {
+          "num": 824,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2675,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 824,
+          "den": 1
+        },
+        "value": {
+          "num": 1400,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 824,
+          "den": 1
+        },
+        "endTime": {
+          "num": 874,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1400,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 874,
+          "den": 1
+        },
+        "value": {
+          "num": 975,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 874,
+          "den": 1
+        },
+        "endTime": {
+          "num": 924,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 975,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 924,
+          "den": 1
+        },
+        "value": {
+          "num": 1525,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 924,
+          "den": 1
+        },
+        "endTime": {
+          "num": 974,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1525,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 974,
+          "den": 1
+        },
+        "value": {
+          "num": 3175,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 974,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1024,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 3175,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1024,
+          "den": 1
+        },
+        "value": {
+          "num": 550,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1024,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1074,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 550,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1074,
+          "den": 1
+        },
+        "value": {
+          "num": 3425,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1074,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1124,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 3425,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1124,
+          "den": 1
+        },
+        "value": {
+          "num": 1775,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1124,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1174,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1775,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1174,
+          "den": 1
+        },
+        "value": {
+          "num": 1225,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1174,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1224,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1225,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1224,
+          "den": 1
+        },
+        "value": {
+          "num": 1900,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1224,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1274,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1900,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1274,
+          "den": 1
+        },
+        "value": {
+          "num": 3925,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1274,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1324,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 3925,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1324,
+          "den": 1
+        },
+        "value": {
+          "num": 675,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1324,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1374,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 675,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1374,
+          "den": 1
+        },
+        "value": {
+          "num": 4175,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1374,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1424,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 4175,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1424,
+          "den": 1
+        },
+        "value": {
+          "num": 2150,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1424,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1474,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2150,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1474,
+          "den": 1
+        },
+        "value": {
+          "num": 1475,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1474,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1524,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1475,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1524,
+          "den": 1
+        },
+        "value": {
+          "num": 2275,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1524,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1574,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2275,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1574,
+          "den": 1
+        },
+        "value": {
+          "num": 4675,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1574,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1624,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 4675,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1624,
+          "den": 1
+        },
+        "value": {
+          "num": 800,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1624,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1674,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 800,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1674,
+          "den": 1
+        },
+        "value": {
+          "num": 4925,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1674,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1724,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 4925,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1724,
+          "den": 1
+        },
+        "value": {
+          "num": 2525,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1724,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1774,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2525,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1774,
+          "den": 1
+        },
+        "value": {
+          "num": 1725,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1774,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1824,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1725,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1824,
+          "den": 1
+        },
+        "value": {
+          "num": 2650,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1824,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1874,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2650,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1874,
+          "den": 1
+        },
+        "value": {
+          "num": 5425,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1874,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1924,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 5425,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1924,
+          "den": 1
+        },
+        "value": {
+          "num": 925,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1924,
+          "den": 1
+        },
+        "endTime": {
+          "num": 1974,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 925,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 1974,
+          "den": 1
+        },
+        "value": {
+          "num": 5675,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 1974,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2024,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 5675,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2024,
+          "den": 1
+        },
+        "value": {
+          "num": 2900,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2024,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2074,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2900,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2074,
+          "den": 1
+        },
+        "value": {
+          "num": 1975,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2074,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2124,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1975,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2124,
+          "den": 1
+        },
+        "value": {
+          "num": 3025,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2124,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2174,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 3025,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2174,
+          "den": 1
+        },
+        "value": {
+          "num": 6175,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2174,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2224,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 6175,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2224,
+          "den": 1
+        },
+        "value": {
+          "num": 1050,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2224,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2274,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1050,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2274,
+          "den": 1
+        },
+        "value": {
+          "num": 6425,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2274,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2324,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 6425,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2324,
+          "den": 1
+        },
+        "value": {
+          "num": 3275,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2324,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2374,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 3275,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2374,
+          "den": 1
+        },
+        "value": {
+          "num": 2225,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2374,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2424,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2225,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2424,
+          "den": 1
+        },
+        "value": {
+          "num": 3400,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2424,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2474,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 3400,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2474,
+          "den": 1
+        },
+        "value": {
+          "num": 6925,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2474,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2524,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 6925,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2524,
+          "den": 1
+        },
+        "value": {
+          "num": 1175,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2524,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2574,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1175,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2574,
+          "den": 1
+        },
+        "value": {
+          "num": 7175,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2574,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2624,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 7175,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2624,
+          "den": 1
+        },
+        "value": {
+          "num": 3650,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2624,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2674,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 3650,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2674,
+          "den": 1
+        },
+        "value": {
+          "num": 2475,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2674,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2724,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2475,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2724,
+          "den": 1
+        },
+        "value": {
+          "num": 3775,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2724,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2774,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 3775,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2774,
+          "den": 1
+        },
+        "value": {
+          "num": 7675,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2774,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2824,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 7675,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2824,
+          "den": 1
+        },
+        "value": {
+          "num": 1300,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2824,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2874,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1300,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2874,
+          "den": 1
+        },
+        "value": {
+          "num": 7925,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2874,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2924,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 7925,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2924,
+          "den": 1
+        },
+        "value": {
+          "num": 4025,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2924,
+          "den": 1
+        },
+        "endTime": {
+          "num": 2974,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 4025,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 2974,
+          "den": 1
+        },
+        "value": {
+          "num": 2725,
+          "den": 2
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 2974,
+          "den": 1
+        },
+        "endTime": {
+          "num": 3024,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 2725,
+          "den": 2
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 3024,
+          "den": 1
+        },
+        "value": {
+          "num": 4150,
+          "den": 3
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 3024,
+          "den": 1
+        },
+        "endTime": {
+          "num": 3074,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 4150,
+          "den": 3
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 3074,
+          "den": 1
+        },
+        "value": {
+          "num": 8425,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 3074,
+          "den": 1
+        },
+        "endTime": {
+          "num": 3124,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 8425,
+          "den": 6
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 3124,
+          "den": 1
+        },
+        "value": {
+          "num": 1425,
+          "den": 1
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 3124,
+          "den": 1
+        },
+        "endTime": {
+          "num": 3174,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 1425,
+          "den": 1
+        },
+        "type": "segment"
+      },
+      {
+        "time": {
+          "num": 3174,
+          "den": 1
+        },
+        "value": {
+          "num": 8675,
+          "den": 6
+        },
+        "type": "point"
+      },
+      {
+        "startTime": {
+          "num": 3174,
+          "den": 1
+        },
+        "endTime": {
+          "num": 3224,
+          "den": 1
+        },
+        "slope": {
+          "num": 25,
+          "den": 31
+        },
+        "rightLimit": {
+          "num": 8675,
+          "den": 6
+        },
+        "type": "segment"
+      }
+    ]
+  },
+  "periodStart": {
+    "num": 1674,
+    "den": 1
+  },
+  "periodLength": {
+    "num": 1550,
+    "den": 1
+  },
+  "periodHeight": {
+    "num": 3875,
+    "den": 6
+  }
+}
