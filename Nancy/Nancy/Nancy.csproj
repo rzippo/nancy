@@ -12,7 +12,11 @@
     <Authors>Raffaele Zippo</Authors>
     <Description>A computational library for Network Calculus</Description>
     <Copyright>Raffaele Zippo, University of Pisa</Copyright>
-    <PackageIcon>nancy.svg</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>nancy.png</PackageIcon>
+    <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
+    <PackageTags>network-calculus</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -34,7 +38,7 @@
     <None Update="references.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="nancy.svg">
+    <None Update="nancy.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
