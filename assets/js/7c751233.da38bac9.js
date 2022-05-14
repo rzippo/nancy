@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunknancy_docs=self.webpackChunknancy_docs||[]).push([[8403],{8769:function(a){a.exports=JSON.parse('{"label":"hola","permalink":"/nancy/blog/tags/hola","allTagsPath":"/nancy/blog/tags","count":1}')}}]);

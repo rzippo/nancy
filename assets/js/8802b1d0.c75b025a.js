@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunknancy_docs=self.webpackChunknancy_docs||[]).push([[3379],{3440:function(e){e.exports=JSON.parse('{"permalink":"/nancy/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":4,"blogDescription":"Blog","blogTitle":"Blog"}')}}]);
