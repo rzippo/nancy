@@ -14,7 +14,7 @@ Nancy's main types are:
 
 For example
 
-```
+```csharp
 var c = new Curve(
     baseSequence: new Sequence(new Element[]
     {
@@ -43,7 +43,7 @@ Will result in the following:
 
 Simplified constructors are available for common types of curves.
 
-```
+```csharp
 var sc = new RateLatencyServiceCurve(delay: 3, rate: 3);
 var ac = new SigmaRhoArrivalCurve(sigma: 4, rho: 1);
 ```
@@ -79,7 +79,7 @@ Manipulations:
 
 The library can be used to compute delay and buffer bounds for any kind of curves.
 
-```
+```csharp
 var sc = new RateLatencyServiceCurve(3, 3);
 var ac = new SigmaRhoArrivalCurve(4, 1);
 var delay = Curve.HorizontalDeviation(ac, sc);
@@ -96,7 +96,7 @@ var delay = Curve.HorizontalDeviation(ac, sc);
 
 The calculation works also for general curves, for example (from [\[1, p. 121\]](#Dnc18)):
 
-```
+```csharp
 var sc = Curve.Minimum(
     new RateLatencyServiceCurve(0, 3),
     new RateLatencyServiceCurve(4, 3) + 3
@@ -117,7 +117,7 @@ var delay = Curve.HorizontalDeviation(ac, sc);
 The operators can be used to naturally construct any min-plus expressions.
 For example, computing a residual service curve in a FIFO server [\[1, p. 166\]](#Dnc18):
 
-```
+```csharp
 var beta = new RateLatencyServiceCurve(2, 3);
 var alpha = new SigmaRhoArrivalCurve(3, 2);
 var theta = 4;
@@ -138,7 +138,7 @@ var residual = Curve.Minimum(diff, delta_theta);
 
 As another example, computing the strict service curve for Interleaved Weighted Round-Robin (IWRR) described in [\[2\]](#Iwrr21) (using Th. 1 with the parameters in Fig. 3):
 
-```
+```csharp
 var weights = new []{4, 6, 7, 10};
 var l_min = new []{4096, 3072, 4608, 3072};
 var l_max = new []{8704, 5632, 6656, 8192};

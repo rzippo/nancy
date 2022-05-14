@@ -1245,7 +1245,7 @@ public class Curve
     /// <returns>The first time t at which $f(t)$ = value, or $+\infty$ if it is never reached.</returns>
     /// <remarks>
     /// The current implementation uses <see cref="ToNonDecreasing"/> and <see cref="LowerPseudoInverse"/>.
-    /// Thus it is useful as a shortcut but not to optimize computation of $$f^{-1}_\downarrow(x)$ for a single point.
+    /// Thus it is useful as a shortcut but not to optimize computation of $f^{-1}_\downarrow(x)$ for a single point.
     /// </remarks>
     public Rational TimeAt(Rational value)
     {
@@ -1283,7 +1283,7 @@ public class Curve
     #region Basic manipulations
 
     /// <summary>
-    /// Scales the curve by a multiplicative factor.
+    /// Scales the curve by a multiplicative factor, i.e. $g(t) = k \cdot f(t)$.
     /// </summary>
     public virtual Curve Scale(Rational scaling)
     {
@@ -1296,7 +1296,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Scales the curve by a multiplicative factor.
+    /// Scales the curve by a multiplicative factor, i.e. $g(t) = k \cdot f(t)$.
     /// </summary>
     public static Curve operator *(Curve curve, Rational scaling)
     {
@@ -1304,7 +1304,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Scales the curve by a multiplicative factor.
+    /// Scales the curve by a multiplicative factor, i.e. $g(t) = k \cdot f(t)$.
     /// </summary>
     public static Curve operator *(Rational scaling, Curve curve)
     {
@@ -1312,7 +1312,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Convolution between two curves 
+    /// Convolution between two curves.
     /// </summary>
     public static Curve operator *(Curve c1, Curve c2)
     {
@@ -1370,7 +1370,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Shifts the curve vertically by an additive factor.
+    /// Shifts the curve vertically by an additive factor, i.e. $g(t) = k + f(t)$.
     /// </summary>
     public virtual Curve VerticalShift(Rational shift, bool exceptOrigin = true)
     {
@@ -1389,7 +1389,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Shifts the curve vertically by an additive factor.
+    /// Shifts the curve vertically by an additive factor, i.e. $g(t) = k + f(t)$.
     /// </summary>
     public static Curve operator +(Curve curve, Rational shift)
     {
