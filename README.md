@@ -1,6 +1,8 @@
 # Nancy
 ## _A computational library for Determinist Network Calculus_
 
+![Nuget](https://img.shields.io/nuget/v/Unipi.Nancy)
+
 Nancy is a C# library implementing min-plus and max-plus operators for ultimately pseudo-periodic piecewise affine curves.
 
 <figure>
