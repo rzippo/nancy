@@ -7,7 +7,7 @@ If I could abstract this out of view I would, alas you will have to scroll a bit
 
 #!csharp
 
-#r "nuget: Unipi.Nancy, 1.0.0"
+#r "nuget: Unipi.Nancy"
 // The following is the package we use to plot inside notebooks
 #r "nuget: XPlot.Plotly.Interactive"
 
