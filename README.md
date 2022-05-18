@@ -1,5 +1,5 @@
 # Nancy
-## _A computational library for Determinist Network Calculus_
+## _A computational library for Deterministic Network Calculus_
 
 ![Nuget](https://img.shields.io/nuget/v/Unipi.Nancy)
 
