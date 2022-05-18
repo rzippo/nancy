@@ -26,13 +26,15 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: check
-    if: needs.check.outputs.status
+    if: ${{ needs.check.outputs.status == 'true' }}
 
     env:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.sln"
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v1.0.6
 
