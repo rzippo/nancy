@@ -14,6 +14,7 @@
     <Copyright>Raffaele Zippo, University of Pisa</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>nancy.png</PackageIcon>
+    <PackageReadmeFile>nuget.md</PackageReadmeFile>
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
     <PackageTags>network-calculus</PackageTags>
@@ -40,6 +41,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="nancy.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Update="nuget.md">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
