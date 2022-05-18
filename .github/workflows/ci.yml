@@ -16,11 +16,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps: 
-      -uses: actions/checkout@v3
+    -uses: actions/checkout@v3
 
-      - name: Get changed files using defaults
-        id: changed-files
-        uses: tj-actions/changed-files@v20
+    - name: Get changed files using defaults
+      id: changed-files
+      uses: tj-actions/changed-files@v20
 
   build:
     needs: check
@@ -33,19 +33,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.0.6
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.6
 
-      - name: Restore dependencies
-        run: nuget restore $SOLUTION
+    - name: Restore dependencies
+      run: nuget restore $SOLUTION
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v2
-        with:
-          global-json-file: Nancy/global.json
-          
-      - name: Build
-        run: dotnet build $SOLUTION --configuration $BUILD_CONFIG --no-restore
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        global-json-file: Nancy/global.json
+        
+    - name: Build
+      run: dotnet build $SOLUTION --configuration $BUILD_CONFIG --no-restore
 
-      - name: Run tests
-        run: dotnet test $SOLUTION /p:Configuration=$BUILD_CONFIG --no-restore --no-build --verbosity normal
+    - name: Run tests
+      run: dotnet test $SOLUTION /p:Configuration=$BUILD_CONFIG --no-restore --no-build --verbosity normal
