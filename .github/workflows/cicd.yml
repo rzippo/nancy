@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      status: ${{ contains(steps.changed-files.outputs.modified_files, 'Nancy/Nancy/Nancy.proj') }}
+      status: ${{ contains(steps.changed-files.outputs.modified_files, 'Nancy/Nancy/Nancy.csproj') }}
 
     steps:
       - uses: actions/checkout@v3
@@ -26,12 +26,12 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: check
-    if: ${{ needs.check.outputs.status }}
+    if: ${{ needs.check.outputs.status == true }}
 
     env:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.sln"
-      NANCY: "Nancy/Nancy/Nancy.proj"
+      NANCY: "Nancy/Nancy/Nancy.csproj"
 
     steps:
       - uses: actions/checkout@v3
