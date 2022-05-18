@@ -40,6 +40,7 @@ public class AutoOptimize
                 new StaircaseCurve(5, 12, 4),
                 new StaircaseCurve(3,11, 3)
             ),
+            #if !SKIP_LONG_TESTS
             (
                 new StaircaseCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
                 new StaircaseCurve(new Rational(5, 7), 5000, new Rational(5, 7))
@@ -48,6 +49,7 @@ public class AutoOptimize
                 new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
                 new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
             ),
+            #endif
             // (
             //     new StaircaseCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
             //     new StaircaseCurve(new Rational(17, 19), 5000, new Rational(17, 19))

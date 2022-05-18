@@ -267,6 +267,7 @@ public class CurveConvolution
                     new StaircaseCurve(5, 4, 10)
                 )
             ),
+            #if !SKIP_LONG_TESTS
             (
                 a: new Curve(
                     new StaircaseCurve(162, 311, 7938)
@@ -275,6 +276,7 @@ public class CurveConvolution
                     new StaircaseCurve(279, 64, 13671)
                 )
             )
+            #endif
         };
 
         foreach (var testCase in testCases)

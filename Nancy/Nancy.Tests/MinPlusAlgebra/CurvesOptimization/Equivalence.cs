@@ -99,12 +99,14 @@ public class Equivalence
                 new StaircaseCurve(3, 3, 2),
                 new StaircaseCurve(3,5, 5)
             },
+            #if !SKIP_LONG_TESTS
             new []
             {
                 new StaircaseCurve(3, 3, 2),
                 new StaircaseCurve(3,5, 5),
                 new StaircaseCurve(416, 835, 313)
             }
+            #endif
         };
             
         foreach (var testCase in testCases)

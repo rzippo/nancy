@@ -21,7 +21,9 @@ public class JsonComputeIntervals
     public static string[] CurveNames =
     {
         "Unipi.Nancy.Tests/MinPlusAlgebra/Intervals/JsonComputeIntervals/convolution_1.json",
+        #if !SKIP_LONG_TESTS
         "Unipi.Nancy.Tests/MinPlusAlgebra/Intervals/JsonComputeIntervals/convolution_2.json",
+        #endif
         "Unipi.Nancy.Tests/MinPlusAlgebra/Intervals/JsonComputeIntervals/deconvolution_1.json",
         "Unipi.Nancy.Tests/MinPlusAlgebra/Intervals/JsonComputeIntervals/deconvolution_2.json"
     };
