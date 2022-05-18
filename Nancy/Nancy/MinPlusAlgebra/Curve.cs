@@ -1415,7 +1415,7 @@ public class Curve
         => Maximum(this, Curve.Zero());
 
     /// <summary>
-    /// Computes a non-decreasing version of this curve, 
+    /// Computes a non-decreasing version of this curve,
     /// i.e. the lowest curve $g(t) \ge f(t)$ so that $g(t + s) \ge g(t)$ for any $t, s \ge 0$.
     /// </summary>
     /// <remarks>
@@ -1545,6 +1545,21 @@ public class Curve
                 pseudoPeriodLength: PseudoPeriodLength,
                 pseudoPeriodHeight: PseudoPeriodHeight
             );
+        }
+    }
+
+    /// <summary>
+    /// Enforces $f(0) = 0$.
+    /// </summary>
+    public Curve WithZeroOrigin()
+    {
+        if (this.ValueAt(0) == 0)
+        {
+            return this;
+        }
+        else
+        {
+            return Minimum(this, new DelayServiceCurve(0));
         }
     }
     
@@ -3180,7 +3195,10 @@ public class Curve
     /// <param name="curve"></param>
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution.</returns>
-    /// <remarks>Described in [BT07] Section 4.5</remarks>
+    /// <remarks>
+    /// The result is not forced to have $f(0) = 0$, see <see cref="WithZeroOrigin"/> to have this property.
+    /// Described in [BT07] Section 4.5 .
+    /// </remarks>
     public virtual Curve Deconvolution(Curve curve, ComputationSettings? settings = null)
     {
         if (PseudoPeriodAverageSlope > curve.PseudoPeriodAverageSlope)
@@ -3211,7 +3229,10 @@ public class Curve
     /// <param name="b">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution</returns>
-    /// <remarks>Described in [BT07] Section 4.5</remarks>
+    /// <remarks>
+    /// The result is not forced to have $f(0) = 0$, see <see cref="WithZeroOrigin"/> to have this property.
+    /// Described in [BT07] Section 4.5 .
+    /// </remarks>
     public static Curve Deconvolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Deconvolution(b, settings);
 

@@ -9,11 +9,11 @@ namespace Unipi.Nancy.NetworkCalculus
 {
     /// <summary>
     /// This class should be used to represent concave curves with $f(0) = 0$, 
-    /// and exploit these properties to optimize computations
+    /// and exploit these properties to optimize computations.
     /// </summary>
     /// <remarks>
     /// $f(0) = 0$ is required for the curve to be also sub-additive, 
-    /// and for the convolution to become the minimum
+    /// and for the convolution to become the minimum.
     /// </remarks>
     public class ConcaveCurve : SubAdditiveCurve
     {
