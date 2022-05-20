@@ -1491,7 +1491,7 @@ public sealed class Sequence : IEquatable<Sequence>
     #region Convolution operator
 
     /// <summary>
-    /// Computes the convolution of two sequences.
+    /// Computes the convolution of two sequences, $a \otimes b$.
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
@@ -1677,7 +1677,7 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Computes the convolution of two sequences.
+    /// Computes the convolution of two sequences, $f \otimes g$.
     /// </summary>
     /// <param name="sequence"></param>
     /// <param name="settings"></param>
@@ -1762,7 +1762,7 @@ public sealed class Sequence : IEquatable<Sequence>
     #region Deconvolution operator
 
     /// <summary>
-    /// Computes the deconvolution of two sequences.
+    /// Computes the deconvolution of two sequences, $a \oslash b$.
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
@@ -1816,7 +1816,7 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Computes the deconvolution of two sequences.
+    /// Computes the deconvolution of two sequences, $f \oslash g$.
     /// </summary>
     /// <param name="sequence"></param>
     /// <param name="settings"></param>

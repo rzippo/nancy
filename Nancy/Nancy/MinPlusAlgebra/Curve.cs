@@ -2726,7 +2726,7 @@ public class Curve
     #region Convolution operator
 
     /// <summary>
-    /// Computes the convolution of the two curves.
+    /// Computes the convolution of the two curves, $f \otimes g$.
     /// </summary>
     /// <param name="curve"></param>
     /// <param name="settings"></param>
@@ -2936,7 +2936,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Computes the convolution of the two curves.
+    /// Computes the convolution of the two curves, $a \otimes b$.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -2947,7 +2947,7 @@ public class Curve
         => a.Convolution(b, settings);
 
     /// <summary>
-    /// Computes the convolution of a set of curves.
+    /// Computes the convolution of a set of curves, $\bigotimes{f_i}$.
     /// </summary>
     /// <param name="curves">The set of curves to be convolved.</param>
     /// <param name="settings"></param>
@@ -2973,7 +2973,7 @@ public class Curve
     }
         
     /// <summary>
-    /// Computes the convolution of a set of curves.
+    /// Computes the convolution of a set of curves, $\bigotimes{f_i}$.
     /// </summary>
     /// <param name="curves">The set of curves to be convolved.</param>
     /// <param name="settings"></param>
@@ -3190,7 +3190,7 @@ public class Curve
     #region Deconvolution operator
 
     /// <summary>
-    /// Computes the deconvolution of two curves.
+    /// Computes the deconvolution of two curves, $f \oslash g$.
     /// </summary>
     /// <param name="curve"></param>
     /// <param name="settings"></param>
@@ -3223,7 +3223,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Computes the deconvolution of the two curves
+    /// Computes the deconvolution of the two curves, $a \oslash b$.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
