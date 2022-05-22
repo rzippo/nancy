@@ -61,7 +61,9 @@ public class Curve
     /// If it's 0, the curve is truly periodic.
     /// </summary>
     public Rational PseudoPeriodAverageSlope =>
-        PseudoPeriodicSequence.IsInfinite ? Rational.PlusInfinity : PseudoPeriodHeight / PseudoPeriodLength;
+        PseudoPeriodicSequence.IsInfinite
+            ? (PseudoPeriodicElements.First().IsPlusInfinite ? Rational.PlusInfinity : Rational.MinusInfinity)
+            : PseudoPeriodHeight / PseudoPeriodLength;
 
     /// <summary>
     /// End time of the first pseudo period.
@@ -2394,7 +2396,7 @@ public class Curve
             d = ultimatelyLower.PseudoPeriodLength;
             c = ultimatelyLower.PseudoPeriodHeight;
 
-            if (ultimatelyHigher.PseudoPeriodAverageSlope != Rational.PlusInfinity)
+            if (ultimatelyHigher.PseudoPeriodAverageSlope.IsFinite && ultimatelyLower.PseudoPeriodAverageSlope.IsFinite)
             {
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
@@ -2643,7 +2645,7 @@ public class Curve
             d = ultimatelyHigher.PseudoPeriodLength;
             c = ultimatelyHigher.PseudoPeriodHeight;
 
-            if (ultimatelyHigher.PseudoPeriodAverageSlope != Rational.PlusInfinity)
+            if (ultimatelyHigher.PseudoPeriodAverageSlope.IsFinite && ultimatelyLower.PseudoPeriodAverageSlope.IsFinite)
             {
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
@@ -2780,6 +2782,52 @@ public class Curve
         return result;
     }
 
+    /// <summary>
+    /// Computes the minimum between the curve and element.
+    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its domain.
+    /// </summary>
+    public Curve Minimum(Element e, ComputationSettings? settings = null)
+    {
+        var s = Sequence.Fill(new Element[] { e }, 0, e.EndTime + 2).ToSequence();
+        var ce = new Curve(
+            baseSequence: s,
+            pseudoPeriodStart: e.EndTime + 1,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        );
+        return this.Minimum(ce, settings);
+    }
+
+    /// <summary>
+    /// Computes the minimum between the curve and element.
+    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its domain.
+    /// </summary>
+    public static Curve Minimum(Curve c, Element e, ComputationSettings? settings = null)
+        => c.Minimum(e, settings);
+    
+    /// <summary>
+    /// Computes the maximum between the curve and element.
+    /// The element is considered to have $e(t) = -\infty$ for any $t$ outside its domain.
+    /// </summary>
+    public Curve Maximum(Element e, ComputationSettings? settings = null)
+    {
+        var s = Sequence.Fill(new Element[] { e }, 0, e.EndTime + 2, fillWith: Rational.MinusInfinity).ToSequence();
+        var ce = new Curve(
+            baseSequence: s,
+            pseudoPeriodStart: e.EndTime + 1,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        );
+        return this.Maximum(ce, settings);
+    }
+
+    /// <summary>
+    /// Computes the maximum between the curve and element.
+    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its domain.
+    /// </summary>
+    public static Curve Maximum(Curve c, Element e, ComputationSettings? settings = null)
+        => c.Maximum(e, settings);
+    
     #endregion Minimum and maximum operators
 
     #region Convolution operator

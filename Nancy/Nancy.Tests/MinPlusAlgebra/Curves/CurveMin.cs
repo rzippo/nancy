@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -226,5 +227,133 @@ public class CurveMin
         {
             Assert.Equal(min.ValueAt(time), Rational.Min(a.ValueAt(time), b.ValueAt(time)));
         }
+    }
+    
+    public static IEnumerable<object[]> GetPairTestCases()
+    {
+        var testCases = new List<(Curve a, Curve b)>
+        {
+            (
+                a: new SigmaRhoArrivalCurve(sigma:100, rho: 5),
+                b: new RateLatencyServiceCurve(rate: 20, latency: 10)
+            ),
+            (
+                a: new Curve(
+                    baseSequence: new Sequence(
+                        elements: new Element[]
+                        {
+                            new Segment(
+                                startTime: 4,
+                                endTime: 8,
+                                rightLimitAtStartTime: 4,
+                                slope: 2
+                            )
+                        }
+                    ),
+                    pseudoPeriodStart: 4,
+                    pseudoPeriodLength: 4,
+                    pseudoPeriodHeight: 6,
+                    isPartialCurve: true
+                ),
+                b: new Curve(
+                    baseSequence: new Sequence(
+                        elements: new Element[]
+                        {
+                            new Segment(
+                                startTime: 5,
+                                endTime: 6,
+                                rightLimitAtStartTime: 5,
+                                slope: 2
+                            ),
+                            new Point(
+                                time: 6,
+                                value: 7
+                            ),
+                            new Segment(
+                                startTime: 6,
+                                endTime: 7,
+                                rightLimitAtStartTime: 6,
+                                slope: 2
+                            )
+                        }
+                    ),
+                    pseudoPeriodStart: 6,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 1,
+                    isPartialCurve: true
+                )
+            ),
+            (
+                a: new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
+                b: new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
+            )
+        };
+
+        foreach(var (a, b) in testCases)
+            yield return new object[] { a, b };
+    }
+
+    [Theory]
+    [MemberData(nameof(GetPairTestCases))]
+    public void BreakpointSampling(Curve a, Curve b)
+    {
+        var min = Curve.Minimum(a, b);
+
+        var breakPoints = 
+                a.Extend(min.FirstPseudoPeriodEnd).EnumerateBreakpoints()
+            .Concat(
+                b.Extend(min.FirstPseudoPeriodEnd).EnumerateBreakpoints())
+            .Concat(
+                min.Extend(min.FirstPseudoPeriodEnd).EnumerateBreakpoints())
+            .Select(x => x.center.Time)
+            .OrderBy(t => t)
+            .Distinct();
+            
+        foreach(var t in breakPoints)
+        {
+            if (t != 0)
+                Assert.Equal(
+                    Rational.Min(a.LeftLimitAt(t), b.LeftLimitAt(t)),
+                    min.LeftLimitAt(t)
+                );
+
+            Assert.Equal(
+                Rational.Min(a.ValueAt(t), b.ValueAt(t)),
+                min.ValueAt(t)
+            );
+            Assert.Equal(
+                Rational.Min(a.RightLimitAt(t), b.RightLimitAt(t)),
+                min.RightLimitAt(t)
+            );
+        }
+    }
+
+    public static IEnumerable<object[]> GetSingleTestCases()
+    {
+
+        foreach (var pair in GetPairTestCases())
+        {
+            yield return new object[] { pair[0] }; // Curve a
+            yield return new object[] { pair[1] }; // Curve b
+        }
+
+        yield return new object[] { Curve.PlusInfinite() };
+        yield return new object[] { Curve.MinusInfinite() };
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSingleTestCases))]
+    public void PlusInfinite(Curve c)
+    {
+        var min = Curve.Minimum(c, Curve.PlusInfinite());
+        Assert.True(Curve.Equivalent(min, c));
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetSingleTestCases))]
+    public void MinusInfinite(Curve c)
+    {
+        var min = Curve.Minimum(c, Curve.MinusInfinite(), ComputationSettings.Default() with {UseParallelism = false} );
+        Assert.True(Curve.Equivalent(min, Curve.MinusInfinite()));
     }
 }

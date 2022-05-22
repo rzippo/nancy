@@ -5,9 +5,9 @@ using Xunit;
 
 namespace Unipi.Nancy.Tests.NetworkCalculus;
 
-public class ConcaveCurveConvolutions
+public class ConcaveCurveTests
 {
-    public static IEnumerable<object[]> GetEquivalenceTestCases()
+    public static IEnumerable<object[]> GetPairTestCases()
     {
         var testcases = new (Curve a, Curve b)[]
         {
@@ -23,16 +23,44 @@ public class ConcaveCurveConvolutions
         }
     }
 
+    public static IEnumerable<object[]> GetSingleTestCases()
+    {
+
+        foreach (var pair in GetPairTestCases())
+        {
+            yield return new object[] { pair[0] }; // Curve a
+            yield return new object[] { pair[1] }; // Curve b
+        }
+    }
+    
     [Theory]
-    [MemberData(nameof(GetEquivalenceTestCases))]
-    public void EquivalenceTest(Curve a, Curve b)
+    [MemberData(nameof(GetSingleTestCases))]
+    public void PropertiesTest(Curve c)
+    {
+        Assert.True(c.IsConcave);
+
+        Assert.True(c.WithZeroOrigin().IsConcave);
+        Assert.True(c.WithZeroOrigin().IsRegularConcave);
+
+        var c_rc = c.Maximum(new Point(0, c.RightLimitAt(0)));
+        Assert.True(c_rc.IsConcave);
+        Assert.Equal(c.RightLimitAt(0) == 0, c_rc.IsRegularConcave);
+
+        var c_rc_1 = c.Maximum(new Point(0, c.RightLimitAt(0) + 1));
+        Assert.False(c_rc_1.IsConcave);
+        Assert.False(c_rc_1.IsRegularConcave);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetPairTestCases))]
+    public void ConvolutionEquivalenceTest(Curve a, Curve b)
     {
         Assert.True(a.IsConcave);
         Assert.True(b.IsConcave);
-
-        
+  
         var conv_asIs = Curve.Convolution(a, b);
         var min_asIs = Curve.Minimum(a, b);
+        
         if (a.ValueAt(0) == 0 && b.ValueAt(0) == 0)
         {
             Assert.True(Curve.Equivalent(conv_asIs, min_asIs));

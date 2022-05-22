@@ -966,6 +966,26 @@ public sealed class Sequence : IEquatable<Sequence>
         var breakpoints = this.EnumerateBreakpoints();
         return breakpoints.GetBreakpointsValues().Min();
     }
+
+    /// <summary>
+    /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.
+    /// </summary>
+    /// <param name="elements">The set of elements. Must be in order.</param>
+    /// <param name="fillFrom">Left extreme of the filling interval.</param>
+    /// <param name="fillTo">Right extreme of the filling interval.</param>
+    /// <param name="isFromInclusive">If true, left extreme is inclusive.</param>
+    /// <param name="isToInclusive">If true, right extreme is inclusive.</param>
+    /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
+    /// <returns></returns>
+    public static IEnumerable<Element> Fill(
+        IEnumerable<Element> elements,
+        Rational fillFrom,
+        Rational fillTo,
+        bool isFromInclusive = true,
+        bool isToInclusive = false,
+        Rational? fillWith = null
+    )
+        => elements.Fill(fillFrom, fillTo, isFromInclusive, isToInclusive, fillWith);
     
     #endregion Methods
 
@@ -2144,22 +2164,25 @@ public static class SequenceExtensions
     }
     
     /// <summary>
-    /// Fills the gaps of the set of elements within fillFrom and fillTo, with $+\infty$.
+    /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.
     /// </summary>
     /// <param name="elements">The set of elements. Must be in order.</param>
     /// <param name="fillFrom">Left extreme of the filling interval.</param>
     /// <param name="fillTo">Right extreme of the filling interval.</param>
     /// <param name="isFromInclusive">If true, left extreme is inclusive.</param>
     /// <param name="isToInclusive">If true, right extreme is inclusive.</param>
+    /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
     /// <returns></returns>
     public static IEnumerable<Element> Fill(
         this IEnumerable<Element> elements,
         Rational fillFrom,
         Rational fillTo,
         bool isFromInclusive = true,
-        bool isToInclusive = false
+        bool isToInclusive = false,
+        Rational? fillWith = null
     )
     {
+        Rational value = fillWith ?? Rational.PlusInfinity;
         Rational expectedStart = fillFrom;
         bool isExpectingPoint = isFromInclusive;
         foreach (var element in elements)
@@ -2170,15 +2193,15 @@ public static class SequenceExtensions
             if (expectedStart < element.StartTime)
             {
                 if (isExpectingPoint)
-                    yield return Point.PlusInfinite(expectedStart);
-                yield return Segment.PlusInfinite(expectedStart, element.StartTime);
+                    yield return new Point(expectedStart, value);
+                yield return fillSegment(expectedStart, element.StartTime);
                 if(element is Segment)
-                    yield return Point.PlusInfinite(element.StartTime);
+                    yield return new Point(element.StartTime, value);
             }
 
             if (expectedStart == element.StartTime && !(element is Point) && isExpectingPoint)
             {
-                yield return Point.PlusInfinite(expectedStart);
+                yield return new Point(expectedStart, value);
             }
                     
             yield return element;
@@ -2189,13 +2212,25 @@ public static class SequenceExtensions
         if (expectedStart < fillTo)
         {
             if (isExpectingPoint)
-                yield return Point.PlusInfinite(expectedStart);
-            yield return Segment.PlusInfinite(expectedStart, fillTo);
+                yield return new Point(expectedStart, value);
+            yield return fillSegment(expectedStart, fillTo);
             isExpectingPoint = true;
         }
 
         if(isToInclusive && isExpectingPoint)
-            yield return Point.PlusInfinite(fillTo);
+            yield return new Point(fillTo, value);
+
+        Segment fillSegment(Rational start, Rational end)
+        {
+            if (value.IsPlusInfinite)
+            {
+                return Segment.PlusInfinite(start, end);
+            }
+            else
+            {
+                return Segment.Constant(start, end, value);
+            }
+        }
     }
     
     /// <summary>

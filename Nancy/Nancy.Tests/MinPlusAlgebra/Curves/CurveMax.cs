@@ -10,7 +10,7 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class CurveMax
 {
-    public static IEnumerable<object[]> GetTestCases()
+    public static IEnumerable<object[]> GetPairTestCases()
     {
         var testCases = new List<(Curve a, Curve b)>
         {
@@ -75,7 +75,7 @@ public class CurveMax
     }
 
     [Theory]
-    [MemberData(nameof(GetTestCases))]
+    [MemberData(nameof(GetPairTestCases))]
     public void BreakpointSampling(Curve a, Curve b)
     {
         var max = Curve.Maximum(a, b);
@@ -109,6 +109,35 @@ public class CurveMax
         }
     }
 
+    public static IEnumerable<object[]> GetSingleTestCases()
+    {
+
+        foreach (var pair in GetPairTestCases())
+        {
+            yield return new object[] { pair[0] }; // Curve a
+            yield return new object[] { pair[1] }; // Curve b
+        }
+            
+        yield return new object[] { Curve.PlusInfinite() };
+        yield return new object[] { Curve.MinusInfinite() };
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSingleTestCases))]
+    public void PlusInfinite(Curve c)
+    {
+        var max = Curve.Maximum(c, Curve.PlusInfinite());
+        Assert.True(Curve.Equivalent(max, Curve.PlusInfinite()));
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetSingleTestCases))]
+    public void MinusInfinite(Curve c)
+    {
+        var max = Curve.Maximum(c, Curve.MinusInfinite());
+        Assert.True(Curve.Equivalent(max, c));
+    }
+    
     //[Fact]
     //public void UltimatelyInfinite()
     //{
