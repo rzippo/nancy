@@ -77,9 +77,6 @@ public class SuperAdditiveCurve : Curve
     /// <inheritdoc />
     public override SuperAdditiveCurve SuperAdditiveClosure(ComputationSettings? settings = null)
     {
-        if(this.ValueAt(0) > Rational.Zero) 
-            return PlusInfinite();
-        else
-            return this;
+        return this;
     }
 }

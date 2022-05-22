@@ -9,10 +9,14 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.NetworkCalculus;
 
 /// <summary>
-/// Used to represent curves that are known to be sub-additive.
+/// Used to represent curves that are known to be sub-additive with $f(0) = 0$ (see <see cref="Curve.IsRegularSubAdditive"/>),
+/// and exploit these properties to optimize computations.
 /// </summary>
 /// <remarks>
-/// Provides optimized algorithms for <see cref="Curve.Convolution(Curve, ComputationSettings?)"/>, as described in [ZS22].
+/// $f(0) = 0$ is required for the curve to be <see cref="Curve.IsRegularSubAdditive"/> and 
+/// provides optimized algorithms for convolution as described in [ZS22],
+/// but is not required for sub-additivity to be stable on addition and convolution.
+/// To keep the type system simple for the common cases of NC, we opted not to support non-regular sub-additive functions with their own type.
 /// </remarks>
 public class SubAdditiveCurve : Curve
 {
@@ -21,10 +25,10 @@ public class SubAdditiveCurve : Curve
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="baseSequence">Describes the curve from 0 to <see cref="Curve.PseudoPeriodStart"/> + <see cref="Curve.PseudoPeriodLength"/></param>
-    /// <param name="pseudoPeriodStart">Instant after which the curve is pseudo-periodic</param>
-    /// <param name="pseudoPeriodLength">Length of each pseudo-period</param>
-    /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period</param>
+    /// <param name="baseSequence">Describes the curve from 0 to <see cref="Curve.PseudoPeriodStart"/> + <see cref="Curve.PseudoPeriodLength"/>.</param>
+    /// <param name="pseudoPeriodStart">Instant after which the curve is pseudo-periodic.</param>
+    /// <param name="pseudoPeriodLength">Length of each pseudo-period.</param>
+    /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period.</param>
     /// <param name="doTest">
     /// If true, the sub-additive property is tested.
     /// This test can be computationally expensive.
@@ -36,8 +40,8 @@ public class SubAdditiveCurve : Curve
         Rational pseudoPeriodHeight, bool doTest = true)
         : base(baseSequence, pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight)
     {
-        if (doTest && !base.IsSubAdditive)
-            throw new InvalidOperationException("The curve constructed is not actually is sub-additive");
+        if (doTest && !base.IsRegularSubAdditive)
+            throw new InvalidOperationException("The curve constructed is not actually sub-additive with f(0) = 0");
     }
 
     /// <summary>
@@ -54,8 +58,8 @@ public class SubAdditiveCurve : Curve
     public SubAdditiveCurve(Curve other, bool doTest = true)
         : base(other)
     {
-        if (doTest && !base.IsSubAdditive)
-            throw new InvalidOperationException("The curve constructed is not actually is sub-additive");
+        if (doTest && !base.IsRegularSubAdditive)
+            throw new InvalidOperationException("The curve constructed is not actually sub-additive with f(0) = 0");
     }
 
     /// <summary>
@@ -76,14 +80,22 @@ public class SubAdditiveCurve : Curve
     {
         return base.IsSubAdditive;
     }
+
+    /// <summary>
+    /// Forced check for sub-additive property with f(0) = 0.
+    /// </summary>
+    /// <remarks>
+    /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
+    /// </remarks>
+    public bool IsRegularSubAdditiveCheck()
+    {
+        return base.IsSubAdditive && ValueAt(0) == 0;
+    }
     
     /// <inheritdoc />
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
-        if(this.ValueAt(0) < Rational.Zero) 
-            return MinusInfinite();
-        else
-            return this;
+        return this;
     }
 
     #region Convolution

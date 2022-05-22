@@ -308,11 +308,14 @@ public class Curve
     public bool IsUltimatelyConstant =>
         IsUltimatelyAffine && PseudoPeriodAverageSlope == 0;
 
+    // todo: add reference to proof
+
     /// <summary>
-    /// True if the curve is sub-additive.
+    /// True if the curve is sub-additive, i.e. $f(t+s) \le f(t) + f(s)$.
     /// </summary>
     /// <remarks>
-    /// Based on the following property: $f$ is sub-additive $\Rightarrow f = f \otimes f$
+    /// Based on the following property: $f(0) \ge 0, f$ is sub-additive $\iff f^\circ = f^\circ \otimes f^\circ$,
+    /// where $f^\circ$ is defined in <see cref="Curve.WithZeroOrigin"/>.
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
     public virtual bool IsSubAdditive
@@ -323,22 +326,38 @@ public class Curve
 
             bool CheckIsSubAdditive()
             {
-                var selfConv = Convolution(this, this);
-                return Equivalent(this, selfConv);
+                if (ValueAt(0) >= 0)
+                {
+                    var f_circ = WithZeroOrigin();
+                    var selfConv = Convolution(f_circ, f_circ);
+                    return Equivalent(f_circ, selfConv);
+                }
+                else
+                {
+                    // this check is more restrictive than the property described in [DNC18]
+                    return Equivalent(MinusInfinite());
+                }
             }
         }
     }
 
     /// <summary>
-    /// Private cache field for IsSubAdditive
+    /// Private cache field for IsSubAdditive.
     /// </summary>
     private bool? _IsSubAdditive;
 
     /// <summary>
-    /// True if the curve is super-additive.
+    /// True if the curve is sub-additive with $f(0) = 0$.
+    /// </summary>
+    public bool IsRegularSubAdditive
+        => IsSubAdditive && ValueAt(0) == 0;
+
+    /// <summary>
+    /// True if the curve is super-additive, i.e. $f(t+s) \ge f(t) + f(s)$.
     /// </summary>
     /// <remarks>
-    /// Based on the following property: $f$ is super-additive $\Rightarrow f = f \overline{\otimes} f$
+    /// Based on the following property: $f$ is super-additive $\iff f^\circ = f^\circ \overline{\otimes} f^\circ$,
+    /// where $f^\circ$ is defined in <see cref="Curve.WithZeroOrigin"/>.
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
     public virtual bool IsSuperAdditive
@@ -349,25 +368,47 @@ public class Curve
 
             bool CheckIsSuperAdditive()
             {
-                var selfConv = MaxPlusConvolution(this, this);
-                return Equivalent(this, selfConv);
+                if(ValueAt(0) <= 0)
+                {
+                    var f_circ = WithZeroOrigin();
+                    var selfConv = MaxPlusConvolution(f_circ, f_circ);
+                    return Equivalent(f_circ, selfConv);
+                }
+                else
+                {
+                    // this check may be more restrictive than necessary 
+                    return Equivalent(PlusInfinite());
+                }
             }
         }
     }
         
     /// <summary>
-    /// Private cache field for IsSuperAdditive
+    /// Private cache field for IsSuperAdditive.
     /// </summary>
     private bool? _IsSuperAdditive;
 
     /// <summary>
-    /// Tests if the curve is concave, i.e. if it is continuous (except at most for $t=0$) and its segments are in decreasing order
+    /// True if the curve is super-additive with $f(0) = 0$.
     /// </summary>
+    public bool IsRegularSuperAdditive
+        => IsSuperAdditive && ValueAt(0) == 0;
+
+
+    /// <summary>
+    /// Tests if the curve is concave, 
+    /// i.e. for any two points $(t, f(t))$ the straight line joining them is below $f$.
+    /// </summary>
+    /// <remarks>
+    /// The property is checked via the following property: $f$ is concave $\iff$ 
+    /// a) $f$ is continuous, or it is continuous for $t > 0$ and $f(0) \le f(0^+)$, and
+    /// b) $f$ is composed of segments with decreasing slopes.
+    /// </remarks>
     public bool IsConcave
     {
         get
         {
-            if (IsContinuousExceptOrigin && IsUltimatelyAffine)
+            if (IsContinuousExceptOrigin && ValueAt(0) <= RightLimitAt(0) && IsUltimatelyAffine)
             {
                 var prevSlope = Rational.PlusInfinity;
                 foreach (var element in BaseSequence.Elements)
@@ -388,13 +429,25 @@ public class Curve
     }
 
     /// <summary>
-    /// Tests if the curve is convex, i.e. if it is continuous and its segments are in increasing order
+    /// Tests if the curve is concave with $f(0) = 0$.
     /// </summary>
+    public bool IsRegularConcave
+        => IsConcave && ValueAt(0) == 0;
+
+    /// <summary>
+    /// Tests if the curve is convex, 
+    /// i.e. for any two points $(t, f(t))$ the straight line joining them is above $f$.
+    /// </summary>
+    /// <remarks>
+    /// The property is checked via the following property: $f$ is convex $\iff$ 
+    /// a) $f$ is continuous, or it is continuous for $t > 0$ and $f(0) \ge f(0^+)$, and
+    /// b) $f$ is composed of segments with increasing slopes.
+    /// </remarks>
     public bool IsConvex
     {
         get
         {
-            if (IsContinuous && IsUltimatelyAffine)
+            if (IsContinuousExceptOrigin && ValueAt(0) >= RightLimitAt(0) && IsUltimatelyAffine)
             {
                 var prevSlope = Rational.MinusInfinity;
                 foreach (var element in BaseSequence.Elements)
@@ -413,6 +466,12 @@ public class Curve
                 return false;
         }
     }
+
+    /// <summary>
+    /// Tests if the curve is convex with $f(0) = 0$.
+    /// </summary>
+    public bool IsRegularConvex
+        => IsConvex && ValueAt(0) == 0;
 
     /// <summary>
     /// True if pseudo-periodic behavior starts at $T > 0$.
@@ -457,11 +516,11 @@ public class Curve
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="baseSequence">Describes the curve from 0 to <see cref="PseudoPeriodStart"/> + <see cref="PseudoPeriodLength"/>.</param>
-    /// <param name="pseudoPeriodStart">Instant after which the curve is pseudo-periodic.</param>
-    /// <param name="pseudoPeriodLength">Length of each pseudo-period.</param>
-    /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period.</param>
-    /// <param name="isPartialCurve">True if the curve is partial and should be filled by pre- and post-pending $+\infty$ to <see cref="BaseSequence"/>.</param>
+    /// <param name="baseSequence">Describes the curve in $[0, T + d[$.</param>
+    /// <param name="pseudoPeriodStart">Time from which the curve is pseudo-periodic, $T$.</param>
+    /// <param name="pseudoPeriodLength">Length of each pseudo-period, $d$.</param>
+    /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
+    /// <param name="isPartialCurve">True if the curve is partially described, and should be filled by pre- and post-pending $+\infty$ to <see cref="BaseSequence"/>.</param>
     public Curve(
         Sequence baseSequence,
         Rational pseudoPeriodStart,
@@ -509,15 +568,15 @@ public class Curve
     /// <summary>
     /// Constructs a curve that is equal to $+\infty$ over any $t$.
     /// </summary>
-    public static SuperAdditiveCurve PlusInfinite()
+    public static Curve PlusInfinite()
     {
-        return new SuperAdditiveCurve(
+        return new Curve(
             baseSequence: new Sequence(new Element[] {
                 Point.PlusInfinite(0),
-                Segment.PlusInfinite(0, 50)
+                Segment.PlusInfinite(0, 1)
             }),
             pseudoPeriodStart: 0,
-            pseudoPeriodLength: 50,
+            pseudoPeriodLength: 1,
             pseudoPeriodHeight: 0
         );
     }
@@ -525,15 +584,15 @@ public class Curve
     /// <summary>
     /// Constructs a curve that is equal to $-\infty$ over any $t$.
     /// </summary>
-    public static SubAdditiveCurve MinusInfinite()
+    public static Curve MinusInfinite()
     {
-        return new SubAdditiveCurve(
+        return new Curve(
             baseSequence: new Sequence(new Element[] {
                 Point.MinusInfinite(0),
-                Segment.MinusInfinite(0, 50)
+                Segment.MinusInfinite(0, 1)
             }),
             pseudoPeriodStart: 0,
-            pseudoPeriodLength: 50,
+            pseudoPeriodLength: 1,
             pseudoPeriodHeight: 0
         );
     }
@@ -744,7 +803,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Returns the opposite function, g(t) = -f(t)
+    /// Returns the opposite function, $g(t) = -f(t)$.
     /// </summary>
     public Curve Negate()
     {
@@ -1312,7 +1371,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Convolution between two curves.
+    /// Convolution between two curves, $f \otimes g$.
     /// </summary>
     public static Curve operator *(Curve c1, Curve c2)
     {
@@ -1549,7 +1608,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Enforces $f(0) = 0$.
+    /// Enforces $f(0) = 0$, i.e. it returns $f^\circ = \min \left( f, \delta_0 \right)$.
     /// </summary>
     public Curve WithZeroOrigin()
     {
@@ -1741,7 +1800,7 @@ public class Curve
 
     /// <summary>
     /// If the curve is upper-bounded, i.e. $f(t) \le x$ for any $t$, returns $x$
-    /// Otherwise, returns <see cref="Rational.PlusInfinity"/>.
+    /// Otherwise, returns $+\infty$.
     /// </summary>
     public Rational MaxValue()
     {
@@ -1758,7 +1817,7 @@ public class Curve
 
     /// <summary>
     /// If the curve is lower-bounded, i.e. $f(t) \ge x$ for any $t$, returns $x$.
-    /// Otherwise, returns <see cref="Rational.MinusInfinity"/>.
+    /// Otherwise, returns $-\infty$.
     /// </summary>
     public Rational MinValue()
     {
@@ -3289,7 +3348,7 @@ public class Curve
     #region Max-plus operators
     
     /// <summary>
-    /// Computes the max-plus convolution of the two curves.
+    /// Computes the max-plus convolution of the two curves, $f \overline{\otimes} g$.
     /// </summary>
     /// <param name="curve"></param>
     /// <param name="settings"></param>
@@ -3302,7 +3361,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Computes the max-plus convolution of the two curves
+    /// Computes the max-plus convolution of the two curves, $f \overline{\otimes} g$.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -3340,7 +3399,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Computes the max-plus convolution of a set of curves.
+    /// Computes the max-plus convolution of a set of curves, $f \overline{\otimes} g$.
     /// </summary>
     /// <param name="curves">The set of curves to be convolved.</param>
     /// <param name="settings"></param>

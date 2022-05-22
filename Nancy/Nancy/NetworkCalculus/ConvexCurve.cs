@@ -8,11 +8,13 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.NetworkCalculus
 {
     /// <summary>
-    /// This class should be used to represent convex curves with $f(0) = 0$, 
-    /// and exploit these properties to optimize computations
+    /// This class should be used to represent convex curves with $f(0) = 0$ (see <see cref="Curve.IsRegularConvex"/>), 
+    /// and exploit these properties to optimize computations.
     /// </summary>
     /// <remarks>
-    /// $f(0) = 0$ is required for the curve to be also super-additive
+    /// $f(0) = 0$ is required for the curve to be <see cref="Curve.IsRegularSuperAdditive"/>, hence derive from <see cref="SuperAdditiveCurve" />, 
+    /// but is not required for convexity to be stable on maximum, addition and convolution.
+    /// To keep the type system simple for the common cases of NC, we opted not to support non-regular convex functions with their own type.
     /// </remarks>
     public class ConvexCurve : SuperAdditiveCurve
     {
@@ -23,8 +25,8 @@ namespace Unipi.Nancy.NetworkCalculus
             Rational pseudoPeriodHeight)
             : base(baseSequence, pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight, false)
         {
-            if (ValueAt(0) != 0 || !IsConvex)
-                throw new InvalidOperationException("The curve constructed is not actually is convex with f(0) = 0");
+            if (!IsRegularConvex)
+                throw new InvalidOperationException("The curve constructed is not actually convex with f(0) = 0");
         }
 
         /// <summary>
@@ -33,8 +35,8 @@ namespace Unipi.Nancy.NetworkCalculus
         public ConvexCurve(Curve other)
             : base(other, false) 
         {
-            if (ValueAt(0) != 0 || !IsConvex)
-                throw new InvalidOperationException("The curve constructed is not actually is convex with f(0) = 0");
+            if (!IsRegularConvex)
+                throw new InvalidOperationException("The curve constructed is not actually convex with f(0) = 0");
         }
 
         /// <inheritdoc cref="Curve.Addition(Curve)"/>

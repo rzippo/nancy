@@ -8,12 +8,14 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.NetworkCalculus
 {
     /// <summary>
-    /// This class should be used to represent concave curves with $f(0) = 0$, 
+    /// This class should be used to represent concave curves with $f(0) = 0$ (see <see cref="Curve.IsRegularConcave"/>), 
     /// and exploit these properties to optimize computations.
     /// </summary>
     /// <remarks>
-    /// $f(0) = 0$ is required for the curve to be also sub-additive, 
-    /// and for the convolution to become the minimum.
+    /// $f(0) = 0$ is required for the curve to be <see cref="Curve.IsRegularSubAdditive"/>, hence derive from <see cref="SubAdditiveCurve"/>, 
+    /// and the convolution to become the minimum, 
+    /// but is not required for concavity to be stable on minimum, addition and convolution.
+    /// To keep the type system simple for the common cases of NC, we opted not to support non-regular concave functions with their own type.
     /// </remarks>
     public class ConcaveCurve : SubAdditiveCurve
     {
@@ -24,8 +26,8 @@ namespace Unipi.Nancy.NetworkCalculus
             Rational pseudoPeriodHeight)
             : base(baseSequence, pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight, false)
         {
-            if (ValueAt(0) != 0 || !IsConcave)
-                throw new InvalidOperationException("The curve constructed is not actually is concave with f(0) = 0");
+            if (!IsRegularConcave)
+                throw new InvalidOperationException("The curve constructed is not actually concave with f(0) = 0");
         }
 
         /// <summary>
@@ -34,8 +36,8 @@ namespace Unipi.Nancy.NetworkCalculus
         public ConcaveCurve(Curve other)
             : base(other, false) 
         {
-            if (ValueAt(0) != 0 || !IsConcave)
-                throw new InvalidOperationException("The curve constructed is not actually is concave with f(0) = 0");
+            if (!IsRegularConcave)
+                throw new InvalidOperationException("The curve constructed is not actually concave with f(0) = 0");
         }
 
         /// <inheritdoc cref="Curve.Addition(Curve)"/>

@@ -1,4 +1,5 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+﻿using System;
+using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
@@ -47,14 +48,6 @@ public class PointClosure
     public void PointInZero_Negative()
     {
         Point point = new Point(time: 0, value: -1);
-
-        var closure = point.SubAdditiveClosure();
-        Assert.Equal(Rational.MinusInfinity, closure.ValueAt(0));
-        Assert.Equal(Rational.PlusInfinity, closure.ValueAt(1));
-
-        Assert.False(closure.IsContinuous);
-        Assert.False(closure.IsContinuousExceptOrigin);
-        Assert.False(closure.IsFinite);
-        Assert.False(closure.IsIdenticallyZero);
+        Assert.Throws<NotImplementedException>(() => point.SubAdditiveClosure());
     }
 }

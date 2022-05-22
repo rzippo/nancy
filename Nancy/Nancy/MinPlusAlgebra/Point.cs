@@ -800,27 +800,19 @@ public sealed class Point : Element, IEquatable<Point>
     /// <summary>
     /// Computes the sub-additive closure of the point.
     /// </summary>
-    /// <returns>The result of the sub-additive closure</returns>
+    /// <returns>The result of the sub-additive closure.</returns>
     /// <param name="settings"></param>
-    /// <remarks>Described in [BT07] Section 4.6 as algorithm 8</remarks>
+    /// <remarks>Described in [BT07] Section 4.6 as algorithm 8.</remarks>
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
         if (Time == Rational.Zero)
         {
-            Rational value = (Value >= 0) ? 0 : Rational.MinusInfinity;
-            const decimal periodLength = 50;
+            if (Value < 0)
+            {
+                throw new NotImplementedException("Sub-additive closure of negative point is not implemented.");
+            }
 
-            Sequence baseSequence = new Sequence(
-                elements: new[] { new Point(time: 0, value: value) },
-                fillFrom: 0,
-                fillTo: periodLength * 2);
-
-            return new SubAdditiveCurve(
-                baseSequence: baseSequence,
-                pseudoPeriodStart: periodLength,
-                pseudoPeriodLength: periodLength,
-                pseudoPeriodHeight: Rational.PlusInfinity
-            );
+            return new SubAdditiveCurve(new DelayServiceCurve(0));
         }
         else
         {

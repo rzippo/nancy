@@ -154,12 +154,12 @@ public abstract class Element
         => element.VerticalShift(shift);
 
     /// <summary>
-    /// Returns the opposite element, g(t) = -f(t)
+    /// Returns the opposite element, $g(t) = -f(t)$.
     /// </summary>
     public abstract Element Negate();
 
     /// <summary>
-    /// Returns the opposite element, g(t) = -f(t)
+    /// Returns the opposite element, $g(t) = -f(t)$.
     /// </summary>
     public static Element operator -(Element e)
         => e.Negate();
