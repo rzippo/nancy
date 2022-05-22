@@ -967,14 +967,14 @@ public class Curve
     }
 
     /// <summary>
-    /// Returns a cut of the curve limited to the given dominion.
+    /// Returns a cut of the curve limited to the given domain.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the dominion.</param>
-    /// <param name="cutEnd">Right extreme of the dominion.</param>
-    /// <param name="isStartInclusive">If true, the dominion is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the dominion is right-closed.</param>
+    /// <param name="cutStart">Left extreme of the domain.</param>
+    /// <param name="cutEnd">Right extreme of the domain.</param>
+    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
+    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
     /// <param name="settings"></param>
-    /// <returns>A list of elements equivalently defined within the given dominion.</returns>
+    /// <returns>A list of elements equivalently defined within the given domain.</returns>
     /// <remarks>Optimized for minimal allocations.</remarks>
     public IEnumerable<Element> CutAsEnumerable(
         Rational cutStart,
@@ -1035,14 +1035,14 @@ public class Curve
     }
 
     /// <summary>
-    /// Returns a cut of the curve limited to the given dominion.
+    /// Returns a cut of the curve limited to the given domain.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the dominion.</param>
-    /// <param name="cutEnd">Right extreme of the dominion.</param>
-    /// <param name="isStartInclusive">If true, the dominion is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the dominion is right-closed.</param>
+    /// <param name="cutStart">Left extreme of the domain.</param>
+    /// <param name="cutEnd">Right extreme of the domain.</param>
+    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
+    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
     /// <param name="settings"></param>
-    /// <returns>A sequence equivalently defined within the given dominion.</returns>
+    /// <returns>A sequence equivalently defined within the given domain.</returns>
     public Sequence Cut(
         Rational cutStart, 
         Rational cutEnd,
@@ -1282,13 +1282,13 @@ public class Curve
     }
 
     /// <summary>
-    /// Returns the number of elements of a cut of the curve limited to the given dominion.
+    /// Returns the number of elements of a cut of the curve limited to the given domain.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the dominion.</param>
-    /// <param name="cutEnd">Right extreme of the dominion.</param>
-    /// <param name="isStartInclusive">If true, the dominion is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the dominion is right-closed.</param>
-    /// <returns>The number of elements of the sequence equivalently defined within the given dominion.</returns>
+    /// <param name="cutStart">Left extreme of the domain.</param>
+    /// <param name="cutEnd">Right extreme of the domain.</param>
+    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
+    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
+    /// <returns>The number of elements of the sequence equivalently defined within the given domain.</returns>
     public int Count(
         Rational cutStart,
         Rational cutEnd,

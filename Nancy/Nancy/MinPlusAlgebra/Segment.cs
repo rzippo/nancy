@@ -79,7 +79,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     public override bool IsMinusInfinite => Slope.IsMinusInfinite;
 
     /// <summary>
-    /// True if the segment has value 0 over all of its dominion.
+    /// True if the segment has value 0 over all of its domain.
     /// </summary>
     public override bool IsIdenticallyZero => 
         RightLimitAtStartTime.IsZero && Slope.IsZero;
@@ -329,7 +329,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             return this;
 
         if (cutStart < StartTime || cutEnd > EndTime)
-            throw new ArgumentException("Cut bounds are over segment dominion");
+            throw new ArgumentException("Cut bounds are over segment domain");
 
         if (cutStart == cutEnd)
             throw new ArgumentException("Cannot cut an open segment with coinciding extremes");
@@ -395,14 +395,14 @@ public sealed class Segment : Element, IEquatable<Segment>
 
     /// <summary>
     /// Computes the point in time where two segments intersect, if they do.
-    /// Segments must be already cut to the same dominion, and an intersection is considered as such only if it happens within said dominion.
+    /// Segments must be already cut to the same domain, and an intersection is considered as such only if it happens within said domain.
     /// </summary>
-    /// <exception cref="ArgumentException">Thrown if the segments' dominions do not coincide.</exception>
-    /// <returns>The intersection time, or null if the two segments do not intersect within the dominion.</returns>
+    /// <exception cref="ArgumentException">Thrown if the segments' domains do not coincide.</exception>
+    /// <returns>The intersection time, or null if the two segments do not intersect within the domain.</returns>
     private static Rational? GetIntersectionTime(Segment a, Segment b)
     {
         if (a.StartTime != b.StartTime || a.EndTime != b.EndTime)
-            throw new ArgumentException("The two segments have not identical dominion");
+            throw new ArgumentException("The two segments have not identical domain");
 
         if (a.IsInfinite || b.IsInfinite)
             return null;

@@ -24,7 +24,7 @@ internal class Interval
         SegmentStartContained,
         SegmentEndContained,
         SegmentFullyContained,
-        SegmentDominionContainsInterval,
+        SegmentDomainContainsInterval,
         PointInside
     }
 
@@ -41,7 +41,7 @@ internal class Interval
     public Rational End { get; }
 
     /// <summary>
-    /// A set of segments whose dominion contains this interval
+    /// A set of segments whose domain contains this interval
     /// </summary>
     internal List<Element> Elements
         => ComputeElements();
@@ -232,7 +232,7 @@ internal class Interval
             bool isIntervalContainedInSegment = Start >= s.StartTime && End <= s.EndTime;
             if (isIntervalContainedInSegment)
             {
-                return OverlapTypes.SegmentDominionContainsInterval;
+                return OverlapTypes.SegmentDomainContainsInterval;
             }
             else
             {
@@ -253,7 +253,7 @@ internal class Interval
     }
 
     /// <summary>
-    /// True if there is at least partial overlap between the element dominion and the interval
+    /// True if there is at least partial overlap between the element domain and the interval
     /// </summary>
     public bool OverlapsWith(Element element) => Classify(element) != OverlapTypes.NoOverlap;
 
@@ -325,7 +325,7 @@ internal class Interval
 
             case OverlapTypes.NoOverlap:
                 throw new ArgumentException();
-            case OverlapTypes.SegmentDominionContainsInterval:
+            case OverlapTypes.SegmentDomainContainsInterval:
                 throw new ArgumentException();
 
             default:
@@ -335,7 +335,7 @@ internal class Interval
 
     /// <summary>
     /// Splits the interval so that one piece has the given segment in its set,
-    /// while maintaining the invariant that each piece is fully contained in its segments' dominions.
+    /// while maintaining the invariant that each piece is fully contained in its segments' domains.
     /// </summary>
     public List<Interval> SplitOver(Point point)
     {
@@ -359,7 +359,7 @@ internal class Interval
 
             case OverlapTypes.NoOverlap:
                 throw new ArgumentException();
-            case OverlapTypes.SegmentDominionContainsInterval:
+            case OverlapTypes.SegmentDomainContainsInterval:
                 throw new ArgumentException();
 
             default:
@@ -556,8 +556,8 @@ internal class Interval
                             if (lastIntervalWasPoint == interval.IsPointInterval)
                                 throw new InvalidOperationException("Invalid sequence of intervals");
 
-                            if (interval.Classify(s) != OverlapTypes.SegmentDominionContainsInterval)
-                                throw new InvalidOperationException("Interval dominion too large for segment");
+                            if (interval.Classify(s) != OverlapTypes.SegmentDomainContainsInterval)
+                                throw new InvalidOperationException("Interval domain too large for segment");
 
                             interval.Add(s);
                             expectedStart = interval.End;

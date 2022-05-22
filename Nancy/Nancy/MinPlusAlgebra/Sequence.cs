@@ -10,7 +10,7 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.MinPlusAlgebra;
 
 /// <summary>
-/// A piecewise affine function with a limited dominion, defined between <see cref="DefinedFrom"/> and <see cref="DefinedUntil"/>.
+/// A piecewise affine function with a limited domain, defined between <see cref="DefinedFrom"/> and <see cref="DefinedUntil"/>.
 /// Both ends can be either inclusive or exclusive.
 /// </summary>
 /// <docs position="2"/>
@@ -398,7 +398,7 @@ public sealed class Sequence : IEquatable<Sequence>
         => a.Optimize() == b.Optimize();
 
     /// <summary>
-    /// True if the <paramref name="a"/> and <paramref name="b"/> are ordered sequences of elements representing the same function, over the same dominion. 
+    /// True if the <paramref name="a"/> and <paramref name="b"/> are ordered sequences of elements representing the same function, over the same domain. 
     /// </summary>
     /// <remarks>Optimized for minimal allocations</remarks>
     public static bool Equivalent(IEnumerable<Element> a, IEnumerable<Element> b)
@@ -531,13 +531,13 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Returns the <see cref="Element"/> that describes the sequence in <paramref name="time"/>.
     /// </summary>
     /// <param name="time">Time of the sample.</param>
-    /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> is out of sequence dominion.</exception> 
+    /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> is out of sequence domain.</exception> 
     /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log(n))$</remarks>
     public Element GetActiveElementAt(Rational time)
     {
         if(!IsDefinedAt(time))
-            throw new ArgumentException("The given time is out of sequence dominion");
+            throw new ArgumentException("The given time is out of sequence domain");
 
         int firstIndex = FindFirstIndex(element => element.EndTime >= time);
         int lastIndex = FindLastIndex(element => element.StartTime <= time);
@@ -550,7 +550,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Returns the <see cref="Segment"/> that describes the sequence before <paramref name="time"/>.
     /// </summary>
     /// <param name="time">Time of the sample.</param>
-    /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> $-\epsilon$ is out of sequence dominion.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> $-\epsilon$ is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(log n)$</remarks>
     public Segment GetActiveSegmentBefore(Rational time)
@@ -570,7 +570,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Returns the <see cref="Segment"/> that describes the sequence after <paramref name="time"/>.
     /// </summary>
     /// <param name="time">Time of the sample.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time +epsilon is out of sequence dominion.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time +epsilon is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(log n)$</remarks>
     public Segment GetActiveSegmentAfter(Rational time)
@@ -591,7 +591,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </summary>
     /// <param name="time">Time of the sample.</param>
     /// <param name="startingIndex">The index from which the search should start.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time is out of sequence dominion.</exception> 
+    /// <exception cref="ArgumentException">Thrown if the given time is out of sequence domain.</exception> 
     /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
@@ -601,7 +601,7 @@ public sealed class Sequence : IEquatable<Sequence>
     public (Element element, int index) GetActiveElementAt_Linear(Rational time, int startingIndex = 0)
     {
         if(!IsDefinedAt(time))
-            throw new ArgumentException("The given time is out of sequence dominion");
+            throw new ArgumentException("The given time is out of sequence domain");
 
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
@@ -616,7 +616,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
     /// <param name="startingIndex">The index from which the search should start.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time -epsilon is out of sequence dominion.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time -epsilon is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before time t.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, O(n).
@@ -646,7 +646,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <param name="time">Time $t$ of the sample.</param>
     /// <param name="startingIndex">The index from which the search should start.</param>
     /// <exception cref="ArgumentException">Thrown if <paramref name="startingIndex"/> is not a valid index.</exception>
-    /// <exception cref="ArgumentException">Thrown if the given time +epsilon is out of sequence dominion.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time +epsilon is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after time t.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
@@ -701,13 +701,13 @@ public sealed class Sequence : IEquatable<Sequence>
         => GetOverlap(this, secondOperand);
 
     /// <summary>
-    /// Returns a cut of the sequence for a smaller dominion.
+    /// Returns a cut of the sequence for a smaller domain.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the new dominion.</param>
-    /// <param name="cutEnd">Right extreme of the new dominion.</param>
-    /// <param name="isStartInclusive">If true, the dominion is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the dominion is right-closed.</param>
-    /// <exception cref="ArgumentException">Thrown if the new dominion is not a subset of the current one.</exception>
+    /// <param name="cutStart">Left extreme of the new domain.</param>
+    /// <param name="cutEnd">Right extreme of the new domain.</param>
+    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
+    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
+    /// <exception cref="ArgumentException">Thrown if the new domain is not a subset of the current one.</exception>
     public Sequence Cut(
         Rational cutStart, 
         Rational cutEnd,
@@ -719,7 +719,7 @@ public sealed class Sequence : IEquatable<Sequence>
             throw new ArgumentException("Cut start cannot be after end.");
             
         if(cutStart < DefinedFrom || cutEnd > DefinedUntil)
-            throw new ArgumentException("Cut limits are out of the sequence dominion.");
+            throw new ArgumentException("Cut limits are out of the sequence domain.");
             
         if(isStartInclusive && !IsDefinedAt(cutStart) || isEndInclusive && !IsDefinedAt(cutEnd))
             throw new ArgumentException("Cut includes extremes that sequence does not.");
@@ -797,13 +797,13 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Returns a cut of the sequence for a smaller dominion.
+    /// Returns a cut of the sequence for a smaller domain.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the new dominion.</param>
-    /// <param name="cutEnd">Right extreme of the new dominion.</param>
-    /// <param name="isStartInclusive">If true, the dominion is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the dominion is right-closed.</param>
-    /// <exception cref="ArgumentException">Thrown if the new dominion is not a subset of the current one.</exception>
+    /// <param name="cutStart">Left extreme of the new domain.</param>
+    /// <param name="cutEnd">Right extreme of the new domain.</param>
+    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
+    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
+    /// <exception cref="ArgumentException">Thrown if the new domain is not a subset of the current one.</exception>
     /// <remarks>Optimized for minimal allocations.</remarks>
     public IEnumerable<Element> CutAsEnumerable(
         Rational cutStart,
@@ -1907,7 +1907,7 @@ public sealed class Sequence : IEquatable<Sequence>
     #region Composition
     
     /// <summary>
-    /// Compute the composition $f(g(t))$, over a limited dominion.
+    /// Compute the composition $f(g(t))$, over a limited domain.
     /// </summary>
     /// <param name="f">Outer function, defined in $[g(a), g(b^-)[$ or $[g(a), g(b^-)]$.</param>
     /// <param name="g">Inner function, non-negative and non-decreasing, defined in $[a, b[$.</param>
@@ -1994,7 +1994,7 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Compute the composition of this sequence, $f$, and $g$, i.e. $f(g(t))$, over a limited dominion.
+    /// Compute the composition of this sequence, $f$, and $g$, i.e. $f(g(t))$, over a limited domain.
     /// This sequence must be defined in $[g(a), g(b^-)[$ or $[g(a), g(b^-)]$.
     /// </summary>
     /// <param name="g">Inner function, non-negative and non-decreasing, defined in $[a, b[$.</param>
@@ -2031,14 +2031,14 @@ public static class SequenceExtensions
         => new Sequence(elements, fillFrom, fillTo);
     
     /// <summary>
-    /// Returns a cut of the sequence for a smaller dominion.
+    /// Returns a cut of the sequence for a smaller domain.
     /// </summary>
     /// <param name="elements"></param>
-    /// <param name="cutStart">Left extreme of the new dominion.</param>
-    /// <param name="cutEnd">Right extreme of the new dominion.</param>
-    /// <param name="isStartInclusive">If true, the dominion is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the dominion is right-closed.</param>
-    /// <exception cref="ArgumentException">Thrown if the new dominion is not a subset of the current one.</exception>
+    /// <param name="cutStart">Left extreme of the new domain.</param>
+    /// <param name="cutEnd">Right extreme of the new domain.</param>
+    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
+    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
+    /// <exception cref="ArgumentException">Thrown if the new domain is not a subset of the current one.</exception>
     /// <remarks>Optimized for minimal allocations</remarks>
     public static IEnumerable<Element> Cut(
         this IEnumerable<Element> elements,
@@ -2056,7 +2056,7 @@ public static class SequenceExtensions
             throw new ArgumentException("Invalid domain.");
             
         if(cutStart < enumerator.Current.StartTime)
-            throw new ArgumentException("Cut limits are out of the sequence dominion.");
+            throw new ArgumentException("Cut limits are out of the sequence domain.");
         if (isStartInclusive && enumerator.Current is Segment && enumerator.Current.StartTime == cutStart)
             throw new ArgumentException("Cut includes extremes that sequence does not.");
             
@@ -2137,11 +2137,11 @@ public static class SequenceExtensions
             }
 
             if (!enumerator.MoveNext())
-                throw new ArgumentException("Cut limits are out of the sequence dominion.");
+                throw new ArgumentException("Cut limits are out of the sequence domain.");
 
             var center = (Point)enumerator.Current;
             if (!enumerator.MoveNext())
-                throw new ArgumentException("Cut limits are out of the sequence dominion.");
+                throw new ArgumentException("Cut limits are out of the sequence domain.");
             var right = (Segment)enumerator.Current;
 
             // check for merging
