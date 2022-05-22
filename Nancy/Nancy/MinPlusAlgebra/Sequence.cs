@@ -552,7 +552,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <param name="time">Time of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> $-\epsilon$ is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
-    /// <remarks>This method is implemented using a binary search, $O(log n)$</remarks>
+    /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
     public Segment GetActiveSegmentBefore(Rational time)
     {
         try
@@ -570,9 +570,9 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Returns the <see cref="Segment"/> that describes the sequence after <paramref name="time"/>.
     /// </summary>
     /// <param name="time">Time of the sample.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time +epsilon is out of sequence domain.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after <paramref name="time"/>.</returns>
-    /// <remarks>This method is implemented using a binary search, $O(log n)$</remarks>
+    /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
     public Segment GetActiveSegmentAfter(Rational time)
     {
         try
@@ -616,12 +616,12 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
     /// <param name="startingIndex">The index from which the search should start.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time -epsilon is out of sequence domain.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time $-\epsilon$ is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before time t.</returns>
     /// <remarks>
-    /// This method is implemented using a linear search, O(n).
+    /// This method is implemented using a linear search, $O(n)$.
     /// It should be used in place of <see cref="GetActiveSegmentBefore"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
-    /// Thus, the overall cost will be O(n) &lt; O(n log n).
+    /// Thus, the overall cost will be $O(n) &lt; O(n~\log~n)$.
     /// </remarks>
     internal (Segment segment, int index) GetActiveSegmentBefore_Linear(Rational time, int startingIndex = 0)
     {
@@ -646,12 +646,12 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <param name="time">Time $t$ of the sample.</param>
     /// <param name="startingIndex">The index from which the search should start.</param>
     /// <exception cref="ArgumentException">Thrown if <paramref name="startingIndex"/> is not a valid index.</exception>
-    /// <exception cref="ArgumentException">Thrown if the given time +epsilon is out of sequence domain.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after time t.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
     /// It should be used in place of <see cref="GetActiveSegmentAfter"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
-    /// Thus, the overall cost will be $O(n) &lt; O(n log n)$.
+    /// Thus, the overall cost will be $O(n) &lt; O(n \log n)$.
     /// </remarks>
     internal (Segment segment, int index) GetActiveSegmentAfter_Linear(Rational time, int startingIndex = 0)
     {
