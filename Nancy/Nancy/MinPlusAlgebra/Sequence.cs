@@ -1245,7 +1245,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous, see [DNC18] § 3.2.1 .
-    /// Algorithmic properties discussed in [TBP22]. 
+    /// Algorithmic properties discussed in [ZNS22]. 
     /// </remarks>
     public Sequence LowerPseudoInverse(bool startFromZero = true)
     {
@@ -1261,7 +1261,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is right-continuous, thus is revertible, i.e. $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous, see [DNC18] § 3.2.1 .
-    /// Algorithmic properties discussed in [TBP22].
+    /// Algorithmic properties discussed in [ZNS22].
     /// </remarks>
     public Sequence UpperPseudoInverse(bool startFromZero = true)
     {
@@ -1913,7 +1913,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <param name="g">Inner function, non-negative and non-decreasing, defined in $[a, b[$.</param>
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
-    /// <remarks>Algorithmic properties discussed in [TBP22].</remarks>
+    /// <remarks>Algorithmic properties discussed in [ZNS22].</remarks>
     public static Sequence Composition(Sequence f, Sequence g)
     {
         if (g.IsLeftOpen || g.IsRightClosed)

@@ -1630,7 +1630,7 @@ public class Curve
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous, see [DNC18] § 3.2.1 .
-    /// Algorithmic properties discussed in [TBP22]. 
+    /// Algorithmic properties discussed in [ZNS22]. 
     /// </remarks>
     public Curve LowerPseudoInverse()
     {
@@ -1694,7 +1694,7 @@ public class Curve
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is right-continuous, thus is revertible, i.e. $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous, see [DNC18] § 3.2.1 .
-    /// Algorithmic properties discussed in [TBP22]. 
+    /// Algorithmic properties discussed in [ZNS22]. 
     /// </remarks>
     public Curve UpperPseudoInverse()
     {
@@ -3532,7 +3532,7 @@ public class Curve
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
     /// <remarks>
-    /// Algorithmic properties discussed in [TBP22].
+    /// Algorithmic properties discussed in [ZNS22].
     /// </remarks>
     public virtual Curve Composition(Curve g, ComputationSettings? settings = null)
     {
@@ -3558,7 +3558,7 @@ public class Curve
             if (f.IsUltimatelyConstant || g.IsUltimatelyConstant)
             {
                 // composition will also be U.C.
-                // the following expression for T summarise Proposition 19, 20 and 21 from [TBP22]
+                // the following expression for T summarise Proposition 19, 20 and 21 from [ZNS22]
                 T = Rational.Min(
                     g.IsUltimatelyConstant ? T_g : Rational.PlusInfinity, 
                     f.IsUltimatelyConstant ? T_f : Rational.PlusInfinity
@@ -3614,7 +3614,7 @@ public class Curve
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
     /// <remarks>
-    /// Algorithmic properties discussed in [TBP22].
+    /// Algorithmic properties discussed in [ZNS22].
     /// </remarks>
     public static Curve Composition(Curve f, Curve g, ComputationSettings? settings = null)
         => f.Composition(g, settings);
