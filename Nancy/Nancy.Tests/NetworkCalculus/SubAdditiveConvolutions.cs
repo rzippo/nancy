@@ -20,49 +20,49 @@ public class SubAdditiveConvolutions
 
     public static IEnumerable<object[]> StaircasePairTestCases()
     {
-        var testCases = new (StaircaseCurve a, StaircaseCurve b)[]
+        var testCases = new (FlowControlCurve a, FlowControlCurve b)[]
         {
             (
-                new StaircaseCurve(height: 363, latency: 149, rate: 2), 
-                new StaircaseCurve(height: 682, latency: 341, rate: 924)
+                new FlowControlCurve(height: 363, latency: 149, rate: 2), 
+                new FlowControlCurve(height: 682, latency: 341, rate: 924)
             ),
             (
-                new StaircaseCurve(3, 3, 2),
-                new StaircaseCurve(3,5, 5)
+                new FlowControlCurve(3, 3, 2),
+                new FlowControlCurve(3,5, 5)
             ),
             (
-                new StaircaseCurve(416, 835, 313),
-                new StaircaseCurve(552,571, 970)
+                new FlowControlCurve(416, 835, 313),
+                new FlowControlCurve(552,571, 970)
             ),
             (
-                new StaircaseCurve(3, 3, 2),
-                new StaircaseCurve(3,0, 5)
+                new FlowControlCurve(3, 3, 2),
+                new FlowControlCurve(3,0, 5)
             ),
             (
-                new StaircaseCurve(4, 12, 4),
-                new StaircaseCurve(3,12, 3)
+                new FlowControlCurve(4, 12, 4),
+                new FlowControlCurve(3,12, 3)
             ),
             (
-                new StaircaseCurve(4, 12, 4),
-                new StaircaseCurve(3,11, 3)
+                new FlowControlCurve(4, 12, 4),
+                new FlowControlCurve(3,11, 3)
             ),
             (
-                new StaircaseCurve(5, 12, 4),
-                new StaircaseCurve(3,11, 3)
+                new FlowControlCurve(5, 12, 4),
+                new FlowControlCurve(3,11, 3)
             ),
             #if !SKIP_LONG_TESTS
             (
-                new StaircaseCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
-                new StaircaseCurve(new Rational(5, 7), 5000, new Rational(5, 7))
+                new FlowControlCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
+                new FlowControlCurve(new Rational(5, 7), 5000, new Rational(5, 7))
             ),
             (
-                new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
-                new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
+                new FlowControlCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
+                new FlowControlCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
             ),
             #endif
             // (
-            //     new StaircaseCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
-            //     new StaircaseCurve(new Rational(17, 19), 5000, new Rational(17, 19))
+            //     new FlowControlCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
+            //     new FlowControlCurve(new Rational(17, 19), 5000, new Rational(17, 19))
             // )
         };
 
@@ -135,43 +135,43 @@ public class SubAdditiveConvolutions
         
     public static IEnumerable<object[]> StaircaseChainedTestCases()
     {
-        var testCases = new StaircaseCurve[][]
+        var testCases = new FlowControlCurve[][]
         {
             new []
             {
-                new StaircaseCurve(3, 3, 2),
-                new StaircaseCurve(3,5, 5),
-                new StaircaseCurve(416, 835, 313)
+                new FlowControlCurve(3, 3, 2),
+                new FlowControlCurve(3,5, 5),
+                new FlowControlCurve(416, 835, 313)
             },
             new []
             {
-                new StaircaseCurve(416, 835, 313),
-                new StaircaseCurve(552,571, 970),
-                new StaircaseCurve(3, 3, 2)
+                new FlowControlCurve(416, 835, 313),
+                new FlowControlCurve(552,571, 970),
+                new FlowControlCurve(3, 3, 2)
             },
             new []
             {
-                new StaircaseCurve(3, 3, 2),
-                new StaircaseCurve(3,0, 5),
-                new StaircaseCurve(4, 12, 4)
+                new FlowControlCurve(3, 3, 2),
+                new FlowControlCurve(3,0, 5),
+                new FlowControlCurve(4, 12, 4)
             },
             new []
             {
-                new StaircaseCurve(4, 12, 4),
-                new StaircaseCurve(3,12, 3),
-                new StaircaseCurve(4, 12, 4)
+                new FlowControlCurve(4, 12, 4),
+                new FlowControlCurve(3,12, 3),
+                new FlowControlCurve(4, 12, 4)
             },
             new []
             {
-                new StaircaseCurve(4, 12, 4),
-                new StaircaseCurve(3,11, 3),
-                new StaircaseCurve(5, 12, 4)
+                new FlowControlCurve(4, 12, 4),
+                new FlowControlCurve(3,11, 3),
+                new FlowControlCurve(5, 12, 4)
             },
             new []
             {
-                new StaircaseCurve(5, 12, 4),
-                new StaircaseCurve(3,11, 3),
-                new StaircaseCurve(3, 3, 2)
+                new FlowControlCurve(5, 12, 4),
+                new FlowControlCurve(3,11, 3),
+                new FlowControlCurve(3, 3, 2)
             }
         };
 
@@ -183,9 +183,9 @@ public class SubAdditiveConvolutions
         
     [Theory]
     [MemberData(nameof(StaircaseChainedTestCases))]
-    public void ConvolutionEquivalence_Chained(StaircaseCurve[] curves)
+    public void ConvolutionEquivalence_Chained(FlowControlCurve[] curves)
     {
-        var optimizedConvolution = StaircaseCurve.Convolution(curves);
+        var optimizedConvolution = FlowControlCurve.Convolution(curves);
 
         var castCurves = curves.Select(sc => new Curve(sc));
         var unoptimizedConvolution = Curve.Convolution(castCurves);
@@ -195,20 +195,20 @@ public class SubAdditiveConvolutions
         
     public static IEnumerable<object[]> StaircaseSelfTestCases()
     {
-        var testCases = new StaircaseCurve[]
+        var testCases = new FlowControlCurve[]
         {
-            new StaircaseCurve(3, 3, 2),
-            new StaircaseCurve(3,5, 5),
-            new StaircaseCurve(416, 835, 313),                
-            new StaircaseCurve(552,571, 970),
-            new StaircaseCurve(3, 3, 2),
-            new StaircaseCurve(3,0, 5),
-            new StaircaseCurve(4, 12, 4),            
-            new StaircaseCurve(3,12, 3),
-            new StaircaseCurve(4, 12, 4),            
-            new StaircaseCurve(3,11, 3),
-            new StaircaseCurve(5, 12, 4),            
-            new StaircaseCurve(3,11, 3)
+            new FlowControlCurve(3, 3, 2),
+            new FlowControlCurve(3,5, 5),
+            new FlowControlCurve(416, 835, 313),                
+            new FlowControlCurve(552,571, 970),
+            new FlowControlCurve(3, 3, 2),
+            new FlowControlCurve(3,0, 5),
+            new FlowControlCurve(4, 12, 4),            
+            new FlowControlCurve(3,12, 3),
+            new FlowControlCurve(4, 12, 4),            
+            new FlowControlCurve(3,11, 3),
+            new FlowControlCurve(5, 12, 4),            
+            new FlowControlCurve(3,11, 3)
         };
 
         foreach (var testCase in testCases)
@@ -219,7 +219,7 @@ public class SubAdditiveConvolutions
         
     [Theory]
     [MemberData(nameof(StaircaseSelfTestCases))]
-    public void ConvolutionEquivalence_Self(StaircaseCurve curve)
+    public void ConvolutionEquivalence_Self(FlowControlCurve curve)
     {
         var optimizedConvolution = Curve.Convolution(curve, curve);
 

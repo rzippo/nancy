@@ -12,12 +12,12 @@ public class CurveDominance
     {
         IEnumerable<(Curve a, Curve b, (bool verified, Curve lower, Curve upper) expected)> testCases()
         {
-            var a = new StaircaseCurve(1, 1, 2);
-            var b = new StaircaseCurve(1, 1, 4);
+            var a = new FlowControlCurve(1, 1, 2);
+            var b = new FlowControlCurve(1, 1, 4);
             yield return (a, b, (true, a, b));
             yield return (b, a, (true, a, b));
 
-            var c = new StaircaseCurve(2, 1, 8);
+            var c = new FlowControlCurve(2, 1, 8);
             yield return (b, c, (true, b, c));
             yield return (c, b, (true, b, c));
             yield return (a, c, (true, a, c));
@@ -34,8 +34,8 @@ public class CurveDominance
     {
         IEnumerable<(Curve a, Curve b, (bool verified, Curve lower, Curve upper) expected)> testCases()
         {
-            var a = new StaircaseCurve(40, 40, 40);
-            var b = new StaircaseCurve(4, 4, 8);
+            var a = new FlowControlCurve(40, 40, 40);
+            var b = new FlowControlCurve(4, 4, 8);
             yield return (a, b, (true, a, b));
             yield return (b, a, (true, a, b));
 
@@ -85,8 +85,8 @@ public class CurveDominance
     {
         IEnumerable<(Curve a, Curve b, (bool verified, Curve lower, Curve upper) expected)> testCases()
         {
-            var a = new StaircaseCurve(2, 40, 2);
-            var b = new StaircaseCurve(8, 4, 8);
+            var a = new FlowControlCurve(2, 40, 2);
+            var b = new FlowControlCurve(8, 4, 8);
             yield return (a, b, (false, a, b));
             yield return (b, a, (false, a, b));
         };

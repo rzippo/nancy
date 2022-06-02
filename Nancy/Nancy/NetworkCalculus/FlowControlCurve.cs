@@ -10,7 +10,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// Result of the sub-additive closure of a rate-latency service curve and a constant, as used in static window flow control: $\overline{\beta_{R, \theta} + W}$.
 /// For completeness, also degenerate cases are defined.
 /// </summary>
-public class StaircaseCurve : SubAdditiveCurve
+public class FlowControlCurve : SubAdditiveCurve
 {
     /// <summary>
     /// Time in-between a step and the next one.
@@ -30,7 +30,7 @@ public class StaircaseCurve : SubAdditiveCurve
     /// <summary>
     /// Constructor.
     /// </summary>
-    public StaircaseCurve(Rational latency, Rational rate, Rational height)
+    public FlowControlCurve(Rational latency, Rational rate, Rational height)
         : base(
             baseSequence: BuildSequence(latency, rate, height),
             pseudoPeriodStart: PeriodStart(latency, rate, height),
@@ -152,6 +152,6 @@ public class StaircaseCurve : SubAdditiveCurve
     /// <param name="curves">The set of staircase curves to be convolved.</param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the overall convolution.</returns>
-    public static SubAdditiveCurve Convolution(IEnumerable<StaircaseCurve> curves, ComputationSettings? settings = null)
+    public static SubAdditiveCurve Convolution(IEnumerable<FlowControlCurve> curves, ComputationSettings? settings = null)
         => SubAdditiveCurve.Convolution(curves, settings);
 }

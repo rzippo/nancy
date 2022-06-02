@@ -264,16 +264,16 @@ public class CurveConvolution
                     pseudoPeriodHeight: 6
                 ),
                 b: new Curve(
-                    new StaircaseCurve(5, 4, 10)
+                    new FlowControlCurve(5, 4, 10)
                 )
             ),
             #if !SKIP_LONG_TESTS
             (
                 a: new Curve(
-                    new StaircaseCurve(162, 311, 7938)
+                    new FlowControlCurve(162, 311, 7938)
                 ),
                 b: new Curve(
-                    new StaircaseCurve(279, 64, 13671)
+                    new FlowControlCurve(279, 64, 13671)
                 )
             )
             #endif

@@ -779,9 +779,9 @@ public class Curve
         else
         {
             var minimum = Minimum(a, b);
-            if (a.SequenceMatch(minimum.PseudoPeriodicSequence))
+            if (a.Match(minimum.PseudoPeriodicSequence))
                 return (true, a, b);
-            else if (b.SequenceMatch(minimum.PseudoPeriodicSequence))
+            else if (b.Match(minimum.PseudoPeriodicSequence))
                 return (true, b, a);
             else
                 return (false, a, b);
@@ -924,7 +924,7 @@ public class Curve
     /// <summary>
     /// True if the given element matches, in its domain, with the curve.
     /// </summary>
-    public bool ElementMatch(Element element, ComputationSettings? settings = null)
+    public bool Match(Element element, ComputationSettings? settings = null)
     {
         switch (element)
         {
@@ -948,10 +948,10 @@ public class Curve
     /// <summary>
     /// True if the given sequence matches, in its domain, with the curve.
     /// </summary>
-    public bool SequenceMatch(Sequence sequence, ComputationSettings? settings = null)
+    public bool Match(Sequence sequence, ComputationSettings? settings = null)
     {
         return sequence.Elements
-            .All(e => ElementMatch(e, settings));
+            .All(e => Match(e, settings));
     }
         
     private Sequence GetExtensionSequenceAt(Rational time, ComputationSettings? settings = null)

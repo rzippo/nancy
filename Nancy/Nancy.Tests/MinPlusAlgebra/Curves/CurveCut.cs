@@ -13,25 +13,25 @@ public class CurveCut
         var testCases = new (Curve curve, Rational cutStart, Rational cutEnd)[]
         {
             (
-                new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
+                new FlowControlCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
                 0,
                 630
             ),
             (
-                new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13)),
+                new FlowControlCurve(new Rational(3*7*13), 5000, new Rational(3*7*13)),
                 0,
                 630
             ),
             (
                 Curve.Minimum(
-                    new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
-                    new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
+                    new FlowControlCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
+                    new FlowControlCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
                 ),
                 0,
                 630
             ),
             (
-                new StaircaseCurve(height: 363, latency: 149, rate: 2), 
+                new FlowControlCurve(height: 363, latency: 149, rate: 2), 
                 new Rational(314467,922),
                 new Rational(1299, 2)
             ),

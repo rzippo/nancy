@@ -36,7 +36,7 @@ public class GenericCurveConverter : JsonConverter
                 new TwoRatesServiceCurveConverter(),
                 new DelayServiceCurveConverter(),
                 new RaisedRateLatencyServiceCurveConverter(),
-                new StaircaseCurveConverter(),
+                new FlowControlCurveConverter(),
                 new SubAdditiveCurveConverter()
             }
         };
@@ -80,8 +80,8 @@ public class GenericCurveConverter : JsonConverter
                 result = jo.ToObject<RaisedRateLatencyServiceCurve>(curveSerializer);
                 break;
                 
-            case StaircaseCurveConverter.TypeCode:
-                result = jo.ToObject<StaircaseCurve>(curveSerializer);
+            case FlowControlCurveConverter.TypeCode:
+                result = jo.ToObject<FlowControlCurve>(curveSerializer);
                 break;
                 
             case SubAdditiveCurveConverter.TypeCode:
@@ -113,7 +113,7 @@ public class GenericCurveConverter : JsonConverter
                 new TwoRatesServiceCurveConverter(),
                 new DelayServiceCurveConverter(),
                 new RaisedRateLatencyServiceCurveConverter(),
-                new StaircaseCurveConverter(),
+                new FlowControlCurveConverter(),
                 new SubAdditiveCurveConverter()
             }
         };

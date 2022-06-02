@@ -74,8 +74,8 @@ public class SequenceGetActiveElement
                 .Cut(0, 20)
             ),
             (
-                a: new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)).Cut(0, 300),
-                b: new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13)).Cut(0, 300)
+                a: new FlowControlCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)).Cut(0, 300),
+                b: new FlowControlCurve(new Rational(3*7*13), 5000, new Rational(3*7*13)).Cut(0, 300)
             )
         };
 

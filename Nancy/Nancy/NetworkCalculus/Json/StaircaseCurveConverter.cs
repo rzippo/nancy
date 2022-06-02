@@ -9,14 +9,14 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// <summary>
 /// Custom JsonConverter for <see cref="RateLatencyServiceCurve"/>.
 /// </summary>
-public class StaircaseCurveConverter : JsonConverter
+public class FlowControlCurveConverter : JsonConverter
 {
     private const string TypeName = "type";
 
     /// <summary>
     /// Code used in JSON output to distinguish this type 
     /// </summary>
-    public const string TypeCode = "staircaseCurve";
+    public const string TypeCode = "flowControlCurve";
 
     private static readonly string DelayName = "delay";
     private static readonly string RateName = "rate";
@@ -25,7 +25,7 @@ public class StaircaseCurveConverter : JsonConverter
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
-        return (objectType == typeof(StaircaseCurve));
+        return (objectType == typeof(FlowControlCurve));
     }
 
     /// <inheritdoc />
@@ -37,7 +37,7 @@ public class StaircaseCurveConverter : JsonConverter
         Rational rate = jo[RateName]!.ToObject<Rational>();
         Rational height = jo[HeightName]!.ToObject<Rational>();
 
-        StaircaseCurve curve = new StaircaseCurve(
+        FlowControlCurve curve = new FlowControlCurve(
             latency: delay,
             rate: rate,
             height: height
@@ -50,7 +50,7 @@ public class StaircaseCurveConverter : JsonConverter
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
-        StaircaseCurve curve = (StaircaseCurve) value;
+        FlowControlCurve curve = (FlowControlCurve) value;
 
         JObject jo = new JObject
         {

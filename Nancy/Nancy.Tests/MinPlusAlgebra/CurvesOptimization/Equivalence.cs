@@ -68,43 +68,43 @@ public class Equivalence
         Assert.True(optimizedCurve.Equivalent(curve));
     }
 
-    public static IEnumerable<object[]> StaircaseCurvesTestCases()
+    public static IEnumerable<object[]> FlowControlCurvesTestCases()
     {
-        var testCases = new StaircaseCurve[][]
+        var testCases = new FlowControlCurve[][]
         {
             new []
             {
-                new StaircaseCurve(4, 12, 4),
-                new StaircaseCurve(3, 12, 3),
-                new StaircaseCurve(4, 12, 4)
+                new FlowControlCurve(4, 12, 4),
+                new FlowControlCurve(3, 12, 3),
+                new FlowControlCurve(4, 12, 4)
             },
             new []
             {
-                new StaircaseCurve(4, 12, 4),
-                new StaircaseCurve(3,12, 3)
+                new FlowControlCurve(4, 12, 4),
+                new FlowControlCurve(3,12, 3)
             },
             new []
             {
-                new StaircaseCurve(4, 12, 4),
-                new StaircaseCurve(3,11, 3)   
+                new FlowControlCurve(4, 12, 4),
+                new FlowControlCurve(3,11, 3)   
             },
             new []
             {
-                new StaircaseCurve(5, 12, 4),
-                new StaircaseCurve(3,11, 3),
-                new StaircaseCurve(3, 3, 2)
+                new FlowControlCurve(5, 12, 4),
+                new FlowControlCurve(3,11, 3),
+                new FlowControlCurve(3, 3, 2)
             },
             new []
             {
-                new StaircaseCurve(3, 3, 2),
-                new StaircaseCurve(3,5, 5)
+                new FlowControlCurve(3, 3, 2),
+                new FlowControlCurve(3,5, 5)
             },
             #if !SKIP_LONG_TESTS
             new []
             {
-                new StaircaseCurve(3, 3, 2),
-                new StaircaseCurve(3,5, 5),
-                new StaircaseCurve(416, 835, 313)
+                new FlowControlCurve(3, 3, 2),
+                new FlowControlCurve(3,5, 5),
+                new FlowControlCurve(416, 835, 313)
             }
             #endif
         };
@@ -116,8 +116,8 @@ public class Equivalence
     }
 
     [Theory]
-    [MemberData(nameof(StaircaseCurvesTestCases))]
-    public void StairCaseOperations(StaircaseCurve[] curves)
+    [MemberData(nameof(FlowControlCurvesTestCases))]
+    public void StairCaseOperations(FlowControlCurve[] curves)
     {
         var minOptimized = Curve.Minimum(curves, new ComputationSettings{AutoOptimize = true});
         var minUnoptimized = Curve.Minimum(curves, new ComputationSettings{AutoOptimize = false});
@@ -135,8 +135,8 @@ public class Equivalence
     }
         
     [Theory]
-    [MemberData(nameof(StaircaseCurvesTestCases))]
-    public void StairCaseOperations_General(StaircaseCurve[] curves)
+    [MemberData(nameof(FlowControlCurvesTestCases))]
+    public void StairCaseOperations_General(FlowControlCurve[] curves)
     {
         var castCurves = curves.Select(c => new Curve(c)).ToArray();
             
@@ -154,8 +154,8 @@ public class Equivalence
     }
         
     [Theory]
-    [MemberData(nameof(StaircaseCurvesTestCases))]
-    public void StairCaseOperations_General_AsArgs(StaircaseCurve[] curves)
+    [MemberData(nameof(FlowControlCurvesTestCases))]
+    public void StairCaseOperations_General_AsArgs(FlowControlCurve[] curves)
     {
         var unoptimized = curves.Select(c => new Curve(c)).ToArray();
         var optimized = unoptimized.Select(c => c.Optimize()).ToArray();
@@ -175,7 +175,7 @@ public class Equivalence
         
     public static IEnumerable<object[]> StaircaseTestCases()
     {
-        var testCases = new StaircaseCurve[]
+        var testCases = new FlowControlCurve[]
         {
             new (4, 12, 4),
             new (3, 12, 3),

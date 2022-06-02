@@ -97,7 +97,7 @@ public class CurveDeconvolution
             ),
             (
                 arrival: new SigmaRhoArrivalCurve(3, 0.8m),
-                service: new StaircaseCurve(5, 2, 5)
+                service: new FlowControlCurve(5, 2, 5)
             )
         };
 
@@ -138,7 +138,7 @@ public class CurveDeconvolution
         {
             new SigmaRhoArrivalCurve(1, 0),
             new SigmaRhoArrivalCurve(5, 0),
-            new StaircaseCurve(3, 4, 2),
+            new FlowControlCurve(3, 4, 2),
         };
 
         foreach (var curve in testcases)

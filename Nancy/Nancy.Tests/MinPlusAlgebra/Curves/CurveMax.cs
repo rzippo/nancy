@@ -65,8 +65,8 @@ public class CurveMax
                 )
             ),
             (
-                a: new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
-                b: new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
+                a: new FlowControlCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
+                b: new FlowControlCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
             )
         };
 

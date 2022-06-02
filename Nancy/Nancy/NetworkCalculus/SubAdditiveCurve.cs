@@ -164,8 +164,8 @@ public class SubAdditiveCurve : Curve
         {
             if(
                 this.PseudoPeriodAverageSlope != curve.PseudoPeriodAverageSlope ||
-                this.SequenceMatch(minimum.PseudoPeriodicSequence, settings) ||
-                curve.SequenceMatch(minimum.PseudoPeriodicSequence, settings)
+                this.Match(minimum.PseudoPeriodicSequence, settings) ||
+                curve.Match(minimum.PseudoPeriodicSequence, settings)
             )
             {
                 // Use theorem 3.5.8 [3]
@@ -184,7 +184,7 @@ public class SubAdditiveCurve : Curve
                     lower = curve;
                     higher = this;
                 }
-                else if (this.SequenceMatch(minimum.PseudoPeriodicSequence))
+                else if (this.Match(minimum.PseudoPeriodicSequence))
                 {
                     lower = this;
                     higher = curve;
@@ -259,9 +259,9 @@ public class SubAdditiveCurve : Curve
         var colors = minimumCut.Elements
             .Select(element =>
             {
-                if(a.ElementMatch(element, settings))
+                if(a.Match(element, settings))
                     return Color.A;
-                else if (b.ElementMatch(element, settings))
+                else if (b.Match(element, settings))
                     return Color.B;
                 else
                     return Color.Both;
@@ -529,8 +529,8 @@ public class SubAdditiveCurve : Curve
         {
             if(
                 this.PseudoPeriodAverageSlope != curve.PseudoPeriodAverageSlope ||
-                this.SequenceMatch(minimum.PseudoPeriodicSequence, settings) ||
-                curve.SequenceMatch(minimum.PseudoPeriodicSequence, settings)
+                this.Match(minimum.PseudoPeriodicSequence, settings) ||
+                curve.Match(minimum.PseudoPeriodicSequence, settings)
             )
             {
                 // Use theorem 3.5.8 [3]
@@ -549,7 +549,7 @@ public class SubAdditiveCurve : Curve
                     lower = curve;
                     higher = this;
                 }
-                else if (this.SequenceMatch(minimum.PseudoPeriodicSequence))
+                else if (this.Match(minimum.PseudoPeriodicSequence))
                 {
                     lower = this;
                     higher = curve;
@@ -605,9 +605,9 @@ public class SubAdditiveCurve : Curve
         var colors = minimumCut.Elements
             .Select(element =>
             {
-                if(a.ElementMatch(element))
+                if(a.Match(element))
                     return Color.A;
-                else if (b.ElementMatch(element))
+                else if (b.Match(element))
                     return Color.B;
                 else
                     return Color.Both;

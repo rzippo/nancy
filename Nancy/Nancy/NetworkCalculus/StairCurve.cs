@@ -4,7 +4,7 @@ using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
 
-// should consider a better name scheme for this and StaircaseCurve
+// should consider a better name scheme for this and FlowControlCurve
 
 /// <summary>
 /// Stair curve defined in [TLBB21] as $v(t) = a \cdot \left\lceil \frac{t}{b} \right\rceil$

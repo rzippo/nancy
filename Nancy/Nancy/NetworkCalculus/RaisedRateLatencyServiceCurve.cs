@@ -133,6 +133,6 @@ public class RaisedRateLatencyServiceCurve : Curve
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
         //Actual shape may not be staircase, but is guaranteed to be sub-additive
-        return new StaircaseCurve(latency: Latency, rate: Rate, height: BufferShift);
+        return new FlowControlCurve(latency: Latency, rate: Rate, height: BufferShift);
     }
 }

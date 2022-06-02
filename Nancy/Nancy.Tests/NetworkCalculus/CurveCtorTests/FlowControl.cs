@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Unipi.Nancy.Tests.NetworkCalculus.CurveCtorTests;
 
-public class Staircase
+public class FlowControl
 {
     public static IEnumerable<object[]> GetTestCases()
     {
@@ -26,9 +26,9 @@ public class Staircase
 
     [Theory]
     [MemberData(nameof(GetTestCases))]
-    public void StaircaseCtor(Rational delay, Rational rate, Rational height)
+    public void FlowControlCtor(Rational delay, Rational rate, Rational height)
     {
-        var curve = new StaircaseCurve(delay, rate, height);
+        var curve = new FlowControlCurve(delay, rate, height);
 
         Assert.True(curve.IsFinite);
         Assert.Equal(height == 0 && delay != 0, curve.IsIdenticallyZero);

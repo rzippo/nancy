@@ -201,8 +201,8 @@ public class CurveMin
         var testCases = new (Curve a, Curve b, Rational[] times)[]
         {
             (
-                new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
-                new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13)),
+                new FlowControlCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
+                new FlowControlCurve(new Rational(3*7*13), 5000, new Rational(3*7*13)),
                 new Rational[]{ 
                     383,
                     new (174265019/455000),
@@ -284,8 +284,8 @@ public class CurveMin
                 )
             ),
             (
-                a: new StaircaseCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
-                b: new StaircaseCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
+                a: new FlowControlCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
+                b: new FlowControlCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
             )
         };
 

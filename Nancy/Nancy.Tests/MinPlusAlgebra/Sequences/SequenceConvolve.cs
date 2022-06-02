@@ -90,8 +90,8 @@ public class SequenceConvolution
     [Fact]
     public void CommutativityByPairs()
     {
-        var a = new StaircaseCurve(4, 12, 4);
-        var b = new StaircaseCurve(3, 11, 3);
+        var a = new FlowControlCurve(4, 12, 4);
+        var b = new FlowControlCurve(3, 11, 3);
         var min = Curve.Minimum(a, b, new (){AutoOptimize = false});
         var minCut = min.Cut(0, 31);
             
@@ -113,8 +113,8 @@ public class SequenceConvolution
     [Fact]
     public void CommutativityOfSymmetricalPairs()
     {
-        var a = new StaircaseCurve(4, 12, 4);
-        var b = new StaircaseCurve(3, 11, 3);
+        var a = new FlowControlCurve(4, 12, 4);
+        var b = new FlowControlCurve(3, 11, 3);
         var min = Curve.Minimum(a, b, new (){AutoOptimize = false});
         var minCut = min.Cut(0, 31);
 
@@ -153,8 +153,8 @@ public class SequenceConvolution
     [Fact]
     public void CommutativityOfSymmetricalPairs_WithColoring()
     {
-        var a = new StaircaseCurve(4, 12, 4);
-        var b = new StaircaseCurve(3, 11, 3);
+        var a = new FlowControlCurve(4, 12, 4);
+        var b = new FlowControlCurve(3, 11, 3);
         var min = Curve.Minimum(a, b, new (){AutoOptimize = false});
         var minCut = min.Cut(0, 31);
 
@@ -162,9 +162,9 @@ public class SequenceConvolution
         var colors = minCut.Elements
             .Select(element =>
                 {
-                    if(a.ElementMatch(element))
+                    if(a.Match(element))
                         return Color.A;
-                    else if (b.ElementMatch(element))
+                    else if (b.Match(element))
                         return Color.B;
                     else
                         return Color.Both;
