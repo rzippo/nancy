@@ -1756,11 +1756,14 @@ public class Curve
     /// Computes the horizontal deviation between the two curves, $h(a, b)$.
     /// If <paramref name="a"/> is an arrival curve and <paramref name="b"/> a service curve, the result will be the worst-case delay.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">Must be non-decreasing.</param>
+    /// <param name="b">Must be non-decreasing.</param>
     /// <returns>A non-negative horizontal deviation.</returns>
     public static Rational HorizontalDeviation(Curve a, Curve b)
     {
+        if (!a.IsNonDecreasing || !b.IsNonDecreasing)
+            throw new ArgumentException("The arguments must be non-decreasing.");
+        
         if (a is SigmaRhoArrivalCurve sr && b is RateLatencyServiceCurve rl)
         {
             if(rl.Rate >= sr.Rho)
@@ -1770,9 +1773,24 @@ public class Curve
         }
         else
         {
-            var hDev = b.LowerPseudoInverse().Composition(a)
+            // the following are mathematically equivalent methods
+            #if false
+            var a_upi = a.UpperPseudoInverse();
+            var b_upi = b.UpperPseudoInverse();
+            var hDev = -MaxPlusDeconvolution(a_lpi, b_lpi).ValueAt(0);
+            #endif
+            #if false
+            var hDev = b.LowerPseudoInverse()
+                .Composition(a)
                 .Deconvolution(new RateLatencyServiceCurve(1, 0))
                 .ValueAt(0);
+            #endif
+            #if true
+            var hDev = b.LowerPseudoInverse()
+                .Composition(a)
+                .Subtraction(new RateLatencyServiceCurve(1, 0))
+                .MaxValue();
+            #endif
             return hDev;
         }
     }

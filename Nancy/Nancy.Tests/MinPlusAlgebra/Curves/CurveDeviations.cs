@@ -124,6 +124,29 @@ public class CurveDeviations
     }
     
     [Theory]
+    [MemberData(nameof(GetHorizontalTestCases))]
+    public void HorizontalDeviationAlternativesTest(Curve a, Curve b, Rational expected)
+    {
+        // the following are mathematically equivalent methods to compute hdev(a, b)
+        var a_upi = a.UpperPseudoInverse();
+        var b_upi = b.UpperPseudoInverse();
+        var hDev_1 = -Curve.MaxPlusDeconvolution(a_upi, b_upi).ValueAt(0);
+        var b_lpi = b.LowerPseudoInverse();
+        var hDev_2 = b_lpi
+            .Composition(a)
+            .Deconvolution(new RateLatencyServiceCurve(1, 0))
+            .ValueAt(0);
+        var hDev_3 = b_lpi
+            .Composition(a)
+            .Subtraction(new RateLatencyServiceCurve(1, 0))
+            .MaxValue();
+
+        Assert.Equal(hDev_1, hDev_2);
+        Assert.Equal(hDev_2, hDev_3);
+        Assert.Equal(expected, hDev_3);
+    }
+    
+    [Theory]
     [MemberData(nameof(GetVerticalTestCases))]
     public void VerticalDeviationTest(Curve a, Curve b, Rational expected)
     {
