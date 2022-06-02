@@ -3318,10 +3318,10 @@ public class Curve
 
             Sequence firstCut = Cut(0, T + FirstPseudoPeriodEnd, settings: settings);
             Sequence secondCut = curve.Cut(0, T, settings: settings);
-            Sequence cutDeconvolution = Sequence.Deconvolution(firstCut, secondCut, settings).Optimize();
+            Sequence cutDeconvolution = Sequence.Deconvolution(firstCut, secondCut, 0, FirstPseudoPeriodEnd, settings).Optimize();
 
             return new Curve(
-                baseSequence: cutDeconvolution.Cut(0, FirstPseudoPeriodEnd),
+                baseSequence: cutDeconvolution,
                 pseudoPeriodStart: PseudoPeriodStart,
                 pseudoPeriodLength: PseudoPeriodLength,
                 pseudoPeriodHeight: PseudoPeriodHeight

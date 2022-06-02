@@ -1786,14 +1786,13 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
+    /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
+    /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, extreme excluded.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT07], section 4.5</remarks>
-    public static Sequence Deconvolution(Sequence a, Sequence b, ComputationSettings? settings = null)
+    public static Sequence Deconvolution(Sequence a, Sequence b, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
     {
-        //todo: check deconvolution vs infinite elements
-        //currently code doesn't check for infinity
-
 #if !SKIP_COSTLY_LOGS
             logger.Trace($"Convolution between sequence a:\n {a} \n and sequence b:\n {b}");
 #endif
@@ -1804,25 +1803,46 @@ public sealed class Sequence : IEquatable<Sequence>
             .SelectMany(ea => b.Elements
                 .Select(eb => (a: ea, b: eb))
             )
+            .Where(pair => pair.a.IsFinite && pair.b.IsFinite)
+            .Where(pair => cutStart == null || pair.a.EndTime - pair.b.StartTime >= cutStart)
             .ToList();
-            
-        if (elementPairs.Count <= ParallelizationThreshold)
-            return SimpleDeconvolution();
-        else
-            return ParallelDeconvolution();
 
-        Sequence SimpleDeconvolution()
+        List<Element> result;
+        if (elementPairs.Count <= ParallelizationThreshold)
+            result = SimpleDeconvolution();
+        else
+            result = ParallelDeconvolution();
+
+        var resultStart = result.First().StartTime;
+        var resultEnd = result.Last().EndTime;
+
+        if (cutStart != null || cutEnd != null)
+        {
+            IEnumerable<Element> cutResult = result;
+            if (cutEnd != null)
+                cutResult = cutResult.Fill(resultStart, cutEnd.Value);
+            
+            var start = cutStart != null ? cutStart.Value : resultStart;
+            var end = cutEnd != null ? cutEnd.Value : resultEnd;
+            cutResult = cutResult.Cut(start, end);
+            return cutResult.ToSequence();
+        }
+        else
+        {
+            return result.ToSequence();
+        }
+        
+        List<Element> SimpleDeconvolution()
         {
             var deconvolutionElements = elementPairs
                 .SelectMany( pair => Element.Deconvolution(pair.a, pair.b))
                 .ToList();
 
             return deconvolutionElements
-                .UpperEnvelope(settings)
-                .ToSequence();
+                .UpperEnvelope(settings);
         }
 
-        Sequence ParallelDeconvolution()
+        List<Element> ParallelDeconvolution()
         {
             var deconvolutionElements = elementPairs
                 .AsParallel()
@@ -1830,8 +1850,7 @@ public sealed class Sequence : IEquatable<Sequence>
                 .ToList();
 
             return deconvolutionElements
-                .UpperEnvelope(settings)
-                .ToSequence();
+                .UpperEnvelope(settings);
         }
     }
 
@@ -1839,11 +1858,13 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Computes the deconvolution of two sequences, $f \oslash g$.
     /// </summary>
     /// <param name="sequence"></param>
+    /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
+    /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, extreme excluded.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT07], section 4.5</remarks>
-    public Sequence Deconvolution(Sequence sequence, ComputationSettings? settings = null)
-        => Deconvolution(a: this, b: sequence, settings);
+    public Sequence Deconvolution(Sequence sequence, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
+        => Deconvolution(a: this, b: sequence, cutStart, cutEnd, settings);
 
     #endregion Deconvolution operator
     
@@ -1886,7 +1907,7 @@ public sealed class Sequence : IEquatable<Sequence>
     public static Sequence MaxPlusDeconvolution(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
         logger.Trace("Computing max-plus deconvolution");
-        return -Deconvolution(-a, -b, settings);
+        return -Deconvolution(-a, -b, settings: settings);
     }
     
     /// <summary>
@@ -1899,7 +1920,7 @@ public sealed class Sequence : IEquatable<Sequence>
     public Sequence MaxPlusDeconvolution(Sequence sequence, ComputationSettings? settings = null)
     {
         logger.Trace("Computing max-plus deconvolution");
-        return -Deconvolution(-this, -sequence, settings);
+        return -Deconvolution(-this, -sequence, settings: settings);
     }
 
     #endregion Max-plus operators

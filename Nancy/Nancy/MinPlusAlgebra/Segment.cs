@@ -1319,6 +1319,9 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 8</remarks>
     public static List<Element> Deconvolution(Segment a, Segment b)
     {
+        if (a.IsInfinite || b.IsInfinite)
+            throw new ArgumentException("The arguments must be finite.");
+        
         Segment minSlopeSegment, maxSlopeSegment;
         if (a.Slope < b.Slope)
         {

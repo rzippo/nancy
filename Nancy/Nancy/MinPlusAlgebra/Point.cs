@@ -777,6 +777,9 @@ public sealed class Point : Element, IEquatable<Point>
     /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 7</remarks>
     public static Segment Deconvolution(Point point, Segment segment)
     {
+        if (point.IsInfinite || segment.IsInfinite)
+            throw new ArgumentException("The arguments must be finite.");
+        
         return new Segment(
             startTime: point.Time - segment.EndTime,
             endTime: point.Time - segment.StartTime,
