@@ -302,7 +302,8 @@ public class Curve
     public bool IsUltimatelyAffine =>
         IsUltimatelyFinite
         && PseudoPeriodicElements.Count() == 2
-        && ((Segment)PseudoPeriodicElements.Last()).Slope == PseudoPeriodAverageSlope;
+        && ((Segment)PseudoPeriodicElements.Last()).Slope == PseudoPeriodAverageSlope
+        && IsContinuousAt(FirstPseudoPeriodEnd);
 
     /// <summary>
     /// True if for $t \ge$ <see cref="PseudoPeriodStart"/> the curve is constant.
@@ -1439,8 +1440,11 @@ public class Curve
             return this;
 
         if (shift == Rational.PlusInfinity)
-            return PlusInfinite();
-            
+            return exceptOrigin ? PlusInfinite().WithZeroOrigin() : PlusInfinite();
+
+        if (exceptOrigin && IsIdenticallyZero)
+            return new ConstantCurve(shift);
+        
         return new Curve(
             baseSequence: BaseSequence.VerticalShift(shift, exceptOrigin),
             pseudoPeriodStart: PseudoPeriodStart,

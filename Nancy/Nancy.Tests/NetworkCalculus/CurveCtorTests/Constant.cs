@@ -73,6 +73,11 @@ public class Constant
         Assert.Equal(0, curve.ValueAt(12));
         Assert.Equal(0, curve.ValueAt(17));
         Assert.Equal(0, curve.ValueAt(128.3m));
+
+        var shifted = curve.VerticalShift(3);
+        Assert.True(shifted.IsUltimatelyConstant);
+        shifted = curve.Optimize().VerticalShift(3);
+        Assert.True(shifted.IsUltimatelyConstant);
     }
 
 

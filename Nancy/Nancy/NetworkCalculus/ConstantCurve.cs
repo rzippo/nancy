@@ -65,7 +65,18 @@ public class ConstantCurve : SubAdditiveCurve
     }
 
     internal static readonly Rational DefaultPeriodLength = 1;
-    
+
+    /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>
+    public override Curve VerticalShift(Rational shift, bool exceptOrigin = true)
+    {
+        if (shift == 0)
+            return this;
+        if (exceptOrigin)
+            return new ConstantCurve(Value + shift);
+        else
+            return base.VerticalShift(shift, exceptOrigin);
+    }
+
     /// <inheritdoc cref="Curve.Addition(Curve)"/>
     public override Curve Addition(Curve curve)
     {
