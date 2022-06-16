@@ -361,4 +361,54 @@ public class CurveUpperPseudoInverse
             Assert.True(result2.IsLeftContinuous);
         Assert.True(Curve.Equivalent(operand, result2));
     }
+    
+    public static IEnumerable<object[]> NegativeTestCases()
+    {
+        var testcases = new (Curve operand, Curve expected)[]
+        {
+            (
+                operand: new Curve(
+                    baseSequence: new Sequence(
+                        new Element[]
+                        {
+                            new Point(0, new Rational(-11, 4)),
+                            new Segment(startTime: 0, 3, new Rational(-11, 4), new Rational(1, 4)),
+                            new Point(3, -2),
+                            new Segment(3, 4, -2, new Rational(1, 2))
+                        }
+                    ),
+                    pseudoPeriodStart: 3,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: new Rational(1, 2)
+                ),
+                expected: new Curve(
+                    baseSequence: new Sequence(
+                        new Element[]
+                        {
+                            new Point(0, 7),
+                            new Segment(startTime: 0, 1, 7, 2)
+                        }
+                    ),
+                    pseudoPeriodStart: 0,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 2
+                )
+            )
+        };
+
+        foreach (var (operand, expected) in testcases)
+        {
+            yield return new object[] { operand, expected };
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(NegativeTestCases))]
+    public void NegativeCases(Curve operand, Curve expected)
+    {
+        var result = operand.UpperPseudoInverse();
+        if (!operand.IsUltimatelyConstant)
+            Assert.True(result.IsRightContinuous);
+        Assert.True(Curve.Equivalent(expected, result));
+    }
 }

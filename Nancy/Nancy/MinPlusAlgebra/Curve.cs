@@ -209,6 +209,62 @@ public class Curve
         => MinValue() >= 0;
     
     /// <summary>
+    /// The first instant around which the curve is non-negative.
+    /// Does not specify whether it's inclusive or not, i.e. if $f(\overline{t}) >= 0$.
+    /// </summary>
+    public Rational FirstNonNegativeTime
+    {
+        get
+        {
+            if (IsNonNegative)
+                return 0;
+
+            var t = FindFirstNonNegativeInSequence(BaseSequence.Elements);
+            if (t != Rational.PlusInfinity)
+                return t;
+
+            if (PseudoPeriodAverageSlope <= 0)
+                return Rational.PlusInfinity;
+            else
+            {
+                var k = (-ValueAt(FirstPseudoPeriodEnd) / PseudoPeriodAverageSlope).FastFloor();
+                return FindFirstNonNegativeInSequence(
+                    CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 1) * PseudoPeriodLength, isEndInclusive: true)
+                );
+            }
+            
+            Rational FindFirstNonNegativeInSequence(IEnumerable<Element> elements)
+            {
+                foreach (var element in elements)
+                {
+                    switch (element)
+                    {
+                        case Point p:
+                        {
+                            if (p.Value >= 0)
+                                return p.Time;
+                            break;
+                        }
+                        case Segment s:
+                        {
+                            if (s.RightLimitAtStartTime >= 0)
+                                return s.StartTime;
+                            if (s.Slope > 0)
+                            {
+                                var t = s.StartTime + (-s.RightLimitAtStartTime / s.Slope);
+                                if (t <= s.EndTime)
+                                    return t;
+                            }
+                            break;
+                        }
+                    }
+                }
+                return Rational.PlusInfinity;
+            }
+        }
+    }
+    
+    /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
     public bool IsNonDecreasing
@@ -1674,6 +1730,23 @@ public class Curve
                 pseudoPeriodHeight: 0
             );
         }
+        else if (!IsNonNegative)
+        {
+            var T = Rational.Max(FirstPseudoPeriodEnd, FirstNonNegativeTime);
+            if (ValueAt(T) < 0)
+                T += PseudoPeriodLength;
+            var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndInclusive: true)
+                .LowerPseudoInverse()
+                .SkipLast(1)
+                .ToSequence();
+
+            return new Curve(
+                baseSequence: sequence,
+                pseudoPeriodStart: ValueAt(T),
+                pseudoPeriodLength: PseudoPeriodHeight,
+                pseudoPeriodHeight: PseudoPeriodLength
+            ).TransientReduction();
+        }
         else
         {
             // the point at the right extreme is included in case there is a left-discontinuity at the end of the pseudo-period
@@ -1682,7 +1755,7 @@ public class Curve
                 .LowerPseudoInverse()
                 .SkipLast(1)
                 .ToSequence();
-                
+
             return new Curve(
                 baseSequence: sequence,
                 pseudoPeriodStart: ValueAt(FirstPseudoPeriodEnd),
@@ -1737,6 +1810,23 @@ public class Curve
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
             );
+        }
+        else if (!IsNonNegative)
+        {
+            var T = Rational.Max(FirstPseudoPeriodEnd, FirstNonNegativeTime);
+            if (ValueAt(T) < 0)
+                T += PseudoPeriodLength;
+            var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndInclusive: true)
+                .UpperPseudoInverse()
+                .SkipLast(1)
+                .ToSequence();
+
+            return new Curve(
+                baseSequence: sequence,
+                pseudoPeriodStart: ValueAt(T),
+                pseudoPeriodLength: PseudoPeriodHeight,
+                pseudoPeriodHeight: PseudoPeriodLength
+            ).TransientReduction();
         }
         else
         {

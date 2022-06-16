@@ -2663,7 +2663,10 @@ public static class SequenceExtensions
     /// </remarks>
     public static IEnumerable<Element> LowerPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = true)
     {
-        var merged = elements.Merge();
+        var merged = startFromZero ?
+            elements.Merge().SkipUntilValue(0):
+            elements.Merge();
+        
         using var enumerator = merged.GetEnumerator();
 
         if (!enumerator.MoveNext())
@@ -2799,7 +2802,10 @@ public static class SequenceExtensions
     /// </remarks>
     public static IEnumerable<Element> UpperPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = true)
     {
-        var merged = elements.Merge();
+        var merged = startFromZero ?
+            elements.Merge().SkipUntilValue(0):
+            elements.Merge();
+        
         using var enumerator = merged.GetEnumerator();
 
         if (!enumerator.MoveNext())
@@ -2949,6 +2955,51 @@ public static class SequenceExtensions
             yield return heldPoint;
     }
     
+    /// <summary>
+    /// Skips elements until <see cref="value"/> is reached.
+    /// </summary>
+    internal static IEnumerable<Element> SkipUntilValue(this IEnumerable<Element> elements, Rational value)
+    {
+        using var enumerator = elements.GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            switch (enumerator.Current)
+            {
+                case Point p:
+                {
+                    if (p.Value < value)
+                        continue;
+                    else
+                        yield return p;
+                    break;
+                }
+
+                case Segment s:
+                {
+                    if (s.Slope < 0)
+                        throw new ArgumentException("Segments must be non-decreasing");
+                    
+                    if(s.LeftLimitAtEndTime < value)
+                        continue;
+                    else if (s.RightLimitAtStartTime < value)
+                    {
+                        var (_, center, right) = s.Split(
+                            s.Inverse().ValueAt(value)
+                        );
+                        yield return center;
+                        yield return right;
+                    }
+                    else
+                        yield return s;
+                    break;
+                }
+                
+                default:
+                    throw new InvalidCastException();
+            }
+        }
+    }
+
     /// <summary>
     /// Computes the lower envelope of the set of elements given.
     /// $O(n \cdot \log(n))$ complexity.
