@@ -144,4 +144,13 @@ public class CurveCut
         var sequence = curve.Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive);
         Assert.True(Sequence.Equivalent(expected, sequence));
     }
+
+    [Theory]
+    [MemberData(nameof(CutTestCases))]
+    public void CutCount(Curve curve, Rational cutStart, Rational cutEnd, bool isStartInclusive,
+        bool isEndInclusive, Sequence expected)
+    {
+        var curveCount = curve.Count(cutStart, cutEnd, isStartInclusive, isEndInclusive);
+        Assert.Equal(expected.Count, curveCount);
+    }
 }

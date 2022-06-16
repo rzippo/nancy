@@ -618,6 +618,8 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="BigRational.Min"/>
         public static Rational Min(Rational a, Rational b) => a > b ? b : a;
 
+        public static Rational Min(Rational a, Rational b, Rational c) => Min(a, Min(b, c));
+        
         #endregion Public Static Methods
 
         #region Operator Overloads
