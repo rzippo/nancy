@@ -512,14 +512,14 @@ public abstract class Element
     /// </summary>
     /// <returns>The set of segments resulting from the deconvolution.</returns>
     /// <remarks>Described in [BT07] Section 3.2.2</remarks>
-    public abstract List<Element> Deconvolution(Element element);
+    public abstract IEnumerable<Element> Deconvolution(Element element);
 
     /// <summary>
     /// Computes the deconvolution between two Elements.
     /// </summary>
     /// <returns>The set of segments resulting from the deconvolution.</returns>
     /// <remarks>Described in [BT07] Section 3.2.2</remarks>
-    public static List<Element> Deconvolution(Element a, Element b)
+    public static IEnumerable<Element> Deconvolution(Element a, Element b)
         => a.Deconvolution(b);
 
     #endregion Deconvolution operator

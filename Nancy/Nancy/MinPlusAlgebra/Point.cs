@@ -738,14 +738,16 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the deconvolution between the <see cref="Point"/> and the given <see cref="Element"/>.
     /// </summary>
     /// <returns>The <see cref="Element"/>s resulting from the deconvolution, wrapped in a list due to inheritance.</returns>
-    public override List<Element> Deconvolution(Element element)
+    public override IEnumerable<Element> Deconvolution(Element element)
     {
         switch (element)
         {
             case Point p:
-                return new List<Element> { Deconvolution(a: this, b: p) };
+                yield return Deconvolution(a: this, b: p);
+                break;
             case Segment s:
-                return new List<Element> { Deconvolution(point: this, segment: s) };
+                yield return Deconvolution(point: this, segment: s);
+                break;
 
             default:
                 throw new InvalidCastException();

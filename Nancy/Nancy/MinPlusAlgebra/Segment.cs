@@ -1275,14 +1275,24 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the deconvolution between the <see cref="Segment"/> and the given <see cref="Element"/>.
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the deconvolution.</returns>
-    public override List<Element> Deconvolution(Element element)
+    public override IEnumerable<Element> Deconvolution(Element element)
     {
         switch (element)
         {
             case Point p:
-                return new List<Element> { Deconvolution(segment: this, point: p) };
+            {
+                if (p.IsOrigin)
+                    yield return this;
+                else
+                    yield return Deconvolution(segment: this, point: p);
+                break;
+            }
             case Segment s:
-                return Deconvolution(a: this, b: s);
+            {
+                foreach (var e in Deconvolution(a: this, b: s))
+                    yield return e;
+                break;
+            }
 
             default:
                 throw new InvalidCastException();
@@ -1317,7 +1327,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the deconvolution.</returns>
     /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 8</remarks>
-    public static List<Element> Deconvolution(Segment a, Segment b)
+    public static IEnumerable<Element> Deconvolution(Segment a, Segment b)
     {
         if (a.IsInfinite || b.IsInfinite)
             throw new ArgumentException("The arguments must be finite.");
@@ -1341,25 +1351,22 @@ public sealed class Segment : Element, IEquatable<Segment>
         Rational initValue = a.RightLimitAtStartTime - b.LeftLimitAtEndTime;
         Rational middleValue = initValue + maxSlopeSegment.Slope * maxSlopeSegment.Length;
 
-        return new List<Element>
-        {
-            new Segment(
-                startTime: startTime,
-                endTime: middleTime,
-                rightLimitAtStartTime: initValue,
-                slope: maxSlopeSegment.Slope
-            ),
-            new Point(
-                time: middleTime,
-                value: middleValue
-            ),
-            new Segment(
-                startTime: middleTime,
-                endTime: endTime,
-                rightLimitAtStartTime: middleValue,
-                slope: minSlopeSegment.Slope
-            )
-        };
+        yield return new Segment(
+            startTime: startTime,
+            endTime: middleTime,
+            rightLimitAtStartTime: initValue,
+            slope: maxSlopeSegment.Slope
+        );
+        yield return new Point(
+            time: middleTime,
+            value: middleValue
+        );
+        yield return new Segment(
+            startTime: middleTime,
+            endTime: endTime,
+            rightLimitAtStartTime: middleValue,
+            slope: minSlopeSegment.Slope
+        );
     }
 
     /// <summary>
@@ -1367,7 +1374,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the deconvolution.</returns>
     /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 8</remarks>
-    public List<Element> Deconvolution(Segment segment)
+    public IEnumerable<Element> Deconvolution(Segment segment)
         => Deconvolution(a: this, b: segment);
 
     #endregion
