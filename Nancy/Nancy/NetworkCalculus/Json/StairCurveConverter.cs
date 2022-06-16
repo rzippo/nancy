@@ -7,25 +7,24 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="RateLatencyServiceCurve"/>.
+/// Custom JsonConverter for <see cref="StairCurve"/>.
 /// </summary>
-public class FlowControlCurveConverter : JsonConverter
+public class StairCurveConverter : JsonConverter
 {
     private const string TypeName = "type";
 
     /// <summary>
     /// Code used in JSON output to distinguish this type 
     /// </summary>
-    public const string TypeCode = "flowControlCurve";
+    public const string TypeCode = "stairCurve";
 
-    private static readonly string DelayName = "delay";
-    private static readonly string RateName = "rate";
-    private static readonly string HeightName = "height";
+    private static readonly string AName = "a";
+    private static readonly string BName = "b";
         
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
-        return (objectType == typeof(FlowControlCurve));
+        return (objectType == typeof(StairCurve));
     }
 
     /// <inheritdoc />
@@ -33,14 +32,12 @@ public class FlowControlCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        Rational delay = jo[DelayName]!.ToObject<Rational>();
-        Rational rate = jo[RateName]!.ToObject<Rational>();
-        Rational height = jo[HeightName]!.ToObject<Rational>();
-
-        FlowControlCurve curve = new FlowControlCurve(
-            latency: delay,
-            rate: rate,
-            height: height
+        Rational a = jo[AName]!.ToObject<Rational>();
+        Rational b = jo[BName]!.ToObject<Rational>();
+        
+        StairCurve curve = new StairCurve(
+            a: a,
+            b: b
         );
         return curve;
     }
@@ -50,14 +47,13 @@ public class FlowControlCurveConverter : JsonConverter
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
-        FlowControlCurve curve = (FlowControlCurve) value;
+        StairCurve curve = (StairCurve) value;
 
         JObject jo = new JObject
         {
             { TypeName, JToken.FromObject(TypeCode) },
-            { DelayName, JToken.FromObject(curve.Latency) },
-            { RateName, JToken.FromObject(curve.Rate) },
-            { HeightName, JToken.FromObject(curve.Height) }
+            { AName, JToken.FromObject(curve.A) },
+            { BName, JToken.FromObject(curve.B) }
         };
 
         jo.WriteTo(writer);

@@ -11,17 +11,24 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// </summary>
 public class StairCurve : Curve
 {
+    public Rational A { get; }
+
+    public Rational B { get; }
+
     /// <summary>
     /// Constructor.
     /// </summary>
     public StairCurve(Rational a, Rational b)
-        :base(
+        : base(
             baseSequence: BuildSequence(a, b),
             pseudoPeriodStart: 0,
             pseudoPeriodLength: b,
             pseudoPeriodHeight: a
         )
-    {}
+    {
+        A = a;
+        B = b;
+    }
 
     private static Sequence BuildSequence(Rational a, Rational b)
     {

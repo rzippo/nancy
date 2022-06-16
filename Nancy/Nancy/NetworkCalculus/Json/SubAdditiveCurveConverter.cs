@@ -8,7 +8,7 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="Curve"/>.
+/// Custom JsonConverter for <see cref="SubAdditiveCurve"/>.
 /// </summary>
 public class SubAdditiveCurveConverter : JsonConverter
 {

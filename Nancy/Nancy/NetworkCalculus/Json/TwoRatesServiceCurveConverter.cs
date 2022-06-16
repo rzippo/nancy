@@ -7,7 +7,7 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="RateLatencyServiceCurve"/>.
+/// Custom JsonConverter for <see cref="TwoRatesServiceCurve"/>.
 /// </summary>
 public class TwoRatesServiceCurveConverter : JsonConverter
 {

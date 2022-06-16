@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using NLog;
+using Unipi.Nancy.NetworkCalculus.Json;
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -29,13 +30,13 @@ public static class LinqExtensions
         for (int i = start; i < end; i++)
             yield return list[i];
     }
-        
+    
     /// <summary>
     /// Shorthand method to serialize as JSON a collection of objects
     /// </summary>
     public static string ToJsonString<T>(this IEnumerable<T> items)
     {
-        return JsonConvert.SerializeObject(items);
+        return JsonConvert.SerializeObject(items, new GenericCurveConverter());
     }
 
     /// <summary>
