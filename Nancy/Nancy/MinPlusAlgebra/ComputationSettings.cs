@@ -6,6 +6,8 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </summary>
 public record ComputationSettings
 {
+    //todo: reference the affected methods, where makes sense
+    
     /// <summary>
     /// Catch-all property. 
     /// Get: is true if any parallelism is enabled.
@@ -40,7 +42,7 @@ public record ComputationSettings
     }
 
     /// <summary>
-    /// If true, long sequence minimums are processed in parallel
+    /// If true, long sequence minimums are processed in parallel.
     /// </summary>
     public bool UseParallelLowerEnvelope { get; set; } = true;
         
@@ -124,7 +126,8 @@ public record ComputationSettings
     /// </summary>
     public bool UseParallelComputeExtensionSequences { get; set; } = true;
 
-    /// <summary>Extensions.SortElements, sort the elements in parallel.
+    /// <summary>
+    /// In Extensions.SortElements, sort the elements in parallel.
     /// </summary>
     public bool UseParallelSortElements { get; set; } = true;
         

@@ -117,7 +117,7 @@ public class Equivalence
 
     [Theory]
     [MemberData(nameof(FlowControlCurvesTestCases))]
-    public void StairCaseOperations(FlowControlCurve[] curves)
+    public void FlowControlOperations(FlowControlCurve[] curves)
     {
         var minOptimized = Curve.Minimum(curves, new ComputationSettings{AutoOptimize = true});
         var minUnoptimized = Curve.Minimum(curves, new ComputationSettings{AutoOptimize = false});
@@ -136,7 +136,7 @@ public class Equivalence
         
     [Theory]
     [MemberData(nameof(FlowControlCurvesTestCases))]
-    public void StairCaseOperations_General(FlowControlCurve[] curves)
+    public void FlowControlOperations_General(FlowControlCurve[] curves)
     {
         var castCurves = curves.Select(c => new Curve(c)).ToArray();
             
@@ -155,7 +155,7 @@ public class Equivalence
         
     [Theory]
     [MemberData(nameof(FlowControlCurvesTestCases))]
-    public void StairCaseOperations_General_AsArgs(FlowControlCurve[] curves)
+    public void FlowControlOperations_General_AsArgs(FlowControlCurve[] curves)
     {
         var unoptimized = curves.Select(c => new Curve(c)).ToArray();
         var optimized = unoptimized.Select(c => c.Optimize()).ToArray();
@@ -173,7 +173,7 @@ public class Equivalence
         Assert.True(Curve.Equivalent(minConvOptimized, minConvUnoptimized));
     }
         
-    public static IEnumerable<object[]> StaircaseTestCases()
+    public static IEnumerable<object[]> FlowControlTestCases()
     {
         var testCases = new FlowControlCurve[]
         {
@@ -191,10 +191,9 @@ public class Equivalence
             yield return new object[] {testCase};
         }
     }
-
-        
+    
     [Theory]
-    [MemberData(nameof(StaircaseTestCases))]
+    [MemberData(nameof(FlowControlTestCases))]
     public void SelfConvolutionEquivalence(Curve curve)
     {
         var optimized = curve.Optimize();
@@ -206,7 +205,7 @@ public class Equivalence
     }
         
     [Theory]
-    [MemberData(nameof(StaircaseTestCases))]
+    [MemberData(nameof(FlowControlTestCases))]
     public void SelfConvolutionEquivalence_General(Curve curve)
     {
         var copy = new Curve(curve);
