@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
@@ -19,7 +20,16 @@ public class PeriodFactorization
             buildTestCase(T: 54, d: 115, c: 23, k: 72),
             buildTestCase(T: 10, d: 5, c: 2, k: 14),
             buildTestCase(T: 14, d: 10, c: 2, k: 53),
-            buildTestCase(T: 10, d: 5, c: 2, k: 241)
+            buildTestCase(T: 10, d: 5, c: 2, k: 241),
+            (
+                factorizableCurve: new Curve(
+                    baseSequence: new StairCurve(3, 2).Cut(0, 2*10),
+                    pseudoPeriodStart: 0,
+                    pseudoPeriodLength: 2*10,
+                    pseudoPeriodHeight: 3*10
+                ),
+                k: 10
+            )
         };
 
         foreach (var testCase in testCases)

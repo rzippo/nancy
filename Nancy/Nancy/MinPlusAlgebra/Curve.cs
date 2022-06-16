@@ -2029,22 +2029,24 @@ public class Curve
             var startingSlope = (periodSequence.Elements.First(e => e is Segment) as Segment)!.Slope;
             var endingSlope = (periodSequence.Elements.Last(e => e is Segment) as Segment)!.Slope;
             var startingValue = (periodSequence.Elements.First(e => e is Point) as Point)!.Value;
-            var endingValue = (periodSequence.Elements.Last(e => e is Segment) as Segment)!.LeftLimitAtEndTime;
-            if (startingValue.IsInfinite || endingValue.IsInfinite)
+            var startingRightLimit = (periodSequence.Elements.First(e => e is Segment) as Segment)!.RightLimitAtStartTime;
+            var endingLeftLimit = (periodSequence.Elements.Last(e => e is Segment) as Segment)!.LeftLimitAtEndTime;
+            if (startingValue.IsInfinite || endingLeftLimit.IsInfinite)
             {
                 var firstSegment = periodSequence.Elements.First(e => e is Segment) as Segment;
                 var mergeableInfinite =
-                    endingValue.IsInfinite && startingValue.IsInfinite && firstSegment!.IsInfinite;
+                    endingLeftLimit.IsInfinite && startingValue.IsInfinite && firstSegment!.IsInfinite;
                     
                 if(!mergeableInfinite)
                     breakPoints += 1;
             }
             else
             {
-                var verticalDiff = endingValue - startingValue;
+                var verticalDiff = endingLeftLimit - startingValue;
                 if (
-                    verticalDiff != periodHeight // is there a discontinuity?
-                    || startingSlope != endingSlope // is there a slope change?
+                    startingValue != startingRightLimit || // is there a right-discontinuity? 
+                    verticalDiff != periodHeight || // is there a left-discontinuity?
+                    startingSlope != endingSlope // is there a slope change?
                 )
                     breakPoints += 1;
             }
