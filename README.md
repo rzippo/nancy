@@ -21,8 +21,9 @@ Both SDK and runtime for .NET are cross-platform, and can be downloaded from [he
 
 ## References
 
-The algorithms implemented here are discussed in the following works:
+The algorithms implemented by Nancy are discussed in the following works:
 
 * An Algorithmic Toolbox for Network Calculus, Anne Bouillard and Éric Thierry, 2007
 * Deterministic Network Calculus: From Theory to Practical Implementation, Anne Bouillard and Marc Boyer and Euriell Le Corronc, 2018
 * Computationally efficient worst-case analysis of flow-controlled networks with Network Calculus, Raffaele Zippo and Giovanni Stea, 2022 [arXiv](https://arxiv.org/abs/2203.02497)
+* Extending the Network Calculus Algorithmic Toolbox for Ultimately Pseudo-Periodic Functions: Pseudo-Inverse and Composition, Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2022, [arXiv](https://arxiv.org/abs/2205.12139)
