@@ -1,33 +1,22 @@
-name: CI
+name: CICD
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
+    paths: 
+      - 'Nancy/Nancy/Nancy.csproj'
   pull_request:
     branches:
       - master
+    paths: 
+      - 'Nancy/Nancy/Nancy.csproj'
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-
-    outputs:
-      status: ${{ contains(steps.changed-files.outputs.modified_files, 'Nancy/Nancy/Nancy.csproj') }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Get changed files using defaults
-        id: changed-files
-        uses: tj-actions/changed-files@v20
-
   build-test-publish:
     runs-on: ubuntu-latest
-
-    needs: check
-    if: ${{ needs.check.outputs.status == true }}
-
+    
     env:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.sln"
