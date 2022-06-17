@@ -18,11 +18,11 @@
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
     <PackageTags>network-calculus</PackageTags>
-    <PackageVersion>1.0.3</PackageVersion>
+    <PackageVersion>1.0.4</PackageVersion>
   </PropertyGroup>
 
   <PropertyGroup>
-    <DefineConstants>BIG_RATIONAL,SKIP_COSTLY_LOGS</DefineConstants>
+    <DefineConstants>BIG_RATIONAL</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
