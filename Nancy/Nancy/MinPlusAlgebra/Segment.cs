@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using NLog;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
+
+#if DO_LOG
+using NLog;
+#endif
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -18,7 +21,9 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public sealed class Segment : Element, IEquatable<Segment>
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
 
     #region Properties
 
@@ -1558,7 +1563,9 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             int i0 = (int)Math.Ceiling((decimal)(bigK * StartTime / pseudoPeriodLength));
 
+            #if DO_LOG
             logger.Trace($"Periodic segment closure type A. k0: {k0} ; bigK: {bigK} ; i0: {i0}");
+            #endif
 
             List<Curve> fks = new List<Curve>();
             for (uint k = 1; k < k0; k++)
@@ -1612,7 +1619,9 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             int k1 = k0 + bigK;
 
+            #if DO_LOG
             logger.Trace($"Periodic segment closure type B. k0: {k0} ; bigK: {bigK} ; k1: {k1}");
+            #endif
 
             List<Curve> fks = new List<Curve>();
             for (uint k = 1; k < k1; k++)
@@ -1656,7 +1665,9 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             int i0 = (int)Math.Floor((decimal)(bigK * EndTime / pseudoPeriodLength));
 
+            #if DO_LOG
             logger.Trace($"Periodic segment closure type C. k0: {k0} ; bigK: {bigK} ; i0: {i0}");
+            #endif
 
             List<Curve> fks = new List<Curve>();
             for (uint k = 1; k < k0; k++)
@@ -1725,7 +1736,9 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             int k1 = k0 + bigK;
 
+            #if DO_LOG
             logger.Trace($"Periodic segment closure type B. k0: {k0} ; bigK: {bigK} ; k1: {k1}");
+            #endif
 
             List<Curve> fks = new List<Curve>();
             for (uint k = 1; k < k1; k++)

@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Newtonsoft.Json;
-using NLog;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
+
+#if DO_LOG
+using NLog;
+using System.Diagnostics;
+#endif
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -24,7 +27,9 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 [JsonObject(MemberSerialization.OptIn)]
 public class Curve
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
 
     #region Properties
 
@@ -1962,7 +1967,8 @@ public class Curve
             .PeriodFactorization()
             .AffineNormalization()
             .TransientReduction();
-            
+
+        #if DO_LOG    
         if (optimizedCurve != this)
         {
             logger.Debug($"Optimization: " +
@@ -1970,6 +1976,7 @@ public class Curve
                          $"d {PseudoPeriodLength} -> {optimizedCurve.PseudoPeriodLength}, " +
                          $"elements {BaseSequence.Count} -> {optimizedCurve.BaseSequence.Count}");
         }
+        #endif
 
         return optimizedCurve;
     }
@@ -1991,16 +1998,22 @@ public class Curve
 
         bool anotherRound = true;
 
+        #if DO_LOG
         var timer = Stopwatch.StartNew();
+        #endif
         while (anotherRound)
         {
             anotherRound = FactorizationRound();
         }
+        #if DO_LOG
         timer.Stop();
+        #endif
 
         if (optimized)
         {
+            #if DO_LOG
             logger.Trace($"Optimization: PeriodFactorization, took {timer.Elapsed} From at {PseudoPeriodicSequence.Count} to {periodSequence.Count}");
+            #endif
 
             var elements = new List<Element>();
             elements.AddRange(TransientElements);
@@ -2015,7 +2028,9 @@ public class Curve
         }
         else
         {
+            #if DO_LOG
             logger.Trace($"Optimization failed: PeriodFactorization, took {timer.Elapsed} Left at {periodSequence.Count}");
+            #endif
             return this;
         }
 
@@ -2202,17 +2217,24 @@ public class Curve
             var periodStart = PseudoPeriodStart;
             var periodLength = PseudoPeriodLength;
 
+            #if DO_LOG
             var timer_1 = Stopwatch.StartNew();
+            #endif
             ByPeriod();
+            #if DO_LOG
             timer_1.Stop();
             var timer_2 = Stopwatch.StartNew();
+            #endif
             BySegment();
+            #if DO_LOG
             timer_2.Stop();
+            #endif
 
             if (optimized)
             {
-                logger.Trace(
-                    $"Optimization: TransientReduction, took {timer_1.Elapsed} by period, {timer_2.Elapsed} by segment");
+                #if DO_LOG
+                logger.Trace($"Optimization: TransientReduction, took {timer_1.Elapsed} by period, {timer_2.Elapsed} by segment");
+                #endif
 
                 return new Curve(
                     baseSequence: sequence,
@@ -2223,8 +2245,9 @@ public class Curve
             }
             else
             {
-                logger.Trace(
-                    $"Optimization failed: TransientReduction, took {timer_1.Elapsed} by period, {timer_2.Elapsed} by segment");
+                #if DO_LOG
+                logger.Trace($"Optimization failed: TransientReduction, took {timer_1.Elapsed} by period, {timer_2.Elapsed} by segment");
+                #endif
                 return this;
             }
 
@@ -2458,11 +2481,16 @@ public class Curve
         var a = this;
         var b = curve;
 
-        var timer = Stopwatch.StartNew();
         settings ??= ComputationSettings.Default();
-
+        
+        #if DO_LOG
         logger.Trace($"Computing minimum of f1 ({a.BaseSequence.Count} elements, T: {a.PseudoPeriodStart} d: {a.PseudoPeriodLength})" +
                      $" and f2 ({b.BaseSequence.Count} elements, T: {b.PseudoPeriodStart} d: {b.PseudoPeriodLength})");
+        #endif
+
+        #if DO_LOG
+        var timer = Stopwatch.StartNew();
+        #endif
 
         Rational c, d, T; //Values for the resultFunction
 
@@ -2515,7 +2543,9 @@ public class Curve
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
 #if TRACE_MIN_MAX_EXTENSIONS
+                #if DO_LOG
                 logger.Trace($"Minimum, different slopes: {a.PseudoPeriodAverageSlope} ~ {(decimal)a.PseudoPeriodAverageSlope}, {b.PseudoPeriodAverageSlope} ~ {(decimal)b.PseudoPeriodAverageSlope}");
+                #endif
                 logger.Trace($"Minimum, different slopes: must extend from \n" +
                              $"{a.PseudoPeriodStart} ~ {(decimal) a.PseudoPeriodStart} \n" +
                              $"{b.PseudoPeriodStart} ~ {(decimal) b.PseudoPeriodStart} \n" +
@@ -2528,12 +2558,16 @@ public class Curve
             }
         }
 
+        #if DO_LOG
         logger.Debug($"Minimum: extending from T1 {a.PseudoPeriodStart} d1 {a.PseudoPeriodLength}  T2 {b.PseudoPeriodStart} d2 {b.PseudoPeriodLength} to T {T} d {d}");
+        #endif
 
         Sequence extendedSegmentsF1 = a.Extend(T + d, settings);
         Sequence extendedSegmentsF2 = b.Extend(T + d, settings);
 
+        #if DO_LOG
         logger.Debug($"Minimum: extending from {a.BaseSequence.Count} and {b.BaseSequence.Count} to {extendedSegmentsF1.Count} and {extendedSegmentsF2.Count}");
+        #endif
 
         Sequence minSequence = extendedSegmentsF1.Minimum(extendedSegmentsF2, settings: settings);
 
@@ -2547,11 +2581,13 @@ public class Curve
 
         var retVal = settings.AutoOptimize ? result.Optimize() : result;
 
+        #if DO_LOG
         timer.Stop();
         logger.Debug($"Minimum: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => {result.BaseSequence.Count}");
-#if !SKIP_COSTLY_LOGS
-                logger.Trace($"Json\n a: {a} \n b: {b} \n result: {retVal}"); 
-#endif
+        #endif
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"Json\n a: {a} \n b: {b} \n result: {retVal}");
+        #endif
         return retVal;
     }
 
@@ -2657,7 +2693,9 @@ public class Curve
             int i = 1;
             foreach (var curve in curves.Skip(1))
             {
+                #if DO_LOG
                 logger.Trace($"Minimum {i} of {curves.Count - 1}");
+                #endif
                 i++;
                 current = Minimum(current, curve, settings);
             }
@@ -2707,11 +2745,16 @@ public class Curve
         var a = this;
         var b = curve;
 
-        var timer = Stopwatch.StartNew();
         settings ??= ComputationSettings.Default();
 
+        #if DO_LOG
         logger.Trace($"Computing maximum of f1 ({a.BaseSequence.Count} elements, T: {a.PseudoPeriodStart} d: {a.PseudoPeriodLength})" +
                      $" and f2 ({b.BaseSequence.Count} elements, T: {b.PseudoPeriodStart} d: {b.PseudoPeriodLength})");
+        #endif
+
+        #if DO_LOG
+        var timer = Stopwatch.StartNew();
+        #endif
 
         Rational c, d, T; //Values for the resultFunction
 
@@ -2764,7 +2807,9 @@ public class Curve
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
 #if TRACE_MIN_MAX_EXTENSIONS
+                #if DO_LOG
                 logger.Trace($"Maximum, different slopes: {a.PseudoPeriodAverageSlope} ~ {(decimal)a.PseudoPeriodAverageSlope}, {b.PseudoPeriodAverageSlope} ~ {(decimal)b.PseudoPeriodAverageSlope}");
+                #endif
                 logger.Trace($"Maximum, different slopes: must extend from \n" +
                              $"{a.PseudoPeriodStart} ~ {(decimal)a.PseudoPeriodStart} \n" +
                              $"{b.PseudoPeriodStart} ~ {(decimal)b.PseudoPeriodStart} \n" +
@@ -2777,12 +2822,16 @@ public class Curve
             }
         }
 
+        #if DO_LOG
         logger.Debug($"Maximum: extending from T1 {a.PseudoPeriodStart} d1 {a.PseudoPeriodLength}  T2 {b.PseudoPeriodStart} d2 {b.PseudoPeriodLength} to T {T} d {d}");
+        #endif
 
         Sequence extendedSegmentsF1 = a.Extend(T + d, settings);
         Sequence extendedSegmentsF2 = b.Extend(T + d, settings);
 
+        #if DO_LOG
         logger.Debug($"Maximum: extending from {a.BaseSequence.Count} and {b.BaseSequence.Count} to {extendedSegmentsF1.Count} and {extendedSegmentsF2.Count}");
+        #endif
 
         Sequence maxSequence = extendedSegmentsF1.Maximum(extendedSegmentsF2, settings: settings);
 
@@ -2796,11 +2845,15 @@ public class Curve
 
         var retVal = settings.AutoOptimize ? result.Optimize() : result;
 
+        #if DO_LOG
         timer.Stop();
+        #endif
+        #if DO_LOG
         logger.Debug($"Maximum: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => {result.BaseSequence.Count}");
-#if !SKIP_COSTLY_LOGS
-                logger.Trace($"Json\n a: {a} \n b: {b} \n result: {retVal}"); 
-#endif
+        #endif
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"Json\n a: {a} \n b: {b} \n result: {retVal}");
+        #endif
         return retVal;
     }
 
@@ -2860,7 +2913,9 @@ public class Curve
             int i = 1;
             foreach (var curve in curves.Skip(1))
             {
+                #if DO_LOG
                 logger.Trace($"Maximum {i} of {curves.Count - 1}");
+                #endif
                 i++;
                 current = Maximum(current, curve, settings);
             }
@@ -2977,18 +3032,24 @@ public class Curve
                 return b;
         }
         
+        #if DO_LOG
         logger.Trace($"Computing convolution of f1 ({a.BaseSequence.Count} elements, T: {a.PseudoPeriodStart} d: {a.PseudoPeriodLength})" +
                      $" and f2 ({b.BaseSequence.Count} elements, T: {b.PseudoPeriodStart} d: {b.PseudoPeriodLength})");
-#if !SKIP_COSTLY_LOGS
-                logger.Trace($"f1:\n {a} \n f2:\n {b}");
-#endif
+        #endif
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"f1:\n {a} \n f2:\n {b}");
+        #endif
 
+        #if DO_LOG
         var timer = Stopwatch.StartNew();
+        #endif
 
         Curve result;
         if (settings.SinglePassConvolution && a.PseudoPeriodAverageSlope == b.PseudoPeriodAverageSlope)
         {
+            #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
+            #endif
             var d = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
             var T = a.PseudoPeriodStart + b.PseudoPeriodStart + d;
             var c = a.PseudoPeriodAverageSlope * d;
@@ -3043,11 +3104,13 @@ public class Curve
             result = Minimum(terms, settings);
         }
 
+        #if DO_LOG
         timer.Stop();
         logger.Debug($"Convolution: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => {result.BaseSequence.Count}");
-#if !SKIP_COSTLY_LOGS
-                logger.Trace($"Json\n a: {a} \n b: {b} \n result: {result}");
-#endif
+        #endif
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"Json\n a: {a} \n b: {b} \n result: {result}");
+        #endif
         return result;
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
@@ -3059,7 +3122,9 @@ public class Curve
             Sequence firstTransientSequence = new Sequence(firstTransientCurve.TransientElements);
             Sequence secondTransientSequence = new Sequence(secondTransientCurve.TransientElements);
 
+            #if DO_LOG
             logger.Trace("Convolution: transient x transient");
+            #endif
             Sequence convolution = Sequence.Convolution(firstTransientSequence, secondTransientSequence, settings);
 
             //Has no actual meaning
@@ -3096,7 +3161,9 @@ public class Curve
             var transientSequence = new Sequence(transientCurve.TransientElements);
             var periodicSequence = periodicCurve.Cut(periodicCurve.PseudoPeriodStart, T + d, settings: settings);
 
+            #if DO_LOG
             logger.Trace("Convolution: transient x periodic");
+            #endif
             var limitedConvolution = Sequence.Convolution(transientSequence, periodicSequence, settings);
 
             var result = new Curve(
@@ -3122,14 +3189,22 @@ public class Curve
             var T = t1 + t2 + d;
             Rational c = d * Rational.Min(firstPeriodicCurve.PseudoPeriodAverageSlope, secondPeriodicCurve.PseudoPeriodAverageSlope);
 
-            logger.Debug($"Convolution: extending from T1 {t1} d1 {firstPeriodicCurve.PseudoPeriodLength}  T2 {t2} d2 {secondPeriodicCurve.PseudoPeriodLength} to T {T} d {d}");
-                
+            #if DO_LOG
+            logger.Debug(
+                $"Convolution: extending from T1 {t1} d1 {firstPeriodicCurve.PseudoPeriodLength}  T2 {t2} d2 {secondPeriodicCurve.PseudoPeriodLength} to T {T} d {d}");
+            #endif
+
             Sequence firstPeriodicSequence = firstPeriodicCurve.Cut(t1, t1 + 2*d, settings: settings);
             Sequence secondPeriodicSequence = secondPeriodicCurve.Cut(t2, t2 + 2*d, settings: settings);
 
-            logger.Debug($"Convolution: extending from {firstPeriodicCurve.PseudoPeriodicSequence.Count} and {secondPeriodicCurve.PseudoPeriodicSequence.Count} to {firstPeriodicSequence.Count} and {secondPeriodicSequence.Count}");
+            #if DO_LOG
+            logger.Debug(
+                $"Convolution: extending from {firstPeriodicCurve.PseudoPeriodicSequence.Count} and {secondPeriodicCurve.PseudoPeriodicSequence.Count} to {firstPeriodicSequence.Count} and {secondPeriodicSequence.Count}");
+            #endif
 
+            #if DO_LOG
             logger.Trace("Convolution: periodic x periodic");
+            #endif
             var cutEnd = T + d;
             Sequence limitedConvolution = Sequence.Convolution(firstPeriodicSequence, secondPeriodicSequence, settings, cutEnd);
 
@@ -3178,7 +3253,9 @@ public class Curve
         settings ??= ComputationSettings.Default();
         const int ParallelizationThreshold = 8;
 
+        #if DO_LOG
         logger.Debug($"Generic list convolution, {curves.Count} curves");
+        #endif
 
         if (settings.UseParallelListConvolution && curves.Count > ParallelizationThreshold)
         {
@@ -3204,7 +3281,9 @@ public class Curve
     {
         settings ??= ComputationSettings.Default();
 
+        #if DO_LOG
         logger.Debug($"Generic list convolution, IEnumerable");
+        #endif
 
         if (settings.UseParallelListConvolution)
         {
@@ -3255,18 +3334,24 @@ public class Curve
         if (a.IsIdenticallyZero || b.IsIdenticallyZero)
             return 0;
 
+        #if DO_LOG
         logger.Trace($"Estimating convolution of f1 ({a.BaseSequence.Count} elements, T: {a.PseudoPeriodStart} d: {a.PseudoPeriodLength})" +
                      $" and f2 ({b.BaseSequence.Count} elements, T: {b.PseudoPeriodStart} d: {b.PseudoPeriodLength})");
-#if !SKIP_COSTLY_LOGS
-            logger.Trace($"f1:\n {a} \n f2:\n {b}");
-#endif
+        #endif
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"f1:\n {a} \n f2:\n {b}");
+        #endif
 
+        #if DO_LOG
         var timer = Stopwatch.StartNew();
+        #endif
 
         long result;
         if (settings.SinglePassConvolution && a.PseudoPeriodAverageSlope == b.PseudoPeriodAverageSlope)
         {
+            #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
+            #endif
             var d = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
             var T = a.PseudoPeriodStart + b.PseudoPeriodStart + d;
             var c = a.PseudoPeriodAverageSlope * d;
@@ -3311,11 +3396,13 @@ public class Curve
             result = terms.Sum();
         }
 
+        #if DO_LOG
         timer.Stop();
         logger.Debug($"Estimate convolution: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => [{countElements}] {result}");
-#if !SKIP_COSTLY_LOGS
-            logger.Trace($"Json\n a: {a} \n b: {b} \n result: {result}");
-#endif
+        #endif
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"Json\n a: {a} \n b: {b} \n result: {result}");
+        #endif
         return result;
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
@@ -3327,7 +3414,9 @@ public class Curve
             Sequence firstTransientSequence = new Sequence(firstTransientCurve.TransientElements);
             Sequence secondTransientSequence = new Sequence(secondTransientCurve.TransientElements);
 
+            #if DO_LOG
             logger.Trace("Estimate convolution: transient x transient");
+            #endif
             var result = Sequence.EstimateConvolution(firstTransientSequence, secondTransientSequence, settings, countElements: countElements);
                 
             return result;
@@ -3346,7 +3435,9 @@ public class Curve
             var transientSequence = new Sequence(transientCurve.TransientElements);
             var periodicSequence = periodicCurve.Cut(periodicCurve.PseudoPeriodStart, T + d);
 
+            #if DO_LOG
             logger.Trace("Estimate convolution: transient x periodic");
+            #endif
             var result = Sequence.EstimateConvolution(transientSequence, periodicSequence, settings, countElements: countElements);
                 
             return result;
@@ -3364,14 +3455,20 @@ public class Curve
             var T = t1 + t2 + d;
             Rational c = d * Rational.Min(firstPeriodicCurve.PseudoPeriodAverageSlope, secondPeriodicCurve.PseudoPeriodAverageSlope);
 
+            #if DO_LOG
             logger.Debug($"Estimate convolution: extending from T1 {t1} d1 {firstPeriodicCurve.PseudoPeriodLength}  T2 {t2} d2 {secondPeriodicCurve.PseudoPeriodLength} to T {T} d {d}");
+            #endif
                 
             Sequence firstPeriodicSequence = firstPeriodicCurve.Cut(t1, t1 + 2*d);
             Sequence secondPeriodicSequence = secondPeriodicCurve.Cut(t2, t2 + 2*d);
 
+            #if DO_LOG
             logger.Debug($"Estimate convolution: extending from {firstPeriodicCurve.PseudoPeriodicSequence.Count} and {secondPeriodicCurve.PseudoPeriodicSequence.Count} to {firstPeriodicSequence.Count} and {secondPeriodicSequence.Count}");
+            #endif
 
+            #if DO_LOG
             logger.Trace("Estimate convolution: periodic x periodic");
+            #endif
             var result = Sequence.EstimateConvolution(firstPeriodicSequence, secondPeriodicSequence, settings, T + d, countElements: countElements);
 
             return result;
@@ -3479,7 +3576,9 @@ public class Curve
     /// <remarks>Described in [BT07] Section 4.6 as algorithm 7</remarks>
     public virtual SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
+        #if DO_LOG
         logger.Debug($"Computing closure of {TransientElements.Count()} transient and {PseudoPeriodicElements.Count()} pseudo-periodic elements.");
+        #endif
         settings ??= ComputationSettings.Default();
             
         var transientClosures = TransientElements
@@ -3497,7 +3596,9 @@ public class Curve
             ? elementClosuresEnumerable.AsParallel().ToList()
             : elementClosuresEnumerable.ToList();
         
+        #if DO_LOG
         logger.Debug($"Computed individual closures, next is convolution step.");
+        #endif
 
         if (settings.UseSubAdditiveConvolutionOptimizations)
             return SubAdditiveCurve.Convolution(elementClosures, settings);
@@ -3518,7 +3619,9 @@ public class Curve
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public virtual Curve MaxPlusConvolution(Curve curve, ComputationSettings? settings = null)
     {
+        #if DO_LOG
         logger.Trace("Computing max-plus convolution");
+        #endif
         return -Convolution(-this, -curve, settings);
     }
 
@@ -3545,7 +3648,9 @@ public class Curve
         settings ??= ComputationSettings.Default();
         const int ParallelizationThreshold = 8;
 
+        #if DO_LOG
         logger.Debug($"Generic list max-plus convolution, {curves.Count} curves");
+        #endif
 
         if (settings.UseParallelListConvolution && curves.Count > ParallelizationThreshold)
         {
@@ -3572,7 +3677,9 @@ public class Curve
     {
         settings ??= ComputationSettings.Default();
 
+        #if DO_LOG
         logger.Debug($"Generic list max-plus convolution, IEnumerable");
+        #endif
 
         if (settings.UseParallelListConvolution)
         {
@@ -3596,7 +3703,9 @@ public class Curve
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public virtual Curve MaxPlusDeconvolution(Curve curve, ComputationSettings? settings = null)
     {
+        #if DO_LOG
         logger.Trace("Computing max-plus deconvolution");
+        #endif
         return -Deconvolution(-this, -curve, settings);
     }
 
@@ -3629,7 +3738,9 @@ public class Curve
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public virtual SuperAdditiveCurve SuperAdditiveClosure(ComputationSettings? settings = null)
     {
+        #if DO_LOG
         logger.Trace("Computing super-additive closure");
+        #endif
         var result = -((-this).SubAdditiveClosure(settings));
         return new SuperAdditiveCurve(result, false);
     }
@@ -3701,13 +3812,17 @@ public class Curve
             }
         }
 
+        #if DO_LOG
         var sw = Stopwatch.StartNew();
+        #endif
         var gCut = g.Cut(0, T + d);
         var fCut = f.Cut(g.ValueAt(0), g.LeftLimitAt(T + d), isEndInclusive: true);
         var sequence = Sequence.Composition(fCut, gCut);
+        #if DO_LOG
         sw.Stop();
         logger.Trace($"{settings.UseCompositionOptimizations} {gCut.Count} {fCut.Count}");
         logger.Trace(sw.Elapsed);
+        #endif
         
         var result = new Curve(
             baseSequence: sequence,

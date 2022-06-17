@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using NLog;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
+
+#if DO_LOG
+using NLog;
+#endif
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -18,7 +21,9 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public sealed class Point : Element, IEquatable<Point>
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
 
     #region Properties
 
@@ -920,7 +925,9 @@ public sealed class Point : Element, IEquatable<Point>
         //note that in [1], in this section, /\ means gcd
         Rational beta = pseudoPeriodLength / Rational.GreatestCommonDivisor(pseudoPeriodLength, Time);
 
+        #if DO_LOG
         logger.Trace($"Periodic point closure type A. beta: {beta}");
+        #endif
 
         List<Curve> iteratedPoints = new List<Curve>();
 
@@ -964,7 +971,9 @@ public sealed class Point : Element, IEquatable<Point>
         //note that in [1], in this section, /\ means gcd
         Rational alpha = (Time / Rational.GreatestCommonDivisor(pseudoPeriodLength, Time)) - 1;
 
+        #if DO_LOG
         logger.Trace($"Periodic point closure type B. alpha: {alpha}");
+        #endif
 
         List<Curve> curves = new List<Curve>();
 
@@ -1012,7 +1021,9 @@ public sealed class Point : Element, IEquatable<Point>
         int maxK = (int)Math.Floor((decimal)(rightClosureExtreme / Time)) - 1;
         int maxI = (int)Math.Floor((decimal)((rightClosureExtreme - Time) / pseudoPeriodLength));
 
+        #if DO_LOG
         logger.Trace($"Periodic point closure type C. maxK: {maxK} ; maxI: {maxI} ; complexity: {maxK * maxI}");
+        #endif
 
         List<Point> closurePoints = new List<Point> { Origin() };
         var ikPairs = Enumerable.Range(0, maxI + 1)

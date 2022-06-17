@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using NLog;
 using Unipi.Nancy.NetworkCalculus.Json;
+
+#if DO_LOG
+using NLog;
+#endif
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -12,7 +15,9 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </summary>
 public static class LinqExtensions
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
 
     /// <summary>
     /// Retrieves a range of items from the list, via zero-based indexing

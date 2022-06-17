@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
-using NLog;
 using Unipi.Nancy.Numerics;
+
+#if DO_LOG
+using NLog;
+using System.Diagnostics;
+#endif
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -17,7 +20,9 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public sealed class Sequence : IEquatable<Sequence>
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
 
     #region Properties
 
@@ -1521,9 +1526,9 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <remarks>Described in [BT07], section 4.4.3</remarks>
     public static Sequence Convolution(Sequence a, Sequence b, ComputationSettings? settings = null, Rational? cutEnd = null)
     {
-#if !SKIP_COSTLY_LOGS
-            logger.Trace($"Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
-#endif
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
+        #endif
 
         settings ??= ComputationSettings.Default();
         cutEnd ??= Rational.PlusInfinity;
@@ -1540,15 +1545,21 @@ public sealed class Sequence : IEquatable<Sequence>
         }
 
         var areSequenceEqual = Equivalent(a, b);
+        #if DO_LOG
         var countStopwatch = Stopwatch.StartNew();
+        #endif
         var pairsCount = GetElementPairs().LongCount();
+        #if DO_LOG
         countStopwatch.Stop();
         logger.Trace($"Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
+        #endif
             
         if (cutEnd.Value.IsFinite)
         {
             var earliestElement = a.DefinedFrom + b.DefinedFrom;
+            #if DO_LOG
             logger.Trace($"cutEnd set to {cutEnd}, earliest element will be {earliestElement}");
+            #endif
             if(cutEnd < earliestElement)
                 throw new Exception("Convolution is cut before it starts");
         }
@@ -1579,7 +1590,9 @@ public sealed class Sequence : IEquatable<Sequence>
 
         Sequence SerialConvolution()
         {
+            #if DO_LOG
             logger.Trace($"Running serial convolution, {pairsCount} pairs.");
+            #endif
                 
             var convolutionElements = GetElementPairs() 
                 .SelectMany(pair => pair.ea.Convolution(pair.eb))
@@ -1604,7 +1617,9 @@ public sealed class Sequence : IEquatable<Sequence>
 
         Sequence ParallelConvolution()
         {
+            #if DO_LOG
             logger.Trace($"Running parallel convolution, {pairsCount} pairs.");
+            #endif
 
             var convolutionElements = GetElementPairs()
                 .AsParallel()
@@ -1634,7 +1649,9 @@ public sealed class Sequence : IEquatable<Sequence>
         // Those partial convolutions are then merged via Sequence.LowerEnvelope
         Sequence PartitionedConvolution()
         {
+            #if DO_LOG
             logger.Trace($"Running partitioned convolution, {pairsCount} pairs.");
+            #endif
                 
             var partialConvolutions = PartitionConvolutionElements()
                 .Select(elements => new Sequence(
@@ -1644,7 +1661,9 @@ public sealed class Sequence : IEquatable<Sequence>
                 ))
                 .ToList();
 
+            #if DO_LOG
             logger.Trace($"Partitioned convolutions computed, proceding with lower envelope of {partialConvolutions.Count} sequences");
+            #endif
                 
             if (a.IsFinite && b.IsFinite)
             {
@@ -1666,7 +1685,9 @@ public sealed class Sequence : IEquatable<Sequence>
             {
                 int partitionsCount = (int)
                     Math.Ceiling((double)pairsCount / settings.ConvolutionPartitioningThreshold);
+                #if DO_LOG
                 logger.Trace($"Partitioning {pairsCount} pairs in {partitionsCount} chunks of {settings.ConvolutionPartitioningThreshold}.");
+                #endif
 
                 var partitions = GetElementPairs()
                     .Chunk(settings.ConvolutionPartitioningThreshold);
@@ -1728,10 +1749,10 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </returns>
     public static long EstimateConvolution(Sequence a, Sequence b, ComputationSettings? settings = null, Rational? cutEnd = null, bool countElements = false)
     {
-#if !SKIP_COSTLY_LOGS
-            logger.Trace($"Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
-#endif
-
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
+        #endif
+        settings ??= ComputationSettings.Default();
         cutEnd ??= Rational.PlusInfinity;
         if (a.IsInfinite || b.IsInfinite)
         {
@@ -1743,20 +1764,28 @@ public sealed class Sequence : IEquatable<Sequence>
         var areSequenceEqual = Equivalent(a, b);
         if (!countElements)
         {
+            #if DO_LOG
             var countStopwatch = Stopwatch.StartNew();
+            #endif
             var pairsCount = GetElementPairs().LongCount();
+            #if DO_LOG
             countStopwatch.Stop();
             logger.Debug($"Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
+            #endif
             return pairsCount;
         }
         else
         {
+            #if DO_LOG
             var deepCountStopwatch = Stopwatch.StartNew();
+            #endif
             var deepCount = GetElementPairs()
                 .SelectMany(p => p.ea.Convolution(p.eb))
                 .LongCount();
+            #if DO_LOG
             deepCountStopwatch.Stop();
             logger.Debug($"Convolution: counted {deepCount} total elements in {deepCountStopwatch.Elapsed}");
+            #endif
             return deepCount;
         }
             
@@ -1793,9 +1822,9 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <remarks>Described in [BT07], section 4.5</remarks>
     public static Sequence Deconvolution(Sequence a, Sequence b, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
     {
-#if !SKIP_COSTLY_LOGS
-            logger.Trace($"Convolution between sequence a:\n {a} \n and sequence b:\n {b}");
-#endif
+        #if DO_LOG && !SKIP_COSTLY_LOGS
+        logger.Trace($"Convolution between sequence a:\n {a} \n and sequence b:\n {b}");
+        #endif
 
         const int ParallelizationThreshold = 1_000;
 
@@ -1881,7 +1910,9 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public static Sequence MaxPlusConvolution(Sequence a, Sequence b, ComputationSettings? settings, Rational? cutEnd = null)
     {
+        #if DO_LOG
         logger.Trace("Computing max-plus convolution");
+        #endif
         return -Convolution(-a, -b, settings, cutEnd);
     }
 
@@ -1906,7 +1937,9 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public static Sequence MaxPlusDeconvolution(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
+        #if DO_LOG
         logger.Trace("Computing max-plus deconvolution");
+        #endif
         return -Deconvolution(-a, -b, settings: settings);
     }
     
@@ -1919,7 +1952,9 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public Sequence MaxPlusDeconvolution(Sequence sequence, ComputationSettings? settings = null)
     {
+        #if DO_LOG
         logger.Trace("Computing max-plus deconvolution");
+        #endif
         return -Deconvolution(-this, -sequence, settings: settings);
     }
 
@@ -2032,7 +2067,9 @@ public sealed class Sequence : IEquatable<Sequence>
 /// </summary>
 public static class SequenceExtensions
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
 
     /// <summary>
     /// Builds a <see cref="Sequence"/> object from the set of elements. 
@@ -2515,12 +2552,16 @@ public static class SequenceExtensions
         settings ??= ComputationSettings.Default();
         const int ParallelizationThreshold = 10_000;
 
+        #if DO_LOG
         var sortStopwatch = Stopwatch.StartNew();
+        #endif
 
         if (elements.AreInTimeOrder())
         {
+            #if DO_LOG
             sortStopwatch.Stop();
             logger.Trace($"SortElements: took {sortStopwatch.Elapsed}, already sorted");
+            #endif
             return elements;
         }
         else
@@ -2543,9 +2584,13 @@ public static class SequenceExtensions
                     .ToList();
             }
                 
+            #if DO_LOG
             sortStopwatch.Stop();
+            #endif
             var alg = doParallel ? "parallel" : "serial";
+            #if DO_LOG
             logger.Trace($"SortElements: took {sortStopwatch.Elapsed}, {alg} sort");
+            #endif
             return result;
         }
     }
@@ -3010,12 +3055,18 @@ public static class SequenceExtensions
         settings ??= ComputationSettings.Default();
         // logger.Trace($"LowerEnvelope elements, json \n {JsonConvert.SerializeObject(elements)}");
             
+        #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
+        #endif
         var intervals = Interval.ComputeIntervals(elements, settings);
+        #if DO_LOG
         intervalsStopwatch.Stop();
         logger.Debug($"Intervals computed: {elements.Count} elements, {intervalsStopwatch.ElapsedMilliseconds} milliseconds ");
-
+        #endif
+        
+        #if DO_LOG
         var lowerEnvelopeStopwatch = Stopwatch.StartNew();
+        #endif
         List<Element> lowerElements;
         bool doParallel = settings.UseParallelLowerEnvelope;
         if (doParallel)
@@ -3035,8 +3086,10 @@ public static class SequenceExtensions
         }
 
         var sequence = lowerElements.Merge();
+        #if DO_LOG
         lowerEnvelopeStopwatch.Stop();
         logger.Debug($"Lower envelopes computed: {elements.Count} elements, {lowerEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
+        #endif
         return sequence;
     }
 
@@ -3092,12 +3145,18 @@ public static class SequenceExtensions
         settings ??= ComputationSettings.Default();
         // logger.Trace($"UpperEnvelope elements, json \n {JsonConvert.SerializeObject(elements)}");
             
+        #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
+        #endif
         var intervals = Interval.ComputeIntervals(elements, settings);
+        #if DO_LOG
         intervalsStopwatch.Stop();
         logger.Debug($"Intervals computed: {elements.Count} elements, {intervalsStopwatch.ElapsedMilliseconds} milliseconds ");
-
+        #endif
+        
+        #if DO_LOG
         var upperEnvelopeStopwatch = Stopwatch.StartNew();
+        #endif
         List<Element> upperElements;
         bool doParallel = settings.UseParallelLowerEnvelope;
         if (doParallel)
@@ -3117,8 +3176,10 @@ public static class SequenceExtensions
         }
             
         var sequence = upperElements.Merge();
+        #if DO_LOG
         upperEnvelopeStopwatch.Stop();
         logger.Debug($"Lower envelopes computed: {elements.Count} elements, {upperEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
+        #endif
         return sequence;
     }
 

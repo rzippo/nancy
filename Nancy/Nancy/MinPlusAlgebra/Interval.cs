@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using NLog;
 using Unipi.Nancy.Numerics;
+
+#if DO_LOG
+using NLog;
+using System.Diagnostics;
+#endif
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -13,7 +16,9 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </summary>
 internal class Interval
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
 
     /// <summary>
     /// The types of overlap that a segment can have with an interval
@@ -387,37 +392,51 @@ internal class Interval
         if (!elements.Any())
             throw new Exception("Computing interval of no elements");
 
+        #if DO_LOG
         var prebuildStopwatch = Stopwatch.StartNew();
+        #endif
         var intervalTree = new IntervalTree(GetPrebuiltIntervals(), settings);
+        #if DO_LOG
         prebuildStopwatch.Stop();
-
         logger.Trace(
             $"Computing intervals for {elements.Count} elements. Pre-building of range tree took {prebuildStopwatch.Elapsed}, allocated {intervalTree.Count} intervals.");
+        #endif
 
+        #if DO_LOG
         var processingStopwatch = Stopwatch.StartNew();
+        #endif
         bool doParallel = settings.UseParallelComputeIntervals &&
                           elements.Count >= settings.ParallelComputeIntervalsThreshold;
         if (doParallel)
         {
+            #if DO_LOG
             logger.Trace($"Using parallel processing algorithm.");
+            #endif
             ParallelProcessing();
         }
         else
         {
+            #if DO_LOG
             logger.Trace($"Using serial processing algorithm.");
+            #endif
             SerialProcessing();
         }
-
+        #if DO_LOG
         processingStopwatch.Stop();
         logger.Trace($"Computed {intervalTree.Count} intervals, took {processingStopwatch.Elapsed}");
-
+        #endif
+        
+        #if DO_LOG
         var postprocessStopwatch = Stopwatch.StartNew();
+        #endif
         var toRet = intervalTree.Intervals
             .Where(i => i.Count > 0)
             .ToList();
+        #if DO_LOG
         postprocessStopwatch.Stop();
         logger.Trace(
             $"Filter intervals took {postprocessStopwatch.Elapsed}. Non-empty intervals: {toRet.Count} out of {intervalTree.Intervals.Count}");
+        #endif
 
         return toRet;
 
@@ -649,15 +668,18 @@ internal class Interval
     /// <returns>A set of intervals grouping up the elements of the sequences by their overlaps</returns>
     public static List<Interval> ComputeIntervals(Sequence a, Sequence b)
     {
+        #if DO_LOG
         logger.Trace($"Start: linear compute intervals, sequences of lengths {a.Count} and {b.Count}");
         var stopwatch = Stopwatch.StartNew();
+        #endif
 
         var intervals = IntervalsIterator().ToList();
 
+        #if DO_LOG
         stopwatch.Stop();
-
         logger.Trace(
             $"Done: linear compute intervals, {intervals.Count} intervals computed in {stopwatch.ElapsedMilliseconds} milliseconds");
+        #endif
 
         return intervals;
 
@@ -1566,8 +1588,9 @@ internal class Interval
 /// </summary>
 internal static class IntervalExtensions
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
-
+    #endif
     
     /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end
@@ -1641,12 +1664,16 @@ internal static class IntervalExtensions
         settings ??= ComputationSettings.Default();
         const int ParallelizationThreshold = 10_000;
            
+        #if DO_LOG
         var sortStopwatch = Stopwatch.StartNew();
+        #endif
             
         if (intervals.AreInTimeOrder())
         {
+            #if DO_LOG
             sortStopwatch.Stop();
             logger.Trace($"SortIntervals: took {sortStopwatch.Elapsed}, already sorted");
+            #endif
             return intervals;
         }
         else
@@ -1669,9 +1696,13 @@ internal static class IntervalExtensions
                     .ToList();
             }
                 
+            #if DO_LOG
             sortStopwatch.Stop();
+            #endif
             var alg = doParallel ? "parallel" : "serial";
+            #if DO_LOG
             logger.Trace($"SortIntervals: took {sortStopwatch.Elapsed}, {alg} sort");
+            #endif
             return sorted;
         }
     }

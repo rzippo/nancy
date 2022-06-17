@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using NLog;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
+
+#if DO_LOG
+using NLog;
+using System.Diagnostics;
+#endif
 
 namespace Unipi.Nancy.NetworkCalculus;
 
@@ -20,7 +23,9 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// </remarks>
 public class SubAdditiveCurve : Curve
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
 
     /// <summary>
     /// Constructor
@@ -142,7 +147,9 @@ public class SubAdditiveCurve : Curve
     public SubAdditiveCurve Convolution(SubAdditiveCurve curve, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
+        #if DO_LOG
         var stopwatch = Stopwatch.StartNew();
+        #endif
 
         var minimum = Curve.Minimum(this, curve, settings with {AutoOptimize = false}).PeriodFactorization(); // we need a stable T for th. 2
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
@@ -151,9 +158,11 @@ public class SubAdditiveCurve : Curve
         if (isThisLower || isCurveLower) // this <= curve || curve <= this
         {
             // Use theorem 1 [3]
+            #if DO_LOG
             logger.Trace($"Optimized convolution between sub-additive curves: complete skip." +
                          $"{this.GetHashCode():X} of {this.BaseSequence.Count} elements " +
                          $"and {curve.GetHashCode():X} of {curve.BaseSequence.Count} elements");
+            #endif
 
             if (isThisLower)
                 return this;
@@ -169,9 +178,11 @@ public class SubAdditiveCurve : Curve
             )
             {
                 // Use theorem 3.5.8 [3]
+                #if DO_LOG
                 logger.Trace($"Optimized convolution between sub-additive curves: partial skip." +
                              $"{this.GetHashCode():X} of {this.BaseSequence.Count} elements " +
                              $"and {curve.GetHashCode():X} of {curve.BaseSequence.Count} elements");
+                #endif
 
                 SubAdditiveCurve higher, lower;
                 if (this.PseudoPeriodAverageSlope < curve.PseudoPeriodAverageSlope)
@@ -232,8 +243,10 @@ public class SubAdditiveCurve : Curve
         }
             
         // if all else fails, use the costly generic algorithm
+        #if DO_LOG
         stopwatch.Stop();
         logger.Trace($"Optimization failed, wasted {stopwatch.Elapsed}");
+        #endif
         return new SubAdditiveCurve(base.Convolution(curve, settings), false);
     }
         
@@ -250,12 +263,16 @@ public class SubAdditiveCurve : Curve
             a.PseudoPeriodStart + b.PseudoPeriodStart) + d;
         var c = d * minimum.PseudoPeriodAverageSlope;
 
+        #if DO_LOG
         logger.Debug($"SpecializedConvolution: extending from T_min {minimum.PseudoPeriodStart} d_min {minimum.PseudoPeriodLength} to T {T} d {d}");
+        #endif
 
         var cutEnd = T + d;
         var minimumCut = minimum.Cut(0, cutEnd, settings: settings);
 
+        #if DO_LOG
         var coloringStopwatch = Stopwatch.StartNew();
+        #endif
         var colors = minimumCut.Elements
             .Select(element =>
             {
@@ -267,8 +284,10 @@ public class SubAdditiveCurve : Curve
                     return Color.Both;
             })
             .ToList();
+        #if DO_LOG
         coloringStopwatch.Stop();
         logger.Trace($"SpecializedConvolution: coloring took {coloringStopwatch.Elapsed}");
+        #endif
 
         var convolutionSequence = SpecializedSequenceConvolution(minimumCut, minimumCut);
         var result = new SubAdditiveCurve(
@@ -282,10 +301,14 @@ public class SubAdditiveCurve : Curve
         // a and b are expected to be either the same, or a is a partition of b
         Sequence SpecializedSequenceConvolution(Sequence sa, Sequence sb, int startIndexOfA = 0)
         {
+            #if DO_LOG
             var countStopwatch = Stopwatch.StartNew();
+            #endif
             var pairsCount = GetElementPairs().Count();
+            #if DO_LOG
             countStopwatch.Stop();
             logger.Trace($"Specialized Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
+            #endif
 
             if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
                 return PartitionedConvolution();
@@ -313,7 +336,9 @@ public class SubAdditiveCurve : Curve
                 
             Sequence SerialConvolution()
             {
+                #if DO_LOG
                 logger.Trace($"Running serial specialized-convolution, {pairsCount} pairs.");
+                #endif
                 var convolutionElements = GetElementPairs() 
                     .SelectMany(pair => pair.ea.Convolution(pair.eb))
                     .ToList();
@@ -338,7 +363,9 @@ public class SubAdditiveCurve : Curve
 
             Sequence ParallelConvolution()
             {
+                #if DO_LOG
                 logger.Trace($"Running parallel specialized-convolution, {pairsCount} pairs.");
+                #endif
                 var convolutionElements = GetElementPairs()
                     .AsParallel()
                     .SelectMany(pair => pair.ea.Convolution(pair.eb))                        
@@ -368,7 +395,9 @@ public class SubAdditiveCurve : Curve
             // Those partial convolutions are then merged via Sequence.LowerEnvelope
             Sequence PartitionedConvolution()
             {
+                #if DO_LOG
                 logger.Trace($"Running partitioned specialized-convolution, {pairsCount} pairs.");
+                #endif
                     
                 var partialConvolutions = PartitionConvolutionElements()
                     .Select(elements => elements
@@ -380,7 +409,9 @@ public class SubAdditiveCurve : Curve
                     )
                     .ToList();
 
+                #if DO_LOG
                 logger.Trace($"Partitioned convolutions computed, proceding with lower envelope of {partialConvolutions.Count} sequences");
+                #endif
                     
                 if (sa.IsFinite && sb.IsFinite)
                 {
@@ -403,7 +434,9 @@ public class SubAdditiveCurve : Curve
                 {
                     int partitionsCount = (int)
                         Math.Ceiling((double)pairsCount / settings.ConvolutionPartitioningThreshold);
+                    #if DO_LOG
                     logger.Trace($"Partitioning {pairsCount} pairs in {partitionsCount} chunks of {settings.ConvolutionPartitioningThreshold}.");
+                    #endif
 
                     var partitions = GetElementPairs()
                         .Chunk(settings.ConvolutionPartitioningThreshold);
@@ -443,7 +476,9 @@ public class SubAdditiveCurve : Curve
     /// <returns>The curve resulting from the overall convolution.</returns>
     public static SubAdditiveCurve Convolution(IEnumerable<SubAdditiveCurve> curves, ComputationSettings? settings = null)
     {
+        #if DO_LOG
         logger.Debug("Specialized list convolution");
+        #endif
         var ordered = curves
             .OrderByDescending(c => c.RightLimitAt(0))
             .ThenByDescending(c => c.PseudoPeriodAverageSlope)
@@ -453,12 +488,16 @@ public class SubAdditiveCurve : Curve
         int i = 1;
         foreach (var curve in ordered.Take(ordered.Count - 1))
         {
+            #if DO_LOG
             logger.Debug($"Convolution #{i}, current size {current.BaseSequence.Count}");
             logger.Trace($"\n {current}\n {curve}");
             var timer = Stopwatch.StartNew();
+            #endif
             current = current.Convolution(curve, settings);
+            #if DO_LOG
             timer.Stop();
             logger.Debug($"Convolution #{i}, took {timer.Elapsed}");
+            #endif
             i++;
         }
         return current;
@@ -519,9 +558,11 @@ public class SubAdditiveCurve : Curve
         if (isThisLower || isCurveLower) // this <= curve || curve <= this
         {
             // Use theorem 1 [3]
+            #if DO_LOG
             logger.Trace($"Optimized convolution between sub-additive curves: complete skip." +
                          $"{this.GetHashCode().ToString("X")} of {this.BaseSequence.Count} elements " +
                          $"and {curve.GetHashCode().ToString("X")} of {curve.BaseSequence.Count} elements");
+            #endif
 
             return 0;
         }
@@ -534,9 +575,11 @@ public class SubAdditiveCurve : Curve
             )
             {
                 // Use theorem 3.5.8 [3]
+                #if DO_LOG
                 logger.Trace($"Optimized convolution between sub-additive curves: partial skip." +
                              $"{this.GetHashCode():X} of {this.BaseSequence.Count} elements " +
                              $"and {curve.GetHashCode():X} of {curve.BaseSequence.Count} elements");
+                #endif
 
                 SubAdditiveCurve higher, lower;
                 if (this.PseudoPeriodAverageSlope < curve.PseudoPeriodAverageSlope)
@@ -595,13 +638,17 @@ public class SubAdditiveCurve : Curve
             a.PseudoPeriodStart + b.PseudoPeriodStart) + d;
         //var c = d * minimum.PseudoPeriodAverageSlope;
 
+        #if DO_LOG
         logger.Debug($"SpecializedEstimateConvolution: extending from T_min {minimum.PseudoPeriodStart} d_min {minimum.PseudoPeriodLength} to T {T} d {d}");
+        #endif
             
         var minimumCut = minimum.Cut(0, T + d);
 
         var cutEnd = T + d;
 
+        #if DO_LOG
         var coloringStopwatch = Stopwatch.StartNew();
+        #endif
         var colors = minimumCut.Elements
             .Select(element =>
             {
@@ -613,8 +660,10 @@ public class SubAdditiveCurve : Curve
                     return Color.Both;
             })
             .ToList();
+        #if DO_LOG
         coloringStopwatch.Stop();
         logger.Trace($"SpecializedEstimateConvolution: coloring took {coloringStopwatch.Elapsed}");
+        #endif
 
         var result = SpecializedEstimateSequenceConvolution(minimumCut, minimumCut);
         return result;
@@ -624,22 +673,30 @@ public class SubAdditiveCurve : Curve
         {
             if (!countElements)
             {
+                #if DO_LOG
                 var countStopwatch = Stopwatch.StartNew();
+                #endif
                 var pairsCount = GetElementPairs().LongCount();
+                #if DO_LOG
                 countStopwatch.Stop();
                 logger.Debug(
                     $"Specialized Estimate Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
+                #endif
                 return pairsCount;
             }
             else
             {
+                #if DO_LOG
                 var deepCountStopwatch = Stopwatch.StartNew();
+                #endif
                 var deepCount = GetElementPairs()
                     .SelectMany(p => p.ea.Convolution(p.eb))
                     .Count();
+                #if DO_LOG
                 deepCountStopwatch.Stop();
                 logger.Debug(
                     $"Specialized Estimate Convolution: counted {deepCount} total elements in {deepCountStopwatch.Elapsed}");
+                #endif
                 return deepCount;
             }
 

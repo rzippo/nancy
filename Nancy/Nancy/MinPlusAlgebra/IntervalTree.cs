@@ -1,13 +1,18 @@
 using System;
 using System.Collections.Generic;
-using NLog;
 using Unipi.Nancy.Numerics;
+
+#if DO_LOG
+using NLog;
+#endif
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
 internal class IntervalTree
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
         
     public IReadOnlyList<Interval> Intervals { get; }
 
