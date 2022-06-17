@@ -1512,7 +1512,7 @@ namespace Unipi.Nancy.Numerics
             return Compare(this, (Rational)obj);
         }
 
-        // IComparable<Rational>
+        /// <inheritdoc cref="IComparable{Rational}.CompareTo"/>
         public int CompareTo(Rational other)
         {
             return Compare(this, other);
@@ -1529,10 +1529,10 @@ namespace Unipi.Nancy.Numerics
             return ret.ToString();
         }
 
-        // IEquatable<Rational>
-        // a/b = c/d, iff ad = bc
+        /// <inheritdoc cref="IEquatable{Rational}.Equals(Rational)"/>
         public Boolean Equals(Rational other)
         {
+            // a/b = c/d, iff ad = bc
             if (this.Denominator == other.Denominator)
             {
                 return Numerator == other.Numerator;
