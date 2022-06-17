@@ -2585,7 +2585,7 @@ public class Curve
         timer.Stop();
         logger.Debug($"Minimum: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => {result.BaseSequence.Count}");
         #endif
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Json\n a: {a} \n b: {b} \n result: {retVal}");
         #endif
         return retVal;
@@ -2851,7 +2851,7 @@ public class Curve
         #if DO_LOG
         logger.Debug($"Maximum: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => {result.BaseSequence.Count}");
         #endif
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Json\n a: {a} \n b: {b} \n result: {retVal}");
         #endif
         return retVal;
@@ -3036,7 +3036,7 @@ public class Curve
         logger.Trace($"Computing convolution of f1 ({a.BaseSequence.Count} elements, T: {a.PseudoPeriodStart} d: {a.PseudoPeriodLength})" +
                      $" and f2 ({b.BaseSequence.Count} elements, T: {b.PseudoPeriodStart} d: {b.PseudoPeriodLength})");
         #endif
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"f1:\n {a} \n f2:\n {b}");
         #endif
 
@@ -3108,7 +3108,7 @@ public class Curve
         timer.Stop();
         logger.Debug($"Convolution: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => {result.BaseSequence.Count}");
         #endif
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Json\n a: {a} \n b: {b} \n result: {result}");
         #endif
         return result;
@@ -3338,7 +3338,7 @@ public class Curve
         logger.Trace($"Estimating convolution of f1 ({a.BaseSequence.Count} elements, T: {a.PseudoPeriodStart} d: {a.PseudoPeriodLength})" +
                      $" and f2 ({b.BaseSequence.Count} elements, T: {b.PseudoPeriodStart} d: {b.PseudoPeriodLength})");
         #endif
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"f1:\n {a} \n f2:\n {b}");
         #endif
 
@@ -3400,7 +3400,7 @@ public class Curve
         timer.Stop();
         logger.Debug($"Estimate convolution: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => [{countElements}] {result}");
         #endif
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Json\n a: {a} \n b: {b} \n result: {result}");
         #endif
         return result;

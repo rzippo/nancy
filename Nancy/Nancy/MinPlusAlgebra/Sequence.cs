@@ -1526,7 +1526,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <remarks>Described in [BT07], section 4.4.3</remarks>
     public static Sequence Convolution(Sequence a, Sequence b, ComputationSettings? settings = null, Rational? cutEnd = null)
     {
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
         #endif
 
@@ -1749,7 +1749,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </returns>
     public static long EstimateConvolution(Sequence a, Sequence b, ComputationSettings? settings = null, Rational? cutEnd = null, bool countElements = false)
     {
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
         #endif
         settings ??= ComputationSettings.Default();
@@ -1822,7 +1822,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <remarks>Described in [BT07], section 4.5</remarks>
     public static Sequence Deconvolution(Sequence a, Sequence b, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
     {
-        #if DO_LOG && !SKIP_COSTLY_LOGS
+        #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Convolution between sequence a:\n {a} \n and sequence b:\n {b}");
         #endif
 
