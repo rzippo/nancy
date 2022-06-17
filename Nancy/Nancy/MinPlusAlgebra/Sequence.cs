@@ -3001,7 +3001,7 @@ public static class SequenceExtensions
     }
     
     /// <summary>
-    /// Skips elements until <see cref="value"/> is reached.
+    /// Skips elements until <paramref name="value"/> is reached.
     /// </summary>
     internal static IEnumerable<Element> SkipUntilValue(this IEnumerable<Element> elements, Rational value)
     {

@@ -11,8 +11,14 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// </summary>
 public class StairCurve : Curve
 {
+    /// <summary>
+    /// Vertical height of each step.
+    /// </summary>
     public Rational A { get; }
 
+    /// <summary>
+    /// Horizontal length of each step.
+    /// </summary>
     public Rational B { get; }
 
     /// <summary>

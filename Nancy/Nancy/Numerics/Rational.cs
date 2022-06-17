@@ -13,8 +13,6 @@ using System.Text;
 
 using Newtonsoft.Json;
 
-
-
 namespace Unipi.Nancy.Numerics
 {
     /// <summary>
@@ -279,7 +277,7 @@ namespace Unipi.Nancy.Numerics
 
         #region Constructors
 
-        /// <inheritdoc cref="BigRational"/>
+        /// <inheritdoc cref="BigRational(int, int)"/>
         public Rational(int numerator, int denominator = 1)
         {
             if (denominator == 0)
@@ -313,7 +311,7 @@ namespace Unipi.Nancy.Numerics
             Simplify();
         }
 
-        /// <inheritdoc cref="BigRational"/>
+        /// <inheritdoc cref="BigRational(BigInteger)"/>
         public Rational(BigInteger numerator)
         {
             Numerator = numerator;
@@ -364,7 +362,7 @@ namespace Unipi.Nancy.Numerics
             Simplify();
         }
 
-        /// <inheritdoc cref="BigRational"/>
+        /// <inheritdoc cref="BigRational(decimal)"/>
         public Rational(Decimal value)
         {
             int[] bits = Decimal.GetBits(value);
@@ -396,7 +394,7 @@ namespace Unipi.Nancy.Numerics
             Simplify();
         }
 
-        /// <inheritdoc cref="BigRational"/>
+        /// <inheritdoc cref="BigRational(BigInteger, BigInteger)"/>
         public Rational(BigInteger numerator, BigInteger denominator)
         {
             if (denominator.Sign == 0)
@@ -430,7 +428,7 @@ namespace Unipi.Nancy.Numerics
             Simplify();
         }
 
-        /// <inheritdoc cref="BigRational"/>
+        /// <inheritdoc cref="BigRational(BigInteger, BigInteger, BigInteger)"/>
         public Rational(BigInteger whole, BigInteger numerator, BigInteger denominator)
         {
             if (denominator.Sign == 0)
@@ -615,9 +613,10 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="BigRational.Max(BigRational, BigRational, BigRational)"/>
         public static Rational Max(Rational a, Rational b, Rational c) => Max(a, Max(b, c));    //good enough
 
-        /// <inheritdoc cref="BigRational.Min"/>
+        /// <inheritdoc cref="BigRational.Min(BigRational, BigRational)"/>
         public static Rational Min(Rational a, Rational b) => a > b ? b : a;
 
+        /// <inheritdoc cref="BigRational.Min(BigRational, BigRational, BigRational)"/>
         public static Rational Min(Rational a, Rational b, Rational c) => Min(a, Min(b, c));
         
         #endregion Public Static Methods
@@ -1307,18 +1306,23 @@ namespace Unipi.Nancy.Numerics
     {
         #region Static public values
 
+        /// <inheritdoc cref="LongRational.Zero"/>
         public static Rational Zero { get; } = new Rational(0);
 
+        /// <inheritdoc cref="LongRational.One"/>
         public static Rational One { get; } = new Rational(1);
 
+        /// <inheritdoc cref="LongRational.MinusOne"/>
         public static Rational MinusOne { get; } = new Rational(-1);
 
+        /// <inheritdoc cref="LongRational.PlusInfinity"/>
         public static Rational PlusInfinity { get; } = new Rational
         {
             Numerator = 1,
             Denominator = 0
         };
 
+        /// <inheritdoc cref="LongRational.MinusInfinity"/>
         public static Rational MinusInfinity { get; } = new Rational
         {
             Numerator = -1,
@@ -1329,20 +1333,36 @@ namespace Unipi.Nancy.Numerics
 
         #region Public Properties
 
+        /// <inheritdoc cref="LongRational.Sign"/>
         public int Sign => Math.Sign(Numerator);
 
+        /// <inheritdoc cref="LongRational.Numerator"/>
         [JsonProperty(PropertyName = "num")]
         public long Numerator { get; private set; }
 
+        /// <inheritdoc cref="LongRational.Denominator"/>
         [JsonProperty(PropertyName = "den")]
         public long Denominator { get; private set; }
 
+        /// <inheritdoc cref="LongRational.IsInfinite"/>
         public bool IsInfinite => Denominator == 0;
+        
+        /// <inheritdoc cref="LongRational.IsFinite"/>
         public bool IsFinite => Denominator != 0;
+
+        /// <inheritdoc cref="LongRational.IsPlusInfinite"/>
+        public bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
+
+        /// <inheritdoc cref="LongRational.IsMinusInfinite"/>
+        public bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
+
+        /// <inheritdoc cref="LongRational.IsZero"/>
         public bool IsZero => this == Zero;
 
+        /// <inheritdoc cref="LongRational.IsPositive"/>
         public bool IsPositive => this.Sign > 0;
         
+        /// <inheritdoc cref="LongRational.IsNegative"/>
         public bool IsNegative => this.Sign < 0;
 
         #endregion Public Properties
@@ -1391,16 +1411,28 @@ namespace Unipi.Nancy.Numerics
         // -1/1        ==    -1,  0/1
         // -3/2        ==    -1, -1/2
         //  3/2        ==     1,  1/2
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public long GetWholePart()
         {
             return Numerator / Denominator;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public Rational GetFractionPart()
         {
             return new Rational(Numerator % Denominator, Denominator);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public long Floor()
         {
             var wholePart = GetWholePart();
@@ -1419,6 +1451,10 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public long Ceil()
         {
             var wholePart = GetWholePart();
@@ -1437,10 +1473,20 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
-        public long FastFloor() => Floor();
-        public long FastCeil() => Ceil();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public int FastFloor() => (int) Floor();
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public int FastCeil() => (int) Ceil();
 
-        public override bool Equals(Object obj)
+        /// <inheritdoc />
+        public override bool Equals(object? obj)
         {
             if (obj == null)
                 return false;
@@ -1450,18 +1496,19 @@ namespace Unipi.Nancy.Numerics
             return this.Equals((Rational)obj);
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             return (Numerator, Denominator).GetHashCode();
         }
 
         // IComparable
-        int IComparable.CompareTo(Object obj)
+        int IComparable.CompareTo(object? obj)
         {
             if (obj == null)
                 return 1;
             if (!(obj is Rational))
-                throw new ArgumentException("Argument must be of type Rational", "obj");
+                throw new ArgumentException("Argument must be of type Rational", nameof(obj));
             return Compare(this, (Rational)obj);
         }
 
@@ -1472,12 +1519,13 @@ namespace Unipi.Nancy.Numerics
         }
 
         // Object.ToString
+        /// <inheritdoc />
         public override String ToString()
         {
             StringBuilder ret = new StringBuilder();
-            ret.Append(Numerator.ToString());
+            ret.Append(Numerator);
             ret.Append(c_solidus);
-            ret.Append(Denominator.ToString());
+            ret.Append(Denominator);
             return ret.ToString();
         }
 
@@ -1499,6 +1547,7 @@ namespace Unipi.Nancy.Numerics
 
         #region Constructors
 
+        /// <inheritdoc cref="LongRational(long, long)"/>
         public Rational(long numerator, long denominator = 1)
         {
             if (denominator == 0)
@@ -1532,6 +1581,7 @@ namespace Unipi.Nancy.Numerics
             Simplify();
         }
 
+        /// <inheritdoc cref="LongRational(long)"/>
         public Rational(long numerator)
         {
             Numerator = numerator;
@@ -1543,6 +1593,7 @@ namespace Unipi.Nancy.Numerics
         // The decimal type represents floating point numbers exactly, with no rounding error.
         // Values such as "0.1" in decimal are actually representable, and convert cleanly
         // to Rational as "1/10"
+        /// <inheritdoc cref="LongRational(decimal)"/>
         public Rational(decimal value)
         {
             //This is an intuitive and surely inefficient implementation.
@@ -1578,47 +1629,56 @@ namespace Unipi.Nancy.Numerics
 
         #region Public Static Methods
 
+        /// <inheritdoc cref="LongRational.Abs"/>
         public static Rational Abs(Rational r)
         {
             return (r.Numerator < 0 ? new Rational(Math.Abs(r.Numerator), r.Denominator) : r);
         }
 
+        /// <inheritdoc cref="LongRational.Negate"/>
         public static Rational Negate(Rational r)
         {
             return new Rational(-r.Numerator, r.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.Invert"/>
         public static Rational Invert(Rational r)
         {
             return new Rational(r.Denominator, r.Numerator);
         }
 
+        /// <inheritdoc cref="LongRational.Add"/>
         public static Rational Add(Rational x, Rational y)
         {
             return x + y;
         }
 
+        /// <inheritdoc cref="LongRational.Subtract"/>
         public static Rational Subtract(Rational x, Rational y)
         {
             return x - y;
         }
 
 
+        /// <inheritdoc cref="LongRational.Multiply"/>
         public static Rational Multiply(Rational x, Rational y)
         {
             return x * y;
         }
 
+        /// <inheritdoc cref="LongRational.Divide"/>
         public static Rational Divide(Rational dividend, Rational divisor)
         {
             return dividend / divisor;
         }
 
+        /// <inheritdoc cref="LongRational.Remainder"/>
         public static Rational Remainder(Rational dividend, Rational divisor)
         {
             return dividend % divisor;
         }
 
+        /// <inheritdoc cref="LongRational.DivRem"/>
         public static Rational DivRem(Rational dividend, Rational divisor, out Rational remainder)
         {
             // a/b / c/d  == (ad)/(bc)
@@ -1633,6 +1693,7 @@ namespace Unipi.Nancy.Numerics
             return new Rational(ad, bc);
         }
 
+        /// <inheritdoc cref="LongRational.Pow"/>
         public static Rational Pow(Rational baseValue, long exponent)
         {
             if (exponent == 0)
@@ -1645,7 +1706,7 @@ namespace Unipi.Nancy.Numerics
             {
                 if (baseValue == Rational.Zero)
                 {
-                    throw new ArgumentException("cannot raise zero to a negative power", "baseValue");
+                    throw new ArgumentException("cannot raise zero to a negative power", nameof(baseValue));
                 }
                 // n^(-e) -> (1/n)^e
                 baseValue = Rational.Invert(baseValue);
@@ -1662,23 +1723,14 @@ namespace Unipi.Nancy.Numerics
             return result;
         }
 
-        // Least Common Denominator (LCD)
-        //
-        // The LCD is the least common multiple of the two denominators.  For instance, the LCD of
-        // {1/2, 1/4} is 4 because the least common multiple of 2 and 4 is 4.  Likewise, the LCD
-        // of {1/2, 1/3} is 6.
-        //       
-        // To find the LCD:
-        //
-        // 1) Find the Greatest Common Divisor (GCD) of the denominators
-        // 2) Multiply the denominators together
-        // 3) Divide the product of the denominators by the GCD
+        /// <inheritdoc cref="LongRational.LeastCommonDenominator(LongRational, LongRational)"/>
         public static long LeastCommonDenominator(Rational x, Rational y)
         {
             // LCD( a/b, c/d ) == (bd) / gcd(b,d)
             return (x.Denominator / GreatestCommonDivisor(x.Denominator, y.Denominator)) * y.Denominator;
         }
 
+        /// <inheritdoc cref="LongRational.GreatestCommonDivisor(LongRational, LongRational)"/>
         public static Rational GreatestCommonDivisor(Rational a, Rational b)
         {
             while (b != 0)
@@ -1690,6 +1742,7 @@ namespace Unipi.Nancy.Numerics
             return a;
         }
 
+        /// <inheritdoc cref="LongRational.GreatestCommonDivisor(long, long)"/>
         public static long GreatestCommonDivisor(long a, long b)
         {
             a = Math.Abs(a);
@@ -1704,15 +1757,13 @@ namespace Unipi.Nancy.Numerics
             return a;
         }
 
+        /// <inheritdoc cref="LongRational.LeastCommonMultiple(LongRational, LongRational)"/>
         public static Rational LeastCommonMultiple(Rational a, Rational b)
         {
             return (a / Rational.GreatestCommonDivisor(a, b)) * b;
         }
 
-        /// <summary>
-        /// Compares two Rationals and returns an indication of their relative values.
-        /// </summary>
-        /// <returns>Less than 0 if r1 &lt; r2, 0 if r1 == r2, Greater than 0 if r1 &gt; r2</returns>
+        /// <inheritdoc cref="LongRational.Compare(LongRational, LongRational)"/>
         public static int Compare(Rational r1, Rational r2)
         {
             if (r1.IsInfinite || r2.IsInfinite)
@@ -1740,50 +1791,66 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
+        /// <inheritdoc cref="LongRational.Max(LongRational, LongRational)"/>
         public static Rational Max(Rational a, Rational b) => a > b ? a : b;
 
+        /// <inheritdoc cref="LongRational.Max(LongRational, LongRational, LongRational)"/>
         public static Rational Max(Rational a, Rational b, Rational c) => Max(a, Max(b, c));    //good enough
 
+        /// <inheritdoc cref="LongRational.Min(LongRational, LongRational)"/>
         public static Rational Min(Rational a, Rational b) => a > b ? b : a;
+
+        /// <inheritdoc cref="LongRational.Min(LongRational, LongRational, LongRational)"/>
+        public static Rational Min(Rational a, Rational b, Rational c) => Min(a, Min(b, c));
+
 
         #endregion Public Static Methods
 
         #region Operator Overloads
+        
+        /// <inheritdoc />
         public static bool operator ==(Rational x, Rational y)
         {
             return Compare(x, y) == 0;
         }
 
+        /// <inheritdoc />
         public static bool operator !=(Rational x, Rational y)
         {
             return Compare(x, y) != 0;
         }
 
+        /// <inheritdoc />
         public static bool operator <(Rational x, Rational y)
         {
             return Compare(x, y) < 0;
         }
 
+        /// <inheritdoc />
         public static bool operator <=(Rational x, Rational y)
         {
             return Compare(x, y) <= 0;
         }
 
+        /// <inheritdoc />
         public static bool operator >(Rational x, Rational y)
         {
             return Compare(x, y) > 0;
         }
 
+        /// <inheritdoc />
         public static bool operator >=(Rational x, Rational y)
         {
             return Compare(x, y) >= 0;
         }
 
+        /// <inheritdoc />
         public static Rational operator +(Rational r)
         {
             return r;
         }
 
+        /// <inheritdoc />
         public static Rational operator -(Rational r)
         {
             if (r == PlusInfinity)
@@ -1794,6 +1861,7 @@ namespace Unipi.Nancy.Numerics
             return new Rational(-r.Numerator, r.Denominator);
         }
 
+        /// <inheritdoc />
         public static Rational operator ++(Rational r)
         {
             if (r.IsInfinite)
@@ -1802,6 +1870,7 @@ namespace Unipi.Nancy.Numerics
             return r + Rational.One;
         }
 
+        /// <inheritdoc />
         public static Rational operator --(Rational r)
         {
             if (r.IsInfinite)
@@ -1810,6 +1879,7 @@ namespace Unipi.Nancy.Numerics
             return r - Rational.One;
         }
 
+        /// <inheritdoc />
         public static Rational operator +(Rational r1, Rational r2)
         {
             if (r1.IsInfinite || r2.IsInfinite)
@@ -1833,11 +1903,13 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
+        /// <inheritdoc />
         public static Rational operator -(Rational r1, Rational r2)
         {
             return r1 + (-r2);
         }
 
+        /// <inheritdoc />
         public static Rational operator *(Rational r1, Rational r2)
         {
             if (r1.IsZero || r2.IsZero)
@@ -1855,6 +1927,7 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
+        /// <inheritdoc />
         public static Rational operator /(Rational r1, Rational r2)
         {
             if (r1.IsZero || r2.IsZero)
@@ -1894,6 +1967,7 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
+        /// <inheritdoc />
         public static Rational operator %(Rational r1, Rational r2)
         {
             if (r1.IsInfinite || r2.IsInfinite)
@@ -1905,46 +1979,56 @@ namespace Unipi.Nancy.Numerics
         #endregion Operator Overloads
 
         #region explicit conversions from Rational
+
+        /// <inheritdoc cref="LongRational.explicit operator sbyte"/>
         public static explicit operator SByte(Rational value)
         {
             return (SByte)(value.Numerator / value.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator UInt16"/>
         public static explicit operator UInt16(Rational value)
         {
             return (UInt16)(value.Numerator / value.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator UInt32"/>
         public static explicit operator UInt32(Rational value)
         {
             return (UInt32)(value.Numerator / value.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator UInt64"/>
         public static explicit operator UInt64(Rational value)
         {
             return (UInt64)(value.Numerator / value.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator Byte"/>
         public static explicit operator Byte(Rational value)
         {
             return (Byte)(value.Numerator / value.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator Int16"/>
         public static explicit operator Int16(Rational value)
         {
             return (Int16)(value.Numerator / value.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator Int32"/>
         public static explicit operator Int32(Rational value)
         {
             return (Int32)(value.Numerator / value.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator Int64"/>
         public static explicit operator Int64(Rational value)
         {
             return (Int64)(value.Numerator / value.Denominator);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator Single"/>
         public static explicit operator Single(Rational value)
         {
             // The Single value type represents a single-precision 32-bit number with
@@ -1953,6 +2037,7 @@ namespace Unipi.Nancy.Numerics
             return (Single)((Double)value);
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator Double"/>
         public static explicit operator Double(Rational value)
         {
             // The Double value type represents a double-precision 64-bit number with
@@ -1996,6 +2081,7 @@ namespace Unipi.Nancy.Numerics
                 return result;
         }
 
+        /// <inheritdoc cref="LongRational.explicit operator Decimal"/>
         public static explicit operator Decimal(Rational value)
         {
             if (value.IsInfinite)
@@ -2037,46 +2123,55 @@ namespace Unipi.Nancy.Numerics
 
         #region implicit conversions to Rational
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(SByte)"/>
         public static implicit operator Rational(SByte value)
         {
             return new Rational((long)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(UInt16)"/>
         public static implicit operator Rational(UInt16 value)
         {
             return new Rational((long)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(UInt32)"/>
         public static implicit operator Rational(UInt32 value)
         {
             return new Rational((long)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(UInt64)"/>
         public static implicit operator Rational(UInt64 value)
         {
             return new Rational((long)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(Byte)"/>
         public static implicit operator Rational(Byte value)
         {
             return new Rational((long)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(Int16)"/>
         public static implicit operator Rational(Int16 value)
         {
             return new Rational((long)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(Int32)"/>
         public static implicit operator Rational(Int32 value)
         {
             return new Rational((long)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(Int64)"/>
         public static implicit operator Rational(Int64 value)
         {
             return new Rational((long)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(BigInteger)"/>
         public static implicit operator Rational(BigInteger value)
         {
             return new Rational((long)value);
@@ -2086,17 +2181,20 @@ namespace Unipi.Nancy.Numerics
          * This operators are commented out as they're unreliable
          * due to the Rational(double) constructor
          * 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(Single)"/>
         public static implicit operator Rational(Single value)
         {
             return new Rational((Double)value);
         }
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(Double)"/>
         public static implicit operator Rational(Double value)
         {
             return new Rational(value);
         }
         */
 
+        /// <inheritdoc cref="LongRational.implicit operator LongRational(Decimal)"/>
         public static implicit operator Rational(Decimal value)
         {
             return new Rational(value);

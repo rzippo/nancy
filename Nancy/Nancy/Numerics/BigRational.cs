@@ -717,6 +717,15 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <returns></returns>
     public static BigRational Min(BigRational a, BigRational b) => a > b ? b : a;
 
+    /// <summary>
+    /// Min of the three numbers.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="c"></param>
+    /// <returns></returns>
+    public static BigRational Min(BigRational a, BigRational b, BigRational c) => Min(a, Min(b, c));
+
     #endregion Public Static Methods
 
     #region Operator Overloads

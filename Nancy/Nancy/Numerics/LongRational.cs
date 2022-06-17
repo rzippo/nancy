@@ -682,6 +682,15 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <returns></returns>
     public static LongRational Min(LongRational a, LongRational b) => a > b ? b : a;
 
+    /// <summary>
+    /// Min of the three numbers.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="c"></param>
+    /// <returns></returns>
+    public static LongRational Min(LongRational a, LongRational b, LongRational c) => Min(a, Min(b, c));
+    
     #endregion Public Static Methods
 
     #region Operator Overloads
