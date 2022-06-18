@@ -6,12 +6,12 @@ on:
     branches:
       - master
     paths: 
-      - 'Nancy/Nancy/Nancy.csproj'
+      - 'Nancy/Nancy/Nancy.LongRational.csproj'
   pull_request:
     branches:
       - master
     paths: 
-      - 'Nancy/Nancy/Nancy.csproj'
+      - 'Nancy/Nancy/Nancy.LongRational.csproj'
 
 jobs:
   build-test-publish:
@@ -20,8 +20,8 @@ jobs:
     env:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.sln"
-      NANCY: "Nancy/Nancy/Nancy.csproj"
-      NANCY_TESTS: "Nancy/Nancy.Tests/Nancy.Tests.csproj"
+      NANCY: "Nancy/Nancy/Nancy.LongRational.csproj"
+      NANCY_TESTS: "Nancy/Nancy.Tests/Nancy.Tests.LongRational.csproj"
 
     steps:
       - uses: actions/checkout@v3
