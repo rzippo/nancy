@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nancy.Tests", "Nancy.Tests\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{63A4B6E7-ACF2-4C4F-A54F-E70B8AF44C77}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.LongRational", "Nancy\Nancy.LongRational.csproj", "{8417A468-CAF5-49E6-8D15-DC1C59179299}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Tests.LongRational", "Nancy.Tests\Nancy.Tests.LongRational.csproj", "{43E6419C-6864-4252-AEB9-C399C2DEFF14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,12 +27,21 @@ Global
 		{67B7C873-44C8-4934-8FD2-02EE41A1282B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67B7C873-44C8-4934-8FD2-02EE41A1282B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67B7C873-44C8-4934-8FD2-02EE41A1282B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8417A468-CAF5-49E6-8D15-DC1C59179299}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8417A468-CAF5-49E6-8D15-DC1C59179299}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8417A468-CAF5-49E6-8D15-DC1C59179299}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8417A468-CAF5-49E6-8D15-DC1C59179299}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43E6419C-6864-4252-AEB9-C399C2DEFF14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43E6419C-6864-4252-AEB9-C399C2DEFF14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43E6419C-6864-4252-AEB9-C399C2DEFF14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43E6419C-6864-4252-AEB9-C399C2DEFF14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{67B7C873-44C8-4934-8FD2-02EE41A1282B} = {63A4B6E7-ACF2-4C4F-A54F-E70B8AF44C77}
+		{43E6419C-6864-4252-AEB9-C399C2DEFF14} = {63A4B6E7-ACF2-4C4F-A54F-E70B8AF44C77}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B378BEB-8939-431D-9E23-562DEF7D5F5D}

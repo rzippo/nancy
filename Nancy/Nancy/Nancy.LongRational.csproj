@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+
+    <RootNamespace>Unipi.Nancy</RootNamespace>
+    <AssemblyName>Unipi.Nancy.LongRational</AssemblyName>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <Title>Nancy</Title>
+    <Authors>Raffaele Zippo</Authors>
+    <Description>A computational library for Network Calculus</Description>
+    <Copyright>Raffaele Zippo, University of Pisa</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>nancy.png</PackageIcon>
+    <PackageReadmeFile>nuget.md</PackageReadmeFile>
+    <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
+    <PackageTags>network-calculus</PackageTags>
+    <PackageVersion>1.0.5</PackageVersion>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>LONG_RATIONAL</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DocumentationFile>bin\Release\Unipi.Nancy.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSubTypes" Version="1.9.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NLog" Version="4.7.15" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="references.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="nancy.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Update="nuget.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+</Project>
