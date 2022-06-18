@@ -1,4 +1,4 @@
-name: CICD
+name: CICD-BigRational
 
 on:
   workflow_dispatch:
