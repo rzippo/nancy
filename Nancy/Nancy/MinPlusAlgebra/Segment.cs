@@ -1413,7 +1413,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         //Local functions
             
         // Branch with slope at start less or equal slope at end.
-        // From [1], first case of algorithm 10.
+        // From [BT07], first case of algorithm 10.
         SubAdditiveCurve SegmentClosureTypeA()
         {
             List<Element> elements = new List<Element> { Point.Origin() };
@@ -1463,7 +1463,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         }
 
         // Branch with slope at start greater than slope at end.
-        // From [1], second case of algorithm 10.
+        // From [BT07], second case of algorithm 10.
         SubAdditiveCurve SegmentClosureTypeB()
         {
             List<Element> elements = new List<Element> { Point.Origin() };
@@ -1552,7 +1552,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
         //Local functions
             
-        //In [1], first leaf branch of algorithm 11.
+        //In [BT07], first leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeA()
         {
             int k0 = (int)Math.Floor((decimal)(pseudoPeriodLength / Length)) + 1;
@@ -1608,7 +1608,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             }
         }
 
-        //In [1], second leaf branch of algorithm 11.
+        //In [BT07], second leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeB()
         {
             int k0 = (int)Math.Floor((decimal)(pseudoPeriodLength / Length)) + 1;
@@ -1654,7 +1654,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             }
         }
 
-        //In [1], third leaf branch of algorithm 11.
+        //In [BT07], third leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeC()
         {
             int k0 = (int)Math.Floor((decimal)(pseudoPeriodLength / Length)) + 1;
@@ -1725,7 +1725,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             }
         }
 
-        //In [1], fourth leaf branch of algorithm 11.
+        //In [BT07], fourth leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeD()
         {
             int k0 = (int)Math.Floor((decimal)(pseudoPeriodLength / Length)) + 1;
@@ -1783,7 +1783,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                        
         Rational pseudoPeriodSlope = pseudoPeriodHeight / pseudoPeriodLength;
 
-        //ifs are inverted wrt [1] since cases k*length <= d have the same body
+        //ifs are inverted wrt [BT07] since cases k*length <= d have the same body
         if (k * Length <= pseudoPeriodLength)
         {
             return DisjointSegments();
@@ -1826,7 +1826,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         Curve OverlapAbove()
         {
             //In this implementation of Curve pseudo-periods are left-closed and right-open
-            //This case however, as described in [1], has pseudo-periods left-open and right-closed.
+            //This case however, as described in [BT07], has pseudo-periods left-open and right-closed.
             //So we need to write by hand the second pseudo-period and adjust parameters to
             //obtain an equivalent representation.
 
@@ -1927,7 +1927,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             if (StartSlope < pseudoPeriodicSlope)
             {
                 //Periodic segment convolution of type A
-                //In [1], cases are > and >=, we deduced it's a typo in the second case
+                //In [BT07], cases are > and >=, we deduced it's a typo in the second case
 
                 if (StartTime > pseudoPeriodLength)
                 {
@@ -2216,7 +2216,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
         Curve TransversalViewTypeG()
         {
-            //Note that this case diverges from [1].
+            //Note that this case diverges from [BT07].
             //Applying the definition on an example, we found the implementation conceptually wrong.
             //This is the corrected version, matching the expected result in the test.
 

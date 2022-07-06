@@ -921,8 +921,8 @@ public sealed class Point : Element, IEquatable<Point>
         ComputationSettings? settings = null    
     )
     {
-        //beta is off by one wrt [1] for simpler implementation
-        //note that in [1], in this section, /\ means gcd
+        //beta is off by one wrt [BT07] for simpler implementation
+        //note that in [BT07], in this section, /\ means gcd
         Rational beta = pseudoPeriodLength / Rational.GreatestCommonDivisor(pseudoPeriodLength, Time);
 
         #if DO_LOG
@@ -967,8 +967,8 @@ public sealed class Point : Element, IEquatable<Point>
         ComputationSettings? settings = null    
     )
     {
-        //alpha is off by one wrt [1] for simpler implementation
-        //note that in [1], in this section, /\ means gcd
+        //alpha is off by one wrt [BT07] for simpler implementation
+        //note that in [BT07], in this section, /\ means gcd
         Rational alpha = (Time / Rational.GreatestCommonDivisor(pseudoPeriodLength, Time)) - 1;
 
         #if DO_LOG

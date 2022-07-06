@@ -2591,7 +2591,7 @@ public class Curve
         return retVal;
     }
 
-    //Bounds intersection is proved in [1] proposition 4, proof 1
+    //Bounds intersection is proved in [BT07] proposition 4, proof 1
     private static Rational BoundsIntersection(Curve ultimatelyLower, Curve ultimatelyHigher)
     {
         //Bounds are computed relative to origin-passing lines with slope
@@ -3114,7 +3114,7 @@ public class Curve
         return result;
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
-        // Described in [1] Section 4.4.3
+        // Described in [BT07] Section 4.4.3
         Curve ConvolutionTransientTransient(
             Curve firstTransientCurve,
             Curve secondTransientCurve)
@@ -3149,7 +3149,7 @@ public class Curve
         }
 
         // Computes a partial convolution term, that is the convolution of a transient part and a pseudo-periodic one.
-        // Described in [1] Sections 4.4.4 and .5
+        // Described in [BT07] Sections 4.4.4 and .5
         Curve ConvolutionTransientPeriodic(
             Curve transientCurve,
             Curve periodicCurve)
@@ -3178,7 +3178,7 @@ public class Curve
         }
 
         // Computes a partial convolution term, that is the convolution of two pseudo-periodic parts.
-        // Described in [1] Section 4.4.6
+        // Described in [BT07] Section 4.4.6
         Curve ConvolutionPeriodicPeriodic(
             Curve firstPeriodicCurve,
             Curve secondPeriodicCurve)
@@ -3406,7 +3406,7 @@ public class Curve
         return result;
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
-        // Described in [1] Section 4.4.3
+        // Described in [BT07] Section 4.4.3
         long EstimateTransientTransient(
             Curve firstTransientCurve,
             Curve secondTransientCurve)
@@ -3423,7 +3423,7 @@ public class Curve
         }
 
         // Computes a partial convolution term, that is the convolution of a transient part and a pseudo-periodic one.
-        // Described in [1] Sections 4.4.4 and .5
+        // Described in [BT07] Sections 4.4.4 and .5
         long EstimateTransientPeriodic(
             Curve transientCurve,
             Curve periodicCurve)
@@ -3444,7 +3444,7 @@ public class Curve
         }
 
         // Computes a partial convolution term, that is the convolution of two pseudo-periodic parts.
-        // Described in [1] Section 4.4.6
+        // Described in [BT07] Section 4.4.6
         long EstimatePeriodicPeriodic(
             Curve firstPeriodicCurve,
             Curve secondPeriodicCurve)
