@@ -1,0 +1,366 @@
+#!markdown
+
+This notebook shows a minimal example of a network study where non-convex service curves arise, thus highlighting the usefulness of the wide adaptability of Nancy.
+
+Consider a flow traversing a tandem network of 2 server nodes.
+Access to each node is independently regulated using IWRR scheduling (with a different set of cross flows).
+
+_The following cell contains boilerplate code, which cannot be avoided in the current version of .NET notebooks. Please skip ahead._
+
+#!csharp
+
+#r "nuget: Unipi.Nancy"
+#r "nuget: XPlot.Plotly.Interactive"
+
+#!csharp
+
+// Preamble code, see README.md for a quick reference on plot() 
+
+using XPlot.Plotly;
+using Unipi.Nancy.Numerics;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
+
+// the plot method, and its overloads, uses XPlot to plot the given curves
+// there is no particular reason in the choice of XPlot, only that it works well in this context - it can be replaced with other libraries in other context
+void plot(IEnumerable<Curve> curves, IEnumerable<string> names, Rational? upTo = null)
+{
+    //Console.WriteLine("plot(IEnumerable<(Curve curve, string name)> namedCurves, Rational? upTo = null)");
+    Rational t;
+    if(upTo is not null)
+        t = (Rational) upTo;
+    else
+        t = curves.Max(c => c.SecondPseudoPeriodEnd);
+    t = t == 0 ? 10 : t;
+    //Console.WriteLine(t);
+
+    var cuts = curves
+        .Select(c => c.Cut(0, t, isEndInclusive: true))
+        .ToList();
+    
+    plot(cuts, names);
+}
+
+void plot(Curve curve, string name, Rational? upTo = null)
+{
+    //Console.WriteLine("plot(Curve curve, string name, Rational? upTo = null)");
+    plot(new []{curve}, new []{name}, upTo);
+}
+
+void plot(IEnumerable<Curve> curves, Rational? upTo = null)
+{
+    //Console.WriteLine("plot(IEnumerable<Curve> curves, Rational? upTo = null)");
+    var names = curves.Select((_, i) => $"{(char)('a' + i)}");
+    plot(curves, names, upTo);
+}
+
+void plot(Curve curve, Rational? upTo = null)
+{
+    //Console.WriteLine("plot(Curve curve, Rational? upTo = null)");
+    plot(new []{curve}, new []{"a"}, upTo);
+}
+
+void plot(params Curve[] curves)
+{
+    //Console.WriteLine("plot(params Curve[] curves)");
+    plot(curves, null);
+}
+
+void plot(IEnumerable<Sequence> sequences, IEnumerable<string> names)
+{
+    //Console.WriteLine("plot(IEnumerable<(Sequence sequence, string name)> namedSequences)");
+    var colors = new List<string> {
+        "#636EFA",
+        "#EF553B",
+        "#00CC96",
+        "#AB63FA",
+        "#FFA15A",
+        "#19D3F3",
+        "#FF6692",
+        "#B6E880",
+        "#FF97FF",
+        "#FECB52"
+    };
+
+    var traces = Enumerable.Zip(sequences, names) 
+        .SelectMany((ns, i) => getTrace(ns.First, ns.Second, i));
+
+    var chart = Chart.Plot(traces);
+    
+    chart.WithLayout(
+        new Layout.Layout {
+            xaxis = new Xaxis { zeroline = true, showgrid = true, title = "time" },
+            yaxis = new Yaxis { zeroline = true, showgrid = true, title = "data" },
+            showlegend = true,
+            hovermode = "closest"
+        }
+    );
+
+    display(chart);
+    
+    IEnumerable<Scattergl> getTrace(Sequence sequence, string name, int index)
+    {
+        var color = colors[index % colors.Count];
+
+        if(sequence.IsContinuous)
+        {
+            var points = sequence.Elements
+                .Where(e => e is Point)
+                .Select(e => (Point) e)
+                .Select(p => (x: (decimal) p.Time, y: (decimal) p.Value))
+                .ToList();
+
+            if(sequence.IsRightOpen)
+            {
+                var tail = sequence.Elements.Last() as Segment;
+                points.Add((x: (decimal) tail.EndTime, y: (decimal) tail.LeftLimitAtEndTime));
+            }
+
+            var trace = new Scattergl {
+                x = points.Select(p => p.x).ToArray(),
+                y = points.Select(p => p.y).ToArray(),
+                name = name,
+                fillcolor = color,
+                mode = "lines+markers",
+                line = new Line {
+                    color = color
+                },
+                marker = new Marker {
+                    symbol = "circle",
+                    color = color
+                }
+            };
+            yield return trace;
+        }
+        else
+        {
+            var segments = new List<((decimal x, decimal y) a, (decimal x, decimal y) b)>();
+            var points = new List<(decimal x, decimal y)>();
+            var discontinuities = new List<(decimal x, decimal y)>();
+            
+            var breakpoints = sequence.EnumerateBreakpoints();
+            foreach(var (left, center, right) in breakpoints)
+            {
+                points.Add((x: (decimal) center.Time, y: (decimal) center.Value));
+                if(left is not null && left.LeftLimitAtEndTime != center.Value)
+                {
+                    discontinuities.Add((x: (decimal) center.Time, y: (decimal) left.LeftLimitAtEndTime));
+                }
+                if(right is not null)
+                {
+                    segments.Add((
+                        a: (x: (decimal) right.StartTime, y: (decimal) right.RightLimitAtStartTime),
+                        b: (x: (decimal) right.EndTime, y: (decimal) right.LeftLimitAtEndTime)
+                    ));
+                    if(right.RightLimitAtStartTime != center.Value)
+                    {
+                        discontinuities.Add((x: (decimal) center.Time, y: (decimal) right.RightLimitAtStartTime));
+                    }
+                }
+            }
+            if(sequence.IsRightOpen)
+            {
+                var tail = sequence.Elements.Last() as Segment;
+                segments.Add((
+                    a: (x: (decimal) tail.StartTime, y: (decimal) tail.RightLimitAtStartTime),
+                    b: (x: (decimal) tail.EndTime, y: (decimal) tail.LeftLimitAtEndTime)
+                ));
+            }
+
+            var segmentsLegend = segments.Any();
+
+            bool isFirst = true;
+            foreach(var (a, b) in segments)
+            {
+                var trace = new Scattergl {
+                    x = new []{ a.x, b.x },
+                    y = new []{ a.y, b.y },
+                    name = name,
+                    legendgroup = name,
+                    fillcolor = color,
+                    mode = "lines",
+                    line = new Line {
+                        color = color
+                    },
+                    showlegend = segmentsLegend && isFirst
+                };
+                yield return trace;
+                isFirst = false; 
+            }
+            
+            var pointsTrace = new Scattergl {
+                x = points.Select(p => p.x).ToArray(),
+                y = points.Select(p => p.y).ToArray(),
+                name = name,
+                legendgroup = name,
+                fillcolor = color,
+                mode = "markers",
+                line = new Line {
+                    color = color
+                },
+                marker = new Marker {
+                    symbol = "circle",
+                    color = color
+                },
+                showlegend = !segmentsLegend
+            };
+            yield return pointsTrace;
+
+            var discontinuitiesTrace = new Scattergl {
+                x = discontinuities.Select(p => p.x).ToArray(),
+                y = discontinuities.Select(p => p.y).ToArray(),
+                name = name,
+                legendgroup = name,
+                fillcolor = color,
+                mode = "markers",
+                line = new Line {
+                    color = color
+                },
+                marker = new Marker {
+                    symbol = "circle-open",
+                    color = color,
+                    line = new Line {
+                        color = color
+                    }
+                },
+                showlegend = false,
+            };
+            yield return discontinuitiesTrace;
+        }
+    }
+}
+
+void plot(Sequence sequence, string name)
+{
+    //Console.WriteLine("plot(Sequence sequence, string name)");
+    plot(new []{sequence}, new []{name});
+}
+
+void plot(IEnumerable<Sequence> sequences)
+{
+    //Console.WriteLine("plot(IEnumerable<Sequence> sequences)");
+    var names = sequences.Select((_, i) => $"{(char)('a' + i)}");
+    plot(sequences, names);
+}
+
+void plot(Sequence sequence)
+{
+    //Console.WriteLine("plot(Sequence sequence)");
+    plot(new []{sequence}, new []{"a"});
+}
+
+#!markdown
+
+**The example resumes here.**
+
+We consider the flow to be shaped by a token-bucket arrival curve.
+At each node, the flow is given an allocation matching said rate. 
+For the NC analysis, we use the IWRR model described in [1].
+
+The following are modelling parameters, that the user may change and experiment with:
+* All flows will send packets of min 512 bit and max 1024 bit.
+* The foi (assumed to have index 0 in both nodes) has a max rate of 10 Mbps
+* Node 1 has a rate of 100 Mbps, thus the foi is allocated one tenth of the service
+* Node 2 has a rate of 200 Mbps, thus the foi is allocated one twentieth of the service
+* Both nodes have a max latency of 1 ms
+
+[1] Interleaved Weighted Round-Robin: A Network Calculus Analysis. Seyed Mohammadhossein Tabatabaee and Jean Yves Le Boudec and Marc Boyer. IEICE Transactions on Communications, 2021.
+
+#!csharp
+
+// ms as time unit, bit as data unit
+
+// the flow has a max arrival rate of 10 Mbps, and is guaranteed such bandwidth at each node
+var foi_ac = new SigmaRhoArrivalCurve(1024, 10000);
+
+// 100 Mb/s, 1 ms of latency
+// 3 cross flows
+var b1 = new RateLatencyServiceCurve(100000, 1);
+var weights_1 = new []{10, 30, 40, 20};
+var l_min_1 = new []{512, 512, 512, 512};
+var l_max_1 = new []{1024, 1024, 1024, 1024};
+
+// 200 Mb/s, 1 ms of latency
+// 5 cross flows
+var b2 = new RateLatencyServiceCurve(200000, 1);
+var weights_2 = new []{10, 20, 40, 50, 30, 50};
+var l_min_2 = new []{512, 512, 512, 512, 512, 512};
+var l_max_2 = new []{1024, 1024, 1024, 1024, 1024, 1024};
+
+#!markdown
+
+In the following cell, we generalize the IWRR model of [1].
+
+#!csharp
+
+Curve IwrrServiceCurve(int foi, int[] weights, int[] l_min, int[] l_max, SuperAdditiveCurve beta)
+{
+    var unit_rate = new RateLatencyServiceCurve(1, 0);
+
+    int Phi_i_j(int i, int j, int x)
+    {
+        var a = (x / weights[i]) * weights[j];  // division between positive integers is already floored
+        var b = weights[j] - weights[i];
+        b = b > 0 ? b : 0;
+        var c = Math.Min(x % weights[i] + 1, weights[j]);
+        return a + b + c;
+    }
+    
+    int Psi_i(int i, int x)
+    {
+        var sum = x;
+        for(int j = 0; j < weights.Length; j++)
+            if(j != i)
+                sum += Phi_i_j(i, j, (x / l_min[i])) * l_max[j];
+        return sum;
+    }
+    
+    int L_tot(int i)
+    {
+        var sum = weights[i] * l_min[i];
+        for(int j = 0; j < weights.Length; j++)
+        {
+            if(i != j)
+                sum += weights[i] * l_max[i];
+        }
+        return sum;
+    }
+    
+    var stairs = new List<Curve>();
+    for(int k = 0; k < weights[foi]; k++)
+    {
+        var stair = new StairCurve(l_min[foi], L_tot(foi));
+        var delayed_stair = stair.DelayBy(Psi_i(foi, k * l_min[foi])); 
+        stairs.Add( delayed_stair );
+    }
+    var U_i = Curve.Addition(stairs); // summation of min-plus curves
+    var gamma_i = Curve.Convolution(unit_rate, U_i);
+    var beta_i = Curve.Composition(gamma_i, beta);
+    return beta_i;
+}
+
+#!markdown
+
+We then compute the equivalent service curves of the two nodes.
+
+#!csharp
+
+var b_eq_1 = IwrrServiceCurve(0, weights_1, l_min_1, l_max_1, b1);
+var b_eq_2 = IwrrServiceCurve(0, weights_2, l_min_2, l_max_2, b2);
+
+plot(new[]{b_eq_1, b_eq_2}, new[]{"b_eq_1", "b_eq_2"}, 2.6m);
+Console.WriteLine($"Period length, node 1: {b_eq_1.PseudoPeriodLength} node 2: {b_eq_2.PseudoPeriodLength}");
+Console.WriteLine($"Guaranteed rate, node 1: {b_eq_1.PseudoPeriodAverageSlope} node 2: {b_eq_2.PseudoPeriodAverageSlope}");
+
+#!markdown
+
+We now compute the equivalent service curve for the tandem, and thus the worst-case delay bound.
+
+#!csharp
+
+var b_eq = Curve.Convolution(b_eq_1, b_eq_2);
+plot(new[]{foi_ac, b_eq}, new[]{"foi_ac", "b_eq"}, 15);
+var delay_bound = Curve.HorizontalDeviation(foi_ac, b_eq);
+
+var delay_bound_string = delay_bound.IsFinite ? $"{(decimal)delay_bound:f2} ms" : "unbounded";
+Console.WriteLine($"Worst-case delay bound: {delay_bound_string}");
