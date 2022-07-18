@@ -92,7 +92,7 @@ public class SequenceConvolution
     {
         var a = new FlowControlCurve(4, 12, 4);
         var b = new FlowControlCurve(3, 11, 3);
-        var min = Curve.Minimum(a, b, new (){AutoOptimize = false});
+        var min = Curve.Minimum(a, b, new (){UseRepresentationMinimization = false});
         var minCut = min.Cut(0, 31);
             
         foreach (var ea in minCut.Elements)
@@ -115,7 +115,7 @@ public class SequenceConvolution
     {
         var a = new FlowControlCurve(4, 12, 4);
         var b = new FlowControlCurve(3, 11, 3);
-        var min = Curve.Minimum(a, b, new (){AutoOptimize = false});
+        var min = Curve.Minimum(a, b, new (){UseRepresentationMinimization = false});
         var minCut = min.Cut(0, 31);
 
         var lowerFirstPairs = minCut.Elements
@@ -155,7 +155,7 @@ public class SequenceConvolution
     {
         var a = new FlowControlCurve(4, 12, 4);
         var b = new FlowControlCurve(3, 11, 3);
-        var min = Curve.Minimum(a, b, new (){AutoOptimize = false});
+        var min = Curve.Minimum(a, b, new (){UseRepresentationMinimization = false});
         var minCut = min.Cut(0, 31);
 
             

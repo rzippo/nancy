@@ -875,7 +875,7 @@ public sealed class Point : Element, IEquatable<Point>
                 closure = PeriodicPointClosureTypeC(pseudoPeriodLength, pseudoPeriodHeight);
 
             settings ??= ComputationSettings.Default();
-            if (settings.AutoOptimize)
+            if (settings.UseRepresentationMinimization)
                 return new SubAdditiveCurve(closure.Optimize(), false);
             else
                 return new SubAdditiveCurve(closure, false);

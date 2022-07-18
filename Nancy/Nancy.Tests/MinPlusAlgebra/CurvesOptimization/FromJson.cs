@@ -61,8 +61,8 @@ public class FromJson
     {
         var optimized = curve.Optimize();
 
-        var optimizedConv = Curve.Convolution(optimized, optimized, new ComputationSettings {AutoOptimize = true});
-        var unoptimizedConv = Curve.Convolution(curve, curve, new ComputationSettings {AutoOptimize = true});
+        var optimizedConv = Curve.Convolution(optimized, optimized, new ComputationSettings {UseRepresentationMinimization = true});
+        var unoptimizedConv = Curve.Convolution(curve, curve, new ComputationSettings {UseRepresentationMinimization = true});
 
         Assert.Equal(curve.IsContinuousExceptOrigin, optimized.IsContinuousExceptOrigin);
         Assert.Equal(unoptimizedConv.IsContinuousExceptOrigin, optimizedConv.IsContinuousExceptOrigin);
@@ -76,8 +76,8 @@ public class FromJson
     {
         var optimized = curve.Optimize();
 
-        var optimizedMin = Curve.Minimum(optimized, optimized, new ComputationSettings{AutoOptimize = true});
-        var unoptimizedMin = Curve.Minimum(curve, curve, new ComputationSettings{AutoOptimize = true});
+        var optimizedMin = Curve.Minimum(optimized, optimized, new ComputationSettings{UseRepresentationMinimization = true});
+        var unoptimizedMin = Curve.Minimum(curve, curve, new ComputationSettings{UseRepresentationMinimization = true});
             
         Assert.True(Curve.Equivalent(optimizedMin, unoptimizedMin));
     }
@@ -107,16 +107,16 @@ public class FromJson
     [MemberData(nameof(PairsTestCases))]
     public void MinimumEquivalence(Curve a, Curve b)
     {
-        var unoptimizedMin = Curve.Minimum(a, b, new ComputationSettings {AutoOptimize = true});
+        var unoptimizedMin = Curve.Minimum(a, b, new ComputationSettings {UseRepresentationMinimization = true});
 
         var optA = a.Optimize();
         var optB = b.Optimize();
-        var optimizedMin = Curve.Minimum(optA, optB, new ComputationSettings {AutoOptimize = true});
+        var optimizedMin = Curve.Minimum(optA, optB, new ComputationSettings {UseRepresentationMinimization = true});
             
         Assert.True(Curve.Equivalent(optimizedMin, unoptimizedMin));
             
-        var partialMinA = Curve.Minimum(optA, b, new ComputationSettings {AutoOptimize = true});
-        var partialMinB = Curve.Minimum(a, optB, new ComputationSettings {AutoOptimize = true});
+        var partialMinA = Curve.Minimum(optA, b, new ComputationSettings {UseRepresentationMinimization = true});
+        var partialMinB = Curve.Minimum(a, optB, new ComputationSettings {UseRepresentationMinimization = true});
         Assert.True(Curve.Equivalent(partialMinA, unoptimizedMin));
         Assert.True(Curve.Equivalent(partialMinB, unoptimizedMin));
     }

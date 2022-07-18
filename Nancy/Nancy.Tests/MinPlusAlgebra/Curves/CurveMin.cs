@@ -222,7 +222,7 @@ public class CurveMin
     [MemberData(nameof(MinimumSamplingTestCases))]
     public void MinimumSampling(Curve a, Curve b, Rational[] times)
     {
-        var min = Curve.Minimum(a, b, new (){AutoOptimize = false});
+        var min = Curve.Minimum(a, b, new (){UseRepresentationMinimization = false});
         foreach (var time in times)
         {
             Assert.Equal(min.ValueAt(time), Rational.Min(a.ValueAt(time), b.ValueAt(time)));

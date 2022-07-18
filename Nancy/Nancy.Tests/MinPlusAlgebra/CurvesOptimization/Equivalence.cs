@@ -119,18 +119,18 @@ public class Equivalence
     [MemberData(nameof(FlowControlCurvesTestCases))]
     public void FlowControlOperations(FlowControlCurve[] curves)
     {
-        var minOptimized = Curve.Minimum(curves, new ComputationSettings{AutoOptimize = true});
-        var minUnoptimized = Curve.Minimum(curves, new ComputationSettings{AutoOptimize = false});
+        var minOptimized = Curve.Minimum(curves, new ComputationSettings{UseRepresentationMinimization = true});
+        var minUnoptimized = Curve.Minimum(curves, new ComputationSettings{UseRepresentationMinimization = false});
         output.WriteLine(minOptimized.ToString());
         output.WriteLine(minUnoptimized.ToString());
         Assert.True(Curve.Equivalent(minOptimized, minUnoptimized));
             
-        var convOptimized = Curve.Convolution(curves, new ComputationSettings{AutoOptimize = true});
-        var convUnoptimized = Curve.Convolution(curves, new ComputationSettings{AutoOptimize = false});
+        var convOptimized = Curve.Convolution(curves, new ComputationSettings{UseRepresentationMinimization = true});
+        var convUnoptimized = Curve.Convolution(curves, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(convOptimized, convUnoptimized));
             
-        var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{AutoOptimize = true});
-        var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{AutoOptimize = false});
+        var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{UseRepresentationMinimization = true});
+        var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minConvOptimized, minConvUnoptimized));
     }
         
@@ -140,16 +140,16 @@ public class Equivalence
     {
         var castCurves = curves.Select(c => new Curve(c)).ToArray();
             
-        var minOptimized = Curve.Minimum(castCurves, new ComputationSettings{AutoOptimize = true});
-        var minUnoptimized = Curve.Minimum(castCurves, new ComputationSettings{AutoOptimize = false});
+        var minOptimized = Curve.Minimum(castCurves, new ComputationSettings{UseRepresentationMinimization = true});
+        var minUnoptimized = Curve.Minimum(castCurves, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minOptimized, minUnoptimized));
             
-        var convOptimized = Curve.Convolution(castCurves, new ComputationSettings{AutoOptimize = true});
-        var convUnoptimized = Curve.Convolution(castCurves, new ComputationSettings{AutoOptimize = false});
+        var convOptimized = Curve.Convolution(castCurves, new ComputationSettings{UseRepresentationMinimization = true});
+        var convUnoptimized = Curve.Convolution(castCurves, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(convOptimized, convUnoptimized));
             
-        var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{AutoOptimize = true});
-        var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{AutoOptimize = false});
+        var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{UseRepresentationMinimization = true});
+        var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minConvOptimized, minConvUnoptimized));
     }
         
@@ -160,16 +160,16 @@ public class Equivalence
         var unoptimized = curves.Select(c => new Curve(c)).ToArray();
         var optimized = unoptimized.Select(c => c.Optimize()).ToArray();
             
-        var minOptimized = Curve.Minimum(optimized, new ComputationSettings{AutoOptimize = false});
-        var minUnoptimized = Curve.Minimum(unoptimized, new ComputationSettings{AutoOptimize = false});
+        var minOptimized = Curve.Minimum(optimized, new ComputationSettings{UseRepresentationMinimization = false});
+        var minUnoptimized = Curve.Minimum(unoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minOptimized, minUnoptimized));
             
-        var convOptimized = Curve.Convolution(optimized, new ComputationSettings{AutoOptimize = false});
-        var convUnoptimized = Curve.Convolution(unoptimized, new ComputationSettings{AutoOptimize = false});
+        var convOptimized = Curve.Convolution(optimized, new ComputationSettings{UseRepresentationMinimization = false});
+        var convUnoptimized = Curve.Convolution(unoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(convOptimized, convUnoptimized));
             
-        var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{AutoOptimize = false});
-        var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{AutoOptimize = false});
+        var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{UseRepresentationMinimization = false});
+        var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minConvOptimized, minConvUnoptimized));
     }
         
@@ -198,8 +198,8 @@ public class Equivalence
     {
         var optimized = curve.Optimize();
 
-        var optimizedConv = Curve.Convolution(optimized, optimized, new ComputationSettings{AutoOptimize = false});
-        var unoptimizedConv = Curve.Convolution(curve, curve, new ComputationSettings{AutoOptimize = false});
+        var optimizedConv = Curve.Convolution(optimized, optimized, new ComputationSettings{UseRepresentationMinimization = false});
+        var unoptimizedConv = Curve.Convolution(curve, curve, new ComputationSettings{UseRepresentationMinimization = false});
             
         Assert.True(Curve.Equivalent(optimizedConv, unoptimizedConv));
     }
@@ -211,8 +211,8 @@ public class Equivalence
         var copy = new Curve(curve);
         var optimized = copy.Optimize();
 
-        var optimizedConv = Curve.Convolution(optimized, optimized, new ComputationSettings{AutoOptimize = false});
-        var unoptimizedConv = Curve.Convolution(copy, copy, new ComputationSettings{AutoOptimize = false});
+        var optimizedConv = Curve.Convolution(optimized, optimized, new ComputationSettings{UseRepresentationMinimization = false});
+        var unoptimizedConv = Curve.Convolution(copy, copy, new ComputationSettings{UseRepresentationMinimization = false});
             
         Assert.True(Curve.Equivalent(optimizedConv, unoptimizedConv));
     }

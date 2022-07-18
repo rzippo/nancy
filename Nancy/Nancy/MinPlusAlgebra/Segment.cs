@@ -1405,7 +1405,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         else
             closure = SegmentClosureTypeB();
 
-        if (settings.AutoOptimize)
+        if (settings.UseRepresentationMinimization)
             return new SubAdditiveCurve(closure.Optimize(), false);
         else
             return closure;
@@ -1545,7 +1545,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 closure = PeriodicSegmentClosureTypeD();
         }
 
-        if (settings.AutoOptimize)
+        if (settings.UseRepresentationMinimization)
             return new SubAdditiveCurve(closure.Optimize(), false);
         else
             return closure;

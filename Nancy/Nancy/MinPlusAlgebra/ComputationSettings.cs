@@ -137,9 +137,9 @@ public record ComputationSettings
     public bool SinglePassConvolution { get; set; } = true;
 
     /// <summary>
-    /// If set, results is optimized towards minimal representation
+    /// If set, results of each operation are optimized towards minimal representation
     /// </summary>
-    public bool AutoOptimize { get; set; } = true;
+    public bool UseRepresentationMinimization { get; set; } = true;
         
     /// <summary>
     /// If set, convolutions between sub-additive curves are optimized

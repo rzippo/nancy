@@ -2579,7 +2579,7 @@ public class Curve
             pseudoPeriodHeight: c
         );
 
-        var retVal = settings.AutoOptimize ? result.Optimize() : result;
+        var retVal = settings.UseRepresentationMinimization ? result.Optimize() : result;
 
         #if DO_LOG
         timer.Stop();
@@ -2843,7 +2843,7 @@ public class Curve
             pseudoPeriodHeight: c
         );
 
-        var retVal = settings.AutoOptimize ? result.Optimize() : result;
+        var retVal = settings.UseRepresentationMinimization ? result.Optimize() : result;
 
         #if DO_LOG
         timer.Stop();
@@ -3065,7 +3065,7 @@ public class Curve
                 pseudoPeriodLength: d,
                 pseudoPeriodHeight: c
             );
-            if (settings.AutoOptimize)
+            if (settings.UseRepresentationMinimization)
                 result = result.Optimize();
         }
         else
@@ -3145,7 +3145,7 @@ public class Curve
                 pseudoPeriodHeight: Rational.PlusInfinity
             );
                 
-            return settings.AutoOptimize ? result.Optimize() : result;
+            return settings.UseRepresentationMinimization ? result.Optimize() : result;
         }
 
         // Computes a partial convolution term, that is the convolution of a transient part and a pseudo-periodic one.
@@ -3174,7 +3174,7 @@ public class Curve
                 isPartialCurve: true
             );
                 
-            return settings.AutoOptimize ? result.Optimize() : result;
+            return settings.UseRepresentationMinimization ? result.Optimize() : result;
         }
 
         // Computes a partial convolution term, that is the convolution of two pseudo-periodic parts.
@@ -3216,7 +3216,7 @@ public class Curve
                 isPartialCurve: true
             );
                 
-            return settings.AutoOptimize ? result.Optimize() : result;
+            return settings.UseRepresentationMinimization ? result.Optimize() : result;
                 
             Rational EarliestValidLength()
             {
@@ -3831,7 +3831,7 @@ public class Curve
             pseudoPeriodHeight: c
         );
 
-        return settings.AutoOptimize ? result.Optimize() : result;
+        return settings.UseRepresentationMinimization ? result.Optimize() : result;
     }
 
     /// <summary>

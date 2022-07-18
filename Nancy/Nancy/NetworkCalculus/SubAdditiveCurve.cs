@@ -151,7 +151,7 @@ public class SubAdditiveCurve : Curve
         var stopwatch = Stopwatch.StartNew();
         #endif
 
-        var minimum = Curve.Minimum(this, curve, settings with {AutoOptimize = false}).PeriodFactorization(); // we need a stable T for th. 2
+        var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for th. 2
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
         bool isCurveLower = Curve.Equivalent(curve, minimum, settings); // curve <= this
              
@@ -296,7 +296,7 @@ public class SubAdditiveCurve : Curve
             pseudoPeriodLength: d,
             pseudoPeriodHeight: c
         );
-        return settings.AutoOptimize ? new SubAdditiveCurve(result.Optimize(), false) : result;
+        return settings.UseRepresentationMinimization ? new SubAdditiveCurve(result.Optimize(), false) : result;
 
         // a and b are expected to be either the same, or a is a partition of b
         Sequence SpecializedSequenceConvolution(Sequence sa, Sequence sb, int startIndexOfA = 0)
@@ -551,7 +551,7 @@ public class SubAdditiveCurve : Curve
     {
         settings ??= ComputationSettings.Default();
 
-        var minimum = Curve.Minimum(this, curve, settings with {AutoOptimize = false}).PeriodFactorization(); // we need a stable T for th. 2);
+        var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for th. 2);
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
         bool isCurveLower = Curve.Equivalent(curve, minimum, settings); // curve <= this
              
