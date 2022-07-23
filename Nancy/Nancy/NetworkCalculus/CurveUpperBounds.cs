@@ -20,7 +20,7 @@ public static class CurveUpperBounds
         if (curve is SigmaRhoArrivalCurve)
             return (SigmaRhoArrivalCurve)curve;
 
-        var rate = curve.PseudoPeriodAverageSlope;
+        var rate = curve.PseudoPeriodSlope;
         var burst = CornerPoints()
             .Select(p => p.Value - p.Time * rate)
             .Max();

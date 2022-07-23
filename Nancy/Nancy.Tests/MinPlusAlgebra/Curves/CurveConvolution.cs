@@ -35,7 +35,7 @@ public class CurveConvolution
         Assert.Equal(0, equivalentService.ValueAt(0));
         Assert.Equal(0, equivalentService.ValueAt(10));
         Assert.Equal(6, equivalentService.ValueAt(12));
-        Assert.Equal(3, equivalentService.PseudoPeriodAverageSlope);
+        Assert.Equal(3, equivalentService.PseudoPeriodSlope);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class CurveConvolution
         Assert.Equal(0, equivalentService.ValueAt(0));
         Assert.Equal(0, equivalentService.ValueAt(12));
         Assert.Equal(6, equivalentService.ValueAt(14));
-        Assert.Equal(3, equivalentService.PseudoPeriodAverageSlope);
+        Assert.Equal(3, equivalentService.PseudoPeriodSlope);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class CurveConvolution
         Assert.True(convolution.IsUltimatelyAffine);
 
         Assert.Equal(delay_a + delay_b, convolution.FirstNonZeroTime);
-        Assert.Equal(Rational.Min(rate_a, rate_b), convolution.PseudoPeriodAverageSlope);
+        Assert.Equal(Rational.Min(rate_a, rate_b), convolution.PseudoPeriodSlope);
     }
         
     [Theory]

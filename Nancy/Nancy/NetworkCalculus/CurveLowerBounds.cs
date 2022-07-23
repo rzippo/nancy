@@ -24,7 +24,7 @@ public static class CurveLowerBounds
         if (curve is RateLatencyServiceCurve dr)
             return dr;
 
-        if (curve.PseudoPeriodAverageSlope.IsInfinite)
+        if (curve.PseudoPeriodSlope.IsInfinite)
             throw new ArgumentException("Trying to lower bound a curve with infinite sustained rate");
 
         var minDelay = curve.FirstNonZeroTime;
@@ -35,7 +35,7 @@ public static class CurveLowerBounds
         }
         else
         {
-            var sustainedRate = curve.PseudoPeriodAverageSlope;
+            var sustainedRate = curve.PseudoPeriodSlope;
             var periodicCorners = curve
                 .Extend(curve.SecondPseudoPeriodEnd)
                 .Cut(curve.PseudoPeriodStart, curve.SecondPseudoPeriodEnd)
@@ -113,7 +113,7 @@ public static class CurveLowerBounds
         }
 
         Rational PeriodStartValue(Point corner)
-            => corner.Value - (corner.Time - curve.PseudoPeriodStart) * curve.PseudoPeriodAverageSlope;
+            => corner.Value - (corner.Time - curve.PseudoPeriodStart) * curve.PseudoPeriodSlope;
 
         Rational TransientRate(Point corner, Point periodStart)
             => (periodStart.Value - corner.Value) / (periodStart.Time - corner.Time);
@@ -132,12 +132,12 @@ public static class CurveLowerBounds
     {
         if (curve is RateLatencyServiceCurve dr)
             return dr;
-        if (curve.PseudoPeriodAverageSlope.IsInfinite)
+        if (curve.PseudoPeriodSlope.IsInfinite)
             throw new ArgumentException("Trying to lower bound a curve with infinite sustained rate");
         if (alpha < 0 || alpha > 1)
             throw new ArgumentException("Alpha parameter must be in [0, 1]");
 
-        var maxRate = curve.PseudoPeriodAverageSlope;
+        var maxRate = curve.PseudoPeriodSlope;
         var minDelay = curve.FirstNonZeroTime;
 
         var corners = curve.Extend(curve.SecondPseudoPeriodEnd)

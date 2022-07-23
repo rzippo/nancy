@@ -26,7 +26,7 @@ public class CurveDeconvolution
 
         Assert.Equal(120, deconvolution.ValueAt(0));
         Assert.Equal(120, deconvolution.RightLimitAt(0));
-        Assert.Equal(arrival.PseudoPeriodAverageSlope, deconvolution.PseudoPeriodAverageSlope);
+        Assert.Equal(arrival.PseudoPeriodSlope, deconvolution.PseudoPeriodSlope);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class CurveDeconvolution
 
         Assert.Equal(765, deconvolution.ValueAt(0));
         Assert.Equal(765, deconvolution.RightLimitAt(0));
-        Assert.Equal(arrival.PseudoPeriodAverageSlope, deconvolution.PseudoPeriodAverageSlope);
+        Assert.Equal(arrival.PseudoPeriodSlope, deconvolution.PseudoPeriodSlope);
     }
 
     [Fact]

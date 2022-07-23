@@ -144,7 +144,7 @@ public class RaisedRateLatency
             }
             Assert.True(closure.IsContinuousExceptOrigin);
             Assert.True(closure.IsLeftContinuous);
-            Assert.True(closure.PseudoPeriodAverageSlope > 0);
+            Assert.True(closure.PseudoPeriodSlope > 0);
         }            
     }
 
@@ -201,7 +201,7 @@ public class RaisedRateLatency
             }
             Assert.True(closure.IsContinuousExceptOrigin);
             Assert.True(closure.IsLeftContinuous);
-            Assert.True(closure.PseudoPeriodAverageSlope > 0);
+            Assert.True(closure.PseudoPeriodSlope > 0);
         }
     }
 }

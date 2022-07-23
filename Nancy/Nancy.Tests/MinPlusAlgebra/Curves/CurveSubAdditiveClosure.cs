@@ -65,11 +65,11 @@ public class CurveSubAdditiveClosure
             Assert.Equal(3 * bufferSize, closure.ValueAt(2 * delay + fillTime));
             Assert.Equal(3 * bufferSize, closure.ValueAt(3 * delay));
 
-            Assert.Equal(bufferSize / delay, closure.PseudoPeriodAverageSlope);
+            Assert.Equal(bufferSize / delay, closure.PseudoPeriodSlope);
         }
         else
         {
-            Assert.Equal(rate, closure.PseudoPeriodAverageSlope);
+            Assert.Equal(rate, closure.PseudoPeriodSlope);
             Assert.True(closure.IsUltimatelyAffine);
         }
     }
@@ -105,11 +105,11 @@ public class CurveSubAdditiveClosure
             Assert.Equal(3 * bufferSize, closure.ValueAt(2 * delay + fillTime));
             Assert.Equal(3 * bufferSize, closure.ValueAt(3 * delay));
 
-            Assert.Equal(bufferSize / delay, closure.PseudoPeriodAverageSlope);
+            Assert.Equal(bufferSize / delay, closure.PseudoPeriodSlope);
         }
         else
         {
-            Assert.Equal(rate, closure.PseudoPeriodAverageSlope);
+            Assert.Equal(rate, closure.PseudoPeriodSlope);
             Assert.True(closure.IsUltimatelyAffine);
         }
     }
@@ -156,7 +156,7 @@ public class CurveSubAdditiveClosure
         {
             Assert.False(closure.IsIdenticallyZero);
             Assert.Equal(0, closure.FirstNonZeroTime);
-            Assert.Equal(rate, closure.PseudoPeriodAverageSlope);
+            Assert.Equal(rate, closure.PseudoPeriodSlope);
         }
     }
 

@@ -65,7 +65,7 @@ public class Curve
     /// Average slope of curve in pseudo-periodic behavior.
     /// If it's 0, the curve is truly periodic.
     /// </summary>
-    public Rational PseudoPeriodAverageSlope =>
+    public Rational PseudoPeriodSlope =>
         PseudoPeriodicSequence.IsInfinite
             ? (PseudoPeriodicElements.First().IsPlusInfinite ? Rational.PlusInfinity : Rational.MinusInfinity)
             : PseudoPeriodHeight / PseudoPeriodLength;
@@ -228,11 +228,11 @@ public class Curve
             if (t != Rational.PlusInfinity)
                 return t;
 
-            if (PseudoPeriodAverageSlope <= 0)
+            if (PseudoPeriodSlope <= 0)
                 return Rational.PlusInfinity;
             else
             {
-                var k = (-ValueAt(FirstPseudoPeriodEnd) / PseudoPeriodAverageSlope).FastFloor();
+                var k = (-ValueAt(FirstPseudoPeriodEnd) / PseudoPeriodSlope).FastFloor();
                 return FindFirstNonNegativeInSequence(
                     CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 1) * PseudoPeriodLength, isEndInclusive: true)
                 );
@@ -363,14 +363,14 @@ public class Curve
     public bool IsUltimatelyAffine =>
         IsUltimatelyFinite
         && PseudoPeriodicElements.Count() == 2
-        && ((Segment)PseudoPeriodicElements.Last()).Slope == PseudoPeriodAverageSlope
+        && ((Segment)PseudoPeriodicElements.Last()).Slope == PseudoPeriodSlope
         && IsContinuousAt(FirstPseudoPeriodEnd);
 
     /// <summary>
     /// True if for $t \ge$ <see cref="PseudoPeriodStart"/> the curve is constant.
     /// </summary>
     public bool IsUltimatelyConstant =>
-        IsUltimatelyAffine && PseudoPeriodAverageSlope == 0;
+        IsUltimatelyAffine && PseudoPeriodSlope == 0;
 
     // todo: add reference to proof
 
@@ -834,9 +834,9 @@ public class Curve
     /// <remarks>If there is no dominance, the ordering has no actual meaning</remarks>
     public static (bool Verified, Curve Lower, Curve Upper) AsymptoticDominance(Curve a, Curve b, ComputationSettings? settings = null)
     {
-        if (a.PseudoPeriodAverageSlope < b.PseudoPeriodAverageSlope)
+        if (a.PseudoPeriodSlope < b.PseudoPeriodSlope)
             return (true, a, b);
-        else if (b.PseudoPeriodAverageSlope < a.PseudoPeriodAverageSlope)
+        else if (b.PseudoPeriodSlope < a.PseudoPeriodSlope)
             return (true, b, a);
         else
         {
@@ -1414,7 +1414,7 @@ public class Curve
             baseSequence: BaseSequence * scaling,
             pseudoPeriodStart: PseudoPeriodStart,
             pseudoPeriodLength: PseudoPeriodLength,
-            pseudoPeriodHeight: PseudoPeriodLength * PseudoPeriodAverageSlope * scaling
+            pseudoPeriodHeight: PseudoPeriodLength * PseudoPeriodSlope * scaling
         );
     }
 
@@ -1576,7 +1576,7 @@ public class Curve
             }
         }
         
-        if(PseudoPeriodAverageSlope > 0)
+        if(PseudoPeriodSlope > 0)
         {
             foreach (var (left, center, right) in 
                      Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndInclusive: true).EnumerateBreakpoints())
@@ -1923,7 +1923,7 @@ public class Curve
     /// </summary>
     public Rational MaxValue()
     {
-        if (PseudoPeriodAverageSlope <= 0)
+        if (PseudoPeriodSlope <= 0)
         {
             var breakpoints = Cut(0, FirstPseudoPeriodEnd, isEndInclusive: true).EnumerateBreakpoints();
             return breakpoints.GetBreakpointsValues().Max();
@@ -1940,7 +1940,7 @@ public class Curve
     /// </summary>
     public Rational MinValue()
     {
-        if (PseudoPeriodAverageSlope >= 0)
+        if (PseudoPeriodSlope >= 0)
         {
             var breakpoints = Cut(0, FirstPseudoPeriodEnd, isEndInclusive: true).EnumerateBreakpoints();
             return breakpoints.GetBreakpointsValues().Min();
@@ -2165,7 +2165,7 @@ public class Curve
                 baseSequence: Cut(0, PseudoPeriodStart + 1),
                 pseudoPeriodStart: PseudoPeriodStart,
                 pseudoPeriodLength: 1,
-                pseudoPeriodHeight: PseudoPeriodAverageSlope
+                pseudoPeriodHeight: PseudoPeriodSlope
             );
         }
         else
@@ -2240,7 +2240,7 @@ public class Curve
                     baseSequence: sequence,
                     pseudoPeriodStart: periodStart,
                     pseudoPeriodLength: periodLength,
-                    pseudoPeriodHeight: periodLength * PseudoPeriodAverageSlope
+                    pseudoPeriodHeight: periodLength * PseudoPeriodSlope
                 );
             }
             else
@@ -2328,7 +2328,7 @@ public class Curve
     {
         Rational T = Rational.Max(PseudoPeriodStart, b.PseudoPeriodStart);
         Rational d = Rational.LeastCommonMultiple(PseudoPeriodLength, b.PseudoPeriodLength);
-        Rational c = d * (PseudoPeriodAverageSlope + b.PseudoPeriodAverageSlope);
+        Rational c = d * (PseudoPeriodSlope + b.PseudoPeriodSlope);
 
         Sequence extendedSequence1 = Extend(T + d);
         Sequence extendedSequence2 = b.Extend(T + d);
@@ -2494,10 +2494,10 @@ public class Curve
 
         Rational c, d, T; //Values for the resultFunction
 
-        if (a.PseudoPeriodAverageSlope == b.PseudoPeriodAverageSlope)
+        if (a.PseudoPeriodSlope == b.PseudoPeriodSlope)
         {
             d = EarliestValidLength();
-            c = d * a.PseudoPeriodAverageSlope;
+            c = d * a.PseudoPeriodSlope;
             T = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
 
             Rational EarliestValidLength()
@@ -2512,9 +2512,9 @@ public class Curve
                 var maxBaseSequenceEnd = Rational.Max(a.FirstPseudoPeriodEnd, b.FirstPseudoPeriodEnd);
                 var aBaseCut = a.Cut(0, maxBaseSequenceEnd, settings: settings);
                 var bBaseCut = b.Cut(0, maxBaseSequenceEnd, settings: settings);
-                if (Sequence.LessOrEqual(aBaseCut, bBaseCut, settings) && a.PseudoPeriodAverageSlope <= b.PseudoPeriodAverageSlope)
+                if (Sequence.LessOrEqual(aBaseCut, bBaseCut, settings) && a.PseudoPeriodSlope <= b.PseudoPeriodSlope)
                     return a.PseudoPeriodLength;
-                if (Sequence.LessOrEqual(bBaseCut, aBaseCut, settings) && b.PseudoPeriodAverageSlope <= a.PseudoPeriodAverageSlope)
+                if (Sequence.LessOrEqual(bBaseCut, aBaseCut, settings) && b.PseudoPeriodSlope <= a.PseudoPeriodSlope)
                     return b.PseudoPeriodLength;
 
                 return Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
@@ -2524,7 +2524,7 @@ public class Curve
         {
             Curve ultimatelyLower, ultimatelyHigher;
 
-            if (a.PseudoPeriodAverageSlope < b.PseudoPeriodAverageSlope)
+            if (a.PseudoPeriodSlope < b.PseudoPeriodSlope)
             {
                 ultimatelyLower = a;
                 ultimatelyHigher = b;
@@ -2538,13 +2538,13 @@ public class Curve
             d = ultimatelyLower.PseudoPeriodLength;
             c = ultimatelyLower.PseudoPeriodHeight;
 
-            if (ultimatelyHigher.PseudoPeriodAverageSlope.IsFinite && ultimatelyLower.PseudoPeriodAverageSlope.IsFinite)
+            if (ultimatelyHigher.PseudoPeriodSlope.IsFinite && ultimatelyLower.PseudoPeriodSlope.IsFinite)
             {
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
 #if TRACE_MIN_MAX_EXTENSIONS
                 #if DO_LOG
-                logger.Trace($"Minimum, different slopes: {a.PseudoPeriodAverageSlope} ~ {(decimal)a.PseudoPeriodAverageSlope}, {b.PseudoPeriodAverageSlope} ~ {(decimal)b.PseudoPeriodAverageSlope}");
+                logger.Trace($"Minimum, different slopes: {a.PseudoPeriodSlope} ~ {(decimal)a.PseudoPeriodSlope}, {b.PseudoPeriodSlope} ~ {(decimal)b.PseudoPeriodSlope}");
                 #endif
                 logger.Trace($"Minimum, different slopes: must extend from \n" +
                              $"{a.PseudoPeriodStart} ~ {(decimal) a.PseudoPeriodStart} \n" +
@@ -2597,16 +2597,16 @@ public class Curve
         //Bounds are computed relative to origin-passing lines with slope
         //equal to the functions' periodic slopes.
 
-        //fl(t) <= M + fl.PseudoPeriodAverageSlope * t; t >= fl.PseudoPeriodStartTime
+        //fl(t) <= M + fl.PseudoPeriodSlope * t; t >= fl.PseudoPeriodStartTime
         Rational M = DeviationsFromAverageSlopeLine(ultimatelyLower)
             .Max();
 
-        //fh(t) >= m + fh.PseudoPeriodAverageSlope * t; t >= fh.PseudoPeriodStartTime
+        //fh(t) >= m + fh.PseudoPeriodSlope * t; t >= fh.PseudoPeriodStartTime
         Rational m = DeviationsFromAverageSlopeLine(ultimatelyHigher)
             .Min();
 
         //Intersection points between the two bounds
-        var boundIntersection = (M - m) / (ultimatelyHigher.PseudoPeriodAverageSlope - ultimatelyLower.PseudoPeriodAverageSlope);
+        var boundIntersection = (M - m) / (ultimatelyHigher.PseudoPeriodSlope - ultimatelyLower.PseudoPeriodSlope);
         return boundIntersection;
 
         List<Rational> DeviationsFromAverageSlopeLine(Curve f)
@@ -2621,12 +2621,12 @@ public class Curve
                 switch (element)
                 {
                     case Point p:
-                        deviations.Add(p.Value - f.PseudoPeriodAverageSlope * p.Time);
+                        deviations.Add(p.Value - f.PseudoPeriodSlope * p.Time);
                         break;
 
                     case Segment s:
-                        deviations.Add(s.RightLimitAtStartTime - f.PseudoPeriodAverageSlope * s.StartTime);
-                        deviations.Add(s.LeftLimitAtEndTime - f.PseudoPeriodAverageSlope * s.EndTime);
+                        deviations.Add(s.RightLimitAtStartTime - f.PseudoPeriodSlope * s.StartTime);
+                        deviations.Add(s.LeftLimitAtEndTime - f.PseudoPeriodSlope * s.EndTime);
                         break;
 
                     default:
@@ -2758,10 +2758,10 @@ public class Curve
 
         Rational c, d, T; //Values for the resultFunction
 
-        if (a.PseudoPeriodAverageSlope == b.PseudoPeriodAverageSlope)
+        if (a.PseudoPeriodSlope == b.PseudoPeriodSlope)
         {
             d = EarliestValidLength();
-            c = d * a.PseudoPeriodAverageSlope;
+            c = d * a.PseudoPeriodSlope;
             T = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
 
             Rational EarliestValidLength()
@@ -2776,9 +2776,9 @@ public class Curve
                 var maxBaseSequenceEnd = Rational.Max(a.FirstPseudoPeriodEnd, b.FirstPseudoPeriodEnd);
                 var aBaseCut = a.Cut(0, maxBaseSequenceEnd, settings: settings);
                 var bBaseCut = b.Cut(0, maxBaseSequenceEnd, settings: settings);
-                if (Sequence.GreaterOrEqual(aBaseCut, bBaseCut, settings) && a.PseudoPeriodAverageSlope >= b.PseudoPeriodAverageSlope)
+                if (Sequence.GreaterOrEqual(aBaseCut, bBaseCut, settings) && a.PseudoPeriodSlope >= b.PseudoPeriodSlope)
                     return a.PseudoPeriodLength;
-                if (Sequence.GreaterOrEqual(bBaseCut, aBaseCut, settings) && b.PseudoPeriodAverageSlope >= a.PseudoPeriodAverageSlope)
+                if (Sequence.GreaterOrEqual(bBaseCut, aBaseCut, settings) && b.PseudoPeriodSlope >= a.PseudoPeriodSlope)
                     return b.PseudoPeriodLength;
 
                 return Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
@@ -2788,7 +2788,7 @@ public class Curve
         {
             Curve ultimatelyLower, ultimatelyHigher;
 
-            if (a.PseudoPeriodAverageSlope < b.PseudoPeriodAverageSlope)
+            if (a.PseudoPeriodSlope < b.PseudoPeriodSlope)
             {
                 ultimatelyLower = a;
                 ultimatelyHigher = b;
@@ -2802,13 +2802,13 @@ public class Curve
             d = ultimatelyHigher.PseudoPeriodLength;
             c = ultimatelyHigher.PseudoPeriodHeight;
 
-            if (ultimatelyHigher.PseudoPeriodAverageSlope.IsFinite && ultimatelyLower.PseudoPeriodAverageSlope.IsFinite)
+            if (ultimatelyHigher.PseudoPeriodSlope.IsFinite && ultimatelyLower.PseudoPeriodSlope.IsFinite)
             {
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
 #if TRACE_MIN_MAX_EXTENSIONS
                 #if DO_LOG
-                logger.Trace($"Maximum, different slopes: {a.PseudoPeriodAverageSlope} ~ {(decimal)a.PseudoPeriodAverageSlope}, {b.PseudoPeriodAverageSlope} ~ {(decimal)b.PseudoPeriodAverageSlope}");
+                logger.Trace($"Maximum, different slopes: {a.PseudoPeriodSlope} ~ {(decimal)a.PseudoPeriodSlope}, {b.PseudoPeriodSlope} ~ {(decimal)b.PseudoPeriodSlope}");
                 #endif
                 logger.Trace($"Maximum, different slopes: must extend from \n" +
                              $"{a.PseudoPeriodStart} ~ {(decimal)a.PseudoPeriodStart} \n" +
@@ -3045,14 +3045,14 @@ public class Curve
         #endif
 
         Curve result;
-        if (settings.SinglePassConvolution && a.PseudoPeriodAverageSlope == b.PseudoPeriodAverageSlope)
+        if (settings.SinglePassConvolution && a.PseudoPeriodSlope == b.PseudoPeriodSlope)
         {
             #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
             #endif
             var d = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
             var T = a.PseudoPeriodStart + b.PseudoPeriodStart + d;
-            var c = a.PseudoPeriodAverageSlope * d;
+            var c = a.PseudoPeriodSlope * d;
 
             var cutEnd = T + d;
             var aCut = a.Cut(0, cutEnd, settings: settings);
@@ -3187,7 +3187,7 @@ public class Curve
             var t1 = firstPeriodicCurve.PseudoPeriodStart;
             var t2 = secondPeriodicCurve.PseudoPeriodStart;
             var T = t1 + t2 + d;
-            Rational c = d * Rational.Min(firstPeriodicCurve.PseudoPeriodAverageSlope, secondPeriodicCurve.PseudoPeriodAverageSlope);
+            Rational c = d * Rational.Min(firstPeriodicCurve.PseudoPeriodSlope, secondPeriodicCurve.PseudoPeriodSlope);
 
             #if DO_LOG
             logger.Debug(
@@ -3347,14 +3347,14 @@ public class Curve
         #endif
 
         long result;
-        if (settings.SinglePassConvolution && a.PseudoPeriodAverageSlope == b.PseudoPeriodAverageSlope)
+        if (settings.SinglePassConvolution && a.PseudoPeriodSlope == b.PseudoPeriodSlope)
         {
             #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
             #endif
             var d = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
             var T = a.PseudoPeriodStart + b.PseudoPeriodStart + d;
-            var c = a.PseudoPeriodAverageSlope * d;
+            var c = a.PseudoPeriodSlope * d;
 
             var aCut = a.Cut(0, T + d);
             var bCut = b.Cut(0, T + d);
@@ -3453,7 +3453,7 @@ public class Curve
             var t1 = firstPeriodicCurve.PseudoPeriodStart;
             var t2 = secondPeriodicCurve.PseudoPeriodStart;
             var T = t1 + t2 + d;
-            Rational c = d * Rational.Min(firstPeriodicCurve.PseudoPeriodAverageSlope, secondPeriodicCurve.PseudoPeriodAverageSlope);
+            Rational c = d * Rational.Min(firstPeriodicCurve.PseudoPeriodSlope, secondPeriodicCurve.PseudoPeriodSlope);
 
             #if DO_LOG
             logger.Debug($"Estimate convolution: extending from T1 {t1} d1 {firstPeriodicCurve.PseudoPeriodLength}  T2 {t2} d2 {secondPeriodicCurve.PseudoPeriodLength} to T {T} d {d}");
@@ -3519,7 +3519,7 @@ public class Curve
     /// </remarks>
     public virtual Curve Deconvolution(Curve curve, ComputationSettings? settings = null)
     {
-        if (PseudoPeriodAverageSlope > curve.PseudoPeriodAverageSlope)
+        if (PseudoPeriodSlope > curve.PseudoPeriodSlope)
         {
             return PlusInfinite();
         }
@@ -3797,16 +3797,16 @@ public class Curve
                 {
                     // composition will also be U.A. with rho = rho_f * rho_g
                     d = 1;
-                    c = f.PseudoPeriodAverageSlope * g.PseudoPeriodAverageSlope;
+                    c = f.PseudoPeriodSlope * g.PseudoPeriodSlope;
                 }
                 else if (f.IsUltimatelyAffine)
                 {
                     d = g.PseudoPeriodLength;
-                    c = g.PseudoPeriodHeight * f.PseudoPeriodAverageSlope;
+                    c = g.PseudoPeriodHeight * f.PseudoPeriodSlope;
                 }
                 else if (g.IsUltimatelyAffine)
                 {
-                    d = f.PseudoPeriodLength / g.PseudoPeriodAverageSlope;
+                    d = f.PseudoPeriodLength / g.PseudoPeriodSlope;
                     c = f.PseudoPeriodHeight;
                 }
             }

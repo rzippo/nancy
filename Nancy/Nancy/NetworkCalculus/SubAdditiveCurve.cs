@@ -172,7 +172,7 @@ public class SubAdditiveCurve : Curve
         else 
         {
             if(
-                this.PseudoPeriodAverageSlope != curve.PseudoPeriodAverageSlope ||
+                this.PseudoPeriodSlope != curve.PseudoPeriodSlope ||
                 this.Match(minimum.PseudoPeriodicSequence, settings) ||
                 curve.Match(minimum.PseudoPeriodicSequence, settings)
             )
@@ -185,12 +185,12 @@ public class SubAdditiveCurve : Curve
                 #endif
 
                 SubAdditiveCurve higher, lower;
-                if (this.PseudoPeriodAverageSlope < curve.PseudoPeriodAverageSlope)
+                if (this.PseudoPeriodSlope < curve.PseudoPeriodSlope)
                 {
                     lower = this;
                     higher = curve;
                 }
-                else if (this.PseudoPeriodAverageSlope > curve.PseudoPeriodAverageSlope)
+                else if (this.PseudoPeriodSlope > curve.PseudoPeriodSlope)
                 {
                     lower = curve;
                     higher = this;
@@ -261,7 +261,7 @@ public class SubAdditiveCurve : Curve
         var T = Rational.Min(
             2*minimum.PseudoPeriodStart, 
             a.PseudoPeriodStart + b.PseudoPeriodStart) + d;
-        var c = d * minimum.PseudoPeriodAverageSlope;
+        var c = d * minimum.PseudoPeriodSlope;
 
         #if DO_LOG
         logger.Debug($"SpecializedConvolution: extending from T_min {minimum.PseudoPeriodStart} d_min {minimum.PseudoPeriodLength} to T {T} d {d}");
@@ -481,7 +481,7 @@ public class SubAdditiveCurve : Curve
         #endif
         var ordered = curves
             .OrderByDescending(c => c.RightLimitAt(0))
-            .ThenByDescending(c => c.PseudoPeriodAverageSlope)
+            .ThenByDescending(c => c.PseudoPeriodSlope)
             .ToList();
         var current = ordered.Last();   //initialize current with the candidate lowest curve
 
@@ -569,7 +569,7 @@ public class SubAdditiveCurve : Curve
         else 
         {
             if(
-                this.PseudoPeriodAverageSlope != curve.PseudoPeriodAverageSlope ||
+                this.PseudoPeriodSlope != curve.PseudoPeriodSlope ||
                 this.Match(minimum.PseudoPeriodicSequence, settings) ||
                 curve.Match(minimum.PseudoPeriodicSequence, settings)
             )
@@ -582,12 +582,12 @@ public class SubAdditiveCurve : Curve
                 #endif
 
                 SubAdditiveCurve higher, lower;
-                if (this.PseudoPeriodAverageSlope < curve.PseudoPeriodAverageSlope)
+                if (this.PseudoPeriodSlope < curve.PseudoPeriodSlope)
                 {
                     lower = this;
                     higher = curve;
                 }
-                else if (this.PseudoPeriodAverageSlope > curve.PseudoPeriodAverageSlope)
+                else if (this.PseudoPeriodSlope > curve.PseudoPeriodSlope)
                 {
                     lower = curve;
                     higher = this;
@@ -636,7 +636,7 @@ public class SubAdditiveCurve : Curve
         var T = Rational.Min(
             2*minimum.PseudoPeriodStart, 
             a.PseudoPeriodStart + b.PseudoPeriodStart) + d;
-        //var c = d * minimum.PseudoPeriodAverageSlope;
+        //var c = d * minimum.PseudoPeriodSlope;
 
         #if DO_LOG
         logger.Debug($"SpecializedEstimateConvolution: extending from T_min {minimum.PseudoPeriodStart} d_min {minimum.PseudoPeriodLength} to T {T} d {d}");
