@@ -113,6 +113,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Type identification constant for JSON (de)serialization.
     /// </summary>
+    /// <exclude />
     public const string TypeCode = "segment";
 
     /// <summary>

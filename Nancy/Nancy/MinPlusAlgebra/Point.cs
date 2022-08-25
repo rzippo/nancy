@@ -84,6 +84,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// <summary>
     /// Type identification constant for JSON (de)serialization.
     /// </summary>
+    /// <exclude />
     public const string TypeCode = "point";
 
     /// <summary>
