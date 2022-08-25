@@ -34,7 +34,7 @@ This means that it is still your duty to ensure that users of your software:
   
   2. they can cite the above paper for correct attribution (along with your own work, possibly). 
 
-The above two requirements are met if you report the statement above in the readme of any code that includes ours. 
+The above two requirements are met, for open source projects, if you report the statement above in the readme of any code that uses or includes ours. 
 
 ## Language and requirements
 
