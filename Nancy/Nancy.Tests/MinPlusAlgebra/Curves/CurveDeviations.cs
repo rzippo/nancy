@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -60,6 +61,16 @@ public class CurveDeviations
                     new ConstantCurve(12)
                 ),
                 4
+            ),
+            (
+                a: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
+                b: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}"),
+                new Rational(115102801965691,149850048000)
+            ),
+            (
+                a: new Curve(Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}")),
+                b: new Curve(Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}")),
+                new Rational(115102801965691,149850048000)
             )
         };
 
@@ -152,5 +163,78 @@ public class CurveDeviations
     {
         var result = Curve.VerticalDeviation(a, b);
         Assert.Equal(expected, result);
+    }
+
+    public static IEnumerable<object[]> GetDominanceTestCases()
+    {
+        var testcases = new List<(Curve ac, Curve sc_a, Curve sc_b)>
+        {
+            (
+                ac: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
+                sc_a: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}"),
+                sc_b: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":780469,\"den\":64000000},\"latency\":{\"num\":27439,\"den\":40}}")
+            )
+        };
+
+        foreach (var (ac, sc_a, sc_b) in testcases)
+            yield return new object[] { ac, sc_a, sc_b };
+    }
+ 
+    [Theory]
+    [MemberData(nameof(GetDominanceTestCases))]
+    public void DominanceVsHDev(Curve ac, Curve sc_a, Curve sc_b)
+    {
+        var (dominance, dominated_sc, dominant_sc) = Curve.Dominance(sc_a, sc_b);
+        if (!dominance || ac.PseudoPeriodSlope > dominant_sc.PseudoPeriodSlope)
+            throw new InvalidOperationException("Invalid test arguments");
+
+        var dominant_hdev = Curve.HorizontalDeviation(ac, dominant_sc);
+        var dominated_hdev = Curve.HorizontalDeviation(ac, dominated_sc);
+        Assert.True(dominated_hdev >= dominant_hdev);
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetDominanceTestCases))]
+    public void DominanceVsHDev_AsGeneric(Curve ac, Curve sc_a, Curve sc_b)
+    {
+        ac = new Curve(ac);
+        sc_a = new Curve(sc_a);
+        sc_b = new Curve(sc_b);
+        var (dominance, dominated_sc, dominant_sc) = Curve.Dominance(sc_a, sc_b);
+        if (!dominance || ac.PseudoPeriodSlope > dominant_sc.PseudoPeriodSlope)
+            throw new InvalidOperationException("Invalid test arguments");
+
+        var dominant_hdev = Curve.HorizontalDeviation(ac, dominant_sc);
+        var dominated_hdev = Curve.HorizontalDeviation(ac, dominated_sc);
+        Assert.True(dominated_hdev >= dominant_hdev);
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetDominanceTestCases))]
+    public void DominanceVsVDev(Curve ac, Curve sc_a, Curve sc_b)
+    {
+        var (dominance, dominated_sc, dominant_sc) = Curve.Dominance(sc_a, sc_b);
+        if (!dominance || ac.PseudoPeriodSlope > dominant_sc.PseudoPeriodSlope)
+            throw new InvalidOperationException("Invalid test arguments");
+
+        var dominant_hdev = Curve.HorizontalDeviation(ac, dominant_sc);
+        var dominated_hdev = Curve.HorizontalDeviation(ac, dominated_sc);
+        Assert.True(dominated_hdev >= dominant_hdev);
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetDominanceTestCases))]
+    public void DominanceVsVDev_AsGeneric(Curve ac, Curve sc_a, Curve sc_b)
+    {
+        ac = new Curve(ac);
+        sc_a = new Curve(sc_a);
+        sc_b = new Curve(sc_b);
+        var (dominance, dominated_sc, dominant_sc) = Curve.Dominance(sc_a, sc_b);
+        if (!dominance || ac.PseudoPeriodSlope > dominant_sc.PseudoPeriodSlope)
+            throw new InvalidOperationException("Invalid test arguments");
+
+        var dominant_vdev = Curve.VerticalDeviation(ac, dominant_sc);
+        var dominated_vdev = Curve.VerticalDeviation(ac, dominated_sc);
+        Assert.True(dominated_vdev >= dominant_vdev);
     }
 }
