@@ -1704,14 +1704,24 @@ public class Curve
 
         if (IsUltimatelyConstant)
         {
-            var curve = this.TransientReduction();  // ensure the constant part starts at T
-            var constant_value = curve.ValueAt(curve.PseudoPeriodStart);
-            var constant_start = curve.PseudoPeriodStart;
-            var transient_lpi = curve.TransientElements.LowerPseudoInverse();
-            var lpi = transient_lpi
-                .Append(new Point(constant_value, constant_start))
-                .Append(Segment.PlusInfinite(constant_value, constant_value + 2));
-            
+            Rational constant_start;
+            if (HasTransient)
+            {
+                var lastTransientSegment = (TransientElements.Last() as Segment)!;
+                constant_start = lastTransientSegment.IsConstant ? lastTransientSegment.StartTime : PseudoPeriodStart;
+            }
+            else
+                constant_start = PseudoPeriodStart;
+            var constant_value = ValueAt(PseudoPeriodStart);
+            var transient_lpi = CutAsEnumerable(0, constant_start, isEndInclusive: true).LowerPseudoInverse();
+            var lpi = IsRightContinuousAt(constant_start)
+                ? transient_lpi
+                    .Append(Segment.PlusInfinite(constant_value, constant_value + 2))
+                : transient_lpi
+                    .Append(Segment.Constant(ValueAt(constant_start), constant_value, constant_start))
+                    .Append(new Point(constant_value, constant_start))
+                    .Append(Segment.PlusInfinite(constant_value, constant_value + 2));
+
             return new Curve(
                 baseSequence: lpi.ToSequence(),
                 pseudoPeriodStart: constant_value + 1,
@@ -1723,14 +1733,18 @@ public class Curve
         {
             var lastFiniteTime = BaseSequence.FirstInfiniteTime;
             var lastFiniteValue = BaseSequence.LeftLimitAt(lastFiniteTime);
+            var isLastFiniteConstant = GetActiveSegmentBefore(lastFiniteTime).IsConstant;
             var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).LowerPseudoInverse();
-            var lpi = transient_lpi
-                .Append(new Point(lastFiniteValue, lastFiniteTime))
-                .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
+            var lpi = isLastFiniteConstant 
+                ? transient_lpi
+                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 2, lastFiniteTime)) 
+                : transient_lpi
+                    .Append(new Point(lastFiniteValue, lastFiniteTime))
+                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
 
             return new Curve(
                 baseSequence: lpi.ToSequence(),
-                pseudoPeriodStart: lastFiniteValue,
+                pseudoPeriodStart: isLastFiniteConstant ? lastFiniteValue + 1 : lastFiniteValue,
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
             );
@@ -1785,16 +1799,30 @@ public class Curve
         
         if (IsUltimatelyConstant)
         {
-            var curve = this.TransientReduction();  // ensure the constant part starts at T
-            var constant_value = curve.ValueAt(curve.PseudoPeriodStart);
-            var constant_start = curve.PseudoPeriodStart;
-            var transient_lpi = curve.TransientElements.UpperPseudoInverse();
-            var lpi = transient_lpi
-                .Append(Point.PlusInfinite(constant_value))
-                .Append(Segment.PlusInfinite(constant_value, constant_value + 1));
+            Rational constant_start;
+            if (HasTransient)
+            {
+                var lastTransientSegment = (TransientElements.Last() as Segment)!;
+                constant_start = lastTransientSegment.IsConstant ? lastTransientSegment.StartTime : PseudoPeriodStart;
+            }
+            else
+                constant_start = PseudoPeriodStart;
+            var constant_value = ValueAt(PseudoPeriodStart);
+            var transient_upi = constant_start > 0 
+                ? CutAsEnumerable(0, constant_start).UpperPseudoInverse()
+                : Enumerable.Empty<Element>();
+            var upi = IsRightContinuousAt(constant_start) 
+                ? transient_upi
+                    .Append(Point.PlusInfinite(constant_value))
+                    .Append(Segment.PlusInfinite(constant_value, constant_value + 1))
+                : transient_upi
+                    .Append(new Point(ValueAt(constant_start), constant_start))
+                    .Append(Segment.Constant(ValueAt(constant_start), constant_value, constant_start))
+                    .Append(Point.PlusInfinite(constant_value))
+                    .Append(Segment.PlusInfinite(constant_value, constant_value + 1));
             
             return new Curve(
-                baseSequence: lpi.ToSequence(),
+                baseSequence: upi.ToSequence(),
                 pseudoPeriodStart: constant_value,
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
@@ -1804,13 +1832,17 @@ public class Curve
         {
             var lastFiniteTime = BaseSequence.FirstInfiniteTime;
             var lastFiniteValue = BaseSequence.LeftLimitAt(lastFiniteTime);
-            var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse();
-            var lpi = transient_lpi
-                .Append(new Point(lastFiniteValue, lastFiniteTime))
-                .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
+            var isLastFiniteConstant = GetActiveSegmentBefore(lastFiniteTime).IsConstant;
+            var transient_upi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse();
+            var upi = isLastFiniteConstant 
+                ? transient_upi
+                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime))
+                : transient_upi
+                    .Append(new Point(lastFiniteValue, lastFiniteTime))
+                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
 
             return new Curve(
-                baseSequence: lpi.ToSequence(),
+                baseSequence: upi.ToSequence(),
                 pseudoPeriodStart: lastFiniteValue,
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0

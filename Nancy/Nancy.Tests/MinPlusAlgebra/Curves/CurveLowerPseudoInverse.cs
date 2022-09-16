@@ -302,12 +302,50 @@ public class CurveLowerPseudoInverse
                     pseudoPeriodLength: 1,
                     pseudoPeriodHeight: 0
                 )
+            ),
+            (
+                // ultimately constant with jump
+                operand: new Curve(
+                    baseSequence: new Sequence(new Element[]
+                    {
+                        Point.Origin(),
+                        Segment.Zero(0, 1),
+                        new Point(1, 0),
+                        new Segment(1, 2, 0, 1),
+                        new Point(2, 1),
+                        Segment.Constant(2, 3, 2),
+                        new Point(3, 2),
+                        Segment.Constant(3, 4, 2)
+                    }),
+                    pseudoPeriodStart: 3,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                ),
+                expected: new Curve(
+                    baseSequence: new Sequence(new Element[]
+                    {
+                        Point.Origin(),
+                        new Segment(0, 1, 1, 1),
+                        new Point(1, 2),
+                        Segment.Constant(1, 2, 2),
+                        new Point(2, 2),
+                        Segment.PlusInfinite(2, 3),
+                        Point.PlusInfinite(3),
+                        Segment.PlusInfinite(3, 4),
+                    }),
+                    pseudoPeriodStart: 3,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                )
+            ),
+            (
+                operand: new SigmaRhoArrivalCurve(2, 0),
+                expected: new DelayServiceCurve(2)
             )
         };
         
         foreach (var (operand, expected) in testcases)
         {
-            if (!operand.IsContinuous) throw new InvalidOperationException();
             yield return new object[] { operand, expected };
         }
     }

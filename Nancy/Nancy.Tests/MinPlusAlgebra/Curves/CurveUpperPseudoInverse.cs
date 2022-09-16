@@ -320,6 +320,91 @@ public class CurveUpperPseudoInverse
         }
     }
 
+    public static IEnumerable<object[]> NonRevertibleCornerTestCases()
+    {
+        var testcases = new (Curve operand, Curve expected1, Curve expected2)[]
+        {
+            (
+                // ultimately constant with jump, non-reversible corner case
+                operand: new Curve(
+                    baseSequence: new Sequence(new Element[]
+                    {
+                        Point.Origin(),
+                        Segment.Zero(0, 1),
+                        new Point(1, 0),
+                        new Segment(1, 2, 0, 1),
+                        new Point(2, 1),
+                        Segment.Constant(2, 3, 2),
+                        new Point(3, 2),
+                        Segment.Constant(3, 4, 2)
+                    }),
+                    pseudoPeriodStart: 3,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                ),
+                expected1: new Curve(
+                    baseSequence: new Sequence(new Element[]
+                    {
+                        new Point(0, 1),
+                        new Segment(0, 1, 1, 1),
+                        new Point(1, 2),
+                        Segment.Constant(1, 2, 2),
+                        Point.PlusInfinite(2),
+                        Segment.PlusInfinite(2, 3)
+                    }),
+                    pseudoPeriodStart: 2,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                ),
+                expected2: new Curve(
+                    baseSequence: new Sequence(new Element[]
+                    {
+                        Point.Origin(),
+                        Segment.Zero(0, 1),
+                        new Point(1, 0),
+                        new Segment(1, 2, 0, 1),
+                        new Point(2, 2),
+                        Segment.Constant(2, 3, 2)
+                    }),
+                    pseudoPeriodStart: 2,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                )
+            ),
+            (
+                operand: new SigmaRhoArrivalCurve(2, 0),
+                expected1: new Curve(
+                    baseSequence: new Sequence(new Element[]
+                    {
+                        Point.Origin(),
+                        Segment.Constant(0, 2, 0),
+                        Point.PlusInfinite(2),
+                        Segment.PlusInfinite(2, 3)
+                    }),
+                    pseudoPeriodStart: 2,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                ),
+                expected2: new Curve(
+                    baseSequence: new Sequence(new Element[]
+                    {
+                        new Point(0, 2),
+                        Segment.Constant(0, 1, 2)
+                    }),
+                    pseudoPeriodStart: 0,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                )
+            )
+        };
+
+        foreach (var (operand, expected1, expected2) in testcases)
+        {
+            if (!operand.IsLeftContinuous) throw new InvalidOperationException();
+            yield return new object[] { operand, expected1, expected2 };
+        }
+    }
+    
     [Theory]
     [MemberData(nameof(ContinuousTestCases))]
     [MemberData(nameof(RightContinuousTestCases))]
@@ -360,6 +445,17 @@ public class CurveUpperPseudoInverse
         if(!result.IsUltimatelyConstant)
             Assert.True(result2.IsLeftContinuous);
         Assert.True(Curve.Equivalent(operand, result2));
+    }
+    
+    [Theory]
+    [MemberData(nameof(NonRevertibleCornerTestCases))]
+    public void NonRevertibleCornerCases(Curve operand, Curve expected1, Curve expected2)
+    {
+        var result = operand.UpperPseudoInverse();
+        Assert.True(Curve.Equivalent(expected1, result));
+
+        var result2 = result.UpperPseudoInverse();
+        Assert.True(Curve.Equivalent(expected2, result2));
     }
     
     public static IEnumerable<object[]> NegativeTestCases()
