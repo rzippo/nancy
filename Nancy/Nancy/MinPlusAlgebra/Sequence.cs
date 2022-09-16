@@ -729,6 +729,20 @@ public sealed class Sequence : IEquatable<Sequence>
         if(isStartInclusive && !IsDefinedAt(cutStart) || isEndInclusive && !IsDefinedAt(cutEnd))
             throw new ArgumentException("Cut includes extremes that sequence does not.");
 
+        if (cutStart == cutEnd)
+        {
+            if (!(isStartInclusive && isEndInclusive))
+                throw new ArgumentException("Cut extremes, if equal, must be both inclusive.");
+            
+            var e = GetActiveElementAt(cutStart);
+            Point p;
+            if (e is Point p2)
+                p = p2;
+            else
+                p = (e as Segment)!.Sample(cutStart);
+            return new Sequence(new Element[] {p});
+        }
+
         // binary search for cut start
         int cutStartIndex = FindFirstIndex(IsPastStart);
         bool IsPastStart(Element element)
@@ -2118,6 +2132,26 @@ public static class SequenceExtensions
         if (isStartInclusive && enumerator.Current is Segment && enumerator.Current.StartTime == cutStart)
             throw new ArgumentException("Cut includes extremes that sequence does not.");
             
+        if (cutStart == cutEnd)
+        {
+            if (!(isStartInclusive && isEndInclusive))
+                throw new ArgumentException("Cut extremes, if equal, must be both inclusive.");
+
+            while (!enumerator.Current.IsDefinedFor(cutStart))
+            {
+                if (!enumerator.MoveNext())
+                    throw new ArgumentException("Cut includes extremes that sequence does not.");
+            }
+
+            Point p;
+            if (enumerator.Current is Point p2)
+                p = p2;
+            else
+                p = (enumerator.Current as Segment)!.Sample(cutStart);
+            yield return p;
+            yield break;
+        }
+        
         // Enumerate until cut starts
         bool IsBeforeStart(Element element)
         {
@@ -2132,8 +2166,10 @@ public static class SequenceExtensions
             }
         }
 
-        while (IsBeforeStart(enumerator.Current) && enumerator.MoveNext())
+        while (IsBeforeStart(enumerator.Current))
         {
+            if (!enumerator.MoveNext())
+                throw new ArgumentException("Cut includes extremes that sequence does not.");
         }
 
         Segment left;
@@ -2174,11 +2210,13 @@ public static class SequenceExtensions
         // otherwise, we fetch a point and a segment, check for merging, and restore the initial condition
         while (true)
         {
-            if (left.EndTime > cutEnd)
+            if (left.StartTime == cutEnd)
+                yield break;
+            else if (left.EndTime > cutEnd)
             {
                 var (l, p, _) = left.Split(cutEnd);
                 yield return l;
-                if (isEndInclusive) 
+                if (isEndInclusive)
                     yield return p;
                 yield break;
             }

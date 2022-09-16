@@ -74,19 +74,19 @@ public class SequenceCut
             new (Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartInclusive, bool isEndInclusive)
                 []
                 {
-                    //Within extremes
+                    // Within extremes
                     (sequence: a, cutStart: 5, cutEnd: 15, isStartInclusive: false, isEndInclusive: true),
                     (sequence: a, cutStart: 5, cutEnd: 15, isStartInclusive: true, isEndInclusive: true),
                     (sequence: a, cutStart: 5, cutEnd: 15, isStartInclusive: false, isEndInclusive: false),
                     (sequence: a, cutStart: 5, cutEnd: 15, isStartInclusive: true, isEndInclusive: false),
                         
-                    //At extremes
+                    // At extremes
                     (sequence: a, cutStart: 0, cutEnd: 30, isStartInclusive: true, isEndInclusive: false),
                     (sequence: b, cutStart: 0, cutEnd: 30, isStartInclusive: false, isEndInclusive: false),
                     (sequence: c, cutStart: 0, cutEnd: 30, isStartInclusive: false, isEndInclusive: true),
                     (sequence: d, cutStart: 0, cutEnd: 30, isStartInclusive: true, isEndInclusive: true),
                         
-                    //At segments extremes
+                    // At segments extremes
                     (sequence: a, cutStart: 10, cutEnd: 20, isStartInclusive: true, isEndInclusive: false),
                     (sequence: a, cutStart: 10, cutEnd: 20, isStartInclusive: false, isEndInclusive: false),
                     (sequence: a, cutStart: 10, cutEnd: 20, isStartInclusive: false, isEndInclusive: true),
@@ -96,7 +96,7 @@ public class SequenceCut
                     (sequence: e, cutStart: 10, cutEnd: 40, isStartInclusive: false, isEndInclusive: true),
                     (sequence: e, cutStart: 10, cutEnd: 40, isStartInclusive: true, isEndInclusive: true),
                         
-                    //Within segments extremes
+                    // Within segments extremes
                     (sequence: a, cutStart: 15, cutEnd: 25, isStartInclusive: true, isEndInclusive: false),
                     (sequence: a, cutStart: 15, cutEnd: 25, isStartInclusive: false, isEndInclusive: false),
                     (sequence: a, cutStart: 15, cutEnd: 25, isStartInclusive: false, isEndInclusive: true),
@@ -104,8 +104,10 @@ public class SequenceCut
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartInclusive: true, isEndInclusive: false),
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartInclusive: false, isEndInclusive: false),
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartInclusive: false, isEndInclusive: true),
-                    (sequence: e, cutStart: 15, cutEnd: 45, isStartInclusive: true, isEndInclusive: true)
-
+                    (sequence: e, cutStart: 15, cutEnd: 45, isStartInclusive: true, isEndInclusive: true),
+                    
+                    // Matching, both inclusive
+                    (sequence: a, cutStart: 20, cutEnd: 20, isStartInclusive: true, isEndInclusive: true)
                 };
 
         foreach (var testCase in testCases)
@@ -194,16 +196,21 @@ public class SequenceCut
             new (Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartInclusive, bool isEndInclusive)
                 []
                 {
-                    //Out of extremes
+                    // Out of extremes
                     (sequence: a, cutStart: 5, cutEnd: 35, isStartInclusive: false, isEndInclusive: true),
                     (sequence: a, cutStart: 5, cutEnd: 35, isStartInclusive: true, isEndInclusive: true),
                     (sequence: a, cutStart: 5, cutEnd: 35, isStartInclusive: false, isEndInclusive: false),
                     (sequence: a, cutStart: 5, cutEnd: 35, isStartInclusive: true, isEndInclusive: false),
                         
-                    //At extremes
+                    // At extremes
                     (sequence: a, cutStart: 0, cutEnd: 30, isStartInclusive: true, isEndInclusive: true),
                     (sequence: b, cutStart: 0, cutEnd: 30, isStartInclusive: true, isEndInclusive: true),
-                    (sequence: c, cutStart: 0, cutEnd: 30, isStartInclusive: true, isEndInclusive: true)
+                    (sequence: c, cutStart: 0, cutEnd: 30, isStartInclusive: true, isEndInclusive: true),
+                    
+                    // Matching, either non-inclusive
+                    (sequence: a, cutStart: 20, cutEnd: 20, isStartInclusive: false, isEndInclusive: true),
+                    (sequence: a, cutStart: 20, cutEnd: 20, isStartInclusive: true, isEndInclusive: false),
+                    (sequence: a, cutStart: 20, cutEnd: 20, isStartInclusive: false, isEndInclusive: false)
                 };
 
         foreach (var testCase in testCases)

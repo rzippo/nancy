@@ -127,6 +127,18 @@ public class CurveCut
                     Point.Origin(),
                     new Segment(0, 5, 5, 3)
                 })
+            ),
+            // [t, t] => should yield the point in t
+            (
+                curve: new SigmaRhoArrivalCurve(5, 3),
+                cutStart: 0,
+                cutEnd: 0,
+                isStartInclusive: true,
+                isEndInclusive: true,
+                expected: new Sequence(new Element[]
+                {
+                    Point.Origin()
+                })
             )
         };
         
