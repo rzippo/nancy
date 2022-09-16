@@ -5,7 +5,8 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.NetworkCalculus;
 
 /// <summary>
-/// A pure delay service model
+/// A pure delay service model.
+/// Given delay $\tau$, $f(t) = 0$ if $t \le \tau$, $f(t) = +\infty$ otherwise.
 /// </summary>
 public class DelayServiceCurve : SuperAdditiveCurve
 {
