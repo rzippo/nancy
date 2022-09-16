@@ -2339,7 +2339,7 @@ public class Curve
 
                 Sequence getPeriodTail()
                 {
-                    var tailElements = sequence.Elements.Reverse().Take(2).Reverse();
+                    var tailElements = sequence.Elements.TakeLast(2);
                     return new Sequence(tailElements);
                 }
             }
