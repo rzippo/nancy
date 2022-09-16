@@ -52,6 +52,11 @@ public class CurveDeviations
                 3
             ),
             (
+                a: new SigmaRhoArrivalCurve(2, 0),
+                b: new RateLatencyServiceCurve(2, 2),
+                3
+            ),
+            (
                 a: Curve.Minimum(
                     new RateLatencyServiceCurve(4, 0),
                     new ConstantCurve(12)
@@ -119,6 +124,11 @@ public class CurveDeviations
                     new RateLatencyServiceCurve(3, 4) + 3
                 ),
                 6
+            ),
+            (
+                a: new SigmaRhoArrivalCurve(2, 0),
+                b: new RateLatencyServiceCurve(2, 2),
+                2
             )
         };
 
