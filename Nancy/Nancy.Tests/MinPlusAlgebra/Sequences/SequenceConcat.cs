@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,7 +27,7 @@ public class SequenceConcat
         foreach (var elementsName in JsonTestCases)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(elementsName);
-            var sequences = JsonConvert.DeserializeObject<Sequence[]>(json)!;
+            var sequences = JsonConvert.DeserializeObject<Sequence[]>(json, new RationalConverter())!;
 
             yield return new object[] { sequences };
         }

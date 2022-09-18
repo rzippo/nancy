@@ -49,12 +49,12 @@ public class CurveLowerBounds
     [MemberData(nameof(GetTwoRatesTestCases))]
     public void TwoRatesTest(string curveJson)
     {
-        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter())!;
+        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalConverter())!;
         var delay = curve.FirstNonZeroTime;
 
         var twoRates = curve.TwoRatesLowerBound();
 
-        output.WriteLine(JsonConvert.SerializeObject(twoRates, new GenericCurveConverter()));
+        output.WriteLine(JsonConvert.SerializeObject(twoRates, new GenericCurveConverter(), new RationalConverter()));
 
         Assert.True(twoRates.IsContinuous);
         Assert.True(twoRates.IsRightContinuous);
@@ -91,12 +91,12 @@ public class CurveLowerBounds
     [MemberData(nameof(GetRateLatencyTestCases))]
     public void RateLatencyTest(string curveJson, decimal alpha)
     {
-        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter())!;
+        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalConverter())!;
         var delay = curve.FirstNonZeroTime;
 
         var rateLatency = curve.RateLatencyLowerBound(alpha);
 
-        output.WriteLine(JsonConvert.SerializeObject(rateLatency, new GenericCurveConverter()));
+        output.WriteLine(JsonConvert.SerializeObject(rateLatency, new GenericCurveConverter(), new RationalConverter()));
 
         Assert.True(rateLatency.IsContinuous);
         Assert.True(rateLatency.IsRightContinuous);
@@ -121,7 +121,7 @@ public class CurveLowerBounds
     [MemberData(nameof(GetRateLatencyAlphaTestCases))]
     public void RateLatencyAlphaTest(string curveJson, Rational minDelay, Rational minRate, Rational maxDelay, Rational maxRate)
     {
-        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter())!;
+        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalConverter())!;
 
         var minRateLatency = curve.RateLatencyLowerBound(alpha: 0);
         Assert.True(minRateLatency <= curve);

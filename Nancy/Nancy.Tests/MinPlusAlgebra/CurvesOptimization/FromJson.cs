@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,7 +26,7 @@ public class FromJson
         foreach (var curveName in CurveNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(curveName);
-            var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveConverter())!;
+            var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveConverter(), new RationalConverter())!;
 
             yield return new object[] { curve };
         }
@@ -88,7 +89,7 @@ public class FromJson
             .Select(name =>
             {
                 string json = EmbeddedResourceDataAttribute.ReadManifestData(name);
-                var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveConverter());
+                var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveConverter(), new RationalConverter());
                 return curve;
             })
             .ToList();

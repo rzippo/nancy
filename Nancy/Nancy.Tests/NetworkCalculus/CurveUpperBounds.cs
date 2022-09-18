@@ -2,6 +2,7 @@
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.NetworkCalculus.Json;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,11 +29,11 @@ public class CurveUpperBounds
     [EmbeddedResourceData("Unipi.Nancy.Tests/NetworkCalculus/CurveExamples/7.json")]
     public void SigmaRhoTest(string curveJson)
     {
-        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter())!;
+        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalConverter())!;
             
         var sigmaRhoCurve = curve.SigmaRhoUpperBound();
 
-        output.WriteLine(JsonConvert.SerializeObject(sigmaRhoCurve, new GenericCurveConverter()));
+        output.WriteLine(JsonConvert.SerializeObject(sigmaRhoCurve, new GenericCurveConverter(), new RationalConverter()));
 
         Assert.True(sigmaRhoCurve.IsContinuousExceptOrigin);
         Assert.True(sigmaRhoCurve.IsLeftContinuous);

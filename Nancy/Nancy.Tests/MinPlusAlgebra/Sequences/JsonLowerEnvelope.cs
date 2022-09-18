@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,7 +38,7 @@ public class JsonLowerEnvelope
         foreach (var elementsName in NonOverflowingElementsNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(elementsName);
-            var elements = JsonConvert.DeserializeObject<Element[]>(json)!;
+            var elements = JsonConvert.DeserializeObject<Element[]>(json, new RationalConverter())!;
 
             yield return new object[] { elements };
         }
@@ -48,7 +49,7 @@ public class JsonLowerEnvelope
         foreach (var elementsName in OverflowingElementsNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(elementsName);
-            var elements = JsonConvert.DeserializeObject<Element[]>(json)!;
+            var elements = JsonConvert.DeserializeObject<Element[]>(json, new RationalConverter())!;
 
             yield return new object[] { elements };
         }

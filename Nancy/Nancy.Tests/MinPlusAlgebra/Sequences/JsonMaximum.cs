@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -43,7 +44,7 @@ public class JsonMaximum
         foreach (var curveName in TestCaseNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(curveName);
-            var testCase = JsonConvert.DeserializeObject<TestCase>(json)!;
+            var testCase = JsonConvert.DeserializeObject<TestCase>(json, new RationalConverter())!;
 
             yield return new object[] { testCase.a, testCase.b, testCase.cutToOverlap };
         }

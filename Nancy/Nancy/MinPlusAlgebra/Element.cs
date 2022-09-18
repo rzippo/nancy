@@ -102,7 +102,7 @@ public abstract class Element
     /// </summary>
     public override string ToString()
     {
-        return JsonConvert.SerializeObject(this);
+        return JsonConvert.SerializeObject(this, new RationalConverter());
     }
 
     #endregion Json Methods

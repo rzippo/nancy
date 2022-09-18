@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.MinPlusAlgebra.Json;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -44,7 +45,7 @@ public class CurveJson
         );
 
         var settings = new JsonSerializerSettings {
-            Converters = new[] { new CurveConverter() }
+            Converters = new JsonConverter[] { new CurveConverter(), new RationalConverter() }
         };
             
         string serialization = JsonConvert.SerializeObject(curve, settings);

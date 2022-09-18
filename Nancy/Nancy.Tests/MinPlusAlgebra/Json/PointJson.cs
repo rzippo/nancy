@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -41,9 +42,9 @@ public class PointJson
     [MemberData(nameof(GetPoints))]
     public void PointSerialization(Point point)
     {
-        string serialization = JsonConvert.SerializeObject(point);
+        string serialization = JsonConvert.SerializeObject(point, new RationalConverter());
         output.WriteLine(serialization);
-        Point deserialized = JsonConvert.DeserializeObject<Point>(serialization)!;
+        Point deserialized = JsonConvert.DeserializeObject<Point>(serialization, new RationalConverter())!;
 
         Assert.Equal(point, deserialized);
     }
@@ -82,7 +83,7 @@ public class PointJson
     [MemberData(nameof(GetSerializedPoints))]
     public void PointDeserialization(string serialization, decimal expectedTime, decimal expectedValue)
     {
-        Point deserialized = JsonConvert.DeserializeObject<Point>(serialization)!;
+        Point deserialized = JsonConvert.DeserializeObject<Point>(serialization, new RationalConverter())!;
         Assert.Equal(expectedTime, deserialized.Time);
         Assert.Equal(expectedValue, deserialized.Value);
     }

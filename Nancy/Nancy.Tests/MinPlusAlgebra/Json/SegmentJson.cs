@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,9 +35,9 @@ public class SegmentJson
     [MemberData(nameof(GetSegments))]
     public void SegmentSerialization(Segment segment)
     {
-        string serialization = JsonConvert.SerializeObject(segment);
+        string serialization = JsonConvert.SerializeObject(segment, new RationalConverter());
         output.WriteLine(serialization);
-        Segment deserialized = JsonConvert.DeserializeObject<Segment>(serialization)!;
+        Segment deserialized = JsonConvert.DeserializeObject<Segment>(serialization, new RationalConverter())!;
 
         Assert.Equal(segment, deserialized);
     }

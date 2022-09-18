@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus.Json;
+using Unipi.Nancy.Numerics;
 
 #if DO_LOG
 using NLog;
@@ -41,7 +42,7 @@ public static class LinqExtensions
     /// </summary>
     public static string ToJsonString<T>(this IEnumerable<T> items)
     {
-        return JsonConvert.SerializeObject(items, new GenericCurveConverter());
+        return JsonConvert.SerializeObject(items, new GenericCurveConverter(), new RationalConverter());
     }
 
     /// <summary>

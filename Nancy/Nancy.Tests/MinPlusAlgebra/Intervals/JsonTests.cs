@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using NLog;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -33,7 +34,7 @@ public class JsonComputeIntervals
         foreach (var curveName in CurveNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(curveName);
-            var elements = JsonConvert.DeserializeObject<Element[]>(json, new GenericCurveConverter())!;
+            var elements = JsonConvert.DeserializeObject<Element[]>(json, new GenericCurveConverter(), new RationalConverter())!;
 
             yield return new object[] { elements };
         }

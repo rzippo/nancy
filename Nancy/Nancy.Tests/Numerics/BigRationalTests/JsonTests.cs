@@ -12,7 +12,7 @@ public class JsonTests
         BigRational value = new BigRational(1, 2);
         string expected = "{\"num\":1,\"den\":2}";
 
-        string serialization = JsonConvert.SerializeObject(value);
+        string serialization = JsonConvert.SerializeObject(value, new RationalConverter());
 
         Assert.Equal(expected, serialization);
     }
@@ -23,7 +23,7 @@ public class JsonTests
     [InlineData("2", 2, 1)]
     public void DeserializeFinite(string serialization, int expectedNum, int expectedDen)
     {
-        BigRational deserialized = JsonConvert.DeserializeObject<BigRational>(serialization);
+        BigRational deserialized = JsonConvert.DeserializeObject<BigRational>(serialization, new RationalConverter());
 
         Assert.True(deserialized.IsFinite);
         Assert.Equal(expectedNum, deserialized.Numerator);
@@ -36,7 +36,7 @@ public class JsonTests
         BigRational value = BigRational.PlusInfinity;
         string expected = "{\"num\":1,\"den\":0}";
 
-        string serialization = JsonConvert.SerializeObject(value);
+        string serialization = JsonConvert.SerializeObject(value, new RationalConverter());
 
         Assert.Equal(expected, serialization);
     }
@@ -46,7 +46,7 @@ public class JsonTests
     {
         string serialization = "{\"num\":1,\"den\":0}";
 
-        BigRational deserialized = JsonConvert.DeserializeObject<BigRational>(serialization);
+        BigRational deserialized = JsonConvert.DeserializeObject<BigRational>(serialization, new RationalConverter());
 
         Assert.True(deserialized.IsInfinite);
         Assert.Equal(BigRational.PlusInfinity, deserialized);
@@ -58,7 +58,7 @@ public class JsonTests
         BigRational value = BigRational.MinusInfinity;
         string expected = "{\"num\":-1,\"den\":0}";
 
-        string serialization = JsonConvert.SerializeObject(value);
+        string serialization = JsonConvert.SerializeObject(value, new RationalConverter());
 
         Assert.Equal(expected, serialization);
     }
@@ -68,7 +68,7 @@ public class JsonTests
     {
         string serialization = "{\"num\":-1,\"den\":0}";
 
-        BigRational deserialized = JsonConvert.DeserializeObject<BigRational>(serialization);
+        BigRational deserialized = JsonConvert.DeserializeObject<BigRational>(serialization, new RationalConverter());
 
         Assert.True(deserialized.IsInfinite);
         Assert.Equal(BigRational.MinusInfinity, deserialized);
