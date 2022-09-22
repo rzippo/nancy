@@ -31,7 +31,9 @@ public class ConstantCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
             
-        Rational value = jo[ValueName]!.ToObject<Rational>();
+        serializer.Converters.Add(new RationalConverter());
+
+        Rational value = jo[ValueName]!.ToObject<Rational>(serializer);
 
         ConstantCurve curve = new ConstantCurve(
             value: value
@@ -46,10 +48,12 @@ public class ConstantCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         ConstantCurve curve = (ConstantCurve) value;
 
+        serializer.Converters.Add(new RationalConverter());
+
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode) },
-            { ValueName, JToken.FromObject(curve.Value) }
+            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { ValueName, JToken.FromObject(curve.Value, serializer) }
         };
 
         jo.WriteTo(writer);

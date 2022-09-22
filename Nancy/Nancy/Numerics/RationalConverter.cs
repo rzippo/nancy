@@ -80,8 +80,8 @@ public class RationalConverter : JsonConverter
         {
             JObject jo = new JObject
             {
-                {NumeratorName, JToken.FromObject(rational.Numerator)},
-                {DenominatorName, JToken.FromObject(rational.Denominator)},
+                {NumeratorName, JToken.FromObject(rational.Numerator, serializer)},
+                {DenominatorName, JToken.FromObject(rational.Denominator, serializer)},
             };
             jo.WriteTo(writer);
         }

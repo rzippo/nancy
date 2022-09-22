@@ -35,6 +35,8 @@ public class CurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
+        serializer.Converters.Add(new RationalConverter());
+
         Sequence? sequence = jo[BaseSequenceName]?.ToObject<Sequence>();
         if (sequence == null)
             throw new InvalidOperationException("Invalid JSON format.");
@@ -57,13 +59,16 @@ public class CurveConverter : JsonConverter
         if (value == null)
             throw new ArgumentNullException(nameof(value));
         Curve curve = (Curve) value;
+        
+        serializer.Converters.Add(new RationalConverter());
+
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode) },
-            { BaseSequenceName, JToken.FromObject(curve.BaseSequence) },
-            { PseudoPeriodStartTimeName, JToken.FromObject(curve.PseudoPeriodStart) },
-            { PseudoPeriodLengthName, JToken.FromObject(curve.PseudoPeriodLength) },
-            { PseudoPeriodHeightName, JToken.FromObject(curve.PseudoPeriodHeight) }
+            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { BaseSequenceName, JToken.FromObject(curve.BaseSequence, serializer) },
+            { PseudoPeriodStartTimeName, JToken.FromObject(curve.PseudoPeriodStart, serializer) },
+            { PseudoPeriodLengthName, JToken.FromObject(curve.PseudoPeriodLength, serializer) },
+            { PseudoPeriodHeightName, JToken.FromObject(curve.PseudoPeriodHeight, serializer) }
         };
 
         jo.WriteTo(writer);

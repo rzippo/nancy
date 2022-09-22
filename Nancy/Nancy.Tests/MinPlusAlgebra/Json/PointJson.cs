@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO.Pipes;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
@@ -86,5 +87,18 @@ public class PointJson
         Point deserialized = JsonConvert.DeserializeObject<Point>(serialization, new RationalConverter())!;
         Assert.Equal(expectedTime, deserialized.Time);
         Assert.Equal(expectedValue, deserialized.Value);
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetSerializedPoints))]
+    public void PointDeserializationMethods(string serialization, decimal expectedTime, decimal expectedValue)
+    {
+        Point deserialized = Point.FromJson(serialization);
+        Assert.Equal(expectedTime, deserialized.Time);
+        Assert.Equal(expectedValue, deserialized.Value);
+        
+        var ser2 = deserialized.ToString();
+        var p2 = Point.FromJson(ser2);
+        Assert.Equal(deserialized, p2);
     }
 }

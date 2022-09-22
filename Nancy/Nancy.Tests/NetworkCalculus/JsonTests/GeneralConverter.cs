@@ -66,7 +66,7 @@ public class CurveJson
     {
         var settings = new JsonSerializerSettings
         {
-            Converters = new JsonConverter[] { new GenericCurveConverter(), new RationalConverter() }
+            Converters = new JsonConverter[] { new GenericCurveConverter() }
         };
 
         string serialization = JsonConvert.SerializeObject(curve, settings);
@@ -85,5 +85,29 @@ public class CurveJson
         Curve deserialized = Curve.FromJson(serialization);
 
         Assert.Equal(curve, deserialized);
+    }
+
+    public static IEnumerable<object[]> SimplifiedRationalNotationCases()
+    {
+        var testCases = new (object value, string expected)[]
+        {
+            (
+                new RateLatencyServiceCurve(5, 3),
+                "{\"type\":\"rateLatencyServiceCurve\",\"rate\":5,\"latency\":3}"
+            )
+        };
+        
+        foreach (var (curve, expected) in testCases)
+        {
+            yield return new object[] {curve, expected.Replace(" ","")};
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(SimplifiedRationalNotationCases))]
+    public void SimplifiedRationalNotation(Curve curve, string expected)
+    {
+        var serialization = JsonConvert.SerializeObject(curve, new GenericCurveConverter(), new RationalConverter());
+        Assert.Equal(expected, serialization);
     }
 }

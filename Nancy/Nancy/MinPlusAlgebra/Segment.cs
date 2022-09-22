@@ -451,6 +451,17 @@ public sealed class Segment : Element, IEquatable<Segment>
         }
     }
         
+    /// <summary>
+    /// Deserializes an Segment.
+    /// </summary>
+    public static Segment FromJson(string json)
+    {
+        var segment = JsonConvert.DeserializeObject<Segment>(json, new RationalConverter());
+        if (segment == null)
+            throw new InvalidOperationException("Invalid JSON format.");
+        return segment;
+    }
+    
     #endregion Methods
 
     #region Basic manipulations

@@ -41,4 +41,15 @@ public class SegmentJson
 
         Assert.Equal(segment, deserialized);
     }
+    
+    [Theory]
+    [MemberData(nameof(GetSegments))]
+    public void SegmentSerializationMethod(Segment segment)
+    {
+        string serialization = segment.ToString();
+        output.WriteLine(serialization);
+        Segment deserialized = Segment.FromJson(serialization);
+
+        Assert.Equal(segment, deserialized);
+    }
 }

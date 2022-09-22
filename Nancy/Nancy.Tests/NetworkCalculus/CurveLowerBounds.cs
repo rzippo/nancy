@@ -91,12 +91,12 @@ public class CurveLowerBounds
     [MemberData(nameof(GetRateLatencyTestCases))]
     public void RateLatencyTest(string curveJson, decimal alpha)
     {
-        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalConverter())!;
+        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter())!;
         var delay = curve.FirstNonZeroTime;
 
         var rateLatency = curve.RateLatencyLowerBound(alpha);
 
-        output.WriteLine(JsonConvert.SerializeObject(rateLatency, new GenericCurveConverter(), new RationalConverter()));
+        output.WriteLine(JsonConvert.SerializeObject(rateLatency, new GenericCurveConverter()));
 
         Assert.True(rateLatency.IsContinuous);
         Assert.True(rateLatency.IsRightContinuous);

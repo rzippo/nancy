@@ -104,6 +104,17 @@ public abstract class Element
     {
         return JsonConvert.SerializeObject(this, new RationalConverter());
     }
+    
+    /// <summary>
+    /// Deserializes an Element.
+    /// </summary>
+    public static Element FromJson(string json)
+    {
+        var element = JsonConvert.DeserializeObject<Element>(json, new RationalConverter());
+        if (element == null)
+            throw new InvalidOperationException("Invalid JSON format.");
+        return element;
+    }
 
     #endregion Json Methods
 

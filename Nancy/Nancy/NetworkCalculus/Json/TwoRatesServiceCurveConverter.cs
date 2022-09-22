@@ -34,10 +34,12 @@ public class TwoRatesServiceCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        Rational delay = jo[DelayName]!.ToObject<Rational>();
-        Rational transientRate = jo[TransientRateName]!.ToObject<Rational>();
-        Rational transientEnd = jo[TransientEndName]!.ToObject<Rational>();
-        Rational steadyRate = jo[SteadyRateName]!.ToObject<Rational>();
+        serializer.Converters.Add(new RationalConverter());
+
+        Rational delay = jo[DelayName]!.ToObject<Rational>(serializer);
+        Rational transientRate = jo[TransientRateName]!.ToObject<Rational>(serializer);
+        Rational transientEnd = jo[TransientEndName]!.ToObject<Rational>(serializer);
+        Rational steadyRate = jo[SteadyRateName]!.ToObject<Rational>(serializer);
 
         TwoRatesServiceCurve curve = new TwoRatesServiceCurve(
             delay: delay,
@@ -55,13 +57,15 @@ public class TwoRatesServiceCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         TwoRatesServiceCurve curve = (TwoRatesServiceCurve) value;
 
+        serializer.Converters.Add(new RationalConverter());
+
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode) },
-            { DelayName, JToken.FromObject(curve.Delay) },
-            { TransientRateName, JToken.FromObject(curve.TransientRate) },
-            { TransientEndName, JToken.FromObject(curve.TransientEnd) },
-            { SteadyRateName, JToken.FromObject(curve.SteadyRate) }
+            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { DelayName, JToken.FromObject(curve.Delay, serializer) },
+            { TransientRateName, JToken.FromObject(curve.TransientRate, serializer) },
+            { TransientEndName, JToken.FromObject(curve.TransientEnd, serializer) },
+            { SteadyRateName, JToken.FromObject(curve.SteadyRate, serializer) }
         };
 
         jo.WriteTo(writer);

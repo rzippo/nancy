@@ -168,6 +168,17 @@ public sealed class Point : Element, IEquatable<Point>
         return time == Time;
     }
 
+    /// <summary>
+    /// Deserializes an Point.
+    /// </summary>
+    public static Point FromJson(string json)
+    {
+        var point = JsonConvert.DeserializeObject<Point>(json, new RationalConverter());
+        if (point == null)
+            throw new InvalidOperationException("Invalid JSON format.");
+        return point;
+    }
+    
     #endregion Methods
 
     #region Basic manipulations

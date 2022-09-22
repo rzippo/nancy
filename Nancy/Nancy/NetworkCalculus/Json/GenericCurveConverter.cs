@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.MinPlusAlgebra.Json;
+using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus.Json;
 
@@ -43,7 +44,8 @@ public class GenericCurveConverter : JsonConverter
         };
         var curveSerializer = JsonSerializer.Create(settings);
 
-        var typename = jo[TypeName]?.ToObject<string>();
+        // todo: can we move this check to each individual converter, skipping this switch?
+        var typename = jo[TypeName]?.ToObject<string>(serializer);
         if (typename == null)
             throw new InvalidOperationException("Invalid JSON format.");
         Curve? result;

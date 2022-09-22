@@ -33,9 +33,11 @@ public class FlowControlCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        Rational delay = jo[DelayName]!.ToObject<Rational>();
-        Rational rate = jo[RateName]!.ToObject<Rational>();
-        Rational height = jo[HeightName]!.ToObject<Rational>();
+        serializer.Converters.Add(new RationalConverter());
+
+        Rational delay = jo[DelayName]!.ToObject<Rational>(serializer);
+        Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
+        Rational height = jo[HeightName]!.ToObject<Rational>(serializer);
 
         FlowControlCurve curve = new FlowControlCurve(
             latency: delay,
@@ -52,12 +54,14 @@ public class FlowControlCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         FlowControlCurve curve = (FlowControlCurve) value;
 
+        serializer.Converters.Add(new RationalConverter());
+
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode) },
-            { DelayName, JToken.FromObject(curve.Latency) },
-            { RateName, JToken.FromObject(curve.Rate) },
-            { HeightName, JToken.FromObject(curve.Height) }
+            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { DelayName, JToken.FromObject(curve.Latency, serializer) },
+            { RateName, JToken.FromObject(curve.Rate, serializer) },
+            { HeightName, JToken.FromObject(curve.Height, serializer) }
         };
 
         jo.WriteTo(writer);

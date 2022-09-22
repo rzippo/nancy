@@ -1387,7 +1387,7 @@ public class Curve
     /// </summary>
     public override string ToString()
     {
-        return JsonConvert.SerializeObject(this, new GenericCurveConverter(), new RationalConverter());
+        return JsonConvert.SerializeObject(this, new GenericCurveConverter());
     }
 
     /// <summary>
@@ -1395,7 +1395,7 @@ public class Curve
     /// </summary>
     public static Curve FromJson(string json)
     {
-        var curve = JsonConvert.DeserializeObject<Curve>(json, new RationalConverter(), new GenericCurveConverter());
+        var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveConverter());
         if (curve == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return curve;

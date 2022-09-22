@@ -33,9 +33,11 @@ public class RaisedRateLatencyServiceCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        Rational latency = jo[LatencyName]!.ToObject<Rational>();
-        Rational rate = jo[RateName]!.ToObject<Rational>();
-        Rational bufferShift = jo[BufferShiftName]!.ToObject<Rational>();
+        serializer.Converters.Add(new RationalConverter());
+
+        Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
+        Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
+        Rational bufferShift = jo[BufferShiftName]!.ToObject<Rational>(serializer);
 
         RaisedRateLatencyServiceCurve curve = new RaisedRateLatencyServiceCurve(rate: rate,
             latency: latency, bufferShift: bufferShift);
@@ -49,12 +51,14 @@ public class RaisedRateLatencyServiceCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         RaisedRateLatencyServiceCurve curve = (RaisedRateLatencyServiceCurve) value;
 
+        serializer.Converters.Add(new RationalConverter());
+
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode) },
-            { RateName, JToken.FromObject(curve.Rate) },
-            { LatencyName, JToken.FromObject(curve.Latency) },
-            { BufferShiftName, JToken.FromObject(curve.BufferShift) }
+            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { RateName, JToken.FromObject(curve.Rate, serializer) },
+            { LatencyName, JToken.FromObject(curve.Latency, serializer) },
+            { BufferShiftName, JToken.FromObject(curve.BufferShift, serializer) }
         };
 
         jo.WriteTo(writer);

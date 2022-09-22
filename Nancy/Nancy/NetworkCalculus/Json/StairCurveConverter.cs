@@ -32,8 +32,10 @@ public class StairCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        Rational a = jo[AName]!.ToObject<Rational>();
-        Rational b = jo[BName]!.ToObject<Rational>();
+        serializer.Converters.Add(new RationalConverter());
+
+        Rational a = jo[AName]!.ToObject<Rational>(serializer);
+        Rational b = jo[BName]!.ToObject<Rational>(serializer);
         
         StairCurve curve = new StairCurve(
             a: a,
@@ -49,11 +51,13 @@ public class StairCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         StairCurve curve = (StairCurve) value;
 
+        serializer.Converters.Add(new RationalConverter());
+
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode) },
-            { AName, JToken.FromObject(curve.A) },
-            { BName, JToken.FromObject(curve.B) }
+            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { AName, JToken.FromObject(curve.A, serializer) },
+            { BName, JToken.FromObject(curve.B, serializer) }
         };
 
         jo.WriteTo(writer);

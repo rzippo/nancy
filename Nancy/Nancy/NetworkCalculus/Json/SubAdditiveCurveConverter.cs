@@ -41,12 +41,14 @@ public class SubAdditiveCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        Sequence? sequence = jo[BaseSequenceName]?.ToObject<Sequence>();
+        serializer.Converters.Add(new RationalConverter());
+
+        Sequence? sequence = jo[BaseSequenceName]?.ToObject<Sequence>(serializer);
         if (sequence == null)
             throw new InvalidOperationException("Invalid JSON format.");
-        Rational periodStart = jo[PseudoPeriodStartTimeName]!.ToObject<Rational>();
-        Rational periodLength = jo[PseudoPeriodLengthName]!.ToObject<Rational>();
-        Rational periodHeight = jo[PseudoPeriodHeightName]!.ToObject<Rational>();
+        Rational periodStart = jo[PseudoPeriodStartTimeName]!.ToObject<Rational>(serializer);
+        Rational periodLength = jo[PseudoPeriodLengthName]!.ToObject<Rational>(serializer);
+        Rational periodHeight = jo[PseudoPeriodHeightName]!.ToObject<Rational>(serializer);
 
         SubAdditiveCurve curve = new SubAdditiveCurve(
             baseSequence: sequence,
@@ -65,13 +67,15 @@ public class SubAdditiveCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         SubAdditiveCurve curve = (SubAdditiveCurve) value;
 
+        serializer.Converters.Add(new RationalConverter());
+
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode) },
-            { BaseSequenceName, JToken.FromObject(curve.BaseSequence) },
-            { PseudoPeriodStartTimeName, JToken.FromObject(curve.PseudoPeriodStart) },
-            { PseudoPeriodLengthName, JToken.FromObject(curve.PseudoPeriodLength) },
-            { PseudoPeriodHeightName, JToken.FromObject(curve.PseudoPeriodHeight) }
+            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { BaseSequenceName, JToken.FromObject(curve.BaseSequence, serializer) },
+            { PseudoPeriodStartTimeName, JToken.FromObject(curve.PseudoPeriodStart, serializer) },
+            { PseudoPeriodLengthName, JToken.FromObject(curve.PseudoPeriodLength, serializer) },
+            { PseudoPeriodHeightName, JToken.FromObject(curve.PseudoPeriodHeight, serializer) }
         };
 
         jo.WriteTo(writer);
