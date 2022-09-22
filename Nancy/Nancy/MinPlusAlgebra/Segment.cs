@@ -454,7 +454,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Deserializes an Segment.
     /// </summary>
-    public static Segment FromJson(string json)
+    public new static Segment FromJson(string json)
     {
         var segment = JsonConvert.DeserializeObject<Segment>(json, new RationalConverter());
         if (segment == null)

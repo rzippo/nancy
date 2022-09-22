@@ -171,7 +171,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// <summary>
     /// Deserializes an Point.
     /// </summary>
-    public static Point FromJson(string json)
+    public new static Point FromJson(string json)
     {
         var point = JsonConvert.DeserializeObject<Point>(json, new RationalConverter());
         if (point == null)
