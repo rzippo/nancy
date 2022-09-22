@@ -8,9 +8,9 @@ using Xunit;
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Sequences;
 
 /// <summary>
-/// Tests equivalence of different methods to sample active element of a Sequence
+/// Tests equivalence of different methods to sample element of a Sequence
 /// </summary>
-public class SequenceGetActiveElement
+public class SequenceGetElement
 {
     public static IEnumerable<object[]> GetTestCases()
     {
@@ -109,8 +109,8 @@ public class SequenceGetActiveElement
         var index = 0;
         foreach (var time in times)
         {
-            var viaBinarySearch = s.GetActiveElementAt(time);
-            var (viaLinearSearch, i) = s.GetActiveElementAt_Linear(time, index);
+            var viaBinarySearch = s.GetElementAt(time);
+            var (viaLinearSearch, i) = s.GetElementAt_Linear(time, index);
             Assert.Equal(viaBinarySearch, viaLinearSearch);
             index = i;
         }
@@ -138,8 +138,8 @@ public class SequenceGetActiveElement
         var index = 0;
         foreach (var time in times.Skip(1))
         {
-            var viaBinarySearch = s.GetActiveSegmentBefore(time);
-            var (viaLinearSearch, i) = s.GetActiveSegmentBefore_Linear(time, index);
+            var viaBinarySearch = s.GetSegmentBefore(time);
+            var (viaLinearSearch, i) = s.GetSegmentBefore_Linear(time, index);
             Assert.Equal(viaBinarySearch, viaLinearSearch);
             index = i;
         }
@@ -167,8 +167,8 @@ public class SequenceGetActiveElement
         var index = 0;
         foreach (var time in times.Skip(1))
         {
-            var viaBinarySearch = s.GetActiveSegmentAfter(time);
-            var (viaLinearSearch, i) = s.GetActiveSegmentAfter_Linear(time, index);
+            var viaBinarySearch = s.GetSegmentAfter(time);
+            var (viaLinearSearch, i) = s.GetSegmentAfter_Linear(time, index);
             Assert.Equal(viaBinarySearch, viaLinearSearch);
             index = i;
         }

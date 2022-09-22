@@ -900,7 +900,7 @@ public class Curve
     /// <returns>The value of $f(t)$.</returns>
     public Rational ValueAt(Rational time, ComputationSettings? settings = null)
     {
-        Element element = GetActiveElementAt(time, settings);
+        Element element = GetElementAt(time, settings);
         return element.ValueAt(time);
     }
 
@@ -911,7 +911,7 @@ public class Curve
     /// <returns>The value of $f(t^+)$.</returns>
     public Rational RightLimitAt(Rational time)
     {
-        Segment segment = GetActiveSegmentAfter(time);
+        Segment segment = GetSegmentAfter(time);
         return (segment.StartTime == time) ?
             segment.RightLimitAtStartTime 
             : segment.ValueAt(time);
@@ -927,7 +927,7 @@ public class Curve
         if (time == 0)
             throw new ArgumentException("A curve is not defined for t < 0");
                 
-        Segment segment = GetActiveSegmentBefore(time);
+        Segment segment = GetSegmentBefore(time);
         return (segment.EndTime == time) ?
             segment.LeftLimitAtEndTime 
             : segment.ValueAt(time);
@@ -940,16 +940,16 @@ public class Curve
     /// <param name="settings"></param>
     /// <exception cref="ArgumentException">Thrown if t is less than 0.</exception>
     /// <returns>The element describing the curve at time t.</returns>
-    public Element GetActiveElementAt(Rational time, ComputationSettings? settings = null)
+    public Element GetElementAt(Rational time, ComputationSettings? settings = null)
     {
         if (time < 0)
             throw new ArgumentException("A curve is not defined for t < 0");
 
         if (time < FirstPseudoPeriodEnd)
-            return BaseSequence.GetActiveElementAt(time);
+            return BaseSequence.GetElementAt(time);
 
         //otherwise
-        return GetExtensionSequenceAt(time, settings).GetActiveElementAt(time);
+        return GetExtensionSequenceAt(time, settings).GetElementAt(time);
     }
 
     /// <summary>
@@ -958,16 +958,16 @@ public class Curve
     /// <param name="time">Time t of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if time 0 is given, as a curve is not defined before 0.</exception>
     /// <returns>The <see cref="Segment"/> describing the curve before time t, or null if there is none.</returns>
-    public Segment GetActiveSegmentBefore(Rational time)
+    public Segment GetSegmentBefore(Rational time)
     {
         if (time == 0)
             throw new ArgumentException("A curve is not defined for t < 0");
 
         if (time <= FirstPseudoPeriodEnd)
-            return BaseSequence.GetActiveSegmentBefore(time);
+            return BaseSequence.GetSegmentBefore(time);
 
         //otherwise
-        return GetExtensionSequenceBefore(time).GetActiveSegmentBefore(time);
+        return GetExtensionSequenceBefore(time).GetSegmentBefore(time);
     }
 
     /// <summary>
@@ -975,12 +975,12 @@ public class Curve
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
     /// <returns>The <see cref="Segment"/> describing the curve after time t.</returns>
-    public Segment GetActiveSegmentAfter(Rational time)
+    public Segment GetSegmentAfter(Rational time)
     {
         if (time < FirstPseudoPeriodEnd)
-            return BaseSequence.GetActiveSegmentAfter(time);
+            return BaseSequence.GetSegmentAfter(time);
         else
-            return GetExtensionSequenceAt(time).GetActiveSegmentAfter(time);
+            return GetExtensionSequenceAt(time).GetSegmentAfter(time);
     }
         
     /// <summary>
@@ -1733,7 +1733,7 @@ public class Curve
         {
             var lastFiniteTime = BaseSequence.FirstInfiniteTime;
             var lastFiniteValue = BaseSequence.LeftLimitAt(lastFiniteTime);
-            var isLastFiniteConstant = GetActiveSegmentBefore(lastFiniteTime).IsConstant;
+            var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
             var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).LowerPseudoInverse();
             var lpi = isLastFiniteConstant 
                 ? transient_lpi
@@ -1832,7 +1832,7 @@ public class Curve
         {
             var lastFiniteTime = BaseSequence.FirstInfiniteTime;
             var lastFiniteValue = BaseSequence.LeftLimitAt(lastFiniteTime);
-            var isLastFiniteConstant = GetActiveSegmentBefore(lastFiniteTime).IsConstant;
+            var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
             var transient_upi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse();
             var upi = isLastFiniteConstant 
                 ? transient_upi

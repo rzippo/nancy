@@ -507,7 +507,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <returns>Value of the segment at the given time or 0 if outside definition bounds.</returns>
     public Rational ValueAt(Rational time)
     {
-        return GetActiveElementAt(time).ValueAt(time);
+        return GetElementAt(time).ValueAt(time);
     }
 
     /// <summary>
@@ -517,7 +517,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <returns>The value of $f(t^+)$</returns>
     public Rational RightLimitAt(Rational time)
     {
-        Segment segment = GetActiveSegmentAfter(time);
+        Segment segment = GetSegmentAfter(time);
         return segment.RightLimitAt(time);
     }
 
@@ -528,7 +528,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <returns>The value of $f(t^-)$</returns>
     public Rational LeftLimitAt(Rational time)
     {
-        Segment segment = GetActiveSegmentBefore(time);
+        Segment segment = GetSegmentBefore(time);
         return segment.LeftLimitAt(time);
     }
 
@@ -539,7 +539,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> is out of sequence domain.</exception> 
     /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log(n))$</remarks>
-    public Element GetActiveElementAt(Rational time)
+    public Element GetElementAt(Rational time)
     {
         if(!IsDefinedAt(time))
             throw new ArgumentException("The given time is out of sequence domain");
@@ -558,7 +558,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> $-\epsilon$ is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
-    public Segment GetActiveSegmentBefore(Rational time)
+    public Segment GetSegmentBefore(Rational time)
     {
         try
         {
@@ -578,7 +578,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence domain.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
-    public Segment GetActiveSegmentAfter(Rational time)
+    public Segment GetSegmentAfter(Rational time)
     {
         try
         {
@@ -600,10 +600,10 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
-    /// It should be used in place of <see cref="GetActiveElementAt"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
+    /// It should be used in place of <see cref="GetElementAt"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
     /// Thus, the overall cost will be $O(n) &lt; O(n log n)$.
     /// </remarks>
-    public (Element element, int index) GetActiveElementAt_Linear(Rational time, int startingIndex = 0)
+    public (Element element, int index) GetElementAt_Linear(Rational time, int startingIndex = 0)
     {
         if(!IsDefinedAt(time))
             throw new ArgumentException("The given time is out of sequence domain");
@@ -625,10 +625,10 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <returns>The <see cref="Segment"/> describing the sequence before time t.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
-    /// It should be used in place of <see cref="GetActiveSegmentBefore"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
+    /// It should be used in place of <see cref="GetSegmentBefore"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
     /// Thus, the overall cost will be $O(n) &lt; O(n~\log~n)$.
     /// </remarks>
-    internal (Segment segment, int index) GetActiveSegmentBefore_Linear(Rational time, int startingIndex = 0)
+    internal (Segment segment, int index) GetSegmentBefore_Linear(Rational time, int startingIndex = 0)
     {
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
@@ -655,10 +655,10 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <returns>The <see cref="Segment"/> describing the sequence after time t.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
-    /// It should be used in place of <see cref="GetActiveSegmentAfter"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
+    /// It should be used in place of <see cref="GetSegmentAfter"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
     /// Thus, the overall cost will be $O(n) &lt; O(n \log n)$.
     /// </remarks>
-    internal (Segment segment, int index) GetActiveSegmentAfter_Linear(Rational time, int startingIndex = 0)
+    internal (Segment segment, int index) GetSegmentAfter_Linear(Rational time, int startingIndex = 0)
     {
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
@@ -734,7 +734,7 @@ public sealed class Sequence : IEquatable<Sequence>
             if (!(isStartInclusive && isEndInclusive))
                 throw new ArgumentException("Cut extremes, if equal, must be both inclusive.");
             
-            var e = GetActiveElementAt(cutStart);
+            var e = GetElementAt(cutStart);
             Point p;
             if (e is Point p2)
                 p = p2;
@@ -942,7 +942,7 @@ public sealed class Sequence : IEquatable<Sequence>
         if(!IsDefinedAt(time))
             throw new ArgumentException("The sequence is not defined for the given split time.");
 
-        Element target = GetActiveElementAt(time);
+        Element target = GetElementAt(time);
         if (target is Point)
             return this;
         else
@@ -2029,11 +2029,11 @@ public sealed class Sequence : IEquatable<Sequence>
                     var gRightLimit = g.RightLimitAt(pTime);
                     var p = new Point(pTime, f.ValueAt(gValue));
                     yield return p;
-                    var (gSegment, gIndex) = g.GetActiveSegmentAfter_Linear(pTime, lastIndexG);
+                    var (gSegment, gIndex) = g.GetSegmentAfter_Linear(pTime, lastIndexG);
                     lastIndexG = gIndex;
                     if (gSegment.Slope != 0)
                     {
-                        var (fSegment, fIndex) = f.GetActiveSegmentAfter_Linear(gRightLimit, lastIndexF);
+                        var (fSegment, fIndex) = f.GetSegmentAfter_Linear(gRightLimit, lastIndexF);
                         lastIndexF = fIndex;
                         var s = new Segment(
                             pTime,
@@ -2045,7 +2045,7 @@ public sealed class Sequence : IEquatable<Sequence>
                     }
                     else
                     {
-                        var (fElement, fIndex) = f.GetActiveElementAt_Linear(gRightLimit, lastIndexF);
+                        var (fElement, fIndex) = f.GetElementAt_Linear(gRightLimit, lastIndexF);
                         lastIndexF = fIndex;
                         var s = new Segment(
                             pTime,

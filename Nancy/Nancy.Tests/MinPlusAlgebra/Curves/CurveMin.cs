@@ -22,9 +22,9 @@ public class CurveMin
         Assert.Equal(200, fun.ValueAt(20));
         Assert.Equal(250, fun.ValueAt(30));
 
-        Assert.Equal(0, fun.GetActiveSegmentAfter(3).Slope);
-        Assert.Equal(20, fun.GetActiveSegmentAfter(13).Slope);
-        Assert.Equal(5, fun.GetActiveSegmentAfter(23).Slope);
+        Assert.Equal(0, fun.GetSegmentAfter(3).Slope);
+        Assert.Equal(20, fun.GetSegmentAfter(13).Slope);
+        Assert.Equal(5, fun.GetSegmentAfter(23).Slope);
     }
 
     [Fact]

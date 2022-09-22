@@ -24,10 +24,10 @@ public class SequenceMax
         Assert.Equal(6, max.DefinedUntil);
 
         //Assert.Equal(4, max.Optimize().Count);
-        Assert.True(max.GetActiveSegmentAfter(0).Slope < 0);
-        Assert.Equal(5, max.GetActiveSegmentBefore(3).Slope);
-        Assert.Equal(-5, max.GetActiveSegmentAfter(3).Slope);
-        Assert.Equal(3, max.GetActiveSegmentAfter(4).Slope);
+        Assert.True(max.GetSegmentAfter(0).Slope < 0);
+        Assert.Equal(5, max.GetSegmentBefore(3).Slope);
+        Assert.Equal(-5, max.GetSegmentAfter(3).Slope);
+        Assert.Equal(3, max.GetSegmentAfter(4).Slope);
         Assert.Equal(21, max.LeftLimitAt(6));
     }
 

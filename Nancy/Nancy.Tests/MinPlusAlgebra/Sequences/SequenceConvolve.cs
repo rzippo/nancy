@@ -59,10 +59,10 @@ public class SequenceConvolution
         Assert.Equal(0, convolution.DefinedFrom);
         Assert.Equal(100, convolution.DefinedUntil);
 
-        Assert.Equal(10, convolution.GetActiveElementAt(8).ValueAt(8));
-        Assert.Equal(0, convolution.GetActiveSegmentAfter(8).Slope);
-        Assert.Equal(5, convolution.GetActiveSegmentAfter(30).Slope);
-        Assert.Equal(10, convolution.GetActiveSegmentAfter(80).Slope);
+        Assert.Equal(10, convolution.GetElementAt(8).ValueAt(8));
+        Assert.Equal(0, convolution.GetSegmentAfter(8).Slope);
+        Assert.Equal(5, convolution.GetSegmentAfter(30).Slope);
+        Assert.Equal(10, convolution.GetSegmentAfter(80).Slope);
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class SequenceConvolution
         Assert.Equal(25, convolution.ValueAt(6));
         Assert.Equal(20, convolution.ValueAt(7));
         Assert.Equal(15, convolution.ValueAt(11));
-        Assert.Equal(21, convolution.GetActiveSegmentAfter(12).LeftLimitAtEndTime);
+        Assert.Equal(21, convolution.GetSegmentAfter(12).LeftLimitAtEndTime);
     }
         
     /// <summary>

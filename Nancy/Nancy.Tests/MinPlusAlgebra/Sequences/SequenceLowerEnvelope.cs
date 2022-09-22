@@ -43,10 +43,10 @@ public class SequenceLowerEnvelope
         Sequence fun =  elements.LowerEnvelope().ToSequence();
 
         //Assert.Equal(3, fun.Count);
-        Assert.Equal(30, fun.GetActiveSegmentAfter(0).Slope);
-        Assert.Equal(0, fun.GetActiveSegmentAfter(40).Slope);
+        Assert.Equal(30, fun.GetSegmentAfter(0).Slope);
+        Assert.Equal(0, fun.GetSegmentAfter(40).Slope);
         Assert.Equal(30, fun.ValueAt(50));
-        Assert.Equal(0, fun.GetActiveSegmentAfter(80).Slope);
+        Assert.Equal(0, fun.GetSegmentAfter(80).Slope);
         Assert.Equal(60, fun.ValueAt(70));
     }
 

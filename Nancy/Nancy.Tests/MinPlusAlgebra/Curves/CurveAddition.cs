@@ -26,9 +26,9 @@ public class CurveAddition
         Assert.Equal(400, sum.ValueAt(20));
         //Assert.Equal(250, fun.ValueAt(30));
 
-        Assert.Equal(5, sum.GetActiveSegmentAfter(3).Slope);
-        Assert.Equal(25, sum.GetActiveSegmentAfter(13).Slope);
-        Assert.Equal(25, sum.GetActiveSegmentAfter(23).Slope);
+        Assert.Equal(5, sum.GetSegmentAfter(3).Slope);
+        Assert.Equal(25, sum.GetSegmentAfter(13).Slope);
+        Assert.Equal(25, sum.GetSegmentAfter(23).Slope);
     }
         
     [Fact]
@@ -51,8 +51,8 @@ public class CurveAddition
         Assert.Equal(400, sum.ValueAt(20));
         //Assert.Equal(250, fun.ValueAt(30));
 
-        Assert.Equal(5, sum.GetActiveSegmentAfter(3).Slope);
-        Assert.Equal(25, sum.GetActiveSegmentAfter(13).Slope);
-        Assert.Equal(25, sum.GetActiveSegmentAfter(23).Slope);
+        Assert.Equal(5, sum.GetSegmentAfter(3).Slope);
+        Assert.Equal(25, sum.GetSegmentAfter(13).Slope);
+        Assert.Equal(25, sum.GetSegmentAfter(23).Slope);
     }
 }

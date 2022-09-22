@@ -19,9 +19,9 @@ public class SequenceAddition
         Assert.Equal(6, sum.DefinedUntil);
 
         //Assert.Equal(3, sum.Optimize().Count);
-        Assert.True(sum.GetActiveSegmentBefore(3).Slope > 0);
-        Assert.True(sum.GetActiveSegmentAfter(3).Slope < 0);
-        Assert.Equal(-2, sum.GetActiveSegmentAfter(5).Slope);
+        Assert.True(sum.GetSegmentBefore(3).Slope > 0);
+        Assert.True(sum.GetSegmentAfter(3).Slope < 0);
+        Assert.Equal(-2, sum.GetSegmentAfter(5).Slope);
         Assert.Equal(26, sum.LeftLimitAt(6));
     }
         

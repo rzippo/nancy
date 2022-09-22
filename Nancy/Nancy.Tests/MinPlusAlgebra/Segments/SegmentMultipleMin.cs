@@ -107,8 +107,8 @@ public class SegmentMultipleMin
         Assert.Equal(20, minFunction.DefinedUntil);
 
         Assert.Equal(0, minFunction.RightLimitAt(0));
-        Assert.Equal(2, minFunction.GetActiveSegmentAfter(2).StartTime);
-        Assert.Equal(5, minFunction.GetActiveSegmentAfter(5).StartTime);
+        Assert.Equal(2, minFunction.GetSegmentAfter(2).StartTime);
+        Assert.Equal(5, minFunction.GetSegmentAfter(5).StartTime);
         Assert.Equal(40, minFunction.ValueAt(5));
     }
 }

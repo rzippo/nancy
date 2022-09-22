@@ -89,7 +89,7 @@ public class SequenceSplit
         Assert.Equal(sequence.IsRightClosed, withSplitEnforced.IsRightClosed);
         Assert.True(Sequence.Equivalent(sequence, withSplitEnforced));
             
-        Assert.True(withSplitEnforced.GetActiveElementAt(splitTime) is Point);
+        Assert.True(withSplitEnforced.GetElementAt(splitTime) is Point);
     }
 
     public static IEnumerable<object[]> GetExceptionTestCases()

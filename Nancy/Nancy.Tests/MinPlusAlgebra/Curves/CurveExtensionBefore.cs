@@ -69,7 +69,7 @@ public class CurveExtensionBefore
         );
 
         Assert.Throws<ArgumentException>(() => curve.LeftLimitAt(0));
-        Assert.Throws<ArgumentException>(() => curve.GetActiveSegmentBefore(0));
+        Assert.Throws<ArgumentException>(() => curve.GetSegmentBefore(0));
             
         Assert.Equal(0, curve.LeftLimitAt(3));
         Assert.Equal(11, curve.LeftLimitAt(9));

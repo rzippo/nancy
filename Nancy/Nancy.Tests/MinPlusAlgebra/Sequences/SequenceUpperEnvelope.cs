@@ -47,10 +47,10 @@ public class SequenceUpperEnvelope
         Sequence fun = elements.UpperEnvelope().ToSequence();
 
         //Assert.Equal(3, fun.Count);
-        Assert.Equal(1, fun.GetActiveSegmentAfter(0).Slope);
-        Assert.Equal(0, fun.GetActiveSegmentAfter(40).Slope);
+        Assert.Equal(1, fun.GetSegmentAfter(0).Slope);
+        Assert.Equal(0, fun.GetSegmentAfter(40).Slope);
         Assert.Equal(45, fun.ValueAt(30));
-        Assert.Equal(1, fun.GetActiveSegmentAfter(80).Slope);
+        Assert.Equal(1, fun.GetSegmentAfter(80).Slope);
         Assert.Equal(70, fun.ValueAt(70));
     }
 

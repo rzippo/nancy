@@ -17,10 +17,10 @@ public class SequenceMin
         Assert.Equal(6, min.DefinedUntil);
 
         //Assert.Equal(3, min.Optimize().Count);
-        Assert.Equal(5, min.GetActiveSegmentAfter(2).Slope);
-        Assert.True(min.GetActiveSegmentAfter(3).Slope < 0 && min.GetActiveSegmentAfter(3).Slope > -5);
-        Assert.Equal(-5, min.GetActiveSegmentAfter(5).Slope);
-        Assert.Equal(5, min.GetActiveSegmentBefore(6).LeftLimitAtEndTime);
+        Assert.Equal(5, min.GetSegmentAfter(2).Slope);
+        Assert.True(min.GetSegmentAfter(3).Slope < 0 && min.GetSegmentAfter(3).Slope > -5);
+        Assert.Equal(-5, min.GetSegmentAfter(5).Slope);
+        Assert.Equal(5, min.GetSegmentBefore(6).LeftLimitAtEndTime);
     }
 
     [Fact]
