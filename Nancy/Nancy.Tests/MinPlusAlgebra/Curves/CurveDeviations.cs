@@ -67,6 +67,7 @@ public class CurveDeviations
                 ),
                 4
             ),
+            #if BIG_RATIONAL
             (
                 a: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
                 b: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}"),
@@ -77,6 +78,7 @@ public class CurveDeviations
                 b: new Curve(Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}")),
                 new Rational(115102801965691,149850048000)
             )
+            #endif
         };
 
         foreach (var (a, b, expected) in testcases)
@@ -180,10 +182,17 @@ public class CurveDeviations
         var testcases = new List<(Curve ac, Curve sc_a, Curve sc_b)>
         {
             (
+                ac: new SigmaRhoArrivalCurve(1, 3),
+                sc_a: new RateLatencyServiceCurve(5, 2),
+                sc_b: new RateLatencyServiceCurve(4, 3)
+            ),
+            #if BIG_RATIONAL
+            (
                 ac: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
                 sc_a: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}"),
                 sc_b: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":780469,\"den\":64000000},\"latency\":{\"num\":27439,\"den\":40}}")
-            )
+            ),
+            #endif
         };
 
         foreach (var (ac, sc_a, sc_b) in testcases)

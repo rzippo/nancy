@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
 
-    <AssemblyName>Unipi.Nancy.Tests</AssemblyName>
+    <AssemblyName>Unipi.Nancy.Tests.LongRational</AssemblyName>
     <RootNamespace>Unipi.Nancy.Tests</RootNamespace>
   </PropertyGroup>
 
