@@ -13,7 +13,7 @@ If I could abstract this out of view I would, alas you will have to scroll a bit
 
 # Compile the library
 # Warning: if you modified the source, restart the notebook kernel before re-compiling! Use ctrl+shift+P to find this command in VS Code
-dotnet publish -c Release ../Nancy/Nancy
+dotnet publish -c Release ../Nancy/Nancy/Nancy.csproj
 
 #!csharp
 
