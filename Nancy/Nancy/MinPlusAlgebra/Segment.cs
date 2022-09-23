@@ -452,7 +452,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     }
         
     /// <summary>
-    /// Deserializes an Segment.
+    /// Deserializes a <see cref="Segment"/>.
     /// </summary>
     public new static Segment FromJson(string json)
     {

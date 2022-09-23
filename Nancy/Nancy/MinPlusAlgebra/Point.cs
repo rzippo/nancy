@@ -169,7 +169,7 @@ public sealed class Point : Element, IEquatable<Point>
     }
 
     /// <summary>
-    /// Deserializes an Point.
+    /// Deserializes a <see cref="Point"/>.
     /// </summary>
     public new static Point FromJson(string json)
     {

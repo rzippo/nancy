@@ -106,7 +106,7 @@ public abstract class Element
     }
     
     /// <summary>
-    /// Deserializes an Element.
+    /// Deserializes an <see cref="Element"/>.
     /// </summary>
     public static Element FromJson(string json)
     {
