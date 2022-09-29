@@ -650,13 +650,13 @@ public class Curve
         if (!(obj is Curve curve))
             return false;
 
-        return (BaseSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight: PseudoPeriodHeight) ==
+        return (BaseSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight) ==
                (curve.BaseSequence, curve.PseudoPeriodStart, curve.PseudoPeriodLength, curve.PseudoPeriodHeight);
     }
 
     /// <inheritdoc cref="object.GetHashCode"/>
     public override int GetHashCode()
-        => (BaseSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight: PseudoPeriodHeight).GetHashCode();
+        => (BaseSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight).GetHashCode();
 
     /// <summary>
     /// Returns <code>true</code> if its operands are equal, <code>false</code> otherwise
