@@ -310,12 +310,31 @@ public class CurveUpperPseudoInverse
                     pseudoPeriodLength: 1,
                     pseudoPeriodHeight: 0
                 )
+            ),
+            (
+                operand: new DelayServiceCurve(0),
+                expected: Curve.Zero()
+            ),
+            (
+                // just madness
+                operand: new Curve(
+                    baseSequence: new Sequence(new List<Element>()
+                    {
+                        new Point(0, 5),
+                        Segment.PlusInfinite(0, 1),
+                        Point.PlusInfinite(1),
+                        Segment.PlusInfinite(1, 2),
+                    }),
+                    pseudoPeriodStart: 1,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                ),
+                expected: Curve.Zero()
             )
         };
         
         foreach (var (operand, expected) in testcases)
         {
-            if (!operand.IsContinuous) throw new InvalidOperationException();
             yield return new object[] { operand, expected };
         }
     }
@@ -441,6 +460,10 @@ public class CurveUpperPseudoInverse
             Assert.True(result.IsLeftContinuous);
         Assert.True(Curve.Equivalent(expected, result));
 
+        if (operand.IsUltimatelyInfinite && operand.PseudoPeriodStartInfimum == 0)
+            // uninteresting edge case, don't try to reverse
+            return;
+
         var result2 = result.UpperPseudoInverse();
         if(!result.IsUltimatelyConstant)
             Assert.True(result2.IsLeftContinuous);
@@ -456,6 +479,102 @@ public class CurveUpperPseudoInverse
 
         var result2 = result.UpperPseudoInverse();
         Assert.True(Curve.Equivalent(expected2, result2));
+    }
+    
+    public static IEnumerable<object[]> UcPropertiesTestCases()
+    {
+        var testcases = new Curve[]
+        {
+            new SigmaRhoArrivalCurve(4, 0),
+            Curve.Minimum(
+                new RateLatencyServiceCurve(3, 3),
+                new ConstantCurve(12)
+            ),
+            new Curve(
+                baseSequence: new Sequence(new Element[]
+                {
+                    Point.Origin(),
+                    Segment.Zero(0, 1),
+                    new Point(1, 0),
+                    new Segment(1, 2, 0, 1),
+                    new Point(2, 1),
+                    Segment.Constant(2, 3, 2),
+                    new Point(3, 2),
+                    Segment.Constant(3, 4, 2)
+                }),
+                pseudoPeriodStart: 3,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            )
+        };
+
+        foreach (var curve in testcases)
+        {
+            yield return new object[] { curve };
+        }
+    }
+    
+    [Theory]
+    [MemberData(nameof(UcPropertiesTestCases))]
+    public void UcProperties(Curve curve)
+    {
+        Assert.True(curve.IsUltimatelyConstant);
+        var t_c = curve.PseudoPeriodStartInfimum;
+        var f_t_c = curve.ValueAt(t_c);
+        var c = curve.ValueAt(curve.PseudoPeriodStart);
+        
+        var upi = curve.UpperPseudoInverse();
+        if(f_t_c < c)
+            Assert.Equal(t_c, upi.RightLimitAt(f_t_c));
+        Assert.Equal(t_c, upi.LeftLimitAt(c));
+        Assert.Equal(Rational.PlusInfinity, upi.ValueAt(c));
+        Assert.Equal(Rational.PlusInfinity, upi.RightLimitAt(c));
+        Assert.True(upi.IsUltimatelyInfinite);
+    }
+    
+    public static IEnumerable<object[]> UiPropertiesTestCases()
+    {
+        var testcases = new Curve[]
+        {
+            new DelayServiceCurve(4),
+            new Curve(
+                baseSequence: new Sequence(new Element[]
+                {
+                    Point.Origin(),
+                    Segment.Zero(0, 1),
+                    new Point(1, 0),
+                    new Segment(1, 2, 0, 1),
+                    new Point(2, 1),
+                    Segment.PlusInfinite(2, 3),
+                    Point.PlusInfinite(3),
+                    Segment.PlusInfinite(3, 4)
+                }),
+                pseudoPeriodStart: 3,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            )
+        };
+
+        foreach (var curve in testcases)
+        {
+            yield return new object[] { curve };
+        }
+    }
+    
+    [Theory]
+    [MemberData(nameof(UiPropertiesTestCases))]
+    public void UiProperties(Curve curve)
+    {
+        Assert.True(curve.IsUltimatelyInfinite);
+        var t_i = curve.PseudoPeriodStartInfimum;
+        var f_t_i = curve.ValueAt(t_i);
+        var l = (f_t_i.IsFinite) ? f_t_i :
+            (t_i > 0) ? curve.LeftLimitAt(t_i) : 0;
+        
+        var upi = curve.UpperPseudoInverse();
+        Assert.Equal(t_i, upi.ValueAt(l));
+        Assert.Equal(t_i, upi.RightLimitAt(l));
+        Assert.True(upi.IsUltimatelyConstant);
     }
     
     public static IEnumerable<object[]> NegativeTestCases()

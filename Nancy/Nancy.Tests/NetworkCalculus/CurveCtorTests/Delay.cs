@@ -19,7 +19,7 @@ public class Delay
         Assert.False(curve.IsLeftContinuous);
         Assert.False(curve.IsRightContinuous);
         Assert.True(curve.IsUltimatelyPlain);
-        Assert.True(curve.IsWeaklyUltimatelyInfinite);
+        Assert.True(curve.IsUltimatelyInfinite);
         Assert.False(curve.IsUltimatelyAffine);
         Assert.True(curve.IsSuperAdditive);
         Assert.Equal(delay, curve.FirstNonZeroTime);
@@ -46,7 +46,7 @@ public class Delay
         Assert.False(curve.IsLeftContinuous);
         Assert.False(curve.IsRightContinuous);
         Assert.True(curve.IsUltimatelyPlain);
-        Assert.True(curve.IsWeaklyUltimatelyInfinite);
+        Assert.True(curve.IsUltimatelyInfinite);
         Assert.False(curve.IsUltimatelyAffine);
         Assert.True(curve.IsSuperAdditive);
         Assert.Equal(0, curve.FirstNonZeroTime);

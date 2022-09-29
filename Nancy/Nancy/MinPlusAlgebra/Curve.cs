@@ -131,6 +131,30 @@ public class Curve
             : Rational.Min(BaseSequence.FirstNonZeroTime, PseudoPeriodStart + PseudoPeriodLength);
 
     /// <summary>
+    /// Returns the minimum $T_L$ such that $f(t + d) = f(t) + c$ for all $t > T_L$.
+    /// It is the infimum of all valid <see cref="PseudoPeriodStart"/>, i.e. $T_L = \inf\{ T | f(t + d) = f(t) + c \forall t \ge T \}$.
+    /// </summary>
+    public Rational PseudoPeriodStartInfimum
+    {
+        get
+        {
+            var opt = this.Optimize();
+            if (!opt.HasTransient)
+                return 0;
+            if (!opt.IsLeftContinuousAt(opt.PseudoPeriodStart))
+                return opt.PseudoPeriodStart;
+            
+            var lastTransientSegment = (Segment) opt.TransientElements.Last();
+            var lastPeriodSegment = (Segment) opt.PseudoPeriodicElements.Last();
+            if (lastTransientSegment.Slope == lastPeriodSegment.Slope)
+                // since it is already a minimal curve, we can infer right-discontinuity in $T_L$
+                return lastTransientSegment.StartTime;
+            else
+                return opt.PseudoPeriodStart;
+        }
+    }
+    
+    /// <summary>
     /// True if the curve has 0 value for any $t$.
     /// </summary>
     public bool IsIdenticallyZero =>
@@ -292,70 +316,17 @@ public class Curve
     {
         get
         {
-            using var enumerator = BaseSequence.Elements.GetEnumerator();
-            enumerator.MoveNext();
-            while (enumerator.Current.IsFinite)
-            {
-                if (!enumerator.MoveNext())
-                    return false;   // if reached, the base sequence is finite
-            }
-
-            if (enumerator.Current is Segment)
-                return false;   // weakly U.I. but not U.I.
-
-            var sign = enumerator.Current.IsPlusInfinite ? 1 : -1;
-            
-            // loop through the rest, ensuring they are all infinite
-            while (enumerator.MoveNext())
-            {
-                if (!enumerator.Current.IsInfinite || 
-                    !(sign > 0 ? enumerator.Current.IsPlusInfinite : enumerator.Current.IsMinusInfinite))  // ensure the sign stays the same
-                    return false;
-            }
-
-            return true;
+            var isUltPlusInfinite = PseudoPeriodicElements.All(e => e.IsPlusInfinite);
+            var isUltMinusInfinite = PseudoPeriodicElements.All(e => e.IsMinusInfinite);
+            return isUltPlusInfinite || isUltMinusInfinite;
         }
     }
-        
-    /// <summary>
-    /// True if, for some $T$, $\left|f(t)\right| = +\infty$ for all $t > T$,
-    /// while for $\left|f(t)\right| &lt; +\infty$ for all $t &lt; T$.
-    /// </summary>
-    /// <remarks>
-    /// The value $f(T)$ is not specified either way.
-    /// <see cref="IsUltimatelyInfinite"/> implies <see cref="IsWeaklyUltimatelyInfinite"/>.
-    /// </remarks>
-    public bool IsWeaklyUltimatelyInfinite
-    {
-        get
-        {
-            using var enumerator = Extend(SecondPseudoPeriodEnd).Elements.GetEnumerator();
-            enumerator.MoveNext();
-            while (enumerator.Current.IsFinite)
-            {
-                if (!enumerator.MoveNext())
-                    return false;   // if reached, the base sequence is finite
-            }
-            
-            var sign = enumerator.Current.IsPlusInfinite ? 1 : -1;
-            
-            // loop through the rest, ensuring they are all infinite
-            while (enumerator.MoveNext())
-            {
-                if (!enumerator.Current.IsInfinite || 
-                    !(sign > 0 ? enumerator.Current.IsPlusInfinite : enumerator.Current.IsMinusInfinite))  // ensure the sign stays the same
-                    return false;
-            }
 
-            return true;
-        }
-    }
-    
     /// <summary>
     /// True if for all $t >$ <see cref="PseudoPeriodStart"/> the curve is either always finite or always infinite.
     /// </summary>
     public bool IsUltimatelyPlain =>
-        IsUltimatelyFinite || IsWeaklyUltimatelyInfinite;
+        IsUltimatelyFinite || IsUltimatelyInfinite;
 
     /// <summary>
     /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is affine.
@@ -1729,10 +1700,14 @@ public class Curve
                 pseudoPeriodHeight: 0
             );
         }
-        else if (IsWeaklyUltimatelyInfinite)
+        else if (IsUltimatelyInfinite)
         {
-            var lastFiniteTime = BaseSequence.FirstInfiniteTime;
-            var lastFiniteValue = BaseSequence.LeftLimitAt(lastFiniteTime);
+            var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
+            if (lastFiniteTime == 0)
+                return Zero();
+            var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
+            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : 
+                lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
             var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
             var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).LowerPseudoInverse();
             var lpi = isLastFiniteConstant 
@@ -1828,10 +1803,14 @@ public class Curve
                 pseudoPeriodHeight: 0
             );
         }
-        else if (IsWeaklyUltimatelyInfinite)
+        else if (IsUltimatelyInfinite)
         {
-            var lastFiniteTime = BaseSequence.FirstInfiniteTime;
-            var lastFiniteValue = BaseSequence.LeftLimitAt(lastFiniteTime);
+            var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
+            if (lastFiniteTime == 0)
+                return Zero();
+            var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
+            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : 
+                lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
             var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
             var transient_upi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse();
             var upi = isLastFiniteConstant 
@@ -3109,10 +3088,10 @@ public class Curve
                 if (a.HasTransient)
                     terms.Add(ConvolutionTransientTransient(a, a));
 
-                if (a.HasTransient && !a.IsWeaklyUltimatelyInfinite)
+                if (a.HasTransient && !a.IsUltimatelyInfinite)
                     terms.Add(ConvolutionTransientPeriodic(a, a));
 
-                if (!a.IsWeaklyUltimatelyInfinite)
+                if (!a.IsUltimatelyInfinite)
                     terms.Add(ConvolutionPeriodicPeriodic(a, a));
             }
             else
@@ -3121,15 +3100,15 @@ public class Curve
                 {
                     if (b.HasTransient)
                         terms.Add(ConvolutionTransientTransient(a, b));
-                    if (!b.IsWeaklyUltimatelyInfinite)
+                    if (!b.IsUltimatelyInfinite)
                         terms.Add(ConvolutionTransientPeriodic(a, b));
                 }
 
-                if (!a.IsWeaklyUltimatelyInfinite)
+                if (!a.IsUltimatelyInfinite)
                 {
                     if (b.HasTransient)
                         terms.Add(ConvolutionTransientPeriodic(b, a));
-                    if (!b.IsWeaklyUltimatelyInfinite)
+                    if (!b.IsUltimatelyInfinite)
                         terms.Add(ConvolutionPeriodicPeriodic(a, b));
                 }
             }
@@ -3401,10 +3380,10 @@ public class Curve
                 if (a.HasTransient)
                     terms.Add(EstimateTransientTransient(a, a));
 
-                if (a.HasTransient && !a.IsWeaklyUltimatelyInfinite)
+                if (a.HasTransient && !a.IsUltimatelyInfinite)
                     terms.Add(EstimateTransientPeriodic(a, a));
 
-                if (!a.IsWeaklyUltimatelyInfinite)
+                if (!a.IsUltimatelyInfinite)
                     terms.Add(EstimatePeriodicPeriodic(a, a));
             }
             else
@@ -3413,15 +3392,15 @@ public class Curve
                 {
                     if (b.HasTransient)
                         terms.Add(EstimateTransientTransient(a, b));
-                    if (!b.IsWeaklyUltimatelyInfinite)
+                    if (!b.IsUltimatelyInfinite)
                         terms.Add(EstimateTransientPeriodic(a, b));
                 }
 
-                if (!a.IsWeaklyUltimatelyInfinite)
+                if (!a.IsUltimatelyInfinite)
                 {
                     if (b.HasTransient)
                         terms.Add(EstimateTransientPeriodic(b, a));
-                    if (!b.IsWeaklyUltimatelyInfinite)
+                    if (!b.IsUltimatelyInfinite)
                         terms.Add(EstimatePeriodicPeriodic(a, b));
                 }
             }
