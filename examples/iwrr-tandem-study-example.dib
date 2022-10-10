@@ -350,11 +350,11 @@ var b_eq_2 = IwrrServiceCurve(0, weights_2, l_min_2, l_max_2, b2);
 
 plot(new[]{b_eq_1, b_eq_2}, new[]{"b_eq_1", "b_eq_2"}, 2.6m);
 Console.WriteLine($"Period length, node 1: {b_eq_1.PseudoPeriodLength} node 2: {b_eq_2.PseudoPeriodLength}");
-Console.WriteLine($"Guaranteed rate, node 1: {b_eq_1.PseudoPeriodAverageSlope} node 2: {b_eq_2.PseudoPeriodAverageSlope}");
+Console.WriteLine($"Guaranteed rate, node 1: {b_eq_1.PseudoPeriodSlope} node 2: {b_eq_2.PseudoPeriodSlope}");
 
 #!markdown
 
-We now compute the equivalent service curve for the tandem, and thus the worst-case delay bound.
+We now compute the equivalent service curve for the tandem, and thus the worst-case delay and backlog bounds.
 
 #!csharp
 
@@ -364,3 +364,7 @@ var delay_bound = Curve.HorizontalDeviation(foi_ac, b_eq);
 
 var delay_bound_string = delay_bound.IsFinite ? $"{(decimal)delay_bound:f2} ms" : "unbounded";
 Console.WriteLine($"Worst-case delay bound: {delay_bound_string}");
+
+var backlog_bound = Curve.VerticalDeviation(foi_ac, b_eq);
+var backlog_bound_string = backlog_bound.IsFinite ? $"{backlog_bound.Ceil()} bit" : "unbounded";
+Console.WriteLine($"Worst-case backlog bound: {backlog_bound_string}");
