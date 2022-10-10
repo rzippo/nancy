@@ -1502,11 +1502,11 @@ public class Curve
     }
     
     /// <summary>
-    /// Computes a non-negative version of this curve, 
+    /// Computes the _positive part_ of this curve, 
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
     /// </summary>
     /// <remarks>
-    /// Implements the _non-negative closure_ defined in [DNC18] p. 45 .
+    /// Implements the _non-negative closure_ defined in [DNC18] p. 45.
     /// </remarks>
     public Curve ToNonNegative()
         => Maximum(this, Curve.Zero());

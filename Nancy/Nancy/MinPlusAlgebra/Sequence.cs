@@ -1246,7 +1246,7 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Computes a non-negative version of this sequence, 
+    /// Computes the _positive part_ of this sequence, 
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
     /// </summary>
     public Sequence ToNonNegative()
