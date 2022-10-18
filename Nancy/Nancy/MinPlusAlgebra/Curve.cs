@@ -673,18 +673,62 @@ public class Curve
     /// <summary>
     /// True if the curves represent the same function.
     /// </summary>
-    public bool Equivalent(Curve curve)
-        => Equivalent(this, curve);
+    public bool Equivalent(Curve curve, ComputationSettings? settings = null)
+        => Equivalent(this, curve, settings);
 
     /// <summary>
     /// True if the curves represent the same function.
     /// </summary>
     public static bool Equivalent(Curve a, Curve b, ComputationSettings? settings = null)
     {
-        Rational extensionTime = Rational.Max(a.FirstPseudoPeriodEnd, b.FirstPseudoPeriodEnd);
+        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart) 
+                            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
             
-        var seqA = a.CutAsEnumerable(0, extensionTime, true, true, settings);
-        var seqB = b.CutAsEnumerable(0,extensionTime, true, true, settings);
+        var seqA = a.CutAsEnumerable(0, cutEnd, true, true, settings);
+        var seqB = b.CutAsEnumerable(0,cutEnd, true, true, settings);
+
+        return Sequence.Equivalent(seqA, seqB);
+    }
+
+    /// <summary>
+    /// True if all the curves in the set represent the same function. 
+    /// </summary>
+    /// <param name="curves"></param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static bool Equivalent(IEnumerable<Curve> curves, ComputationSettings? settings = null)
+    {
+        using var enumerator = curves.GetEnumerator();
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("The set of curves is empty");
+
+        var reference = enumerator.Current;
+        while (enumerator.MoveNext())
+        {
+            var result = Curve.Equivalent(reference, enumerator.Current, settings);
+            if (!result)
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// True if, starting from <paramref name="time"/>, the curves represent the same function.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="time"></param>
+    /// <param name="isStartInclusive">If true, <paramref name="time"/> is included in the comparison.</param>
+    /// <param name="settings"></param>
+    public static bool EquivalentAfter(Curve a, Curve b, Rational time, bool isStartInclusive = true, ComputationSettings? settings = null)
+    {
+        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
+                            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        
+        var seqA = a.CutAsEnumerable(time, cutEnd, isStartInclusive, true, settings);
+        var seqB = b.CutAsEnumerable(time, cutEnd, isStartInclusive, true, settings);
 
         return Sequence.Equivalent(seqA, seqB);
     }
@@ -701,11 +745,11 @@ public class Curve
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static Rational? FindFirstInequivalence(Curve a, Curve b)
     {
-        //Should be good enough
-        Rational extensionTime = Rational.Max(a.FirstPseudoPeriodEnd, b.FirstPseudoPeriodEnd);
+        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
+                            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
 
-        var seqA = a.CutAsEnumerable(0, extensionTime, true, true);
-        var seqB = b.CutAsEnumerable(0,extensionTime, true, true);
+        var seqA = a.CutAsEnumerable(0, cutEnd, true, true);
+        var seqB = b.CutAsEnumerable(0, cutEnd, true, true);
 
         var spotsA = GetSpots(seqA);
         var spotsB = GetSpots(seqB);
@@ -748,21 +792,21 @@ public class Curve
     /// <summary>
     /// True if the curves represent the same function, except for origin.
     /// </summary>
-    public bool EquivalentExceptOrigin(Curve curve)
-    {
-        Rational extensionTime = Rational.Max(
-            PseudoPeriodStart + 3 * PseudoPeriodLength,
-            curve.PseudoPeriodStart + 3 * curve.PseudoPeriodLength
-        );
+    public bool EquivalentExceptOrigin(Curve curve, ComputationSettings? settings = null)
+        => EquivalentExceptOrigin(this, curve, settings); 
 
-        Sequence a = Extend(extensionTime)
-            .Cut(0, extensionTime, isStartInclusive: false)
-            .Optimize();
-        Sequence b = curve.Extend(extensionTime)
-            .Cut(0, extensionTime, isStartInclusive: false)
-            .Optimize();
+    /// <summary>
+    /// True if the curves represent the same function, except for origin.
+    /// </summary>
+    public static bool EquivalentExceptOrigin(Curve a, Curve b, ComputationSettings? settings = null)
+    {        
+        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
+                          + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
 
-        return a == b;
+        var seqA = a.CutAsEnumerable(0, cutEnd, false, true, settings);
+        var seqB = b.CutAsEnumerable(0, cutEnd, false, true, settings);
+
+        return Sequence.Equivalent(seqA, seqB);
     }
 
     /// <summary>
