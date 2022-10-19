@@ -158,4 +158,73 @@ public class CurveMax
     //    Assert.False(min.IsContinuous);
     //    Assert.True(min.IsUltimatelyPlain);
     //}
+    
+    public static IEnumerable<object[]> GetSetTestCases()
+    {
+        var testcases = new List<List<Curve>>
+        {
+            // These tests are gathered from a max-plus convolution test.
+            // It broke due to a wierd issue with tt terms being UI curves with a non-conventional shape
+            
+            // all 4 terms
+            new List<Curve>
+            {
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":0,\"type\":\"point\"},{\"startTime\":0,\"endTime\":2,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"},{\"time\":2,\"value\":0,\"type\":\"point\"},{\"startTime\":2,\"endTime\":3,\"rightLimit\":0,\"slope\":-1,\"type\":\"segment\"},{\"time\":3,\"value\":-1,\"type\":\"point\"},{\"startTime\":3,\"endTime\":7,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"},{\"time\":7,\"value\":-1,\"type\":\"point\"},{\"startTime\":7,\"endTime\":9,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":7,\"periodLength\":2,\"periodHeight\":{\"num\":1,\"den\":0}}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":6,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":6,\"value\":0,\"type\":\"point\"},{\"startTime\":6,\"endTime\":8,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":6,\"periodLength\":2,\"periodHeight\":-3}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":3,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":3,\"value\":-2,\"type\":\"point\"},{\"startTime\":3,\"endTime\":5,\"rightLimit\":-2,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":3,\"periodLength\":2,\"periodHeight\":-1}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":9,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":9,\"value\":-2,\"type\":\"point\"},{\"startTime\":9,\"endTime\":11,\"rightLimit\":-2,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":9,\"periodLength\":2,\"periodHeight\":-3}")
+            }.Select(t => -t).ToList(),
+            // no tt term
+            new List<Curve>
+            {
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":6,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":6,\"value\":0,\"type\":\"point\"},{\"startTime\":6,\"endTime\":8,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":6,\"periodLength\":2,\"periodHeight\":-3}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":3,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":3,\"value\":-2,\"type\":\"point\"},{\"startTime\":3,\"endTime\":5,\"rightLimit\":-2,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":3,\"periodLength\":2,\"periodHeight\":-1}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":9,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":9,\"value\":-2,\"type\":\"point\"},{\"startTime\":9,\"endTime\":11,\"rightLimit\":-2,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":9,\"periodLength\":2,\"periodHeight\":-3}")
+            }.Select(t => -t).ToList(),
+            // no pp term
+            new List<Curve>
+            {
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":0,\"type\":\"point\"},{\"startTime\":0,\"endTime\":2,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"},{\"time\":2,\"value\":0,\"type\":\"point\"},{\"startTime\":2,\"endTime\":3,\"rightLimit\":0,\"slope\":-1,\"type\":\"segment\"},{\"time\":3,\"value\":-1,\"type\":\"point\"},{\"startTime\":3,\"endTime\":7,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"},{\"time\":7,\"value\":-1,\"type\":\"point\"},{\"startTime\":7,\"endTime\":9,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":7,\"periodLength\":2,\"periodHeight\":{\"num\":1,\"den\":0}}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":6,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":6,\"value\":0,\"type\":\"point\"},{\"startTime\":6,\"endTime\":8,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":6,\"periodLength\":2,\"periodHeight\":-3}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":3,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":3,\"value\":-2,\"type\":\"point\"},{\"startTime\":3,\"endTime\":5,\"rightLimit\":-2,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":3,\"periodLength\":2,\"periodHeight\":-1}"),
+            }.Select(t => -t).ToList(),
+            // tt, tp terms
+            new List<Curve>
+            {
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":0,\"type\":\"point\"},{\"startTime\":0,\"endTime\":2,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"},{\"time\":2,\"value\":0,\"type\":\"point\"},{\"startTime\":2,\"endTime\":3,\"rightLimit\":0,\"slope\":-1,\"type\":\"segment\"},{\"time\":3,\"value\":-1,\"type\":\"point\"},{\"startTime\":3,\"endTime\":7,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"},{\"time\":7,\"value\":-1,\"type\":\"point\"},{\"startTime\":7,\"endTime\":9,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":7,\"periodLength\":2,\"periodHeight\":{\"num\":1,\"den\":0}}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":6,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":6,\"value\":0,\"type\":\"point\"},{\"startTime\":6,\"endTime\":8,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":6,\"periodLength\":2,\"periodHeight\":-3}"),
+            }.Select(t => -t).ToList(),
+            // tt, pt terms
+            new List<Curve>
+            {
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":0,\"type\":\"point\"},{\"startTime\":0,\"endTime\":2,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"},{\"time\":2,\"value\":0,\"type\":\"point\"},{\"startTime\":2,\"endTime\":3,\"rightLimit\":0,\"slope\":-1,\"type\":\"segment\"},{\"time\":3,\"value\":-1,\"type\":\"point\"},{\"startTime\":3,\"endTime\":7,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"},{\"time\":7,\"value\":-1,\"type\":\"point\"},{\"startTime\":7,\"endTime\":9,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":7,\"periodLength\":2,\"periodHeight\":{\"num\":1,\"den\":0}}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":3,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":3,\"value\":-2,\"type\":\"point\"},{\"startTime\":3,\"endTime\":5,\"rightLimit\":-2,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":3,\"periodLength\":2,\"periodHeight\":-1}"),
+            }.Select(t => -t).ToList(),
+            // only tt and pp terms
+            new List<Curve>
+            {
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":0,\"type\":\"point\"},{\"startTime\":0,\"endTime\":2,\"rightLimit\":0,\"slope\":0,\"type\":\"segment\"},{\"time\":2,\"value\":0,\"type\":\"point\"},{\"startTime\":2,\"endTime\":3,\"rightLimit\":0,\"slope\":-1,\"type\":\"segment\"},{\"time\":3,\"value\":-1,\"type\":\"point\"},{\"startTime\":3,\"endTime\":7,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"},{\"time\":7,\"value\":-1,\"type\":\"point\"},{\"startTime\":7,\"endTime\":9,\"rightLimit\":-1,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":7,\"periodLength\":2,\"periodHeight\":{\"num\":1,\"den\":0}}"),
+                Curve.FromJson("{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":{\"num\":1,\"den\":0},\"type\":\"point\"},{\"startTime\":0,\"endTime\":9,\"rightLimit\":{\"num\":1,\"den\":0},\"slope\":{\"num\":1,\"den\":0},\"type\":\"segment\"},{\"time\":9,\"value\":-2,\"type\":\"point\"},{\"startTime\":9,\"endTime\":11,\"rightLimit\":-2,\"slope\":0,\"type\":\"segment\"}]},\"periodStart\":9,\"periodLength\":2,\"periodHeight\":-3}")
+            }.Select(t => -t).ToList(),
+        };
+
+        foreach (var set in testcases)
+        {
+            yield return new object[] {set};
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSetTestCases))]
+    public void BreakpointMatchTest(List<Curve> curves)
+    {
+        var max = Curve.Maximum(curves);
+        foreach (var (_, point, _) in 
+                 max
+                     .CutAsEnumerable(0, max.SecondPseudoPeriodEnd, true, true)
+                     .EnumerateBreakpoints())
+        {
+            Assert.Contains(curves, c => c.ValueAt(point.Time) == point.Value);
+        }
+    }
 }

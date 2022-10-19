@@ -578,6 +578,19 @@ public class Curve
                 throw new ArgumentException("Base sequence must start at t = 0 and end at T + d");
             }
         }
+        else if (
+            pseudoPeriodHeight.IsInfinite && 
+            baseSequence
+                .CutAsEnumerable(pseudoPeriodStart, pseudoPeriodStart + pseudoPeriodLength)
+                .Any(e => e.IsFinite)
+        )
+        {
+            // non-conforming infinite curve
+            pseudoPeriodStart = baseSequence.DefinedUntil;
+            baseSequence = baseSequence.Elements
+                .Fill(0, pseudoPeriodStart + pseudoPeriodLength, fillWith: pseudoPeriodHeight)
+                .ToSequence();
+        }
 
         BaseSequence = baseSequence
             .Optimize()
@@ -2593,7 +2606,7 @@ public class Curve
             d = ultimatelyLower.PseudoPeriodLength;
             c = ultimatelyLower.PseudoPeriodHeight;
 
-            if (ultimatelyHigher.PseudoPeriodSlope.IsFinite && ultimatelyLower.PseudoPeriodSlope.IsFinite)
+            if (!ultimatelyHigher.IsUltimatelyInfinite && !ultimatelyLower.IsUltimatelyInfinite)
             {
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
@@ -2857,7 +2870,7 @@ public class Curve
             d = ultimatelyHigher.PseudoPeriodLength;
             c = ultimatelyHigher.PseudoPeriodHeight;
 
-            if (ultimatelyHigher.PseudoPeriodSlope.IsFinite && ultimatelyLower.PseudoPeriodSlope.IsFinite)
+            if (!ultimatelyHigher.IsUltimatelyInfinite && !ultimatelyLower.IsUltimatelyInfinite)
             {
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
@@ -3126,7 +3139,10 @@ public class Curve
         else
         {
             var terms = new List<Curve>();
-            if (Equivalent(a, b, settings))
+            if (
+                !settings.SinglePassConvolution &&  // if true, checking for equivalence is useless due to the check above
+                Equivalent(a, b, settings)
+            )
             {
                 // self convolution: skip duplicate middle term
                 if (a.HasTransient)
@@ -3174,20 +3190,19 @@ public class Curve
             Curve firstTransientCurve,
             Curve secondTransientCurve)
         {
-            Sequence firstTransientSequence = new Sequence(firstTransientCurve.TransientElements);
-            Sequence secondTransientSequence = new Sequence(secondTransientCurve.TransientElements);
+            var firstTransientSequence = firstTransientCurve.TransientElements.ToSequence();
+            var secondTransientSequence = secondTransientCurve.TransientElements.ToSequence();
 
             #if DO_LOG
             logger.Trace("Convolution: transient x transient");
             #endif
-            Sequence convolution = Sequence.Convolution(firstTransientSequence, secondTransientSequence, settings);
+            var convolution = Sequence.Convolution(firstTransientSequence, secondTransientSequence, settings);
 
             //Has no actual meaning
-            Rational d = Rational.Max(firstTransientCurve.PseudoPeriodLength, secondTransientCurve.PseudoPeriodLength);
+            Rational d = 1;
+            var T = a.PseudoPeriodStart + b.PseudoPeriodStart;
 
-            Rational T = convolution.DefinedUntil;
-
-            Sequence extendedConvolution = new Sequence(
+            var extendedConvolution = new Sequence(
                 elements: convolution.Elements,
                 fillFrom: 0,
                 fillTo: T + d
@@ -3213,7 +3228,7 @@ public class Curve
             Rational d = periodicCurve.PseudoPeriodLength;
             Rational c = periodicCurve.PseudoPeriodHeight;
 
-            var transientSequence = new Sequence(transientCurve.TransientElements);
+            var transientSequence = transientCurve.TransientElements.ToSequence();
             var periodicSequence = periodicCurve.Cut(periodicCurve.PseudoPeriodStart, T + d, settings: settings);
 
             #if DO_LOG
@@ -3912,6 +3927,16 @@ public class Curve
 /// </summary>
 public static class CurveExtensions
 {
+    /// <summary>
+    /// True if all the curves in the set represent the same function. 
+    /// </summary>
+    /// <param name="curves"></param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static bool Equivalent(this IEnumerable<Curve> curves, ComputationSettings? settings = null)
+        => Curve.Equivalent(curves, settings);
+    
     /// <inheritdoc cref="Curve.Addition(IEnumerable{Curve}, ComputationSettings?)"/>
     public static Curve Addition(this IEnumerable<Curve> curves, ComputationSettings? settings = null)
         => Curve.Addition(curves, settings);
@@ -3927,6 +3952,14 @@ public static class CurveExtensions
     /// <inheritdoc cref="Curve.Minimum(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static Curve Minimum(this IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
         => Curve.Minimum(curves, settings);
+    
+    /// <inheritdoc cref="Curve.Maximum(IEnumerable{Curve}, ComputationSettings?)"/>
+    public static Curve Maximum(this IEnumerable<Curve> curves, ComputationSettings? settings = null)
+        => Curve.Maximum(curves, settings);
+
+    /// <inheritdoc cref="Curve.Maximum(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
+    public static Curve Maximum(this IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
+        => Curve.Maximum(curves, settings);
 
     /// <inheritdoc cref="Curve.Convolution(IEnumerable{Curve}, ComputationSettings?)"/>
     public static Curve Convolution(this IEnumerable<Curve> curves, ComputationSettings? settings = null)
