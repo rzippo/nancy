@@ -1603,7 +1603,7 @@ public class Curve : IToCodeString
         else
         {
             return new Curve(
-                baseSequence: Extend(FirstPseudoPeriodEnd + time).Anticipate(time),
+                baseSequence: Cut(0, time + PseudoPeriodLength).Anticipate(time),
                 pseudoPeriodStart: 0,
                 pseudoPeriodLength: PseudoPeriodLength,
                 pseudoPeriodHeight: PseudoPeriodHeight
