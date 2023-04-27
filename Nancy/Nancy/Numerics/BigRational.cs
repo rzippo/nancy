@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Newtonsoft.Json;
-
+using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Numerics;
 
@@ -19,7 +19,7 @@ namespace Unipi.Nancy.Numerics;
 [Serializable]
 [ComVisible(false)]
 [JsonObject(MemberSerialization.OptIn)]
-public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<BigRational>
+public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<BigRational>, IToCodeString
 {
     #region Static public values
 
@@ -240,6 +240,25 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         ret.Append(c_solidus);
         ret.Append(Denominator.ToString("R", CultureInfo.InvariantCulture));
         return ret.ToString();
+    }
+
+    /// <summary>
+    /// Returns a string containing C# code to create this BigRational.
+    /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+    /// </summary>
+    public string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        if (Denominator == 1)
+            return Numerator.ToString();
+        
+        var sb = new StringBuilder();
+        sb.Append("new Rational(");
+        sb.Append(Numerator.ToString());
+        sb.Append(", ");
+        sb.Append(Denominator.ToString());
+        sb.Append(")");
+
+        return sb.ToString();
     }
 
     // IEquatable<BigRational>

@@ -16,7 +16,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 [JsonConverter(typeof(JsonSubtypes), "type")]
 [JsonSubtypes.KnownSubType(typeof(Point), Point.TypeCode)]
 [JsonSubtypes.KnownSubType(typeof(Segment), Segment.TypeCode)]
-public abstract class Element
+public abstract class Element : IToCodeString
 {
     #region Properties
 
@@ -115,6 +115,12 @@ public abstract class Element
             throw new InvalidOperationException("Invalid JSON format.");
         return element;
     }
+
+    /// <summary>
+    /// Returns a string containing C# code to create this Element.
+    /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+    /// </summary>
+    public abstract string ToCodeString(bool formatted = false, int indentation = 0);
 
     #endregion Json Methods
 

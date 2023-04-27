@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -460,7 +461,24 @@ public sealed class Segment : Element, IEquatable<Segment>
             throw new InvalidOperationException("Invalid JSON format.");
         return segment;
     }
-    
+
+    /// <summary>
+    /// Returns a string containing C# code to create this Segment.
+    /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+    /// </summary>
+    public override string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        var sb = new StringBuilder();
+        sb.Append("new Segment(");
+        sb.Append($"{StartTime.ToCodeString()},");
+        sb.Append($"{EndTime.ToCodeString()},");
+        sb.Append($"{RightLimitAtStartTime.ToCodeString()},");
+        sb.Append($"{Slope.ToCodeString()}");
+        sb.Append(")");
+
+        return sb.ToString();
+    }
+
     #endregion Methods
 
     #region Basic manipulations

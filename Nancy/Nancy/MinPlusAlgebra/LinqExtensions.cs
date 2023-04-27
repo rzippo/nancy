@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
@@ -43,6 +44,24 @@ public static class LinqExtensions
     public static string ToJsonString<T>(this IEnumerable<T> items)
     {
         return JsonConvert.SerializeObject(items, new GenericCurveConverter(), new RationalConverter());
+    }
+
+    /// <summary>
+    /// Associates each element with its index.
+    /// Handy shortcut for foreach loops. 
+    /// </summary>
+    public static IEnumerable<(T, int)> WithIndex<T>(this IEnumerable<T> items)
+    {
+        return items.Select((item, i) => (item, i));
+    }
+
+    /// <summary>
+    /// Append all lines to the StringBuilder
+    /// </summary>
+    public static void AppendLines(this StringBuilder sb, IEnumerable<string> lines)
+    {
+        foreach (var line in lines)
+            sb.AppendLine(line);
     }
 
     /// <summary>

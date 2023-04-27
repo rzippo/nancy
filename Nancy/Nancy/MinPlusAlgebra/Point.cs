@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -177,6 +178,21 @@ public sealed class Point : Element, IEquatable<Point>
         if (point == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return point;
+    }
+    
+    /// <summary>
+    /// Returns a string containing C# code to create this Point.
+    /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+    /// </summary>
+    public override string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        var sb = new StringBuilder();
+        sb.Append("new Point(");
+        sb.Append($"{Time.ToCodeString()},");
+        sb.Append($"{Value.ToCodeString()}");
+        sb.Append(")");
+
+        return sb.ToString();
     }
     
     #endregion Methods

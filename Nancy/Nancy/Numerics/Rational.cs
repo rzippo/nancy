@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Newtonsoft.Json;
+using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Numerics
 {
@@ -26,7 +27,7 @@ namespace Unipi.Nancy.Numerics
     [Serializable]
     [ComVisible(false)]
     [JsonObject(MemberSerialization.OptIn)]
-    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>
+    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString
     {
         #region Static public values
 
@@ -253,11 +254,34 @@ namespace Unipi.Nancy.Numerics
         {
             StringBuilder ret = new StringBuilder();
             ret.Append(Numerator.ToString("R", CultureInfo.InvariantCulture));
+            if (Denominator != 1)
+            {
             ret.Append(c_solidus);
             ret.Append(Denominator.ToString("R", CultureInfo.InvariantCulture));
+            }
+
             return ret.ToString();
         }
 
+        /// <summary>
+        /// Returns a string containing C# code to create this Rational.
+        /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+        /// </summary>
+        public string ToCodeString(bool formatted = false, int indentation = 0)
+        {
+            if (Denominator == 1)
+                return Numerator.ToString();
+            
+            var sb = new StringBuilder();
+            sb.Append("new Rational(");
+            sb.Append(Numerator.ToString());
+            sb.Append(", ");
+            sb.Append(Denominator.ToString());
+            sb.Append(")");
+
+            return sb.ToString();
+        }
+        
         // IEquatable<Rational>
         // a/b = c/d, iff ad = bc
         /// <inheritdoc />
@@ -1286,6 +1310,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Newtonsoft.Json;
+using Unipi.Nancy.MinPlusAlgebra;
 
 // Adapted from BigRational with the aim of reducing perfomance impact
 // Profiling highlighted heavy use of Compare, which was measured to be up to 30x slower on a BigInteger implementation compared to long
@@ -1302,7 +1327,7 @@ namespace Unipi.Nancy.Numerics
     [Serializable]
     [ComVisible(false)]
     [JsonObject(MemberSerialization.OptIn)]
-    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>
+    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString
     {
         #region Static public values
 
@@ -1523,10 +1548,33 @@ namespace Unipi.Nancy.Numerics
         public override String ToString()
         {
             StringBuilder ret = new StringBuilder();
-            ret.Append(Numerator);
+            ret.Append(Numerator.ToString(CultureInfo.InvariantCulture));
+            if (Denominator != 1)
+            {
             ret.Append(c_solidus);
-            ret.Append(Denominator);
+                ret.Append(Denominator.ToString(CultureInfo.InvariantCulture));
+            }
+
             return ret.ToString();
+        }
+
+        /// <summary>
+        /// Returns a string containing C# code to create this Rational.
+        /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+        /// </summary>
+        public string ToCodeString(bool formatted = false, int indentation = 0)
+        {
+            if (Denominator == 1)
+                return Numerator.ToString();
+            
+            var sb = new StringBuilder();
+            sb.Append("new Rational(");
+            sb.Append(Numerator.ToString());
+            sb.Append(", ");
+            sb.Append(Denominator.ToString());
+            sb.Append(")");
+
+            return sb.ToString();
         }
 
         /// <inheritdoc cref="IEquatable{Rational}.Equals(Rational)"/>

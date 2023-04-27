@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using Unipi.Nancy.Numerics;
 
@@ -18,7 +19,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </summary>
 /// <docs position="2"/>
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public sealed class Sequence : IEquatable<Sequence>
+public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -1018,6 +1019,32 @@ public sealed class Sequence : IEquatable<Sequence>
         if (sequence == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return sequence;
+    }
+
+    /// <summary>
+    /// Returns a string containing C# code to create this Sequence.
+    /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+    /// </summary>
+    public string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        var newline = formatted ? "\n" : "";
+
+        var sb = new StringBuilder();
+        sb.Append($"{tabs(0)}new Sequence({newline}");
+        sb.Append($"{Elements.ToCodeString(formatted, indentation + 1)}{newline}");
+        sb.Append($"{tabs(0)})");
+
+        return sb.ToString();
+        
+        string tabs(int n)
+        {
+            if (!formatted)
+                return "";
+            var sbt = new StringBuilder();
+            for (int i = 0; i < indentation + n; i++)
+                sbt.Append("\t");
+            return sbt.ToString();
+        }
     }
 
     #endregion Json Methods

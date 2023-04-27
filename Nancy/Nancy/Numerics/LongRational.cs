@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Newtonsoft.Json;
+using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Numerics;
 
@@ -18,7 +19,7 @@ namespace Unipi.Nancy.Numerics;
 [Serializable]
 [ComVisible(false)]
 [JsonObject(MemberSerialization.OptIn)]
-public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<LongRational>
+public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<LongRational>, IToCodeString
 {
     #region Static public values
 
@@ -297,6 +298,25 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         ret.Append(c_solidus);
         ret.Append(Denominator.ToString());
         return ret.ToString();
+    }
+
+    /// <summary>
+    /// Returns a string containing C# code to create this LongRational.
+    /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+    /// </summary>
+    public string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        if (Denominator == 1)
+            return Numerator.ToString();
+        
+        var sb = new StringBuilder();
+        sb.Append("new Rational(");
+        sb.Append(Numerator.ToString());
+        sb.Append(", ");
+        sb.Append(Denominator.ToString());
+        sb.Append(")");
+
+        return sb.ToString();
     }
 
     // IEquatable<Rational>

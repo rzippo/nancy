@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.NetworkCalculus.Json;
@@ -25,7 +26,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </remarks>
 /// <docs position="1"/>
 [JsonObject(MemberSerialization.OptIn)]
-public class Curve
+public class Curve : IToCodeString
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -1440,6 +1441,35 @@ public class Curve
         if (curve == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return curve;
+    }
+
+    /// <summary>
+    /// Returns a string containing C# code to create this Curve.
+    /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
+    /// </summary>
+    public virtual string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        var newline = formatted ? "\n" : "";
+        
+        var sb = new StringBuilder();
+        sb.Append($"{tabs(0)}new Curve({newline}");
+        sb.Append($"{tabs(1)}baseSequence: {BaseSequence.ToCodeString(formatted, 1)},{newline}");
+        sb.Append($"{tabs(1)}pseudoPeriodStart: {PseudoPeriodStart.ToCodeString()},{newline}");
+        sb.Append($"{tabs(1)}pseudoPeriodLength: {PseudoPeriodLength.ToCodeString()},{newline}");
+        sb.Append($"{tabs(1)}pseudoPeriodHeight: {PseudoPeriodHeight.ToCodeString()}{newline}");
+        sb.Append($"{tabs(0)})");
+
+        return sb.ToString();
+
+        string tabs(int n)
+        {
+            if (!formatted)
+                return "";
+            var sbt = new StringBuilder();
+            for (int i = 0; i < indentation + n; i++)
+                sbt.Append("\t");
+            return sbt.ToString();
+        }
     }
 
     #endregion Json Methods
