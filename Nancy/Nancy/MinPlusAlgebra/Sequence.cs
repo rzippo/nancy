@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
@@ -64,6 +65,16 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// True if all elements of the sequence are infinite.
     /// </summary>
     public bool IsInfinite => Elements.All(e => e.IsInfinite);
+
+    /// <summary>
+    /// True if all elements of the sequence are plus infinite.
+    /// </summary>
+    public bool IsPlusInfinite => Elements.All(e => e.IsPlusInfinite);
+
+    /// <summary>
+    /// True if all elements of the sequence are minus infinite.
+    /// </summary>
+    public bool IsMinusInfinite => Elements.All(e => e.IsMinusInfinite);
 
     /// <summary>
     /// The first instant around which the sequence is not infinite.
@@ -143,8 +154,9 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// True if there is left-discontinuity within the sequence.
     /// </summary>
     public bool IsLeftContinuous
-    {
-        get
+        => _isLeftContinuous ??= TestIsLeftContinuous();
+
+    private bool TestIsLeftContinuous()
         {
             foreach(var breakpoint in this.EnumerateBreakpoints())
             {
@@ -155,14 +167,20 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
             return true;
         }
-    }
 
     /// <summary>
-    /// True if there is no infinite or right-discontinuity within the sequence.
+    /// Private cache field for <see cref="IsLeftContinuous"/>
+    /// </summary>
+    internal bool? _isLeftContinuous;
+
+
+    /// <summary>
+    /// True if there is right-discontinuity within the sequence.
     /// </summary>
     public bool IsRightContinuous
-    {
-        get
+        => _isRightContinuous ??= TestIsRightContinuous();
+
+    private bool TestIsRightContinuous()
         {
             foreach (var breakpoint in this.EnumerateBreakpoints())
             {
@@ -173,7 +191,11 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
             return true;
         }
-    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsRightContinuous"/>
+    /// </summary>
+    internal bool? _isRightContinuous;
 
     /// <summary>
     /// True if the sequence is continuous at <paramref name="time"/>.
@@ -233,8 +255,9 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
     public bool IsNonDecreasing
-    {
-        get
+        => _isNonDecreasing ??= TestIsNonDecreasing();
+
+    private bool TestIsNonDecreasing()
         {
             foreach (var breakpoint in this.EnumerateBreakpoints())
             {
@@ -246,7 +269,11 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             }
             return true;
         }
-    }
+    
+    /// <summary>
+    /// Private cache field for <see cref="IsNonDecreasing"/>
+    /// </summary>
+    internal bool? _isNonDecreasing;
 
     /// <summary>
     /// True if <see cref="DefinedFrom"/> is exclusive.
@@ -310,7 +337,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     }
 
     /// <summary>
-    /// Constructs a sequence that is identically 0 between <paramref name="from"/> and <paramref name="to"/>.
+    /// Constructs a sequence that is 0 between <paramref name="from"/> and <paramref name="to"/>.
     /// </summary>
     /// <param name="from">Left endpoint of the sequence</param>
     /// <param name="to">Right endpoint of the sequence</param>
@@ -330,18 +357,63 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     }
         
     /// <summary>
-    /// Constructs a sequence that is identically $+\infty$ between <paramref name="from"/> (inclusive) and <paramref name="to"/> (exclusive).
+    /// Constructs a sequence that is $+\infty$ between <paramref name="from"/> and <paramref name="to"/>.
     /// </summary>
-    public static Sequence Infinite(Rational from, Rational to)
+    /// <param name="from">Left endpoint of the sequence</param>
+    /// <param name="to">Right endpoint of the sequence</param>
+    /// <param name="isStartIncluded"></param>
+    /// <param name="isEndIncluded"></param>
+    public static Sequence PlusInfinite(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
-        return new Sequence(
-            elements: new Element[]
-            {
-                Point.PlusInfinite(from),
-                Segment.PlusInfinite(from, to)
-            }    
-        );
-    } 
+        var elements = new List<Element> { };
+        if(isStartIncluded)
+            elements.Add(Point.PlusInfinite(from));
+        elements.Add(Segment.PlusInfinite(from, to));
+        if(isEndIncluded)
+            elements.Add(Point.PlusInfinite(to));
+        
+        return new Sequence(elements);
+    }
+    
+    /// <summary>
+    /// Constructs a sequence that is $-\infty$ between <paramref name="from"/> and <paramref name="to"/>.
+    /// </summary>
+    /// <param name="from">Left endpoint of the sequence</param>
+    /// <param name="to">Right endpoint of the sequence</param>
+    /// <param name="isStartIncluded"></param>
+    /// <param name="isEndIncluded"></param>
+    public static Sequence MinusInfinite(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
+    {
+        var elements = new List<Element> { };
+        if(isStartIncluded)
+            elements.Add(Point.MinusInfinite(from));
+        elements.Add(Segment.MinusInfinite(from, to));
+        if(isEndIncluded)
+            elements.Add(Point.MinusInfinite(to));
+        
+        return new Sequence(elements);
+    }
+    
+    /// <summary>
+    /// Constructs a sequence that is <paramref name="value"/>> between <paramref name="from"/> and <paramref name="to"/>.
+    /// </summary>
+    /// <param name="value">Constant value of the sequence</param>
+    /// <param name="from">Left endpoint of the sequence</param>
+    /// <param name="to">Right endpoint of the sequence</param>
+    /// <param name="isStartIncluded"></param>
+    /// <param name="isEndIncluded"></param>
+    /// <returns></returns>
+    public static Sequence Constant(Rational value, Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
+    {
+        var elements = new List<Element> { };
+        if(isStartIncluded)
+            elements.Add(new Point(from, value));
+        elements.Add(Segment.Constant(from, to, value));
+        if(isEndIncluded)
+            elements.Add(new Point(to, value));
+        
+        return new Sequence(elements);
+    }
 
     #endregion
 
@@ -416,7 +488,57 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             // may continue to next elements
         }
     }
-        
+
+    //todo: write tests
+    /// <summary>
+    /// Returns the first time around which the functions represented by the sequences differ.
+    /// Returns null if the two sequences represent the same function.
+    /// Mostly useful to debug sequences that *should* be equivalent.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+    public static Rational? FindFirstInequivalence(Sequence a, Sequence b)
+    {
+        var spotsA = GetSpots(a.Elements);
+        var spotsB = GetSpots(b.Elements);
+        var pairs = spotsA.Zip(spotsB);
+
+        foreach (var pair in pairs)
+        {
+            if (pair.First != pair.Second)
+                return Rational.Min(pair.First.Time, pair.Second.Time);
+        }
+
+        // multiple enumerations are preferred to materializing possibly long sequences
+        var spotsACount = spotsA.Count();
+        var spotsBCount = spotsB.Count();
+        if (spotsACount != spotsBCount)
+        {
+            if (spotsACount > spotsBCount)
+                return spotsA.ElementAt(spotsBCount).Time;
+            else
+                return spotsB.ElementAt(spotsACount).Time;
+        }
+
+        return null;
+
+        IEnumerable<Point> GetSpots(IEnumerable<Element> seq)
+        {
+            foreach (var element in seq)
+            {
+                if (element is Point p)
+                    yield return p;
+                else if (element is Segment s)
+                {
+                    yield return new Point(time: s.StartTime, value: s.RightLimitAtStartTime);
+                    yield return new Point(time: s.EndTime, value: s.LeftLimitAtEndTime);
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// True if the first sequence is a lower bound for the second one, for their overlapping part.
     /// </summary>
@@ -2748,6 +2870,120 @@ public static class SequenceExtensions
     {
         return breakpoints
             .SelectMany(GetBreakpointValues);
+    }
+    
+        /// <summary>
+    /// True if there is no discontinuity within the sequence.
+    /// </summary>
+    public static bool IsContinuous(this IEnumerable<Element> elements)
+    {
+        using var enumerator = elements.GetEnumerator();
+        if(!enumerator.MoveNext())
+            throw new ArgumentException("Elements is an empty collection");
+
+        Rational lastValue = enumerator.Current is Point p ? 
+            p.Value :
+            ((Segment)enumerator.Current).LeftLimitAtEndTime;
+
+        while (enumerator.MoveNext())
+        {
+            switch(enumerator.Current)
+            {
+                case Point point:
+                    if (point.Value == lastValue)
+                        break;
+                    else
+                        return false;
+
+                case Segment segment:
+                    if (segment.RightLimitAtStartTime == lastValue)
+                    {
+                        lastValue = segment.LeftLimitAtEndTime;
+                        break;
+                    }
+                    else
+                        return false;
+
+                default:
+                    throw new InvalidCastException();
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// True if there is no left-discontinuity within the sequence.
+    /// </summary>
+    public static bool IsLeftContinuous(this IEnumerable<Element> elements)
+    {
+        foreach(var breakpoint in elements.EnumerateBreakpoints())
+        {
+            if (breakpoint.left is { } s &&
+                s.LeftLimitAtEndTime != breakpoint.center.Value)
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// True if there is no right-discontinuity within the sequence.
+    /// </summary>
+    public static bool IsRightContinuous(this IEnumerable<Element> elements)
+    {
+        foreach (var breakpoint in elements.EnumerateBreakpoints())
+        {
+            if (breakpoint.right is { } s &&
+                s.RightLimitAtStartTime != breakpoint.center.Value)
+                return false;
+        }
+
+        return true;
+    }
+    
+    /// <summary>
+    /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
+    /// </summary>
+    public static bool IsNonNegative(this IEnumerable<Element> elements)
+    {
+        return elements.InfValue() >= 0;
+    }
+    
+    /// <summary>
+    /// True if for any $t > s$, $f(t) \ge f(s)$.
+    /// </summary>
+    public static bool IsNonDecreasing(this IEnumerable<Element> elements)
+    {
+        foreach (var breakpoint in elements.EnumerateBreakpoints())
+        {
+            if (
+                (breakpoint.left is Segment l && ( l.Slope < 0 || l.LeftLimitAtEndTime > breakpoint.center.Value )) ||
+                (breakpoint.right is Segment r && ( r.Slope < 0 || breakpoint.center.Value > r.RightLimitAtStartTime ))
+            )
+                return false;
+        }
+        return true;
+    }
+    
+    /// <summary>
+    /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
+    /// Otherwise, returns $+\infty$.
+    /// </summary>
+    public static Rational SupValue(this IEnumerable<Element> elements)
+    {
+        var breakpoints = elements.EnumerateBreakpoints();
+        return breakpoints.GetBreakpointsValues().Max();
+    }
+    
+    /// <summary>
+    /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$, returns $\sup x$.
+    /// Otherwise, returns $-\infty$.
+    /// </summary>
+    public static Rational InfValue(this IEnumerable<Element> elements)
+    {
+        var breakpoints = elements.EnumerateBreakpoints();
+        return breakpoints.GetBreakpointsValues().Min();
     }
     
     /// <summary>

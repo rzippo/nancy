@@ -217,13 +217,23 @@ public class Curve : IToCodeString
     /// True if there is no left-discontinuity within the curve.
     /// </summary>
     public bool IsLeftContinuous
-        => Cut(0, SecondPseudoPeriodEnd).IsLeftContinuous;
+        => _isLeftContinuous ??= Cut(0, SecondPseudoPeriodEnd).IsLeftContinuous;
+
+    /// <summary>
+    /// Private cache field for <see cref="IsLeftContinuous"/>
+    /// </summary>
+    internal bool? _isLeftContinuous;
 
     /// <summary>
     /// True if there is no right-discontinuity within the curve.
     /// </summary>
     public bool IsRightContinuous
-        => Cut(0, SecondPseudoPeriodEnd).IsRightContinuous;
+        => _isRightContinuous ??= Cut(0, SecondPseudoPeriodEnd).IsRightContinuous;
+
+    /// <summary>
+    /// Private cache field for <see cref="IsRightContinuous"/>
+    /// </summary>
+    internal bool? _isRightContinuous;
     
     /// <summary>
     /// True if the curve is continuous at <paramref name="time"/>.
@@ -248,7 +258,13 @@ public class Curve : IToCodeString
     /// True if the curve is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
     public bool IsNonNegative
-        => InfValue() >= 0;
+        => _isNonNegative ??= InfValue() >= 0;                
+    
+    /// <summary>
+    /// Private cache field for <see cref="IsNonNegative"/>
+    /// </summary>
+    internal bool? _isNonNegative;
+
     
     /// <summary>
     /// The first instant around which the curve is non-negative.
@@ -310,7 +326,12 @@ public class Curve : IToCodeString
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
     public bool IsNonDecreasing
-        => Cut(0, SecondPseudoPeriodEnd).IsNonDecreasing;
+        => _isNonDecreasing ??= CutAsEnumerable(0, SecondPseudoPeriodEnd).IsNonDecreasing();
+
+    /// <summary>
+    /// Private cache field for <see cref="IsNonDecreasing"/>
+    /// </summary>
+    internal bool? _isNonDecreasing;
 
     /// <summary>
     /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is finite.
@@ -1165,6 +1186,7 @@ public class Curve : IToCodeString
         
         settings ??= ComputationSettings.Default();
             
+        Sequence result;
         if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
         {
             if (IsUltimatelyAffine)
@@ -1186,7 +1208,7 @@ public class Curve : IToCodeString
                         elements.Add(new Point(cutEnd, valueAtEnd));
                     }
 
-                    return elements
+                    result = elements
                         .ToSequence();
                 }
                 else
@@ -1208,7 +1230,7 @@ public class Curve : IToCodeString
                         elements = elements.Append(lastPoint);
                     }
 
-                    return elements
+                    result = elements
                         .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
@@ -1240,7 +1262,7 @@ public class Curve : IToCodeString
                             .SelectMany(seq => seq.Elements);
                     }
 
-                    return elements
+                    result = elements
                         .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
@@ -1270,7 +1292,7 @@ public class Curve : IToCodeString
                     var elements =
                         BaseSequence.Elements.Concat(extensionElements);
 
-                    return elements
+                    result = elements
                         .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
@@ -1278,9 +1300,18 @@ public class Curve : IToCodeString
         }
         else
         {
-            return BaseSequence
+            result = BaseSequence
                 .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
+
+        if(_isNonDecreasing is not null)
+            result._isNonDecreasing = _isNonDecreasing;
+        if(_isLeftContinuous is not null)
+            result._isLeftContinuous = _isLeftContinuous;
+        if(_isRightContinuous is not null)
+            result._isRightContinuous = _isRightContinuous;
+
+        return result;
     }
 
     /// <summary>
@@ -1404,7 +1435,7 @@ public class Curve : IToCodeString
         
     /// <summary>
     /// Computes the first time the curve is at or above given <paramref name="value"/>, 
-    /// i.e., $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\}$
+    /// i.e., $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right \}$
     /// </summary>
     /// <param name="value">The value to reach.</param>
     /// <returns>The first time t at which $f(t)$ = value, or $+\infty$ if it is never reached.</returns>
@@ -1606,7 +1637,7 @@ public class Curve : IToCodeString
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
     /// </summary>
     /// <remarks>
-    /// Implements the _non-negative closure_ defined in [DNC18] p. 45.
+    /// Implements the _non-negative closure_ defined in [DNC18] p. 45 .
     /// </remarks>
     public Curve ToNonNegative()
         => Maximum(this, Curve.Zero());
@@ -2016,7 +2047,7 @@ public class Curve : IToCodeString
     }
 
     /// <summary>
-    /// If the curve is upper-bounded, i.e. exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
+    /// If the curve is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
     /// </summary>
     public Rational SupValue()
@@ -2033,7 +2064,7 @@ public class Curve : IToCodeString
     }
 
     /// <summary>
-    /// If the curve is lower-bounded, i.e. exists $x$ such that $f(t) \ge x$ for any $t \ge 0$, returns $\sup x$.
+    /// If the curve is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$, returns $\sup x$.
     /// Otherwise, returns $-\infty$.
     /// </summary>
     public Rational InfValue()
