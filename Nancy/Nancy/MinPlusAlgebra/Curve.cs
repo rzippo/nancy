@@ -126,7 +126,7 @@ public class Curve
     /// Does not specify whether it's inclusive or not, i.e. if $f(\overline{t}) = 0$.
     /// </summary>
     public Rational FirstNonZeroTime =>
-        IsIdenticallyZero
+        IsZero
             ? Rational.PlusInfinity
             : Rational.Min(BaseSequence.FirstNonZeroTime, PseudoPeriodStart + PseudoPeriodLength);
 
@@ -157,8 +157,20 @@ public class Curve
     /// <summary>
     /// True if the curve has 0 value for any $t$.
     /// </summary>
-    public bool IsIdenticallyZero =>
-        BaseSequence.IsIdenticallyZero && PseudoPeriodHeight.IsZero;
+    public bool IsZero =>
+        BaseSequence.IsZero && PseudoPeriodHeight.IsZero;
+
+    /// <summary>
+    /// True if the curve has $+\infty$ value for any $t$.
+    /// </summary>
+    public bool IsPlusInfinite =>
+        this.Equivalent(PlusInfinite());
+    
+    /// <summary>
+    /// True if the curve has $-\infty$ value for any $t$.
+    /// </summary>
+    public bool IsMinusInfinite =>
+        this.Equivalent(MinusInfinite());
 
     /// <summary>
     /// True if there is no infinite value or discontinuity within the curve.
@@ -180,14 +192,14 @@ public class Curve
     }
 
     /// <summary>
-    /// True if there is no infinite or discontinuity within the curve, except at most in origin.
+    /// True if there is no discontinuity within the curve, except at most in origin.
     /// </summary>
     public bool IsContinuousExceptOrigin
     {
         get
         {
             if (!BaseSequence
-                    .Cut(0, BaseSequence.DefinedUntil, isStartInclusive: false)
+                    .Cut(0, BaseSequence.DefinedUntil, isStartIncluded: false)
                     .IsContinuous)
                 return false;
 
@@ -201,13 +213,13 @@ public class Curve
     }
 
     /// <summary>
-    /// True if there is no infinite or left-discontinuity within the curve.
+    /// True if there is no left-discontinuity within the curve.
     /// </summary>
     public bool IsLeftContinuous
         => Cut(0, SecondPseudoPeriodEnd).IsLeftContinuous;
 
     /// <summary>
-    /// True if there is no infinite or right-discontinuity within the curve.
+    /// True if there is no right-discontinuity within the curve.
     /// </summary>
     public bool IsRightContinuous
         => Cut(0, SecondPseudoPeriodEnd).IsRightContinuous;
@@ -235,7 +247,7 @@ public class Curve
     /// True if the curve is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
     public bool IsNonNegative
-        => MinValue() >= 0;
+        => InfValue() >= 0;
     
     /// <summary>
     /// The first instant around which the curve is non-negative.
@@ -258,7 +270,7 @@ public class Curve
             {
                 var k = (-ValueAt(FirstPseudoPeriodEnd) / PseudoPeriodSlope).FastFloor();
                 return FindFirstNonNegativeInSequence(
-                    CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 1) * PseudoPeriodLength, isEndInclusive: true)
+                    CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 1) * PseudoPeriodLength, isEndIncluded: true)
                 );
             }
             
@@ -379,7 +391,7 @@ public class Curve
     /// <summary>
     /// Private cache field for IsSubAdditive.
     /// </summary>
-    private bool? _IsSubAdditive;
+    internal bool? _IsSubAdditive;
 
     /// <summary>
     /// True if the curve is sub-additive with $f(0) = 0$.
@@ -421,7 +433,7 @@ public class Curve
     /// <summary>
     /// Private cache field for IsSuperAdditive.
     /// </summary>
-    private bool? _IsSuperAdditive;
+    internal bool? _IsSuperAdditive;
 
     /// <summary>
     /// True if the curve is super-additive with $f(0) = 0$.
@@ -594,7 +606,7 @@ public class Curve
 
         BaseSequence = baseSequence
             .Optimize()
-            .Cut(cutStart: 0, cutEnd: pseudoPeriodStart + pseudoPeriodLength, isStartInclusive: true, isEndInclusive: false)
+            .Cut(cutStart: 0, cutEnd: pseudoPeriodStart + pseudoPeriodLength, isStartIncluded: true, isEndIncluded: false)
             .EnforceSplitAt(pseudoPeriodStart);
         PseudoPeriodStart = pseudoPeriodStart;
         PseudoPeriodLength = pseudoPeriodLength;
@@ -698,7 +710,7 @@ public class Curve
                             + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
             
         var seqA = a.CutAsEnumerable(0, cutEnd, true, true, settings);
-        var seqB = b.CutAsEnumerable(0,cutEnd, true, true, settings);
+        var seqB = b.CutAsEnumerable(0, cutEnd, true, true, settings);
 
         return Sequence.Equivalent(seqA, seqB);
     }
@@ -733,15 +745,15 @@ public class Curve
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <param name="time"></param>
-    /// <param name="isStartInclusive">If true, <paramref name="time"/> is included in the comparison.</param>
+    /// <param name="isStartIncluded">If true, <paramref name="time"/> is included in the comparison.</param>
     /// <param name="settings"></param>
-    public static bool EquivalentAfter(Curve a, Curve b, Rational time, bool isStartInclusive = true, ComputationSettings? settings = null)
+    public static bool EquivalentAfter(Curve a, Curve b, Rational time, bool isStartIncluded = true, ComputationSettings? settings = null)
     {
         var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
                             + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
         
-        var seqA = a.CutAsEnumerable(time, cutEnd, isStartInclusive, true, settings);
-        var seqB = b.CutAsEnumerable(time, cutEnd, isStartInclusive, true, settings);
+        var seqA = a.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
+        var seqB = b.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
 
         return Sequence.Equivalent(seqA, seqB);
     }
@@ -899,7 +911,7 @@ public class Curve
     /// </summary>
     public Curve Negate()
     {
-        if (IsIdenticallyZero)
+        if (IsZero)
             return this;
             
         return new Curve(
@@ -999,7 +1011,7 @@ public class Curve
     }
 
     /// <summary>
-    /// Returns the <see cref="Segment"/> that describes the curve after time t.
+    /// Returns the <see cref="Segment"/> that describes the curve after time $t$.
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
     /// <returns>The <see cref="Segment"/> describing the curve after time t.</returns>
@@ -1012,7 +1024,7 @@ public class Curve
     }
         
     /// <summary>
-    /// True if the given element matches, in its domain, with the curve.
+    /// True if the given element matches, in its support, with the curve.
     /// </summary>
     public bool Match(Element element, ComputationSettings? settings = null)
     {
@@ -1036,7 +1048,7 @@ public class Curve
     }
 
     /// <summary>
-    /// True if the given sequence matches, in its domain, with the curve.
+    /// True if the given sequence matches, in its interval, with the curve.
     /// </summary>
     public bool Match(Sequence sequence, ComputationSettings? settings = null)
     {
@@ -1057,32 +1069,32 @@ public class Curve
     }
 
     /// <summary>
-    /// Returns a cut of the curve limited to the given domain.
+    /// Returns a cut of the curve limited to the given interval.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the domain.</param>
-    /// <param name="cutEnd">Right extreme of the domain.</param>
-    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
+    /// <param name="cutStart">Left endpoint of the interval.</param>
+    /// <param name="cutEnd">Right endpoint of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
     /// <param name="settings"></param>
-    /// <returns>A list of elements equivalently defined within the given domain.</returns>
+    /// <returns>A list of elements equivalently defined within the given interval.</returns>
     /// <remarks>Optimized for minimal allocations.</remarks>
     public IEnumerable<Element> CutAsEnumerable(
         Rational cutStart,
         Rational cutEnd,
-        bool isStartInclusive = true,
-        bool isEndInclusive = false,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
         ComputationSettings? settings = null
     )
     {
         settings ??= ComputationSettings.Default();
             
-        if (cutEnd > BaseSequence.DefinedUntil || (isEndInclusive && cutEnd == BaseSequence.DefinedUntil))
+        if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
         {
             if (cutStart > BaseSequence.DefinedUntil)
             {
                 var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
                 var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                if (isEndInclusive) 
+                if (isEndIncluded) 
                     endingPseudoPeriodIndex++;
 
                 var indexes = settings.UseParallelExtend
@@ -1096,12 +1108,12 @@ public class Curve
                     .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
                     .SelectMany(en => en);
 
-                return elements.Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive);
+                return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
             }
             else
             {
                 var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                if (isEndInclusive) 
+                if (isEndIncluded) 
                     endingPseudoPeriodIndex++;
 
                 var indexes = settings.UseParallelExtend
@@ -1114,30 +1126,30 @@ public class Curve
 
                 var elements = BaseSequence.Elements.Concat(extensionElements);
 
-                return elements.Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive);
+                return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
             }
         }
         else
         {
             return BaseSequence
-                .CutAsEnumerable(cutStart, cutEnd, isStartInclusive, isEndInclusive);
+                .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
     }
 
     /// <summary>
-    /// Returns a cut of the curve limited to the given domain.
+    /// Returns a cut of the curve limited to the given interval.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the domain.</param>
-    /// <param name="cutEnd">Right extreme of the domain.</param>
-    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
+    /// <param name="cutStart">Left endpoint of the interval.</param>
+    /// <param name="cutEnd">Right endpoint of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
     /// <param name="settings"></param>
-    /// <returns>A sequence equivalently defined within the given domain.</returns>
+    /// <returns>A sequence equivalently defined within the given interval.</returns>
     public Sequence Cut(
         Rational cutStart, 
         Rational cutEnd,
-        bool isStartInclusive = true,
-        bool isEndInclusive = false,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
         ComputationSettings? settings = null
     )
     {
@@ -1152,7 +1164,7 @@ public class Curve
         
         settings ??= ComputationSettings.Default();
             
-        if (cutEnd > BaseSequence.DefinedUntil || (isEndInclusive && cutEnd == BaseSequence.DefinedUntil))
+        if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
         {
             if (IsUltimatelyAffine)
             {
@@ -1163,10 +1175,10 @@ public class Curve
                     var valueAtStart = pseudoPeriodStartValue +
                                        (cutStart - bsLastSegment.StartTime) * bsLastSegment.Slope;
                     var elements = new List<Element>();
-                    if(isStartInclusive)
+                    if(isStartIncluded)
                         elements.Add(new Point(cutStart, valueAtStart));
                     elements.Add(new Segment(cutStart, cutEnd, valueAtStart, bsLastSegment.Slope));
-                    if (isEndInclusive)
+                    if (isEndIncluded)
                     {
                         var valueAtEnd = pseudoPeriodStartValue +
                                        (cutEnd - bsLastSegment.StartTime) * bsLastSegment.Slope;
@@ -1189,14 +1201,14 @@ public class Curve
                         .SkipLast(1)
                         .Append(lastSegment);
                     
-                    if (isEndInclusive)
+                    if (isEndIncluded)
                     {
                         var lastPoint = new Point(cutEnd, lastSegment.LeftLimitAtEndTime);
                         elements = elements.Append(lastPoint);
                     }
 
                     return elements
-                        .Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive)
+                        .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
             }
@@ -1206,7 +1218,7 @@ public class Curve
                 {
                     var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
                     var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                    if (isEndInclusive)
+                    if (isEndIncluded)
                         endingPseudoPeriodIndex++;
 
                     var indexes = Enumerable.Range(startingPseudoPeriodIndex,
@@ -1228,13 +1240,13 @@ public class Curve
                     }
 
                     return elements
-                        .Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive)
+                        .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
                 else
                 {
                     var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                    if (isEndInclusive)
+                    if (isEndIncluded)
                         endingPseudoPeriodIndex++;
 
                     var indexes = Enumerable.Range(1, endingPseudoPeriodIndex);
@@ -1258,7 +1270,7 @@ public class Curve
                         BaseSequence.Elements.Concat(extensionElements);
 
                     return elements
-                        .Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive)
+                        .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
             }
@@ -1266,7 +1278,7 @@ public class Curve
         else
         {
             return BaseSequence
-                .Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive);
+                .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
     }
 
@@ -1372,25 +1384,26 @@ public class Curve
     }
 
     /// <summary>
-    /// Returns the number of elements of a cut of the curve limited to the given domain.
+    /// Returns the number of elements of a cut of the curve limited to the given interval.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the domain.</param>
-    /// <param name="cutEnd">Right extreme of the domain.</param>
-    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
-    /// <returns>The number of elements of the sequence equivalently defined within the given domain.</returns>
+    /// <param name="cutStart">Left endpoint of the interval.</param>
+    /// <param name="cutEnd">Right endpoint of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <returns>The number of elements of the sequence equivalently defined within the given interval.</returns>
     public int Count(
         Rational cutStart,
         Rational cutEnd,
-        bool isStartInclusive = true,
-        bool isEndInclusive = false
+        bool isStartIncluded = true,
+        bool isEndIncluded = false
     )
     {
-        return CutAsEnumerable(cutStart, cutEnd, isStartInclusive, isEndInclusive).Count();
+        return CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded).Count();
     }
         
     /// <summary>
-    /// Computes the first time the curve is at or above given <paramref name="value"/>, i.e. $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\}$
+    /// Computes the first time the curve is at or above given <paramref name="value"/>, 
+    /// i.e., $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\}$
     /// </summary>
     /// <param name="value">The value to reach.</param>
     /// <returns>The first time t at which $f(t)$ = value, or $+\infty$ if it is never reached.</returns>
@@ -1531,7 +1544,7 @@ public class Curve
         if (shift == Rational.PlusInfinity)
             return exceptOrigin ? PlusInfinite().WithZeroOrigin() : PlusInfinite();
 
-        if (exceptOrigin && IsIdenticallyZero)
+        if (exceptOrigin && IsZero)
             return new ConstantCurve(shift);
         
         return new Curve(
@@ -1559,7 +1572,7 @@ public class Curve
     }
     
     /// <summary>
-    /// Computes the _positive part_ of this curve, 
+    /// Computes a non-negative version of this curve, 
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
     /// </summary>
     /// <remarks>
@@ -1607,7 +1620,7 @@ public class Curve
         if(PseudoPeriodSlope > 0)
         {
             foreach (var (left, center, right) in 
-                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndInclusive: true).EnumerateBreakpoints())
+                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
             {
                 if (
                     left is not null && left.LeftLimitAtEndTime > center.Value ||
@@ -1624,7 +1637,7 @@ public class Curve
         else
         {
             foreach (var (left, center, right) in 
-                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndInclusive: true).EnumerateBreakpoints())
+                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
             {
                 if (
                     left is not null && left.LeftLimitAtEndTime > center.Value ||
@@ -1728,20 +1741,13 @@ public class Curve
     public Curve LowerPseudoInverse()
     {
         if (!IsNonDecreasing)
-            throw new ArgumentException("The pseudo-inverse is defined only for non-decreasing functions");
+            throw new ArgumentException("The lower pseudo-inverse is defined only for non-decreasing functions");
 
         if (IsUltimatelyConstant)
         {
-            Rational constant_start;
-            if (HasTransient)
-            {
-                var lastTransientSegment = (TransientElements.Last() as Segment)!;
-                constant_start = lastTransientSegment.IsConstant ? lastTransientSegment.StartTime : PseudoPeriodStart;
-            }
-            else
-                constant_start = PseudoPeriodStart;
+            var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
-            var transient_lpi = CutAsEnumerable(0, constant_start, isEndInclusive: true).LowerPseudoInverse();
+            var transient_lpi = CutAsEnumerable(0, constant_start, isEndIncluded: true).LowerPseudoInverse();
             var lpi = IsRightContinuousAt(constant_start)
                 ? transient_lpi
                     .Append(Segment.PlusInfinite(constant_value, constant_value + 2))
@@ -1786,7 +1792,7 @@ public class Curve
             var T = Rational.Max(FirstPseudoPeriodEnd, FirstNonNegativeTime);
             if (ValueAt(T) < 0)
                 T += PseudoPeriodLength;
-            var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndInclusive: true)
+            var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndIncluded: true)
                 .LowerPseudoInverse()
                 .SkipLast(1)
                 .ToSequence();
@@ -1800,9 +1806,9 @@ public class Curve
         }
         else
         {
-            // the point at the right extreme is included in case there is a left-discontinuity at the end of the pseudo-period
+            // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
             // the pseudo-inverse of said point is then removed from the result
-            var sequence = CutAsEnumerable(0, SecondPseudoPeriodEnd, isEndInclusive: true)
+            var sequence = CutAsEnumerable(0, SecondPseudoPeriodEnd, isEndIncluded: true)
                 .LowerPseudoInverse()
                 .SkipLast(1)
                 .ToSequence();
@@ -1821,24 +1827,18 @@ public class Curve
     /// </summary>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
-    /// The result of this operation is right-continuous, thus is revertible, i.e. $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous, see [DNC18] § 3.2.1 .
+    /// The result of this operation is right-continuous, thus is revertible, 
+    /// i.e., $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous, see [DNC18] § 3.2.1 .
     /// Algorithmic properties discussed in [ZNS22]. 
     /// </remarks>
     public Curve UpperPseudoInverse()
     {
         if (!IsNonDecreasing)
-            throw new ArgumentException("The pseudo-inverse is defined only for non-decreasing functions");
+            throw new ArgumentException("The upper pseudo-inverse is defined only for non-decreasing functions");
         
         if (IsUltimatelyConstant)
         {
-            Rational constant_start;
-            if (HasTransient)
-            {
-                var lastTransientSegment = (TransientElements.Last() as Segment)!;
-                constant_start = lastTransientSegment.IsConstant ? lastTransientSegment.StartTime : PseudoPeriodStart;
-            }
-            else
-                constant_start = PseudoPeriodStart;
+            var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
             var transient_upi = constant_start > 0 
                 ? CutAsEnumerable(0, constant_start).UpperPseudoInverse()
@@ -1889,7 +1889,7 @@ public class Curve
             var T = Rational.Max(FirstPseudoPeriodEnd, FirstNonNegativeTime);
             if (ValueAt(T) < 0)
                 T += PseudoPeriodLength;
-            var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndInclusive: true)
+            var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndIncluded: true)
                 .UpperPseudoInverse()
                 .SkipLast(1)
                 .ToSequence();
@@ -1903,9 +1903,9 @@ public class Curve
         }
         else
         {
-            // the point at the right extreme is included in case there is a left-discontinuity at the end of the pseudo-period
+            // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
             // the pseudo-inverse of said point is then removed from the result
-            var sequence = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndInclusive: true)
+            var sequence = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
                 .UpperPseudoInverse()
                 .SkipLast(1)
                 .ToSequence();
@@ -1956,7 +1956,7 @@ public class Curve
             var hDev = b.LowerPseudoInverse()
                 .Composition(a)
                 .Subtraction(new RateLatencyServiceCurve(1, 0))
-                .MaxValue();
+                .SupValue();
             #endif
             return hDev;
         }
@@ -1981,19 +1981,19 @@ public class Curve
         else
         {
             var diff = a - b;
-            return diff.MaxValue();
+            return diff.SupValue();
         }
     }
 
     /// <summary>
-    /// If the curve is upper-bounded, i.e. $f(t) \le x$ for any $t$, returns $x$
+    /// If the curve is upper-bounded, i.e. exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
     /// </summary>
-    public Rational MaxValue()
+    public Rational SupValue()
     {
         if (PseudoPeriodSlope <= 0)
         {
-            var breakpoints = Cut(0, FirstPseudoPeriodEnd, isEndInclusive: true).EnumerateBreakpoints();
+            var breakpoints = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints();
             return breakpoints.GetBreakpointsValues().Max();
         }
         else
@@ -2003,14 +2003,14 @@ public class Curve
     }
 
     /// <summary>
-    /// If the curve is lower-bounded, i.e. $f(t) \ge x$ for any $t$, returns $x$.
+    /// If the curve is lower-bounded, i.e. exists $x$ such that $f(t) \ge x$ for any $t \ge 0$, returns $\sup x$.
     /// Otherwise, returns $-\infty$.
     /// </summary>
-    public Rational MinValue()
+    public Rational InfValue()
     {
         if (PseudoPeriodSlope >= 0)
         {
-            var breakpoints = Cut(0, FirstPseudoPeriodEnd, isEndInclusive: true).EnumerateBreakpoints();
+            var breakpoints = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints();
             return breakpoints.GetBreakpointsValues().Min();
         }
         else
@@ -2528,7 +2528,7 @@ public class Curve
     /// Use <see cref="Subtraction(Unipi.Nancy.MinPlusAlgebra.Curve, Unipi.Nancy.MinPlusAlgebra.Curve,bool)"/> to have results with negative values.
     /// </remarks>
     public static Curve operator -(Curve a, Curve b)
-        => a.Subtraction(b);
+        => a.Subtraction(b, true);
 
     #endregion Addition and Subtraction operators
 
@@ -2715,8 +2715,12 @@ public class Curve
     /// <remarks>
     /// Defined in [BT07] Section 4.3
     /// </remarks>
-    public static Curve Minimum(Curve a, Curve b, ComputationSettings? settings = null)
-        => a.Minimum(b, settings);
+    public static Curve Minimum(Curve? a, Curve? b, ComputationSettings? settings = null)
+    {
+        a ??= PlusInfinite();
+        b ??= PlusInfinite();
+        return a.Minimum(b, settings);
+    }
 
     /// <summary>
     /// Implements (min, +)-algebra minimum operation over a set of curves.
@@ -2935,8 +2939,12 @@ public class Curve
     /// <remarks>
     /// Defined in [BT07] Section 4.3
     /// </remarks>
-    public static Curve Maximum(Curve a, Curve b, ComputationSettings? settings = null)
-        => a.Maximum(b, settings);
+    public static Curve Maximum(Curve? a, Curve? b, ComputationSettings? settings = null)
+    {
+        a ??= MinusInfinite();
+        b ??= MinusInfinite();
+        return a.Maximum(b, settings);
+    }
 
     /// <summary>
     /// Implements (max, +)-algebra maximum operation over a set of curves.
@@ -2992,7 +3000,6 @@ public class Curve
         }
     }
 
-
     /// <summary>
     /// Implements (max, +)-algebra maximum operation over a set of curves.
     /// </summary>
@@ -3021,7 +3028,7 @@ public class Curve
 
     /// <summary>
     /// Computes the minimum between the curve and element.
-    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its domain.
+    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its support.
     /// </summary>
     public Curve Minimum(Element e, ComputationSettings? settings = null)
     {
@@ -3037,14 +3044,40 @@ public class Curve
 
     /// <summary>
     /// Computes the minimum between the curve and element.
-    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its domain.
+    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its support.
     /// </summary>
     public static Curve Minimum(Curve c, Element e, ComputationSettings? settings = null)
         => c.Minimum(e, settings);
     
     /// <summary>
+    /// Computes the minimum between the curve and sequence.
+    /// The sequence is considered to have $s(t) = +\infty$ for any $t$ outside its support.
+    /// </summary>
+    public Curve Minimum(Sequence s, ComputationSettings? settings = null)
+    {
+        var periodStart = s.DefinedUntil < PseudoPeriodStart ? PseudoPeriodStart : s.DefinedUntil + PseudoPeriodLength;
+        var cut = Cut(0, periodStart + PseudoPeriodLength);
+        var minS = Sequence.Minimum(cut, s, false);
+            
+        var result = new Curve(
+            baseSequence: minS,
+            pseudoPeriodStart: periodStart,
+            pseudoPeriodLength: PseudoPeriodLength,
+            pseudoPeriodHeight: PseudoPeriodHeight
+        );
+        return result.Optimize();
+    }
+    
+    /// <summary>
+    /// Computes the minimum between the curve and sequence.
+    /// The sequence is considered to have $s(t) = +\infty$ for any $t$ outside its support.
+    /// </summary>
+    public static Curve Minimum(Curve c, Sequence s, ComputationSettings? settings = null)
+        => c.Minimum(s, settings);
+
+    /// <summary>
     /// Computes the maximum between the curve and element.
-    /// The element is considered to have $e(t) = -\infty$ for any $t$ outside its domain.
+    /// The element is considered to have $e(t) = -\infty$ for any $t$ outside its support.
     /// </summary>
     public Curve Maximum(Element e, ComputationSettings? settings = null)
     {
@@ -3060,11 +3093,37 @@ public class Curve
 
     /// <summary>
     /// Computes the maximum between the curve and element.
-    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its domain.
+    /// The element is considered to have $e(t) = +\infty$ for any $t$ outside its support.
     /// </summary>
     public static Curve Maximum(Curve c, Element e, ComputationSettings? settings = null)
         => c.Maximum(e, settings);
     
+    /// <summary>
+    /// Computes the maximum between the curve and sequence.
+    /// The sequence is considered to have $s(t) = +\infty$ for any $t$ outside its support.
+    /// </summary>
+    public Curve Maximum(Sequence s, ComputationSettings? settings = null)
+    {
+        var periodStart = s.DefinedUntil < PseudoPeriodStart ? PseudoPeriodStart : s.DefinedUntil + PseudoPeriodLength;
+        var cut = Cut(0, periodStart + PseudoPeriodLength);
+        var maxS = Sequence.Maximum(cut, s, false);
+            
+        var result = new Curve(
+            baseSequence: maxS,
+            pseudoPeriodStart: periodStart,
+            pseudoPeriodLength: PseudoPeriodLength,
+            pseudoPeriodHeight: PseudoPeriodHeight
+        );
+        return result.Optimize();
+    }
+    
+    /// <summary>
+    /// Computes the maximum between the curve and sequence.
+    /// The sequence is considered to have $s(t) = +\infty$ for any $t$ outside its support.
+    /// </summary>
+    public static Curve Maximum(Curve c, Sequence s, ComputationSettings? settings = null)
+        => c.Maximum(s, settings);
+
     #endregion Minimum and maximum operators
 
     #region Convolution operator
@@ -3092,11 +3151,11 @@ public class Curve
             return a + b.ValueAt(0);
 
         //Checks for convolution of positive curve with zero
-        if (a.IsIdenticallyZero || b.IsIdenticallyZero)
+        if (a.IsZero || b.IsZero)
         {
-            if (a.IsIdenticallyZero && b.IsNonNegative)
+            if (a.IsZero && b.IsNonNegative)
                 return a;
-            if (b.IsIdenticallyZero && a.IsNonNegative)
+            if (b.IsZero && a.IsNonNegative)
                 return b;
         }
         
@@ -3401,7 +3460,7 @@ public class Curve
             return 0;
 
         //Checks for convolution with null curves
-        if (a.IsIdenticallyZero || b.IsIdenticallyZero)
+        if (a.IsZero || b.IsZero)
             return 0;
 
         #if DO_LOG
@@ -3886,7 +3945,7 @@ public class Curve
         var sw = Stopwatch.StartNew();
         #endif
         var gCut = g.Cut(0, T + d);
-        var fCut = f.Cut(g.ValueAt(0), g.LeftLimitAt(T + d), isEndInclusive: true);
+        var fCut = f.Cut(g.ValueAt(0), g.LeftLimitAt(T + d), isEndIncluded: true);
         var sequence = Sequence.Composition(fCut, gCut);
         #if DO_LOG
         sw.Stop();

@@ -41,7 +41,7 @@ public class SequenceEnumerateBreakpoints
                 }
             ),
             (
-                s: new RateLatencyServiceCurve(rate: 20, latency: 10).Cut(0, 20, isEndInclusive: true),
+                s: new RateLatencyServiceCurve(rate: 20, latency: 10).Cut(0, 20, isEndIncluded: true),
                 expected: new List<(Segment? left, Point center, Segment? right)>
                 {
                     (

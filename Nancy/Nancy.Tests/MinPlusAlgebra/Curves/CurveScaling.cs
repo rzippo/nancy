@@ -34,7 +34,7 @@ public class CurveScaling
     {
         var scaled = curve.Scale(scaling);
 
-        Assert.Equal(curve.IsIdenticallyZero, scaled.IsIdenticallyZero);
+        Assert.Equal(curve.IsZero, scaled.IsZero);
                        
         var random = new Random();
         for (int i = 0; i < 10; i++)

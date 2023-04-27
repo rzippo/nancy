@@ -34,7 +34,7 @@ public class TwoRates
         TwoRatesServiceCurve curve = new TwoRatesServiceCurve(delay, transientRate, transientEnd, steadyRate);
 
         Assert.True(curve.IsFinite);
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         Assert.True(curve.IsContinuous);
         Assert.True(curve.IsRightContinuous);
         Assert.True(curve.IsContinuousExceptOrigin);

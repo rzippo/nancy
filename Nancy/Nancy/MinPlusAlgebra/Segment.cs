@@ -28,7 +28,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     #region Properties
 
     /// <summary>
-    /// Exclusive left extreme of the definition interval of the segment.
+    /// Exclusive left endpoint of the support of the segment.
     /// </summary>
     /// <remarks> 
     /// Referred to as $x_i$ in [BT07] Section 4.1 
@@ -37,22 +37,13 @@ public sealed class Segment : Element, IEquatable<Segment>
     public override Rational StartTime { get; }
 
     /// <summary>
-    /// Exclusive rigth extreme of the definition interval of the segment.
+    /// Exclusive rigth endpoint of the support of the segment.
     /// </summary>
     /// <remarks> 
     /// Referred to as $x_i$ in [BT07] Section 4.1 
     /// </remarks>
     [JsonProperty(PropertyName = "endTime")]
     public override Rational EndTime { get; }
-
-    /// <summary>
-    /// Slope of the segment.
-    /// </summary>
-    /// <remarks>
-    /// Referred to as $\rho_i$ in [BT07] Section 4.1
-    /// </remarks>
-    [JsonProperty(PropertyName = "slope")]
-    public Rational Slope { get; }
 
     /// <summary>
     /// Right limit of the segment at <see cref="StartTime"/>, $f(a+)$.
@@ -62,6 +53,15 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </remarks>
     [JsonProperty(PropertyName = "rightLimit")]
     public Rational RightLimitAtStartTime { get; }
+
+    /// <summary>
+    /// Slope of the segment.
+    /// </summary>
+    /// <remarks>
+    /// Referred to as $\rho_i$ in [BT07] Section 4.1
+    /// </remarks>
+    [JsonProperty(PropertyName = "slope")]
+    public Rational Slope { get; }
 
     /// <summary>
     /// Left limit of the segment at <see cref="EndTime"/>, $f(b-)$.
@@ -84,9 +84,9 @@ public sealed class Segment : Element, IEquatable<Segment>
     public override bool IsMinusInfinite => Slope.IsMinusInfinite;
 
     /// <summary>
-    /// True if the segment has value 0 over all of its domain.
+    /// True if the segment has value 0 over all of its support.
     /// </summary>
-    public override bool IsIdenticallyZero => 
+    public override bool IsZero => 
         RightLimitAtStartTime.IsZero && Slope.IsZero;
 
     /// <summary>
@@ -95,14 +95,14 @@ public sealed class Segment : Element, IEquatable<Segment>
     public bool IsConstant => Slope == 0;
         
     /// <summary>
-    /// Slope, w.r.t. origin, of the left extreme of the segment.
+    /// Slope, w.r.t. origin, of the left endpoint of the segment.
     /// </summary>
     public Rational StartSlope => StartTime > 0 ?
         RightLimitAtStartTime / StartTime :
         Rational.PlusInfinity;
 
     /// <summary>
-    /// Slope, w.r.t. origin, of the right extreme of the segment.
+    /// Slope, w.r.t. origin, of the right endpoint of the segment.
     /// </summary>
     public Rational EndSlope => LeftLimitAtEndTime / EndTime;
 
@@ -129,8 +129,8 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="startTime">Left extreme of the definition interval of the segment.</param>
-    /// <param name="endTime">Right extreme of the definition interval of the segment.</param>
+    /// <param name="startTime">Left endpoint of the support of the segment.</param>
+    /// <param name="endTime">Right endpoint of the support of the segment.</param>
     /// <param name="rightLimitAtStartTime">Right limit of the segment at startTime, f(a+).</param>
     /// <param name="slope">Slope of the segment.</param>
     /// <exception cref="ArgumentException"></exception>
@@ -171,14 +171,13 @@ public sealed class Segment : Element, IEquatable<Segment>
                 Slope = Rational.MinusInfinity;
             }
         }
-        
     }
 
     /// <summary>
     /// Constructs a segment with a constant value.
     /// </summary>
-    /// <param name="startTime">Left extreme of the definition interval of the segment.</param>
-    /// <param name="endTime">Right extreme of the definition interval of the segment.</param>
+    /// <param name="startTime">Left endpoint of the support of the segment.</param>
+    /// <param name="endTime">Right endpoint of the support of the segment.</param>
     /// <param name="value">Value of the segment.</param>
     public static Segment Constant(Rational startTime,
         Rational endTime, Rational value)
@@ -193,8 +192,8 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Constructs a segment with constant value 0.
     /// </summary>
-    /// <param name="startTime">Left extreme of the definition interval of the segment.</param>
-    /// <param name="endTime">Right extreme of the definition interval of the segment.</param>
+    /// <param name="startTime">Left endpoint of the support of the segment.</param>
+    /// <param name="endTime">Right endpoint of the support of the segment.</param>
     public static Segment Zero(Rational startTime, Rational endTime)
     {
         return Constant(startTime: startTime,
@@ -204,8 +203,8 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Constructs a segment with constant value $+\infty$.
     /// </summary>
-    /// <param name="startTime">Left extreme of the definition interval of the segment.</param>
-    /// <param name="endTime">Right extreme of the definition interval of the segment.</param>
+    /// <param name="startTime">Left endpoint of the support of the segment.</param>
+    /// <param name="endTime">Right endpoint of the support of the segment.</param>
     public static Segment PlusInfinite(Rational startTime, Rational endTime)
     {
         return new Segment(
@@ -219,8 +218,8 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Constructs a segment with constant value $-\infty$.
     /// </summary>
-    /// <param name="startTime">Left extreme of the definition interval of the segment.</param>
-    /// <param name="endTime">Right extreme of the definition interval of the segment.</param>
+    /// <param name="startTime">Left endpoint of the support of the segment.</param>
+    /// <param name="endTime">Right endpoint of the support of the segment.</param>
     public static Segment MinusInfinite(Rational startTime, Rational endTime)
     {
         return new Segment(
@@ -311,7 +310,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     public Point Sample(Rational time)
     {
         if (!IsDefinedFor(time))
-            throw new ArgumentException("Cannot sample at extremes");
+            throw new ArgumentException("Cannot sample at endpoints.");
 
         return new Point(
             time: time,
@@ -319,12 +318,12 @@ public sealed class Segment : Element, IEquatable<Segment>
     }
 
     /// <summary>
-    /// Returns a cut of the segment for a smaller ]start, end[ interval. 
+    /// Returns a cut of the segment for a smaller ]start, end[ support. 
     /// </summary>
-    /// <param name="cutStart">Left extreme of the new definition interval.</param>
-    /// <param name="cutEnd">Right extreme of the new definition interval.</param>
+    /// <param name="cutStart">Left endpoint of the new support.</param>
+    /// <param name="cutEnd">Right endpoint of the new support.</param>
     /// <exception cref="ArgumentException">
-    /// Thrown if the new definition interval is not a subset of the current one.
+    /// Thrown if the new support is not a subset of the current one.
     /// </exception>
     /// <returns>
     /// The <see cref="Segment"/> resulting from the cut.
@@ -335,10 +334,10 @@ public sealed class Segment : Element, IEquatable<Segment>
             return this;
 
         if (cutStart < StartTime || cutEnd > EndTime)
-            throw new ArgumentException("Cut bounds are over segment domain");
+            throw new ArgumentException("Cut bounds are over segment support.");
 
         if (cutStart == cutEnd)
-            throw new ArgumentException("Cannot cut an open segment with coinciding extremes");
+            throw new ArgumentException("Cannot cut an open segment with coinciding endpoints.");
             
         return new Segment(
             startTime: cutStart,
@@ -351,7 +350,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Computes the overlap between two segments.
     /// </summary>
-    /// <returns>The extremes of the overlap interval, or null if there is none.</returns>
+    /// <returns>The endpoints of the overlap interval, or null if there is none.</returns>
     public static (Rational start, Rational end)? GetOverlap(Segment a, Segment b)
     {
         Rational start = Rational.Max(a.StartTime, b.StartTime);
@@ -370,7 +369,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Computes the overlap between two elements.
     /// </summary>
-    /// <returns>The extremes of the overlap interval, or null if there is none.</returns>
+    /// <returns>The endpoints of the overlap interval, or null if there is none.</returns>
     public (Rational start, Rational end)? GetOverlap(Segment secondOperand)
         => GetOverlap(this, secondOperand);
 
@@ -401,14 +400,14 @@ public sealed class Segment : Element, IEquatable<Segment>
 
     /// <summary>
     /// Computes the point in time where two segments intersect, if they do.
-    /// Segments must be already cut to the same domain, and an intersection is considered as such only if it happens within said domain.
+    /// The segments must be already cut to the same interval, and an intersection is considered as such only if it happens within said interval.
     /// </summary>
-    /// <exception cref="ArgumentException">Thrown if the segments' domains do not coincide.</exception>
-    /// <returns>The intersection time, or null if the two segments do not intersect within the domain.</returns>
+    /// <exception cref="ArgumentException">Thrown if the segments' supports do not coincide.</exception>
+    /// <returns>The intersection time, or null if the two segments do not intersect within their support.</returns>
     private static Rational? GetIntersectionTime(Segment a, Segment b)
     {
         if (a.StartTime != b.StartTime || a.EndTime != b.EndTime)
-            throw new ArgumentException("The two segments have not identical domain");
+            throw new ArgumentException("The two segments have not identical support.");
 
         if (a.IsInfinite || b.IsInfinite)
             return null;
@@ -517,7 +516,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <inheritdoc />
     public override Element Negate()
     {
-        if (IsIdenticallyZero)
+        if (IsZero)
             return this;
 
         return new Segment(

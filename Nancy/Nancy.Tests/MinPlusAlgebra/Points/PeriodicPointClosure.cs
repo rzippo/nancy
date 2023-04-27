@@ -121,7 +121,6 @@ public class PeriodicPointClosure
             pseudoPeriodHeight: step);
 
         Assert.False(closure.IsContinuous);
-        Assert.False(closure.IsContinuousExceptOrigin);
         Assert.False(closure.IsFinite);
 
         if (value.IsFinite)

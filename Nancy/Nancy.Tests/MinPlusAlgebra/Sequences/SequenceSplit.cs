@@ -60,7 +60,7 @@ public class SequenceSplit
             (sequence: a, splitTime: 15),
             (sequence: a, splitTime: 10),
                 
-            //At extremes
+            //At endpoints
             (sequence: a, splitTime: 0),
             (sequence: c, splitTime: 30),
             (sequence: d, splitTime: 0),
@@ -99,7 +99,7 @@ public class SequenceSplit
             //Out of bounds
             (sequence: a, splitTime: 35),
                 
-            //At extremes
+            //At endpoints
             (sequence: a, splitTime: 30),
             (sequence: b, splitTime: 0),
             (sequence: b, splitTime: 30),

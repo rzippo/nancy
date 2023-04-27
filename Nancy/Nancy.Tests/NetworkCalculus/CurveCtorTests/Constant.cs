@@ -31,9 +31,9 @@ public class Constant
     {
         ConstantCurve curve = new ConstantCurve(value: value);
 
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         Assert.False(curve.IsContinuous);
-        Assert.True(value.IsFinite ? curve.IsContinuousExceptOrigin : !curve.IsContinuousExceptOrigin);
+        Assert.True(curve.IsContinuousExceptOrigin);
         Assert.True(value.IsFinite ? curve.IsUltimatelyConstant : !curve.IsUltimatelyConstant);
         Assert.True(curve.IsUltimatelyPlain);
         Assert.Equal(value.IsFinite, curve.IsUltimatelyAffine);
@@ -56,7 +56,7 @@ public class Constant
     {
         ConstantCurve curve = new ConstantCurve(value: 0);
 
-        Assert.True(curve.IsIdenticallyZero);
+        Assert.True(curve.IsZero);
         Assert.True(curve.IsContinuous);
         Assert.True(curve.IsRightContinuous);
         Assert.True(curve.IsContinuousExceptOrigin);
@@ -107,7 +107,7 @@ public class Constant
         var raisedRouterService = nextRouterService + bufferService;
         
         Assert.True(raisedRouterService.IsUltimatelyPlain);
-        Assert.False(raisedRouterService.IsIdenticallyZero);
+        Assert.False(raisedRouterService.IsZero);
         Assert.False(raisedRouterService.IsContinuous);
         Assert.False(raisedRouterService.IsFinite);
         Assert.Equal(0, raisedRouterService.ValueAt(0));
@@ -116,7 +116,7 @@ public class Constant
 
         var flowControllerService = raisedRouterService.SubAdditiveClosure();
 
-        Assert.False(flowControllerService.IsIdenticallyZero);
+        Assert.False(flowControllerService.IsZero);
         Assert.False(flowControllerService.IsContinuous);
         Assert.False(flowControllerService.IsFinite);
         Assert.Equal(0, flowControllerService.ValueAt(0));
@@ -133,7 +133,7 @@ public class Constant
         var raisedRouterService = nextRouterService + bufferSize;
 
         Assert.True(raisedRouterService.IsUltimatelyPlain);
-        Assert.False(raisedRouterService.IsIdenticallyZero);
+        Assert.False(raisedRouterService.IsZero);
         Assert.False(raisedRouterService.IsContinuous);
         Assert.False(raisedRouterService.IsFinite);
         Assert.Equal(Rational.PlusInfinity, raisedRouterService.ValueAt(0));
@@ -142,7 +142,7 @@ public class Constant
 
         var flowControllerService = raisedRouterService.SubAdditiveClosure();
 
-        Assert.False(flowControllerService.IsIdenticallyZero);
+        Assert.False(flowControllerService.IsZero);
         Assert.False(flowControllerService.IsContinuous);
         Assert.False(flowControllerService.IsFinite);
         Assert.Equal(0, flowControllerService.ValueAt(0));

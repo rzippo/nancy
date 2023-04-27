@@ -31,7 +31,7 @@ public class RaisedRateLatency
         RaisedRateLatencyServiceCurve curve = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift);
 
         Assert.True(curve.IsFinite);
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         Assert.True(curve.IsContinuous);
         Assert.True(curve.IsRightContinuous);
         Assert.True(curve.IsContinuousExceptOrigin);
@@ -60,7 +60,7 @@ public class RaisedRateLatency
         RaisedRateLatencyServiceCurve curve = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift, withZeroOrigin: true);
 
         Assert.True(curve.IsFinite);
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         if (bufferShift == 0)
         {
             Assert.True(curve.IsContinuous);
@@ -100,7 +100,7 @@ public class RaisedRateLatency
         var raisedRateLatency = rateLatency + constantCurve;
 
         Assert.True(raisedRateLatency.IsFinite);
-        Assert.False(raisedRateLatency.IsIdenticallyZero);
+        Assert.False(raisedRateLatency.IsZero);
         Assert.True(raisedRateLatency.IsContinuous);
         Assert.True(raisedRateLatency.IsRightContinuous);
         Assert.True(raisedRateLatency.IsContinuousExceptOrigin);
@@ -126,12 +126,12 @@ public class RaisedRateLatency
         if (bufferShift == 0 && delay > 0)
         {
             Assert.True(closure.IsFinite);
-            Assert.True(closure.IsIdenticallyZero);
+            Assert.True(closure.IsZero);
         }
         else
         {
             Assert.True(closure.IsFinite);
-            Assert.False(closure.IsIdenticallyZero);
+            Assert.False(closure.IsZero);
             if (bufferShift == 0)
             {
                 Assert.True(closure.IsContinuous);
@@ -157,7 +157,7 @@ public class RaisedRateLatency
         var raisedRateLatency = rateLatency + bufferShift;
 
         Assert.True(raisedRateLatency.IsFinite);
-        Assert.False(raisedRateLatency.IsIdenticallyZero);
+        Assert.False(raisedRateLatency.IsZero);
         Assert.True(raisedRateLatency.IsContinuous);
         Assert.True(raisedRateLatency.IsRightContinuous);
         Assert.True(raisedRateLatency.IsContinuousExceptOrigin);
@@ -183,12 +183,12 @@ public class RaisedRateLatency
         if (bufferShift == 0 && delay > 0)
         {
             Assert.True(closure.IsFinite);
-            Assert.True(closure.IsIdenticallyZero);
+            Assert.True(closure.IsZero);
         }
         else
         {
             Assert.True(closure.IsFinite);
-            Assert.False(closure.IsIdenticallyZero);
+            Assert.False(closure.IsZero);
             if (bufferShift == 0)
             {
                 Assert.True(closure.IsContinuous);

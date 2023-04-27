@@ -23,7 +23,7 @@ public class SegmentClosure
         Assert.False(closure.IsContinuous);
         Assert.False(closure.IsContinuousExceptOrigin);
         Assert.False(closure.IsFinite);
-        Assert.False(closure.IsIdenticallyZero);
+        Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
@@ -55,7 +55,7 @@ public class SegmentClosure
         Assert.False(closure.IsContinuous);
         Assert.False(closure.IsContinuousExceptOrigin);
         Assert.False(closure.IsFinite);
-        Assert.False(closure.IsIdenticallyZero);
+        Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
@@ -93,7 +93,7 @@ public class SegmentClosure
         Assert.False(closure.IsContinuous);
         Assert.False(closure.IsContinuousExceptOrigin);
         Assert.False(closure.IsFinite);
-        Assert.False(closure.IsIdenticallyZero);
+        Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
@@ -124,7 +124,7 @@ public class SegmentClosure
         Assert.False(closure.IsContinuous);
         Assert.False(closure.IsContinuousExceptOrigin);
         Assert.False(closure.IsFinite);
-        Assert.False(closure.IsIdenticallyZero);
+        Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
@@ -163,7 +163,7 @@ public class SegmentClosure
             Assert.Equal(0, closure.ValueAt(start));
             Assert.True(sequence.IsContinuous);
             Assert.True(sequence.IsRightContinuous);
-            Assert.True(sequence.IsIdenticallyZero);
+            Assert.True(sequence.IsZero);
         }
         else
         {
@@ -172,7 +172,7 @@ public class SegmentClosure
             var periodicSequence = closure.Cut(closure.PseudoPeriodStart, closure.SecondPseudoPeriodEnd);
             Assert.True(periodicSequence.IsContinuous);
             Assert.True(periodicSequence.IsRightContinuous);
-            Assert.True(periodicSequence.IsIdenticallyZero);
+            Assert.True(periodicSequence.IsZero);
         }
     }
 

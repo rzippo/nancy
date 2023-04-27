@@ -24,7 +24,7 @@ public class CurveConvolution
 
         Curve equivalentService = firstRouter.Convolution(secondRouter);
 
-        Assert.False(equivalentService.IsIdenticallyZero);
+        Assert.False(equivalentService.IsZero);
         Assert.True(equivalentService.IsContinuous);
         Assert.True(equivalentService.IsRightContinuous);
         Assert.True(equivalentService.IsContinuousExceptOrigin);
@@ -47,7 +47,7 @@ public class CurveConvolution
 
         Curve equivalentService = firstRouter.Convolution(secondRouter).Convolution(thirdRouter);
 
-        Assert.False(equivalentService.IsIdenticallyZero);
+        Assert.False(equivalentService.IsZero);
         Assert.True(equivalentService.IsContinuous);
         Assert.True(equivalentService.IsRightContinuous);
         Assert.True(equivalentService.IsContinuousExceptOrigin);
@@ -68,8 +68,8 @@ public class CurveConvolution
         Curve infinite = new ConstantCurve(Rational.PlusInfinity);
 
         Curve convolution = router.Convolution(infinite);
-        Assert.False(router.IsIdenticallyZero);
-        Assert.False(convolution.IsIdenticallyZero);
+        Assert.False(router.IsZero);
+        Assert.False(convolution.IsZero);
         Assert.Equal(router, convolution);
     }
 
@@ -159,7 +159,7 @@ public class CurveConvolution
         //Assert.False(curve_2.HasTransient);
         Assert.Equal(length, curve_2.FirstFiniteTimeExceptOrigin);
         Assert.False(curve_2.IsFinite);
-        Assert.False(curve_2.IsIdenticallyZero);
+        Assert.False(curve_2.IsZero);
         Assert.False(curve_2.IsContinuous);
         Assert.False(curve_2.IsContinuousExceptOrigin);
         Assert.False(curve_2.IsUltimatelyPlain);
@@ -186,7 +186,7 @@ public class CurveConvolution
         var convolution = Curve.Convolution(a, b);
 
         Assert.True(convolution.IsFinite);
-        Assert.False(convolution.IsIdenticallyZero);
+        Assert.False(convolution.IsZero);
         Assert.True(convolution.IsContinuous);
         Assert.True(convolution.IsRightContinuous);
         Assert.True(convolution.IsContinuousExceptOrigin);

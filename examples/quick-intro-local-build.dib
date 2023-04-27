@@ -1,3 +1,7 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"name":"csharp"}]}}
+
 #!markdown
 
 This tutorials shows the code used for the examples in the *Quick Intro*.
@@ -49,7 +53,7 @@ void plot(IEnumerable<Curve> curves, IEnumerable<string> names, Rational? upTo =
     //Console.WriteLine(t);
 
     var cuts = curves
-        .Select(c => c.Cut(0, t, isEndInclusive: true))
+        .Select(c => c.Cut(0, t, isEndIncluded: true))
         .ToList();
     
     plot(cuts, names);

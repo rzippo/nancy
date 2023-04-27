@@ -16,11 +16,11 @@ public class BaseOperations
             interval.Classify(Segment.Zero(11, 20)));
 
         Assert.Equal(
-            Interval.OverlapTypes.SegmentDomainContainsInterval,
+            Interval.OverlapTypes.SegmentSupportContainsInterval,
             interval.Classify(Segment.Zero(1, 10)));
 
         Assert.Equal(
-            Interval.OverlapTypes.SegmentDomainContainsInterval,
+            Interval.OverlapTypes.SegmentSupportContainsInterval,
             interval.Classify(Segment.Zero(0, 12)));
 
         Assert.Equal(

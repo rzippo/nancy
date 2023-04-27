@@ -62,14 +62,14 @@ public class CurveCut
 
     public static IEnumerable<object[]> CutTestCases()
     {
-        var testCases = new (Curve curve, Rational cutStart, Rational cutEnd, bool isStartInclusive, bool isEndInclusive, Sequence expected)[]
+        var testCases = new (Curve curve, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded, Sequence expected)[]
         {
             (
                 curve: new RateLatencyServiceCurve(5, 2),
                 cutStart: 0,
                 cutEnd: 4,
-                isStartInclusive: true,
-                isEndInclusive: true,
+                isStartIncluded: true,
+                isEndIncluded: true,
                 expected: new Sequence(new Element[]
                 {
                     Point.Origin(),
@@ -83,8 +83,8 @@ public class CurveCut
                 curve: new RateLatencyServiceCurve(5, 2),
                 cutStart: 0,
                 cutEnd: 4,
-                isStartInclusive: false,
-                isEndInclusive: false,
+                isStartIncluded: false,
+                isEndIncluded: false,
                 expected: new Sequence(new Element[]
                 {
                     Segment.Zero(0, 2),
@@ -96,8 +96,8 @@ public class CurveCut
                 curve: new RateLatencyServiceCurve(5, 2),
                 cutStart: 4,
                 cutEnd: 6,
-                isStartInclusive: true,
-                isEndInclusive: true,
+                isStartIncluded: true,
+                isEndIncluded: true,
                 expected: new Sequence(new Element[]
                 {
                     new Point(4, 10),
@@ -109,8 +109,8 @@ public class CurveCut
                 curve: new RateLatencyServiceCurve(5, 2),
                 cutStart: 4,
                 cutEnd: 6,
-                isStartInclusive: false,
-                isEndInclusive: false,
+                isStartIncluded: false,
+                isEndIncluded: false,
                 expected: new Sequence(new Element[]
                 {
                     new Segment(4, 6, 10, 5),
@@ -120,8 +120,8 @@ public class CurveCut
                 curve: new SigmaRhoArrivalCurve(5, 3),
                 cutStart: 0,
                 cutEnd: 5,
-                isStartInclusive: true,
-                isEndInclusive: false,
+                isStartIncluded: true,
+                isEndIncluded: false,
                 expected: new Sequence(new Element[]
                 {
                     Point.Origin(),
@@ -133,8 +133,8 @@ public class CurveCut
                 curve: new SigmaRhoArrivalCurve(5, 3),
                 cutStart: 0,
                 cutEnd: 0,
-                isStartInclusive: true,
-                isEndInclusive: true,
+                isStartIncluded: true,
+                isEndIncluded: true,
                 expected: new Sequence(new Element[]
                 {
                     Point.Origin()
@@ -142,27 +142,27 @@ public class CurveCut
             )
         };
         
-        foreach (var (curve, cutStart, cutEnd, isStartInclusive, isEndInclusive, expected) in testCases)
+        foreach (var (curve, cutStart, cutEnd, isStartIncluded, isEndIncluded, expected) in testCases)
         {
-            yield return new object[] {curve, cutStart, cutEnd, isStartInclusive, isEndInclusive, expected};
+            yield return new object[] {curve, cutStart, cutEnd, isStartIncluded, isEndIncluded, expected};
         }
     }
 
     [Theory]
     [MemberData(nameof(CutTestCases))]
-    public void CutEquivalence(Curve curve, Rational cutStart, Rational cutEnd, bool isStartInclusive,
-        bool isEndInclusive, Sequence expected)
+    public void CutEquivalence(Curve curve, Rational cutStart, Rational cutEnd, bool isStartIncluded,
+        bool isEndIncluded, Sequence expected)
     {
-        var sequence = curve.Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive);
+        var sequence = curve.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         Assert.True(Sequence.Equivalent(expected, sequence));
     }
 
     [Theory]
     [MemberData(nameof(CutTestCases))]
-    public void CutCount(Curve curve, Rational cutStart, Rational cutEnd, bool isStartInclusive,
-        bool isEndInclusive, Sequence expected)
+    public void CutCount(Curve curve, Rational cutStart, Rational cutEnd, bool isStartIncluded,
+        bool isEndIncluded, Sequence expected)
     {
-        var curveCount = curve.Count(cutStart, cutEnd, isStartInclusive, isEndInclusive);
+        var curveCount = curve.Count(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         Assert.Equal(expected.Count, curveCount);
     }
 }

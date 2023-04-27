@@ -17,7 +17,7 @@ public class PointClosure
         Assert.False(pointClosure.IsContinuous);
         Assert.False(pointClosure.IsContinuousExceptOrigin);
         Assert.False(pointClosure.IsFinite);
-        Assert.False(pointClosure.IsIdenticallyZero);
+        Assert.False(pointClosure.IsZero);
         Assert.False(pointClosure.IsUltimatelyPlain);
 
         Assert.Equal(Rational.Zero, pointClosure.ValueAt(0));
@@ -38,9 +38,8 @@ public class PointClosure
         Assert.Equal(Rational.PlusInfinity, closure.ValueAt(1));
 
         Assert.False(closure.IsContinuous);
-        Assert.False(closure.IsContinuousExceptOrigin);
         Assert.False(closure.IsFinite);
-        Assert.False(closure.IsIdenticallyZero);
+        Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
     }
 

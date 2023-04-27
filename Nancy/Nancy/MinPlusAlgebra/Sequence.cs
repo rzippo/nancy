@@ -13,7 +13,7 @@ using System.Diagnostics;
 namespace Unipi.Nancy.MinPlusAlgebra;
 
 /// <summary>
-/// A piecewise affine function with a limited domain, defined between <see cref="DefinedFrom"/> and <see cref="DefinedUntil"/>.
+/// A piecewise affine function with a limited support, defined between <see cref="DefinedFrom"/> and <see cref="DefinedUntil"/>.
 /// Both ends can be either inclusive or exclusive.
 /// </summary>
 /// <docs position="2"/>
@@ -33,19 +33,19 @@ public sealed class Sequence : IEquatable<Sequence>
     public ReadOnlyCollection<Element> Elements { get; }
 
     /// <summary>
-    /// Left extreme of the definition interval of the sequence.
+    /// Left endpoint of the support of the sequence.
     /// Can be either inclusive or exclusive, see <see cref="IsLeftClosed"/> or <see cref="IsLeftOpen"/>.
     /// </summary>
     public Rational DefinedFrom => Elements.First().StartTime;
 
     /// <summary>
-    /// Right extreme of the definition interval of the sequence.
+    /// Right endpoint of the support of the sequence.
     /// Can be either inclusive or exclusive, see <see cref="IsRightClosed"/> or <see cref="IsRightOpen"/>.
     /// </summary>
     public Rational DefinedUntil => Elements.Last().EndTime;
 
     /// <summary>
-    /// Length of the definition interval of the sequence.
+    /// Length of the support of the sequence.
     /// </summary>
     public Rational Length => DefinedUntil - DefinedFrom;
 
@@ -91,24 +91,21 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Does not specify whether it's inclusive or not, i.e. if $f(t)$ is 0.
     /// </summary>
     public Rational FirstNonZeroTime =>
-        Elements.FirstOrDefault(e => !e.IsIdenticallyZero)?.StartTime ?? Rational.PlusInfinity;
+        Elements.FirstOrDefault(e => !e.IsZero)?.StartTime ?? Rational.PlusInfinity;
 
     /// <summary>
     /// True if the curve is identically zero.
     /// </summary>
-    public bool IsIdenticallyZero =>
-        Elements.All(e => e.IsIdenticallyZero);
+    public bool IsZero =>
+        Elements.All(e => e.IsZero);
 
     /// <summary>
-    /// True if there is no infinite or discontinuity within the sequence.
+    /// True if there is no discontinuity within the sequence.
     /// </summary>
     public bool IsContinuous
     {
         get
         {
-            if (!IsFinite)
-                return false;
-
             Rational lastValue = Elements.First() is Point ? 
                 ((Point)Elements.First()).Value :
                 ((Segment)Elements.First()).LeftLimitAtEndTime;
@@ -142,15 +139,12 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// True if there is no infinite or left-discontinuity within the sequence.
+    /// True if there is left-discontinuity within the sequence.
     /// </summary>
     public bool IsLeftContinuous
     {
         get
         {
-            if (!IsFinite)
-                return false;
-
             foreach(var breakpoint in this.EnumerateBreakpoints())
             {
                 if (breakpoint.left is { } s &&
@@ -169,9 +163,6 @@ public sealed class Sequence : IEquatable<Sequence>
     {
         get
         {
-            if (!IsFinite)
-                return false;
-
             foreach (var breakpoint in this.EnumerateBreakpoints())
             {
                 if (breakpoint.right is { } s &&
@@ -320,18 +311,18 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <summary>
     /// Constructs a sequence that is identically 0 between <paramref name="from"/> and <paramref name="to"/>.
     /// </summary>
-    /// <param name="from">Left extreme of the sequence</param>
-    /// <param name="to">Right extreme of the sequence</param>
-    /// <param name="isStartInclusive"></param>
-    /// <param name="isEndInclusive"></param>
+    /// <param name="from">Left endpoint of the sequence</param>
+    /// <param name="to">Right endpoint of the sequence</param>
+    /// <param name="isStartIncluded"></param>
+    /// <param name="isEndIncluded"></param>
     /// <returns></returns>
-    public static Sequence Zero(Rational from, Rational to, bool isStartInclusive = true, bool isEndInclusive = false)
+    public static Sequence Zero(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
         var elements = new List<Element> { };
-        if(isStartInclusive)
+        if(isStartIncluded)
             elements.Add(Point.Zero(from));
         elements.Add(Segment.Zero(from, to));
-        if(isEndInclusive)
+        if(isEndIncluded)
             elements.Add(Point.Zero(to));
         
         return new Sequence(elements);
@@ -403,7 +394,7 @@ public sealed class Sequence : IEquatable<Sequence>
         => a.Optimize() == b.Optimize();
 
     /// <summary>
-    /// True if the <paramref name="a"/> and <paramref name="b"/> are ordered sequences of elements representing the same function, over the same domain. 
+    /// True if the <paramref name="a"/> and <paramref name="b"/> are ordered sequences of elements representing the same function, over the same interval. 
     /// </summary>
     /// <remarks>Optimized for minimal allocations</remarks>
     public static bool Equivalent(IEnumerable<Element> a, IEnumerable<Element> b)
@@ -462,7 +453,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </summary>
     public Sequence Negate()
     {
-        if (IsIdenticallyZero)
+        if (IsZero)
             return this;
 
         return new Sequence(
@@ -536,13 +527,13 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Returns the <see cref="Element"/> that describes the sequence in <paramref name="time"/>.
     /// </summary>
     /// <param name="time">Time of the sample.</param>
-    /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> is out of sequence domain.</exception> 
+    /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> is out of sequence support.</exception> 
     /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log(n))$</remarks>
     public Element GetElementAt(Rational time)
     {
         if(!IsDefinedAt(time))
-            throw new ArgumentException("The given time is out of sequence domain");
+            throw new ArgumentException("The given time is out of sequence support.");
 
         int firstIndex = FindFirstIndex(element => element.EndTime >= time);
         int lastIndex = FindLastIndex(element => element.StartTime <= time);
@@ -555,7 +546,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Returns the <see cref="Segment"/> that describes the sequence before <paramref name="time"/>.
     /// </summary>
     /// <param name="time">Time of the sample.</param>
-    /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> $-\epsilon$ is out of sequence domain.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> $-\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
     public Segment GetSegmentBefore(Rational time)
@@ -575,7 +566,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Returns the <see cref="Segment"/> that describes the sequence after <paramref name="time"/>.
     /// </summary>
     /// <param name="time">Time of the sample.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence domain.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
     public Segment GetSegmentAfter(Rational time)
@@ -596,7 +587,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </summary>
     /// <param name="time">Time of the sample.</param>
     /// <param name="startingIndex">The index from which the search should start.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time is out of sequence domain.</exception> 
+    /// <exception cref="ArgumentException">Thrown if the given time is out of sequence support.</exception> 
     /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
@@ -606,7 +597,7 @@ public sealed class Sequence : IEquatable<Sequence>
     public (Element element, int index) GetElementAt_Linear(Rational time, int startingIndex = 0)
     {
         if(!IsDefinedAt(time))
-            throw new ArgumentException("The given time is out of sequence domain");
+            throw new ArgumentException("The given time is out of sequence support.");
 
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
@@ -621,7 +612,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
     /// <param name="startingIndex">The index from which the search should start.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time $-\epsilon$ is out of sequence domain.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time $-\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before time t.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
@@ -651,7 +642,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <param name="time">Time $t$ of the sample.</param>
     /// <param name="startingIndex">The index from which the search should start.</param>
     /// <exception cref="ArgumentException">Thrown if <paramref name="startingIndex"/> is not a valid index.</exception>
-    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence domain.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after time t.</returns>
     /// <remarks>
     /// This method is implemented using a linear search, $O(n)$.
@@ -678,7 +669,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <summary>
     /// Computes the overlap between two sequences.
     /// </summary>
-    /// <returns>The extremes of the overlap interval, including whether its left/right closed, or null if there is none.</returns>
+    /// <returns>The endpoints of the overlap interval, including whether its left/right closed, or null if there is none.</returns>
     public static (Rational start, Rational end, bool isLeftClosed, bool isRightClosed)? GetOverlap(Sequence a, Sequence b)
     {
         Rational start = Rational.Max(a.DefinedFrom, b.DefinedFrom);
@@ -701,38 +692,38 @@ public sealed class Sequence : IEquatable<Sequence>
     /// <summary>
     /// Computes the overlap between two sequences.
     /// </summary>
-    /// <returns>The extremes of the overlap interval, or null if there is none.</returns>
+    /// <returns>The endpoints of the overlap interval, or null if there is none.</returns>
     public (Rational start, Rational end, bool isLeftClosed, bool isRightClosed)? GetOverlap(Sequence secondOperand)
         => GetOverlap(this, secondOperand);
 
     /// <summary>
-    /// Returns a cut of the sequence for a smaller domain.
+    /// Returns a cut of the sequence for a smaller support.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the new domain.</param>
-    /// <param name="cutEnd">Right extreme of the new domain.</param>
-    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
-    /// <exception cref="ArgumentException">Thrown if the new domain is not a subset of the current one.</exception>
+    /// <param name="cutStart">Left endpoint of the new support.</param>
+    /// <param name="cutEnd">Right endpoint of the new support.</param>
+    /// <param name="isStartIncluded">If true, the support is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the support is right-closed.</param>
+    /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
     public Sequence Cut(
         Rational cutStart, 
         Rational cutEnd,
-        bool isStartInclusive = true,
-        bool isEndInclusive = false
+        bool isStartIncluded = true,
+        bool isEndIncluded = false
     )
     {
         if (cutStart > cutEnd)
             throw new ArgumentException("Cut start cannot be after end.");
             
         if(cutStart < DefinedFrom || cutEnd > DefinedUntil)
-            throw new ArgumentException("Cut limits are out of the sequence domain.");
+            throw new ArgumentException("Cut limits are out of the sequence support.");
             
-        if(isStartInclusive && !IsDefinedAt(cutStart) || isEndInclusive && !IsDefinedAt(cutEnd))
-            throw new ArgumentException("Cut includes extremes that sequence does not.");
+        if(isStartIncluded && !IsDefinedAt(cutStart) || isEndIncluded && !IsDefinedAt(cutEnd))
+            throw new ArgumentException("Cut includes endpoints that sequence does not.");
 
         if (cutStart == cutEnd)
         {
-            if (!(isStartInclusive && isEndInclusive))
-                throw new ArgumentException("Cut extremes, if equal, must be both inclusive.");
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Cut endpoints, if equal, must be both inclusive.");
             
             var e = GetElementAt(cutStart);
             Point p;
@@ -750,7 +741,7 @@ public sealed class Sequence : IEquatable<Sequence>
             switch (element)
             {
                 case Point point:
-                    return isStartInclusive ? point.Time >= cutStart : point.Time > cutStart;
+                    return isStartIncluded ? point.Time >= cutStart : point.Time > cutStart;
 
                 case Segment segment:
                     return segment.EndTime > cutStart;
@@ -767,7 +758,7 @@ public sealed class Sequence : IEquatable<Sequence>
             switch (element)
             {
                 case Point point:
-                    return isEndInclusive ? point.Time <= cutEnd : point.Time < cutEnd;
+                    return isEndIncluded ? point.Time <= cutEnd : point.Time < cutEnd;
 
                 case Segment segment:
                     return segment.StartTime < cutEnd;
@@ -785,7 +776,7 @@ public sealed class Sequence : IEquatable<Sequence>
             if (i == cutStartIndex && element is Segment sStart && sStart.StartTime < cutStart)
             {
                 var (_, point, right) = sStart.Split(cutStart);
-                if(isStartInclusive)
+                if(isStartIncluded)
                     cutElements.Add(point);
 
                 if (i == cutEndIndex && right.EndTime > cutEnd)
@@ -793,7 +784,7 @@ public sealed class Sequence : IEquatable<Sequence>
                     //edge case: cut is all within one segment
                     var (l, p, _) = right.Split(cutEnd);
                     cutElements.Add(l);
-                    if(isEndInclusive)
+                    if(isEndIncluded)
                         cutElements.Add(p);
                 }
                 else
@@ -803,7 +794,7 @@ public sealed class Sequence : IEquatable<Sequence>
             {
                 var (left, point, _) = sEnd.Split(cutEnd);
                 cutElements.Add(left);
-                if(isEndInclusive)
+                if(isEndIncluded)
                     cutElements.Add(point);
             }
             else
@@ -816,22 +807,22 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Returns a cut of the sequence for a smaller domain.
+    /// Returns a cut of the sequence for a smaller support.
     /// </summary>
-    /// <param name="cutStart">Left extreme of the new domain.</param>
-    /// <param name="cutEnd">Right extreme of the new domain.</param>
-    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
-    /// <exception cref="ArgumentException">Thrown if the new domain is not a subset of the current one.</exception>
+    /// <param name="cutStart">Left endpoint of the new support.</param>
+    /// <param name="cutEnd">Right endpoint of the new support.</param>
+    /// <param name="isStartIncluded">If true, the support is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the support is right-closed.</param>
+    /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
     /// <remarks>Optimized for minimal allocations.</remarks>
     public IEnumerable<Element> CutAsEnumerable(
         Rational cutStart,
         Rational cutEnd,
-        bool isStartInclusive = true,
-        bool isEndInclusive = false
+        bool isStartIncluded = true,
+        bool isEndIncluded = false
     )
     {
-        return Elements.Cut(cutStart, cutEnd, isStartInclusive, isEndInclusive);
+        return Elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
     }
 
     //todo: write tests for FindFirstIndex, FindLastIndex
@@ -935,7 +926,7 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Returns an equivalent sequence guaranteed to have a <see cref="Point"/> at the given time.
     /// </summary>
     /// <param name="time">Time of the split.</param>
-    /// <exception cref="ArgumentException">Thrown if the time of split is outside the definition interval.</exception>
+    /// <exception cref="ArgumentException">Thrown if the time of split is outside the sequence support.</exception>
     /// <returns>A new sequence with the enforced split, or this if it's already enforced.</returns>
     public Sequence EnforceSplitAt(Rational time)
     {
@@ -990,21 +981,21 @@ public sealed class Sequence : IEquatable<Sequence>
     /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.
     /// </summary>
     /// <param name="elements">The set of elements. Must be in order.</param>
-    /// <param name="fillFrom">Left extreme of the filling interval.</param>
-    /// <param name="fillTo">Right extreme of the filling interval.</param>
-    /// <param name="isFromInclusive">If true, left extreme is inclusive.</param>
-    /// <param name="isToInclusive">If true, right extreme is inclusive.</param>
+    /// <param name="fillFrom">Left endpoint of the filling interval.</param>
+    /// <param name="fillTo">Right endpoint of the filling interval.</param>
+    /// <param name="isFromIncluded">If true, left endpoint is inclusive.</param>
+    /// <param name="isToIncluded">If true, right endpoint is inclusive.</param>
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
     /// <returns></returns>
     public static IEnumerable<Element> Fill(
         IEnumerable<Element> elements,
         Rational fillFrom,
         Rational fillTo,
-        bool isFromInclusive = true,
-        bool isToInclusive = false,
+        bool isFromIncluded = true,
+        bool isToIncluded = false,
         Rational? fillWith = null
     )
-        => elements.Fill(fillFrom, fillTo, isFromInclusive, isToInclusive, fillWith);
+        => elements.Fill(fillFrom, fillTo, isFromIncluded, isToIncluded, fillWith);
     
     #endregion Methods
 
@@ -1062,7 +1053,7 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Translates forward the definition interval by the given time quantity.
+    /// Translates forward the support by the given time quantity.
     /// </summary>
     public Sequence Delay(Rational delay, bool prependWithZero = true)
     {
@@ -1094,7 +1085,7 @@ public sealed class Sequence : IEquatable<Sequence>
     }
         
     /// <summary>
-    /// Translates backwards the definition interval by the given time quantity.
+    /// Translates backwards the support by the given time quantity.
     /// </summary>
     public Sequence Anticipate(Rational time)
     {
@@ -1246,13 +1237,13 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Computes the _positive part_ of this sequence, 
+    /// Computes a non-negative version of this sequence, 
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
     /// </summary>
     public Sequence ToNonNegative()
         => Maximum(
             this, 
-            Sequence.Zero(DefinedFrom, DefinedUntil, isEndInclusive: true), 
+            Sequence.Zero(DefinedFrom, DefinedUntil, isEndIncluded: true), 
             cutToOverlap: true
         );
     
@@ -1976,7 +1967,7 @@ public sealed class Sequence : IEquatable<Sequence>
     #region Composition
     
     /// <summary>
-    /// Compute the composition $f(g(t))$, over a limited domain.
+    /// Compute the composition $f(g(t))$, over a limited interval.
     /// </summary>
     /// <param name="f">Outer function, defined in $[g(a), g(b^-)[$ or $[g(a), g(b^-)]$.</param>
     /// <param name="g">Inner function, non-negative and non-decreasing, defined in $[a, b[$.</param>
@@ -2018,7 +2009,7 @@ public sealed class Sequence : IEquatable<Sequence>
         {
             // We need two breakpoints to compute the composition between them
             // Thus at each time we build the point and segment for the prevTime
-            // For the last one, which is g.DefinedFrom, we do not define the composition because the domain is right-open
+            // For the last one, which is g.DefinedFrom, we do not define the composition because the support is right-open
             Rational? prevTime = null;
             int lastIndexF = 0, lastIndexG = 0;
             foreach (var time in times)
@@ -2063,7 +2054,7 @@ public sealed class Sequence : IEquatable<Sequence>
     }
 
     /// <summary>
-    /// Compute the composition of this sequence, $f$, and $g$, i.e. $f(g(t))$, over a limited domain.
+    /// Compute the composition of this sequence, $f$, and $g$, i.e. $f(g(t))$, over a limited interval.
     /// This sequence must be defined in $[g(a), g(b^-)[$ or $[g(a), g(b^-)]$.
     /// </summary>
     /// <param name="g">Inner function, non-negative and non-decreasing, defined in $[a, b[$.</param>
@@ -2102,21 +2093,21 @@ public static class SequenceExtensions
         => new Sequence(elements, fillFrom, fillTo);
     
     /// <summary>
-    /// Returns a cut of the sequence for a smaller domain.
+    /// Returns a cut of the sequence for a smaller support.
     /// </summary>
     /// <param name="elements"></param>
-    /// <param name="cutStart">Left extreme of the new domain.</param>
-    /// <param name="cutEnd">Right extreme of the new domain.</param>
-    /// <param name="isStartInclusive">If true, the domain is left-closed.</param>
-    /// <param name="isEndInclusive">If true, the domain is right-closed.</param>
-    /// <exception cref="ArgumentException">Thrown if the new domain is not a subset of the current one.</exception>
+    /// <param name="cutStart">Left endpoint of the new support.</param>
+    /// <param name="cutEnd">Right endpoint of the new support.</param>
+    /// <param name="isStartIncluded">If true, the support is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the support is right-closed.</param>
+    /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
     /// <remarks>Optimized for minimal allocations</remarks>
     public static IEnumerable<Element> Cut(
         this IEnumerable<Element> elements,
         Rational cutStart,
         Rational cutEnd,
-        bool isStartInclusive = true,
-        bool isEndInclusive = false
+        bool isStartIncluded = true,
+        bool isEndIncluded = false
     )
     {
         using var enumerator = elements.GetEnumerator();
@@ -2124,22 +2115,22 @@ public static class SequenceExtensions
             throw new ArgumentException("Elements is an empty collection");
          
         if (cutStart > cutEnd)
-            throw new ArgumentException("Invalid domain.");
+            throw new ArgumentException("Invalid interval.");
             
         if(cutStart < enumerator.Current.StartTime)
-            throw new ArgumentException("Cut limits are out of the sequence domain.");
-        if (isStartInclusive && enumerator.Current is Segment && enumerator.Current.StartTime == cutStart)
-            throw new ArgumentException("Cut includes extremes that sequence does not.");
+            throw new ArgumentException("Cut limits are out of the sequence support.");
+        if (isStartIncluded && enumerator.Current is Segment && enumerator.Current.StartTime == cutStart)
+            throw new ArgumentException("Cut includes endpoints that sequence does not.");
             
         if (cutStart == cutEnd)
         {
-            if (!(isStartInclusive && isEndInclusive))
-                throw new ArgumentException("Cut extremes, if equal, must be both inclusive.");
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Cut endpoints, if equal, must be both inclusive.");
 
             while (!enumerator.Current.IsDefinedFor(cutStart))
             {
                 if (!enumerator.MoveNext())
-                    throw new ArgumentException("Cut includes extremes that sequence does not.");
+                    throw new ArgumentException("Cut includes endpoints that sequence does not.");
             }
 
             Point p;
@@ -2157,7 +2148,7 @@ public static class SequenceExtensions
             switch (element)
             {
                 case Point p:
-                    return isStartInclusive ? p.Time < cutStart : p.Time <= cutStart;
+                    return isStartIncluded ? p.Time < cutStart : p.Time <= cutStart;
                 case Segment s:
                     return s.EndTime <= cutStart;
                 default:
@@ -2168,7 +2159,7 @@ public static class SequenceExtensions
         while (IsBeforeStart(enumerator.Current))
         {
             if (!enumerator.MoveNext())
-                throw new ArgumentException("Cut includes extremes that sequence does not.");
+                throw new ArgumentException("Cut includes endpoints that sequence does not.");
         }
 
         Segment left;
@@ -2215,28 +2206,28 @@ public static class SequenceExtensions
             {
                 var (l, p, _) = left.Split(cutEnd);
                 yield return l;
-                if (isEndInclusive)
+                if (isEndIncluded)
                     yield return p;
                 yield break;
             }
             else if (left.EndTime == cutEnd)
             {
                 yield return left;
-                if (isEndInclusive)
+                if (isEndIncluded)
                 {
                     if (!enumerator.MoveNext())
-                        throw new ArgumentException("Cut includes extremes that sequence does not.");
+                        throw new ArgumentException("Cut includes endpoints that sequence does not.");
                     yield return (Point)enumerator.Current;
                 }
                 yield break;
             }
 
             if (!enumerator.MoveNext())
-                throw new ArgumentException("Cut limits are out of the sequence domain.");
+                throw new ArgumentException("Cut limits are out of the sequence support.");
 
             var center = (Point)enumerator.Current;
             if (!enumerator.MoveNext())
-                throw new ArgumentException("Cut limits are out of the sequence domain.");
+                throw new ArgumentException("Cut limits are out of the sequence support.");
             var right = (Segment)enumerator.Current;
 
             // check for merging
@@ -2259,27 +2250,28 @@ public static class SequenceExtensions
     }
     
     /// <summary>
-    /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.
+    /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/>
+    /// with the given value, defaults to $+\infty$.
     /// </summary>
     /// <param name="elements">The set of elements. Must be in order.</param>
-    /// <param name="fillFrom">Left extreme of the filling interval.</param>
-    /// <param name="fillTo">Right extreme of the filling interval.</param>
-    /// <param name="isFromInclusive">If true, left extreme is inclusive.</param>
-    /// <param name="isToInclusive">If true, right extreme is inclusive.</param>
+    /// <param name="fillFrom">Left endpoint of the filling interval.</param>
+    /// <param name="fillTo">Right endpoint of the filling interval.</param>
+    /// <param name="isFromIncluded">If true, left endpoint is inclusive.</param>
+    /// <param name="isToIncluded">If true, right endpoint is inclusive.</param>
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
     /// <returns></returns>
     public static IEnumerable<Element> Fill(
         this IEnumerable<Element> elements,
         Rational fillFrom,
         Rational fillTo,
-        bool isFromInclusive = true,
-        bool isToInclusive = false,
+        bool isFromIncluded = true,
+        bool isToIncluded = false,
         Rational? fillWith = null
     )
     {
         Rational value = fillWith ?? Rational.PlusInfinity;
         Rational expectedStart = fillFrom;
-        bool isExpectingPoint = isFromInclusive;
+        bool isExpectingPoint = isFromIncluded;
         foreach (var element in elements)
         {
             if(expectedStart > element.StartTime)
@@ -2312,7 +2304,7 @@ public static class SequenceExtensions
             isExpectingPoint = true;
         }
 
-        if(isToInclusive && isExpectingPoint)
+        if(isToIncluded && isExpectingPoint)
             yield return new Point(fillTo, value);
 
         Segment fillSegment(Rational start, Rational end)
@@ -3038,7 +3030,7 @@ public static class SequenceExtensions
     }
     
     /// <summary>
-    /// Skips elements until <paramref name="value"/> is reached.
+    /// Skips elements until <paramref name="value"/> is reached, i.e. while $f(t) &lt; v$.
     /// </summary>
     internal static IEnumerable<Element> SkipUntilValue(this IEnumerable<Element> elements, Rational value)
     {
@@ -3061,7 +3053,9 @@ public static class SequenceExtensions
                     if (s.Slope < 0)
                         throw new ArgumentException("Segments must be non-decreasing");
                     
-                    if(s.LeftLimitAtEndTime < value)
+                    if (s.IsConstant && s.LeftLimitAtEndTime < value)
+                        continue;
+                    else if (!s.IsConstant && s.LeftLimitAtEndTime <= value)
                         continue;
                     else if (s.RightLimitAtStartTime < value)
                     {
@@ -3090,7 +3084,8 @@ public static class SequenceExtensions
     public static List<Element> LowerEnvelope(this IReadOnlyList<Element> elements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        // logger.Trace($"LowerEnvelope elements, json \n {JsonConvert.SerializeObject(elements)}");
+        if (!elements.Any())
+            throw new ArgumentException("The set of elements is empty");
             
         #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
@@ -3180,7 +3175,8 @@ public static class SequenceExtensions
     public static List<Element> UpperEnvelope(this IReadOnlyList<Element> elements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        // logger.Trace($"UpperEnvelope elements, json \n {JsonConvert.SerializeObject(elements)}");
+        if (!elements.Any())
+            throw new ArgumentException("The set of elements is empty");
             
         #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
@@ -3195,7 +3191,7 @@ public static class SequenceExtensions
         var upperEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
         List<Element> upperElements;
-        bool doParallel = settings.UseParallelLowerEnvelope;
+        bool doParallel = settings.UseParallelUpperEnvelope;
         if (doParallel)
         {
             upperElements = intervals

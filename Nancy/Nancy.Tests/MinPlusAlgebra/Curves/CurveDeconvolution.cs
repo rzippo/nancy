@@ -16,7 +16,7 @@ public class CurveDeconvolution
 
         Curve deconvolution = arrival.Deconvolution(service);
 
-        Assert.False(deconvolution.IsIdenticallyZero);
+        Assert.False(deconvolution.IsZero);
         Assert.True(deconvolution.IsContinuous);
         Assert.True(deconvolution.IsRightContinuous);
         Assert.True(deconvolution.IsContinuousExceptOrigin);
@@ -37,7 +37,7 @@ public class CurveDeconvolution
 
         Curve deconvolution = arrival.Deconvolution(service);
 
-        Assert.False(deconvolution.IsIdenticallyZero);
+        Assert.False(deconvolution.IsZero);
         Assert.True(deconvolution.IsContinuous);
         Assert.True(deconvolution.IsRightContinuous);
         Assert.True(deconvolution.IsContinuousExceptOrigin);
@@ -58,9 +58,8 @@ public class CurveDeconvolution
 
         Curve deconvolution = arrival.Deconvolution(service);
 
-        Assert.False(deconvolution.IsIdenticallyZero);
-        Assert.False(deconvolution.IsContinuous);
-        Assert.False(deconvolution.IsContinuousExceptOrigin);
+        Assert.False(deconvolution.IsZero);
+        Assert.True(deconvolution.IsContinuous);
         Assert.True(deconvolution.IsUltimatelyPlain);
         Assert.True(deconvolution.IsUltimatelyInfinite);
 
@@ -138,6 +137,7 @@ public class CurveDeconvolution
         {
             new SigmaRhoArrivalCurve(1, 0),
             new SigmaRhoArrivalCurve(5, 0),
+            new SigmaRhoArrivalCurve(5, 3),
             new FlowControlCurve(3, 4, 2),
         };
 

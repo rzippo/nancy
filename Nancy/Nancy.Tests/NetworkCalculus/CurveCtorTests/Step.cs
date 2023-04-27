@@ -13,7 +13,7 @@ public class Step
         StepCurve curve = new StepCurve(value: value, stepTime: stepTime);
 
         Assert.True(curve.IsFinite);
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         Assert.False(curve.IsContinuous);
         Assert.False(curve.IsContinuousExceptOrigin);
         Assert.True(curve.IsUltimatelyPlain);

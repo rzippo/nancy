@@ -47,7 +47,7 @@ public record ComputationSettings
     public bool UseParallelLowerEnvelope { get; set; } = true;
         
     /// <summary>
-    /// If true, long sequence maximums are processed in parallel
+    /// If true, long sequence maximums are processed in parallel.
     /// </summary>
     public bool UseParallelUpperEnvelope { get; set; } = true;
 

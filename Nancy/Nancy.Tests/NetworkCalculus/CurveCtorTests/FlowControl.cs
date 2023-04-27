@@ -31,7 +31,7 @@ public class FlowControl
         var curve = new FlowControlCurve(delay, rate, height);
 
         Assert.True(curve.IsFinite);
-        Assert.Equal(height == 0 && delay != 0, curve.IsIdenticallyZero);
+        Assert.Equal(height == 0 && delay != 0, curve.IsZero);
         Assert.Equal(height == 0, curve.IsContinuous);
         Assert.True(curve.IsContinuousExceptOrigin);
         Assert.True(curve.IsLeftContinuous);

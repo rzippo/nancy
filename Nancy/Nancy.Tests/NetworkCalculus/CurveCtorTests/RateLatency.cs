@@ -29,7 +29,7 @@ public class RateLatency
         RateLatencyServiceCurve curve = new RateLatencyServiceCurve(rate, latency);
 
         Assert.True(curve.IsFinite);
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         Assert.True(curve.IsContinuous);
         Assert.True(curve.IsRightContinuous);
         Assert.True(curve.IsContinuousExceptOrigin);

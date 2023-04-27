@@ -49,7 +49,7 @@ public class CurveSubAdditiveClosure
         Assert.True(closure.IsContinuousExceptOrigin);
         Assert.True(closure.IsLeftContinuous);
         Assert.True(closure.Cut(1, 10 * delay).IsContinuous);
-        Assert.False(closure.IsIdenticallyZero);
+        Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
@@ -89,7 +89,7 @@ public class CurveSubAdditiveClosure
         Assert.True(closure.IsContinuousExceptOrigin);
         Assert.True(closure.IsLeftContinuous);
         Assert.True(closure.Cut(1, 10 * delay).IsContinuous);
-        Assert.False(closure.IsIdenticallyZero);
+        Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
@@ -150,11 +150,11 @@ public class CurveSubAdditiveClosure
 
         if (latency > 0)
         {
-            Assert.True(closure.IsIdenticallyZero);
+            Assert.True(closure.IsZero);
         }
         else
         {
-            Assert.False(closure.IsIdenticallyZero);
+            Assert.False(closure.IsZero);
             Assert.Equal(0, closure.FirstNonZeroTime);
             Assert.Equal(rate, closure.PseudoPeriodSlope);
         }

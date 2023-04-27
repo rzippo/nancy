@@ -215,7 +215,7 @@ public static class CurveLowerBounds
             .Distinct()
             .ToArray();
 
-        if (points.All(p => p.IsIdenticallyZero))
+        if (points.All(p => p.IsZero))
             throw new ArgumentException("No non-zero points, cannot bound with finite rate-latency");
 
         var minDelay = points

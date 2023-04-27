@@ -1,3 +1,7 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"name":"csharp"}]}}
+
 #!markdown
 
 This notebook shows a minimal example of a network study where non-convex service curves arise, thus highlighting the usefulness of the wide adaptability of Nancy.
@@ -35,7 +39,7 @@ void plot(IEnumerable<Curve> curves, IEnumerable<string> names, Rational? upTo =
     //Console.WriteLine(t);
 
     var cuts = curves
-        .Select(c => c.Cut(0, t, isEndInclusive: true))
+        .Select(c => c.Cut(0, t, isEndIncluded: true))
         .ToList();
     
     plot(cuts, names);

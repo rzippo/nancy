@@ -11,7 +11,7 @@ public class SigmaRho
         SigmaRhoArrivalCurve curve = new SigmaRhoArrivalCurve(sigma: 5, rho: 10);
 
         Assert.True(curve.IsFinite);
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         Assert.False(curve.IsContinuous);
         Assert.True(curve.IsContinuousExceptOrigin);
         Assert.True(curve.IsLeftContinuous);

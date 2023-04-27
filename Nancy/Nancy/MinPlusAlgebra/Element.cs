@@ -21,14 +21,14 @@ public abstract class Element
     #region Properties
 
     /// <summary>
-    /// Left extreme of the definition interval of the element.
+    /// Left endpoint of the support of the element.
     /// If the element is a <see cref="Segment"/>, it is exclusive and strictly lower than <see cref="EndTime"/>.
     /// If the element is a <see cref="Point"/>, it is inclusive and equal to <see cref="EndTime"/>.
     /// </summary>
     public abstract Rational StartTime { get; }
 
     /// <summary>
-    /// Right extreme of the definition interval of the element.
+    /// Right endpoint of the support of the element.
     /// If the element is a <see cref="Segment"/>, it is exclusive and strictly greater than <see cref="StartTime"/>.
     /// If the element is a <see cref="Point"/>, it is inclusive and equal to <see cref="StartTime"/>.
     /// </summary>
@@ -63,9 +63,9 @@ public abstract class Element
 
     /// <summary>
     /// True if the element has 0 value.
-    /// If the element is a <see cref="Segment"/>, this must be true for all its definition interval.
+    /// If the element is a <see cref="Segment"/>, this must be true for all its support.
     /// </summary>
-    public abstract bool IsIdenticallyZero { get; }
+    public abstract bool IsZero { get; }
 
     #endregion
 
@@ -138,12 +138,12 @@ public abstract class Element
         => element.Scale(scaling);
 
     /// <summary>
-    /// Translates forwards the definition interval by the given time quantity.
+    /// Translates forwards the support by the given time quantity.
     /// </summary>
     public abstract Element Delay(Rational delay);
         
     /// <summary>
-    /// Translates backwards the definition interval by the given time quantity.
+    /// Translates backwards the support by the given time quantity.
     /// </summary>
     public abstract Element Anticipate(Rational time);
 
@@ -190,7 +190,7 @@ public abstract class Element
     /// <summary>
     /// Sums two elements over their overlapping part.
     /// </summary>
-    /// <param name="element">Second operand</param>
+    /// <param name="element">Second operand.</param>
     /// <exception cref="ArgumentException">Thown if the two elements do not overlap.</exception>
     /// <returns>The element resulting from the sum.</returns>
     public abstract Element Addition(Element element);
@@ -226,7 +226,7 @@ public abstract class Element
     /// <summary>
     /// Subtracts two elements over their overlapping part.
     /// </summary>
-    /// <param name="element">Second operand</param>
+    /// <param name="element">Second operand.</param>
     /// <exception cref="ArgumentException">Thown if the two elements do not overlap.</exception>
     /// <returns>The element resulting from the subtraction.</returns>
     /// <remarks>The operation does not enforce non-negative values.</remarks>
@@ -274,7 +274,7 @@ public abstract class Element
     /// Computes the minimum of two elements over their overlapping part.
     /// The result is either a point, a segment or a segment-point-segment sequence.
     /// </summary>
-    /// <param name="element">Second operand</param>
+    /// <param name="element">Second operand.</param>
     /// <returns>The set of segments resulting from the minimum.</returns>
     public abstract List<Element> Minimum(Element element);
 
@@ -388,7 +388,7 @@ public abstract class Element
     /// Computes the maximum of two elements over their overlapping part.
     /// The result is either a point, a segment or a segment-point-segment sequence.
     /// </summary>
-    /// <param name="element">Second operand</param>
+    /// <param name="element">Second operand.</param>
     /// <returns>The set of segments resulting from the maximum.</returns>
     public abstract List<Element> Maximum(Element element);
 
@@ -501,7 +501,7 @@ public abstract class Element
     /// <summary>
     /// Computes the convolution between two Elements.
     /// </summary>
-    /// <param name="element">Second operand</param>
+    /// <param name="element">Second operand.</param>
     /// <returns>The set of segments resulting from the convolution.</returns>
     /// <remarks>Described in [BT07] Section 3.2.1</remarks>
     public abstract IEnumerable<Element> Convolution(Element element);
@@ -509,6 +509,8 @@ public abstract class Element
     /// <summary>
     /// Computes the convolution between two Elements.
     /// </summary>
+    /// <param name="a">First operand.</param>
+    /// <param name="b">Second operand.</param>
     /// <returns>The set of segments resulting from the convolution.</returns>
     /// <remarks>Described in [BT07] Section 3.2.1</remarks>
     public static IEnumerable<Element> Convolution(Element a, Element b)

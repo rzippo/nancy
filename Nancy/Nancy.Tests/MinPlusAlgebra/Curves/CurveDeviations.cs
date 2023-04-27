@@ -162,7 +162,7 @@ public class CurveDeviations
         var hDev_3 = b_lpi
             .Composition(a)
             .Subtraction(new RateLatencyServiceCurve(1, 0))
-            .MaxValue();
+            .SupValue();
 
         Assert.Equal(hDev_1, hDev_2);
         Assert.Equal(hDev_2, hDev_3);

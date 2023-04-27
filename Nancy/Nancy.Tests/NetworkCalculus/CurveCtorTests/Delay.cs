@@ -13,10 +13,10 @@ public class Delay
         DelayServiceCurve curve = new DelayServiceCurve(delay);
 
         Assert.False(curve.IsFinite);
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         Assert.False(curve.IsContinuous);
         Assert.False(curve.IsContinuousExceptOrigin);
-        Assert.False(curve.IsLeftContinuous);
+        Assert.True(curve.IsLeftContinuous);
         Assert.False(curve.IsRightContinuous);
         Assert.True(curve.IsUltimatelyPlain);
         Assert.True(curve.IsUltimatelyInfinite);
@@ -40,10 +40,10 @@ public class Delay
         DelayServiceCurve curve = new DelayServiceCurve(0);
 
         Assert.False(curve.IsFinite);
-        Assert.False(curve.IsIdenticallyZero);
+        Assert.False(curve.IsZero);
         Assert.False(curve.IsContinuous);
-        Assert.False(curve.IsContinuousExceptOrigin);
-        Assert.False(curve.IsLeftContinuous);
+        Assert.True(curve.IsContinuousExceptOrigin);
+        Assert.True(curve.IsLeftContinuous);
         Assert.False(curve.IsRightContinuous);
         Assert.True(curve.IsUltimatelyPlain);
         Assert.True(curve.IsUltimatelyInfinite);

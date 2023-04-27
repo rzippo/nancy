@@ -68,7 +68,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// <summary>
     /// True if the value of the point is 0.
     /// </summary>
-    public override bool IsIdenticallyZero
+    public override bool IsZero
         => Value.IsZero;
 
     /// <summary>
@@ -226,7 +226,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// <inheritdoc />
     public override Element Negate()
     {
-        if (IsIdenticallyZero)
+        if (IsZero)
             return this;
 
         return new Point(
@@ -1029,9 +1029,9 @@ public sealed class Point : Element, IEquatable<Point>
         Rational closurePeriodLenght = Rational.GreatestCommonDivisor(Time, pseudoPeriodLength);
         Rational closurePeriodHeight = slope * closurePeriodLenght;
 
-        Rational rightClosureExtreme = closurePeriodStart + closurePeriodLenght;
-        int maxK = (int)Math.Floor((decimal)(rightClosureExtreme / Time)) - 1;
-        int maxI = (int)Math.Floor((decimal)((rightClosureExtreme - Time) / pseudoPeriodLength));
+        Rational rightClosureEndpoint = closurePeriodStart + closurePeriodLenght;
+        int maxK = (int)Math.Floor((decimal)(rightClosureEndpoint / Time)) - 1;
+        int maxI = (int)Math.Floor((decimal)((rightClosureEndpoint - Time) / pseudoPeriodLength));
 
         #if DO_LOG
         logger.Trace($"Periodic point closure type C. maxK: {maxK} ; maxI: {maxI} ; complexity: {maxK * maxI}");
@@ -1045,7 +1045,7 @@ public sealed class Point : Element, IEquatable<Point>
 
         var pastOriginClosurePoints = ikPairs
             .Select(pair => Time + pair.k * Time + pair.i * pseudoPeriodLength)
-            .Where(time => time < rightClosureExtreme)
+            .Where(time => time < rightClosureEndpoint)
             .Select(time => new Point(
                 time: time,
                 value: slope * time
@@ -1058,7 +1058,7 @@ public sealed class Point : Element, IEquatable<Point>
             baseSequence: new Sequence(
                 elements: closurePoints,
                 fillFrom: 0,
-                fillTo: rightClosureExtreme
+                fillTo: rightClosureEndpoint
             ),
             pseudoPeriodStart: closurePeriodStart,
             pseudoPeriodLength: closurePeriodLenght,

@@ -55,7 +55,7 @@ public class SegmentConvolution
 
         Assert.True(convolution.IsContinuous);
         Assert.True(convolution.IsRightContinuous);
-        Assert.True(convolution.IsIdenticallyZero);
+        Assert.True(convolution.IsZero);
         Assert.Equal(2 * start, convolution.DefinedFrom);
         Assert.Equal(2 * end, convolution.DefinedUntil);
     }
