@@ -3892,25 +3892,40 @@ public class Curve : IToCodeString
     /// </remarks>
     public virtual Curve Deconvolution(Curve curve, ComputationSettings? settings = null)
     {
-        if (PseudoPeriodSlope > curve.PseudoPeriodSlope)
+        settings ??= ComputationSettings.Default();
+
+        //The instance method is implemented to allow overriding
+        //Renaming for symmetry
+        var f = this;
+        var g = curve;
+
+        // Checks for deconvolution with infinite operands or result
+        if (f.PseudoPeriodSlope > g.PseudoPeriodSlope)
         {
             return PlusInfinite();
         }
-        else
+        if(f.IsFinite)
         {
-            Rational T = Rational.Max(PseudoPeriodStart, curve.PseudoPeriodStart) + Rational.LeastCommonMultiple(PseudoPeriodLength, curve.PseudoPeriodLength);
-
-            Sequence firstCut = Cut(0, T + FirstPseudoPeriodEnd, settings: settings);
-            Sequence secondCut = curve.Cut(0, T, settings: settings);
-            Sequence cutDeconvolution = Sequence.Deconvolution(firstCut, secondCut, 0, FirstPseudoPeriodEnd, settings).Optimize();
-
-            return new Curve(
-                baseSequence: cutDeconvolution,
-                pseudoPeriodStart: PseudoPeriodStart,
-                pseudoPeriodLength: PseudoPeriodLength,
-                pseudoPeriodHeight: PseudoPeriodHeight
-            );
+            if(g.IsPlusInfinite)
+                return MinusInfinite();
+            if(g.IsMinusInfinite)
+                return PlusInfinite();
         }
+
+        Rational T = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart) + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+
+        Sequence fCut = f.Cut(0, T + FirstPseudoPeriodEnd, settings: settings);
+        Sequence gCut = g.Cut(0, T, settings: settings);
+        
+        var cutEnd = f.FirstPseudoPeriodEnd;
+        var cutDeconvolution = Sequence.Deconvolution(fCut, gCut, 0, cutEnd, settings).Optimize();
+
+        return new Curve(
+            baseSequence: cutDeconvolution,
+            pseudoPeriodStart: f.PseudoPeriodStart,
+            pseudoPeriodLength: f.PseudoPeriodLength,
+            pseudoPeriodHeight: f.PseudoPeriodHeight
+        );
     }
 
     /// <summary>
