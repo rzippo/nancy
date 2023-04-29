@@ -11,7 +11,7 @@ public class CurveMaxPlusConvolution
     {
         UseSubAdditiveConvolutionOptimizations = false
     };
-    public static IEnumerable<object[]> TestCases()
+    public static IEnumerable<(Curve f, Curve g, Curve expected)> PairsWithExpected()
     {
         var testcases = new List<(Curve f, Curve g, Curve expected)>
         {
@@ -161,17 +161,35 @@ public class CurveMaxPlusConvolution
                 expected: Curve.FromJson(
                     "{\"type\":\"curve\",\"sequence\":{\"elements\":[{\"time\":0,\"value\":0,\"type\":\"point\"},{\"startTime\":0,\"endTime\":2,\"slope\":0,\"rightLimit\":0,\"type\":\"segment\"},{\"time\":2,\"value\":0,\"type\":\"point\"},{\"startTime\":2,\"endTime\":3,\"slope\":1,\"rightLimit\":0,\"type\":\"segment\"},{\"time\":3,\"value\":2,\"type\":\"point\"},{\"startTime\":3,\"endTime\":5,\"slope\":0,\"rightLimit\":2,\"type\":\"segment\"},{\"time\":5,\"value\":3,\"type\":\"point\"},{\"startTime\":5,\"endTime\":7,\"slope\":0,\"rightLimit\":3,\"type\":\"segment\"},{\"time\":7,\"value\":4,\"type\":\"point\"},{\"startTime\":7,\"endTime\":9,\"slope\":0,\"rightLimit\":4,\"type\":\"segment\"},{\"time\":9,\"value\":5,\"type\":\"point\"},{\"startTime\":9,\"endTime\":10,\"slope\":0,\"rightLimit\":5,\"type\":\"segment\"},{\"time\":10,\"value\":6,\"type\":\"point\"},{\"startTime\":10,\"endTime\":12,\"slope\":0,\"rightLimit\":6,\"type\":\"segment\"}]},\"periodStart\":10,\"periodLength\":2,\"periodHeight\":3}"
                 )
+            ),
+            (
+                f: new Curve(baseSequence: new Sequence(new List<Element>{new Point(0,1),new Segment(0,1,1,2),new Point(1,3),new Segment(1,2,3,1),}),pseudoPeriodStart: 1,pseudoPeriodLength: 1,pseudoPeriodHeight: 2),
+                g: new Curve(baseSequence: new Sequence(new List<Element>{new Point(0,new Rational(-1, 0)),new Segment(0,4,new Rational(-1, 0),0),new Point(4,0),new Segment(4,5,0,2),}),pseudoPeriodStart: 4,pseudoPeriodLength: 1,pseudoPeriodHeight: 2),
+                expected: new Curve(baseSequence: new Sequence(new List<Element>{new Point(0,new Rational(-1, 0)),new Segment(0,4,new Rational(-1, 0),0),new Point(4,1),new Segment(4,new Rational(22, 5),1,2),}),pseudoPeriodStart: 4,pseudoPeriodLength: new Rational(2, 5),pseudoPeriodHeight: new Rational(4, 5))
             )
         };
 
-        foreach (var (f, g, expected) in testcases)
+        return testcases;
+    }
+
+    public static IEnumerable<(Curve f, Curve g)> PairTestCases()
+    {
+        foreach (var (f, g, _) in PairsWithExpected())
+        {
+            yield return (f, g);
+        }
+    }
+
+    public static IEnumerable<object[]> MaxPlusConvolutionEquivalenceTestCases()
+    {
+        foreach (var (f, g, expected) in PairsWithExpected())
         {
             yield return new object[] { f, g, expected };
         }
     }
 
     [Theory]
-    [MemberData(nameof(TestCases))]
+    [MemberData(nameof(MaxPlusConvolutionEquivalenceTestCases))]
     void MaxPlusConvolutionEquivalence(Curve f, Curve g, Curve expected)
     {
         var result = Curve.MaxPlusConvolution(f, g, settings: settings);
@@ -179,7 +197,7 @@ public class CurveMaxPlusConvolution
     }
     
     [Theory]
-    [MemberData(nameof(TestCases))]
+    [MemberData(nameof(MaxPlusConvolutionEquivalenceTestCases))]
     void MaxPlusSetConvolutionEquivalence(Curve f, Curve g, Curve expected)
     {
         var result_pair = Curve.MaxPlusConvolution(f, g, settings: settings);
@@ -189,4 +207,24 @@ public class CurveMaxPlusConvolution
         Assert.True(Curve.Equivalent(expected, result_pair));
     }
 
+    public static IEnumerable<object[]> MaxPlusConvolutionViaNegativeTestCases()
+    {
+        foreach (var (f, g, _) in PairsWithExpected())
+        {
+            yield return new object[] { f, g };
+        }
+    }
+    
+    /// <summary>
+    /// Tests the equivalence in [DNC18] Section 2.4
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(MaxPlusConvolutionViaNegativeTestCases))]
+    void MaxPlusConvolutionViaNegative(Curve a, Curve b)
+    {
+        var maxConv = Curve.MaxPlusConvolution(a, b, settings);
+        var viaNegative = -Curve.Convolution(-a, -b, settings);
+        
+        Assert.True(Curve.Equivalent(maxConv, viaNegative));
+    }
 }
