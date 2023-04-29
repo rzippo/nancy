@@ -1955,9 +1955,10 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                 );
 
             // if self-convolution, filter out symmetric pairs
-            return areSequenceEqual ?
-                elementPairs.Where(pair => pair.a.StartTime <= pair.b.StartTime) :
-                elementPairs;
+            if (areSequenceEqual)
+                elementPairs = elementPairs.Where(pair => pair.a.StartTime <= pair.b.StartTime);
+            
+            return elementPairs;        
         }
     }
 
@@ -1971,7 +1972,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
-    /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, extreme excluded.</param>
+    /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, endpoint excluded.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT07], section 4.5</remarks>
@@ -2043,7 +2044,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// </summary>
     /// <param name="sequence"></param>
     /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
-    /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, extreme excluded.</param>
+    /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, endpoint excluded.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT07], section 4.5</remarks>
