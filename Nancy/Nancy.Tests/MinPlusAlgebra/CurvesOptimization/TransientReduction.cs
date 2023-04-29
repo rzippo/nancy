@@ -29,7 +29,7 @@ public class TransientReduction
         {
             if (T < d * k)
                 throw new ArgumentException("Invalid time parameters");
-                
+
             var periods = Enumerable.Range(0, k + 1)
                 .AsParallel()
                 .AsOrdered()
@@ -87,20 +87,37 @@ public class TransientReduction
 
     public static IEnumerable<object[]> TransientReductionBySegmentTestCases()
     {
-        var testCases = new (Curve reducibleCurve, int k, Rational s)[]
+        var testCases = new (Curve reducibleCurve, Rational expectedStart)[]
         {
             buildTestCase(T: 5400, d: 115, c: 30, k: 5),
             buildTestCase(T: 1000, d: 10, c: 2, k: 34),
             buildTestCase(T: 1400, d: 10, c: 2, k: 23),
             buildTestCase(T: 5000, d: 15, c: 3, k: 64),
             buildTestCase(T: 5400, d: 35, c: 23, k: 72),
-            buildTestCase(T: 1000, d: 5, c: 2, k: 14)
+            buildTestCase(T: 1000, d: 5, c: 2, k: 14),
+            (
+                reducibleCurve: new Curve(
+                    baseSequence: new Sequence(new List<Element>
+                    {
+                        new Point(0, 0),
+                        new Segment(0, 2, 0, 1),
+                        new Point(2, 2),
+                        new Segment(2, new Rational(7, 2), 2, 0), 
+                        new Point(new Rational(7, 2), 2),
+                        new Segment(new Rational(7, 2), new Rational(11, 2), 3, 0)
+                    }), 
+                    pseudoPeriodStart: new Rational(7, 2), 
+                    pseudoPeriodLength: 2, 
+                    pseudoPeriodHeight: 1
+                ),
+                expectedStart: 2
+            )
         };
 
         foreach (var testCase in testCases)
-            yield return new object[] { testCase.reducibleCurve, testCase.k, testCase.s };
+            yield return new object[] { testCase.reducibleCurve, testCase.expectedStart };
 
-        (Curve reducibleCurve, int k, Rational s) buildTestCase(Rational T, Rational d, Rational c, int k)
+        (Curve reducibleCurve, Rational expectedStart) buildTestCase(Rational T, Rational d, Rational c, int k)
         {
             if (T < d * k)
                 throw new ArgumentException("Invalid time parameters: T too short for by period reduction");
@@ -124,7 +141,8 @@ public class TransientReduction
                 pseudoPeriodHeight: c
             );
 
-            return (reducibleCurve: curve, k: k, s: s);
+            var expectedStart = curve.PseudoPeriodStart - curve.PseudoPeriodLength * k - s;
+            return (reducibleCurve: curve, expectedStart: expectedStart);
 
             Element[] getRepeatedPeriod(int i)
             {
@@ -178,12 +196,12 @@ public class TransientReduction
 
     [Theory]
     [MemberData(nameof(TransientReductionBySegmentTestCases))]
-    public void TransientReductionBySegmentTest(Curve reducibleCurve, int k, Rational s)
+    public void TransientReductionBySegmentTest(Curve reducibleCurve, Rational expectedStart)
     {
         var reducedCurve = reducibleCurve.TransientReduction();
 
         Assert.True(reducedCurve.Equivalent(reducibleCurve));
-        Assert.Equal(reducibleCurve.PseudoPeriodStart - reducibleCurve.PseudoPeriodLength * k - s, reducedCurve.PseudoPeriodStart);
+        Assert.Equal(expectedStart, reducedCurve.PseudoPeriodStart);
         Assert.Equal(reducibleCurve.PseudoPeriodLength, reducedCurve.PseudoPeriodLength);
         Assert.Equal(reducibleCurve.PseudoPeriodHeight, reducedCurve.PseudoPeriodHeight);
     }
@@ -204,7 +222,7 @@ public class TransientReduction
         foreach (var (curve, expected) in testcases)
             yield return new object[] { curve, expected };
     }
-    
+
     [Theory]
     [MemberData(nameof(AffineTransientReductionTestCases))]
     public void AffineTransientReductionTest(Curve reducibleCurve, Rational expected)

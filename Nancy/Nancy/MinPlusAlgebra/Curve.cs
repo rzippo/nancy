@@ -2467,7 +2467,7 @@ public class Curve : IToCodeString
 
             void ByPeriod()
             {
-                bool tryShorten = periodStart - periodLength > 0;
+                bool tryShorten = periodStart - periodLength >= 0;
                 // int iteration = 0;
                 while (tryShorten)
                 {
@@ -2475,14 +2475,16 @@ public class Curve : IToCodeString
                     // logger.Trace($"TransientReduction by period, iteration #{iteration}");
 
                     var candidatePeriod = sequence.Cut(periodStart - periodLength, periodStart).Optimize();
-                    if (candidatePeriod.VerticalShift(PseudoPeriodHeight).Delay(periodLength, prependWithZero: false) ==
-                        pseudoPeriodicSequence)
+                    var shiftedCandidateSequence = candidatePeriod
+                        .VerticalShift(PseudoPeriodHeight, exceptOrigin: false)
+                        .Delay(periodLength, prependWithZero: false);
+                    if (shiftedCandidateSequence == pseudoPeriodicSequence)
                     {
                         periodStart -= periodLength;
                         pseudoPeriodicSequence = candidatePeriod;
 
                         optimized = true;
-                        tryShorten = periodStart - periodLength > 0;
+                        tryShorten = periodStart - periodLength >= 0;
                     }
                     else
                     {
@@ -2495,23 +2497,37 @@ public class Curve : IToCodeString
 
             void BySegment()
             {
-                var tailSequence = getPeriodTail();
-                bool tryShorten = periodStart - tailSequence.Length > 0;
+                if (periodStart == 0)
+                    return;
+
+                Sequence transientTail, periodTail;
+                Rational transientTailSlope, periodTailSlope;
+                bool tryShorten;
+                updateTails();
 
                 while (tryShorten)
                 {
-                    var candidateSequence = sequence.Cut(periodStart - tailSequence.Length, periodStart).Optimize();
-                    var shiftedCandidateSequence = candidateSequence.VerticalShift(PseudoPeriodHeight)
+                    var length = Rational.Min(transientTail.Length, periodTail.Length);
+                    if (transientTail.Length > length)
+                        transientTail = transientTail.Cut(transientTail.DefinedUntil - length,
+                            transientTail.DefinedUntil);
+                    if (periodTail.Length > length)
+                        periodTail = periodTail.Cut(periodTail.DefinedUntil - length,
+                            periodTail.DefinedUntil);
+                    
+                    var shiftedTransientSequence = transientTail
+                        .VerticalShift(PseudoPeriodHeight, exceptOrigin: false)
                         .Delay(periodLength, prependWithZero: false);
-                    if (shiftedCandidateSequence == tailSequence)
+                    if (shiftedTransientSequence == periodTail)
                     {
-                        periodStart -= tailSequence.Length;
+                        periodStart -= length;
                         sequence = sequence.Cut(0, periodStart + periodLength);
 
                         optimized = true;
 
-                        tailSequence = getPeriodTail();
-                        tryShorten = periodStart - tailSequence.Length > 0;
+                        if(periodStart == 0)
+                            return;
+                        updateTails();
                     }
                     else
                     {
@@ -2519,10 +2535,17 @@ public class Curve : IToCodeString
                     }
                 }
 
-                Sequence getPeriodTail()
+                void updateTails()
                 {
-                    var tailElements = sequence.Elements.TakeLast(2);
-                    return new Sequence(tailElements);
+                    transientTail = sequence
+                        .CutAsEnumerable(0, periodStart)
+                        .TakeLast(2).ToSequence();
+                    transientTailSlope = ((Segment)transientTail.Elements.Last()).Slope;
+                    periodTail = sequence
+                        .CutAsEnumerable(periodStart, periodStart + periodLength)
+                        .TakeLast(2).ToSequence();
+                    periodTailSlope = ((Segment)periodTail.Elements.Last()).Slope;
+                    tryShorten = transientTailSlope == periodTailSlope;
                 }
             }
         }
