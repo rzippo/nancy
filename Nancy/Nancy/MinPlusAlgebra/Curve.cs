@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -788,15 +788,32 @@ public class Curve : IToCodeString
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
+    /// <param name="settings"></param>
     /// <returns></returns>
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
-    public static Rational? FindFirstInequivalence(Curve a, Curve b)
+    public static Rational? FindFirstInequivalence(Curve a, Curve b, ComputationSettings? settings = null)
+        => FindFirstInequivalenceAfter(a, b, 0, true, settings);
+    
+    //todo: write tests
+    /// <summary>
+    /// Returns the first time around which the functions represented by the curves differ.
+    /// Returns null if the two curves represent the same function.
+    /// Mostly useful to debug curves that *should* be equivalent.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="time"></param>
+    /// <param name="isStartIncluded">If true, <paramref name="time"/> is included in the comparison.</param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+    public static Rational? FindFirstInequivalenceAfter(Curve a, Curve b, Rational time, bool isStartIncluded = true, ComputationSettings? settings = null)
     {
-        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
+        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
                             + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
 
-        var seqA = a.CutAsEnumerable(0, cutEnd, true, true);
-        var seqB = b.CutAsEnumerable(0, cutEnd, true, true);
+        var seqA = a.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
+        var seqB = b.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
 
         var spotsA = GetSpots(seqA);
         var spotsB = GetSpots(seqB);
