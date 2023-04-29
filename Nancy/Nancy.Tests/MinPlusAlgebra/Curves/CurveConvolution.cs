@@ -61,29 +61,41 @@ public class CurveConvolution
         Assert.Equal(3, equivalentService.PseudoPeriodSlope);
     }
 
-    [Fact]
-    public void ConvolutionWithInfinity()
-    {
-        RateLatencyServiceCurve router = new RateLatencyServiceCurve(rate: 3, latency: 4);
-        Curve infinite = new ConstantCurve(Rational.PlusInfinity);
-
-        Curve convolution = router.Convolution(infinite);
-        Assert.False(router.IsZero);
-        Assert.False(convolution.IsZero);
-        Assert.Equal(router, convolution);
-    }
-
     public static IEnumerable<object[]> GetFiniteCurves()
     {
         var curves = new Curve[] {
             new ConstantCurve(4),
             new RateLatencyServiceCurve(11, 10),
+            new RateLatencyServiceCurve(rate: 3, latency: 4),
             new SigmaRhoArrivalCurve(4, 2),
-            new ConstantCurve(0)
+            new ConstantCurve(0),
+            new Curve(baseSequence: new Sequence(new List<Element>{new Point(0,0),new Segment(0,1,0,0),new Point(1,0),new Segment(1,3,0,new Rational(1, 2)),new Point(3,1),new Segment(3,4,1,1),new Point(4,2),new Segment(4,5,2,0),}),pseudoPeriodStart: 3,pseudoPeriodLength: 2,pseudoPeriodHeight: 1),
+            new Curve(baseSequence: new Sequence(new List<Element>{new Point(0,4),new Segment(0,2,4,new Rational(1, 2)),}),pseudoPeriodStart: 0,pseudoPeriodLength: 2,pseudoPeriodHeight: 1)
         };
 
         foreach (var curve in curves)
             yield return new object[] { curve };
+    }
+
+    [Theory]
+    [MemberData(nameof(GetFiniteCurves))]
+    public void ConvolutionWithZeroDelay(Curve curve)
+    {
+        Curve zeroDelay = new ConstantCurve(Rational.PlusInfinity);
+
+        Curve convolution = curve.Convolution(zeroDelay);
+        Assert.Equal(curve, convolution);
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetFiniteCurves))]
+    public void ConvolutionWithInfinity(Curve curve)
+    {
+        Curve infinite = Curve.PlusInfinite();
+
+        Curve convolution = curve.Convolution(infinite);
+        Assert.Equal(Rational.PlusInfinity, convolution.ValueAt(0));
+        Assert.True(Curve.Equivalent(Curve.PlusInfinite(), convolution));
     }
 
     public static IEnumerable<object[]> GetFlowControlFiniteCurves()

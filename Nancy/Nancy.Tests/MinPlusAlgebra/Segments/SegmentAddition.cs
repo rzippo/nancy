@@ -217,7 +217,7 @@ public class SegmentAddition
         Assert.Equal(5, sum.StartTime);
         Assert.Equal(10, sum.EndTime);
         Assert.Equal(Rational.PlusInfinity, sum.ValueAt(5));
-        Assert.Equal(Rational.PlusInfinity, sum.Slope);
+        Assert.True(sum.IsPlusInfinite);
     }
         
     [Fact]

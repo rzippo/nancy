@@ -306,9 +306,9 @@ public class SegmentMin
 
         Assert.Equal(5, min.StartTime);
         Assert.Equal(10, min.EndTime);
+        Assert.True(min.IsMinusInfinite);
         Assert.Equal(Rational.MinusInfinity, min.ValueAt(6));
         Assert.Equal(Rational.MinusInfinity, min.RightLimitAtStartTime);
-        Assert.Equal(Rational.MinusInfinity, min.Slope);
         Assert.Equal(Rational.MinusInfinity, min.LeftLimitAtEndTime);
     }
 }

@@ -38,6 +38,36 @@ public class CurveUpperPseudoInverse
                         pseudoPeriodLength: 1,
                         pseudoPeriodHeight: 1
                     )
+            ),
+            (
+                operand: new Curve(
+                    baseSequence: new Sequence(new List<Element>()
+                    {
+                        Point.Origin(),
+                        Segment.Zero(0,1),
+                        new Point(1, 0),
+                        new Segment(1, 3, 0, 0.5m),
+                        new Point(3, 1),
+                        new Segment(3, 4, 1, 1),
+                        new Point(4, 2),
+                        Segment.Constant(4, 5, 2)
+                    }),
+                    pseudoPeriodStart: 3,
+                    pseudoPeriodLength: 2,
+                    pseudoPeriodHeight: 1
+                ),
+                expected: new Curve(
+                    baseSequence: new Sequence(new List<Element>()
+                    {
+                        new Point(0, 1),
+                        new Segment(0,1, 1, 2),
+                        new Point(1, 3),
+                        new Segment(1, 2, 3, 1)
+                    }),
+                    pseudoPeriodStart: 1,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 2
+                )
             )
         };
 
@@ -143,8 +173,9 @@ public class CurveUpperPseudoInverse
                 expected2: new Curve(
                     baseSequence: new Sequence( new List<Element>
                     {
-                        Point.Origin(),
-                        Segment.Zero(0, 1),
+                        // Initial latency becomes -infty
+                        Point.MinusInfinite(0),
+                        Segment.MinusInfinite(0, 1),
                         new Point(1, 0),
                         new Segment(1, 2, 0, 2),
                         new Point(2, 2),
@@ -316,6 +347,31 @@ public class CurveUpperPseudoInverse
                 expected: Curve.Zero()
             ),
             (
+                // f(0) = v > 0 implies upi -inf in [0, v[
+                operand: new Curve(
+                    baseSequence: new Sequence( new List<Element>
+                    {
+                        new Point(0, 2),
+                        new Segment(0, 1, 2, 1)
+                    }),
+                    0,
+                    1,
+                    1
+                ),
+                expected: new Curve(
+                    baseSequence: new Sequence(new List<Element>
+                    {
+                        new Point(0, Rational.MinusInfinity),
+                        Segment.MinusInfinite(0, 2),
+                        new Point(2, 0),
+                        new Segment(2, 3, 0, 1)
+                    }),
+                    2,
+                    1,
+                    1
+                )
+            ),
+            (
                 // just madness
                 operand: new Curve(
                     baseSequence: new Sequence(new List<Element>()
@@ -345,6 +401,7 @@ public class CurveUpperPseudoInverse
         {
             (
                 // ultimately constant with jump, non-reversible corner case
+                // note also the initial latency, which becomes -infty 
                 operand: new Curve(
                     baseSequence: new Sequence(new Element[]
                     {
@@ -378,8 +435,8 @@ public class CurveUpperPseudoInverse
                 expected2: new Curve(
                     baseSequence: new Sequence(new Element[]
                     {
-                        Point.Origin(),
-                        Segment.Zero(0, 1),
+                        Point.MinusInfinite(0),
+                        Segment.MinusInfinite(0, 1),
                         new Point(1, 0),
                         new Segment(1, 2, 0, 1),
                         new Point(2, 2),
@@ -429,13 +486,27 @@ public class CurveUpperPseudoInverse
     [MemberData(nameof(RightContinuousTestCases))]
     public void RevertiblePseudoInverseTest(Curve operand, Curve expected)
     {
+        // reversability of upi in U has the extra hypothesis of f(t) > 0 for t > 0
+        // otherwise, the initial latency becomes -\infty when reversed
+        
         var result = operand.UpperPseudoInverse();
         Assert.True(result.IsRightContinuous);
         Assert.True(Curve.Equivalent(expected, result));
+        Assert.Equal(operand.FirstNonZeroTime, result.ValueAt(0));
 
         var result2 = result.UpperPseudoInverse();
         Assert.True(result2.IsRightContinuous);
-        Assert.True(Curve.Equivalent(operand, result2));
+        if (operand.FirstNonZeroTime == 0)
+            Assert.True(Curve.Equivalent(operand, result2));
+        else
+        {
+            // initial latency becomes -infty
+            Assert.True(Sequence.Equivalent(
+                Sequence.MinusInfinite(0, operand.FirstNonZeroTime),
+                result2.Cut(0, operand.FirstNonZeroTime)
+            ));
+            Assert.True(Curve.EquivalentAfter(operand, result2, operand.FirstNonZeroTime));
+        }
     }
     
     [Theory]
@@ -456,7 +527,7 @@ public class CurveUpperPseudoInverse
     public void CornerCases(Curve operand, Curve expected)
     {
         var result = operand.UpperPseudoInverse();
-        if(!operand.IsUltimatelyConstant)
+        if(!operand.IsUltimatelyConstant && result.ValueAt(0) == 0)
             Assert.True(result.IsLeftContinuous);
         Assert.True(Curve.Equivalent(expected, result));
 
@@ -465,9 +536,9 @@ public class CurveUpperPseudoInverse
             return;
 
         var result2 = result.UpperPseudoInverse();
-        if(!result.IsUltimatelyConstant)
+        if(!result.IsUltimatelyConstant && result.ValueAt(0) == 0)
             Assert.True(result2.IsLeftContinuous);
-        Assert.True(Curve.Equivalent(operand, result2));
+        Assert.True(Curve.EquivalentAfter(operand, result2, operand.FirstNonZeroTime));
     }
     
     [Theory]
@@ -622,7 +693,6 @@ public class CurveUpperPseudoInverse
     public void NegativeCases(Curve operand, Curve expected)
     {
         var result = operand.UpperPseudoInverse();
-        if (!operand.IsUltimatelyConstant)
             Assert.True(result.IsRightContinuous);
         Assert.True(Curve.Equivalent(expected, result));
     }

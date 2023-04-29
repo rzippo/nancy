@@ -320,15 +320,16 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
     /// <summary>
     /// Constructor.
-    /// Fills the gaps within [fillFrom, fillTo[ with $+\infty$.
+    /// Fills the gaps within [fillFrom, fillTo[ with the given value, defaults to $+\infty$.
     /// </summary>
     /// <param name="elements">Partial set of elements composing the sequence. Must be ordered, but can have gaps.</param>
-    /// <param name="fillFrom">Left inclusive extreme of the filling interval.</param>
-    /// <param name="fillTo">Right exclusive extreme of the filling interval.</param>
-    public Sequence(IEnumerable<Element> elements, Rational fillFrom, Rational fillTo)
+    /// <param name="fillFrom">Left inclusive endpoint of the filling interval.</param>
+    /// <param name="fillTo">Right exclusive endpoint of the filling interval.</param>
+    /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
+    public Sequence(IEnumerable<Element> elements, Rational fillFrom, Rational fillTo, Rational? fillWith = null)
     {
         var filledElements = elements
-            .Fill(fillFrom, fillTo)
+            .Fill(fillFrom, fillTo, true, false, fillWith)
             .ToList();
         if (!filledElements.AreUninterruptedSequence())
             throw new ArgumentException("Elements are not uninterrupted after filling: malformed input");
@@ -1617,7 +1618,8 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             return new Sequence(
                 elements: upperEnvelopeElements,
                 fillFrom: Rational.Min(a.DefinedFrom, b.DefinedFrom),
-                fillTo: Rational.Max(a.DefinedUntil, b.DefinedUntil)
+                fillTo: Rational.Max(a.DefinedUntil, b.DefinedUntil),
+                fillWith: Rational.MinusInfinity
             );
     }
 
@@ -2236,10 +2238,11 @@ public static class SequenceExtensions
     /// Fills the gaps within [fillFrom, fillTo[ with $+\infty$.
     /// </summary>
     /// <param name="elements">Partial set of elements composing the sequence. Must be ordered, but can have gaps.</param>
-    /// <param name="fillFrom">Left inclusive extreme of the filling interval.</param>
-    /// <param name="fillTo">Right exclusive extreme of the filling interval.</param>
-    public static Sequence ToSequence(this IEnumerable<Element> elements, Rational fillFrom, Rational fillTo)
-        => new Sequence(elements, fillFrom, fillTo);
+    /// <param name="fillFrom">Left inclusive endpoint of the filling interval.</param>
+    /// <param name="fillTo">Right exclusive endpoint of the filling interval.</param>
+    /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
+    public static Sequence ToSequence(this IEnumerable<Element> elements, Rational fillFrom, Rational fillTo, Rational? fillWith = null)
+        => new Sequence(elements, fillFrom, fillTo, fillWith);
     
     /// <summary>
     /// Returns a cut of the sequence for a smaller support.
@@ -3010,7 +3013,7 @@ public static class SequenceExtensions
             throw new ArgumentException("Elements is an empty collection");
 
         Rational previousValue = startFromZero ? Rational.Zero : Rational.MinusInfinity;
-        bool wasPreviousPoint = false;
+        bool? wasPreviousPoint = null;
         do
         {
             switch (enumerator.Current)
@@ -3022,7 +3025,7 @@ public static class SequenceExtensions
                         if (previousValue > Rational.MinusInfinity)
                         {
                             // left-discontinuity, becomes constant segment
-                            if (!wasPreviousPoint)
+                            if (wasPreviousPoint != true)
                             {
                                 yield return new Point(time: previousValue, value: p.Time);
                             }
@@ -3037,7 +3040,7 @@ public static class SequenceExtensions
                         previousValue = p.Value;
                         wasPreviousPoint = true;
                     }
-                    else if (p.Value == previousValue && !wasPreviousPoint)
+                    else if (p.Value == previousValue && wasPreviousPoint != true)
                     {
                         yield return p.Inverse();
                         previousValue = p.Value;
@@ -3058,17 +3061,29 @@ public static class SequenceExtensions
                         // the segment itself is skipped, as constant segments become right-discontinuities
                         if (s.RightLimitAtStartTime == previousValue)
                         {
-                            // do nothing, as the left-continuity point has already been processed
+                            if (wasPreviousPoint == null)
+                            {
+                                // this is the first element of the sequence, so the left-continuity point must be processed here
+                                yield return new Point(time: s.RightLimitAtStartTime, value: s.StartTime);
+                            }
+                            else
+                            {
+                                // do nothing, as the left-continuity point has already been processed
+                            }
                         }
                         else if (s.RightLimitAtStartTime > previousValue)
                         {
-                            // right-discontinuity, becomes constant segment
-                            yield return new Segment(
-                                startTime: previousValue,
-                                endTime: s.RightLimitAtStartTime,
-                                rightLimitAtStartTime: s.StartTime,
-                                slope: 0
-                            );
+                            if (wasPreviousPoint == true)
+                            {
+                                // right-discontinuity, becomes constant segment
+                                yield return new Segment(
+                                    startTime: previousValue,
+                                    endTime: s.RightLimitAtStartTime,
+                                    rightLimitAtStartTime: s.StartTime,
+                                    slope: 0
+                                );
+                            }
+
                             // left-continuity point as inverse of constant segment
                             yield return new Point(
                                 time: s.RightLimitAtStartTime,
@@ -3148,8 +3163,8 @@ public static class SequenceExtensions
         if (!enumerator.MoveNext())
             throw new ArgumentException("Elements is an empty collection");
 
-        Rational previousValue = startFromZero ? Rational.Zero : Rational.MinusInfinity;
-        bool wasPreviousPoint = false;
+        Rational previousValue = Rational.MinusInfinity;
+        bool? wasPreviousPoint = null;
         Point? heldPoint = null; // points are held back in case there is a right-discontinuity to introduce instead 
         do
         {
@@ -3162,7 +3177,7 @@ public static class SequenceExtensions
                         if (previousValue > Rational.MinusInfinity)
                         {
                             // left-discontinuity, becomes constant segment
-                            if (!wasPreviousPoint)
+                            if (wasPreviousPoint != true)
                             {
                                 yield return new Point(time: previousValue, value: p.Time);
                             }
@@ -3179,7 +3194,7 @@ public static class SequenceExtensions
                         previousValue = p.Value;
                         wasPreviousPoint = true;
                     }
-                    else if (p.Value == previousValue && !wasPreviousPoint)
+                    else if (p.Value == previousValue && wasPreviousPoint != true)
                     {
                         // hold back in case the next segment is constant
                         // thus a right-discontinuity should be introduced instead
@@ -3218,14 +3233,18 @@ public static class SequenceExtensions
                                 yield return heldPoint;
                                 heldPoint = null;
                             }
-                            
-                            // right-discontinuity, becomes constant segment
-                            yield return new Segment(
-                                startTime: previousValue,
-                                endTime: s.RightLimitAtStartTime,
-                                rightLimitAtStartTime: s.StartTime,
-                                slope: 0
-                            );
+
+                            if (wasPreviousPoint == true)
+                            {
+                                // right-discontinuity, becomes constant segment
+                                yield return new Segment(
+                                    startTime: previousValue,
+                                    endTime: s.RightLimitAtStartTime,
+                                    rightLimitAtStartTime: s.StartTime,
+                                    slope: 0
+                                );
+                            }
+
                             // right-continuity point as inverse of constant segment
                             yield return new Point(
                                 time: s.RightLimitAtStartTime,
@@ -3440,7 +3459,7 @@ public static class SequenceExtensions
         settings ??= ComputationSettings.Default();
         if (!elements.Any())
             throw new ArgumentException("The set of elements is empty");
-            
+
         #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
         #endif

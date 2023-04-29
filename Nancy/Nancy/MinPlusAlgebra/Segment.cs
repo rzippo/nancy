@@ -72,17 +72,17 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// True if the segment has value plus/minus infinite.
     /// </summary>
-    public override bool IsInfinite => Slope.IsInfinite;
+    public override bool IsInfinite => RightLimitAtStartTime.IsInfinite;
 
     /// <summary>
     /// True if the segment has value plus infinite.
     /// </summary>
-    public override bool IsPlusInfinite => Slope.IsPlusInfinite;
+    public override bool IsPlusInfinite => RightLimitAtStartTime.IsPlusInfinite;
 
     /// <summary>
     /// True if the segment has value minus infinite.
     /// </summary>
-    public override bool IsMinusInfinite => Slope.IsMinusInfinite;
+    public override bool IsMinusInfinite => RightLimitAtStartTime.IsMinusInfinite;
 
     /// <summary>
     /// True if the segment has value 0 over all of its support.
@@ -162,14 +162,14 @@ public sealed class Segment : Element, IEquatable<Segment>
                 StartTime = startTime;
                 EndTime = endTime;
                 RightLimitAtStartTime = Rational.PlusInfinity;
-                Slope = Rational.PlusInfinity;
+                Slope = 0;
             }
             else
             {
                 StartTime = startTime;
                 EndTime = endTime;
                 RightLimitAtStartTime = Rational.MinusInfinity;
-                Slope = Rational.MinusInfinity;
+                Slope = 0;
             }
         }
     }
@@ -212,7 +212,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             startTime: startTime,
             endTime: endTime,
             rightLimitAtStartTime: Rational.PlusInfinity,
-            slope: Rational.PlusInfinity
+            slope: 0
         );
     }
 
@@ -227,7 +227,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             startTime: startTime,
             endTime: endTime,
             rightLimitAtStartTime: Rational.MinusInfinity,
-            slope: Rational.MinusInfinity
+            slope: 0
         );
     }
 
@@ -311,7 +311,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     public Point Sample(Rational time)
     {
         if (!IsDefinedFor(time))
-            throw new ArgumentException("Cannot sample at endpoints.");
+            throw new ArgumentException("Cannot sample at endpoints");
 
         return new Point(
             time: time,

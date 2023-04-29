@@ -291,9 +291,9 @@ public class SegmentMax
 
         Assert.Equal(5, max.StartTime);
         Assert.Equal(10, max.EndTime);
+        Assert.True(max.IsPlusInfinite);
         Assert.Equal(Rational.PlusInfinity, max.ValueAt(5));
         Assert.Equal(Rational.PlusInfinity, max.RightLimitAtStartTime);
-        Assert.Equal(Rational.PlusInfinity, max.Slope);
         Assert.Equal(Rational.PlusInfinity, max.LeftLimitAtEndTime);
     }
 
@@ -317,9 +317,9 @@ public class SegmentMax
 
         Assert.Equal(5, max.StartTime);
         Assert.Equal(10, max.EndTime);
+        Assert.True(max.IsPlusInfinite);
         Assert.Equal(Rational.PlusInfinity, max.ValueAt(5));
         Assert.Equal(Rational.PlusInfinity, max.RightLimitAtStartTime);
-        Assert.Equal(Rational.PlusInfinity, max.Slope);
         Assert.Equal(Rational.PlusInfinity, max.LeftLimitAtEndTime);
     }
 }

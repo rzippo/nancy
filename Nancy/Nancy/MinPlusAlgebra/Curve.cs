@@ -258,7 +258,7 @@ public class Curve : IToCodeString
     /// True if the curve is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
     public bool IsNonNegative
-        => _isNonNegative ??= InfValue() >= 0;                
+        => _isNonNegative ??= InfValue() >= 0;
     
     /// <summary>
     /// Private cache field for <see cref="IsNonNegative"/>
@@ -990,7 +990,7 @@ public class Curve : IToCodeString
     /// <returns>The value of $f(t^+)$.</returns>
     public Rational RightLimitAt(Rational time)
     {
-        Segment segment = GetSegmentAfter(time);
+        var segment = GetSegmentAfter(time, false);
         return (segment.StartTime == time) ?
             segment.RightLimitAtStartTime 
             : segment.ValueAt(time);
@@ -1053,13 +1053,53 @@ public class Curve : IToCodeString
     /// Returns the <see cref="Segment"/> that describes the curve after time $t$.
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
+    /// <param name="autoMerge">
+    /// If true, it seeks for possible merges to return the longest finite-length segment, i.e.,
+    /// such that either $f$ is not differentiable at its end time or the segment length extends to $+\infty$. 
+    /// </param>
     /// <returns>The <see cref="Segment"/> describing the curve after time t.</returns>
-    public Segment GetSegmentAfter(Rational time)
+    public Segment GetSegmentAfter(Rational time, bool autoMerge = true)
     {
-        if (time < FirstPseudoPeriodEnd)
-            return BaseSequence.GetSegmentAfter(time);
+        if (!autoMerge)
+        {
+            if (time < FirstPseudoPeriodEnd)
+                return BaseSequence.GetSegmentAfter(time);
+            else
+                return GetExtensionSequenceAt(time).GetSegmentAfter(time);
+        }
         else
-            return GetExtensionSequenceAt(time).GetSegmentAfter(time);
+        {
+            var segment = (time < FirstPseudoPeriodEnd) 
+                ? BaseSequence.GetSegmentAfter(time) 
+                : GetExtensionSequenceAt(time).GetSegmentAfter(time);
+            var t = segment.EndTime;
+
+            // avoid infinite extensions
+            if (t >= PseudoPeriodStart && (IsUltimatelyAffine || IsUltimatelyInfinite))
+                return segment;
+            
+            // try merging with the next segment, until a non-differentiable time is reached
+            bool try_merge;
+            do
+            {
+                try_merge = false;
+                if (IsContinuousAt(t))
+                {
+                    var nextSegment = GetSegmentAfter(t, false);
+                    if (nextSegment.Slope == segment.Slope)
+                    {
+                        t = nextSegment.EndTime;
+                        try_merge = true;
+                    }
+                }
+            } while (try_merge);
+
+            if (t > segment.EndTime)
+                // reconstruct and return the merged segment
+                return new Segment(segment.StartTime, t, segment.RightLimitAtStartTime, segment.Slope);
+            else
+                return segment;
+        }
     }
         
     /// <summary>
@@ -1900,13 +1940,16 @@ public class Curve : IToCodeString
         }
     }
 
+    // todo: add reference about $f(t) > 0$ for $t > 0$
+
     /// <summary>
     /// Computes the upper pseudo-inverse function, $f^{-1}_\uparrow(x) = \inf\{ t : f(t) > x \} = \sup\{ t : f(t) \le x \}$.
     /// </summary>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
-    /// The result of this operation is right-continuous, thus is revertible, 
-    /// i.e., $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous, see [DNC18] § 3.2.1 .
+    /// The result of this operation is right-continuous.
+    /// If $f$ is right-continuous and $f(t) > 0$ for $t > 0$, then the operation is revertible, 
+    /// i.e., $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, see [DNC18] § 3.2.1.
     /// Algorithmic properties discussed in [ZNS22]. 
     /// </remarks>
     public Curve UpperPseudoInverse()
@@ -1930,9 +1973,16 @@ public class Curve : IToCodeString
                     .Append(Segment.Constant(ValueAt(constant_start), constant_value, constant_start))
                     .Append(Point.PlusInfinite(constant_value))
                     .Append(Segment.PlusInfinite(constant_value, constant_value + 1));
+
+            var valueAtZero = ValueAt(0);
+            var sequence = valueAtZero > 0
+                ? Sequence.MinusInfinite(0, valueAtZero).Elements
+                    .Concat(upi)
+                    .ToSequence()
+                : upi.ToSequence();
             
             return new Curve(
-                baseSequence: upi.ToSequence(),
+                baseSequence: sequence,
                 pseudoPeriodStart: constant_value,
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
@@ -1955,8 +2005,15 @@ public class Curve : IToCodeString
                     .Append(new Point(lastFiniteValue, lastFiniteTime))
                     .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
 
+            var valueAtZero = ValueAt(0);
+            var sequence = valueAtZero > 0
+                ? Sequence.MinusInfinite(0, valueAtZero).Elements
+                    .Concat(upi)
+                    .ToSequence()
+                : upi.ToSequence();
+            
             return new Curve(
-                baseSequence: upi.ToSequence(),
+                baseSequence: sequence,
                 pseudoPeriodStart: lastFiniteValue,
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
@@ -1964,6 +2021,11 @@ public class Curve : IToCodeString
         }
         else if (!IsNonNegative)
         {
+            if (FirstNonNegativeTime == Rational.PlusInfinity)
+                // for any y in Q+, f(x) <= y for any x in Q+
+                // hence sup{ Q+ } = +infty for all y
+                return PlusInfinite();
+
             var T = Rational.Max(FirstPseudoPeriodEnd, FirstNonNegativeTime);
             if (ValueAt(T) < 0)
                 T += PseudoPeriodLength;
@@ -1983,10 +2045,16 @@ public class Curve : IToCodeString
         {
             // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
             // the pseudo-inverse of said point is then removed from the result
-            var sequence = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+            var upi = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
                 .UpperPseudoInverse()
-                .SkipLast(1)
-                .ToSequence();
+                .SkipLast(1);
+
+            var valueAtZero = ValueAt(0);
+            var sequence = valueAtZero > 0
+                ? Sequence.MinusInfinite(0, valueAtZero).Elements
+                    .Concat(upi)
+                    .ToSequence()
+                : upi.ToSequence();
             
             return new Curve(
                 baseSequence: sequence,
@@ -3224,9 +3292,9 @@ public class Curve : IToCodeString
 
         //Checks for convolution with infinite curves
         if (a.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-            return b + a.ValueAt(0);
+            return b.VerticalShift(a.ValueAt(0), false);
         if (b.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-            return a + b.ValueAt(0);
+            return a.VerticalShift(b.ValueAt(0), false);
 
         //Checks for convolution of positive curve with zero
         if (a.IsZero || b.IsZero)

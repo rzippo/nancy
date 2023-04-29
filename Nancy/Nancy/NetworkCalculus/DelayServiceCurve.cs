@@ -37,19 +37,15 @@ public class DelayServiceCurve : SuperAdditiveCurve
             return new Sequence(new Element[]
             {
                 Point.Origin(),
-                new Segment
+                Segment.PlusInfinite
                 (
                     startTime: delay,
-                    rightLimitAtStartTime: Rational.PlusInfinity,
-                    slope: Rational.PlusInfinity,
                     endTime: delay + DefaultPeriodLength
                 ),
-                new Point(time: delay + DefaultPeriodLength, value: Rational.PlusInfinity),
-                new Segment
+                Point.PlusInfinite(time: delay + DefaultPeriodLength),
+                Segment.PlusInfinite
                 (
                     startTime: delay + DefaultPeriodLength,
-                    rightLimitAtStartTime: Rational.PlusInfinity,
-                    slope: Rational.PlusInfinity,
                     endTime: delay + 2 * DefaultPeriodLength
                 )
             });
@@ -68,19 +64,15 @@ public class DelayServiceCurve : SuperAdditiveCurve
                     endTime: delay
                 ),
                 new Point(time: delay, value: 0),
-                new Segment
+                Segment.PlusInfinite
                 (
                     startTime: delay,
-                    rightLimitAtStartTime: Rational.PlusInfinity,
-                    slope: Rational.PlusInfinity,
                     endTime: delay + periodLength
                 ),
                 new Point(time: delay + periodLength, value: Rational.PlusInfinity),
-                new Segment
+                Segment.PlusInfinite
                 (
                     startTime: delay + periodLength,
-                    rightLimitAtStartTime: Rational.PlusInfinity,
-                    slope: Rational.PlusInfinity,
                     endTime: delay + 2 * periodLength
                 )
             });

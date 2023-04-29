@@ -20,6 +20,38 @@ public class CurveLowerPseudoInverse
             (
                 operand: new RateLatencyServiceCurve(1, 1),
                 expected: new SigmaRhoArrivalCurve(1, 1)
+            ),
+            (
+                operand: new Curve(
+                    baseSequence: new Sequence(new List<Element>()
+                    {
+                        Point.Origin(),
+                        Segment.Zero(0,1),
+                        new Point(1, 0),
+                        new Segment(1, 3, 0, 0.5m),
+                        new Point(3, 1),
+                        new Segment(3, 4, 1, 1),
+                        new Point(4, 2),
+                        Segment.Constant(4, 5, 2)
+                    }),
+                    pseudoPeriodStart: 3,
+                    pseudoPeriodLength: 2,
+                    pseudoPeriodHeight: 1
+                ),
+                expected: new Curve(
+                    baseSequence: new Sequence(new List<Element>()
+                    {
+                        Point.Origin(),
+                        new Segment(0,1, 1, 2),
+                        new Point(1, 3),
+                        new Segment(1, 2, 3, 1),
+                        new Point(2, 4),
+                        new Segment(2, 3, 5, 1)
+                    }),
+                    pseudoPeriodStart: 2,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 2
+                )
             )
         };
 
