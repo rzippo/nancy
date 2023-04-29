@@ -24,7 +24,6 @@ public class UpperEnvelopes
                 },
                 new Point(5, 4)
             ),
-
             (
                 new[]
                 {
@@ -56,7 +55,7 @@ public class UpperEnvelopes
         Assert.Equal(expected, result.Single());
     }
 
-    public static IEnumerable<object[]> SegmentIntervalCases()
+    public static IEnumerable<object[]> SegmentIntervalExpectedCases()
     {
         var testCases = new (Segment[] segments, Sequence expected)[]
         {
@@ -77,7 +76,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             (
                 new[]
                 {
@@ -99,7 +97,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             //Same start, varying slope
             (
                 new[]
@@ -117,7 +114,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             (
                 new[]
                 {
@@ -131,7 +127,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             (
                 new[]
                 {
@@ -153,7 +148,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             //Scenario A
             (
                 new[]
@@ -172,7 +166,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             (
                 new[]
                 {
@@ -194,7 +187,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             (
                 new[]
                 {
@@ -216,7 +208,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             //Scenario B
             (
                 new[]
@@ -239,7 +230,6 @@ public class UpperEnvelopes
                     }
                 )
             ),
-
             (
                 new[]
                 {
@@ -328,6 +318,20 @@ public class UpperEnvelopes
                         )
                     }
                 )
+            ),
+            (
+                new Segment[]
+                {
+                    new Segment(5, 6, 19, 0),
+                    new Segment(5, 6, 20, 1),
+                    new Segment(5, 6, 17, 5),
+                },
+                new Sequence(new List<Element>()
+                {
+                    new Segment(5, 5.75m, 20, 1),
+                    new Point(5.75m, 20.75m),
+                    new Segment(5.75m, 6, 20.75m, 5)
+                })
             )
         };
 
@@ -336,8 +340,8 @@ public class UpperEnvelopes
     }
 
     [Theory]
-    [MemberData(nameof(SegmentIntervalCases))]
-    public void SegmentInterval(Segment[] segments, Sequence expected)
+    [MemberData(nameof(SegmentIntervalExpectedCases))]
+    public void SegmentIntervalExpected(Segment[] segments, Sequence expected)
     {
         var start = segments.First().StartTime;
         var end = segments.First().EndTime;
@@ -347,6 +351,49 @@ public class UpperEnvelopes
         var result = interval.UpperEnvelope();
         var sequence = new Sequence(result).Optimize();
         Assert.Equal(expected, sequence);
+    }
+
+    public static List<(List<Segment> segments, Rational start, Rational end)> SegmentIntervals = new ()
+    {
+        (
+            new List<Segment>{ 
+                new Segment(1824,1834,201,0), 
+                new Segment(1797,1869,197,new Rational(1, 9)), 
+                new Segment(1789,1861,200,new Rational(1, 8)), 
+                new Segment(1806,1834,197,new Rational(1, 7)), 
+                new Segment(1827,1859,204,new Rational(1, 4)) 
+            },
+            1832,
+            1834
+        ),
+        // (
+        //     new List<Segment>{
+        //         new Segment(0,2,21,0),
+        //         new Segment(0,2,20,new Rational(1, 9)),
+        //         new Segment(0,2,19,new Rational(1, 8)),
+        //         new Segment(0,2,18,new Rational(1, 7)),
+        //         new Segment(0,2,17,new Rational(1, 4))
+        //     },
+        //     0,
+        //     2
+        // )
+    };
+
+    public static IEnumerable<object[]> SegmentIntervalsTestCases()
+    {
+        foreach (var (segments, start, end) in SegmentIntervals)
+            yield return new object[] { segments, start, end };
+    }
+    
+    [Theory]
+    [MemberData(nameof(SegmentIntervalsTestCases))]
+    public void SegmentInterval(List<Segment> segments, Rational start, Rational end)
+    {
+        var interval = new Interval(start, end);
+        interval.AddRange(segments);
+
+        var result = interval.UpperEnvelope();
+        var sequence = new Sequence(result);
     }
 
     /*
@@ -413,7 +460,6 @@ public class UpperEnvelopes
                     )
                 }
             ),
-
             (
                 le_a: new List<Element>
                 {
@@ -493,7 +539,6 @@ public class UpperEnvelopes
                     )
                 }
             ),
-
             (
                 le_a: new List<Element>
                 {
@@ -563,7 +608,6 @@ public class UpperEnvelopes
                     )
                 }
             ),
-
             (
                 le_a: new List<Element>
                 {

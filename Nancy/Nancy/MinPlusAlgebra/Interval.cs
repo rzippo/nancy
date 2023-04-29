@@ -913,7 +913,8 @@ internal class Interval
         else
         {
             var segments = ElementBag
-                .Select(e => (Segment)e);
+                .Select(e => (Segment)e)
+                .ToList();
 
             if(segments.Any(s => s.IsMinusInfinite))
                 return new List<Element> { Segment.MinusInfinite(this.Start, this.End) };
@@ -939,12 +940,7 @@ internal class Interval
 
             Segment SelectLowest(IEnumerable<Segment> segments)
             {
-                return segments.MinBy(ValueAtStart)!;
-
-                Rational ValueAtStart(Segment s)
-                {
-                    return s.StartTime == Start ? s.RightLimitAtStartTime : s.ValueAt(Start);
-                }
+                return segments.MinBy(s => s.RightLimitAt(Start))!;
             }
         }
     }
@@ -1241,7 +1237,6 @@ internal class Interval
     /// <remarks>This method is similar to Element.Maximum, but it skips many checks due to hypotheses given by the interval.</remarks>
     public List<Element> UpperEnvelope()
     {
-        //return OldUpperEnvelope();
         if (IsPointInterval)
         {
             var maxValue = ElementBag
@@ -1259,7 +1254,8 @@ internal class Interval
         else
         {
             var segments = ElementBag
-                .Select(e => (Segment)e);
+                .Select(e => (Segment)e)
+                .ToList();
 
             if (segments.Any(s => s.IsPlusInfinite))
                 return new List<Element> { Segment.PlusInfinite(this.Start, this.End) };
@@ -1285,12 +1281,7 @@ internal class Interval
 
             Segment SelectHighest(IEnumerable<Segment> segments)
             {
-                return segments.MaxBy(ValueAtStart)!;
-                    
-                Rational ValueAtStart(Segment s)
-                {
-                    return s.StartTime == Start ? s.RightLimitAtStartTime : s.ValueAt(Start);
-                }
+                return segments.MaxBy(s => s.RightLimitAt(Start))!;
             }
         }
     }
@@ -1339,7 +1330,7 @@ internal class Interval
             int lowerSlopeIdx = 0;
             bool doSearch = true;
 
-            while (doSearch && higherSlopeIdx < higherSlopes.Count && lowerSlopeIdx < higherSlopes.Count)
+            while (doSearch && higherSlopeIdx < higherSlopes.Count && lowerSlopeIdx < lowerSlopes.Count)
             {
                 var higherSlopeElement = higherSlopes[higherSlopeIdx]; //lE in short
                 var lowerSlopeElement = lowerSlopes[lowerSlopeIdx]; //hE in short
@@ -1404,7 +1395,7 @@ internal class Interval
                                 }
                                 else
                                 {
-                                    if (lP.Time > hS.StartTime)
+                                    if (lP.Time < hS.StartTime)
                                         throw new InvalidOperationException("Should not be here");
 
                                     //advance hE
