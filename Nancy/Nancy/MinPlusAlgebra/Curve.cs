@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -156,7 +156,7 @@ public class Curve : IToCodeString
     }
     
     /// <summary>
-    /// True if the curve has 0 value for any $t$.
+    /// True if the curve is 0 for all $t$.
     /// </summary>
     public bool IsZero =>
         BaseSequence.IsZero && PseudoPeriodHeight.IsZero;

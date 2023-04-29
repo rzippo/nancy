@@ -106,7 +106,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         Elements.FirstOrDefault(e => !e.IsZero)?.StartTime ?? Rational.PlusInfinity;
 
     /// <summary>
-    /// True if the curve is identically zero.
+    /// True if the sequence is 0 for all $t$.
     /// </summary>
     public bool IsZero =>
         Elements.All(e => e.IsZero);
