@@ -3658,22 +3658,22 @@ public class Curve : IToCodeString
             
         //The instance method is implemented to allow overriding
         //Renaming for symmetry
-        var a = this;
-        var b = curve;
+        var f = this;
+        var g = curve;
             
         //Checks for convolution with infinite curves
-        if (a.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
+        if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
             return 0;
-        if (b.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
+        if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
             return 0;
 
         //Checks for convolution with null curves
-        if (a.IsZero || b.IsZero)
+        if (f.IsZero || g.IsZero)
             return 0;
 
         #if DO_LOG
-        logger.Trace($"Estimating convolution of f1 ({a.BaseSequence.Count} elements, T: {a.PseudoPeriodStart} d: {a.PseudoPeriodLength})" +
-                     $" and f2 ({b.BaseSequence.Count} elements, T: {b.PseudoPeriodStart} d: {b.PseudoPeriodLength})");
+        logger.Trace($"Estimating convolution of f ({f.BaseSequence.Count} elements, T: {f.PseudoPeriodStart} d: {f.PseudoPeriodLength})" +
+                     $" and g ({g.BaseSequence.Count} elements, T: {g.PseudoPeriodStart} d: {g.PseudoPeriodLength})");
         #endif
         #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"f1:\n {a} \n f2:\n {b}");
@@ -3684,50 +3684,44 @@ public class Curve : IToCodeString
         #endif
 
         long result;
-        if (settings.SinglePassConvolution && a.PseudoPeriodSlope == b.PseudoPeriodSlope)
+        if (settings.SinglePassConvolution && f.PseudoPeriodSlope == g.PseudoPeriodSlope)
         {
-            #if DO_LOG
-            logger.Trace("Convolution: same slope, single pass");
-            #endif
-            var d = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
-            var T = a.PseudoPeriodStart + b.PseudoPeriodStart + d;
-            var c = a.PseudoPeriodSlope * d;
-
-            var aCut = a.Cut(0, T + d);
-            var bCut = b.Cut(0, T + d);
-            result = Sequence.EstimateConvolution(aCut, bCut, settings, T + d, countElements);
+            result = EstimateSinglePassConvolution();
         }
         else
         {
             var terms = new List<long>();
-            if (Equivalent(a, b))
+            if (
+                !settings.SinglePassConvolution &&  // if true, checking for equivalence is useless due to the check above
+                Equivalent(f, g, settings)
+            )
             {
                 // self convolution: skip duplicate middle term
-                if (a.HasTransient)
-                    terms.Add(EstimateTransientTransient(a, a));
+                if (f.HasTransient)
+                    terms.Add(EstimateConvolutionTransientTransient(f, f));
 
-                if (a.HasTransient && !a.IsUltimatelyInfinite)
-                    terms.Add(EstimateTransientPeriodic(a, a));
+                if (f.HasTransient && !f.IsUltimatelyInfinite)
+                    terms.Add(EstimateConvolutionTransientPeriodic(f, f));
 
-                if (!a.IsUltimatelyInfinite)
-                    terms.Add(EstimatePeriodicPeriodic(a, a));
+                if (!f.IsUltimatelyInfinite)
+                    terms.Add(EstimateConvolutionPeriodicPeriodic(f, f));
             }
             else
             {
-                if (a.HasTransient)
+                if (f.HasTransient)
                 {
-                    if (b.HasTransient)
-                        terms.Add(EstimateTransientTransient(a, b));
-                    if (!b.IsUltimatelyInfinite)
-                        terms.Add(EstimateTransientPeriodic(a, b));
+                    if (g.HasTransient)
+                        terms.Add(EstimateConvolutionTransientTransient(f, g));
+                    if (!g.IsUltimatelyInfinite)
+                        terms.Add(EstimateConvolutionTransientPeriodic(f, g));
                 }
 
-                if (!a.IsUltimatelyInfinite)
+                if (!f.IsUltimatelyInfinite)
                 {
-                    if (b.HasTransient)
-                        terms.Add(EstimateTransientPeriodic(b, a));
-                    if (!b.IsUltimatelyInfinite)
-                        terms.Add(EstimatePeriodicPeriodic(a, b));
+                    if (g.HasTransient)
+                        terms.Add(EstimateConvolutionTransientPeriodic(g, f));
+                    if (!g.IsUltimatelyInfinite)
+                        terms.Add(EstimateConvolutionPeriodicPeriodic(f, g));
                 }
             }
             result = terms.Sum();
@@ -3735,16 +3729,34 @@ public class Curve : IToCodeString
 
         #if DO_LOG
         timer.Stop();
-        logger.Debug($"Estimate convolution: took {timer.Elapsed}; a {a.BaseSequence.Count} b {b.BaseSequence.Count} => [{countElements}] {result}");
+        logger.Debug($"Estimate convolution: took {timer.Elapsed}; f {f.BaseSequence.Count} g {g.BaseSequence.Count} => [{countElements}] {result}");
         #endif
         #if DO_LOG && DO_COSTLY_LOGS
-        logger.Trace($"Json\n a: {a} \n b: {b} \n result: {result}");
+        logger.Trace($"Json\n f: {f} \n g: {g} \n result: {result}");
         #endif
         return result;
 
+        // Computes the convolution in a single operation,
+        // since all UPP parameters (in particular, T) can be determined a priori
+        long EstimateSinglePassConvolution()
+        {
+            #if DO_LOG
+            logger.Trace("Convolution: same slope, single pass");
+            #endif            
+            var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+            var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
+            var c = f.PseudoPeriodSlope * d;
+
+            var cutEnd = T + d;
+            var fCut = f.Cut(0, cutEnd, settings: settings);
+            var gCut = g.Cut(0, cutEnd, settings: settings);
+            var result = Sequence.EstimateConvolution(fCut, gCut, settings, cutEnd, countElements);
+            return result;
+        }
+        
         // Computes a partial convolution term, that is the convolution of two transient parts.
         // Described in [BT07] Section 4.4.3
-        long EstimateTransientTransient(
+        long EstimateConvolutionTransientTransient(
             Curve firstTransientCurve,
             Curve secondTransientCurve)
         {
@@ -3761,7 +3773,7 @@ public class Curve : IToCodeString
 
         // Computes a partial convolution term, that is the convolution of a transient part and a pseudo-periodic one.
         // Described in [BT07] Sections 4.4.4 and .5
-        long EstimateTransientPeriodic(
+        long EstimateConvolutionTransientPeriodic(
             Curve transientCurve,
             Curve periodicCurve)
         {
@@ -3782,44 +3794,68 @@ public class Curve : IToCodeString
 
         // Computes a partial convolution term, that is the convolution of two pseudo-periodic parts.
         // Described in [BT07] Section 4.4.6
-        long EstimatePeriodicPeriodic(
-            Curve firstPeriodicCurve,
-            Curve secondPeriodicCurve)
+        long EstimateConvolutionPeriodicPeriodic(
+            Curve f,
+            Curve g)
         {
-            Rational d = EarliestValidLength();
-            var t1 = firstPeriodicCurve.PseudoPeriodStart;
-            var t2 = secondPeriodicCurve.PseudoPeriodStart;
-            var T = t1 + t2 + d;
-            Rational c = d * Rational.Min(firstPeriodicCurve.PseudoPeriodSlope, secondPeriodicCurve.PseudoPeriodSlope);
-
-            #if DO_LOG
-            logger.Debug($"Estimate convolution: extending from T1 {t1} d1 {firstPeriodicCurve.PseudoPeriodLength}  T2 {t2} d2 {secondPeriodicCurve.PseudoPeriodLength} to T {T} d {d}");
-            #endif
-                
-            Sequence firstPeriodicSequence = firstPeriodicCurve.Cut(t1, t1 + 2*d);
-            Sequence secondPeriodicSequence = secondPeriodicCurve.Cut(t2, t2 + 2*d);
-
-            #if DO_LOG
-            logger.Debug($"Estimate convolution: extending from {firstPeriodicCurve.PseudoPeriodicSequence.Count} and {secondPeriodicCurve.PseudoPeriodicSequence.Count} to {firstPeriodicSequence.Count} and {secondPeriodicSequence.Count}");
-            #endif
-
-            #if DO_LOG
-            logger.Trace("Estimate convolution: periodic x periodic");
-            #endif
-            var result = Sequence.EstimateConvolution(firstPeriodicSequence, secondPeriodicSequence, settings, T + d, countElements: countElements);
-
-            return result;
-                
-            Rational EarliestValidLength()
+            if (f.IsUltimatelyAffine || g.IsUltimatelyAffine)
             {
-                //Optimization: avoid enlargement of lengths if a curve is Ultimately Affine
-                if (firstPeriodicCurve.IsUltimatelyAffine)
-                    return secondPeriodicCurve.PseudoPeriodLength;
-                if (secondPeriodicCurve.IsUltimatelyAffine)
-                    return firstPeriodicCurve.PseudoPeriodLength;
+                var d = f.IsUltimatelyAffine ? g.PseudoPeriodLength : f.PseudoPeriodLength;
+                var tf = f.PseudoPeriodStart;
+                var tg = g.PseudoPeriodStart;
+                var T = tf + tg + d;
+                Rational c = d * Rational.Min(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
 
-                return Rational.LeastCommonMultiple(firstPeriodicCurve.PseudoPeriodLength, secondPeriodicCurve.PseudoPeriodLength);
+                #if DO_LOG
+                logger.Trace($"Estimate convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
+                #endif
+                
+                var fCut = f.Cut(tf, tf + 2*d, settings: settings);
+                var gCut = g.Cut(tg, tg + 2*d, settings: settings);
+
+                #if DO_LOG
+                logger.Trace($"Estimate convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
+                #endif
+
+                #if DO_LOG
+                logger.Trace("Estimate convolution: periodic x periodic UA");
+                #endif
+                var cutEnd = T + d;
+                var result = Sequence.EstimateConvolution(fCut, gCut, settings, cutEnd, countElements: countElements);
+
+                return result;
             }
+            else
+            {
+                Rational d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+                var tf = f.PseudoPeriodStart;
+                var tg = g.PseudoPeriodStart;
+                var T = tf + tg + d;
+                Rational c = d * Rational.Min(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Estimate convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
+                #endif
+
+                var fCutEnd = tf + 2*d;
+                var gCutEnd = tg + 2*d;
+                var fCut = f.Cut(tf, fCutEnd, isEndIncluded: false, settings: settings);
+                var gCut = g.Cut(tg, gCutEnd, isEndIncluded: false, settings: settings);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Estimate convolution: extending from {f.PseudoPeriodicSequence.Count} and {g.PseudoPeriodicSequence.Count} to {fCut.Count} and {gCut.Count}");
+                #endif
+
+                #if DO_LOG
+                logger.Trace("Estimate convolution: periodic x periodic");
+                #endif
+                var cutEnd = T + d;
+                var result = Sequence.EstimateConvolution(fCut, gCut, settings, cutEnd, countElements: countElements);
+
+                return result;
+            }                
         }
     }
         
