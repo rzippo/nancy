@@ -7,7 +7,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 public record ComputationSettings
 {
     //todo: reference the affected methods, where makes sense
-    
+
     /// <summary>
     /// Catch-all property. 
     /// Get: is true if any parallelism is enabled.
@@ -45,7 +45,7 @@ public record ComputationSettings
     /// If true, long sequence minimums are processed in parallel.
     /// </summary>
     public bool UseParallelLowerEnvelope { get; set; } = true;
-        
+
     /// <summary>
     /// If true, long sequence maximums are processed in parallel.
     /// </summary>
@@ -70,12 +70,12 @@ public record ComputationSettings
     /// If true, convolutions of long lists of curves are processed in parallel
     /// </summary>
     public bool UseParallelListConvolution { get; set; } = true;
-        
+
     /// <summary>
     /// If true, minimums of long lists of curves are processed in parallel
     /// </summary>
     public bool UseParallelListLowerEnvelope { get; set; } = true;
-        
+
     /// <summary>
     /// If true, maximums of long lists of curves are processed in parallel
     /// </summary>
@@ -85,7 +85,7 @@ public record ComputationSettings
     /// If true, long sequence convolutions are processed in parallel
     /// </summary>
     public bool UseParallelConvolution { get; set; } = true;
-        
+
     /// <summary>
     /// Convolution parallelization is done if the number of element convolutions is above this threshold.
     /// </summary>
@@ -130,7 +130,7 @@ public record ComputationSettings
     /// In Extensions.SortElements, sort the elements in parallel.
     /// </summary>
     public bool UseParallelSortElements { get; set; } = true;
-        
+
     /// <summary>
     /// If true, when two Curves have the same slope the convolution is done in a single pass
     /// </summary>
@@ -140,7 +140,7 @@ public record ComputationSettings
     /// If set, results of each operation are optimized towards minimal representation
     /// </summary>
     public bool UseRepresentationMinimization { get; set; } = true;
-        
+
     /// <summary>
     /// If set, convolutions between sub-additive curves are optimized
     /// </summary>
@@ -152,13 +152,13 @@ public record ComputationSettings
     /// Mostly used for testing.
     /// </summary>
     public bool UseMinimumSelfConvolutionForCurvesWithInfinities { get; set; } = true;
-        
+
     /// <exclude />
     /// <summary>
     /// If set, the composition operator is optimized when one or both operands are <see cref="Curve.IsUltimatelyAffine"/>
     /// </summary>
     public bool UseCompositionOptimizations { get; set; } = true;
-    
+
     /// <summary>
     /// Default settings
     /// </summary>

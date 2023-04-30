@@ -104,7 +104,7 @@ public abstract class Element : IToCodeString
     {
         return JsonConvert.SerializeObject(this, new RationalConverter());
     }
-    
+
     /// <summary>
     /// Deserializes an <see cref="Element"/>.
     /// </summary>
@@ -147,7 +147,7 @@ public abstract class Element : IToCodeString
     /// Translates forwards the support by the given time quantity.
     /// </summary>
     public abstract Element Delay(Rational delay);
-        
+
     /// <summary>
     /// Translates backwards the support by the given time quantity.
     /// </summary>
@@ -228,7 +228,7 @@ public abstract class Element : IToCodeString
     {
         return elements.Aggregate(Addition);
     }
-        
+
     /// <summary>
     /// Subtracts two elements over their overlapping part.
     /// </summary>
@@ -309,7 +309,7 @@ public abstract class Element : IToCodeString
             return elements.ElementAt(0).Minimum(elements.ElementAt(1));
 
         var reference = elements.MinBy(e => e.Length);
-            
+
         switch(reference)
         {
             case Point referencePoint:
@@ -335,7 +335,7 @@ public abstract class Element : IToCodeString
             default:
                 throw new InvalidCastException();
         }
-            
+
         Point SampleToReference(Element element, Rational time)
         {
             switch (element)
@@ -385,7 +385,7 @@ public abstract class Element : IToCodeString
             }
         }
     }
-        
+
     #endregion Minimum operator
 
     #region Maximum operator
@@ -405,7 +405,7 @@ public abstract class Element : IToCodeString
     /// <returns>The set of segments resulting from the maximum.</returns>
     public static List<Element> Maximum(Element a, Element b)
         => a.Maximum(b);
-                
+
     /// <summary>
     /// Computes the maximum of a set of elements over their overlapping part.
     /// </summary>
@@ -423,7 +423,7 @@ public abstract class Element : IToCodeString
             return elements.ElementAt(0).Minimum(elements.ElementAt(1));
 
         var reference = elements.MinBy(e => e.Length);
-            
+
         switch(reference)
         {
             case Point referencePoint:
@@ -449,7 +449,7 @@ public abstract class Element : IToCodeString
             default:
                 throw new InvalidCastException();
         }
-            
+
         Point SampleToReference(Element element, Rational time)
         {
             switch (element)
@@ -499,7 +499,7 @@ public abstract class Element : IToCodeString
             }
         }
     }
-        
+
     #endregion Maximum operator
 
     #region Convolution operator 
@@ -563,6 +563,6 @@ public abstract class Element : IToCodeString
         Rational pseudoPeriodHeight,
         ComputationSettings? settings = null
     );
-        
+
     #endregion Sub-additive closure
 }

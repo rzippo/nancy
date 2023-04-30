@@ -244,13 +244,13 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         else
             return RightLimitAt(time) == ValueAt(time);
     } 
-    
+
     /// <summary>
     /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
     public bool IsNonNegative
         => MinValue() >= 0;
-    
+
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
@@ -269,7 +269,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             }
             return true;
         }
-    
+
     /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>
     /// </summary>
@@ -353,10 +353,10 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         elements.Add(Segment.Zero(from, to));
         if(isEndIncluded)
             elements.Add(Point.Zero(to));
-        
+
         return new Sequence(elements);
     }
-        
+
     /// <summary>
     /// Constructs a sequence that is $+\infty$ between <paramref name="from"/> and <paramref name="to"/>.
     /// </summary>
@@ -372,10 +372,10 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         elements.Add(Segment.PlusInfinite(from, to));
         if(isEndIncluded)
             elements.Add(Point.PlusInfinite(to));
-        
+
         return new Sequence(elements);
     }
-    
+
     /// <summary>
     /// Constructs a sequence that is $-\infty$ between <paramref name="from"/> and <paramref name="to"/>.
     /// </summary>
@@ -391,10 +391,10 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         elements.Add(Segment.MinusInfinite(from, to));
         if(isEndIncluded)
             elements.Add(Point.MinusInfinite(to));
-        
+
         return new Sequence(elements);
     }
-    
+
     /// <summary>
     /// Constructs a sequence that is <paramref name="value"/>> between <paramref name="from"/> and <paramref name="to"/>.
     /// </summary>
@@ -412,7 +412,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         elements.Add(Segment.Constant(from, to, value));
         if(isEndIncluded)
             elements.Add(new Point(to, value));
-        
+
         return new Sequence(elements);
     }
 
@@ -485,7 +485,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                 return true;
             if(!Equals(enA.Current, enB.Current))   // next elements are different
                 return false;
-                
+
             // may continue to next elements
         }
     }
@@ -555,7 +555,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     {
         return a.Equivalent(Minimum(a, b, true, settings));
     }
-        
+
     /// <summary>
     /// True if the first curve is an upper bound for the second one, for their overlapping part.
     /// </summary>
@@ -590,7 +590,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// </summary>
     public static Sequence operator -(Sequence s)
         => s.Negate();
-        
+
     #endregion
 
     #region Methods
@@ -602,13 +602,13 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         time > DefinedFrom && time < DefinedUntil ||
         time == DefinedFrom && IsLeftClosed ||
         time == DefinedUntil && IsRightClosed;
-    
+
     /// <summary>
     /// True if the sequence is defined before the given time.
     /// </summary>
     public bool IsDefinedBefore(Rational time) => 
         time > DefinedFrom && time <= DefinedUntil;
-    
+
     /// <summary>
     /// True if the sequence is defined after the given time.
     /// </summary>
@@ -661,7 +661,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
         int firstIndex = FindFirstIndex(element => element.EndTime >= time);
         int lastIndex = FindLastIndex(element => element.StartTime <= time);
-            
+
         return GetRange(firstIndex, lastIndex + 1)
             .Single(element => element.IsDefinedFor(time));
     }
@@ -705,7 +705,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             throw new ArgumentException("Sequence is not defined after given time");
         }
     }
-    
+
     /// <summary>
     /// Returns the <see cref="Element"/> that describes the sequence in <paramref name="time"/>, and its index in the sequence.
     /// </summary>
@@ -730,7 +730,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             .First(i => Elements[i].IsDefinedFor(time));
         return (element: Elements[targetIndex], index: targetIndex);
     }
-    
+
     /// <summary>
     /// Returns the <see cref="Segment"/> that describes the sequence before time t, and its index in the sequence.
     /// </summary>
@@ -747,7 +747,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     {
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
-        
+
         try
         {
             var targetIndex = Enumerable.Range(startingIndex, Count - startingIndex)
@@ -759,7 +759,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             throw new ArgumentException("Sequence is not defined before given time");
         }
     }
-    
+
     /// <summary>
     /// Returns the <see cref="Segment"/> that describes the sequence after <paramref name="time"/>, and its index in the sequence.
     /// </summary>
@@ -777,7 +777,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     {
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
-            
+
         try
         {
             var targetIndex = Enumerable.Range(startingIndex, Count - startingIndex)
@@ -789,7 +789,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             throw new ArgumentException("Sequence is not defined after given time");
         }
     }
-    
+
     /// <summary>
     /// Computes the overlap between two sequences.
     /// </summary>
@@ -837,10 +837,10 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     {
         if (cutStart > cutEnd)
             throw new ArgumentException("Cut start cannot be after end.");
-            
+
         if(cutStart < DefinedFrom || cutEnd > DefinedUntil)
             throw new ArgumentException("Cut limits are out of the sequence support.");
-            
+
         if(isStartIncluded && !IsDefinedAt(cutStart) || isEndIncluded && !IsDefinedAt(cutEnd))
             throw new ArgumentException("Cut includes endpoints that sequence does not.");
 
@@ -848,7 +848,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         {
             if (!(isStartIncluded && isEndIncluded))
                 throw new ArgumentException("Cut endpoints, if equal, must be both inclusive.");
-            
+
             var e = GetElementAt(cutStart);
             Point p;
             if (e is Point p2)
@@ -869,12 +869,12 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
                 case Segment segment:
                     return segment.EndTime > cutStart;
-                    
+
                 default:
                     throw new InvalidCastException();
             }
         }
-            
+
         // binary search for cut end
         int cutEndIndex = FindLastIndex(IsBeforeEnd, cutStartIndex);
         bool IsBeforeEnd(Element element)
@@ -886,7 +886,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
                 case Segment segment:
                     return segment.StartTime < cutEnd;
-                    
+
                 default:
                     throw new InvalidCastException();
             }
@@ -950,7 +950,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     }
 
     //todo: write tests for FindFirstIndex, FindLastIndex
-        
+
     /// <summary>
     /// Runs a binary search for the first element of the sequence that satisfies the predicate, and returns its index.
     /// </summary>
@@ -967,7 +967,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
         if (a > b)
             throw new ArgumentException("Start must be lower or equal than end");
-            
+
         while (true)
         {
             if (a == b)
@@ -999,7 +999,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
         if (a > b)
             throw new ArgumentException("Start must be lower or equal than end");
-            
+
         while (true)
         {
             if(a == b)
@@ -1013,7 +1013,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             else
                 b = b != middle ? middle : a;
         }
-            
+
         return predicate(Elements[a]) ?  a : -1;
     }
 
@@ -1032,7 +1032,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         for (int i = start; i < end; i++)
             yield return Elements[i];
     }
-        
+
     /// <summary>
     /// Returns an equivalent sequence optimized to have the minimum amount of segments.
     /// </summary>
@@ -1045,7 +1045,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         else
             return new Sequence(mergedElements);
     }
-    
+
     /// <summary>
     /// Returns an equivalent sequence guaranteed to have a <see cref="Point"/> at the given time.
     /// </summary>
@@ -1064,7 +1064,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         {
             var splitResult = ((Segment)target).Split(time);
             var segments = new List<Element>();
-                
+
             foreach (Element element in Elements)
             {
                 if(element != target)
@@ -1090,7 +1090,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         var breakpoints = this.EnumerateBreakpoints();
         return breakpoints.GetBreakpointsValues().Max();
     }
-    
+
     /// <summary>
     /// If the sequence is lower-bounded, i.e. $f(t) &gt;= x$ for any $t$, returns $x$.
     /// Otherwise, returns <see cref="Rational.MinusInfinity"/>
@@ -1120,7 +1120,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         Rational? fillWith = null
     )
         => elements.Fill(fillFrom, fillTo, isFromIncluded, isToIncluded, fillWith);
-    
+
     #endregion Methods
 
     #region Json Methods
@@ -1158,7 +1158,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         sb.Append($"{tabs(0)})");
 
         return sb.ToString();
-        
+
         string tabs(int n)
         {
             if (!formatted)
@@ -1182,7 +1182,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         var scaledElements = Elements
             //.AsParallel().AsOrdered()
             .Select(e => e.Scale(scaling));
-            
+
         return new Sequence(scaledElements);
     }
 
@@ -1233,7 +1233,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
         return new Sequence(delayedElements);
     }
-        
+
     /// <summary>
     /// Translates backwards the support by the given time quantity.
     /// </summary>
@@ -1275,7 +1275,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                 }
             }
         }
-            
+
         return new Sequence(elements);
     }
 
@@ -1338,10 +1338,10 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     {
         var aEndingValue = a.IsRightClosed ? a.ValueAt(a.DefinedUntil) : a.LeftLimitAt(a.DefinedUntil);
         var bStartingValue = b.IsLeftClosed ? b.ValueAt(b.DefinedFrom) : b.RightLimitAt(b.DefinedFrom);
-            
+
         if (aEndingValue.IsInfinite)
             throw new ArgumentException("Left sequence is infinite in its right end, cannot concatenate.");
-            
+
         if (bStartingValue.IsInfinite)
             throw new ArgumentException("Right sequence is infinite in its left end, cannot concatenate.");
 
@@ -1396,7 +1396,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             Sequence.Zero(DefinedFrom, DefinedUntil, isEndIncluded: true), 
             cutToOverlap: true
         );
-    
+
     /// <summary>
     /// Computes the lower pseudo-inverse function, $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
@@ -1412,7 +1412,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             .LowerPseudoInverse(startFromZero)
             .ToSequence();
     }
-    
+
     /// <summary>
     /// Computes the upper pseudo-inverse function, $f^{-1}_\uparrow(x) = \inf \left\{ t : f(t) > x \right\} = \sup \left\{ t : f(t) &lt;= x \right\}$.
     /// </summary>
@@ -1454,7 +1454,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             .ToList();
 
         IEnumerable<Element> mergedElements = sumElements.Merge();
-            
+
         return new Sequence(mergedElements);
     }
 
@@ -1471,7 +1471,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <returns>The sequence resulting from the sum.</returns>
     public static Sequence operator +(Sequence a, Sequence b)
         => Addition(a, b);
-        
+
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
@@ -1582,7 +1582,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
         return lowerElements.Merge();
     }
-    
+
     #endregion Minimum operator
 
     #region Maximum operator
@@ -1708,7 +1708,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         countStopwatch.Stop();
         logger.Trace($"Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
         #endif
-            
+
         if (cutEnd.Value.IsFinite)
         {
             var earliestElement = a.DefinedFrom + b.DefinedFrom;
@@ -1718,7 +1718,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             if(cutEnd < earliestElement)
                 throw new Exception("Convolution is cut before it starts");
         }
-            
+
         if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
             return PartitionedConvolution();
         else
@@ -1748,7 +1748,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             #if DO_LOG
             logger.Trace($"Running serial convolution, {pairsCount} pairs.");
             #endif
-                
+
             var convolutionElements = GetElementPairs() 
                 .SelectMany(pair => pair.ea.Convolution(pair.eb))
                 .ToList();
@@ -1807,7 +1807,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             #if DO_LOG
             logger.Trace($"Running partitioned convolution, {pairsCount} pairs.");
             #endif
-                
+
             var partialConvolutions = PartitionConvolutionElements()
                 .Select(elements => new Sequence(
                     elements.LowerEnvelope(settings),
@@ -1819,7 +1819,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             #if DO_LOG
             logger.Trace($"Partitioned convolutions computed, proceding with lower envelope of {partialConvolutions.Count} sequences");
             #endif
-                
+
             if (a.IsFinite && b.IsFinite)
             {
                 return new Sequence(
@@ -1865,7 +1865,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                             .ToList()
                             .SortElements(settings);
                     }
-                        
+
                     yield return convolutionElements;
                 }
             }
@@ -1943,7 +1943,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             #endif
             return deepCount;
         }
-            
+
         IEnumerable<(Element ea, Element eb)> GetElementPairs()
         {
             var elementPairs = a.Elements
@@ -1957,7 +1957,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             // if self-convolution, filter out symmetric pairs
             if (areSequenceEqual)
                 elementPairs = elementPairs.Where(pair => pair.a.StartTime <= pair.b.StartTime);
-            
+
             return elementPairs;        
         }
     }
@@ -2006,7 +2006,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             IEnumerable<Element> cutResult = result;
             if (cutEnd != null)
                 cutResult = cutResult.Fill(resultStart, cutEnd.Value);
-            
+
             var start = cutStart != null ? cutStart.Value : resultStart;
             var end = cutEnd != null ? cutEnd.Value : resultEnd;
             cutResult = cutResult.Cut(start, end);
@@ -2016,7 +2016,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         {
             return result.ToSequence();
         }
-        
+
         List<Element> SimpleDeconvolution()
         {
             var deconvolutionElements = elementPairs
@@ -2052,7 +2052,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         => Deconvolution(a: this, b: sequence, cutStart, cutEnd, settings);
 
     #endregion Deconvolution operator
-    
+
     #region Max-plus operators
 
     /// <summary>
@@ -2098,7 +2098,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         #endif
         return -Deconvolution(-a, -b, settings: settings);
     }
-    
+
     /// <summary>
     /// Computes the max-plus convolution of two sequences.
     /// </summary>
@@ -2117,7 +2117,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     #endregion Max-plus operators
 
     #region Composition
-    
+
     /// <summary>
     /// Compute the composition $f(g(t))$, over a limited interval.
     /// </summary>
@@ -2148,7 +2148,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                 .Select(bp => gInverse.ValueAt(bp.center.Time))
             : f.EnumerateBreakpoints()
                 .Select(bp => gInverse.ValueAt(bp.center.Time));
-        
+
         var times = gTimes.Concat(fTimes)
             .OrderBy(t => t)
             .OrderedDistinct();
@@ -2156,7 +2156,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         var merged = elements.Merge();
         var result = new Sequence(merged);
         return result;
-        
+
         IEnumerable<Element> EnumerateComposition(IEnumerable<Rational> times)
         {
             // We need two breakpoints to compute the composition between them
@@ -2244,7 +2244,7 @@ public static class SequenceExtensions
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
     public static Sequence ToSequence(this IEnumerable<Element> elements, Rational fillFrom, Rational fillTo, Rational? fillWith = null)
         => new Sequence(elements, fillFrom, fillTo, fillWith);
-    
+
     /// <summary>
     /// Returns a cut of the sequence for a smaller support.
     /// </summary>
@@ -2266,15 +2266,15 @@ public static class SequenceExtensions
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
             throw new ArgumentException("Elements is an empty collection");
-         
+
         if (cutStart > cutEnd)
             throw new ArgumentException("Invalid interval.");
-            
+
         if(cutStart < enumerator.Current.StartTime)
             throw new ArgumentException("Cut limits are out of the sequence support.");
         if (isStartIncluded && enumerator.Current is Segment && enumerator.Current.StartTime == cutStart)
             throw new ArgumentException("Cut includes endpoints that sequence does not.");
-            
+
         if (cutStart == cutEnd)
         {
             if (!(isStartIncluded && isEndIncluded))
@@ -2294,7 +2294,7 @@ public static class SequenceExtensions
             yield return p;
             yield break;
         }
-        
+
         // Enumerate until cut starts
         bool IsBeforeStart(Element element)
         {
@@ -2343,11 +2343,11 @@ public static class SequenceExtensions
                 }
                 break;
             }
-                
+
             default:
                 throw new InvalidCastException();
         }
-            
+
         // At the start of each iteration, left is the current segment
         // first we check if it's the last
         // otherwise, we fetch a point and a segment, check for merging, and restore the initial condition
@@ -2401,7 +2401,7 @@ public static class SequenceExtensions
             }
         }
     }
-    
+
     /// <summary>
     /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/>
     /// with the given value, defaults to $+\infty$.
@@ -2443,7 +2443,7 @@ public static class SequenceExtensions
             {
                 yield return new Point(expectedStart, value);
             }
-                    
+
             yield return element;
             expectedStart = element.EndTime;
             isExpectingPoint = element is Segment;
@@ -2472,7 +2472,7 @@ public static class SequenceExtensions
             }
         }
     }
-    
+
     /// <summary>
     /// Applies merge, whenever possible, to a set of elements.
     /// The result is the minimal set, in number of elements, to represent the same information.
@@ -2542,7 +2542,7 @@ public static class SequenceExtensions
     {
         if(!CanMergeTriplet(left, point, right))
             throw new ArgumentException("Segments cannot be merged");
-            
+
         return new Segment(
             startTime: left.StartTime,
             endTime: right.EndTime,
@@ -2564,7 +2564,7 @@ public static class SequenceExtensions
             point.Value == right.RightLimitAtStartTime &&
             left.Slope == right.Slope;
     }
-    
+
     /// <summary>
     /// Applies merge, whenever possible, to a set of elements.
     /// The result is the minimal set, in number of elements, to represent the same information.
@@ -2601,7 +2601,7 @@ public static class SequenceExtensions
                 yield return left;
                 yield break;
             }
-                
+
             if (enumerator.Current is not Point center)
                 throw new ArgumentException("Invalid sequence of elements");
 
@@ -2611,7 +2611,7 @@ public static class SequenceExtensions
                 yield return center;
                 yield break;
             }
-                
+
             if (enumerator.Current is not Segment right)
                 throw new ArgumentException("Invalid sequence of elements");
 
@@ -2632,7 +2632,7 @@ public static class SequenceExtensions
             }
         }
     }
-    
+
     /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end.
     /// </summary>
@@ -2705,7 +2705,7 @@ public static class SequenceExtensions
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
             throw new InvalidOperationException("The collection is empty");
-            
+
         Rational lastDefinedTime = enumerator.Current.EndTime;
         bool lastElementWasPoint = enumerator.Current is Point;
 
@@ -2765,7 +2765,7 @@ public static class SequenceExtensions
                     .ThenBy(element => element.EndTime)
                     .ToList();
             }
-                
+
             #if DO_LOG
             sortStopwatch.Stop();
             #endif
@@ -2865,7 +2865,7 @@ public static class SequenceExtensions
         if (right is not null)
             yield return right.RightLimitAtStartTime;
     }
-    
+
     /// <summary>
     /// Enumerates, for each breakpoint, the left-limit, the value and right-limit at the breakpoint.
     /// </summary>
@@ -2875,7 +2875,7 @@ public static class SequenceExtensions
         return breakpoints
             .SelectMany(GetBreakpointValues);
     }
-    
+
         /// <summary>
     /// True if there is no discontinuity within the sequence.
     /// </summary>
@@ -2945,7 +2945,7 @@ public static class SequenceExtensions
 
         return true;
     }
-    
+
     /// <summary>
     /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
@@ -2953,7 +2953,7 @@ public static class SequenceExtensions
     {
         return elements.InfValue() >= 0;
     }
-    
+
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
@@ -2969,7 +2969,7 @@ public static class SequenceExtensions
         }
         return true;
     }
-    
+
     /// <summary>
     /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
@@ -2979,7 +2979,7 @@ public static class SequenceExtensions
         var breakpoints = elements.EnumerateBreakpoints();
         return breakpoints.GetBreakpointsValues().Max();
     }
-    
+
     /// <summary>
     /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$, returns $\sup x$.
     /// Otherwise, returns $-\infty$.
@@ -2989,7 +2989,7 @@ public static class SequenceExtensions
         var breakpoints = elements.EnumerateBreakpoints();
         return breakpoints.GetBreakpointsValues().Min();
     }
-    
+
     /// <summary>
     /// Computes the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
@@ -3007,7 +3007,7 @@ public static class SequenceExtensions
         var merged = startFromZero ?
             elements.Merge().SkipUntilValue(0):
             elements.Merge();
-        
+
         using var enumerator = merged.GetEnumerator();
 
         if (!enumerator.MoveNext())
@@ -3134,7 +3134,7 @@ public static class SequenceExtensions
                     {
                         throw new ArgumentException("The sequence is not non-decreasing.");
                     }
-                        
+
                     break;
                 }
             }
@@ -3158,7 +3158,7 @@ public static class SequenceExtensions
         var merged = startFromZero ?
             elements.Merge().SkipUntilValue(0):
             elements.Merge();
-        
+
         using var enumerator = merged.GetEnumerator();
 
         if (!enumerator.MoveNext())
@@ -3301,7 +3301,7 @@ public static class SequenceExtensions
                     {
                         throw new ArgumentException("The sequence is not non-decreasing.");
                     }
-                        
+
                     break;
                 }
             }
@@ -3311,7 +3311,7 @@ public static class SequenceExtensions
         if (heldPoint is not null)
             yield return heldPoint;
     }
-    
+
     /// <summary>
     /// Skips elements until <paramref name="value"/> is reached, i.e. while $f(t) &lt; v$.
     /// </summary>
@@ -3335,7 +3335,7 @@ public static class SequenceExtensions
                 {
                     if (s.Slope < 0)
                         throw new ArgumentException("Segments must be non-decreasing");
-                    
+
                     if (s.IsConstant && s.LeftLimitAtEndTime < value)
                         continue;
                     else if (!s.IsConstant && s.LeftLimitAtEndTime <= value)
@@ -3352,7 +3352,7 @@ public static class SequenceExtensions
                         yield return s;
                     break;
                 }
-                
+
                 default:
                     throw new InvalidCastException();
             }
@@ -3369,7 +3369,7 @@ public static class SequenceExtensions
         settings ??= ComputationSettings.Default();
         if (!elements.Any())
             throw new ArgumentException("The set of elements is empty");
-            
+
         #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
         #endif
@@ -3378,7 +3378,7 @@ public static class SequenceExtensions
         intervalsStopwatch.Stop();
         logger.Debug($"Intervals computed: {elements.Count} elements, {intervalsStopwatch.ElapsedMilliseconds} milliseconds ");
         #endif
-        
+
         #if DO_LOG
         var lowerEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
@@ -3469,7 +3469,7 @@ public static class SequenceExtensions
         intervalsStopwatch.Stop();
         logger.Debug($"Intervals computed: {elements.Count} elements, {intervalsStopwatch.ElapsedMilliseconds} milliseconds ");
         #endif
-        
+
         #if DO_LOG
         var upperEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
@@ -3490,7 +3490,7 @@ public static class SequenceExtensions
                 .SelectMany(element => element)
                 .ToList();
         }
-            
+
         var sequence = upperElements.Merge();
         #if DO_LOG
         upperEnvelopeStopwatch.Stop();

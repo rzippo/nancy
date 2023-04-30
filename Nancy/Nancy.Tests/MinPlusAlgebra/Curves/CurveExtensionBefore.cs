@@ -39,7 +39,7 @@ public class CurveExtensionBefore
         Assert.Equal(5, curve.LeftLimitAt(4));
         Assert.Equal(8, curve.LeftLimitAt(6));           
     }
-        
+
     [Fact]
     public void StaircaseEndPoints()
     {
@@ -70,12 +70,12 @@ public class CurveExtensionBefore
 
         Assert.Throws<ArgumentException>(() => curve.LeftLimitAt(0));
         Assert.Throws<ArgumentException>(() => curve.GetSegmentBefore(0));
-            
+
         Assert.Equal(0, curve.LeftLimitAt(3));
         Assert.Equal(11, curve.LeftLimitAt(9));
         Assert.Equal(5, curve.LeftLimitAt(5));
         Assert.Equal(8, curve.LeftLimitAt(7));
     }
-        
+
     //todo: add also InputBuffer equivalent
 }

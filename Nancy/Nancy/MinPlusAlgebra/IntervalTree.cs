@@ -13,11 +13,11 @@ internal class IntervalTree
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
     #endif
-        
+
     public IReadOnlyList<Interval> Intervals { get; }
 
     public int Count => Intervals.Count;
-        
+
     public IntervalTree(IReadOnlyList<Interval> intervals, ComputationSettings? settings = null)
     {
         Intervals = intervals
@@ -33,10 +33,10 @@ internal class IntervalTree
     {
         int a = 0;
         int b = Count - 1;
-            
+
         if (a > b)
             throw new ArgumentException("Start must be lower or equal than end");
-            
+
         while (true)
         {
             if (a == b)
@@ -53,7 +53,7 @@ internal class IntervalTree
         var interval = Intervals[a];
         return (interval.IsPointInterval && interval.Start == time) ? interval : null;
     }
-        
+
     public IEnumerable<Interval> Query(Rational start, Rational end)
     {
         int startIndex = findStart();
@@ -64,7 +64,7 @@ internal class IntervalTree
             var interval = Intervals[i];
             if(interval.IsPointInterval && ( i == startIndex || i == endIndex))
                 continue;
-                
+
             yield return interval;
         }
 
@@ -106,7 +106,7 @@ internal class IntervalTree
                 else
                     b = b != middle ? middle : a;
             }
-                
+
             return a;
         }
     }

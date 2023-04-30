@@ -13,7 +13,7 @@ public class RationalConverter : JsonConverter
 {
     private static readonly string NumeratorName = "num";
     private static readonly string DenominatorName = "den";
-    
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
@@ -38,14 +38,14 @@ public class RationalConverter : JsonConverter
 #endif
         var numTkn = jt[NumeratorName]!;
         var denTkn = jt[DenominatorName]!;
-        
+
 #if BIG_RATIONAL
         BigInteger num, den;
         if (numTkn.Type == JTokenType.Integer)
             num = numTkn.ToObject<long>();
         else
             num = BigInteger.Parse(numTkn.ToString());
-        
+
         if (denTkn.Type == JTokenType.Integer)
             den = denTkn.ToObject<long>();
         else
@@ -56,7 +56,7 @@ public class RationalConverter : JsonConverter
             num = numTkn.ToObject<long>();
         else
             num = long.Parse(numTkn.ToString());
-        
+
         if (denTkn.Type == JTokenType.Integer)
             den = denTkn.ToObject<long>();
         else
@@ -64,14 +64,14 @@ public class RationalConverter : JsonConverter
 #endif
         return new Rational(num, den);
     }
-    
+
     /// <inheritdoc />
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
         Rational rational = (Rational) value;
-        
+
         if (rational.Denominator == 1)
         {
             writer.WriteValue(rational.Numerator);

@@ -41,7 +41,7 @@ public class Constant
 
         Assert.Equal(0, curve.ValueAt(0));
         Assert.Equal(value, curve.RightLimitAt(0));
-            
+
         Assert.Equal(value, curve.ValueAt(curve.PseudoPeriodStart));
         Assert.Equal(value, curve.ValueAt(curve.FirstPseudoPeriodEnd));
         Assert.Equal(value, curve.ValueAt(curve.SecondPseudoPeriodEnd));
@@ -94,7 +94,7 @@ public class Constant
 
         var bufferSize = Rational.PlusInfinity;
         var raisedRouterService_bufferSize = nextRouterService + bufferSize;
-                    
+
         Assert.True(raisedRouterService_bufferService.EquivalentExceptOrigin(raisedRouterService_bufferSize));
     }
 
@@ -105,7 +105,7 @@ public class Constant
         var bufferService = new ConstantCurve(Rational.PlusInfinity);
 
         var raisedRouterService = nextRouterService + bufferService;
-        
+
         Assert.True(raisedRouterService.IsUltimatelyPlain);
         Assert.False(raisedRouterService.IsZero);
         Assert.False(raisedRouterService.IsContinuous);

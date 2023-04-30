@@ -21,7 +21,7 @@ public class PointMin
         Assert.Equal(2, min.EndTime);
         Assert.Equal(Rational.Min(first.Value, second.Value), min.Value);
     }
-        
+
     [Fact]
     public void PointsOverlap_asElement()
     {
@@ -37,7 +37,7 @@ public class PointMin
         Assert.Equal(2, minPoint.EndTime);
         Assert.Equal(Rational.Min(first.Value, second.Value), minPoint.Value);
     }
-        
+
     [Fact]
     public void PointsOverlap_asList()
     {
@@ -61,7 +61,7 @@ public class PointMin
 
         Assert.Throws<ArgumentException>(() => first.Minimum(second));
     }
-        
+
     [Fact]
     public void PointsNonOverlap_asList()
     {
@@ -80,13 +80,13 @@ public class PointMin
         var min = Point.Minimum(new[] {point});
         Assert.Equal(point, min);
     }
-        
+
     [Fact]
     public void Points_EmptyList()
     {
         Assert.Throws<InvalidOperationException>(() => Point.Minimum(new Point[] { }));
     }
-        
+
     [Fact]
     public void PointAndSegment()
     {
@@ -107,7 +107,7 @@ public class PointMin
             Rational.Min(segment.ValueAt(2), point.Value),
             min.Value);
     }
-        
+
     [Fact]
     public void PointAndSegment_asElement()
     {
@@ -120,7 +120,7 @@ public class PointMin
             startTime: 1,
             endTime: 3
         );
-            
+
         var min = point.Minimum(segment as Element);
         Assert.Single(min);
         var minPoint = (Point) min.Single();

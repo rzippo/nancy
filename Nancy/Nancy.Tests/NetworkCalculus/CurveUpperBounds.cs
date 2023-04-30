@@ -30,7 +30,7 @@ public class CurveUpperBounds
     public void SigmaRhoTest(string curveJson)
     {
         var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalConverter())!;
-            
+
         var sigmaRhoCurve = curve.SigmaRhoUpperBound();
 
         output.WriteLine(JsonConvert.SerializeObject(sigmaRhoCurve, new GenericCurveConverter(), new RationalConverter()));

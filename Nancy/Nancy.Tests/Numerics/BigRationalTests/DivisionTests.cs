@@ -31,7 +31,7 @@ public class DivisionTests
         Assert.Throws<UndeterminedResultException>(() => BigRational.PlusInfinity / BigRational.MinusInfinity);
         Assert.Throws<UndeterminedResultException>(() => BigRational.MinusInfinity / BigRational.MinusInfinity);
     }
-        
+
     [Fact]
     public void FiniteOverZero()
     {

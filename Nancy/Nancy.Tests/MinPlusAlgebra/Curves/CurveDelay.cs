@@ -36,7 +36,7 @@ public class CurveDelay
 
         Assert.Equal(curve.IsZero, delayed.IsZero);
         Assert.True( delay == 0 || delayed.Cut(0, delay).IsZero);
-                       
+
         var random = new Random();
         for (int i = 0; i < 10; i++)
         {

@@ -59,7 +59,7 @@ public class CurveConverter : JsonConverter
         if (value == null)
             throw new ArgumentNullException(nameof(value));
         Curve curve = (Curve) value;
-        
+
         serializer.Converters.Add(new RationalConverter());
 
         JObject jo = new JObject

@@ -137,7 +137,7 @@ public class CurveToNonDecreasing
                         Segment.Constant(2, 3, 2),
                         new Point(3, 2),
                         new Segment(3, 4, 2, 1),
-                        
+
                     }),
                     pseudoPeriodStart: 3,
                     pseudoPeriodLength: 1,
@@ -196,7 +196,7 @@ public class CurveToNonDecreasing
                         Segment.Constant(2, 3, 2),
                         new Point(3, 2),
                         new Segment(3, 4, 2, 1),
-                        
+
                     }),
                     pseudoPeriodStart: 2,
                     pseudoPeriodLength: 2,
@@ -210,7 +210,7 @@ public class CurveToNonDecreasing
             yield return new object[] { operand, expected };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(GetDecreasingTestCases))]
     public void ToNonDecreasingTest(Curve operand, Curve expected)

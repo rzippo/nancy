@@ -42,7 +42,7 @@ public class CurveCut
             yield return new object[] {testCase.curve, testCase.cutStart, testCase.cutEnd};
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(CutSelfEquivalenceTestCases))]
     public void CutSelfEquivalence(Curve curve, Rational cutStart, Rational cutEnd)
@@ -141,7 +141,7 @@ public class CurveCut
                 })
             )
         };
-        
+
         foreach (var (curve, cutStart, cutEnd, isStartIncluded, isEndIncluded, expected) in testCases)
         {
             yield return new object[] {curve, cutStart, cutEnd, isStartIncluded, isEndIncluded, expected};

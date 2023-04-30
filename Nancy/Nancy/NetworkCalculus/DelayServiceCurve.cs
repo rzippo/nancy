@@ -78,9 +78,9 @@ public class DelayServiceCurve : SuperAdditiveCurve
             });
         }
     }
-    
+
     private static readonly Rational DefaultPeriodLength = 1;
-    
+
     /// <inheritdoc cref="Curve.Convolution(Curve, ComputationSettings?)"/>
     public override Curve Convolution(Curve curve, ComputationSettings? settings = null)
     {

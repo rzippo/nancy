@@ -86,7 +86,7 @@ public class SegmentsMerge
         Segment leftInfinite = Segment.PlusInfinite(0, 5);
         Point pointInfinite = Point.PlusInfinite(5);
         Segment rightInfinite = Segment.PlusInfinite(5, 10);
-            
+
         Assert.True(SequenceExtensions.CanMergeTriplet(leftInfinite, pointInfinite, rightInfinite));
 
         Segment merge = SequenceExtensions.MergeTriplet(leftInfinite, pointInfinite, rightInfinite);
@@ -166,7 +166,7 @@ public class SegmentsMerge
         Assert.Equal(40, sequence.ValueAt(10));
         Assert.Equal(50, sequence.RightLimitAt(10));
     }
-        
+
     public static IEnumerable<object[]> MergeTestCases()
     {
         var testCases = new[]

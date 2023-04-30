@@ -62,7 +62,7 @@ public class SegmentDeconvolution
 
         Assert.Equal(leftSegment.Slope, first.Slope);
         Assert.Equal(rightSegment.Slope, second.Slope);
-            
+
         Assert.Equal(middlePoint.Value, leftSegment.LeftLimitAtEndTime);
         Assert.Equal(middlePoint.Value, rightSegment.RightLimitAtStartTime);
         Assert.Equal(first.ValueAt(3) - second.LeftLimitAtEndTime, leftSegment.ValueAt(3 - second.EndTime));
@@ -99,7 +99,7 @@ public class SegmentDeconvolution
 
         Assert.Equal(leftSegment.Slope, first.Slope);
         Assert.Equal(rightSegment.Slope, second.Slope);
-            
+
         Assert.Equal(middlePoint.Value, leftSegment.LeftLimitAtEndTime);
         Assert.Equal(middlePoint.Value, rightSegment.RightLimitAtStartTime);
         Assert.Equal(first.ValueAt(1) - second.LeftLimitAtEndTime, leftSegment.ValueAt(1 - second.EndTime));

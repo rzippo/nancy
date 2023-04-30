@@ -33,7 +33,7 @@ public class MultiplicationTests
         Assert.Equal(BigRational.MinusInfinity, BigRational.PlusInfinity * BigRational.MinusInfinity);
         Assert.Equal(BigRational.PlusInfinity, BigRational.MinusInfinity * BigRational.MinusInfinity);
     }
-        
+
     [Fact]
     public void FiniteByZero()
     {

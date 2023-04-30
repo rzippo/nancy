@@ -12,7 +12,7 @@ public class SequenceAddition
     {
         Sequence f1 = TestFunctions.SequenceA;
         Sequence f2 = TestFunctions.SequenceB;
-            
+
         Sequence sum = f1.Addition(f2);
 
         Assert.Equal(0, sum.DefinedFrom);
@@ -24,7 +24,7 @@ public class SequenceAddition
         Assert.Equal(-2, sum.GetSegmentAfter(5).Slope);
         Assert.Equal(26, sum.LeftLimitAt(6));
     }
-        
+
     public static IEnumerable<object[]> GetSigmaRhoRateLatencyTests()
     {
         var testcases = new List<(Sequence a, Sequence b, Sequence expected)>

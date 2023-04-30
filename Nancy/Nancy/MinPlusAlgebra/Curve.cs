@@ -144,7 +144,7 @@ public class Curve : IToCodeString
                 return 0;
             if (!opt.IsLeftContinuousAt(opt.PseudoPeriodStart))
                 return opt.PseudoPeriodStart;
-            
+
             var lastTransientSegment = (Segment) opt.TransientElements.Last();
             var lastPeriodSegment = (Segment) opt.PseudoPeriodicElements.Last();
             if (lastTransientSegment.Slope == lastPeriodSegment.Slope)
@@ -154,7 +154,7 @@ public class Curve : IToCodeString
                 return opt.PseudoPeriodStart;
         }
     }
-    
+
     /// <summary>
     /// True if the curve is 0 for all $t$.
     /// </summary>
@@ -166,7 +166,7 @@ public class Curve : IToCodeString
     /// </summary>
     public bool IsPlusInfinite =>
         this.Equivalent(PlusInfinite());
-    
+
     /// <summary>
     /// True if the curve has $-\infty$ value for any $t$.
     /// </summary>
@@ -234,38 +234,38 @@ public class Curve : IToCodeString
     /// Private cache field for <see cref="IsRightContinuous"/>
     /// </summary>
     internal bool? _isRightContinuous;
-    
+
     /// <summary>
     /// True if the curve is continuous at <paramref name="time"/>.
     /// </summary>
     public bool IsContinuousAt(Rational time)
         => time > 0 ? 
             IsLeftContinuousAt(time) && IsRightContinuousAt(time) : IsRightContinuousAt(time);
-    
+
     /// <summary>
     /// True if the curve is continuous at <paramref name="time"/>.
     /// </summary>
     public bool IsLeftContinuousAt(Rational time)
         => LeftLimitAt(time) == ValueAt(time);
-    
+
     /// <summary>
     /// True if the curve is continuous at <paramref name="time"/>.
     /// </summary>
     public bool IsRightContinuousAt(Rational time)
         => RightLimitAt(time) == ValueAt(time);
-    
+
     /// <summary>
     /// True if the curve is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
     public bool IsNonNegative
         => _isNonNegative ??= InfValue() >= 0;
-    
+
     /// <summary>
     /// Private cache field for <see cref="IsNonNegative"/>
     /// </summary>
     internal bool? _isNonNegative;
 
-    
+
     /// <summary>
     /// The first instant around which the curve is non-negative.
     /// Does not specify whether it's inclusive or not, i.e. if $f(\overline{t}) >= 0$.
@@ -290,7 +290,7 @@ public class Curve : IToCodeString
                     CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 1) * PseudoPeriodLength, isEndIncluded: true)
                 );
             }
-            
+
             Rational FindFirstNonNegativeInSequence(IEnumerable<Element> elements)
             {
                 foreach (var element in elements)
@@ -321,7 +321,7 @@ public class Curve : IToCodeString
             }
         }
     }
-    
+
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
@@ -451,7 +451,7 @@ public class Curve : IToCodeString
             }
         }
     }
-        
+
     /// <summary>
     /// Private cache field for IsSuperAdditive.
     /// </summary>
@@ -662,7 +662,7 @@ public class Curve : IToCodeString
             pseudoPeriodHeight: 0
         );
     }
-        
+
     /// <summary>
     /// Constructs a curve that is equal to $-\infty$ over any $t$.
     /// </summary>
@@ -686,7 +686,7 @@ public class Curve : IToCodeString
     {
         return new ConstantCurve(0);
     }
-        
+
     #endregion
 
     #region Equality and comparison methods
@@ -730,7 +730,7 @@ public class Curve : IToCodeString
     {
         var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart) 
                             + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
-            
+
         var seqA = a.CutAsEnumerable(0, cutEnd, true, true, settings);
         var seqB = b.CutAsEnumerable(0, cutEnd, true, true, settings);
 
@@ -773,7 +773,7 @@ public class Curve : IToCodeString
     {
         var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
                             + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
-        
+
         var seqA = a.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
         var seqB = b.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
 
@@ -793,7 +793,7 @@ public class Curve : IToCodeString
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static Rational? FindFirstInequivalence(Curve a, Curve b, ComputationSettings? settings = null)
         => FindFirstInequivalenceAfter(a, b, 0, true, settings);
-    
+
     //todo: write tests
     /// <summary>
     /// Returns the first time around which the functions represented by the curves differ.
@@ -880,7 +880,7 @@ public class Curve : IToCodeString
     {
         return a.Equivalent(Minimum(a, b));
     }
-        
+
     /// <summary>
     /// True if the first curve is an upper bound for the second one.
     /// </summary>
@@ -897,7 +897,7 @@ public class Curve : IToCodeString
     {
         if (a == b)
             return (true, a, b);
-                
+
         var minimum = Minimum(a, b, settings);
         if (Equivalent(a, minimum))
             return (true, a, b);
@@ -906,7 +906,7 @@ public class Curve : IToCodeString
         else
             return (false, a, b);
     }
-        
+
     /// <summary>
     /// Checks if there is asymptotic dominance between the curves given and, if so, returns their order.
     /// </summary>
@@ -928,7 +928,7 @@ public class Curve : IToCodeString
                 return (false, a, b);
         }
     }
-        
+
     /// <summary>
     /// True if the curve is below the point
     /// </summary>
@@ -952,7 +952,7 @@ public class Curve : IToCodeString
     {
         if (IsZero)
             return this;
-            
+
         return new Curve(
             baseSequence: -BaseSequence,
             pseudoPeriodStart: PseudoPeriodStart,
@@ -1005,7 +1005,7 @@ public class Curve : IToCodeString
     {
         if (time == 0)
             throw new ArgumentException("A curve is not defined for t < 0");
-                
+
         Segment segment = GetSegmentBefore(time);
         return (segment.EndTime == time) ?
             segment.LeftLimitAtEndTime 
@@ -1077,7 +1077,7 @@ public class Curve : IToCodeString
             // avoid infinite extensions
             if (t >= PseudoPeriodStart && (IsUltimatelyAffine || IsUltimatelyInfinite))
                 return segment;
-            
+
             // try merging with the next segment, until a non-differentiable time is reached
             bool try_merge;
             do
@@ -1101,7 +1101,7 @@ public class Curve : IToCodeString
                 return segment;
         }
     }
-        
+
     /// <summary>
     /// True if the given element matches, in its support, with the curve.
     /// </summary>
@@ -1120,7 +1120,7 @@ public class Curve : IToCodeString
                 else
                     return false;
             }
-                
+
             default:
                 throw new InvalidCastException();
         }
@@ -1134,7 +1134,7 @@ public class Curve : IToCodeString
         return sequence.Elements
             .All(e => Match(e, settings));
     }
-        
+
     private Sequence GetExtensionSequenceAt(Rational time, ComputationSettings? settings = null)
     {
         int targetPeriodIndex = (int)Math.Floor((decimal)((time - FirstPseudoPeriodEnd) / PseudoPeriodLength)) + 1;
@@ -1166,7 +1166,7 @@ public class Curve : IToCodeString
     )
     {
         settings ??= ComputationSettings.Default();
-            
+
         if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
         {
             if (cutStart > BaseSequence.DefinedUntil)
@@ -1182,7 +1182,7 @@ public class Curve : IToCodeString
                         .AsParallel()
                     : Enumerable.Range(startingPseudoPeriodIndex,
                         (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
-                    
+
                 var elements = indexes
                     .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
                     .SelectMany(en => en);
@@ -1234,15 +1234,15 @@ public class Curve : IToCodeString
     {
         if (cutStart < 0)
             throw new ArgumentException("Cannot cut from before zero");
-        
+
         if (cutEnd.IsInfinite || cutStart.IsInfinite)
             throw new ArgumentException("Cannot cut to infinity");
 
         if (cutStart > cutEnd)
             throw new ArgumentException("Cut start cannot be after end.");
-        
+
         settings ??= ComputationSettings.Default();
-            
+
         Sequence result;
         if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
         {
@@ -1280,7 +1280,7 @@ public class Curve : IToCodeString
                     var elements = BaseSequence.Elements
                         .SkipLast(1)
                         .Append(lastSegment);
-                    
+
                     if (isEndIncluded)
                     {
                         var lastPoint = new Point(cutEnd, lastSegment.LeftLimitAtEndTime);
@@ -1443,7 +1443,7 @@ public class Curve : IToCodeString
             periodicSegmentsCopy = PseudoPeriodicElements
                 .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
         }
-            
+
         return periodicSegmentsCopy;
 
         //local function used to copy elements
@@ -1489,7 +1489,7 @@ public class Curve : IToCodeString
     {
         return CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded).Count();
     }
-        
+
     /// <summary>
     /// Computes the first time the curve is at or above given <paramref name="value"/>, 
     /// i.e., $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right \}$
@@ -1507,7 +1507,7 @@ public class Curve : IToCodeString
             .LowerPseudoInverse()
             .ValueAt(value);
     }
-    
+
     #endregion Methods
 
     #region Json Methods
@@ -1538,7 +1538,7 @@ public class Curve : IToCodeString
     public virtual string ToCodeString(bool formatted = false, int indentation = 0)
     {
         var newline = formatted ? "\n" : "";
-        
+
         var sb = new StringBuilder();
         sb.Append($"{tabs(0)}new Curve({newline}");
         sb.Append($"{tabs(1)}baseSequence: {BaseSequence.ToCodeString(formatted, 1)},{newline}");
@@ -1561,7 +1561,7 @@ public class Curve : IToCodeString
     }
 
     #endregion Json Methods
-        
+
     #region Basic manipulations
 
     /// <summary>
@@ -1619,7 +1619,7 @@ public class Curve : IToCodeString
             pseudoPeriodHeight: PseudoPeriodHeight
         );
     }
-        
+
     /// <summary>
     /// Anticipates the curve, removing the parts from 0 to the given time.
     /// </summary>
@@ -1664,7 +1664,7 @@ public class Curve : IToCodeString
 
         if (exceptOrigin && IsZero)
             return new ConstantCurve(shift);
-        
+
         return new Curve(
             baseSequence: BaseSequence.VerticalShift(shift, exceptOrigin),
             pseudoPeriodStart: PseudoPeriodStart,
@@ -1688,7 +1688,7 @@ public class Curve : IToCodeString
     {
         return curve.VerticalShift(shift);
     }
-    
+
     /// <summary>
     /// Computes a non-negative version of this curve, 
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
@@ -1713,7 +1713,7 @@ public class Curve : IToCodeString
 
         // the following implementation is more efficient than the definition in [DNC18] p. 45, which uses the max-plus convolution,
         // since here we add terms to the global maximum only if there actually is a decrease.
-        
+
         // this list will contain the curve to transform plus,
         // for each breakpoint at which a decrease happens, a constant segment with the max value at the breakpoint and $-\infty$ before it.
         List<Curve> curves = new (){ this };
@@ -1734,7 +1734,7 @@ public class Curve : IToCodeString
                 }
             }
         }
-        
+
         if(PseudoPeriodSlope > 0)
         {
             foreach (var (left, center, right) in 
@@ -1769,7 +1769,7 @@ public class Curve : IToCodeString
                 }
             }
         }
-        
+
         return Maximum(curves);
 
         Curve GetLowerboundCurve(Rational time, Rational value)
@@ -1793,7 +1793,7 @@ public class Curve : IToCodeString
                     new Segment(time, time + 1, value, 0)
                 };
             }
-                
+
             return new Curve(
                 baseSequence: new Sequence(elements),
                 pseudoPeriodStart: time,
@@ -1801,7 +1801,7 @@ public class Curve : IToCodeString
                 pseudoPeriodHeight: 0
             );
         }
-        
+
         Curve GetPeriodicLowerboundCurve(Rational time, Rational value)
         {
             List<Element> elements;
@@ -1823,7 +1823,7 @@ public class Curve : IToCodeString
                     new Segment(time, time + PseudoPeriodLength, value, 0)
                 };
             }
-                
+
             return new Curve(
                 baseSequence: new Sequence(elements),
                 pseudoPeriodStart: time,
@@ -1847,7 +1847,7 @@ public class Curve : IToCodeString
             return Minimum(this, new DelayServiceCurve(0));
         }
     }
-    
+
     /// <summary>
     /// Computes the lower pseudo-inverse function, $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
@@ -1956,7 +1956,7 @@ public class Curve : IToCodeString
     {
         if (!IsNonDecreasing)
             throw new ArgumentException("The upper pseudo-inverse is defined only for non-decreasing functions");
-        
+
         if (IsUltimatelyConstant)
         {
             var constant_start = PseudoPeriodStartInfimum;
@@ -1980,7 +1980,7 @@ public class Curve : IToCodeString
                     .Concat(upi)
                     .ToSequence()
                 : upi.ToSequence();
-            
+
             return new Curve(
                 baseSequence: sequence,
                 pseudoPeriodStart: constant_value,
@@ -2011,7 +2011,7 @@ public class Curve : IToCodeString
                     .Concat(upi)
                     .ToSequence()
                 : upi.ToSequence();
-            
+
             return new Curve(
                 baseSequence: sequence,
                 pseudoPeriodStart: lastFiniteValue,
@@ -2055,7 +2055,7 @@ public class Curve : IToCodeString
                     .Concat(upi)
                     .ToSequence()
                 : upi.ToSequence();
-            
+
             return new Curve(
                 baseSequence: sequence,
                 pseudoPeriodStart: ValueAt(PseudoPeriodStart),
@@ -2076,7 +2076,7 @@ public class Curve : IToCodeString
     {
         if (!a.IsNonDecreasing || !b.IsNonDecreasing)
             throw new ArgumentException("The arguments must be non-decreasing.");
-        
+
         if (a is SigmaRhoArrivalCurve sr && b is RateLatencyServiceCurve rl)
         {
             if(rl.Rate >= sr.Rho)
@@ -2194,7 +2194,7 @@ public class Curve : IToCodeString
 
         return optimizedCurve;
     }
-        
+
     //Tests if pseudo period is composed of repetitions of a simpler pattern.
     //If so, excess parts are removed.
     internal Curve PeriodFactorization()
@@ -2203,9 +2203,9 @@ public class Curve : IToCodeString
             return this;
         if (PseudoPeriodHeight.IsInfinite)
             return this;
-            
+
         bool optimized = false;
-            
+
         var periodSequence = PseudoPeriodicSequence;
         var periodLength = PseudoPeriodLength;
         var periodHeight = PseudoPeriodHeight;
@@ -2232,7 +2232,7 @@ public class Curve : IToCodeString
             var elements = new List<Element>();
             elements.AddRange(TransientElements);
             elements.AddRange(periodSequence.Elements);
-                
+
             return new Curve(
                 baseSequence: new Sequence(elements),
                 pseudoPeriodStart: PseudoPeriodStart,
@@ -2253,7 +2253,7 @@ public class Curve : IToCodeString
             // any point in ]T, T+d[ is surely a breakpoint
             int breakPoints = periodSequence.Elements
                 .Count(e => e is Point) - 1;
-                
+
             // find out if between period end and next start there is another breakpoint
             var startingSlope = (periodSequence.Elements.First(e => e is Segment) as Segment)!.Slope;
             var endingSlope = (periodSequence.Elements.Last(e => e is Segment) as Segment)!.Slope;
@@ -2265,7 +2265,7 @@ public class Curve : IToCodeString
                 var firstSegment = periodSequence.Elements.First(e => e is Segment) as Segment;
                 var mergeableInfinite =
                     endingLeftLimit.IsInfinite && startingValue.IsInfinite && firstSegment!.IsInfinite;
-                    
+
                 if(!mergeableInfinite)
                     breakPoints += 1;
             }
@@ -2279,7 +2279,7 @@ public class Curve : IToCodeString
                 )
                     breakPoints += 1;
             }
-                
+
             foreach (int primeNumber in PrimeDivisors(breakPoints))
             {
                 if (IsPrimeFactor(primeNumber))
@@ -2296,7 +2296,7 @@ public class Curve : IToCodeString
 
             return false;
         }
-            
+
         IEnumerable<int> PrimeNumbers(int max)
         {
             // Initialized to the first 1000 primes
@@ -2334,7 +2334,7 @@ public class Curve : IToCodeString
                 {
                     while (n % p == 0)
                         n = n / p;
-                        
+
                     yield return p;
                 }
             }
@@ -2342,7 +2342,7 @@ public class Curve : IToCodeString
             if (n != 1)
                 yield return n;
         }
-            
+
         bool IsPrimeFactor(int primeNumber)
         {
             var length = periodLength / primeNumber;
@@ -2398,7 +2398,7 @@ public class Curve : IToCodeString
             // simplified algorithm for affine tails
             if (BaseSequence.Count < 4)
                 return this;
-            
+
             var affineSegment = (Segment) BaseSequence.Elements[^1];
             var affinePoint = (Point) BaseSequence.Elements[^2];
             var candidateSegment = (Segment) BaseSequence.Elements[^3];
@@ -2425,7 +2425,7 @@ public class Curve : IToCodeString
         else
         {
             bool optimized = false;
-            
+
             var sequence = BaseSequence;
             var pseudoPeriodicSequence = PseudoPeriodicSequence;
             var periodStart = PseudoPeriodStart;
@@ -2514,7 +2514,7 @@ public class Curve : IToCodeString
                     if (periodTail.Length > length)
                         periodTail = periodTail.Cut(periodTail.DefinedUntil - length,
                             periodTail.DefinedUntil);
-                    
+
                     var shiftedTransientSequence = transientTail
                         .VerticalShift(PseudoPeriodHeight, exceptOrigin: false)
                         .Delay(periodLength, prependWithZero: false);
@@ -2522,9 +2522,7 @@ public class Curve : IToCodeString
                     {
                         periodStart -= length;
                         sequence = sequence.Cut(0, periodStart + periodLength);
-
                         optimized = true;
-
                         if(periodStart == 0)
                             return;
                         updateTails();
@@ -2550,7 +2548,7 @@ public class Curve : IToCodeString
             }
         }
     }
-        
+
     #endregion Optimization
 
     #region Addition and Subtraction operators
@@ -2664,7 +2662,7 @@ public class Curve : IToCodeString
     /// <remarks> Defined in [BT07] Section 4.2 </remarks>
     public static Curve operator +(Curve a, Curve b)
         => a.Addition(b);
-        
+
     /// <summary>
     /// Implements subtraction operation between two curves.
     /// </summary>
@@ -2719,7 +2717,7 @@ public class Curve : IToCodeString
         var b = curve;
 
         settings ??= ComputationSettings.Default();
-        
+
         #if DO_LOG
         logger.Trace($"Computing minimum of f1 ({a.BaseSequence.Count} elements, T: {a.PseudoPeriodStart} d: {a.PseudoPeriodLength})" +
                      $" and f2 ({b.BaseSequence.Count} elements, T: {b.PseudoPeriodStart} d: {b.PseudoPeriodLength})");
@@ -2900,7 +2898,7 @@ public class Curve : IToCodeString
     public static Curve Minimum(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-            
+
         //todo: move these to ComputationSettings
         const int Parallelization_CountThreshold = 8;
 
@@ -3217,7 +3215,7 @@ public class Curve : IToCodeString
     /// </summary>
     public static Curve Minimum(Curve c, Element e, ComputationSettings? settings = null)
         => c.Minimum(e, settings);
-    
+
     /// <summary>
     /// Computes the minimum between the curve and sequence.
     /// The sequence is considered to have $s(t) = +\infty$ for any $t$ outside its support.
@@ -3227,7 +3225,7 @@ public class Curve : IToCodeString
         var periodStart = s.DefinedUntil < PseudoPeriodStart ? PseudoPeriodStart : s.DefinedUntil + PseudoPeriodLength;
         var cut = Cut(0, periodStart + PseudoPeriodLength);
         var minS = Sequence.Minimum(cut, s, false);
-            
+
         var result = new Curve(
             baseSequence: minS,
             pseudoPeriodStart: periodStart,
@@ -3236,7 +3234,7 @@ public class Curve : IToCodeString
         );
         return result.Optimize();
     }
-    
+
     /// <summary>
     /// Computes the minimum between the curve and sequence.
     /// The sequence is considered to have $s(t) = +\infty$ for any $t$ outside its support.
@@ -3266,7 +3264,7 @@ public class Curve : IToCodeString
     /// </summary>
     public static Curve Maximum(Curve c, Element e, ComputationSettings? settings = null)
         => c.Maximum(e, settings);
-    
+
     /// <summary>
     /// Computes the maximum between the curve and sequence.
     /// The sequence is considered to have $s(t) = +\infty$ for any $t$ outside its support.
@@ -3276,7 +3274,7 @@ public class Curve : IToCodeString
         var periodStart = s.DefinedUntil < PseudoPeriodStart ? PseudoPeriodStart : s.DefinedUntil + PseudoPeriodLength;
         var cut = Cut(0, periodStart + PseudoPeriodLength);
         var maxS = Sequence.Maximum(cut, s, false);
-            
+
         var result = new Curve(
             baseSequence: maxS,
             pseudoPeriodStart: periodStart,
@@ -3285,7 +3283,7 @@ public class Curve : IToCodeString
         );
         return result.Optimize();
     }
-    
+
     /// <summary>
     /// Computes the maximum between the curve and sequence.
     /// The sequence is considered to have $s(t) = +\infty$ for any $t$ outside its support.
@@ -3327,7 +3325,7 @@ public class Curve : IToCodeString
             if (g.IsZero && f.IsNonNegative)
                 return g;
         }
-        
+
         #if DO_LOG
         logger.Trace($"Computing convolution of f ({f.BaseSequence.Count} elements, T: {f.PseudoPeriodStart} d: {f.PseudoPeriodLength})" +
                      $" and g ({g.BaseSequence.Count} elements, T: {g.PseudoPeriodStart} d: {g.PseudoPeriodLength})");
@@ -3450,7 +3448,7 @@ public class Curve : IToCodeString
                 pseudoPeriodLength: d,
                 pseudoPeriodHeight: Rational.PlusInfinity
             );
-                
+
             return settings.UseRepresentationMinimization ? result.Optimize() : result;
         }
 
@@ -3479,7 +3477,7 @@ public class Curve : IToCodeString
                 pseudoPeriodHeight: c,
                 isPartialCurve: true
             );
-                
+
             return settings.UseRepresentationMinimization ? result.Optimize() : result;
         }
 
@@ -3523,7 +3521,7 @@ public class Curve : IToCodeString
                     pseudoPeriodHeight: c,
                     isPartialCurve: true
                 );
-                
+
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
             }
             else
@@ -3562,7 +3560,7 @@ public class Curve : IToCodeString
                     pseudoPeriodHeight: c,
                     isPartialCurve: true
                 );
-                    
+
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
             }                
         }
@@ -3606,7 +3604,7 @@ public class Curve : IToCodeString
                 .Aggregate((a , b) => Convolution(a, b, settings));
         }
     }
-        
+
     /// <summary>
     /// Computes the convolution of a set of curves, $\bigotimes{f_i}$.
     /// </summary>
@@ -3638,7 +3636,7 @@ public class Curve : IToCodeString
     #endregion Convolution operator
 
     #region EstimateConvolution
- 
+
     /// <summary>
     /// Computes the number of elementary convolutions involved in computing the convolution of the two curves,
     /// avoiding allocations as much as possible.
@@ -3655,12 +3653,12 @@ public class Curve : IToCodeString
     public virtual long EstimateConvolution(Curve curve, bool countElements = false, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-            
+
         //The instance method is implemented to allow overriding
         //Renaming for symmetry
         var f = this;
         var g = curve;
-            
+
         //Checks for convolution with infinite curves
         if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
             return 0;
@@ -3753,7 +3751,7 @@ public class Curve : IToCodeString
             var result = Sequence.EstimateConvolution(fCut, gCut, settings, cutEnd, countElements);
             return result;
         }
-        
+
         // Computes a partial convolution term, that is the convolution of two transient parts.
         // Described in [BT07] Section 4.4.3
         long EstimateConvolutionTransientTransient(
@@ -3767,7 +3765,7 @@ public class Curve : IToCodeString
             logger.Trace("Estimate convolution: transient x transient");
             #endif
             var result = Sequence.EstimateConvolution(firstTransientSequence, secondTransientSequence, settings, countElements: countElements);
-                
+
             return result;
         }
 
@@ -3788,7 +3786,7 @@ public class Curve : IToCodeString
             logger.Trace("Estimate convolution: transient x periodic");
             #endif
             var result = Sequence.EstimateConvolution(transientSequence, periodicSequence, settings, countElements: countElements);
-                
+
             return result;
         }
 
@@ -3809,7 +3807,7 @@ public class Curve : IToCodeString
                 #if DO_LOG
                 logger.Trace($"Estimate convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
                 #endif
-                
+
                 var fCut = f.Cut(tf, tf + 2*d, settings: settings);
                 var gCut = g.Cut(tg, tg + 2*d, settings: settings);
 
@@ -3858,7 +3856,7 @@ public class Curve : IToCodeString
             }                
         }
     }
-        
+
     /// <summary>
     /// Computes the number of elementary convolutions involved in computing the convolution of the two curves,
     /// avoiding allocations as much as possible.
@@ -3916,7 +3914,7 @@ public class Curve : IToCodeString
 
         Sequence fCut = f.Cut(0, T + FirstPseudoPeriodEnd, settings: settings);
         Sequence gCut = g.Cut(0, T, settings: settings);
-        
+
         var cutEnd = f.FirstPseudoPeriodEnd;
         var cutDeconvolution = Sequence.Deconvolution(fCut, gCut, 0, cutEnd, settings).Optimize();
 
@@ -3955,7 +3953,7 @@ public class Curve : IToCodeString
     /// <remarks>Described in [BT07] Section 4.6 as algorithm 7</remarks>
     public static SubAdditiveCurve SubAdditiveClosure(Curve curve, ComputationSettings? settings = null)
         => curve.SubAdditiveClosure(settings);
-        
+
     /// <summary>
     /// Computes the sub-additive closure of the curve.
     /// </summary>
@@ -3968,7 +3966,7 @@ public class Curve : IToCodeString
         logger.Debug($"Computing closure of {TransientElements.Count()} transient and {PseudoPeriodicElements.Count()} pseudo-periodic elements.");
         #endif
         settings ??= ComputationSettings.Default();
-            
+
         var transientClosures = TransientElements
             .Select(element => element.SubAdditiveClosure(settings));
 
@@ -3983,7 +3981,7 @@ public class Curve : IToCodeString
         var elementClosures = settings.UseParallelism
             ? elementClosuresEnumerable.AsParallel().ToList()
             : elementClosuresEnumerable.ToList();
-        
+
         #if DO_LOG
         logger.Debug($"Computed individual closures, next is convolution step.");
         #endif
@@ -3997,7 +3995,7 @@ public class Curve : IToCodeString
     #endregion Sub-additive closure
 
     #region Max-plus operators
-    
+
     /// <summary>
     /// Computes the max-plus convolution of the two curves, $f \overline{\otimes} g$.
     /// </summary>
@@ -4151,7 +4149,7 @@ public class Curve : IToCodeString
     {
         settings ??= ComputationSettings.Default();
         var f = this;
-        
+
         if (!g.IsNonNegative)
             throw new ArgumentException("g must be non-negative");
         if (!g.IsNonDecreasing)
@@ -4160,12 +4158,12 @@ public class Curve : IToCodeString
         var T_g = g.PseudoPeriodStart;
         var T_f = g.LowerPseudoInverse()
             .ValueAt(f.PseudoPeriodStart);
-        
+
         // initialized with non-optimal values
         var T = Rational.Max(T_g, T_f);
         var d = f.PseudoPeriodLength.Numerator * g.PseudoPeriodLength * g.PseudoPeriodHeight.Denominator;
         var c = f.PseudoPeriodLength.Denominator * g.PseudoPeriodHeight.Numerator * f.PseudoPeriodHeight;
-        
+
         if (settings.UseCompositionOptimizations)
         {
             if (f.IsUltimatelyConstant || g.IsUltimatelyConstant)
@@ -4211,7 +4209,7 @@ public class Curve : IToCodeString
         logger.Trace($"{settings.UseCompositionOptimizations} {gCut.Count} {fCut.Count}");
         logger.Trace(sw.Elapsed);
         #endif
-        
+
         var result = new Curve(
             baseSequence: sequence,
             pseudoPeriodStart: T,
@@ -4254,7 +4252,7 @@ public static class CurveExtensions
     /// <exception cref="ArgumentException"></exception>
     public static bool Equivalent(this IEnumerable<Curve> curves, ComputationSettings? settings = null)
         => Curve.Equivalent(curves, settings);
-    
+
     /// <inheritdoc cref="Curve.Addition(IEnumerable{Curve}, ComputationSettings?)"/>
     public static Curve Addition(this IEnumerable<Curve> curves, ComputationSettings? settings = null)
         => Curve.Addition(curves, settings);
@@ -4270,7 +4268,7 @@ public static class CurveExtensions
     /// <inheritdoc cref="Curve.Minimum(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static Curve Minimum(this IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
         => Curve.Minimum(curves, settings);
-    
+
     /// <inheritdoc cref="Curve.Maximum(IEnumerable{Curve}, ComputationSettings?)"/>
     public static Curve Maximum(this IEnumerable<Curve> curves, ComputationSettings? settings = null)
         => Curve.Maximum(curves, settings);

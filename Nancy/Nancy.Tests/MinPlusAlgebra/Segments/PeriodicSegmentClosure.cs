@@ -150,7 +150,7 @@ public class PeriodicSegmentClosure
             pseudoPeriodLength: 4,
             pseudoPeriodHeight: 4
         );
-            
+
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(1, closure.FirstFiniteTimeExceptOrigin);
         Assert.False(closure.IsContinuous);
@@ -161,7 +161,7 @@ public class PeriodicSegmentClosure
         Assert.Equal(3, closure.LeftLimitAt(2));
         Assert.Equal(Rational.PlusInfinity, closure.ValueAt(2));
         Assert.Equal(2, closure.RightLimitAt(2));
-            
+
         //reference period
         Assert.Equal(14, closure.LeftLimitAt(13));
         Assert.Equal(14, closure.ValueAt(13));
@@ -198,7 +198,7 @@ public class PeriodicSegmentClosure
             pseudoPeriodHeight: 6,
             pseudoPeriodLength: 4
         );
-            
+
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(1, closure.FirstFiniteTimeExceptOrigin);
         Assert.False(closure.IsContinuous);
@@ -251,7 +251,7 @@ public class PeriodicSegmentClosure
             pseudoPeriodHeight: 4,
             pseudoPeriodLength: 4
         );
-            
+
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(1, closure.FirstFiniteTimeExceptOrigin);
         Assert.False(closure.IsContinuous);
@@ -303,7 +303,7 @@ public class PeriodicSegmentClosure
             pseudoPeriodHeight: 4,
             pseudoPeriodLength: 6
         );
-            
+
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(1, closure.FirstFiniteTimeExceptOrigin);
         Assert.False(closure.IsContinuous);

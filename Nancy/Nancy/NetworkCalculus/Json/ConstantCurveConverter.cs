@@ -19,7 +19,7 @@ public class ConstantCurveConverter : JsonConverter
     public const string TypeCode = "constantCurve";
 
     private static readonly string ValueName = "value";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
@@ -30,7 +30,7 @@ public class ConstantCurveConverter : JsonConverter
     public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
     {
         JObject jo = JObject.Load(reader);
-            
+
         serializer.Converters.Add(new RationalConverter());
 
         Rational value = jo[ValueName]!.ToObject<Rational>(serializer);

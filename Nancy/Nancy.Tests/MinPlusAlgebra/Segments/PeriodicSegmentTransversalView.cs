@@ -83,15 +83,15 @@ public class PeriodicSegmentTransversalView
             pseudoPeriodHeight: 6,
             i: 0
         );
-            
+
         Assert.Equal(0, transversalView.ValueAt(0));
         Assert.Equal(5, transversalView.FirstFiniteTimeExceptOrigin);
-            
+
         Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(5));
         Assert.Equal(5, transversalView.RightLimitAt(5));
         Assert.Equal(9, transversalView.ValueAt(8));
         Assert.Equal(8, transversalView.RightLimitAt(8));
-            
+
         Assert.Equal(1, transversalView.PseudoPeriodLength);
         Assert.Equal(1, transversalView.PseudoPeriodHeight);
     }
@@ -111,15 +111,15 @@ public class PeriodicSegmentTransversalView
             pseudoPeriodHeight: 6,
             i: 1
         );
-            
+
         Assert.Equal(0, transversalView.ValueAt(0));
         Assert.Equal(9, transversalView.FirstFiniteTimeExceptOrigin);
-            
+
         Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(9));
         Assert.Equal(11, transversalView.RightLimitAt(9));
         Assert.Equal(15, transversalView.ValueAt(12));
         Assert.Equal(14, transversalView.RightLimitAt(12));
-            
+
         Assert.Equal(1, transversalView.PseudoPeriodLength);
         Assert.Equal(1, transversalView.PseudoPeriodHeight);
     }
@@ -238,7 +238,7 @@ public class PeriodicSegmentTransversalView
         Assert.Equal(21, transversalView.LeftLimitAt(17));
         Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(17));
         Assert.Equal(Rational.PlusInfinity, transversalView.RightLimitAt(17));
-                       
+
         Assert.Equal(3, transversalView.PseudoPeriodLength);
         Assert.Equal(3, transversalView.PseudoPeriodHeight);
     }
@@ -272,7 +272,7 @@ public class PeriodicSegmentTransversalView
         Assert.Equal(22, transversalView.ValueAt(18));
         Assert.Equal(22, transversalView.RightLimitAt(18));
         Assert.Equal(28, transversalView.LeftLimitAt(21));
-            
+
         Assert.Equal(3, transversalView.PseudoPeriodLength);
         Assert.Equal(3, transversalView.PseudoPeriodHeight);
     }

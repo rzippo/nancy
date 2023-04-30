@@ -108,7 +108,7 @@ public class Equivalence
             }
             #endif
         };
-            
+
         foreach (var testCase in testCases)
         {
             yield return new object[] {testCase};
@@ -124,55 +124,55 @@ public class Equivalence
         output.WriteLine(minOptimized.ToString());
         output.WriteLine(minUnoptimized.ToString());
         Assert.True(Curve.Equivalent(minOptimized, minUnoptimized));
-            
+
         var convOptimized = Curve.Convolution(curves, new ComputationSettings{UseRepresentationMinimization = true});
         var convUnoptimized = Curve.Convolution(curves, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(convOptimized, convUnoptimized));
-            
+
         var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{UseRepresentationMinimization = true});
         var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minConvOptimized, minConvUnoptimized));
     }
-        
+
     [Theory]
     [MemberData(nameof(FlowControlCurvesTestCases))]
     public void FlowControlOperations_General(FlowControlCurve[] curves)
     {
         var castCurves = curves.Select(c => new Curve(c)).ToArray();
-            
+
         var minOptimized = Curve.Minimum(castCurves, new ComputationSettings{UseRepresentationMinimization = true});
         var minUnoptimized = Curve.Minimum(castCurves, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minOptimized, minUnoptimized));
-            
+
         var convOptimized = Curve.Convolution(castCurves, new ComputationSettings{UseRepresentationMinimization = true});
         var convUnoptimized = Curve.Convolution(castCurves, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(convOptimized, convUnoptimized));
-            
+
         var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{UseRepresentationMinimization = true});
         var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minConvOptimized, minConvUnoptimized));
     }
-        
+
     [Theory]
     [MemberData(nameof(FlowControlCurvesTestCases))]
     public void FlowControlOperations_General_AsArgs(FlowControlCurve[] curves)
     {
         var unoptimized = curves.Select(c => new Curve(c)).ToArray();
         var optimized = unoptimized.Select(c => c.Optimize()).ToArray();
-            
+
         var minOptimized = Curve.Minimum(optimized, new ComputationSettings{UseRepresentationMinimization = false});
         var minUnoptimized = Curve.Minimum(unoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minOptimized, minUnoptimized));
-            
+
         var convOptimized = Curve.Convolution(optimized, new ComputationSettings{UseRepresentationMinimization = false});
         var convUnoptimized = Curve.Convolution(unoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(convOptimized, convUnoptimized));
-            
+
         var minConvOptimized = Curve.Convolution(minOptimized, minOptimized, new ComputationSettings{UseRepresentationMinimization = false});
         var minConvUnoptimized = Curve.Convolution(minUnoptimized, minUnoptimized, new ComputationSettings{UseRepresentationMinimization = false});
         Assert.True(Curve.Equivalent(minConvOptimized, minConvUnoptimized));
     }
-        
+
     public static IEnumerable<object[]> FlowControlTestCases()
     {
         var testCases = new FlowControlCurve[]
@@ -185,13 +185,13 @@ public class Equivalence
             new (3,5, 5),
             new (416, 835, 313)
         };
-            
+
         foreach (var testCase in testCases)
         {
             yield return new object[] {testCase};
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(FlowControlTestCases))]
     public void SelfConvolutionEquivalence(Curve curve)
@@ -200,10 +200,10 @@ public class Equivalence
 
         var optimizedConv = Curve.Convolution(optimized, optimized, new ComputationSettings{UseRepresentationMinimization = false});
         var unoptimizedConv = Curve.Convolution(curve, curve, new ComputationSettings{UseRepresentationMinimization = false});
-            
+
         Assert.True(Curve.Equivalent(optimizedConv, unoptimizedConv));
     }
-        
+
     [Theory]
     [MemberData(nameof(FlowControlTestCases))]
     public void SelfConvolutionEquivalence_General(Curve curve)
@@ -213,7 +213,7 @@ public class Equivalence
 
         var optimizedConv = Curve.Convolution(optimized, optimized, new ComputationSettings{UseRepresentationMinimization = false});
         var unoptimizedConv = Curve.Convolution(copy, copy, new ComputationSettings{UseRepresentationMinimization = false});
-            
+
         Assert.True(Curve.Equivalent(optimizedConv, unoptimizedConv));
     }
 

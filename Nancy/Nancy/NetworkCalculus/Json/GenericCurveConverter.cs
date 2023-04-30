@@ -15,7 +15,7 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 public class GenericCurveConverter : JsonConverter
 {
     private const string TypeName = "type";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
@@ -54,19 +54,19 @@ public class GenericCurveConverter : JsonConverter
             case CurveConverter.TypeCode:
                 result = jo.ToObject<Curve>(curveSerializer);
                 break;
-                    
+
             case ConstantCurveConverter.TypeCode:
                 result = jo.ToObject<ConstantCurve>(curveSerializer);
                 break;
-                    
+
             case StepCurveConverter.TypeCode:
                 result = jo.ToObject<StepCurve>(curveSerializer);
                 break;
-                    
+
             case SigmaRhoArrivalCurveConverter.TypeCode:
                 result = jo.ToObject<SigmaRhoArrivalCurve>(curveSerializer);
                 break;
-                    
+
             case RateLatencyServiceCurveConverter.TypeCode:
                 result = jo.ToObject<RateLatencyServiceCurve>(curveSerializer);
                 break;
@@ -82,11 +82,11 @@ public class GenericCurveConverter : JsonConverter
             case RaisedRateLatencyServiceCurveConverter.TypeCode:
                 result = jo.ToObject<RaisedRateLatencyServiceCurve>(curveSerializer);
                 break;
-                
+
             case FlowControlCurveConverter.TypeCode:
                 result = jo.ToObject<FlowControlCurve>(curveSerializer);
                 break;
-                
+
             case SubAdditiveCurveConverter.TypeCode:
                 result = jo.ToObject<SubAdditiveCurve>(curveSerializer);
                 break;
@@ -94,11 +94,11 @@ public class GenericCurveConverter : JsonConverter
             case StairCurveConverter.TypeCode:
                 result = jo.ToObject<StairCurve>(curveSerializer);
                 break;
-            
+
             default:
                 throw new JsonSerializationException("Invalid Curve format");
         }
-        
+
         if (result == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return result;
@@ -109,7 +109,7 @@ public class GenericCurveConverter : JsonConverter
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
-        
+
         var settings = new JsonSerializerSettings() {
             Converters = new JsonConverter[] {
                 new CurveConverter(),

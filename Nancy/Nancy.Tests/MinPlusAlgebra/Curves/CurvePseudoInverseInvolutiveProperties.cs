@@ -41,10 +41,10 @@ public class CurvePseudoInverseInvolutiveProperties
             output.WriteLine($"var upi = {upi.ToCodeString()};");
             output.WriteLine($"var lpi = {lpi.ToCodeString()};");
         #endif
-        
+
         Assert.True(Curve.Equivalent(f, lpi));
     }
-    
+
     public static IEnumerable<object[]> RightContinuousFunctions()
     {
         foreach (var objArray in CurveUpperPseudoInverse.RightContinuousTestCases())
@@ -53,7 +53,7 @@ public class CurvePseudoInverseInvolutiveProperties
             yield return new object[] { f };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(RightContinuousFunctions))]
     public void UpiOfLpiOfRightContinuous(Curve f)
@@ -68,7 +68,7 @@ public class CurvePseudoInverseInvolutiveProperties
             output.WriteLine($"var upi = {upi.ToCodeString()};");
             output.WriteLine($"var lpi = {lpi.ToCodeString()};");
         #endif
-        
+
         Assert.True(Curve.Equivalent(f, upi));
     }
 }

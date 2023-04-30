@@ -16,7 +16,7 @@ public class SequenceConcat
     {
         this.output = output;
     }
-        
+
     public static string[] JsonTestCases =
     {
         "Unipi.Nancy.Tests/MinPlusAlgebra/Sequences/JsonConcatTests/1.json"

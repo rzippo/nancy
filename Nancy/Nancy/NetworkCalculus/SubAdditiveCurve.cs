@@ -96,7 +96,7 @@ public class SubAdditiveCurve : Curve
     {
         return base.IsSubAdditive && ValueAt(0) == 0;
     }
-    
+
     /// <inheritdoc />
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
@@ -137,7 +137,7 @@ public class SubAdditiveCurve : Curve
             return base.Convolution(curve, settings);
         }
     }
-        
+
     /// <summary>
     /// Computes the convolution of the two curves.
     /// </summary>
@@ -154,7 +154,7 @@ public class SubAdditiveCurve : Curve
         var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for th. 2
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
         bool isCurveLower = Curve.Equivalent(curve, minimum, settings); // curve <= this
-             
+
         if (isThisLower || isCurveLower) // this <= curve || curve <= this
         {
             // Use theorem 1 [3]
@@ -205,7 +205,7 @@ public class SubAdditiveCurve : Curve
                     lower = curve;
                     higher = this;
                 }
-                    
+
                 var higher_a = new Curve(
                     baseSequence: higher.Cut(0, minimum.PseudoPeriodStart, settings: settings),
                     pseudoPeriodStart: minimum.PseudoPeriodStart,
@@ -241,7 +241,7 @@ public class SubAdditiveCurve : Curve
                 return SpecializedConvolution(this, curve, minimum.TransientReduction(), settings);
             }
         }
-            
+
         // if all else fails, use the costly generic algorithm
         #if DO_LOG
         stopwatch.Stop();
@@ -249,7 +249,7 @@ public class SubAdditiveCurve : Curve
         #endif
         return new SubAdditiveCurve(base.Convolution(curve, settings), false);
     }
-        
+
     private static SubAdditiveCurve SpecializedConvolution(SubAdditiveCurve a, SubAdditiveCurve b, Curve minimum, ComputationSettings? settings)
     {
         settings ??= ComputationSettings.Default();
@@ -317,7 +317,7 @@ public class SubAdditiveCurve : Curve
                 return ParallelConvolution();
             else
                 return SerialConvolution();
-                
+
             IEnumerable<(Element ea, Element eb)> GetElementPairs()
             {
                 return sa.Elements
@@ -333,7 +333,7 @@ public class SubAdditiveCurve : Curve
                             .Select<Element,(Element,Element)>(e => (Point.Origin(), e))
                     );
             }
-                
+
             Sequence SerialConvolution()
             {
                 #if DO_LOG
@@ -398,7 +398,7 @@ public class SubAdditiveCurve : Curve
                 #if DO_LOG
                 logger.Trace($"Running partitioned specialized-convolution, {pairsCount} pairs.");
                 #endif
-                    
+
                 var partialConvolutions = PartitionConvolutionElements()
                     .Select(elements => elements
                         .LowerEnvelope(settings)
@@ -412,7 +412,7 @@ public class SubAdditiveCurve : Curve
                 #if DO_LOG
                 logger.Trace($"Partitioned convolutions computed, proceding with lower envelope of {partialConvolutions.Count} sequences");
                 #endif
-                    
+
                 if (sa.IsFinite && sb.IsFinite)
                 {
                     return partialConvolutions
@@ -459,7 +459,7 @@ public class SubAdditiveCurve : Curve
                                 .ToList()
                                 .SortElements(settings);
                         }
-                            
+
                         yield return convolutionElements;
                     }
                 }
@@ -514,7 +514,7 @@ public class SubAdditiveCurve : Curve
     }
 
     #endregion
-        
+
     #region EstimateConvolution
 
     /// <inheritdoc />
@@ -532,7 +532,7 @@ public class SubAdditiveCurve : Curve
             return base.EstimateConvolution(curve, countElements, settings);    
         }
     }
-        
+
     /// <summary>
     /// Computes the number of elementary convolutions involved in computing the convolution of the two curves,
     /// avoiding allocations as much as possible.
@@ -554,7 +554,7 @@ public class SubAdditiveCurve : Curve
         var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for th. 2);
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
         bool isCurveLower = Curve.Equivalent(curve, minimum, settings); // curve <= this
-             
+
         if (isThisLower || isCurveLower) // this <= curve || curve <= this
         {
             // Use theorem 1 [3]
@@ -602,7 +602,7 @@ public class SubAdditiveCurve : Curve
                     lower = curve;
                     higher = this;
                 }
-                    
+
                 var higher_a = new Curve(
                     baseSequence: higher.Cut(0, minimum.PseudoPeriodStart, settings: settings),
                     pseudoPeriodStart: minimum.PseudoPeriodStart,
@@ -622,11 +622,11 @@ public class SubAdditiveCurve : Curve
                 return SpecializedEstimateConvolution(this, curve, minimum, countElements, settings);
             }
         }
-            
+
         // if all else fails, use the costly generic algorithm
         return base.EstimateConvolution(curve, countElements, settings);
     }
-        
+
     private static long SpecializedEstimateConvolution(SubAdditiveCurve a, SubAdditiveCurve b, Curve minimum, bool countElements = false, ComputationSettings? settings = null)
     {
         var d = Rational.Min(
@@ -641,7 +641,7 @@ public class SubAdditiveCurve : Curve
         #if DO_LOG
         logger.Debug($"SpecializedEstimateConvolution: extending from T_min {minimum.PseudoPeriodStart} d_min {minimum.PseudoPeriodLength} to T {T} d {d}");
         #endif
-            
+
         var minimumCut = minimum.Cut(0, T + d);
 
         var cutEnd = T + d;
@@ -667,7 +667,7 @@ public class SubAdditiveCurve : Curve
 
         var result = SpecializedEstimateSequenceConvolution(minimumCut, minimumCut);
         return result;
-            
+
         // a and b are expected to be either the same, or a is a partition of b
         long SpecializedEstimateSequenceConvolution(Sequence sa, Sequence sb, int startIndexOfA = 0)
         {

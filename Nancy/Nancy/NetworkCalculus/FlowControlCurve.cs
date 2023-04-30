@@ -26,7 +26,7 @@ public class FlowControlCurve : SubAdditiveCurve
     /// Height of a step.
     /// </summary>
     public Rational Height { get; }
-        
+
     /// <summary>
     /// Constructor.
     /// </summary>
@@ -42,7 +42,7 @@ public class FlowControlCurve : SubAdditiveCurve
         Rate = rate;
         Height = height;
     }
-        
+
     /// <summary>
     /// Builds the sequence for the base class constructor
     /// </summary>
@@ -61,7 +61,7 @@ public class FlowControlCurve : SubAdditiveCurve
             else
             {
                 var secondBufferFillTime = latency + height / rate;
-                    
+
                 return new Sequence(
                     new Element[]
                     {

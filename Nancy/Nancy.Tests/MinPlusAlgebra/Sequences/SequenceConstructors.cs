@@ -92,7 +92,7 @@ public class SequenceConstructors
             fillFrom: 0,
             fillTo: sequence.DefinedUntil + 5
         );
-            
+
         //note: add sampling tests
     }
 }

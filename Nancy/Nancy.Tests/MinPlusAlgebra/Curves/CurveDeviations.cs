@@ -131,7 +131,7 @@ public class CurveDeviations
             yield return new object[] { new Curve(f).Optimize(), new Curve(g).Optimize(), expected }; // repeat the test as generic and minimized Curves
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(GetHorizontalTestCases))]
     public void HorizontalDeviationTest(Curve a, Curve b, Rational expected)
@@ -139,7 +139,7 @@ public class CurveDeviations
         var result = Curve.HorizontalDeviation(a, b);
         Assert.Equal(expected, result);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetHorizontalTestCases))]
     public void HorizontalDeviationAlternativesTest(Curve a, Curve b, Rational expected)
@@ -148,13 +148,13 @@ public class CurveDeviations
         var a_upi = a.UpperPseudoInverse();
         var b_upi = b.UpperPseudoInverse();
         var hDev_1 = -Curve.MaxPlusDeconvolution(a_upi, b_upi).ValueAt(0);
-        
+
         var b_lpi = b.LowerPseudoInverse();
         var hDev_2 = b_lpi
             .Composition(a)
             .Deconvolution(new RateLatencyServiceCurve(1, 0))
             .ValueAt(0);
-        
+
         var hDev_3 = b_lpi
             .Composition(a)
             .Subtraction(new RateLatencyServiceCurve(1, 0))
@@ -164,7 +164,7 @@ public class CurveDeviations
         Assert.Equal(hDev_2, hDev_3);
         Assert.Equal(expected, hDev_3);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetVerticalTestCases))]
     public void VerticalDeviationTest(Curve a, Curve b, Rational expected)
@@ -172,7 +172,7 @@ public class CurveDeviations
         var result = Curve.VerticalDeviation(a, b);
         Assert.Equal(expected, result);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetVerticalTestCases))]
     public void VerticalDeviationTest_Deconvolution(Curve a, Curve b, Rational expected)
@@ -203,7 +203,7 @@ public class CurveDeviations
         foreach (var (ac, sc_a, sc_b) in testcases)
             yield return new object[] { ac, sc_a, sc_b };
     }
- 
+
     [Theory]
     [MemberData(nameof(GetDominanceTestCases))]
     public void DominanceVsHDev(Curve ac, Curve sc_a, Curve sc_b)
@@ -216,7 +216,7 @@ public class CurveDeviations
         var dominated_hdev = Curve.HorizontalDeviation(ac, dominated_sc);
         Assert.True(dominated_hdev >= dominant_hdev);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetDominanceTestCases))]
     public void DominanceVsHDev_AsGeneric(Curve ac, Curve sc_a, Curve sc_b)
@@ -232,7 +232,7 @@ public class CurveDeviations
         var dominated_hdev = Curve.HorizontalDeviation(ac, dominated_sc);
         Assert.True(dominated_hdev >= dominant_hdev);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetDominanceTestCases))]
     public void DominanceVsVDev(Curve ac, Curve sc_a, Curve sc_b)
@@ -245,7 +245,7 @@ public class CurveDeviations
         var dominated_hdev = Curve.HorizontalDeviation(ac, dominated_sc);
         Assert.True(dominated_hdev >= dominant_hdev);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetDominanceTestCases))]
     public void DominanceVsVDev_AsGeneric(Curve ac, Curve sc_a, Curve sc_b)

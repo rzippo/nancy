@@ -110,7 +110,7 @@ public class CurveEquivalence
         FakeEquivalenceGenerator(20).f,
         FakeEquivalenceGenerator(20).g,
     };
- 
+
     /// <summary>
     /// Given <paramref name="n"/>, this method will generate a pair of curve which are equivalent in [0, max(Tf + n * df, Tg + n * dg)[,
     /// but are *not* equivalent outside of such interval. 
@@ -119,7 +119,7 @@ public class CurveEquivalence
     {
         if (n < 2)
             throw new ArgumentException();
-        
+
         var elements = new List<Element>();
         elements.Add(Point.Origin());
         elements.Add(new Segment(0, 4, 0, new Rational(1, 2)));
@@ -147,7 +147,7 @@ public class CurveEquivalence
 
         return (f, g);
     }
-    
+
     public static IEnumerable<object[]> GetSameCurveTestCases()
     {
         foreach (var curve in TestCurves)
@@ -164,7 +164,7 @@ public class CurveEquivalence
             yield return new object[] {curve, delayed};
         }
     }
-    
+
     public static IEnumerable<object[]> GetDifferentCurveTestCases()
     {
         foreach (var f in TestCurves)
@@ -173,7 +173,7 @@ public class CurveEquivalence
             {
                 if(g == f)
                     continue;
-                
+
                 yield return new object[] {f, g};
             }
         }

@@ -88,7 +88,7 @@ public class PointJson
         Assert.Equal(expectedTime, deserialized.Time);
         Assert.Equal(expectedValue, deserialized.Value);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetSerializedPoints))]
     public void PointDeserializationMethods(string serialization, decimal expectedTime, decimal expectedValue)
@@ -96,7 +96,7 @@ public class PointJson
         Point deserialized = Point.FromJson(serialization);
         Assert.Equal(expectedTime, deserialized.Time);
         Assert.Equal(expectedValue, deserialized.Value);
-        
+
         var ser2 = deserialized.ToString();
         var p2 = Point.FromJson(ser2);
         Assert.Equal(deserialized, p2);

@@ -39,7 +39,7 @@ public class SegmentEquals
     {
         Segment s = new Segment(3, 5, 3, 7);
         Point p = new Point(5, 3);
-            
+
         Assert.False(s.Equals(p));
     }
 }

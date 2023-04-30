@@ -20,7 +20,7 @@ public class ShortcutMethods
         var serialization = curve.ToString();
 
         var curve_2 = Curve.FromJson(serialization);
-            
+
         Assert.Equal(curve, curve_2);
     }
 }

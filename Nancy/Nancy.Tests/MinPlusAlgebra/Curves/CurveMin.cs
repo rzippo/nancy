@@ -99,7 +99,7 @@ public class CurveMin
     [Fact]
     public void InfinitePeriodStart()
     {
-        //This tested a bug that is now fixed.
+        //This tested a b_u_g that is now fixed.
         //The resulting min had an infinite pseudo period start time.
 
         Curve f1 = new Curve(
@@ -228,7 +228,7 @@ public class CurveMin
             Assert.Equal(min.ValueAt(time), Rational.Min(a.ValueAt(time), b.ValueAt(time)));
         }
     }
-    
+
     public static IEnumerable<object[]> GetPairTestCases()
     {
         var testCases = new List<(Curve a, Curve b)>
@@ -308,7 +308,7 @@ public class CurveMin
             .Select(x => x.center.Time)
             .OrderBy(t => t)
             .Distinct();
-            
+
         foreach(var t in breakPoints)
         {
             if (t != 0)
@@ -348,7 +348,7 @@ public class CurveMin
         var min = Curve.Minimum(c, Curve.PlusInfinite());
         Assert.True(Curve.Equivalent(min, c));
     }
-    
+
     [Theory]
     [MemberData(nameof(GetSingleTestCases))]
     public void MinusInfinite(Curve c)
@@ -363,7 +363,7 @@ public class CurveMin
         {
             // These tests are gathered from a max-plus convolution test.
             // It broke due to a wierd issue with tt terms being UI curves with a non-conventional shape
-            
+
             // all 4 terms
             new List<Curve>
             {

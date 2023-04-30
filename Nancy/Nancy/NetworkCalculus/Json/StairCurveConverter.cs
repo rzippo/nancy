@@ -20,7 +20,7 @@ public class StairCurveConverter : JsonConverter
 
     private static readonly string AName = "a";
     private static readonly string BName = "b";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
@@ -36,7 +36,7 @@ public class StairCurveConverter : JsonConverter
 
         Rational a = jo[AName]!.ToObject<Rational>(serializer);
         Rational b = jo[BName]!.ToObject<Rational>(serializer);
-        
+
         StairCurve curve = new StairCurve(
             a: a,
             b: b

@@ -10,7 +10,7 @@ public class SequenceMin
     {
         Sequence f1 = TestFunctions.SequenceA;
         Sequence f2 = TestFunctions.SequenceB;
-            
+
         Sequence min = f1.Minimum(f2);
 
         Assert.Equal(0, min.DefinedFrom);

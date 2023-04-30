@@ -11,7 +11,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 public class SigmaRhoArrivalCurve : ConcaveCurve
 {
     private static Logger logger = LogManager.GetCurrentClassLogger();
-        
+
     /// <summary>
     /// Maximum burst of the traffic
     /// </summary>
@@ -54,10 +54,10 @@ public class SigmaRhoArrivalCurve : ConcaveCurve
         Sigma = sigma;
         Rho = rho;
     }
-        
+
     //These parameters have no meaning model-wise, they only influence efficiency of Extend()
     private static readonly Rational DefaultPeriodLength = 1;
-        
+
     #region Optimized Overrides
 
     /// <inheritdoc cref="Curve.Scale(Rational)"/>

@@ -27,7 +27,7 @@ public class PointMax
         Point first = new Point(time: 3, value: 5);
 
         Point second = new Point(time: 2, value: 7);
-            
+
         Assert.Throws<ArgumentException>(() => first.Maximum(second));
     }
 

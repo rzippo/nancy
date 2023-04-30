@@ -384,7 +384,7 @@ public class UpperEnvelopes
         foreach (var (segments, start, end) in SegmentIntervals)
             yield return new object[] { segments, start, end };
     }
-    
+
     [Theory]
     [MemberData(nameof(SegmentIntervalsTestCases))]
     public void SegmentInterval(List<Segment> segments, Rational start, Rational end)

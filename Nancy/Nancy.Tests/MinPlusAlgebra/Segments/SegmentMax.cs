@@ -256,7 +256,7 @@ public class SegmentMax
         Assert.Equal(Rational.Min(first.Slope, second.Slope), max.Slope);
         Assert.Equal(Rational.Max(first.ValueAt(9), second.LeftLimitAtEndTime), max.LeftLimitAtEndTime);
     }
-        
+
     [Fact]
     public void MinusInfinitySegments()
     {
@@ -275,7 +275,7 @@ public class SegmentMax
         Assert.Equal(finite.ValueAt(6), max.ValueAt(6));
         Assert.Equal(finite.Slope, max.Slope);
     }
-        
+
     [Fact]
     public void PlusInfinitySegments()
     {

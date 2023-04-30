@@ -116,21 +116,21 @@ public class CurveDeconvolution
         var departure2 = Curve.Convolution(arrival, service2);
         Assert.True(Curve.Equivalent(departure, departure2));
     }
-    
+
     [Theory]
     [MemberData(nameof(GetConvolutionInverseTestCases))]
     public void ConvolutionInverse_Generic(Curve arrival, Curve service)
     {
         var arrival_generic = new Curve(arrival);
         var service_generic = new Curve(service);
-        
+
         var departure = Curve.Convolution(arrival_generic, service_generic);
         // this is not the same service curve, but it will yield the same departure 
         var service2 = Curve.Deconvolution(departure, arrival_generic);
         var departure2 = Curve.Convolution(arrival_generic, service2);
         Assert.True(Curve.Equivalent(departure, departure2));
     }
-    
+
     public static IEnumerable<object[]> GetSubAdditiveSelfDeconvolutionTestCases()
     {
         var testcases = new SubAdditiveCurve[]
@@ -146,7 +146,7 @@ public class CurveDeconvolution
             yield return new object[] { curve };
         }
     }
-    
+
     /// <summary>
     /// Tests the equivalence stated in [DNC18] Proposition 2.9 point 1)
     /// </summary>

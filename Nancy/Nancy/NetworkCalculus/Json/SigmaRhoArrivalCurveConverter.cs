@@ -20,7 +20,7 @@ public class SigmaRhoArrivalCurveConverter : JsonConverter
 
     private static readonly string SigmaName = "sigma";
     private static readonly string RhoName = "rho";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {

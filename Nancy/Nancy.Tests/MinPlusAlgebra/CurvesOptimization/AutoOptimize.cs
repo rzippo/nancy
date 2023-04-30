@@ -69,10 +69,10 @@ public class AutoOptimize
         var settings = new ComputationSettings { UseRepresentationMinimization = true };
         var minimum = Curve.Minimum(a, b, settings);
         var optimized = minimum.Optimize();
-            
+
         Assert.Equal(optimized.BaseSequence.Count, minimum.BaseSequence.Count);
     }
-        
+
     [Theory]
     [MemberData(nameof(StaircasePairTestCases))]
     public void Convolution(Curve a, Curve b)
@@ -80,10 +80,10 @@ public class AutoOptimize
         var settings = new ComputationSettings { UseRepresentationMinimization = true };
         var convolution = Curve.Convolution(a, b, settings);
         var optimized = convolution.Optimize();
-            
+
         Assert.Equal(optimized.BaseSequence.Count, convolution.BaseSequence.Count);
     }
-        
+
     [Theory]
     [MemberData(nameof(StaircasePairTestCases))]
     public void GenericConvolution(Curve a, Curve b)
@@ -91,7 +91,7 @@ public class AutoOptimize
         var settings = new ComputationSettings { UseRepresentationMinimization = true, UseSubAdditiveConvolutionOptimizations = false };
         var convolution = Curve.Convolution(a, b, settings);
         var optimized = convolution.Optimize();
-            
+
         Assert.Equal(optimized.BaseSequence.Count, convolution.BaseSequence.Count);
     }
 }

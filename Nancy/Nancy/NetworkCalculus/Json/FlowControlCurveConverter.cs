@@ -21,7 +21,7 @@ public class FlowControlCurveConverter : JsonConverter
     private static readonly string DelayName = "delay";
     private static readonly string RateName = "rate";
     private static readonly string HeightName = "height";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {

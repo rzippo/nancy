@@ -195,14 +195,14 @@ public class CurveMaxPlusConvolution
         var result = Curve.MaxPlusConvolution(f, g, settings: settings);
         Assert.True(Curve.Equivalent(expected, result));
     }
-    
+
     [Theory]
     [MemberData(nameof(MaxPlusConvolutionEquivalenceTestCases))]
     void MaxPlusSetConvolutionEquivalence(Curve f, Curve g, Curve expected)
     {
         var result_pair = Curve.MaxPlusConvolution(f, g, settings: settings);
         var result_set = Curve.MaxPlusConvolution(new List<Curve> {f, g}, settings: settings);
-        
+
         Assert.True(Curve.Equivalent(result_pair, result_set));
         Assert.True(Curve.Equivalent(expected, result_pair));
     }
@@ -214,7 +214,7 @@ public class CurveMaxPlusConvolution
             yield return new object[] { f, g };
         }
     }
-    
+
     /// <summary>
     /// Tests the equivalence in [DNC18] Section 2.4
     /// </summary>
@@ -224,7 +224,7 @@ public class CurveMaxPlusConvolution
     {
         var maxConv = Curve.MaxPlusConvolution(a, b, settings);
         var viaNegative = -Curve.Convolution(-a, -b, settings);
-        
+
         Assert.True(Curve.Equivalent(maxConv, viaNegative));
     }
 }

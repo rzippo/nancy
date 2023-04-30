@@ -61,7 +61,7 @@ public class CurveLowerPseudoInverse
             yield return new object[] { operand, expected };
         }
     }
-    
+
     public static IEnumerable<object[]> LeftContinuousTestCases()
     {
         var testcases = new (Curve operand, Curve expected)[]
@@ -149,7 +149,7 @@ public class CurveLowerPseudoInverse
             yield return new object[] { operand, expected };
         }
     }
-    
+
     public static IEnumerable<object[]> RightContinuousTestCases()
     {
         var testcases = new (Curve operand, Curve expected1, Curve expected2)[]
@@ -395,7 +395,7 @@ public class CurveLowerPseudoInverse
                 expected: Curve.Zero()
             )
         };
-        
+
         foreach (var (operand, expected) in testcases)
         {
             yield return new object[] { operand, expected };
@@ -415,7 +415,7 @@ public class CurveLowerPseudoInverse
         Assert.True(result2.IsLeftContinuous);
         Assert.True(Curve.Equivalent(operand, result2));
     }
-    
+
     [Theory]
     [MemberData(nameof(RightContinuousTestCases))]
     public void NonRevertibleInverseTest(Curve operand, Curve expected1, Curve expected2)
@@ -441,7 +441,7 @@ public class CurveLowerPseudoInverse
         if (operand.IsUltimatelyInfinite && operand.PseudoPeriodStartInfimum == 0)
             // uninteresting edge case, don't try to reverse
             return;
-        
+
         var result2 = result.LowerPseudoInverse();
         if(!result.IsUltimatelyConstant)
             Assert.True(result2.IsLeftContinuous);
@@ -480,7 +480,7 @@ public class CurveLowerPseudoInverse
             yield return new object[] { curve };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(UcPropertiesTestCases))]
     public void UcProperties(Curve curve)
@@ -489,7 +489,7 @@ public class CurveLowerPseudoInverse
         var t_c = curve.PseudoPeriodStartInfimum;
         var f_t_c = curve.ValueAt(t_c);
         var c = curve.ValueAt(curve.PseudoPeriodStart);
-        
+
         var lpi = curve.LowerPseudoInverse();
         if(f_t_c < c)
             Assert.Equal(t_c, lpi.RightLimitAt(f_t_c));
@@ -498,7 +498,7 @@ public class CurveLowerPseudoInverse
         Assert.Equal(Rational.PlusInfinity, lpi.RightLimitAt(c));
         Assert.True(lpi.IsUltimatelyInfinite);
     }
-    
+
     public static IEnumerable<object[]> UiPropertiesTestCases()
     {
         var testcases = new Curve[]
@@ -527,7 +527,7 @@ public class CurveLowerPseudoInverse
             yield return new object[] { curve };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(UiPropertiesTestCases))]
     public void UiProperties(Curve curve)
@@ -537,13 +537,13 @@ public class CurveLowerPseudoInverse
         var f_t_i = curve.ValueAt(t_i);
         var l = (f_t_i.IsFinite) ? f_t_i :
             (t_i > 0) ? curve.LeftLimitAt(t_i) : 0;
-        
+
         var lpi = curve.LowerPseudoInverse();
         // Assert.Equal(t_i, lpi.ValueAt(l));
         Assert.Equal(t_i, lpi.RightLimitAt(l));
         Assert.True(lpi.IsUltimatelyConstant);
     }
-    
+
     public static IEnumerable<object[]> NegativeTestCases()
     {
         var testcases = new (Curve operand, Curve expected)[]
@@ -583,7 +583,7 @@ public class CurveLowerPseudoInverse
             yield return new object[] { operand, expected };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(NegativeTestCases))]
     public void NegativeCases(Curve operand, Curve expected)

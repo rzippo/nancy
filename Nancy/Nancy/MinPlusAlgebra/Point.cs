@@ -152,11 +152,11 @@ public sealed class Point : Element, IEquatable<Point>
             value: Rational.MinusInfinity
         );
     }
-        
+
     #endregion
 
     #region Methods
-        
+
     /// <inheritdoc />
     public override Rational ValueAt(Rational time)
     {
@@ -179,7 +179,7 @@ public sealed class Point : Element, IEquatable<Point>
             throw new InvalidOperationException("Invalid JSON format.");
         return point;
     }
-    
+
     /// <summary>
     /// Returns a string containing C# code to create this Point.
     /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
@@ -194,7 +194,7 @@ public sealed class Point : Element, IEquatable<Point>
 
         return sb.ToString();
     }
-    
+
     #endregion Methods
 
     #region Basic manipulations
@@ -227,7 +227,7 @@ public sealed class Point : Element, IEquatable<Point>
             value: Value
         );
     }
-        
+
     /// <summary>
     /// Shifts the point vertically by an additive factor.
     /// </summary>
@@ -238,7 +238,7 @@ public sealed class Point : Element, IEquatable<Point>
             value: Value + shift
         );
     }
-        
+
     /// <inheritdoc />
     public override Element Negate()
     {
@@ -263,15 +263,15 @@ public sealed class Point : Element, IEquatable<Point>
     #endregion Basic manipulations
 
     #region Equality methods
-        
+
     /// <inheritdoc />
     public override bool Equals(object? obj)
         => (obj is Point point) && Equals(point);
-        
+
     /// <inheritdoc />
     public override int GetHashCode()
         => (Value, Time).GetHashCode();
-        
+
     /// <inheritdoc />
     public bool Equals(Point? other)
         => other is not null && (Value, Time) == (other.Value, other.Time);
@@ -420,7 +420,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// <returns>The point resulting from the sum.</returns>
     public static Point operator +(Point point, Segment segment)
         => Addition(point, segment);
-        
+
     /// <summary>
     /// Subtracts the <see cref="Point"/> with an overlapping <see cref="Element"/>.
     /// </summary>
@@ -595,7 +595,7 @@ public sealed class Point : Element, IEquatable<Point>
             throw new InvalidOperationException("The enumerable is empty.");
         if (points.Count() == 1)
             return points.Single();
-            
+
         var time = points.First().Time;
         if (points.Any(p => p.Time != time))
             throw new ArgumentException("The points do not overlap.");
@@ -687,7 +687,7 @@ public sealed class Point : Element, IEquatable<Point>
             throw new InvalidOperationException("The enumerable is empty.");
         if (points.Count() == 1)
             return points.Single();
-            
+
         var time = points.First().Time;
         if (points.Any(p => p.Time != time))
             throw new ArgumentException("The points do not overlap.");
@@ -695,7 +695,7 @@ public sealed class Point : Element, IEquatable<Point>
         var minValue = points.Max(p => p.Value);
         return new Point(time: time, value: minValue);
     }
-        
+
     #endregion Maximum operator
 
     #region Convolution operator 
@@ -814,7 +814,7 @@ public sealed class Point : Element, IEquatable<Point>
     {
         if (point.IsInfinite || segment.IsInfinite)
             throw new ArgumentException("The arguments must be finite.");
-        
+
         return new Segment(
             startTime: point.Time - segment.EndTime,
             endTime: point.Time - segment.StartTime,
@@ -1067,9 +1067,9 @@ public sealed class Point : Element, IEquatable<Point>
                 value: slope * time
             ))
             .OrderBy(point => point.Time);
-                
+
         closurePoints.AddRange(pastOriginClosurePoints);
-            
+
         return new SubAdditiveCurve(
             baseSequence: new Sequence(
                 elements: closurePoints,

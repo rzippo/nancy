@@ -18,7 +18,7 @@ public class SequenceSplit
         Point.Zero(20),
         Segment.Zero(20, 30)
     });
-            
+
     //Start open, end open
     private static Sequence b = new Sequence(new Element[]
     {
@@ -28,7 +28,7 @@ public class SequenceSplit
         Point.Zero(20),
         Segment.Zero(20, 30)
     });
-            
+
     //Start open, end closed
     private static Sequence c = new Sequence(new Element[]
     {
@@ -39,7 +39,7 @@ public class SequenceSplit
         Segment.Zero(20, 30),
         Point.Zero(30)
     });
-        
+
     //Start closed, end closed
     private static Sequence d = new Sequence(new Element[]
     {
@@ -51,7 +51,7 @@ public class SequenceSplit
         Segment.Zero(20, 30),
         Point.Zero(30)
     });
-        
+
     public static IEnumerable<object[]> GetSuccessTestCases()
     {
         var testCases = new (Sequence sequence, Rational splitTime)[]
@@ -59,7 +59,7 @@ public class SequenceSplit
             //Within bounds
             (sequence: a, splitTime: 15),
             (sequence: a, splitTime: 10),
-                
+
             //At endpoints
             (sequence: a, splitTime: 0),
             (sequence: c, splitTime: 30),
@@ -76,7 +76,7 @@ public class SequenceSplit
             };
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(GetSuccessTestCases))]
     public void EnforceSplitAt(Sequence sequence, Rational splitTime)
@@ -88,7 +88,7 @@ public class SequenceSplit
         Assert.Equal(sequence.IsLeftClosed, withSplitEnforced.IsLeftClosed);
         Assert.Equal(sequence.IsRightClosed, withSplitEnforced.IsRightClosed);
         Assert.True(Sequence.Equivalent(sequence, withSplitEnforced));
-            
+
         Assert.True(withSplitEnforced.GetElementAt(splitTime) is Point);
     }
 
@@ -98,7 +98,7 @@ public class SequenceSplit
         {
             //Out of bounds
             (sequence: a, splitTime: 35),
-                
+
             //At endpoints
             (sequence: a, splitTime: 30),
             (sequence: b, splitTime: 0),
@@ -115,7 +115,7 @@ public class SequenceSplit
             };
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(GetExceptionTestCases))]
     public void EnforceSplitAt_Exception(Sequence sequence, Rational splitTime)

@@ -20,7 +20,7 @@ public class RateLatencyServiceCurveConverter : JsonConverter
 
     private static readonly string LatencyName = "latency";
     private static readonly string RateName = "rate";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
@@ -56,7 +56,7 @@ public class RateLatencyServiceCurveConverter : JsonConverter
             { RateName, JToken.FromObject(curve.Rate, serializer) },
             { LatencyName, JToken.FromObject(curve.Latency, serializer) }
         };
-        
+
         jo.WriteTo(writer);
     }
 }

@@ -219,7 +219,7 @@ public class SegmentAddition
         Assert.Equal(Rational.PlusInfinity, sum.ValueAt(5));
         Assert.True(sum.IsPlusInfinite);
     }
-        
+
     [Fact]
     public void WithZero()
     {

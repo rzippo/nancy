@@ -42,7 +42,7 @@ public class RationalToString
         var str = rational.ToString();
         output.WriteLine(str);
     }
-    
+
     [Theory]
     [MemberData(nameof(ToStringTestCases))]
     public void ToCodeStringTest(Rational rational)
@@ -56,7 +56,7 @@ public class RationalToString
         yield return new object[] { TestRationals };
     }
 
-    
+
     [Theory]
     [MemberData(nameof(ListToStringTestCases))]
     public void ListToCodeStringTest(IReadOnlyList<Rational> list)

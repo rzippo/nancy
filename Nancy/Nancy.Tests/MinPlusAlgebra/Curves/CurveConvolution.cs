@@ -15,7 +15,7 @@ public class CurveConvolution
     {
         this.output = output;
     }
-                
+
     [Fact]
     public void TwoRateLatencyEquivalent()
     {
@@ -86,7 +86,7 @@ public class CurveConvolution
         Curve convolution = curve.Convolution(zeroDelay);
         Assert.Equal(curve, convolution);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetFiniteCurves))]
     public void ConvolutionWithInfinity(Curve curve)
@@ -209,7 +209,7 @@ public class CurveConvolution
         Assert.Equal(delay_a + delay_b, convolution.FirstNonZeroTime);
         Assert.Equal(Rational.Min(rate_a, rate_b), convolution.PseudoPeriodSlope);
     }
-        
+
     [Theory]
     [InlineData(0, 4, 2, 3)]
     [InlineData(2, 4, 3, 3)]
@@ -224,10 +224,10 @@ public class CurveConvolution
 
         var optimized = Curve.Convolution(a, b);
         var unoptimized = Curve.Convolution(new Curve(a), new Curve(b));
-            
+
         Assert.True(Curve.Equivalent(optimized, unoptimized));
     }
-        
+
     public static IEnumerable<object[]> GetSameSlopeTestCases()
     {
         var testCases = new (Curve a, Curve b)[]
@@ -303,7 +303,7 @@ public class CurveConvolution
     {
         var fourTerms = Curve.Convolution(a, b, new ComputationSettings { SinglePassConvolution = false });
         var singlePass = Curve.Convolution(a, b, new ComputationSettings { SinglePassConvolution = true });
-            
+
         Assert.True(Curve.Equivalent(fourTerms, singlePass));
     }
 }

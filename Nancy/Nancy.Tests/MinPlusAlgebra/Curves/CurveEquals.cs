@@ -40,7 +40,7 @@ public class CurveEquals
     {
         Curve c1 = new SigmaRhoArrivalCurve(sigma: 100, rho: 5);
         Point p = new Point(5, 3);
-            
+
         Assert.False(c1.Equals(p));
     }
 }

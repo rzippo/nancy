@@ -48,7 +48,7 @@ public class RateLatency
         Assert.Equal(2 * rate, curve.ValueAt(latency + 2));
         Assert.Equal(10.5m * rate, curve.ValueAt(latency + 10.5m));
         Assert.Equal(110 * rate, curve.ValueAt(latency + 110));
-            
+
         Assert.Equal(!(curve.FirstNonZeroTime > 0), curve.IsSubAdditive);
         Assert.True(curve.IsSuperAdditive);
     }

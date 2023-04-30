@@ -77,7 +77,7 @@ public class SequenceEquals
     {
         Sequence s = TestFunctions.SequenceA;
         Point p = new Point(5, 3);
-            
+
         Assert.False(s.Equals(p));
     }
 }

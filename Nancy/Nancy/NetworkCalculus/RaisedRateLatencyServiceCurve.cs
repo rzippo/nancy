@@ -118,7 +118,7 @@ public class RaisedRateLatencyServiceCurve : Curve
 
     internal static Rational PeriodStart(Rational delay, Rational bufferShift) =>
         (delay == 0 && bufferShift > 0) ? DefaultPeriodLength : delay;
-    
+
     internal static Rational PeriodHeight(Rational delay, Rational rate) =>
         rate * DefaultPeriodLength;
 

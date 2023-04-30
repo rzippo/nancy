@@ -16,7 +16,7 @@ public class PointDeconvolution
         (time: 2, value: 7);
 
         Point deconvolution = first.Deconvolution(second);
-            
+
         Assert.Equal(first.Time - second.Time, deconvolution.Time);
         Assert.Equal(first.Value - second.Value, deconvolution.Value);
     }
@@ -26,7 +26,7 @@ public class PointDeconvolution
     {
         Point point = new Point
         (time: 2, value: 5);
-            
+
         Segment segment = new Segment
         (
             rightLimitAtStartTime: 7,
@@ -41,7 +41,7 @@ public class PointDeconvolution
         Assert.Equal(point.Time - segment.StartTime, deconvolution.EndTime);
         Assert.Equal(point.Value - segment.RightLimitAtStartTime, deconvolution.LeftLimitAtEndTime);
     }
-        
+
     public static IEnumerable<object[]> GetAsElementsTestCases()
     {
         var testCases = new (Element a, Element b)[]

@@ -47,7 +47,7 @@ public class CurveJson
         var settings = new JsonSerializerSettings {
             Converters = new JsonConverter[] { new CurveConverter() }
         };
-            
+
         string serialization = JsonConvert.SerializeObject(curve, settings);
         output.WriteLine(serialization);
         Curve deserialized = JsonConvert.DeserializeObject<Curve>(serialization, settings)!;

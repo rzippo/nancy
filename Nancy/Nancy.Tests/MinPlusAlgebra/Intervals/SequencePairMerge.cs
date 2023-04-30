@@ -801,7 +801,7 @@ public class SequencePairMerge
         foreach (var testCase in testCases)
             yield return new object[] { testCase.a, testCase.b, testCase.expected };
     }
-        
+
     [Theory]
     [MemberData(nameof(ElementsEnumerationCases))]
     public void ElementsEnumeration(Sequence a, Sequence b, List<Element> expected)

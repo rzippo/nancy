@@ -250,7 +250,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     {
         if (Denominator == 1)
             return Numerator.ToString();
-        
+
         var sb = new StringBuilder();
         sb.Append("new Rational(");
         sb.Append(Numerator.ToString());
@@ -756,7 +756,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             return x.IsPlusInfinite;
         if (y.IsMinusInfinite)
             return x.IsMinusInfinite;
-            
+
         return Compare(x, y) == 0;
     }
 

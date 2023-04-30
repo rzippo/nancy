@@ -20,7 +20,7 @@ public class StepCurveConverter : JsonConverter
 
     private static readonly string ValueName = "value";
     private static readonly string StepTimeName = "stepTime";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {

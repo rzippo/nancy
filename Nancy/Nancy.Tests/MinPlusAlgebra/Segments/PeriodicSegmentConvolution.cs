@@ -10,7 +10,7 @@ public class PeriodicSegmentConvolution
     public void DisjointSegments_AbovePeriod()
     {
         //slope >= period slope
-            
+
         Segment segment = new Segment(
             startTime: 4,
             endTime: 6,
@@ -23,34 +23,34 @@ public class PeriodicSegmentConvolution
             pseudoPeriodLength: 12,
             k: 4
         );
-            
+
         Assert.False(curve.IsFinite);
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(4));
-            
+
         //First period
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(16));
         Assert.Equal(20, curve.RightLimitAt(16));
         Assert.Equal(60 ,curve.LeftLimitAt(24));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(24));
-            
+
         //Second period
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(28));
         Assert.Equal(26, curve.RightLimitAt(28));
         Assert.Equal(66 ,curve.LeftLimitAt(36));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(36));
-            
+
         //Fourth period
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(64));
         Assert.Equal(44, curve.RightLimitAt(64));
         Assert.Equal(84 ,curve.LeftLimitAt(72));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(72));
     }
-        
+
     [Fact]
     public void DisjointSegments_BelowPeriod()
     {
         //slope < period slope
-            
+
         Segment segment = new Segment(
             startTime: 4,
             endTime: 6,
@@ -63,22 +63,22 @@ public class PeriodicSegmentConvolution
             pseudoPeriodLength: 12,
             k: 4
         );
-            
+
         Assert.False(curve.IsFinite);
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(4));
-            
+
         //First period
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(16));
         Assert.Equal(20, curve.RightLimitAt(16));
         Assert.Equal(28 ,curve.LeftLimitAt(24));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(24));
-            
+
         //Fourth period
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(28));
         Assert.Equal(26, curve.RightLimitAt(28));
         Assert.Equal(34 ,curve.LeftLimitAt(36));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(36));
-            
+
         //Fourth period
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(64));
         Assert.Equal(44, curve.RightLimitAt(64));

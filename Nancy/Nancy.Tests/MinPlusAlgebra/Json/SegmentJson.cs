@@ -41,7 +41,7 @@ public class SegmentJson
 
         Assert.Equal(segment, deserialized);
     }
-    
+
     [Theory]
     [MemberData(nameof(GetSegments))]
     public void SegmentSerializationMethod(Segment segment)

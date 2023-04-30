@@ -308,7 +308,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     {
         if (Denominator == 1)
             return Numerator.ToString();
-        
+
         var sb = new StringBuilder();
         sb.Append("new Rational(");
         sb.Append(Numerator.ToString());
@@ -710,7 +710,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <param name="c"></param>
     /// <returns></returns>
     public static LongRational Min(LongRational a, LongRational b, LongRational c) => Min(a, Min(b, c));
-    
+
     #endregion Public Static Methods
 
     #region Operator Overloads
@@ -1039,7 +1039,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         {
             return value.Sign > 0 ? Decimal.MaxValue : Decimal.MinValue;
         }
-            
+
         // The Decimal value type represents decimal numbers ranging
         // from +79,228,162,514,264,337,593,543,950,335 to -79,228,162,514,264,337,593,543,950,335
         // the binary representation of a Decimal value is of the form, ((-2^96 to 2^96) / 10^(0 to 28))

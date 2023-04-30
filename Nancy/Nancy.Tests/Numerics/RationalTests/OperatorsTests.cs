@@ -50,7 +50,7 @@ public class OperatorsTests
         Assert.True(Rational.PlusInfinity >= Rational.PlusInfinity);
         Assert.False(Rational.PlusInfinity > Rational.PlusInfinity);
         Assert.True(Rational.PlusInfinity > Rational.MinusInfinity);
-            
+
         Assert.True(Rational.MinusInfinity <= Rational.MinusInfinity);
         Assert.False(Rational.MinusInfinity < Rational.MinusInfinity);
         Assert.True(Rational.MinusInfinity < Rational.PlusInfinity);

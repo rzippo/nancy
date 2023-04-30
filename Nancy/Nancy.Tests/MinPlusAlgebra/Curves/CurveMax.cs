@@ -89,7 +89,7 @@ public class CurveMax
             .Select(x => x.center.Time)
             .OrderBy(t => t)
             .Distinct();
-            
+
         foreach(var t in breakPoints)
         {
             if (t != 0)
@@ -117,7 +117,7 @@ public class CurveMax
             yield return new object[] { pair[0] }; // Curve a
             yield return new object[] { pair[1] }; // Curve b
         }
-            
+
         yield return new object[] { Curve.PlusInfinite() };
         yield return new object[] { Curve.MinusInfinite() };
     }
@@ -129,7 +129,7 @@ public class CurveMax
         var max = Curve.Maximum(c, Curve.PlusInfinite());
         Assert.True(Curve.Equivalent(max, Curve.PlusInfinite()));
     }
-    
+
     [Theory]
     [MemberData(nameof(GetSingleTestCases))]
     public void MinusInfinite(Curve c)
@@ -137,7 +137,7 @@ public class CurveMax
         var max = Curve.Maximum(c, Curve.MinusInfinite());
         Assert.True(Curve.Equivalent(max, c));
     }
-    
+
     //[Fact]
     //public void UltimatelyInfinite()
     //{
@@ -158,14 +158,14 @@ public class CurveMax
     //    Assert.False(min.IsContinuous);
     //    Assert.True(min.IsUltimatelyPlain);
     //}
-    
+
     public static IEnumerable<object[]> GetSetTestCases()
     {
         var testcases = new List<List<Curve>>
         {
             // These tests are gathered from a max-plus convolution test.
             // It broke due to a wierd issue with tt terms being UI curves with a non-conventional shape
-            
+
             // all 4 terms
             new List<Curve>
             {

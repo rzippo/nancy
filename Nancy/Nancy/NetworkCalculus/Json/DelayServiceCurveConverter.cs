@@ -19,7 +19,7 @@ public class DelayServiceCurveConverter : JsonConverter
     public const string TypeCode = "delayServiceCurve";
 
     private static readonly string DelayName = "delay";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {

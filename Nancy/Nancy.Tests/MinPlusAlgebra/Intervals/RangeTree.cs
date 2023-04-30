@@ -35,7 +35,7 @@ public class RangeTree
                 intervals[intervalIndex].Count);
         }
     }
-        
+
     [Fact]
     public void IntervalsComputation1_1000()
     {
@@ -55,12 +55,12 @@ public class RangeTree
         for (int i = 0; i < 1000; i++)
             replicated = replicated.Concat(elements);
         elements = replicated.ToArray();
-            
+
         var settings = new ComputationSettings
         {
             ParallelComputeIntervalsThreshold = 100
         };
-            
+
         var intervals = Interval.ComputeIntervals(elements, settings);
 
         Assert.True(intervals.AreInTimeOrder());
@@ -69,7 +69,7 @@ public class RangeTree
         int[] expectedSegmentCounts = { 2, 1, 1, 1, 2, 1, 2, 3, 2, 1, 2, 1, 2, 2, 3 };
         for (int i = 0; i < expectedSegmentCounts.Length; i++)
             expectedSegmentCounts[i] *= 1000;
-            
+
         for (int intervalIndex = 0; intervalIndex < intervals.Count; intervalIndex++)
         {
             Assert.Equal(
@@ -77,7 +77,7 @@ public class RangeTree
                 intervals[intervalIndex].Count);
         }
     }
-        
+
     [Fact]
     public void IntervalsComputation2()
     {

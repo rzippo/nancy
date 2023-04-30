@@ -52,7 +52,7 @@ public class SegmentMin
 
         var minEnumerable = first.Minimum(second);
         Assert.Single(minEnumerable);
-            
+
         var minElement = minEnumerable.Single();
         Assert.IsType<Segment>(minElement);
         var min = (Segment) minElement;
@@ -85,7 +85,7 @@ public class SegmentMin
 
         var minEnumerable = first.Minimum(second);
         Assert.Single(minEnumerable);
-            
+
         var minElement = minEnumerable.Single();
         Assert.IsType<Segment>(minElement);
         var min = (Segment) minElement;
@@ -119,7 +119,7 @@ public class SegmentMin
 
         var minEnumerable = first.Minimum(second);
         Assert.Single(minEnumerable);
-            
+
         var minElement = minEnumerable.Single();
         Assert.IsType<Segment>(minElement);
         var min = (Segment) minElement;
@@ -153,7 +153,7 @@ public class SegmentMin
 
         var minEnumerable = first.Minimum(second);
         Assert.Single(minEnumerable);
-            
+
         var minElement = minEnumerable.Single();
         Assert.IsType<Segment>(minElement);
         var min = (Segment) minElement;
@@ -229,7 +229,7 @@ public class SegmentMin
 
         var minEnumerable = first.Minimum(second);
         Assert.Single(minEnumerable);
-            
+
         var minElement = minEnumerable.Single();
         Assert.IsType<Segment>(minElement);
         var min = (Segment) minElement;

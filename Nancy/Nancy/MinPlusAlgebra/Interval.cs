@@ -425,7 +425,7 @@ internal class Interval
         processingStopwatch.Stop();
         logger.Trace($"Computed {intervalTree.Count} intervals, took {processingStopwatch.Elapsed}");
         #endif
-        
+
         #if DO_LOG
         var postprocessStopwatch = Stopwatch.StartNew();
         #endif
@@ -559,7 +559,7 @@ internal class Interval
                             .Query(s.StartTime, s.EndTime);
 
                         using var enumerator = intervals.GetEnumerator();
-                            
+
                         if (!enumerator.MoveNext())
                             throw new InvalidOperationException("No interval found for segment");
 
@@ -606,12 +606,12 @@ internal class Interval
             {
                 var intervalGroups = overlaps
                     .GroupBy(ov => ov.interval);
-                        
+
                 var intervalElementsPairs = intervalGroups
                     .AsParallel()
                     .Select(pair => 
                         (interval: pair.Key, elements: pair.Select(overlap => overlap.element)));
-                    
+
                 intervalElementsPairs
                     .ForAll(pair => pair.interval.AddRange(pair.elements));
             }
@@ -1582,7 +1582,7 @@ internal static class IntervalExtensions
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
     #endif
-    
+
     /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end
     /// </summary>
@@ -1654,11 +1654,11 @@ internal static class IntervalExtensions
     {
         settings ??= ComputationSettings.Default();
         const int ParallelizationThreshold = 10_000;
-           
+
         #if DO_LOG
         var sortStopwatch = Stopwatch.StartNew();
         #endif
-            
+
         if (intervals.AreInTimeOrder())
         {
             #if DO_LOG
@@ -1686,7 +1686,7 @@ internal static class IntervalExtensions
                     .ThenBy(i => i.End)
                     .ToList();
             }
-                
+
             #if DO_LOG
             sortStopwatch.Stop();
             #endif

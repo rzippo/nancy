@@ -24,14 +24,14 @@ public class CurveSuperAdditiveClosure
     public void PureDelay(int delay)
     {
         var curve = new DelayServiceCurve(delay);
-        
+
         var closure = curve.SuperAdditiveClosure();
         Assert.True(Curve.Equivalent(closure, curve));
     }
 
     // note: super-additive closure and super-additive property are not well defined enough for infinite parts as in the pure delay
     // we rely on the super class properties in the meantime 
-    
+
     // [Theory]
     // [InlineData(0)]
     // //[InlineData(5)]
@@ -43,5 +43,5 @@ public class CurveSuperAdditiveClosure
     //     var closure = curve.SuperAdditiveClosure();
     //     Assert.True(Curve.Equivalent(closure, curve));
     // }
-    
+
 }

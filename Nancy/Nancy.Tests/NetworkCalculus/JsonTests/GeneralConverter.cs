@@ -75,7 +75,7 @@ public class CurveJson
 
         Assert.Equal(curve, deserialized);
     }
-        
+
     [Theory]
     [MemberData(nameof(Curves))]
     public void CurveSerializationMethods(Curve curve)
@@ -96,7 +96,7 @@ public class CurveJson
                 "{\"type\":\"rateLatencyServiceCurve\",\"rate\":5,\"latency\":3}"
             )
         };
-        
+
         foreach (var (curve, expected) in testCases)
         {
             yield return new object[] {curve, expected.Replace(" ","")};

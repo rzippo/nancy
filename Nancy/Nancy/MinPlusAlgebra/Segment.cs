@@ -94,7 +94,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// True if the segment has a constant value
     /// </summary>
     public bool IsConstant => Slope == 0;
-        
+
     /// <summary>
     /// Slope, w.r.t. origin, of the left endpoint of the segment.
     /// </summary>
@@ -252,7 +252,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     {
         return time == StartTime ? RightLimitAtStartTime : ValueAt(time);
     }
-    
+
     /// <summary>
     /// Computes the left limit of the segment at given <paramref name="time"/>
     /// </summary>
@@ -262,7 +262,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     {
         return time == EndTime ? LeftLimitAtEndTime : ValueAt(time);
     }
-    
+
     /// <inheritdoc /> 
     public override bool IsDefinedFor(Rational time)
     {
@@ -339,7 +339,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
         if (cutStart == cutEnd)
             throw new ArgumentException("Cannot cut an open segment with coinciding endpoints.");
-            
+
         return new Segment(
             startTime: cutStart,
             endTime: cutEnd,
@@ -450,7 +450,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 return Rational.PlusInfinity;
         }
     }
-        
+
     /// <summary>
     /// Deserializes a <see cref="Segment"/>.
     /// </summary>
@@ -506,7 +506,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             slope: Slope
         );
     }
-        
+
     /// <inheritdoc />
     public override Element Anticipate(Rational time)
     {
@@ -544,7 +544,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             slope: -Slope
         );
     }
-        
+
     /// <inheritdoc />
     public override Element Inverse()
     {
@@ -558,7 +558,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 slope: Rational.Invert(Slope)
             );
     }
-        
+
     #endregion Basic manipulations
 
     #region Equality methods
@@ -586,7 +586,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     public static bool operator !=(Segment? a, Segment? b) =>
         !Equals(a, b);
-        
+
     #endregion Equality methods
 
     #region Basic comparisons
@@ -726,7 +726,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <returns>A segment representing the sum.</returns>
     public static Segment operator +(Segment a, Segment b)
         => Addition(a, b);
-        
+
     /// <summary>
     /// Subtracts the <see cref="Segment"/> with an overlapping <see cref="Element"/>.
     /// </summary>
@@ -869,7 +869,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         var overlap = GetOverlap(a, b);
         if (overlap == null)
             throw new ArgumentException("The two segments do not overlap.");
-            
+
         var (start, end) = overlap ?? default;
 
         Segment aCut = a.Cut(start, end);
@@ -955,7 +955,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     {
         if (!segments.Any())
             throw new InvalidOperationException("The enumerable is empty.");
-            
+
         if (!SameSize())
         {
             var minLength = segments.Min(s => s.Length);
@@ -1140,7 +1140,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     {
         if (!segments.Any())
             throw new InvalidOperationException("The enumerable is empty.");
-            
+
         if (!SameSize())
         {
             var minLength = segments.Min(s => s.Length);
@@ -1170,10 +1170,10 @@ public sealed class Segment : Element, IEquatable<Segment>
         {
             var startReference = segments
                 .MaxBy(s => s.RightLimitAtStartTime)!;
-                
+
             var endReference = segments
                 .MaxBy(s => s.LeftLimitAtEndTime)!;
-                
+
             return segments
                 .Where(segment => 
                     !segment.IsCertainlyBelow(startReference) &&
@@ -1181,7 +1181,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 .ToList();
         }
     }
-        
+
     #endregion Maximum operator
 
     #region Convolution operator
@@ -1246,7 +1246,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     public static IEnumerable<Element> Convolution(Segment a, Segment b)
     {
         Segment minSlopeSegment, maxSlopeSegment;
-            
+
         if (a.Slope == b.Slope)
         {
             yield return new Segment(
@@ -1365,7 +1365,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     {
         if (a.IsInfinite || b.IsInfinite)
             throw new ArgumentException("The arguments must be finite.");
-        
+
         Segment minSlopeSegment, maxSlopeSegment;
         if (a.Slope < b.Slope)
         {
@@ -1423,7 +1423,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-            
+
         //Checked separately as infinite segments fail the normal check
         if(StartTime == 0 && RightLimitAtStartTime > 0)
             return SegmentClosureTypeB();
@@ -1440,7 +1440,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             return closure;
 
         //Local functions
-            
+
         // Branch with slope at start less or equal slope at end.
         // From [BT07], first case of algorithm 10.
         SubAdditiveCurve SegmentClosureTypeA()
@@ -1482,7 +1482,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                     fillFrom: 0,
                     fillTo: periodEndTime)
                 .Cut(cutStart: 0, cutEnd: periodEndTime);
-                
+
             return new SubAdditiveCurve(
                 baseSequence: baseSequence,
                 pseudoPeriodStart: periodStartTime,
@@ -1580,7 +1580,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             return closure;
 
         //Local functions
-            
+
         //In [BT07], first leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeA()
         {
@@ -1809,7 +1809,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     {
         if (k == 0)
             throw new ArgumentException("k must be greater than 0");   
-                       
+
         Rational pseudoPeriodSlope = pseudoPeriodHeight / pseudoPeriodLength;
 
         //ifs are inverted wrt [BT07] since cases k*length <= d have the same body
@@ -1999,7 +1999,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         }
 
         //Local functions
-            
+
         Curve TransversalViewTypeA()
         {
             Rational baseTime = k0 * StartTime + i * pseudoPeriodLength;
@@ -2080,7 +2080,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 k0);
 
             List<Element> elements = new List<Element>() { Point.Origin() };
-                
+
             for (Rational k = k0; k <= bigK0; k++)
             {
                 elements.Add(

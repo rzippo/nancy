@@ -108,7 +108,7 @@ public class PeriodFactorization
                 pseudoPeriodLength: curve.PseudoPeriodLength,
                 pseudoPeriodHeight: curve.PseudoPeriodHeight
             );
-                               
+
             yield return new object[] { displacedCurve, k };
         }
     }
@@ -186,10 +186,10 @@ public class PeriodFactorization
                 T: 1,d: 5,c: 6,k: 4
             )
         };
-            
+
         foreach (var testCase in testCases)
             yield return new object[] { testCase.factorizableCurve, testCase.k };
-            
+
         (Curve factorizableCurve, int k) buildTestCase(Sequence s, Rational T, Rational c, Rational d, int k)
         {
             var kPeriods = Enumerable.Range(0, k)

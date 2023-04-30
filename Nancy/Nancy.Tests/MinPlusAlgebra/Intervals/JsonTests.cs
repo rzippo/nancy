@@ -46,7 +46,7 @@ public class JsonComputeIntervals
     {
         // ConfigNLog();
         output.WriteLine($"Computing intervals for {elements.Length} elements");
-            
+
         var settings = new ComputationSettings
         {
             UseParallelComputeIntervals = true,
@@ -78,7 +78,7 @@ public class JsonComputeIntervals
         //output.WriteLine(JsonConvert.SerializeObject(intervals));
 
         Assert.True(intervals.AreInTimeSequence());
-            
+
 #pragma warning disable CS8321
         void ConfigNLog()
 #pragma warning restore CS8321
@@ -89,9 +89,9 @@ public class JsonComputeIntervals
             {
                 FileName = "json_compute_interval.${longdate:cached=true}.txt"
             };
-                
+
             config.AddRule(LogLevel.Trace, LogLevel.Fatal, fileTarget);
-                
+
             LogManager.Configuration = config;
         }
     }

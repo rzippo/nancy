@@ -52,7 +52,7 @@ public class TwoRates
         Assert.Equal(transientRate * midTransientDiff, curve.ValueAt(delay + midTransientDiff));
         var endTransientValue = transientRate * (transientEnd - delay);
         Assert.Equal(endTransientValue, curve.ValueAt(transientEnd));
-            
+
         Assert.Equal(endTransientValue + steadyRate, curve.ValueAt(transientEnd + 1));
         Assert.Equal(endTransientValue + 2 * steadyRate, curve.ValueAt(transientEnd + 2));
         Assert.Equal(endTransientValue + 10.5m * steadyRate, curve.ValueAt(transientEnd + 10.5m));

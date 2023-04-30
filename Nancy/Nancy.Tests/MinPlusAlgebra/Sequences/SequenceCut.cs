@@ -18,7 +18,7 @@ public class SequenceCut
         Point.Zero(20),
         Segment.Zero(20, 30)
     });
-            
+
     //Start open, end open
     private static Sequence b = new Sequence(new Element[]
     {
@@ -28,7 +28,7 @@ public class SequenceCut
         Point.Zero(20),
         Segment.Zero(20, 30)
     });
-            
+
     //Start open, end closed
     private static Sequence c = new Sequence(new Element[]
     {
@@ -39,7 +39,7 @@ public class SequenceCut
         Segment.Zero(20, 30),
         Point.Zero(30)
     });
-        
+
     //Start closed, end closed
     private static Sequence d = new Sequence(new Element[]
     {
@@ -51,7 +51,7 @@ public class SequenceCut
         Segment.Zero(20, 30),
         Point.Zero(30)
     });
-        
+
     //Long. Start closed, end closed
     private static Sequence e = new Sequence(new Element[]
     {
@@ -67,7 +67,7 @@ public class SequenceCut
         Segment.Zero(40, 50),
         Point.Zero(50)
     });
-        
+
     public static IEnumerable<object[]> GetSuccessTestCases()
     {
         var testCases =
@@ -79,13 +79,13 @@ public class SequenceCut
                     (sequence: a, cutStart: 5, cutEnd: 15, isStartIncluded: true, isEndIncluded: true),
                     (sequence: a, cutStart: 5, cutEnd: 15, isStartIncluded: false, isEndIncluded: false),
                     (sequence: a, cutStart: 5, cutEnd: 15, isStartIncluded: true, isEndIncluded: false),
-                        
+
                     // At endpoints
                     (sequence: a, cutStart: 0, cutEnd: 30, isStartIncluded: true, isEndIncluded: false),
                     (sequence: b, cutStart: 0, cutEnd: 30, isStartIncluded: false, isEndIncluded: false),
                     (sequence: c, cutStart: 0, cutEnd: 30, isStartIncluded: false, isEndIncluded: true),
                     (sequence: d, cutStart: 0, cutEnd: 30, isStartIncluded: true, isEndIncluded: true),
-                        
+
                     // At segments endpoints
                     (sequence: a, cutStart: 10, cutEnd: 20, isStartIncluded: true, isEndIncluded: false),
                     (sequence: a, cutStart: 10, cutEnd: 20, isStartIncluded: false, isEndIncluded: false),
@@ -95,7 +95,7 @@ public class SequenceCut
                     (sequence: e, cutStart: 10, cutEnd: 40, isStartIncluded: false, isEndIncluded: false),
                     (sequence: e, cutStart: 10, cutEnd: 40, isStartIncluded: false, isEndIncluded: true),
                     (sequence: e, cutStart: 10, cutEnd: 40, isStartIncluded: true, isEndIncluded: true),
-                        
+
                     // Within segments endpoints
                     (sequence: a, cutStart: 15, cutEnd: 25, isStartIncluded: true, isEndIncluded: false),
                     (sequence: a, cutStart: 15, cutEnd: 25, isStartIncluded: false, isEndIncluded: false),
@@ -105,7 +105,7 @@ public class SequenceCut
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartIncluded: false, isEndIncluded: false),
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartIncluded: false, isEndIncluded: true),
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartIncluded: true, isEndIncluded: true),
-                    
+
                     // Matching, both inclusive
                     (sequence: a, cutStart: 20, cutEnd: 20, isStartIncluded: true, isEndIncluded: true)
                 };
@@ -161,7 +161,7 @@ public class SequenceCut
                         isStartIncluded: true, 
                         isEndIncluded: false
                     )
-                        
+
                 };
 
         foreach (var testCase in testCases)
@@ -176,20 +176,20 @@ public class SequenceCut
             };
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(GetSuccessTestCases))]
     [MemberData(nameof(FromOtherTests))]
     public void Cut(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
     {
         Sequence cut = sequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
-            
+
         Assert.Equal(cutStart, cut.DefinedFrom);
         Assert.Equal(cutEnd, cut.DefinedUntil);
         Assert.Equal(isStartIncluded, cut.IsLeftClosed);
         Assert.Equal(isEndIncluded, cut.IsRightClosed);
     }
-        
+
     public static IEnumerable<object[]> GetThrowingTestCases()
     {
         var testCases =
@@ -201,12 +201,12 @@ public class SequenceCut
                     (sequence: a, cutStart: 5, cutEnd: 35, isStartIncluded: true, isEndIncluded: true),
                     (sequence: a, cutStart: 5, cutEnd: 35, isStartIncluded: false, isEndIncluded: false),
                     (sequence: a, cutStart: 5, cutEnd: 35, isStartIncluded: true, isEndIncluded: false),
-                        
+
                     // At endpoints
                     (sequence: a, cutStart: 0, cutEnd: 30, isStartIncluded: true, isEndIncluded: true),
                     (sequence: b, cutStart: 0, cutEnd: 30, isStartIncluded: true, isEndIncluded: true),
                     (sequence: c, cutStart: 0, cutEnd: 30, isStartIncluded: true, isEndIncluded: true),
-                    
+
                     // Matching, either non-inclusive
                     (sequence: a, cutStart: 20, cutEnd: 20, isStartIncluded: false, isEndIncluded: true),
                     (sequence: a, cutStart: 20, cutEnd: 20, isStartIncluded: true, isEndIncluded: false),
@@ -225,7 +225,7 @@ public class SequenceCut
             };
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(GetThrowingTestCases))]
     public void CutChecks(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)

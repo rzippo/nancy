@@ -83,7 +83,7 @@ public class SequenceConvolution
         Assert.Equal(15, convolution.ValueAt(11));
         Assert.Equal(21, convolution.GetSegmentAfter(12).LeftLimitAtEndTime);
     }
-        
+
     /// <summary>
     /// Reproduces the steps of specialized staircase convolution through which the issue was discovered
     /// </summary>
@@ -94,7 +94,7 @@ public class SequenceConvolution
         var b = new FlowControlCurve(3, 11, 3);
         var min = Curve.Minimum(a, b, new (){UseRepresentationMinimization = false});
         var minCut = min.Cut(0, 31);
-            
+
         foreach (var ea in minCut.Elements)
         {
             foreach (var eb in minCut.Elements)
@@ -106,7 +106,7 @@ public class SequenceConvolution
             }   
         }
     }
-        
+
     /// <summary>
     /// Reproduces the steps of specialized staircase convolution through which the issue was discovered
     /// </summary>
@@ -123,7 +123,7 @@ public class SequenceConvolution
                 .Where(eb => ea.StartTime < eb.StartTime)
                 .Select(eb => (ea: ea, eb: eb))
             );
-            
+
         var higherFirstPairs = minCut.Elements
             .SelectMany(ea => minCut.Elements
                 .Where(eb => ea.StartTime > eb.StartTime)
@@ -136,17 +136,17 @@ public class SequenceConvolution
                     .SelectMany(tuple => tuple.ea.Convolution(tuple.eb))
                     .ToList()
                     .LowerEnvelope();
-            
+
         var higherFirstLowerEnvelope =
                 higherFirstPairs    
                     .AsParallel()
                     .SelectMany(tuple => tuple.ea.Convolution(tuple.eb))
                     .ToList()
                     .LowerEnvelope();
-            
+
         Assert.Equal(lowerFirstLowerEnvelope, higherFirstLowerEnvelope);
     }
-        
+
     /// <summary>
     /// Reproduces the steps of specialized staircase convolution through which the issue was discovered
     /// </summary>
@@ -158,7 +158,7 @@ public class SequenceConvolution
         var min = Curve.Minimum(a, b, new (){UseRepresentationMinimization = false});
         var minCut = min.Cut(0, 31);
 
-            
+
         var colors = minCut.Elements
             .Select(element =>
                 {
@@ -171,14 +171,14 @@ public class SequenceConvolution
                 }
             )
             .ToList();
-            
+
         var lowerFirstPairs = minCut.Elements
             .SelectMany((ea, ia) => minCut.Elements
                 .Where((eb, ib) => colors[ia] != colors[ib] || colors[ib] == Color.Both)
                 .Where(eb => ea.StartTime < eb.StartTime)
                 .Select(eb => (ea: ea, eb: eb))
             );
-            
+
         var higherFirstPairs = minCut.Elements
             .SelectMany((ea, ia) => minCut.Elements
                 .Where((eb, ib) => colors[ia] != colors[ib])
@@ -192,16 +192,16 @@ public class SequenceConvolution
                     .SelectMany(tuple => tuple.ea.Convolution(tuple.eb))
                     .ToList()
                     .LowerEnvelope();
-            
+
         var higherFirstLowerEnvelope =
                 higherFirstPairs    
                     .AsParallel()
                     .SelectMany(tuple => tuple.ea.Convolution(tuple.eb))
                     .ToList()
                     .LowerEnvelope();
-            
+
         Assert.Equal(lowerFirstLowerEnvelope, higherFirstLowerEnvelope);
     }
-        
+
     private enum Color { A, B, Both }
 }

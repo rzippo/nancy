@@ -17,12 +17,12 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// Minimum rate of service.
     /// </summary>
     public Rational Rate { get; }
-    
+
     /// <summary>
     /// Maximum latency of service.
     /// </summary>
     public Rational Latency { get; }
-    
+
     /// <summary>
     /// Constructor.
     /// </summary>
@@ -83,7 +83,7 @@ public class RateLatencyServiceCurve : ConvexCurve
 
         return new Sequence(elements);
     }
-    
+
     private static readonly Rational DefaultPeriodLength = 1;
 
     #region Optimized Overrides
@@ -169,7 +169,7 @@ public class RateLatencyServiceCurve : ConvexCurve
     {
         return new RateLatencyServiceCurve(rate: curves.Min(c => c.Rate), latency: curves.Sum(c => c.Latency));
     }
-        
+
     #endregion
 }
 

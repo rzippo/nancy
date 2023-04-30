@@ -48,7 +48,7 @@ public static class ToCodeStringExtensions
         else
             sb.Append($" }}");
         return sb.ToString();
-        
+
         string tabs(int n)
         {
             if (!formatted)

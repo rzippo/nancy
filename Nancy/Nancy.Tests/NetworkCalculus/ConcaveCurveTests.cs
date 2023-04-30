@@ -32,7 +32,7 @@ public class ConcaveCurveTests
             yield return new object[] { pair[1] }; // Curve b
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(GetSingleTestCases))]
     public void PropertiesTest(Curve c)
@@ -57,10 +57,10 @@ public class ConcaveCurveTests
     {
         Assert.True(a.IsConcave);
         Assert.True(b.IsConcave);
-  
+
         var conv_asIs = Curve.Convolution(a, b);
         var min_asIs = Curve.Minimum(a, b);
-        
+
         if (a.ValueAt(0) == 0 && b.ValueAt(0) == 0)
         {
             Assert.True(Curve.Equivalent(conv_asIs, min_asIs));

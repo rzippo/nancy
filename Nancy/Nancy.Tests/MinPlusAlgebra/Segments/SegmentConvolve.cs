@@ -59,7 +59,7 @@ public class SegmentConvolution
         Assert.Equal(2 * start, convolution.DefinedFrom);
         Assert.Equal(2 * end, convolution.DefinedUntil);
     }
-        
+
     public static IEnumerable<object[]> CommutativityTestCases()
     {
         var testCases = new (Segment a, Segment b)[]

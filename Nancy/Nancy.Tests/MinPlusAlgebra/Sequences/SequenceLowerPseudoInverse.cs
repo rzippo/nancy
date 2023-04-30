@@ -62,7 +62,7 @@ public class SequenceLowerPseudoInverse
             yield return new object[] { operand, expected };
         }
     }
-    
+
     public static IEnumerable<object[]> DiscontinuousNonRevertibleTestCases()
     {
         var testcases = new (Sequence operand, Sequence expected1, Sequence expected2)[]
@@ -99,7 +99,7 @@ public class SequenceLowerPseudoInverse
             yield return new object[] { operand, expected1, expected2 };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(ContinuousRevertibleTestCases))]
     [MemberData(nameof(DiscontinuousRevertibleTestCases))]
@@ -111,7 +111,7 @@ public class SequenceLowerPseudoInverse
         var result2 = result.LowerPseudoInverse();
         Assert.True(Sequence.Equivalent(operand, result2));
     }
-    
+
     [Theory]
     [MemberData(nameof(DiscontinuousNonRevertibleTestCases))]
     public void NonRevertibleInverseTest(Sequence operand, Sequence expected1, Sequence expected2)

@@ -133,7 +133,7 @@ public class CurveLowerBounds
         Assert.Equal(maxRateLatency.Latency, maxDelay);
         Assert.Equal(maxRateLatency.Rate, maxRate);
     }
-        
+
     public static IEnumerable<object[]> GetRateLatencyFromPointsTestCases()
     {
         var testCases = new[]

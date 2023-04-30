@@ -273,7 +273,7 @@ public class CurveComposition
         var result = Curve.Composition(f, g);
         Assert.True(Curve.Equivalent(result, expected));
     }
-    
+
     [Theory]
     [MemberData(nameof(GetTestCases))]
     public void Composition_NoOpt(Curve f, Curve g, Curve expected)

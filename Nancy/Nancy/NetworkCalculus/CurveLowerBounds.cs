@@ -28,7 +28,7 @@ public static class CurveLowerBounds
             throw new ArgumentException("Trying to lower bound a curve with infinite sustained rate");
 
         var minDelay = curve.FirstNonZeroTime;
-                       
+
         if (minDelay >= curve.PseudoPeriodStart )
         {
             return RateLatencyLowerBound(curve);
@@ -166,7 +166,7 @@ public static class CurveLowerBounds
         var rate = pivotCorner.Value.IsZero ?
             maxRate :
             pivotCorner.Value / (pivotCorner.Time - delay);                       
-            
+
         return new RateLatencyServiceCurve(rate: rate, latency: delay);
 
         IEnumerable<Point> GetCorners(Element e)
@@ -231,11 +231,11 @@ public static class CurveLowerBounds
             // if not, check if this is the lowest
             if(points.Any(p => p.Time == point.Time && p.Value < point.Value))
                 continue;
-                
+
             // check that there are no later points with lower or equal value
             if(points.Any(p => p.Time > point.Time && p.Value <= point.Value))
                 continue;
-                
+
             // we compare this point to the forward ones, to find a rate w.r.t. this point is a corner
             foreach (var point2 in points.Where(p => p.Time > point.Time))
             {
@@ -252,14 +252,14 @@ public static class CurveLowerBounds
 
         if(!corners.Any())
             throw new InvalidOperationException("Something went wrong");
-            
+
         // the pivot corner is the earliest non-zero corner if possible, else it is the delay point
         if (corners.Any(tuple => tuple.p.Value > 0))
         {
             var (pivotCorner, maxRate) = corners.First(tuple => tuple.p.Value > 0);
-                
+
             var maxDelay = pivotCorner.Time - pivotCorner.Value / maxRate;
-            
+
             var delay = minDelay + alpha * (maxDelay - minDelay);
             var rate = pivotCorner.Value / (pivotCorner.Time - delay);
 

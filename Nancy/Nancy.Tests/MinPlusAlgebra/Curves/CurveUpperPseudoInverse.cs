@@ -77,7 +77,7 @@ public class CurveUpperPseudoInverse
             yield return new object[] { operand, expected };
         }
     }
-    
+
     public static IEnumerable<object[]> LeftContinuousTestCases()
     {
         var testcases = new (Curve operand, Curve expected1, Curve expected2)[]
@@ -202,7 +202,7 @@ public class CurveUpperPseudoInverse
             yield return new object[] { operand, expected1, expected2 };
         }
     }
-    
+
     public static IEnumerable<object[]> RightContinuousTestCases()
     {
         var testcases = new (Curve operand, Curve expected)[]
@@ -388,7 +388,7 @@ public class CurveUpperPseudoInverse
                 expected: Curve.Zero()
             )
         };
-        
+
         foreach (var (operand, expected) in testcases)
         {
             yield return new object[] { operand, expected };
@@ -480,7 +480,7 @@ public class CurveUpperPseudoInverse
             yield return new object[] { operand, expected1, expected2 };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(ContinuousTestCases))]
     [MemberData(nameof(RightContinuousTestCases))]
@@ -488,7 +488,7 @@ public class CurveUpperPseudoInverse
     {
         // reversability of upi in U has the extra hypothesis of f(t) > 0 for t > 0
         // otherwise, the initial latency becomes -\infty when reversed
-        
+
         var result = operand.UpperPseudoInverse();
         Assert.True(result.IsRightContinuous);
         Assert.True(Curve.Equivalent(expected, result));
@@ -508,7 +508,7 @@ public class CurveUpperPseudoInverse
             Assert.True(Curve.EquivalentAfter(operand, result2, operand.FirstNonZeroTime));
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(LeftContinuousTestCases))]
     public void NonRevertibleInverseTest(Curve operand, Curve expected1, Curve expected2)
@@ -521,7 +521,7 @@ public class CurveUpperPseudoInverse
         Assert.True(result2.IsRightContinuous);
         Assert.True(Curve.Equivalent(expected2, result2));
     }
-    
+
     [Theory]
     [MemberData(nameof(CornerTestCases))]
     public void CornerCases(Curve operand, Curve expected)
@@ -540,7 +540,7 @@ public class CurveUpperPseudoInverse
             Assert.True(result2.IsLeftContinuous);
         Assert.True(Curve.EquivalentAfter(operand, result2, operand.FirstNonZeroTime));
     }
-    
+
     [Theory]
     [MemberData(nameof(NonRevertibleCornerTestCases))]
     public void NonRevertibleCornerCases(Curve operand, Curve expected1, Curve expected2)
@@ -551,7 +551,7 @@ public class CurveUpperPseudoInverse
         var result2 = result.UpperPseudoInverse();
         Assert.True(Curve.Equivalent(expected2, result2));
     }
-    
+
     public static IEnumerable<object[]> UcPropertiesTestCases()
     {
         var testcases = new Curve[]
@@ -584,7 +584,7 @@ public class CurveUpperPseudoInverse
             yield return new object[] { curve };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(UcPropertiesTestCases))]
     public void UcProperties(Curve curve)
@@ -593,7 +593,7 @@ public class CurveUpperPseudoInverse
         var t_c = curve.PseudoPeriodStartInfimum;
         var f_t_c = curve.ValueAt(t_c);
         var c = curve.ValueAt(curve.PseudoPeriodStart);
-        
+
         var upi = curve.UpperPseudoInverse();
         if(f_t_c < c)
             Assert.Equal(t_c, upi.RightLimitAt(f_t_c));
@@ -602,7 +602,7 @@ public class CurveUpperPseudoInverse
         Assert.Equal(Rational.PlusInfinity, upi.RightLimitAt(c));
         Assert.True(upi.IsUltimatelyInfinite);
     }
-    
+
     public static IEnumerable<object[]> UiPropertiesTestCases()
     {
         var testcases = new Curve[]
@@ -631,7 +631,7 @@ public class CurveUpperPseudoInverse
             yield return new object[] { curve };
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(UiPropertiesTestCases))]
     public void UiProperties(Curve curve)
@@ -641,13 +641,13 @@ public class CurveUpperPseudoInverse
         var f_t_i = curve.ValueAt(t_i);
         var l = (f_t_i.IsFinite) ? f_t_i :
             (t_i > 0) ? curve.LeftLimitAt(t_i) : 0;
-        
+
         var upi = curve.UpperPseudoInverse();
         Assert.Equal(t_i, upi.ValueAt(l));
         Assert.Equal(t_i, upi.RightLimitAt(l));
         Assert.True(upi.IsUltimatelyConstant);
     }
-    
+
     public static IEnumerable<object[]> NegativeTestCases()
     {
         var testcases = new (Curve operand, Curve expected)[]
@@ -693,7 +693,7 @@ public class CurveUpperPseudoInverse
     public void NegativeCases(Curve operand, Curve expected)
     {
         var result = operand.UpperPseudoInverse();
-            Assert.True(result.IsRightContinuous);
+        Assert.True(result.IsRightContinuous);
         Assert.True(Curve.Equivalent(expected, result));
     }
 }

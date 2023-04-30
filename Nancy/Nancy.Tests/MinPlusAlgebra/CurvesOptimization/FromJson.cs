@@ -39,20 +39,20 @@ public class FromJson
         var optimizedCurve = curve.Optimize();
         Assert.True(Curve.Equivalent(optimizedCurve, curve));
     }
-        
+
     [Theory]
     [MemberData(nameof(GetJsonTestCases))]
     public void IterativeEquivalence(Curve curve)
     {
         Curve prev = curve, next = curve;
-            
+
         for (int i = 0; i < 10; i++)
         {
             next = prev.Optimize();
             Assert.True(Curve.Equivalent(prev, next));
             prev = next;
         }
-            
+
         Assert.True(Curve.Equivalent(curve, next));
     }
 
@@ -70,7 +70,7 @@ public class FromJson
 
         Assert.True(Curve.Equivalent(optimizedConv, unoptimizedConv));
     }
-        
+
     [Theory]
     [MemberData(nameof(GetJsonTestCases))]
     public void SelfMinimumEquivalence(Curve curve)
@@ -79,10 +79,10 @@ public class FromJson
 
         var optimizedMin = Curve.Minimum(optimized, optimized, new ComputationSettings{UseRepresentationMinimization = true});
         var unoptimizedMin = Curve.Minimum(curve, curve, new ComputationSettings{UseRepresentationMinimization = true});
-            
+
         Assert.True(Curve.Equivalent(optimizedMin, unoptimizedMin));
     }
-        
+
     public static IEnumerable<object[]> PairsTestCases()
     {
         var curves = CurveNames
@@ -103,7 +103,7 @@ public class FromJson
                 yield return pair;
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(PairsTestCases))]
     public void MinimumEquivalence(Curve a, Curve b)
@@ -113,18 +113,18 @@ public class FromJson
         var optA = a.Optimize();
         var optB = b.Optimize();
         var optimizedMin = Curve.Minimum(optA, optB, new ComputationSettings {UseRepresentationMinimization = true});
-            
+
         Assert.True(Curve.Equivalent(optimizedMin, unoptimizedMin));
-            
+
         var partialMinA = Curve.Minimum(optA, b, new ComputationSettings {UseRepresentationMinimization = true});
         var partialMinB = Curve.Minimum(a, optB, new ComputationSettings {UseRepresentationMinimization = true});
         Assert.True(Curve.Equivalent(partialMinA, unoptimizedMin));
         Assert.True(Curve.Equivalent(partialMinB, unoptimizedMin));
     }
-        
+
     // Commented out because it costs too much time
     // Did not seem to find any issues that SelfConvolution does not find
-        
+
     // [Theory]
     // [MemberData(nameof(PairsTestCases))]
     // public void ConvolutionEquivalence(Curve a, Curve b)

@@ -33,7 +33,7 @@ public class Delay
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(8));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(15));
     }
-    
+
     [Fact]
     public void ZeroCtor()
     {
@@ -52,7 +52,7 @@ public class Delay
         Assert.Equal(0, curve.FirstNonZeroTime);
 
         Assert.Equal(0, curve.ValueAt(0));
-        
+
         Assert.Equal(Rational.PlusInfinity, curve.RightLimitAt(0));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(6));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(8));

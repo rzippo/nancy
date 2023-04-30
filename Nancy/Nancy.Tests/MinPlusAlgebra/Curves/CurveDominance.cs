@@ -29,7 +29,7 @@ public class CurveDominance
             yield return new object[] {testCase.a, testCase.b, testCase.expected};
         }
     }
-        
+
     public static IEnumerable<object[]> GetAsymptoticDominanceTestCases()
     {
         IEnumerable<(Curve a, Curve b, (bool verified, Curve lower, Curve upper) expected)> testCases()
@@ -43,7 +43,7 @@ public class CurveDominance
             var ac = new SigmaRhoArrivalCurve(4, 4);
             yield return (sc, ac, (true, ac, sc));
             yield return (ac, sc, (true, ac, sc));
-                
+
             var counterExampleA = new Curve(
                 baseSequence: new Sequence(
                     new Element[]{
@@ -80,7 +80,7 @@ public class CurveDominance
             yield return new object[] {testCase.a, testCase.b, testCase.expected};
         }
     }
-        
+
     public static IEnumerable<object[]> GetNoDominanceTestCases()
     {
         IEnumerable<(Curve a, Curve b, (bool verified, Curve lower, Curve upper) expected)> testCases()
@@ -110,7 +110,7 @@ public class CurveDominance
             Assert.Equal(expected.upper, result.Upper);
         }
     }
-        
+
     // the unused parameter is needed to reuse the testcases
     [Theory]
     [MemberData(nameof(GetAsymptoticDominanceTestCases))]
@@ -121,7 +121,7 @@ public class CurveDominance
         var result = Curve.Dominance(a, b);
         Assert.False(result.Verified);
     }
-        
+
     [Theory]
     [MemberData(nameof(GetDominanceTestCases))]
     [MemberData(nameof(GetAsymptoticDominanceTestCases))]

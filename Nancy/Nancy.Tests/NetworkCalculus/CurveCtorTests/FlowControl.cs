@@ -50,7 +50,7 @@ public class FlowControl
         if (height > 0 && delay > 0 && rate > 0)
         {
             var riseLength = height / rate;
-                
+
             foreach (var i in new[] {1, 2, 10, 110})
             {
                 Assert.Equal(height * (i + 1), curve.ValueAt(i * delay + riseLength));

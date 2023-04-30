@@ -37,7 +37,7 @@ public static class LinqExtensions
         for (int i = start; i < end; i++)
             yield return list[i];
     }
-    
+
     /// <summary>
     /// Shorthand method to serialize as JSON a collection of objects
     /// </summary>
@@ -71,7 +71,7 @@ public static class LinqExtensions
     /// <remarks>The result is NOT correct if <paramref name="items"/> are ordered via any other comparer</remarks>
     public static IEnumerable<TSource> OrderedDistinct<TSource>(this IOrderedEnumerable<TSource> items)
         => OrderedDistinct(items, i => i);
-    
+
     /// <summary>
     /// Optimized Distinct() which assumes the items are already ordered according to the given key 
     /// </summary>
@@ -82,7 +82,7 @@ public static class LinqExtensions
     {
         // this method could be improved by actually checking the comparer is the same and returning again an IOrderedEnumerable
         // for the purposes of this codebase this is enough
-        
+
         bool first = true;
         TKey previousKey = default!; // never used before first assignment
         using var enumerator = items.GetEnumerator();

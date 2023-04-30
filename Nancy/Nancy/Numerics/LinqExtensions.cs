@@ -58,7 +58,7 @@ public static class LinqExtensions
             .Select(selector)
             .Aggregate((x, y) => x + y);
     }
-        
+
     //The following work in both implementations
     /// <summary>
     /// 

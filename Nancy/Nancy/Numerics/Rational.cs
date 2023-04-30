@@ -86,10 +86,10 @@ namespace Unipi.Nancy.Numerics
 
         /// <inheritdoc cref="BigRational.IsPositive"/>
         public bool IsPositive => this.Sign > 0;
-        
+
         /// <inheritdoc cref="BigRational.IsNegative"/>
         public bool IsNegative => this.Sign < 0;
-        
+
         #endregion Public Properties
 
         #region Static members for Internal Support
@@ -256,8 +256,8 @@ namespace Unipi.Nancy.Numerics
             ret.Append(Numerator.ToString("R", CultureInfo.InvariantCulture));
             if (Denominator != 1)
             {
-            ret.Append(c_solidus);
-            ret.Append(Denominator.ToString("R", CultureInfo.InvariantCulture));
+                ret.Append(c_solidus);
+                ret.Append(Denominator.ToString("R", CultureInfo.InvariantCulture));
             }
 
             return ret.ToString();
@@ -271,7 +271,7 @@ namespace Unipi.Nancy.Numerics
         {
             if (Denominator == 1)
                 return Numerator.ToString();
-            
+
             var sb = new StringBuilder();
             sb.Append("new Rational(");
             sb.Append(Numerator.ToString());
@@ -281,7 +281,7 @@ namespace Unipi.Nancy.Numerics
 
             return sb.ToString();
         }
-        
+
         // IEquatable<Rational>
         // a/b = c/d, iff ad = bc
         /// <inheritdoc />
@@ -642,11 +642,11 @@ namespace Unipi.Nancy.Numerics
 
         /// <inheritdoc cref="BigRational.Min(BigRational, BigRational, BigRational)"/>
         public static Rational Min(Rational a, Rational b, Rational c) => Min(a, Min(b, c));
-        
+
         #endregion Public Static Methods
 
         #region Operator Overloads
-        
+
         /// <inheritdoc />
         public static bool operator ==(Rational x, Rational y)
         {
@@ -655,7 +655,7 @@ namespace Unipi.Nancy.Numerics
                 return x.IsPlusInfinite;
             if (y.IsMinusInfinite)
                 return x.IsMinusInfinite;
-            
+
             return Compare(x, y) == 0;
         }
 
@@ -824,7 +824,7 @@ namespace Unipi.Nancy.Numerics
         #endregion Operator Overloads
 
         #region explicit conversions from Rational
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -1371,7 +1371,7 @@ namespace Unipi.Nancy.Numerics
 
         /// <inheritdoc cref="LongRational.IsInfinite"/>
         public bool IsInfinite => Denominator == 0;
-        
+
         /// <inheritdoc cref="LongRational.IsFinite"/>
         public bool IsFinite => Denominator != 0;
 
@@ -1386,7 +1386,7 @@ namespace Unipi.Nancy.Numerics
 
         /// <inheritdoc cref="LongRational.IsPositive"/>
         public bool IsPositive => this.Sign > 0;
-        
+
         /// <inheritdoc cref="LongRational.IsNegative"/>
         public bool IsNegative => this.Sign < 0;
 
@@ -1503,7 +1503,7 @@ namespace Unipi.Nancy.Numerics
         /// </summary>
         /// <returns></returns>
         public int FastFloor() => (int) Floor();
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -1551,7 +1551,7 @@ namespace Unipi.Nancy.Numerics
             ret.Append(Numerator.ToString(CultureInfo.InvariantCulture));
             if (Denominator != 1)
             {
-            ret.Append(c_solidus);
+                ret.Append(c_solidus);
                 ret.Append(Denominator.ToString(CultureInfo.InvariantCulture));
             }
 
@@ -1566,7 +1566,7 @@ namespace Unipi.Nancy.Numerics
         {
             if (Denominator == 1)
                 return Numerator.ToString();
-            
+
             var sb = new StringBuilder();
             sb.Append("new Rational(");
             sb.Append(Numerator.ToString());
@@ -1855,7 +1855,7 @@ namespace Unipi.Nancy.Numerics
         #endregion Public Static Methods
 
         #region Operator Overloads
-        
+
         /// <inheritdoc />
         public static bool operator ==(Rational x, Rational y)
         {
@@ -2136,7 +2136,7 @@ namespace Unipi.Nancy.Numerics
             {
                 return value.Sign > 0 ? Decimal.MaxValue : Decimal.MinValue;
             }
-            
+
             // The Decimal value type represents decimal numbers ranging
             // from +79,228,162,514,264,337,593,543,950,335 to -79,228,162,514,264,337,593,543,950,335
             // the binary representation of a Decimal value is of the form, ((-2^96 to 2^96) / 10^(0 to 28))

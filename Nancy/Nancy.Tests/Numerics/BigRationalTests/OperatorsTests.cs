@@ -63,7 +63,7 @@ public class OperatorsTests
         Assert.True(BigRational.PlusInfinity >= BigRational.PlusInfinity);
         Assert.False(BigRational.PlusInfinity > BigRational.PlusInfinity);
         Assert.True(BigRational.PlusInfinity > BigRational.MinusInfinity);
-            
+
         Assert.True(BigRational.MinusInfinity <= BigRational.MinusInfinity);
         Assert.False(BigRational.MinusInfinity < BigRational.MinusInfinity);
         Assert.True(BigRational.MinusInfinity < BigRational.PlusInfinity);

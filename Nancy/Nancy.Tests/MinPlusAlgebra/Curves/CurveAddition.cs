@@ -30,7 +30,7 @@ public class CurveAddition
         Assert.Equal(25, sum.GetSegmentAfter(13).Slope);
         Assert.Equal(25, sum.GetSegmentAfter(23).Slope);
     }
-        
+
     [Fact]
     public void SigmaRho_RateLatency_Commutative()
     {

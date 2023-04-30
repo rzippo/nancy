@@ -113,7 +113,7 @@ public class SubAdditiveConvolutions
             yield return new object[] {testCase.a, testCase.b};
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(StaircasePairTestCases))]
     [MemberData(nameof(NonStaircasePairTestCases))]
@@ -123,16 +123,16 @@ public class SubAdditiveConvolutions
         {
             ConvolutionPartitioningThreshold = 500
         };
-            
+
         var optimizedConvolution = a.Convolution(b, settings);
 
         var castA = new Curve(a);
         var castB = new Curve(b);
         var unoptimizedConvolution = castA.Convolution(castB, settings);
-            
+
         Assert.True(Curve.Equivalent(optimizedConvolution, unoptimizedConvolution));
     }
-        
+
     public static IEnumerable<object[]> StaircaseChainedTestCases()
     {
         var testCases = new FlowControlCurve[][]
@@ -180,7 +180,7 @@ public class SubAdditiveConvolutions
             yield return new object[] {testCase};
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(StaircaseChainedTestCases))]
     public void ConvolutionEquivalence_Chained(FlowControlCurve[] curves)
@@ -189,10 +189,10 @@ public class SubAdditiveConvolutions
 
         var castCurves = curves.Select(sc => new Curve(sc));
         var unoptimizedConvolution = Curve.Convolution(castCurves);
-            
+
         Assert.True(Curve.Equivalent(optimizedConvolution, unoptimizedConvolution));
     }
-        
+
     public static IEnumerable<object[]> StaircaseSelfTestCases()
     {
         var testCases = new FlowControlCurve[]
@@ -216,7 +216,7 @@ public class SubAdditiveConvolutions
             yield return new object[] {testCase};
         }
     }
-        
+
     [Theory]
     [MemberData(nameof(StaircaseSelfTestCases))]
     public void ConvolutionEquivalence_Self(FlowControlCurve curve)
@@ -225,7 +225,7 @@ public class SubAdditiveConvolutions
 
         var castCurve = new Curve(curve);
         var unoptimizedConvolution = Curve.Convolution(castCurve, castCurve);
-            
+
         Assert.True(Curve.Equivalent(optimizedConvolution, unoptimizedConvolution));
         Assert.True(Curve.Equivalent(optimizedConvolution, curve));
     }

@@ -115,7 +115,7 @@ public class SequenceGetElement
             index = i;
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(GetTestCases))]
     public void ElementBefore(Sequence s)
@@ -144,7 +144,7 @@ public class SequenceGetElement
             index = i;
         }
     }
-    
+
     [Theory]
     [MemberData(nameof(GetTestCases))]
     public void ElementAfter(Sequence s)

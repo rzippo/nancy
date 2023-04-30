@@ -73,7 +73,7 @@ public class SuperAdditiveCurve : Curve
     {
         return base.IsSuperAdditive;
     }
-    
+
     /// <inheritdoc />
     public override SuperAdditiveCurve SuperAdditiveClosure(ComputationSettings? settings = null)
     {

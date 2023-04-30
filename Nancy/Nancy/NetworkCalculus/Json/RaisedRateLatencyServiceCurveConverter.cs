@@ -21,7 +21,7 @@ public class RaisedRateLatencyServiceCurveConverter : JsonConverter
     private static readonly string LatencyName = "latency";
     private static readonly string RateName = "rate";
     private static readonly string BufferShiftName = "bufferShift";
-        
+
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {

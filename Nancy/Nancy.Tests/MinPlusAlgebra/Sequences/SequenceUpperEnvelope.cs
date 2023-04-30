@@ -101,7 +101,7 @@ public class SequenceUpperEnvelope
                 }
             )
         };
-            
+
         foreach (var testCase in testCases)
             yield return new object[] { testCase.elements, testCase.expected };
     }
