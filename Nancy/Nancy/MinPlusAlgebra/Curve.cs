@@ -343,15 +343,14 @@ public class Curve : IToCodeString
         PseudoPeriodicElements.All(elem => elem.IsFinite);
 
     /// <summary>
-    /// True if, for some $T$, $\left|f(t)\right| = +\infty$ for all $t \ge T$,
-    /// while for $\left|f(t)\right| &lt; +\infty$ for all $t &lt; T$.
+    /// True if, for $b \in \{-\infty, +\infty\}$ and some $T$, $f(t) = b$ for all $t \ge T$.
     /// </summary>
     public bool IsUltimatelyInfinite
     {
         get
         {
-            var isUltPlusInfinite = PseudoPeriodicElements.All(e => e.IsPlusInfinite);
-            var isUltMinusInfinite = PseudoPeriodicElements.All(e => e.IsMinusInfinite);
+            var isUltPlusInfinite = CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsPlusInfinite();
+            var isUltMinusInfinite = CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite();
             return isUltPlusInfinite || isUltMinusInfinite;
         }
     }
@@ -359,8 +358,40 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if for all $t >$ <see cref="PseudoPeriodStart"/> the curve is either always finite or always infinite.
     /// </summary>
+    /// <remarks>
+    /// Defined in [BT07], Definition 1.
+    /// </remarks>
     public bool IsUltimatelyPlain =>
         IsUltimatelyFinite || IsUltimatelyInfinite;
+
+    /// <summary>
+    /// True if $f$ is plain, i.e., it is either
+    /// a) always finite,
+    /// b) always plus or minus infinite (without changing sign),
+    /// or c) finite up to a $T$, then always plus or minus infinite (without changing sign) 
+    /// </summary>
+    /// <remarks>
+    /// Formally defined in [BT07], Definition 1.
+    /// </remarks>
+    public bool IsPlain 
+    {
+        get
+        {
+            if (IsFinite)
+                return true;
+
+            var ti = PseudoPeriodStartInfimum;
+            var transientIsFinite =  ti > 0 && CutAsEnumerable(0, ti).IsFinite() || true;
+            var periodIsPlainlyInfinite =
+                ValueAt(ti).IsFinite
+                    ? (CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsMinusInfinite() ||
+                       CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsPlusInfinite())
+                    : (CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsMinusInfinite() ||
+                       CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsPlusInfinite());
+
+            return transientIsFinite && periodIsPlainlyInfinite;
+        }
+    }
 
     /// <summary>
     /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is affine.

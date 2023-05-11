@@ -30,6 +30,7 @@ public class CurveConvolution
         Assert.True(equivalentService.IsContinuousExceptOrigin);
         Assert.True(equivalentService.IsLeftContinuous);
         Assert.True(equivalentService.IsUltimatelyPlain);
+        Assert.True(equivalentService.IsPlain);
         Assert.True(equivalentService.IsUltimatelyAffine);
 
         Assert.Equal(0, equivalentService.ValueAt(0));
@@ -53,6 +54,7 @@ public class CurveConvolution
         Assert.True(equivalentService.IsContinuousExceptOrigin);
         Assert.True(equivalentService.IsLeftContinuous);
         Assert.True(equivalentService.IsUltimatelyPlain);
+        Assert.True(equivalentService.IsPlain);
         Assert.True(equivalentService.IsUltimatelyAffine);
 
         Assert.Equal(0, equivalentService.ValueAt(0));
@@ -148,13 +150,10 @@ public class CurveConvolution
     [InlineData(0, 5, 3)]
     [InlineData(1, 5, 3)]
     [InlineData(4, 2, 1)]
-    public void OriginPointSelfConvolution(decimal value, decimal length, decimal step)
+    public void IteratedOriginPointSelfConvolution(decimal value, decimal length, decimal step)
     {
-        var sequence = new Sequence(
-            elements: new[] { new Point(time: 0, value: value) },
-            fillFrom: 0,
-            fillTo: length
-        );
+        var sequence = new Element[] { new Point(time: 0, value: value), Segment.PlusInfinite(0, length) }
+            .ToSequence();
         var curve = new Curve(
             baseSequence: sequence,
             pseudoPeriodStart: 0,
@@ -175,6 +174,7 @@ public class CurveConvolution
         Assert.False(curve_2.IsContinuous);
         Assert.False(curve_2.IsContinuousExceptOrigin);
         Assert.False(curve_2.IsUltimatelyPlain);
+        Assert.False(curve_2.IsPlain);
         Assert.False(curve_2.IsUltimatelyAffine);
 
         if (value > 0)
@@ -204,6 +204,7 @@ public class CurveConvolution
         Assert.True(convolution.IsContinuousExceptOrigin);
         Assert.True(convolution.IsLeftContinuous);
         Assert.True(convolution.IsUltimatelyPlain);
+        Assert.True(convolution.IsPlain);
         Assert.True(convolution.IsUltimatelyAffine);
 
         Assert.Equal(delay_a + delay_b, convolution.FirstNonZeroTime);

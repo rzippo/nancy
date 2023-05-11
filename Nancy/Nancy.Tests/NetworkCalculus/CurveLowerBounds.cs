@@ -60,6 +60,7 @@ public class CurveLowerBounds
         Assert.True(twoRates.IsRightContinuous);
         Assert.True(twoRates.IsFinite);
         Assert.True(twoRates.IsUltimatelyPlain);
+        Assert.True(twoRates.IsPlain);
 
         switch (twoRates)
         {
@@ -102,6 +103,7 @@ public class CurveLowerBounds
         Assert.True(rateLatency.IsRightContinuous);
         Assert.True(rateLatency.IsFinite);
         Assert.True(rateLatency.IsUltimatelyPlain);
+        Assert.True(rateLatency.IsPlain);
         Assert.True(rateLatency.Latency >= delay);
 
         Assert.True(rateLatency <= curve);
@@ -203,6 +205,7 @@ public class CurveLowerBounds
         Assert.True(rateLatency.IsRightContinuous);
         Assert.True(rateLatency.IsFinite);
         Assert.True(rateLatency.IsUltimatelyPlain);
+        Assert.True(rateLatency.IsPlain);
         Assert.True(rateLatency.Latency == expected.delay);
         Assert.True(rateLatency.Rate == expected.rate);
 

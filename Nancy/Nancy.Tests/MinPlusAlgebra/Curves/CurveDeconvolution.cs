@@ -22,6 +22,7 @@ public class CurveDeconvolution
         Assert.True(deconvolution.IsContinuousExceptOrigin);
         Assert.True(deconvolution.IsLeftContinuous);
         Assert.True(deconvolution.IsUltimatelyPlain);
+        Assert.True(deconvolution.IsPlain);
         Assert.True(deconvolution.IsUltimatelyAffine);
 
         Assert.Equal(120, deconvolution.ValueAt(0));
@@ -43,6 +44,7 @@ public class CurveDeconvolution
         Assert.True(deconvolution.IsContinuousExceptOrigin);
         Assert.True(deconvolution.IsLeftContinuous);
         Assert.True(deconvolution.IsUltimatelyPlain);
+        Assert.True(deconvolution.IsPlain);
         Assert.True(deconvolution.IsUltimatelyAffine);
 
         Assert.Equal(765, deconvolution.ValueAt(0));
@@ -61,6 +63,7 @@ public class CurveDeconvolution
         Assert.False(deconvolution.IsZero);
         Assert.True(deconvolution.IsContinuous);
         Assert.True(deconvolution.IsUltimatelyPlain);
+        Assert.True(deconvolution.IsPlain);
         Assert.True(deconvolution.IsUltimatelyInfinite);
 
         Assert.Equal(Rational.PlusInfinity, deconvolution.ValueAt(0));

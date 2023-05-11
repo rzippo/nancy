@@ -19,6 +19,7 @@ public class CurveAddition
         Assert.True(sum.IsLeftContinuous);
         Assert.True(sum.IsFinite);
         Assert.True(sum.IsUltimatelyPlain);
+        Assert.True(sum.IsPlain);
         Assert.True(sum.IsUltimatelyAffine);
 
         Assert.Equal(0, sum.ValueAt(0));
@@ -44,6 +45,7 @@ public class CurveAddition
         Assert.True(sum.IsLeftContinuous);
         Assert.True(sum.IsFinite);
         Assert.True(sum.IsUltimatelyPlain);
+        Assert.True(sum.IsPlain);
         Assert.True(sum.IsUltimatelyAffine);
 
         Assert.Equal(0, sum.ValueAt(0));

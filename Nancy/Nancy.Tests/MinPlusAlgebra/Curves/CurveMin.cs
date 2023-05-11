@@ -166,10 +166,12 @@ public class CurveMin
         Assert.False(f1.IsFinite);
         Assert.False(f1.IsContinuous);
         Assert.False(f1.IsUltimatelyPlain);
+        Assert.False(f1.IsPlain);
 
         Assert.False(f2.IsFinite);
         Assert.False(f2.IsContinuous);
         Assert.True(f2.IsUltimatelyPlain);
+        Assert.False(f2.IsPlain);
 
         Curve min = Curve.Minimum(f1, f2);
         Assert.NotEqual(Rational.PlusInfinity, min.PseudoPeriodStart);
@@ -184,16 +186,19 @@ public class CurveMin
         Assert.False(f1.IsFinite);
         Assert.False(f1.IsContinuous);
         Assert.True(f1.IsUltimatelyPlain);
+        Assert.True(f1.IsPlain);
 
         Assert.True(f2.IsFinite);
         Assert.True(f2.IsContinuous);
         Assert.True(f2.IsRightContinuous);
         Assert.True(f2.IsUltimatelyPlain);
+        Assert.True(f2.IsPlain);
 
         Curve min = Curve.Minimum(f1, f2);
         Assert.True(min.IsFinite);
         Assert.False(min.IsContinuous);
         Assert.True(min.IsUltimatelyPlain);
+        Assert.True(min.IsPlain);
     }
 
     public static IEnumerable<object[]> MinimumSamplingTestCases()

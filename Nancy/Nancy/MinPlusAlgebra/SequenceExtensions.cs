@@ -758,6 +758,36 @@ public static class SequenceExtensions
     }
 
     /// <summary>
+    /// True if for any $t$, $\left|f(t)\right| &lt; +\infty$.
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <returns></returns>
+    public static bool IsFinite(this IEnumerable<Element> elements)
+    {
+        return elements.All(e => e.IsFinite);
+    }
+
+    /// <summary>
+    /// True if for any $t$, $f(t) = -\infty$.
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <returns></returns>
+    public static bool IsMinusInfinite(this IEnumerable<Element> elements)
+    {
+        return elements.All(e => e.IsMinusInfinite);
+    }
+    
+    /// <summary>
+    /// True if for any $t$, $f(t) = +\infty$.
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <returns></returns>
+    public static bool IsPlusInfinite(this IEnumerable<Element> elements)
+    {
+        return elements.All(e => e.IsPlusInfinite);
+    }
+    
+    /// <summary>
     /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
     /// </summary>

@@ -146,6 +146,7 @@ public class CurveSubAdditiveClosure
         Assert.True(closure.IsContinuousExceptOrigin);
         Assert.True(closure.IsLeftContinuous);
         Assert.True(closure.IsUltimatelyPlain);
+        Assert.True(closure.IsPlain);
         Assert.True(closure.IsUltimatelyAffine);
 
         if (latency > 0)

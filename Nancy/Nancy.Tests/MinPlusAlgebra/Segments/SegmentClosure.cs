@@ -25,6 +25,7 @@ public class SegmentClosure
         Assert.False(closure.IsFinite);
         Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
+        Assert.False(closure.IsPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(Rational.PlusInfinity, closure.ValueAt(1));
@@ -57,6 +58,7 @@ public class SegmentClosure
         Assert.False(closure.IsFinite);
         Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
+        Assert.False(closure.IsPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(Rational.PlusInfinity, closure.ValueAt(1));
@@ -95,6 +97,7 @@ public class SegmentClosure
         Assert.False(closure.IsFinite);
         Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
+        Assert.False(closure.IsPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(Rational.PlusInfinity, closure.ValueAt(0.5m));
@@ -126,6 +129,7 @@ public class SegmentClosure
         Assert.False(closure.IsFinite);
         Assert.False(closure.IsZero);
         Assert.True(closure.IsUltimatelyPlain);
+        Assert.False(closure.IsPlain);
 
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(Rational.PlusInfinity, closure.ValueAt(0.5m));
@@ -154,6 +158,7 @@ public class SegmentClosure
         Assert.Equal(0, closure.ValueAt(0));
         Assert.Equal(0, closure.RightLimitAt(start));
         Assert.True(closure.IsUltimatelyPlain);
+        Assert.Equal(start == 0, closure.IsPlain);
         Assert.Equal(start, closure.FirstFiniteTimeExceptOrigin);
 
         var sequence = closure.Cut(start, closure.SecondPseudoPeriodEnd);

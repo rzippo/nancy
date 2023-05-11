@@ -39,6 +39,7 @@ public class CurveUpperBounds
         Assert.True(sigmaRhoCurve.IsLeftContinuous);
         Assert.True(sigmaRhoCurve.IsFinite);
         Assert.True(sigmaRhoCurve.IsUltimatelyPlain);
+        Assert.True(sigmaRhoCurve.IsPlain);
 
         Assert.True(sigmaRhoCurve >= curve);
     }

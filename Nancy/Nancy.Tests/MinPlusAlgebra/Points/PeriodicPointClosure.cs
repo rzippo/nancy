@@ -126,12 +126,14 @@ public class PeriodicPointClosure
         if (value.IsFinite)
         {
             Assert.False(closure.IsUltimatelyPlain);
+            Assert.False(closure.IsPlain);
             Assert.Equal(0, closure.FirstFiniteTime);
             Assert.Equal(length, closure.FirstFiniteTimeExceptOrigin);
         }
         else
         {
             Assert.True(closure.IsUltimatelyPlain);
+            Assert.True(closure.IsPlain);
             Assert.Equal(0, closure.FirstFiniteTime);
             Assert.Equal(Rational.PlusInfinity, closure.FirstFiniteTimeExceptOrigin);
         }
