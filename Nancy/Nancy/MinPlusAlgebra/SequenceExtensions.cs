@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.Numerics;
@@ -807,6 +808,61 @@ public static class SequenceExtensions
         return breakpoints.GetBreakpointsValues().Min();
     }
 
+    /// <summary>
+    /// Computes a left-continuous version of this sequence. 
+    /// </summary>
+    public static IEnumerable<Element> ToLeftContinuous(this IEnumerable<Element> elements)
+    {
+        var isStart = true;
+        foreach (var (left, point, right) in elements.EnumerateBreakpoints())
+        {
+            if (left != null)
+            {
+                if (isStart)
+                    yield return left;
+
+                if (point.Value == left.LeftLimitAtEndTime)
+                    yield return point;
+                else
+                    yield return new Point(point.Time, left.LeftLimitAtEndTime);
+            }
+            else
+                yield return point;
+
+            if (right != null)
+                yield return right;
+
+            isStart = false;
+        }
+    }
+    
+    /// <summary>
+    /// Computes a right-continuous version of this sequence. 
+    /// </summary>
+    public static IEnumerable<Element> ToRightContinuous(this IEnumerable<Element> elements)
+    {
+        var isStart = true;
+        foreach (var (left, point, right) in elements.EnumerateBreakpoints())
+        {
+            if (isStart && left != null)
+                yield return left;
+                
+            if (right != null)
+            {
+                if (point.Value == right.RightLimitAtStartTime)
+                    yield return point;
+                else
+                    yield return new Point(point.Time, right.RightLimitAtStartTime);
+
+                yield return right;
+            }
+            else
+                yield return point;
+
+            isStart = false;
+        }
+    }
+    
     /// <summary>
     /// Computes the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.

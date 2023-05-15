@@ -1865,6 +1865,40 @@ public class Curve : IToCodeString
     }
 
     /// <summary>
+    /// Computes a left-continuous version of this curve.
+    /// </summary>
+    public Curve ToLeftContinuous()
+    {
+        var sequence = CutAsEnumerable(0, SecondPseudoPeriodEnd)
+            .ToLeftContinuous()
+            .ToSequence();
+
+        return new Curve(
+            sequence,
+            FirstPseudoPeriodEnd,
+            PseudoPeriodLength,
+            PseudoPeriodHeight
+        ).TransientReduction();
+    }
+    
+    /// <summary>
+    /// Computes a right-continuous version of this curve.
+    /// </summary>
+    public Curve ToRightContinuous()
+    {
+        var sequence = CutAsEnumerable(0, SecondPseudoPeriodEnd)
+            .ToRightContinuous()
+            .ToSequence();
+
+        return new Curve(
+            sequence,
+            FirstPseudoPeriodEnd,
+            PseudoPeriodLength,
+            PseudoPeriodHeight
+        ).TransientReduction();
+    }
+    
+    /// <summary>
     /// Enforces $f(0) = 0$, i.e. it returns $f^\circ = \min \left( f, \delta_0 \right)$.
     /// </summary>
     public Curve WithZeroOrigin()

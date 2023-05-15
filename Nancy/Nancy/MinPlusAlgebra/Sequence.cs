@@ -1398,6 +1398,18 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         );
 
     /// <summary>
+    /// Computes a left-continuous version of this sequence.
+    /// </summary>
+    public Sequence ToLeftContinuous()
+        => Elements.ToLeftContinuous().ToSequence();
+
+    /// <summary>
+    /// Computes a right-continuous version of this sequence.
+    /// </summary>
+    public Sequence ToRightContinuous()
+        => Elements.ToRightContinuous().ToSequence();
+
+    /// <summary>
     /// Computes the lower pseudo-inverse function, $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
     /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\downarrow(x)$ be defined from $x = 0$.</param>
