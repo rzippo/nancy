@@ -1528,13 +1528,13 @@ public class Curve : IToCodeString
     /// <param name="value">The value to reach.</param>
     /// <returns>The first time t at which $f(t)$ = value, or $+\infty$ if it is never reached.</returns>
     /// <remarks>
-    /// The current implementation uses <see cref="ToNonDecreasing"/> and <see cref="LowerPseudoInverse"/>.
+    /// The current implementation uses <see cref="ToUpperNonDecreasing"/> and <see cref="LowerPseudoInverse"/>.
     /// Thus it is useful as a shortcut but not to optimize computation of $f^{-1}_\downarrow(x)$ for a single point.
     /// </remarks>
     public Rational TimeAt(Rational value)
     {
         return this
-            .ToNonDecreasing()
+            .ToUpperNonDecreasing()
             .LowerPseudoInverse()
             .ValueAt(value);
     }
@@ -1731,13 +1731,13 @@ public class Curve : IToCodeString
         => Maximum(this, Curve.Zero());
 
     /// <summary>
-    /// Computes a non-decreasing version of this curve,
-    /// i.e. the lowest curve $g(t) \ge f(t)$ so that $g(t + s) \ge g(t)$ for any $t, s \ge 0$.
+    /// Computes the _upper non-decreasing closure_ of this curve,
+    /// i.e., the lowest curve $g(t) \ge f(t)$ so that $g(t + s) \ge g(t)$ for any $t, s \ge 0$.
     /// </summary>
     /// <remarks>
-    /// This implements the _non-decreasing closure_ defined in [DNC18] p. 45, although the implementation differs.
+    /// This implements the _upper non-decreasing closure_ defined in [DNC18] p. 45, although the implementation differs.
     /// </remarks>
-    public Curve ToNonDecreasing()
+    public Curve ToUpperNonDecreasing()
     {
         if (IsNonDecreasing)
             return this;
@@ -1857,6 +1857,134 @@ public class Curve : IToCodeString
 
             return new Curve(
                 baseSequence: new Sequence(elements),
+                pseudoPeriodStart: time,
+                pseudoPeriodLength: PseudoPeriodLength,
+                pseudoPeriodHeight: PseudoPeriodHeight
+            );
+        }
+    }
+
+    /// <summary>
+    /// Computes the _lower non-decreasing closure_ of this curve,
+    /// i.e., the highest curve $g(t) \le f(t)$ so that $g(t + s) \ge g(t)$ for any $t, s \ge 0$.
+    /// </summary>
+    public Curve ToLowerNonDecreasing()
+    {
+        if (IsNonDecreasing)
+            return this;
+        
+        // this list will contain the curve to transform plus,
+        // for each breakpoint at which a decrease ends, a constant segment with the min value at the breakpoint and $+\infty$ after it.
+        List<Curve> curves = new (){ this };
+
+        if (HasTransient)
+        {
+            foreach (var (left, center, right) in TransientSequence!.EnumerateBreakpoints())
+            {
+                if (
+                    left is not null && left.LeftLimitAtEndTime > center.Value ||
+                    right is not null && center.Value > right.RightLimitAtStartTime ||
+                    left is not null && left.Slope < 0
+                )
+                {
+                    var time = center.Time;
+                    var value = (left, center, right).GetBreakpointValues().Min();
+                    curves.Add(GetUpperboundCurve(time, value));
+                }
+            }
+        }
+
+        if(PseudoPeriodSlope > 0)
+        {
+            foreach (var (left, center, right) in 
+                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+            {
+                if (
+                    left is not null && left.LeftLimitAtEndTime > center.Value ||
+                    right is not null && center.Value > right.RightLimitAtStartTime ||
+                    left is not null && left.Slope < 0
+                )
+                {
+                    var time = center.Time;
+                    var value = (left, center, right).GetBreakpointValues().Min();
+                    curves.Add(GetPeriodicUpperboundCurve(time, value));
+                }
+            }   
+        }
+        else
+        {
+            foreach (var (left, center, right) in 
+                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+            {
+                if (
+                    left is not null && left.LeftLimitAtEndTime > center.Value ||
+                    right is not null && center.Value > right.RightLimitAtStartTime ||
+                    left is not null && left.Slope < 0
+                )
+                {
+                    var time = center.Time;
+                    var value = (left, center, right).GetBreakpointValues().Min();
+                    curves.Add(GetUpperboundCurve(time, value));
+                }
+            }
+        }
+
+        return Minimum(curves);
+
+        Curve GetUpperboundCurve(Rational time, Rational value)
+        {
+            List<Element> elements;
+            if (time > 0)
+            {
+                elements = new()
+                {
+                    new Point(0, value),
+                    Segment.Constant(0, time, value),
+                    new Point(time, value),
+                    Segment.PlusInfinite(time, time + 2)
+                };
+            }
+            else
+            {
+                elements = new()
+                {
+                    new Point(time, value),
+                    Segment.PlusInfinite(time, time + 2)
+                };
+            }
+
+            return new Curve(
+                baseSequence: elements.ToSequence(),
+                pseudoPeriodStart: time + 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            );
+        }
+
+        Curve GetPeriodicUpperboundCurve(Rational time, Rational value)
+        {
+            List<Element> elements;
+            if (time > 0)
+            {
+                elements = new()
+                {
+                    new Point(0, value),
+                    Segment.Constant(0, time, value),
+                    new Point(time, value),
+                    new Segment(time, time + PseudoPeriodLength, value + PseudoPeriodHeight, 0)
+                };
+            }
+            else
+            {
+                elements = new()
+                {
+                    new Point(time, value),
+                    new Segment(time, time + PseudoPeriodLength, value + PseudoPeriodHeight, 0)
+                };
+            }
+
+            return new Curve(
+                baseSequence: elements.ToSequence(),
                 pseudoPeriodStart: time,
                 pseudoPeriodLength: PseudoPeriodLength,
                 pseudoPeriodHeight: PseudoPeriodHeight

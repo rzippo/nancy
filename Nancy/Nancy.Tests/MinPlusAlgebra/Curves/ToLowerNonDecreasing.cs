@@ -1,11 +1,19 @@
 ﻿using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
-public class ToNonDecreasing
+public class ToLowerNonDecreasing
 {
+    private readonly ITestOutputHelper output;
+
+    public ToLowerNonDecreasing(ITestOutputHelper output)
+    {
+        this.output = output;
+    }
+
     public static IEnumerable<object[]> GetDecreasingTestCases()
     {
         var testcases = new List<(Curve operand, Curve expected)>
@@ -31,11 +39,11 @@ public class ToNonDecreasing
                     baseSequence: new Sequence(new Element[]
                     {
                         Point.Origin(),
-                        new Segment(0, 2, 0, 1),
-                        new Point(2, 2),
-                        Segment.Constant(2, 4, 2),
-                        new Point(4, 2),
-                        new Segment(4, 6, 2, 1),
+                        new Segment(0, 1, 0, 1),
+                        new Point(1, 1),
+                        Segment.Constant(1, 3, 1),
+                        new Point(3, 1),
+                        new Segment(3, 6, 1, 1),
                         new Point(6, 4),
                         new Segment(6, 7, 4, 1)
                     }),
@@ -66,11 +74,11 @@ public class ToNonDecreasing
                     baseSequence: new Sequence(new Element[]
                     {
                         Point.Origin(),
-                        new Segment(0, 2, 0, 1),
-                        new Point(2, 2),
-                        Segment.Constant(2, 4, 2),
-                        new Point(4, 2),
-                        new Segment(4, 6, 2, 1),
+                        new Segment(0, 1, 0, 1),
+                        new Point(1, 1),
+                        Segment.Constant(1, 3, 1),
+                        new Point(3, 1),
+                        new Segment(3, 6, 1, 1),
                         new Point(6, 4),
                         new Segment(6, 7, 4, 1)
                     }),
@@ -102,13 +110,13 @@ public class ToNonDecreasing
                     baseSequence: new Sequence(new Element[]
                     {
                         Point.Origin(),
-                        new Segment(0, 2, 0, 1),
-                        new Point(2, 2),
-                        Segment.Constant(2, 4, 2),
-                        new Point(4, 2),
-                        new Segment(4, 5, 2, 1)
+                        new Segment(0, 1, 0, 1),
+                        new Point(1, 1),
+                        Segment.Constant(1, 3, 1),
+                        new Point(3, 1),
+                        new Segment(3, 4, 1, 1)
                     }),
-                    pseudoPeriodStart: 2,
+                    pseudoPeriodStart: 1,
                     pseudoPeriodLength: 3,
                     pseudoPeriodHeight: 1
                 )
@@ -132,14 +140,16 @@ public class ToNonDecreasing
                     baseSequence: new Sequence(new Element[]
                     {
                         Point.Origin(),
-                        new Segment(0, 2, 0, 1),
-                        new Point(2, 2),
-                        Segment.Constant(2, 3, 2),
-                        new Point(3, 2),
-                        new Segment(3, 4, 2, 1),
+                        new Segment(0, 1, 0, 1),
+                        new Point(1, 1),
+                        Segment.Constant(1, 2, 1),
+                        new Point(2, 1),
+                        new Segment(2, 4, 1, 1),
+                        new Point(4, 3),
+                        new Segment(4, 5, 3, 1),
 
                     }),
-                    pseudoPeriodStart: 3,
+                    pseudoPeriodStart: 4,
                     pseudoPeriodLength: 1,
                     pseudoPeriodHeight: 1
                 )
@@ -163,15 +173,17 @@ public class ToNonDecreasing
                     baseSequence: new Sequence(new Element[]
                     {
                         Point.Origin(),
-                        new Segment(0, 2, 0, 1),
-                        new Point(2, 2),
-                        Segment.Constant(2, 3, 2),
-                        new Point(3, 2),
-                        new Segment(3, 4, 2, 1)
+                        new Segment(0, 1, 0, 1),
+                        new Point(1, 1),
+                        Segment.Constant(1, 2, 1),
+                        new Point(2, 1),
+                        new Segment(2, 2.1m, 1, 1),
+                        new Point(2.1m, 1.1m),
+                        new Segment(2.1m, 2.2m, 1.1m, 1)
                     }),
-                    pseudoPeriodStart: 3,
-                    pseudoPeriodLength: 1,
-                    pseudoPeriodHeight: 1
+                    pseudoPeriodStart: 2.1m,
+                    pseudoPeriodLength: 0.1m,
+                    pseudoPeriodHeight: 0.1m
                 )
             ),
             (
@@ -191,14 +203,11 @@ public class ToNonDecreasing
                     baseSequence: new Sequence(new Element[]
                     {
                         Point.Origin(),
-                        new Segment(0, 2, 0, 1),
-                        new Point(2, 2),
-                        Segment.Constant(2, 3, 2),
-                        new Point(3, 2),
-                        new Segment(3, 4, 2, 1),
-
+                        new Segment(0, 1, 0, 1),
+                        new Point(1, 1),
+                        Segment.Constant(1, 2, 1)
                     }),
-                    pseudoPeriodStart: 2,
+                    pseudoPeriodStart: 0,
                     pseudoPeriodLength: 2,
                     pseudoPeriodHeight: 1
                 )
@@ -213,21 +222,20 @@ public class ToNonDecreasing
 
     [Theory]
     [MemberData(nameof(GetDecreasingTestCases))]
-    public void ToNonDecreasingTest(Curve operand, Curve expected)
+    public void ToLowerNonDecreasingTest(Curve operand, Curve expected)
     {
+        output.WriteLine($"var operand = {operand.ToCodeString()}");
         Assert.False(operand.IsNonDecreasing);
-        var result = operand.ToNonDecreasing();
+        
+        var result = operand.ToLowerNonDecreasing();
+        output.WriteLine($"var result = {result.ToCodeString()}");
+        output.WriteLine($"var expected = {expected.ToCodeString()}");
+        
         Assert.True(result.IsNonDecreasing);
         Assert.True(Curve.Equivalent(result, expected));
-    }
-
-    [Theory]
-    [MemberData(nameof(GetDecreasingTestCases))]
-    public void VsMaxConvolution(Curve operand, Curve expected)
-    {
-        Assert.False(operand.IsNonDecreasing);
-        var result = Curve.MaxPlusConvolution(operand, Curve.Zero());
-        Assert.True(result.IsNonDecreasing);
-        Assert.True(Curve.Equivalent(result, expected));
+        
+        var (dominance, lower, upper) = Curve.Dominance(operand, result);
+        Assert.True(dominance);
+        Assert.True(Curve.Equivalent(lower, result));
     }
 }
