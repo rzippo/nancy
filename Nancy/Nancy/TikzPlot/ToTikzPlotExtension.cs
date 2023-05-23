@@ -19,8 +19,8 @@ public static class ToTikzPlotExtension
     /// </summary>
     public static List<string> DefaultColorList = new ()
     {
-        "green!60!black",
         "blue!60!black",
+        "green!60!black",
         "red!60!black"
     };
     
@@ -293,7 +293,7 @@ public static class ToTikzPlotExtension
         yield return $"\\begin{{tikzpicture}}";
         yield return $"{tabs(1)}\\begin{{axis}}[";
         yield return $"{tabs(2)}font = {settings.FontSize.ToLatex()},";
-        yield return $"{tabs(2)}clip = true,";
+        yield return $"{tabs(2)}clip = false,";
 
         switch (settings.GridTickLayout)
         {
@@ -317,7 +317,11 @@ public static class ToTikzPlotExtension
         yield return $"{tabs(2)}axis equal image,";
         yield return $"{tabs(2)}xlabel = time,";
         yield return $"{tabs(2)}ylabel = data,";
-        yield return $"{tabs(2)}x label style = {{at={{(axis description cs:1,0)}},anchor=north}},";
+        var xLabelAnchor = settings.GridTickLayout switch {
+            GridTickLayout.SquareGridNoLabels => "north",
+            _ => "north west"
+        };
+        yield return $"{tabs(2)}x label style = {{at={{(axis description cs:1,0)}},anchor={xLabelAnchor}}},";
         yield return $"{tabs(2)}y label style = {{at={{(axis description cs:0,1)}},rotate=-90,anchor=south}},";
         yield return $"{tabs(2)}xmin = 0,";
         yield return $"{tabs(2)}ymin = 0,";
@@ -442,7 +446,7 @@ public static class ToTikzPlotExtension
 
             if(ftf > 0)
                 yield return $"{tabs(2)}\\addplot [ color = {marksColor}, {marksStyle} ] coordinates {{ ({tf}, 0) ({tf}, {ftf}) }};";
-            yield return $"{tabs(2)}\\node [ anchor = south west ] at (axis cs:{tf}, 0) {{$T_{{{name}}}$}};";
+            yield return $"{tabs(2)}\\node [ anchor = north ] at (axis cs:{tf}, 0) {{$T_{{{name}}}$}};";
             yield return $"";
 
             var tfdf = (decimal)f.FirstPseudoPeriodEnd;
