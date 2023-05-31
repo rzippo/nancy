@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -16,13 +17,19 @@ public class Convolution
         this.output = output;
     }
 
+    public static ComputationSettings settings = ComputationSettings.Default() with 
+    {
+        UseConvolutionIsomorphismOptimization = false,
+        UseSubAdditiveConvolutionOptimizations = false
+    };
+    
     [Fact]
     public void TwoRateLatencyEquivalent()
     {
         RateLatencyServiceCurve firstRouter = new RateLatencyServiceCurve(rate: 3, latency: 4);
         RateLatencyServiceCurve secondRouter = new RateLatencyServiceCurve(rate: 4, latency: 6);
 
-        Curve equivalentService = firstRouter.Convolution(secondRouter);
+        Curve equivalentService = firstRouter.Convolution(secondRouter, settings);
 
         Assert.False(equivalentService.IsZero);
         Assert.True(equivalentService.IsContinuous);
@@ -46,7 +53,7 @@ public class Convolution
         RateLatencyServiceCurve secondRouter = new RateLatencyServiceCurve(rate: 4, latency: 6);
         RateLatencyServiceCurve thirdRouter = new RateLatencyServiceCurve(rate: 6, latency: 2);
 
-        Curve equivalentService = firstRouter.Convolution(secondRouter).Convolution(thirdRouter);
+        Curve equivalentService = firstRouter.Convolution(secondRouter, settings).Convolution(thirdRouter, settings);
 
         Assert.False(equivalentService.IsZero);
         Assert.True(equivalentService.IsContinuous);
@@ -85,7 +92,7 @@ public class Convolution
     {
         Curve zeroDelay = new ConstantCurve(Rational.PlusInfinity);
 
-        Curve convolution = curve.Convolution(zeroDelay);
+        Curve convolution = curve.Convolution(zeroDelay, settings);
         Assert.Equal(curve, convolution);
     }
 
@@ -95,7 +102,7 @@ public class Convolution
     {
         Curve infinite = Curve.PlusInfinite();
 
-        Curve convolution = curve.Convolution(infinite);
+        Curve convolution = curve.Convolution(infinite, settings);
         Assert.Equal(Rational.PlusInfinity, convolution.ValueAt(0));
         Assert.True(Curve.Equivalent(Curve.PlusInfinite(), convolution));
     }
@@ -129,19 +136,19 @@ public class Convolution
     {
         Assert.True(curve.IsFinite);
 
-        var curve_2 = curve.Convolution(curve);
+        var curve_2 = curve.Convolution(curve, settings);
         output.WriteLine(curve_2.ToString());
         Assert.True(curve_2.IsFinite);
 
-        var curve_4 = curve_2.Convolution(curve_2);
+        var curve_4 = curve_2.Convolution(curve_2, settings);
         output.WriteLine(curve_4.ToString());            
         Assert.True(curve_4.IsFinite);
 
-        var curve_8 = curve_4.Convolution(curve_4);
+        var curve_8 = curve_4.Convolution(curve_4, settings);
         output.WriteLine(curve_8.ToString());            
         Assert.True(curve_8.IsFinite);
 
-        var curve_16 = curve_8.Convolution(curve_8);
+        var curve_16 = curve_8.Convolution(curve_8, settings);
         output.WriteLine(curve_16.ToString());            
         Assert.True(curve_16.IsFinite);
     }
@@ -164,7 +171,7 @@ public class Convolution
         Assert.False(curve.HasTransient);
         Assert.Equal(length, curve.FirstFiniteTimeExceptOrigin);
 
-        var curve_2 = curve.Convolution(curve);
+        var curve_2 = curve.Convolution(curve, settings);
 
         //todo: optimize for transient removal
         //Assert.False(curve_2.HasTransient);
@@ -195,7 +202,7 @@ public class Convolution
         var a = new RateLatencyServiceCurve(rate: rate_a, latency: delay_a);
         var b = new RateLatencyServiceCurve(rate: rate_b, latency: delay_b);
 
-        var convolution = Curve.Convolution(a, b);
+        var convolution = Curve.Convolution(a, b, settings);
 
         Assert.True(convolution.IsFinite);
         Assert.False(convolution.IsZero);
@@ -223,8 +230,8 @@ public class Convolution
         var a = new RateLatencyServiceCurve(rate: rate_a, latency: delay_a);
         var b = new RateLatencyServiceCurve(rate: rate_b, latency: delay_b);
 
-        var optimized = Curve.Convolution(a, b);
-        var unoptimized = Curve.Convolution(new Curve(a), new Curve(b));
+        var optimized = Curve.Convolution(a, b, settings);
+        var unoptimized = Curve.Convolution(new Curve(a), new Curve(b), settings);
 
         Assert.True(Curve.Equivalent(optimized, unoptimized));
     }
@@ -302,9 +309,64 @@ public class Convolution
     [MemberData(nameof(GetSameSlopeTestCases))]
     public void SameSlopeEquivalence(Curve a, Curve b)
     {
-        var fourTerms = Curve.Convolution(a, b, new ComputationSettings { SinglePassConvolution = false });
-        var singlePass = Curve.Convolution(a, b, new ComputationSettings { SinglePassConvolution = true });
+        var fourTerms = Curve.Convolution(a, b, settings with { SinglePassConvolution = false });
+        var singlePass = Curve.Convolution(a, b, settings with { SinglePassConvolution = true });
 
         Assert.True(Curve.Equivalent(fourTerms, singlePass));
     }
+
+    public static IEnumerable<object[]> LeftContinuityBothTestCases()
+    {
+        var lc = ConvolutionIsomorphism.ContinuousExamples
+            .Concat(ConvolutionIsomorphism.LeftContinuousExamples);
+        var testcases = lc.SelectMany(f => lc.Select(g => (f, g)));
+
+        foreach (var (f, g) in testcases)
+            yield return new object[] { f, g };
+    }
+
+    [Theory]
+    [MemberData(nameof(LeftContinuityBothTestCases))]
+    public void LeftContinuityBoth(Curve f, Curve g)
+    {
+        Assert.True(f.IsLeftContinuous && g.IsLeftContinuous);
+        var conv = Curve.Convolution(f, g, settings);
+
+        output.WriteLine($"var f = {f.ToCodeString()};");
+        output.WriteLine($"var g = {g.ToCodeString()};");
+        output.WriteLine($"var conv = {conv.ToCodeString()};");
+
+        Assert.True(conv.IsLeftContinuous);
+    }
+
+    #if ONE_SIDED_LEFT_CONTINUITY_TH
+    // The following tests show that the analogous result of [Lie17, p.134], 
+    // for which it is sufficient that one of the operands is left-continuous for the (min,+) convolution to be left-continuous, 
+    // does *not* apply for functions defined only in [0, +\infty[
+
+    public static IEnumerable<object[]> LeftContinuityAtLeastOneTestCases()
+    {
+        var lc = ConvolutionIsomorphism.ContinuousExamples
+            .Concat(ConvolutionIsomorphism.LeftContinuousExamples);
+        var rc = ConvolutionIsomorphism.RightContinuousExamples;
+        var testcases = lc.SelectMany(f => rc.Select(g => (f, g)));
+
+        foreach (var (f, g) in testcases)
+            yield return new object[] { f, g };
+    }
+
+    [Theory]
+    [MemberData(nameof(LeftContinuityAtLeastOneTestCases))]
+    public void LeftContinuityAtLeastOne(Curve f, Curve g)
+    {
+        Assert.True(f.IsLeftContinuous || g.IsLeftContinuous);
+        var conv = Curve.Convolution(f, g, settings);
+
+        output.WriteLine($"var f = {f.ToCodeString()};");
+        output.WriteLine($"var g = {g.ToCodeString()};");
+        output.WriteLine($"var conv = {conv.ToCodeString()};");
+
+        Assert.True(conv.IsLeftContinuous);
+    }
+    #endif
 }

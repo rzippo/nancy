@@ -265,6 +265,50 @@ public class Curve : IToCodeString
     /// </summary>
     internal bool? _isNonNegative;
 
+    /// <summary>
+    /// True if the curve is non-negative over the given interval, i.e. i.e. $f(t) \ge 0$ for any $t$ in the given interval.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNonNegativeOverInterval(        
+        Rational start, 
+        Rational? end = null, 
+        bool isStartIncluded = true, 
+        bool isEndIncluded = false
+    )
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        if (_isNonNegative is true)
+            return true;
+
+        var _end = end ?? Rational.PlusInfinity;
+
+        if(start == 0 && _end == Rational.PlusInfinity)
+            return IsNonNegative;
+        else if(start == _end)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+            return true;
+        }
+        else if(_end < Rational.PlusInfinity)
+        {
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            return cut.IsNonNegative();
+        }
+        else
+        {
+            var cut = CutAsEnumerable(start, start + PseudoPeriodLength, isStartIncluded, true);
+            return cut.IsNonNegative();
+        }
+    }
 
     /// <summary>
     /// The first instant around which the curve is non-negative.
@@ -332,6 +376,145 @@ public class Curve : IToCodeString
     /// Private cache field for <see cref="IsNonDecreasing"/>
     /// </summary>
     internal bool? _isNonDecreasing;
+
+    /// <summary>
+    /// True if for any pair $t,s$ in the given interval, $t > s$, $f(t) \ge f(s)$.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNonDecreasingOverInterval(        
+        Rational start, 
+        Rational? end = null, 
+        bool isStartIncluded = true, 
+        bool isEndIncluded = false
+    )
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        if (_isNonDecreasing is true)
+            return true;
+
+        var _end = end ?? Rational.PlusInfinity;
+
+        if(start == 0 && _end == Rational.PlusInfinity)
+            return IsNonDecreasing;
+        else if(start == _end)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+            return true;
+        }
+        else if(_end < Rational.PlusInfinity)
+        {
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            return cut.IsNonDecreasing();
+        }
+        else
+        {
+            var cut = CutAsEnumerable(start, start + PseudoPeriodLength, isStartIncluded, true);
+            return cut.IsNonDecreasing();
+        }
+    }
+
+    // todo: point to the mathematical definition
+
+    /// <summary>
+    /// True if for any $t_0$ interior (from the left) to the given interval, $lim_{t \to t_0^-}{f(t)} = f(t_0)$.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsLeftContinuousOverInterval(
+        Rational start, 
+        Rational? end = null, 
+        bool isStartIncluded = true, 
+        bool isEndIncluded = false
+    )
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        if (_isLeftContinuous is true)
+            return true;
+
+        var _end = end ?? Rational.PlusInfinity;
+
+        if(start == 0 && _end == Rational.PlusInfinity)
+            return IsLeftContinuous;
+        else if(start == _end)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+            return true;
+        }
+        else if(_end < Rational.PlusInfinity)
+        {
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            return cut.IsLeftContinuous();
+        }
+        else
+        {
+            var cut = CutAsEnumerable(start, start + PseudoPeriodLength, isStartIncluded, true);
+            return cut.IsLeftContinuous();
+        }
+    }
+
+    // todo: point to the mathematical definition
+
+    /// <summary>
+    /// True if for any $t_0$ interior (from the right) to the given interval, $lim_{t \to t_0^+}{f(t)} = f(t_0)$.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsRightContinuousOverInterval(        
+        Rational start, 
+        Rational? end = null, 
+        bool isStartIncluded = true, 
+        bool isEndIncluded = false
+    )
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        if (_isRightContinuous is true)
+            return true;
+
+        var _end = end ?? Rational.PlusInfinity;
+
+        if(start == 0 && _end == Rational.PlusInfinity)
+            return IsRightContinuous;
+        else if(start == _end)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+            return true;
+        }
+        else if(_end < Rational.PlusInfinity)
+        {
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            return cut.IsRightContinuous();
+        }
+        else
+        {
+            var cut = CutAsEnumerable(start, start + PseudoPeriodLength, isStartIncluded, true);
+            return cut.IsRightContinuous();
+        }
+    }
 
     /// <summary>
     /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is finite.
@@ -1539,6 +1722,72 @@ public class Curve : IToCodeString
             .ValueAt(value);
     }
 
+    /// <summary>
+    /// Splits the curve into two, $f_t$ and $f_p$,
+    /// so that $f = f_t \wedge f_p$ (if <paramref name="minDecomposition"/> is true)
+    /// or $f = f_t \vee f_p$ (if <paramref name="minDecomposition"/> is false).
+    /// </summary>
+    /// <param name="splitTime">Time at which to split the curve. Defaults to <see cref="PseudoPeriodStart"/>.</param>
+    /// <param name="leftIncludesEndPoint">
+    /// If true, and <paramref name="splitTime"/> is $T > 0$, the support of $f_t$ will be $[0, T]$.
+    /// If false, it will be $[0, T[$.
+    /// </param>
+    /// <param name="minDecomposition">
+    /// If true (default), the parts have value $+\infty$ outside their support, i.e., they can be recomposed by computing their minimum.
+    /// Conversely, if false the parts have value $-\infty$ outside their support, i.e., they can be recomposed by computing their maximum.
+    /// </param>
+    /// <exception cref="ArgumentException">If <paramref name="splitTime"/> is $\le 0$.</exception>
+    /// <returns>
+    /// A tuple containing the two parts.
+    /// If <paramref name="splitTime"/> is 0, the left part will be null.
+    /// </returns>
+    public (Curve? left, Curve right) Decompose(Rational? splitTime = null, bool leftIncludesEndPoint = false, bool minDecomposition = true)
+    {
+        var _splitTime = splitTime ?? PseudoPeriodStart;
+
+        Curve? left = null;
+        if (_splitTime > 0)
+        {
+            var cut = Cut(0, _splitTime, isEndIncluded: leftIncludesEndPoint);
+            left = minDecomposition ? Minimum(PlusInfinite(), cut) : Maximum(MinusInfinite(), cut);
+        }
+
+        if (_splitTime >= PseudoPeriodStart)
+        {
+            var start_seq = _splitTime == 0 ?
+                    new List<Element> {} 
+                    : minDecomposition
+                    ? new List<Element> {Point.PlusInfinite(0), Segment.PlusInfinite(0, _splitTime)}
+                    : new List<Element> {Point.MinusInfinite(0), Segment.MinusInfinite(0, _splitTime)};
+            var right = new Curve(
+                baseSequence: start_seq
+                    .Concat(CutAsEnumerable(_splitTime, _splitTime + PseudoPeriodLength))
+                    .ToSequence(),
+                pseudoPeriodStart: _splitTime,
+                pseudoPeriodLength: PseudoPeriodLength,
+                pseudoPeriodHeight: PseudoPeriodHeight
+            );
+            return (left, right);
+        }
+        else
+        {
+            var start_seq = _splitTime == 0 ?
+                new List<Element> {} 
+                : minDecomposition
+                ? new List<Element> {Point.PlusInfinite(0), Segment.PlusInfinite(0, _splitTime)}
+                : new List<Element> {Point.MinusInfinite(0), Segment.MinusInfinite(0, _splitTime)};
+            var right = new Curve(
+                baseSequence: start_seq
+                    .Concat(CutAsEnumerable(_splitTime, PseudoPeriodStart + PseudoPeriodLength))
+                    .ToSequence(),
+                pseudoPeriodStart: PseudoPeriodStart,
+                pseudoPeriodLength: PseudoPeriodLength,
+                pseudoPeriodHeight: PseudoPeriodHeight
+            );
+            return (left, right);
+        }
+    }
+
     #endregion Methods
 
     #region Json Methods
@@ -2255,6 +2504,311 @@ public class Curve : IToCodeString
                 pseudoPeriodLength: PseudoPeriodHeight,
                 pseudoPeriodHeight: PseudoPeriodLength
             );
+        }
+    }
+
+    /// <summary>
+    /// Computes the lower pseudo-inverse function over interval $I$, $f^{-1}_{\downarrow,I}(x)$.
+    /// The support of the result will be the interval $f(I)$, defined as the smallest interval containing all $f(x)$ for $x \in I$.
+    /// If $0 \in I$, the support is extended to start from 0.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
+    /// <remarks>
+    /// Defined and discussed in [TBP23]. 
+    /// </remarks>
+    public Curve LowerPseudoInverseOverInterval(
+        Rational start, 
+        Rational? end = null, 
+        bool isStartIncluded = true, 
+        bool isEndIncluded = false
+    )
+    {
+        if (!IsNonDecreasingOverInterval(start, end, isStartIncluded, isEndIncluded))
+            throw new ArgumentException("The lower pseudo-inverse over an interval is defined only for functions that are non-decreasing over the same interval");
+        if (!IsNonNegativeOverInterval(start, end, isStartIncluded, isEndIncluded))
+            throw new ArgumentException("The lower pseudo-inverse over an interval is defined only for non-negative functions");
+
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        var _end = end ?? Rational.PlusInfinity;
+        var startFromZero = start == 0;
+
+        if (start == _end)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+            // point-interval, the inverse is just a point, if f(x) is finite
+            var value = ValueAt(start);
+            if (value.IsInfinite)
+                return PlusInfinite();
+            else
+            {
+                var point = new Point(ValueAt(start), start);
+                return Minimum(PlusInfinite(), point);
+            }
+        }
+        else if (_end < Rational.PlusInfinity)
+        {
+            // limited interval, no pseudo-periodic behavior
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            var lpi_raw = cut
+                .LowerPseudoInverse(startFromZero)
+                .ToList();
+            var lpiShouldEndWithPoint = isEndIncluded || GetSegmentBefore(_end).IsConstant;
+            var lpi = lpi_raw.Last() is Point && !lpiShouldEndWithPoint
+                ? lpi_raw.SkipLast(1).ToSequence()
+                : lpi_raw.ToSequence();
+            return Minimum(PlusInfinite(), lpi);
+        }
+        else
+        {
+            if (IsUltimatelyConstant)
+            {
+                var constant_start = Rational.Max(PseudoPeriodStartInfimum, start);
+                var constant_value = ValueAt(PseudoPeriodStart);
+                var transient_lpi = CutAsEnumerable(start, constant_start, isEndIncluded: true)
+                    .LowerPseudoInverse(startFromZero);
+                var lpi = IsRightContinuousAt(constant_start)
+                    ? transient_lpi
+                        .Append(Segment.PlusInfinite(constant_value, constant_value + 2))
+                    : transient_lpi
+                        .Append(Segment.Constant(ValueAt(constant_start), constant_value, constant_start))
+                        .Append(new Point(constant_value, constant_start))
+                        .Append(Segment.PlusInfinite(constant_value, constant_value + 2));
+
+                var valueAtStart = ValueAt(start);
+                var sequence = !startFromZero && valueAtStart > 0
+                    ? Sequence.PlusInfinite(0, valueAtStart).Elements
+                        .Concat(lpi)
+                        .ToSequence()
+                    : lpi.ToSequence();
+
+                return new Curve(
+                    baseSequence: sequence,
+                    pseudoPeriodStart: constant_value + 1,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                );
+            }
+            else if (IsUltimatelyInfinite)
+            {
+                var lastFiniteTime = Rational.Max(PseudoPeriodStartInfimum, start); // T_I
+                if (lastFiniteTime == 0)
+                    return Zero();
+                var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
+                var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : 
+                    lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
+                var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
+                var transient_lpi = start < lastFiniteTime  
+                    ? BaseSequence.CutAsEnumerable(start, lastFiniteTime)
+                        .LowerPseudoInverse(startFromZero)
+                    : Enumerable.Empty<Element>();
+                var lpi = isLastFiniteConstant 
+                    ? transient_lpi
+                        .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 2, lastFiniteTime)) 
+                    : transient_lpi
+                        .Append(new Point(lastFiniteValue, lastFiniteTime))
+                        .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
+
+                var valueAtStart = ValueAt(start).IsFinite ? ValueAt(start) : LeftLimitAt(start);
+                var sequence = !startFromZero && valueAtStart > 0
+                    ? Sequence.PlusInfinite(0, valueAtStart).Elements
+                        .Concat(lpi)
+                        .ToSequence()
+                    : lpi.ToSequence();
+
+                return new Curve(
+                    baseSequence: sequence,
+                    pseudoPeriodStart: isLastFiniteConstant ? lastFiniteValue + 1 : lastFiniteValue,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                );
+            }
+            else
+            {
+                var periodStart = (start < PseudoPeriodStart ? PseudoPeriodStart : start) + PseudoPeriodLength;
+                // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
+                // the pseudo-inverse of said point is then removed from the result
+                var lpi = CutAsEnumerable(start, periodStart + PseudoPeriodLength, isEndIncluded: true)
+                    .LowerPseudoInverse(startFromZero)
+                    .SkipLast(1);
+
+                var valueAtStart = ValueAt(start);
+                var sequence = !startFromZero && valueAtStart > 0
+                    ? Sequence.PlusInfinite(0, valueAtStart).Elements
+                        .Concat(lpi)
+                        .ToSequence()
+                    : lpi.ToSequence();
+
+                return new Curve(
+                    baseSequence: sequence,
+                    pseudoPeriodStart: ValueAt(periodStart),
+                    pseudoPeriodLength: PseudoPeriodHeight,
+                    pseudoPeriodHeight: PseudoPeriodLength
+                ).TransientReduction();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Computes the upper pseudo-inverse function over interval $D$, $f^{-1}_{\uparrow,D}(x)$.
+    /// The support of the result will be the interval $f(I)$, defined as the smallest interval containing all $f(x)$ for $x \in I$.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
+    /// <remarks>
+    /// Defined and discussed in [TBP23]. 
+    /// </remarks>
+    public Curve UpperPseudoInverseOverInterval(
+        Rational start, 
+        Rational? end = null, 
+        bool isStartIncluded = true, 
+        bool isEndIncluded = false
+    )
+    {
+        if (!IsNonDecreasingOverInterval(start, end, isStartIncluded, isEndIncluded))
+            throw new ArgumentException("The upper pseudo-inverse over an interval is defined only for functions that are non-decreasing over the same interval");
+        if (!IsNonNegativeOverInterval(start, end, isStartIncluded, isEndIncluded))
+            throw new ArgumentException("The upper pseudo-inverse over an interval is defined only for non-negative functions");
+
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        var _end = end ?? Rational.PlusInfinity;
+
+        if (start == _end)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+            // point-interval, the inverse is just a point, if f(x) is finite
+            var value = ValueAt(start);
+            if (value.IsInfinite)
+                return MinusInfinite();
+            else
+            {
+                var point = new Point(ValueAt(start), start);
+                return Maximum(MinusInfinite(), point);
+            }
+        }
+        else if (_end < Rational.PlusInfinity)
+        {
+            // limited interval, no pseudo-periodic behavior
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            var upi_raw = cut
+                .UpperPseudoInverse()
+                .ToList();
+            var upiShouldEndWithPoint = isEndIncluded || GetSegmentBefore(_end).IsConstant;
+            var upi = upi_raw.Last() is Point && !upiShouldEndWithPoint
+                ? upi_raw.SkipLast(1).ToSequence()
+                : upi_raw.ToSequence();
+            return Maximum(MinusInfinite(), upi);
+        }
+        else
+        {
+            if (IsUltimatelyConstant)
+            {
+                var constant_start = Rational.Max(PseudoPeriodStartInfimum, start);
+                var constant_value = ValueAt(PseudoPeriodStart);
+                var transient_upi = start < constant_start  
+                    ? CutAsEnumerable(start, constant_start)
+                        .UpperPseudoInverse()
+                    : Enumerable.Empty<Element>();
+                var upi = IsRightContinuousAt(constant_start) 
+                    ? transient_upi
+                        .Append(Point.PlusInfinite(constant_value))
+                        .Append(Segment.PlusInfinite(constant_value, constant_value + 1))
+                    : transient_upi
+                        .Append(new Point(ValueAt(constant_start), constant_start))
+                        .Append(Segment.Constant(ValueAt(constant_start), constant_value, constant_start))
+                        .Append(Point.PlusInfinite(constant_value))
+                        .Append(Segment.PlusInfinite(constant_value, constant_value + 1));
+
+                var valueAtStart = ValueAt(start); 
+                var sequence = valueAtStart > 0
+                    ? Sequence.MinusInfinite(0, valueAtStart).Elements
+                        .Concat(upi)
+                        .ToSequence()
+                    : upi.ToSequence();
+
+                return new Curve(
+                    baseSequence: sequence,
+                    pseudoPeriodStart: constant_value,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                );
+            }
+            else if (IsUltimatelyInfinite)
+            {
+                var lastFiniteTime = Rational.Max(PseudoPeriodStartInfimum, start); // T_I
+                if (lastFiniteTime == 0)
+                    return Zero();
+                var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
+                var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : 
+                    lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
+                var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
+                var transient_upi = start < lastFiniteTime 
+                    ? BaseSequence.CutAsEnumerable(start, lastFiniteTime)
+                        .UpperPseudoInverse()
+                    : Enumerable.Empty<Element>();
+                var upi = isLastFiniteConstant 
+                    ? transient_upi
+                        .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime))
+                    : transient_upi
+                        .Append(new Point(lastFiniteValue, lastFiniteTime))
+                        .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
+
+                var valueAtStart = ValueAt(start).IsFinite ? ValueAt(start) : LeftLimitAt(start); 
+                var sequence = valueAtStart > 0
+                    ? Sequence.MinusInfinite(0, valueAtStart).Elements
+                        .Concat(upi)
+                        .ToSequence()
+                    : upi.ToSequence();
+
+                return new Curve(
+                    baseSequence: sequence,
+                    pseudoPeriodStart: lastFiniteValue,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                );
+            }
+            else
+            {
+                var periodStart = (start < PseudoPeriodStart ? PseudoPeriodStart : start) + PseudoPeriodLength;
+                // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
+                // the pseudo-inverse of said point is then removed from the result
+                var upi = CutAsEnumerable(start, periodStart + PseudoPeriodLength, isEndIncluded: true)
+                    .UpperPseudoInverse()
+                    .SkipLast(1);
+
+                var valueAtStart = ValueAt(start); 
+                var sequence = valueAtStart > 0
+                    ? Sequence.MinusInfinite(0, valueAtStart).Elements
+                        .Concat(upi)
+                        .ToSequence()
+                    : upi.ToSequence();
+
+                return new Curve(
+                    baseSequence: sequence,
+                    pseudoPeriodStart: ValueAt(periodStart),
+                    pseudoPeriodLength: PseudoPeriodHeight,
+                    pseudoPeriodHeight: PseudoPeriodLength
+                );
+            }
         }
     }
 
@@ -3591,14 +4145,35 @@ public class Curve : IToCodeString
             #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
             #endif
+            // todo: fill in reference
+            // As discussed in [TBP23] section X, there is no improvement on the UPP parameters to be gained using isomorphisms.
+            // The optimization lies instead in the use of a vertical filter (cutCeiling), in addition to the horizontal one (cutEnd)
+
             var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
             var c = f.PseudoPeriodSlope * d;
 
             var cutEnd = T + d;
+            Rational cutCeiling;
+            if (settings.UseConvolutionIsomorphismOptimization &&
+                f.IsLeftContinuous && g.IsLeftContinuous &&
+                f.IsNonDecreasing && g.IsNonDecreasing &&
+                !f.IsUltimatelyConstant && !g.IsUltimatelyConstant
+               )
+            {
+                // todo: fill in reference
+                // Vertical filter optimization according to [TBP23] Th. X
+                var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
+                cutCeiling = f.ValueAt(f.PseudoPeriodStart) + g.ValueAt(g.PseudoPeriodStart) + 2 * lcm_c;
+            }
+            else
+            {
+                cutCeiling = Rational.PlusInfinity;
+            }
+
             var fCut = f.Cut(0, cutEnd, isEndIncluded: false, settings: settings);
             var gCut = g.Cut(0, cutEnd, isEndIncluded: false, settings: settings);
-            var sequence = Sequence.Convolution(fCut, gCut, settings, cutEnd);
+            var sequence = Sequence.Convolution(fCut, gCut, settings, cutEnd, cutCeiling);
 
             var result = new Curve(
                 baseSequence: sequence.Cut(0, cutEnd),
@@ -3712,8 +4287,78 @@ public class Curve : IToCodeString
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
             }
+            else if (settings.UseConvolutionIsomorphismOptimization && 
+                 f.IsLeftContinuousOverInterval(f.PseudoPeriodStart) && g.IsLeftContinuousOverInterval(g.PseudoPeriodStart) &&
+                 f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
+            )
+            {
+                // todo: fill in reference
+                // Optimized algorithm discussed in [TBP23] section X
+                var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
+                var k_c_f = lcm_c / f.PseudoPeriodHeight;
+                var k_c_g = lcm_c / g.PseudoPeriodHeight;
+                var lcm_d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+                var d = Rational.Min(lcm_d, Rational.Max(k_c_f * f.PseudoPeriodLength, k_c_g * g.PseudoPeriodLength));
+                var c = d * Rational.Min(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
+
+                var tf = f.PseudoPeriodStart;
+                var tg = g.PseudoPeriodStart;
+                var T = tf + tg + lcm_d;
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
+                #endif
+
+                var fSegmentAfterTf = f.GetSegmentAfter(tf);
+                var tf_prime = (f.IsRightContinuousAt(tf) && fSegmentAfterTf.IsConstant) ? fSegmentAfterTf.EndTime : tf;
+                var fCutEnd_minp = tf + 2 * lcm_d;
+                var fCutEnd_iso = tf_prime + 2 * k_c_f * f.PseudoPeriodLength;
+                var fCut = fCutEnd_minp <= fCutEnd_iso 
+                    ? f.Cut(tf, fCutEnd_minp, isEndIncluded: false, settings: settings)
+                    : f.Cut(tf, fCutEnd_iso, isEndIncluded: true, settings: settings);
+
+                var gSegmentAfterTg = g.GetSegmentAfter(tg);
+                var tg_prime = (g.IsRightContinuousAt(tg) && gSegmentAfterTg.IsConstant) ? gSegmentAfterTg.EndTime : tg;
+                var gCutEnd_minp = tg + 2 * lcm_d;
+                var gCutEnd_iso = tg_prime + 2 * k_c_g * g.PseudoPeriodLength;
+                var gCut = gCutEnd_minp <= gCutEnd_iso 
+                   ? g.Cut(tg, gCutEnd_minp, isEndIncluded: false, settings: settings)
+                   : g.Cut(tg, gCutEnd_iso, isEndIncluded: true, settings: settings);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Convolution: extending from {f.PseudoPeriodicSequence.Count} and {g.PseudoPeriodicSequence.Count} to {fCut.Count} and {gCut.Count}");
+                #endif
+
+                #if DO_LOG
+                logger.Trace("Convolution: periodic x periodic isom.");
+                #endif
+                var cutEnd = tf + tg + lcm_d + d;
+                var cutCeiling = f.ValueAt(tf) + g.ValueAt(tg) + 2 * lcm_c;
+                var sequence = Sequence.Convolution(fCut, gCut, settings, cutEnd, cutCeiling, useIsomorphism: true);
+
+                var resultEnd = sequence.Elements.Last(e => e.IsFinite).EndTime;
+                var resultT = resultEnd - d;
+                var minT = Rational.Min(T, resultT);
+
+                var baseSequence = sequence.Elements
+                    .Cut(tf + tg, minT + d)
+                    .Fill(0, minT + d, fillWith: Rational.PlusInfinity)
+                    .ToSequence();
+
+                var result = new Curve(
+                    baseSequence: baseSequence,
+                    pseudoPeriodStart: minT,
+                    pseudoPeriodLength: d,
+                    pseudoPeriodHeight: c
+                );
+
+                return settings.UseRepresentationMinimization ? result.Optimize() : result;
+            }
             else
             {
+                // Base algorithm described in [BT07] Section 4.4.6
                 Rational d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
                 var tf = f.PseudoPeriodStart;
                 var tg = g.PseudoPeriodStart;
@@ -3821,12 +4466,69 @@ public class Curve : IToCodeString
         }
     }
 
+    /// <exclude />
+    /// <summary>
+    /// Returns all element pairs whose convolution contribute to the value of $f \otimes g$ at the given time.
+    /// Useful for debugging purposes.
+    /// </summary>
+    /// <param name="f">First operand of the (min,+) convolution.</param>
+    /// <param name="g">Second operand of the (min,+) convolution.</param>
+    /// <param name="time">The time of sampling of $f \otimes g$.</param>
+    /// <param name="settings"></param>
+    /// <remarks>
+    /// The convolution is computed using the given <paramref name="settings"/>, and may exploit any specialized algorithm provided.
+    /// The element pairs, however, are searched using all elements of $f$ and $g$ between 0 and time, i.e., the search does not use smart cuts.
+    ///
+    /// If the result of the convolution is mathematically wrong, this method will provide the pairs that are considered for that result and,
+    /// more importantly, will not include the pairs that should have instead been considered for the correct result. 
+    /// </remarks>
+    /// <exception cref="ArgumentException"></exception>
+    public static IEnumerable<(Element, Element)> TraceConvolution(Curve f, Curve g, Rational time, ComputationSettings? settings = null)
+    {
+        if (time < 0 || time.IsPlusInfinite)
+            throw new ArgumentException("Time must be non-negative and finite.");
+
+        var h = Convolution(f, g, settings);
+        var h_t = h.ValueAt(time);
+
+        // for simplicity, just take everything
+        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true);
+        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true);
+
+        var convolutionPairs = fCut.SelectMany(e_f => 
+                gCut.Select(e_g => (e_f, e_g))
+        );
+        var relevantPairs = convolutionPairs
+            .Where(pair =>
+            {
+                if (pair.e_f is Point pf && pair.e_g is Point pg)
+                {
+                    return pf.Time + pg.Time == time;
+                }
+                else
+                {
+                    return pair.e_f.StartTime + pair.e_g.StartTime < time &&
+                        pair.e_f.EndTime + pair.e_g.EndTime > time;   
+                }
+            });
+        var exactValuePairs = relevantPairs
+            .Where(pair =>
+            {
+                var c = pair.e_f.Convolution(pair.e_g).ToSequence();
+                return c.ValueAt(time) == h_t;
+            });
+
+        return exactValuePairs;
+    }
+
     #endregion Convolution operator
 
     #region EstimateConvolution
 
+    // todo: implement horizontal and vertical filtering in EstimateConvolution
+    
     /// <summary>
-    /// Computes the number of elementary convolutions involved in computing the convolution of the two curves,
+    /// Computes the number of elementary convolutions involved in computing the (min,+) convolution of the two curves,
     /// avoiding allocations as much as possible.
     /// </summary>
     /// <param name="curve"></param>
@@ -3835,7 +4537,7 @@ public class Curve : IToCodeString
     /// </param>
     /// <param name="settings"></param>
     /// <returns>
-    /// The number of elementary convolutions involved in computing the result of the convolution,
+    /// The number of elementary convolutions involved in computing the result of the (min,+) convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
     /// </returns>
     public virtual long EstimateConvolution(Curve curve, bool countElements = false, ComputationSettings? settings = null)
@@ -3928,15 +4630,34 @@ public class Curve : IToCodeString
         {
             #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
-            #endif            
+            #endif
+            // As discussed in [TBP23], there is no improvement on the UPP parameters to be gained using isomorphisms.
+            // The optimization lies instead in the use of a vertical filter (cutCeiling), in addition to the horizontal one (cutEnd)
+
             var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
             var c = f.PseudoPeriodSlope * d;
 
             var cutEnd = T + d;
-            var fCut = f.Cut(0, cutEnd, settings: settings);
-            var gCut = g.Cut(0, cutEnd, settings: settings);
-            var result = Sequence.EstimateConvolution(fCut, gCut, settings, cutEnd, countElements);
+            Rational cutCeiling;
+            if (
+                settings.UseConvolutionIsomorphismOptimization &&
+                f.IsLeftContinuousOverInterval(f.FirstFiniteTime) && g.IsLeftContinuousOverInterval(g.FirstFiniteTime) &&
+                f.IsNonDecreasingOverInterval(f.FirstFiniteTime) && g.IsNonDecreasingOverInterval(g.FirstFiniteTime) &&
+                !f.IsUltimatelyConstant && !g.IsUltimatelyConstant
+            )
+            {
+                var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
+                cutCeiling = f.ValueAt(f.PseudoPeriodStart) + g.ValueAt(g.PseudoPeriodStart) + 2 * lcm_c;
+            }
+            else
+            {
+                cutCeiling = Rational.PlusInfinity;
+            }
+
+            var aCut = f.Cut(0, cutEnd, settings: settings);
+            var bCut = g.Cut(0, cutEnd, settings: settings);
+            var result = Sequence.EstimateConvolution(aCut, bCut, settings, cutEnd, cutCeiling, countElements);
             return result;
         }
 
@@ -4011,8 +4732,62 @@ public class Curve : IToCodeString
 
                 return result;
             }
+            else if (settings.UseConvolutionIsomorphismOptimization && 
+                 f.IsLeftContinuousOverInterval(f.PseudoPeriodStart) && g.IsLeftContinuousOverInterval(g.PseudoPeriodStart) &&
+                 f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
+            )
+            {
+                // todo: fill in reference
+                // Optimized algorithm discussed in [TBP23] section X
+                var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
+                var k_c_f = lcm_c / f.PseudoPeriodHeight;
+                var k_c_g = lcm_c / g.PseudoPeriodHeight;
+                var lcm_d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+                var d = Rational.Min(lcm_d, Rational.Max(k_c_f * f.PseudoPeriodLength, k_c_g * g.PseudoPeriodLength));
+                var c = d * Rational.Min(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
+
+                var tf = f.PseudoPeriodStart;
+                var tg = g.PseudoPeriodStart;
+                var T = tf + tg + lcm_d;
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Estimate convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
+                #endif
+
+                var fSegmentAfterTf = f.GetSegmentAfter(tf);
+                var tf_prime = (f.IsRightContinuousAt(tf) && fSegmentAfterTf.IsConstant) ? fSegmentAfterTf.EndTime : tf;
+                var fCutEnd_minp = tf + 2 * lcm_d;
+                var fCutEnd_iso = tf_prime + 2 * k_c_f * f.PseudoPeriodLength;
+                var fCut = fCutEnd_minp <= fCutEnd_iso 
+                    ? f.Cut(tf, fCutEnd_minp, isEndIncluded: false, settings: settings)
+                    : f.Cut(tf, fCutEnd_iso, isEndIncluded: true, settings: settings);
+
+                var gSegmentAfterTg = g.GetSegmentAfter(tg);
+                var tg_prime = (g.IsRightContinuousAt(tg) && gSegmentAfterTg.IsConstant) ? gSegmentAfterTg.EndTime : tg;
+                var gCutEnd_minp = tg + 2 * lcm_d;
+                var gCutEnd_iso = tg_prime + 2 * k_c_g * g.PseudoPeriodLength;
+                var gCut = gCutEnd_minp <= gCutEnd_iso 
+                   ? g.Cut(tg, gCutEnd_minp, isEndIncluded: false, settings: settings)
+                   : g.Cut(tg, gCutEnd_iso, isEndIncluded: true, settings: settings);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Estimate convolution: extending from {f.PseudoPeriodicSequence.Count} and {g.PseudoPeriodicSequence.Count} to {fCut.Count} and {gCut.Count}");
+                #endif
+
+                #if DO_LOG
+                logger.Trace("Estimate convolution: periodic x periodic isom.");
+                #endif
+                var cutEnd = tf + tg + lcm_d + d;
+                var cutCeiling = f.ValueAt(tf) + g.ValueAt(tg) + 2 * lcm_c;
+                var result = Sequence.EstimateConvolution(fCut, gCut, settings, cutEnd, cutCeiling, countElements: countElements);
+
+                return result;
+            }
             else
             {
+                // Base algorithm described in [BT07]
                 Rational d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
                 var tf = f.PseudoPeriodStart;
                 var tg = g.PseudoPeriodStart;
@@ -4046,21 +4821,60 @@ public class Curve : IToCodeString
     }
 
     /// <summary>
-    /// Computes the number of elementary convolutions involved in computing the convolution of the two curves,
+    /// Computes the number of elementary convolutions involved in computing the (min,+) convolution of the two curves,
     /// avoiding allocations as much as possible.
     /// </summary>
-    /// <param name="a">First operand.</param>
-    /// <param name="b">Second operand.</param>
+    /// <param name="f">First operand.</param>
+    /// <param name="g">Second operand.</param>
     /// <param name="countElements">
     /// If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.
     /// </param>
     /// <param name="settings"></param>
     /// <returns>
-    /// The number of elementary convolutions involved in computing the result of the convolution,
+    /// The number of elementary convolutions involved in computing the result of the (min,+) convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
     /// </returns>
-    public static long EstimateConvolution(Curve a, Curve b, bool countElements = false, ComputationSettings? settings = null)
-        => a.EstimateConvolution(b, countElements, settings);
+    public static long EstimateConvolution(Curve f, Curve g, bool countElements = false, ComputationSettings? settings = null)
+        => f.EstimateConvolution(g, countElements, settings);
+
+    // todo: support isospeed in EstimateMaxPlusConvolution
+
+    /// <summary>
+    /// Computes the number of elementary convolutions involved in computing the (max,+) convolution of the two curves,
+    /// avoiding allocations as much as possible.
+    /// </summary>
+    /// <param name="curve">Second operand.</param>
+    /// <param name="countElements">
+    /// If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.
+    /// </param>
+    /// <param name="settings"></param>
+    /// <returns>
+    /// The number of elementary convolutions involved in computing the result of the (max,+) convolution,
+    /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
+    /// </returns>
+    public virtual long EstimateMaxPlusConvolution(
+        Curve curve, 
+        bool countElements = false,
+        ComputationSettings? settings = null
+    )
+        => Curve.EstimateMaxPlusConvolution(this, curve, countElements, settings);
+
+    /// <summary>
+    /// Computes the number of elementary convolutions involved in computing the (max,+) convolution of the two curves,
+    /// avoiding allocations as much as possible.
+    /// </summary>
+    /// <param name="f">First operand.</param>
+    /// <param name="g">Second operand.</param>
+    /// <param name="countElements">
+    /// If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.
+    /// </param>
+    /// <param name="settings"></param>
+    /// <returns>
+    /// The number of elementary convolutions involved in computing the result of the (max,+) convolution,
+    /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
+    /// </returns>
+    public static long EstimateMaxPlusConvolution(Curve f, Curve g, bool countElements = false, ComputationSettings? settings = null)
+        => Curve.EstimateConvolution(-f, -g, countElements, settings);
 
     #endregion EstimateConvolution
 
@@ -4190,13 +5004,431 @@ public class Curve : IToCodeString
     /// <param name="curve"></param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the max-plus convolution.</returns>
-    /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 4.4</remarks>
     public virtual Curve MaxPlusConvolution(Curve curve, ComputationSettings? settings = null)
     {
-        #if DO_LOG
-        logger.Trace("Computing max-plus convolution");
-        #endif
+        #if MAX_CONV_AS_NEGATIVE_MIN_CONV
         return -Convolution(-this, -curve, settings);
+        #else
+
+        settings ??= ComputationSettings.Default();
+
+        //The instance method is implemented to allow overriding
+        //Renaming for symmetry
+        var f = this;
+        var g = curve;
+
+        //Checks for convolution with infinite curves
+        if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
+            return g.VerticalShift(f.ValueAt(0), false);
+        if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
+            return f.VerticalShift(g.ValueAt(0), false);
+
+        #if DO_LOG
+        logger.Trace($"Computing max-plus convolution of f1 ({f.BaseSequence.Count} elements, T: {f.PseudoPeriodStart} d: {f.PseudoPeriodLength})" +
+                     $" and f2 ({g.BaseSequence.Count} elements, T: {g.PseudoPeriodStart} d: {g.PseudoPeriodLength})");
+        #endif
+        #if DO_LOG && DO_COSTLY_LOGS
+        logger.Trace($"f1:\n {a} \n f2:\n {b}");
+        #endif
+
+        #if DO_LOG
+        var timer = Stopwatch.StartNew();
+        #endif
+
+        Curve result;
+        if (settings.SinglePassConvolution && f.PseudoPeriodSlope == g.PseudoPeriodSlope)
+        {
+            result = SinglePassMaxPlusConvolution();
+        }
+        else
+        {
+            var terms = new List<Curve>();
+            if (
+                !settings.SinglePassConvolution &&  // if true, checking for equivalence is useless due to the check above
+                Equivalent(f, g, settings)
+            )
+            {
+                // self convolution: skip duplicate middle term
+                if (f.HasTransient)
+                    terms.Add(MaxPlusConvolutionTransientTransient(f, f));
+
+                if (f.HasTransient && !f.IsUltimatelyInfinite)
+                    terms.Add(MaxPlusConvolutionTransientPeriodic(f, f));
+
+                if (!f.IsUltimatelyInfinite)
+                    terms.Add(MaxPlusConvolutionPeriodicPeriodic(f, f));
+            }
+            else
+            {
+                if (f.HasTransient)
+                {
+                    if (g.HasTransient)
+                        terms.Add(MaxPlusConvolutionTransientTransient(f, g));
+                    if (!g.IsUltimatelyInfinite)
+                        terms.Add(MaxPlusConvolutionTransientPeriodic(f, g));
+                }
+
+                if (!f.IsUltimatelyInfinite)
+                {
+                    if (g.HasTransient)
+                        terms.Add(MaxPlusConvolutionTransientPeriodic(g, f));
+                    if (!g.IsUltimatelyInfinite)
+                        terms.Add(MaxPlusConvolutionPeriodicPeriodic(f, g));
+                }
+            }
+            result = Maximum(terms, settings);
+        }
+
+        #if DO_LOG
+        timer.Stop();
+        logger.Debug($"Max-plus Convolution: took {timer.Elapsed}; a {f.BaseSequence.Count} b {g.BaseSequence.Count} => {result.BaseSequence.Count}");
+        #endif
+        #if DO_LOG && DO_COSTLY_LOGS
+        logger.Trace($"Json\n a: {a} \n b: {b} \n result: {result}");
+        #endif
+        return result;
+
+        // Computes the convolution in a single operation,
+        // since all UPP parameters (in particular, T) can be determined a priori
+        Curve SinglePassMaxPlusConvolution()
+        {
+            #if DO_LOG
+            logger.Trace("Max-plus Convolution: same slope, single pass");
+            #endif
+            // todo: fill in reference
+            // As discussed in [TBP23] section X, there is no improvement on the UPP parameters to be gained using isomorphisms.
+            // The optimization lies instead in the use of a vertical filter (cutCeiling), in addition to the horizontal one (cutEnd)
+
+            var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+            var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
+            var c = f.PseudoPeriodSlope * d;
+
+            var cutEnd = T + d;
+            Rational cutCeiling;
+            if (settings.UseConvolutionIsomorphismOptimization &&
+                f.IsRightContinuous && g.IsRightContinuous &&
+                f.IsNonDecreasing && g.IsNonDecreasing &&
+                !f.IsUltimatelyConstant && !g.IsUltimatelyConstant
+               )
+            {
+                // todo: fill in reference
+                // Vertical filter optimization according to [TBP23] Th. X
+                var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
+                #if false 
+                // expression as in theory
+                var tstar_f = f.LowerPseudoInverseOverInterval(f.PseudoPeriodStart)
+                    .ValueAt(f.ValueAt(f.PseudoPeriodStart) + f.PseudoPeriodHeight);
+                var tstar_g = g.LowerPseudoInverseOverInterval(g.PseudoPeriodStart)
+                    .ValueAt(g.ValueAt(g.PseudoPeriodStart) + g.PseudoPeriodHeight);
+                #else
+                // more efficient expression
+                var tstar_f = f
+                    .Cut(f.PseudoPeriodStart, f.FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .LastPlateauStart;
+                var tstar_g = g
+                    .Cut(g.PseudoPeriodStart, g.FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .LastPlateauStart;
+                #endif
+                var T_f_lpi = tstar_f < f.FirstPseudoPeriodEnd ? f.ValueAt(f.FirstPseudoPeriodEnd) : f.ValueAt(f.PseudoPeriodStart);
+                var T_g_lpi = tstar_g < g.FirstPseudoPeriodEnd ? g.ValueAt(g.FirstPseudoPeriodEnd) : g.ValueAt(g.PseudoPeriodStart);
+                cutCeiling = T_f_lpi + T_g_lpi + 2 * lcm_c;
+            }
+            else
+            {
+                cutCeiling = Rational.PlusInfinity;
+            }
+
+            var fCut = f.Cut(0, cutEnd, isEndIncluded: false, settings: settings);
+            var gCut = g.Cut(0, cutEnd, isEndIncluded: false, settings: settings);
+            var sequence = Sequence.MaxPlusConvolution(fCut, gCut, settings, cutEnd, cutCeiling);
+
+            #if true
+            var resultEnd = sequence.Elements.Last(e => e.IsFinite).EndTime;
+            var resultT = resultEnd - d;
+            var minT = Rational.Min(T, resultT);
+            #else
+            var minT = T;
+            #endif
+
+            var result = new Curve(
+                baseSequence: sequence.Cut(0, minT + d),
+                pseudoPeriodStart: minT,
+                pseudoPeriodLength: d,
+                pseudoPeriodHeight: c
+            );
+            if (settings.UseRepresentationMinimization)
+                result = result.Optimize();
+            return result;
+        }
+
+        // Computes a partial convolution term, that is the convolution of two transient parts.
+        // Described in [BT07] Section 4.4.3
+        Curve MaxPlusConvolutionTransientTransient(
+            Curve firstTransientCurve,
+            Curve secondTransientCurve)
+        {
+            var firstTransientSequence = firstTransientCurve.TransientElements.ToSequence();
+            var secondTransientSequence = secondTransientCurve.TransientElements.ToSequence();
+
+            #if DO_LOG
+            logger.Trace("Max-plus Convolution: transient x transient");
+            #endif
+            var convolution = Sequence.MaxPlusConvolution(firstTransientSequence, secondTransientSequence, settings);
+
+            //Has no actual meaning
+            Rational d = 1;
+            var T = f.PseudoPeriodStart + g.PseudoPeriodStart;
+
+            var extendedConvolution = new Sequence(
+                elements: convolution.Elements,
+                fillFrom: 0,
+                fillTo: T + d,
+                fillWith: Rational.MinusInfinity
+            );
+
+            var result = new Curve(
+                baseSequence: extendedConvolution,
+                pseudoPeriodStart: T,
+                pseudoPeriodLength: d,
+                pseudoPeriodHeight: Rational.MinusInfinity
+            );
+
+            return settings.UseRepresentationMinimization ? result.Optimize() : result;
+        }
+
+        // Computes a partial convolution term, that is the convolution of a transient part and a pseudo-periodic one.
+        // Described in [BT07] Sections 4.4.4 and .5
+        Curve MaxPlusConvolutionTransientPeriodic(
+            Curve transientCurve,
+            Curve periodicCurve)
+        {
+            Rational T = transientCurve.PseudoPeriodStart + periodicCurve.PseudoPeriodStart;
+            Rational d = periodicCurve.PseudoPeriodLength;
+            Rational c = periodicCurve.PseudoPeriodHeight;
+
+            var transientSequence = transientCurve.TransientElements.ToSequence();
+            var periodicSequence = periodicCurve.Cut(periodicCurve.PseudoPeriodStart, T + d, settings: settings);
+
+            #if DO_LOG
+            logger.Trace("Max-plus Convolution: transient x periodic");
+            #endif
+            var limitedConvolution = Sequence.MaxPlusConvolution(transientSequence, periodicSequence, settings);
+
+            var sequence = limitedConvolution
+                .Elements
+                .Cut(periodicCurve.PseudoPeriodStart, T + d)
+                .Fill(0, T + d, fillWith: Rational.MinusInfinity)
+                .ToSequence();
+
+            var result = new Curve(
+                baseSequence: sequence,
+                pseudoPeriodStart: T,
+                pseudoPeriodLength: d,
+                pseudoPeriodHeight: c
+            );
+
+            return settings.UseRepresentationMinimization ? result.Optimize() : result;
+        }
+
+        // Computes a partial convolution term, that is the convolution of two pseudo-periodic parts.
+        // Described in [BT07] Section 4.4.6
+        Curve MaxPlusConvolutionPeriodicPeriodic(
+            Curve f,
+            Curve g)
+        {
+            if (f.IsUltimatelyAffine || g.IsUltimatelyAffine)
+            {
+                var d = f.IsUltimatelyAffine ? g.PseudoPeriodLength : f.PseudoPeriodLength;
+                var tf = f.PseudoPeriodStart;
+                var tg = g.PseudoPeriodStart;
+                var T = tf + tg + d;
+                Rational c = d * Rational.Max(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Max-plus Convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
+                #endif
+
+                var fCut = f.Cut(tf, tf + 2*d, settings: settings);
+                var gCut = g.Cut(tg, tg + 2*d, settings: settings);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Max-plus Convolution: extending from {f.PseudoPeriodicSequence.Count} and {g.PseudoPeriodicSequence.Count} to {fCut.Count} and {gCut.Count}");
+                #endif
+
+                #if DO_LOG
+                logger.Trace("Max-plus Convolution: periodic x periodic UA");
+                #endif
+                var cutEnd = T + d;
+                Sequence limitedConvolution = Sequence.MaxPlusConvolution(fCut, gCut, settings, cutEnd);
+                var sequence = limitedConvolution.Elements
+                    .Cut(tf + tg, cutEnd)
+                    .Fill(0, cutEnd, fillWith: Rational.MinusInfinity)
+                    .ToSequence();
+
+                var result = new Curve(
+                    baseSequence: sequence,
+                    pseudoPeriodStart: T,
+                    pseudoPeriodLength: d,
+                    pseudoPeriodHeight: c
+                );
+
+                return settings.UseRepresentationMinimization ? result.Optimize() : result;
+            }
+            else if (settings.UseConvolutionIsomorphismOptimization && 
+                 f.IsRightContinuousOverInterval(f.PseudoPeriodStart) && g.IsRightContinuousOverInterval(g.PseudoPeriodStart) &&
+                 f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
+            )
+            {
+                // todo: fill in reference
+                // Optimized algorithm discussed in [TBP23] section X
+
+                // Check for Lemma X in [TBP23]
+                #if false 
+                // expression as in theory
+                var tstar_f = f.LowerPseudoInverseOverInterval(f.PseudoPeriodStart)
+                    .ValueAt(f.ValueAt(f.PseudoPeriodStart) + f.PseudoPeriodHeight);
+                var tstar_g = g.LowerPseudoInverseOverInterval(g.PseudoPeriodStart)
+                    .ValueAt(g.ValueAt(g.PseudoPeriodStart) + g.PseudoPeriodHeight);
+                #else
+                // more efficient expression
+                var tstar_f = f
+                    .Cut(f.PseudoPeriodStart, f.FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .LastPlateauStart;
+                var tstar_g = g
+                    .Cut(g.PseudoPeriodStart, g.FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .LastPlateauStart;
+                #endif
+
+                if (tstar_f < f.FirstPseudoPeriodEnd ||
+                    tstar_g < g.FirstPseudoPeriodEnd)
+                {
+                    // todo: fill in reference
+                    // If Lemma X does not apply, workaround according to Remark Y in [TBP23]
+                    var fpstarCut = f
+                        .CutAsEnumerable(f.PseudoPeriodStart, tstar_f + f.PseudoPeriodLength)
+                        .Fill(0, f.PseudoPeriodStart, fillWith: Rational.MinusInfinity)
+                        .ToSequence();
+                    var fpstar = new Curve(
+                        fpstarCut,
+                        tstar_f,
+                        f.PseudoPeriodLength,
+                        f.PseudoPeriodHeight
+                    );
+
+                    var gpstarCut = g
+                        .CutAsEnumerable(g.PseudoPeriodStart, tstar_g + g.PseudoPeriodLength)
+                        .Fill(0, g.PseudoPeriodStart, fillWith: Rational.MinusInfinity)
+                        .ToSequence();
+                    var gpstar = new Curve(
+                        gpstarCut,
+                        tstar_g,
+                        g.PseudoPeriodLength,
+                        g.PseudoPeriodHeight
+                    );
+                    return MaxPlusConvolution(fpstar, gpstar, settings);
+                }
+
+                var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
+                var k_c_f = lcm_c / f.PseudoPeriodHeight;
+                var k_c_g = lcm_c / g.PseudoPeriodHeight;
+                var lcm_d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+                var d = Rational.Min(lcm_d, Rational.Min(k_c_f * f.PseudoPeriodLength, k_c_g * g.PseudoPeriodLength));
+                var c = d * Rational.Max(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
+
+                var tf = f.PseudoPeriodStart;
+                var tg = g.PseudoPeriodStart;
+                var T = tf + tg + lcm_d;
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Max-plus Convolution: extending from Tf {tf} df {f.PseudoPeriodLength}  Tg {tg} dg {g.PseudoPeriodLength} to T {T} d {d}");
+                #endif
+
+                var fCut = lcm_d <= k_c_f * f.PseudoPeriodLength 
+                    ? f.Cut(tf, tf + 2 * lcm_d, isEndIncluded: false, settings: settings)
+                    : f.Cut(tf, tf + 2 * k_c_f * f.PseudoPeriodLength, isEndIncluded: true, settings: settings);
+                var gCut = lcm_d <= k_c_g * g.PseudoPeriodLength 
+                    ? g.Cut(tg, tg + 2 * lcm_d, isEndIncluded: false, settings: settings)
+                    : g.Cut(tg, tg + 2 * k_c_g * g.PseudoPeriodLength, isEndIncluded: true, settings: settings);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Max-plus Convolution: extending from {f.PseudoPeriodicSequence.Count} and {g.PseudoPeriodicSequence.Count} to {fCut.Count} and {gCut.Count}");
+                #endif
+
+                #if DO_LOG
+                logger.Trace("Max-plus Convolution: periodic x periodic isom.");
+                #endif
+                var cutEnd = tf + tg + lcm_d + d;
+                var cutCeiling = f.ValueAt(tf) + g.ValueAt(tg) + 2 * lcm_c;
+                var sequence = Sequence.MaxPlusConvolution(fCut, gCut, settings, cutEnd, cutCeiling, useIsomorphism: true);
+
+                var resultEnd = sequence.Elements.Last(e => e.IsFinite).EndTime;
+                var resultT = resultEnd - d;
+                var minT = Rational.Min(T, resultT);
+
+                var baseSequence = sequence.Elements
+                    .Cut(tf + tg, minT + d)
+                    .Fill(0, minT + d, fillWith: Rational.MinusInfinity)
+                    .ToSequence();
+
+                var result = new Curve(
+                    baseSequence: baseSequence,
+                    pseudoPeriodStart: minT,
+                    pseudoPeriodLength: d,
+                    pseudoPeriodHeight: c
+                );
+
+                return settings.UseRepresentationMinimization ? result.Optimize() : result;
+            }
+            else
+            {
+                // Base algorithm adapted from [BT07] Section 4.4.6
+                Rational d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+                var tf = f.PseudoPeriodStart;
+                var tg = g.PseudoPeriodStart;
+                var T = tf + tg + d;
+                Rational c = d * Rational.Max(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Max-plus Convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
+                #endif
+
+                var fCutEnd = tf + 2*d;
+                var gCutEnd = tg + 2*d;
+                var fCut = f.Cut(tf, fCutEnd, isEndIncluded: false, settings: settings);
+                var gCut = g.Cut(tg, gCutEnd, isEndIncluded: false, settings: settings);
+
+                #if DO_LOG
+                logger.Trace(
+                    $"Max-plus Convolution: extending from {f.PseudoPeriodicSequence.Count} and {g.PseudoPeriodicSequence.Count} to {fCut.Count} and {gCut.Count}");
+                #endif
+
+                #if DO_LOG
+                logger.Trace("Max-plus Convolution: periodic x periodic");
+                #endif
+                var cutEnd = T + d;
+                var limitedConvolution = Sequence.MaxPlusConvolution(fCut, gCut, settings, cutEnd);
+                var sequence = limitedConvolution.Elements
+                    .Cut(tf + tg, cutEnd)
+                    .Fill(0, cutEnd, fillWith: Rational.MinusInfinity)
+                    .ToSequence();
+
+                var result = new Curve(
+                    baseSequence: sequence,
+                    pseudoPeriodStart: T,
+                    pseudoPeriodLength: d,
+                    pseudoPeriodHeight: c
+                );
+
+                return settings.UseRepresentationMinimization ? result.Optimize() : result;
+            }
+        }
+        #endif
     }
 
     /// <summary>
@@ -4206,7 +5438,7 @@ public class Curve : IToCodeString
     /// <param name="b">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the max-plus convolution</returns>
-    /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 4.4</remarks>
     public static Curve MaxPlusConvolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.MaxPlusConvolution(b, settings);
 
@@ -4266,6 +5498,61 @@ public class Curve : IToCodeString
             return curves
                 .Aggregate((a , b) => MaxPlusConvolution(a, b, settings));
         }
+    }
+
+    /// <exclude />
+    /// <summary>
+    /// Returns all element pairs whose convolution contribute to the value of $f \overline{\otimes} g$ at the given time.
+    /// Useful for debugging purposes.
+    /// </summary>
+    /// <param name="f">First operand of the (max,+) convolution.</param>
+    /// <param name="g">Second operand of the (max,+) convolution.</param>
+    /// <param name="time">The time of sampling of $f \overline{\otimes} g$.</param>
+    /// <param name="settings"></param>
+    /// <remarks>
+    /// The convolution is computed using the given <paramref name="settings"/>, and may exploit any specialized algorithm provided.
+    /// The element pairs, however, are searched using all elements of $f$ and $g$ between 0 and time, i.e., the search does not use smart cuts.
+    ///
+    /// If the result of the convolution is mathematically wrong, this method will provide the pairs that are considered for that result and,
+    /// more importantly, will not include the pairs that should have instead been considered for the correct result. 
+    /// </remarks>
+    /// <exception cref="ArgumentException"></exception>
+    public static IEnumerable<(Element, Element)> TraceMaxPlusConvolution(Curve f, Curve g, Rational time, ComputationSettings? settings = null)
+    {
+        if (time < 0 || time.IsPlusInfinite)
+            throw new ArgumentException("Time must be non-negative and finite.");
+
+        var h = MaxPlusConvolution(f, g, settings);
+        var h_t = h.ValueAt(time);
+
+        // for simplicity, just take everything
+        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true);
+        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true);
+
+        var convolutionPairs = fCut.SelectMany(e_f => 
+            gCut.Select(e_g => (e_f, e_g))
+        );
+        var relevantPairs = convolutionPairs
+            .Where(pair =>
+            {
+                if (pair.e_f is Point pf && pair.e_g is Point pg)
+                {
+                    return pf.Time + pg.Time == time;
+                }
+                else
+                {
+                    return pair.e_f.StartTime + pair.e_g.StartTime < time &&
+                           pair.e_f.EndTime + pair.e_g.EndTime > time;   
+                }
+            });
+        var exactValuePairs = relevantPairs
+            .Where(pair =>
+            {
+                var c = Element.MaxPlusConvolution(pair.e_f, pair.e_g).ToSequence();
+                return c.ValueAt(time) == h_t;
+            });
+
+        return exactValuePairs;
     }
 
     /// <summary>

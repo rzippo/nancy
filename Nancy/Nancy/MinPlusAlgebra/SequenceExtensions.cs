@@ -422,6 +422,69 @@ public static class SequenceExtensions
     }
 
     /// <summary>
+    /// Returns the <see cref="Element"/> that describes the sequence in <paramref name="time"/>.
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <param name="time">Time of the sample.</param>
+    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
+    /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
+    /// <remarks>This method is implemented using a linear search, $O(n)$</remarks>
+    public static Element GetElementAt(this IEnumerable<Element> elements, Rational time)
+    {
+        try
+        {
+            var targetElement = elements.Single(e => e.IsDefinedFor(time));
+            return targetElement;
+        }
+        catch (InvalidOperationException)
+        {
+            throw new ArgumentException("The given time is out of sequence support.");
+        }
+    }
+
+    /// <summary>
+    /// Returns the <see cref="Segment"/> that describes the sequence before <paramref name="time"/>.
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <param name="time">Time of the sample.</param>
+    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
+    /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
+    /// <remarks>This method is implemented using a linear search, $O(n)$</remarks>
+    public static Segment GetSegmentBefore(this IEnumerable<Element> elements, Rational time)
+    {
+        try
+        {
+            var targetElement = elements.Last(e => e is Segment s && s.EndTime <= time);
+            return (Segment) targetElement;
+        }
+        catch (InvalidOperationException)
+        {
+            throw new ArgumentException("Sequence is not defined after given time");
+        }
+    }
+
+    /// <summary>
+    /// Returns the <see cref="Segment"/> that describes the sequence after <paramref name="time"/>.
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <param name="time">Time of the sample.</param>
+    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
+    /// <returns>The <see cref="Segment"/> describing the sequence after <paramref name="time"/>.</returns>
+    /// <remarks>This method is implemented using a linear search, $O(n)$</remarks>
+    public static Segment GetSegmentAfter(this IEnumerable<Element> elements, Rational time)
+    {
+        try
+        {
+            var targetElement = elements.First(element => element.EndTime > time);
+            return (Segment) targetElement;
+        }
+        catch (InvalidOperationException)
+        {
+            throw new ArgumentException("Sequence is not defined after given time");
+        }
+    }
+
+    /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end.
     /// </summary>
     public static bool AreInTimeOrder(this IEnumerable<Element> elements)
@@ -1228,6 +1291,85 @@ public static class SequenceExtensions
 
                 default:
                     throw new InvalidCastException();
+            }
+        }
+    }
+
+    // todo: write docs
+    internal static IEnumerable<Element> CutWithCeiling(
+        this IEnumerable<Element> elements,
+        Rational? ceiling,
+        bool isCeilingIncluded = true)
+    {
+        if (ceiling is null || ceiling == Rational.PlusInfinity)
+            return elements;
+        else
+            return _CutWithCeiling();
+
+        IEnumerable<Element> _CutWithCeiling()
+        {
+            var _ceiling = (Rational) ceiling;
+            using var enumerator = elements.GetEnumerator();
+            var lastValue = Rational.MinusInfinity;
+            while (enumerator.MoveNext())
+            {
+                switch (enumerator.Current)
+                {
+                    case Point p:
+                    {
+                        if (p.Value < _ceiling)
+                            yield return p;
+                        else if (isCeilingIncluded && p.Value == _ceiling)
+                            yield return p;
+                        else
+                        {
+                            // if there is a discontinuity crossing the ceiling, we yield a smaller one
+                            if (lastValue < _ceiling)
+                                yield return new Point(p.Time, _ceiling);
+                            yield break; // we presume non-decreasing sequence
+                        }
+                        break;
+                    }
+
+                    case Segment s:
+                    {
+                        if (s.Slope < 0)
+                            throw new ArgumentException("Segments must be non-decreasing");
+
+                        if (s.IsConstant)
+                        {
+                            var value = s.LeftLimitAtEndTime;
+                            lastValue = value;
+                            if (value < _ceiling)
+                                yield return s;
+                            else if (isCeilingIncluded && value == _ceiling)
+                                yield return s;
+                            else
+                                yield break;
+                        }
+                        else if (s.LeftLimitAtEndTime <= _ceiling)
+                        {
+                            lastValue = s.LeftLimitAtEndTime;
+                            yield return s;
+                        }
+                        else if (s.RightLimitAtStartTime < _ceiling)
+                        {
+                            var ceilingTime =  s.StartTime + (_ceiling - s.RightLimitAtStartTime) / s.Slope;
+                            var (left, center, _) = s.Split(ceilingTime);
+                            yield return left;
+                            if (isCeilingIncluded)
+                                yield return center;
+                            yield break;
+                        }
+                        else
+                            yield break;
+
+                        break;
+                    }
+
+                    default:
+                        throw new InvalidCastException();
+                }
             }
         }
     }

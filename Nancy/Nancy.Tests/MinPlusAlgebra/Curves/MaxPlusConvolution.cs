@@ -1,14 +1,24 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class MaxPlusConvolution
 {
+    private readonly ITestOutputHelper output;
+
+    public MaxPlusConvolution(ITestOutputHelper output)
+    {
+        this.output = output;
+    }
+    
     public static ComputationSettings settings = ComputationSettings.Default() with 
     {
+        UseConvolutionIsomorphismOptimization = false,
         UseSubAdditiveConvolutionOptimizations = false
     };
     public static IEnumerable<(Curve f, Curve g, Curve expected)> PairsWithExpected()
@@ -178,6 +188,18 @@ public class MaxPlusConvolution
         {
             yield return (f, g);
         }
+
+        foreach (var objArray in ConvolutionIsomorphism.MaxPlusIsomorphismTestCases())
+        {
+            var curves = (Curve[]) objArray[0];
+            for (int i = 0; i <= curves.Length - 2; i++)
+            {
+                var a = curves[i];
+                var b = curves[i + 1];
+
+                yield return (a, b);
+            }
+        }
     }
 
     public static IEnumerable<object[]> MaxPlusConvolutionEquivalenceTestCases()
@@ -213,6 +235,11 @@ public class MaxPlusConvolution
         {
             yield return new object[] { f, g };
         }
+
+        foreach (var (f, g) in ConvolutionIsomorphism.MaxPlusConvolutionPairs())
+        {
+            yield return new object[] { f, g };
+        }
     }
 
     /// <summary>
@@ -227,4 +254,59 @@ public class MaxPlusConvolution
 
         Assert.True(Curve.Equivalent(maxConv, viaNegative));
     }
+
+    public static IEnumerable<object[]> RightContinuityBothTestCases()
+    {
+        var rc = ConvolutionIsomorphism.ContinuousExamples
+            .Concat(ConvolutionIsomorphism.RightContinuousExamples);
+        var testcases = rc.SelectMany(f => rc.Select(g => (f, g)));
+
+        foreach (var (f, g) in testcases)
+            yield return new object[] { f, g };
+    }
+
+    [Theory]
+    [MemberData(nameof(RightContinuityBothTestCases))]
+    public void RightContinuityBoth(Curve f, Curve g)
+    {
+        Assert.True(f.IsRightContinuous && g.IsRightContinuous);
+        var conv = Curve.MaxPlusConvolution(f, g, settings);
+
+        output.WriteLine($"var f = {f.ToCodeString()};");
+        output.WriteLine($"var g = {g.ToCodeString()};");
+        output.WriteLine($"var conv = {conv.ToCodeString()};");
+
+        Assert.True(conv.IsRightContinuous);
+    }
+    
+    #if ONE_SIDED_RIGHT_CONTINUITY_TH
+    // The following tests show that the analogous result of [Lie17, p.134], 
+    // for which it is sufficient that one of the operands is right-continuous for the (max,+) convolution to be right-continuous, 
+    // does *not* apply for functions defined only in [0, +\infty[
+
+    public static IEnumerable<object[]> RightContinuityAtLeastOneTestCases()
+    {
+        var rc = ConvolutionIsomorphism.ContinuousExamples
+            .Concat(ConvolutionIsomorphism.RightContinuousExamples);
+        var lc = ConvolutionIsomorphism.LeftContinuousExamples;
+        var testcases = rc.SelectMany(f => lc.Select(g => (f, g)));
+
+        foreach (var (f, g) in testcases)
+            yield return new object[] { f, g };
+    }
+
+    [Theory]
+    [MemberData(nameof(RightContinuityAtLeastOneTestCases))]
+    public void RightContinuityAtLeastOne(Curve f, Curve g)
+    {
+        Assert.True(f.IsRightContinuous || g.IsRightContinuous);
+        var conv = Curve.MaxPlusConvolution(f, g, settings);
+
+        output.WriteLine($"var f = {f.ToCodeString()};");
+        output.WriteLine($"var g = {g.ToCodeString()};");
+        output.WriteLine($"var conv = {conv.ToCodeString()};");
+
+        Assert.True(conv.IsRightContinuous);
+    }
+    #endif
 }

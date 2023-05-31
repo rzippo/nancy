@@ -1190,22 +1190,54 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the convolution between the <see cref="Segment"/> and the given <see cref="Element"/>.
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the convolution.</returns>
-    public override IEnumerable<Element> Convolution(Element element)
+    public override IEnumerable<Element> Convolution(
+        Element element, Rational? cutEnd = null, Rational? cutCeiling = null
+    )
     {
+        cutEnd ??= Rational.PlusInfinity;
+        cutCeiling ??= Rational.PlusInfinity;
+
         switch (element)
         {
             case Point p:
             {
-                if (p.IsOrigin)
-                    yield return this;
+                var cs = p.IsOrigin ? this : Convolution(segment: this, point: p);
+                if (cutEnd != Rational.PlusInfinity || cutCeiling != Rational.PlusInfinity)
+                {
+                    var tCE = cutEnd ?? Rational.PlusInfinity;
+                    var tCC = (cutCeiling != Rational.PlusInfinity && cs is { IsFinite: true, Slope.IsPositive: true }) 
+                        ? (((Rational) cutCeiling - cs.RightLimitAtStartTime) / cs.Slope) + cs.StartTime
+                        : Rational.PlusInfinity;
+                    var t = Rational.Min(tCE, tCC);
+                    if (t <= cs.StartTime)
+                    {
+                        // yield nothing;
+                    }
+                    else if (t < cs.EndTime)
+                    {
+                        var (l, c, _) = cs.Split(t);
+                        yield return l;
+                        yield return c;
+                    }
+                    else
+                        yield return cs;
+                }
                 else
-                    yield return Convolution(segment: this, point: p);
+                    yield return cs;
                 yield break;
             }
 
             case Segment s:
             {
-                foreach (var e in Convolution(a: this, b: s))
+                var conv = Convolution(a: this, b: s);
+                if (cutEnd != Rational.PlusInfinity || cutCeiling != Rational.PlusInfinity)
+                {
+                    if (cutEnd != Rational.PlusInfinity && cutEnd < this.EndTime + s.EndTime)
+                        conv = conv.Cut(this.StartTime + s.StartTime, (Rational)cutEnd, false, true);
+                    if (cutCeiling != Rational.PlusInfinity)
+                        conv = conv.CutWithCeiling(cutCeiling, true);
+                }
+                foreach (var e in conv)
                     yield return e;
                 yield break;
             }
@@ -1412,6 +1444,148 @@ public sealed class Segment : Element, IEquatable<Segment>
         => Deconvolution(a: this, b: segment);
 
     #endregion
+
+    #region Max-plus Convolution operator
+
+    /// <summary>
+    /// Computes the max-plus convolution between the <see cref="Segment"/> and the given <see cref="Element"/>.
+    /// </summary>
+    /// <returns>The set of <see cref="Element"/>s resulting from the max-plus convolution.</returns>
+    public override IEnumerable<Element> MaxPlusConvolution(Element element, Rational? cutEnd = null)
+    {
+        cutEnd ??= Rational.PlusInfinity;
+
+        switch (element)
+        {
+            case Point p:
+            {
+                var cs = p.IsOrigin ? this : MaxPlusConvolution(segment: this, point: p);
+                if (cutEnd != Rational.PlusInfinity)
+                {
+                    var tCE = cutEnd ?? Rational.PlusInfinity;
+                    if (tCE <= cs.StartTime)
+                    {
+                        // yield nothing;
+                    }
+                    else if (tCE < cs.EndTime)
+                    {
+                        var (l, c, _) = cs.Split(tCE);
+                        yield return l;
+                        yield return c;
+                    }
+                    else
+                        yield return cs;
+                }
+                else
+                    yield return cs;
+                yield break;
+            }
+
+            case Segment s:
+            {
+                var conv = MaxPlusConvolution(a: this, b: s);
+                if (cutEnd != Rational.PlusInfinity)
+                {
+                    if (cutEnd != Rational.PlusInfinity && cutEnd < this.EndTime + s.EndTime)
+                        conv = conv.Cut(this.StartTime + s.StartTime, (Rational)cutEnd, false, true);
+                }
+                foreach (var e in conv)
+                    yield return e;
+                yield break;
+            }
+
+            default:
+                throw new InvalidCastException();
+        }
+    }
+
+    /// <summary>
+    /// Computes the max-plus convolution between a <see cref="Segment"/> and a <see cref="Point"/>.
+    /// </summary>
+    /// <returns>The <see cref="Segment"/> resulting from the max-plus convolution.</returns>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 3</remarks>
+    public static Segment MaxPlusConvolution(Segment segment, Point point)
+    {
+        return new Segment(
+            startTime: segment.StartTime + point.Time,
+            endTime: segment.EndTime + point.Time,
+            rightLimitAtStartTime: segment.RightLimitAtStartTime + point.Value,
+            slope: segment.Slope
+        );
+    }
+
+    /// <summary>
+    /// Computes the max-plus convolution between the <see cref="Segment"/> and a <see cref="Point"/>.
+    /// </summary>
+    /// <returns>The <see cref="Segment"/> resulting from the max-plus convolution.</returns>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 3</remarks>
+    public Segment MaxPlusConvolution(Point point)
+        => MaxPlusConvolution(segment: this, point);
+
+    /// <summary>
+    /// Computes the max-plus convolution between two <see cref="Segment"/>s.
+    /// </summary>
+    /// <returns>The set of <see cref="Element"/>s resulting from the max-plus convolution.</returns>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 4</remarks>
+    public static IEnumerable<Element> MaxPlusConvolution(Segment a, Segment b)
+    {
+        Segment minSlopeSegment, maxSlopeSegment;
+
+        if (a.Slope == b.Slope)
+        {
+            yield return new Segment(
+                startTime: a.StartTime + b.StartTime,
+                endTime: a.EndTime + b.EndTime,
+                slope: a.Slope,
+                rightLimitAtStartTime: a.RightLimitAtStartTime + b.RightLimitAtStartTime
+            );
+            yield break;
+        }
+        else if (a.Slope < b.Slope)
+        {
+            minSlopeSegment = a;
+            maxSlopeSegment = b;
+        }
+        else
+        {
+            minSlopeSegment = b;
+            maxSlopeSegment = a;
+        }
+
+        Rational initTime = minSlopeSegment.StartTime + maxSlopeSegment.StartTime;
+        Rational middleTime = initTime + maxSlopeSegment.Length;
+        Rational endTime = minSlopeSegment.EndTime + maxSlopeSegment.EndTime;
+
+        Rational initValue = minSlopeSegment.RightLimitAtStartTime + maxSlopeSegment.RightLimitAtStartTime;
+        Rational middleValue = maxSlopeSegment.LeftLimitAtEndTime + minSlopeSegment.RightLimitAtStartTime;
+
+        yield return new Segment(
+            startTime: initTime,
+            endTime: middleTime,
+            rightLimitAtStartTime: initValue,
+            slope: maxSlopeSegment.Slope
+        );
+        yield return new Point(
+            time: middleTime,
+            value: middleValue
+        );
+        yield return new Segment(
+            startTime: middleTime,
+            endTime: endTime,
+            rightLimitAtStartTime: middleValue,
+            slope: minSlopeSegment.Slope
+        );
+    }
+
+    /// <summary>
+    /// Computes the max-plus convolution between two <see cref="Segment"/>s.
+    /// </summary>
+    /// <returns>The set of <see cref="Element"/>s resulting from the max-plus convolution.</returns>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 4</remarks>
+    public IEnumerable<Element> MaxPlusConvolution(Segment segment)
+        => MaxPlusConvolution(a: this, b: segment);
+
+    #endregion Max-plus Convolution operator
 
     #region Sub-additive closure
 

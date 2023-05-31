@@ -508,19 +508,23 @@ public abstract class Element : IToCodeString
     /// Computes the convolution between two Elements.
     /// </summary>
     /// <param name="element">Second operand.</param>
+    /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The set of segments resulting from the convolution.</returns>
     /// <remarks>Described in [BT07] Section 3.2.1</remarks>
-    public abstract IEnumerable<Element> Convolution(Element element);
+    public abstract IEnumerable<Element> Convolution(Element element, Rational? cutEnd = null, Rational? cutCeiling = null);
 
     /// <summary>
     /// Computes the convolution between two Elements.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
+    /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The set of segments resulting from the convolution.</returns>
     /// <remarks>Described in [BT07] Section 3.2.1</remarks>
-    public static IEnumerable<Element> Convolution(Element a, Element b)
-        => a.Convolution(b);
+    public static IEnumerable<Element> Convolution(Element a, Element b, Rational? cutEnd = null, Rational? cutCeiling = null)
+        => a.Convolution(b, cutEnd, cutCeiling);
 
     #endregion Convolution operator
 
@@ -542,6 +546,30 @@ public abstract class Element : IToCodeString
         => a.Deconvolution(b);
 
     #endregion Deconvolution operator
+
+    #region Max-Plus Convolution operator
+
+    /// <summary>
+    /// Computes the max-plus convolution between two Elements.
+    /// </summary>
+    /// <param name="element">Second operand.</param>
+    /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <returns>The set of segments resulting from the max-plus convolution.</returns>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1</remarks>
+    public abstract IEnumerable<Element> MaxPlusConvolution(Element element, Rational? cutEnd = null);
+
+    /// <summary>
+    /// Computes the max-plus convolution between two Elements.
+    /// </summary>
+    /// <param name="a">First operand.</param>
+    /// <param name="b">Second operand.</param>
+    /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <returns>The set of segments resulting from the max-plus convolution.</returns>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1</remarks>
+    public static IEnumerable<Element> MaxPlusConvolution(Element a, Element b, Rational? cutEnd = null)
+        => a.MaxPlusConvolution(b, cutEnd);
+
+    #endregion Max-Plus Convolution operator
 
     #region Sub-additive closure
 

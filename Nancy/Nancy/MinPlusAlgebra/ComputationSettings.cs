@@ -159,6 +159,24 @@ public record ComputationSettings
     /// </summary>
     public bool UseCompositionOptimizations { get; set; } = true;
 
+    /// <exclude/>
+    /// <summary>
+    /// If true, isomorphism properties between min-plus and max-plus are used to optimize
+    /// <see cref="Curve.Convolution(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> and
+    /// <see cref="Curve.MaxPlusConvolution(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// </summary>
+    /// <remarks>Optimization discussed in [TBP23].</remarks>
+    public bool UseConvolutionIsomorphismOptimization { get; set; } = true;
+
+    /// <exclude/>
+    /// <summary>
+    /// If true, isomorphism properties between min-plus and max-plus are used to optimize
+    /// <see cref="Sequence.Convolution(Unipi.Nancy.MinPlusAlgebra.Sequence,Unipi.Nancy.MinPlusAlgebra.Sequence,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?,System.Nullable{Unipi.Nancy.Numerics.Rational},System.Nullable{Unipi.Nancy.Numerics.Rational},bool,bool,bool)"/> and
+    /// <see cref="Sequence.MaxPlusConvolution(Unipi.Nancy.MinPlusAlgebra.Sequence,Unipi.Nancy.MinPlusAlgebra.Sequence,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?,System.Nullable{Unipi.Nancy.Numerics.Rational},System.Nullable{Unipi.Nancy.Numerics.Rational},bool,bool,bool)"/>.
+    /// </summary>
+    /// <remarks>Optimization discussed in [TBP23].</remarks>
+    public bool UseBySequenceConvolutionIsomorphismOptimization { get; set; } = true;
+
     /// <summary>
     /// Default settings
     /// </summary>

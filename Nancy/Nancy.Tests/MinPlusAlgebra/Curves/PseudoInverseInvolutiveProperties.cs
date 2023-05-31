@@ -25,6 +25,11 @@ public class PseudoInverseInvolutiveProperties
             var f = (Curve) objArray[0];
             yield return new object[] { f };
         }
+
+        foreach (var curve in ConvolutionIsomorphism.LeftContinuousExamples)
+        {
+            yield return new object[] { curve };
+        }
     }
 
     [Theory]
@@ -51,6 +56,15 @@ public class PseudoInverseInvolutiveProperties
         {
             var f = (Curve) objArray[0];
             yield return new object[] { f };
+        }
+
+        foreach (var objArray in ConvolutionIsomorphism.MaxPlusIsomorphismTestCases())
+        {
+            var curves = (Curve[]) objArray[0];
+            foreach (var curve in curves)
+            {
+                yield return new object[] { curve };
+            }
         }
     }
 

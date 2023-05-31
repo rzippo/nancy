@@ -300,6 +300,84 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// </summary>
     public bool IsPoint => Elements.Count == 1 && Elements.Single() is Point;
 
+    /// <summary>
+    /// True if the the sequence starts with a plateau.
+    /// </summary>
+    public bool StartsWithPlateau
+    {
+        get
+        {
+            if (Elements.First() is Point p)
+            {
+                var s = (Segment) Elements.First(e => e is Segment);
+                return s.IsConstant && s.RightLimitAtStartTime == p.Value;
+            }
+            else if (Elements.First() is Segment s)
+            {
+                return s.IsConstant;
+            }
+            else
+                throw new InvalidCastException();
+        }
+    }
+
+    /// <summary>
+    /// True if the sequence ends with a plateau.
+    /// </summary>
+    public bool EndsWithPlateau
+    {
+        get
+        {
+            if (Elements.Last() is Point p)
+            {
+                var s = (Segment) Elements.Last(e => e is Segment);
+                return s.IsConstant && s.LeftLimitAtEndTime == p.Value;
+            }
+            else if (Elements.Last() is Segment s)
+            {
+                return s.IsConstant;
+            }
+            else
+                throw new InvalidCastException();
+        }
+    }
+
+    /// <summary>
+    /// Returns the end time of the plateau at the start of the sequence,
+    /// or the sequence start if there is no such plateau.
+    /// </summary>
+    public Rational FirstPlateauEnd
+    {
+        get 
+        {
+            if(StartsWithPlateau)
+                return Elements
+                    .MergeAsEnumerable()
+                    .GetSegmentAfter(DefinedFrom)
+                    .EndTime;
+            else
+                return DefinedFrom;
+        }
+    }
+
+    /// <summary>
+    /// Returns the start time of the plateau at the end of the sequence,
+    /// or the sequence end if there is no such plateau.
+    /// </summary>
+    public Rational LastPlateauStart
+    {
+        get 
+        {
+            if(EndsWithPlateau)
+                return Elements
+                    .MergeAsEnumerable()
+                    .GetSegmentBefore(DefinedUntil)
+                    .StartTime;
+            else
+                return DefinedUntil;
+        }
+    }
+
     #endregion
 
     #region Constructors
@@ -1685,13 +1763,25 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// Computes the convolution of two sequences, $a \otimes b$.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="f"></param>
+    /// <param name="g"></param>
     /// <param name="settings"></param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="isEndIncluded"></param>
+    /// <param name="isCeilingIncluded"></param>
+    /// <param name="useIsomorphism"></param>
     /// <returns>The result of the convolution.</returns>
     /// <remarks>Described in [BT07], section 4.4.3</remarks>
-    public static Sequence Convolution(Sequence a, Sequence b, ComputationSettings? settings = null, Rational? cutEnd = null)
+    public static Sequence Convolution(
+        Sequence f,
+        Sequence g,
+        ComputationSettings? settings = null,
+        Rational? cutEnd = null,
+        Rational? cutCeiling = null,
+        bool isEndIncluded = false,
+        bool isCeilingIncluded = true,
+        bool useIsomorphism = false)
     {
         #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
@@ -1699,90 +1789,247 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
         settings ??= ComputationSettings.Default();
         cutEnd ??= Rational.PlusInfinity;
+        cutCeiling ??= Rational.PlusInfinity;
 
-        if (a.IsInfinite || b.IsInfinite)
+        if (
+            settings.UseBySequenceConvolutionIsomorphismOptimization && 
+            f.IsLeftContinuous && g.IsLeftContinuous &&
+            f.IsNonDecreasing && g.IsNonDecreasing
+        )
         {
-            var start = a.DefinedFrom + b.DefinedFrom;
-            var end = Rational.Min(a.DefinedUntil + b.DefinedUntil, cutEnd.Value);
-            return new Sequence(elements: new Element[]
+            #if CONJECTURE_GENERALIZE_BYSEQUENCE_CONVOLUTION_ISOSPEED
+            // the conjecture consists in generalizing use of by-sequence isospeed
+            // by checking that the result length is equal to the shortest operand length
+            var ta_f = f.DefinedFrom;
+            var ta_g = g.DefinedFrom;
+            var tb_f = f.DefinedUntil;
+            var tb_g = g.DefinedUntil;
+
+            var lf = tb_f - ta_f;
+            var lg = tb_g - ta_g;
+            var shortestLength = Rational.Min(lf, lg);
+            var limitCutEnd = ta_f + ta_g + shortestLength;
+
+            bool cutEndCheck;
+            if (useIsomorphism)
+                cutEndCheck = true;
+            else
+                cutEndCheck = cutEnd < limitCutEnd;
+            
+            if (cutEndCheck)
+            #else
+            if (useIsomorphism)
+            #endif
             {
-                Point.PlusInfinite(start),
-                Segment.PlusInfinite(start, end)
-            });
+                // the following heuristic roughly computes how many elementary convolutions would be involved
+                // using direct or inverse method to choose which one to perform
+                var aConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: true});
+                var aNonConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: false});
+                var aPoints = f.Elements.Count(e => e is Point);
+                var aPointsNotKept = f.EndsWithPlateau ? aConstantSegments - 1 : aConstantSegments;
+                var aPointsKept = aPoints - aPointsNotKept;
+                var aKept = aNonConstantSegments + aPointsKept;
+                var aNotKept = aConstantSegments + aPointsNotKept;
+
+                var bConstantSegments = g.Elements.Count(e => e is Segment {IsConstant: true});
+                var bNonConstantSegments = g.Elements.Count(e => e is Segment {IsConstant: false});
+                var bPoints = g.Elements.Count(e => e is Point);
+                var bPointsNotKept = g.EndsWithPlateau ? bConstantSegments - 1 : bConstantSegments;
+                var bPointsKept = bPoints - bPointsNotKept;
+                var bKept = bNonConstantSegments + bPointsKept;
+                var bNotKept = bConstantSegments + bPointsNotKept;
+
+                var aDiscontinuities = f.EnumerateBreakpoints()
+                    .Count(bp => bp.right != null && bp.center.Value != bp.right.RightLimitAtStartTime);
+                var bDiscontinuities = g.EnumerateBreakpoints()
+                    .Count(bp => bp.right != null && bp.center.Value != bp.right.RightLimitAtStartTime);
+                var aReplaced = 2 * aDiscontinuities;
+                var bReplaced = 2 * bDiscontinuities;
+
+                var directCount = aNotKept * bNotKept + aNotKept * bKept + aKept * bNotKept;
+                var inverseCount = aReplaced * bReplaced + aReplaced * bKept + aKept * bReplaced;
+
+                if (directCount > inverseCount)
+                {
+                    var ta_f_prime = f.FirstPlateauEnd;
+                    var ta_g_prime = g.FirstPlateauEnd;
+
+                    var a_upi = f.UpperPseudoInverse(false);
+                    var b_upi = g.UpperPseudoInverse(false);
+                    var maxp = Sequence.MaxPlusConvolution(
+                        a_upi, b_upi,
+                        cutEnd: cutCeiling, cutCeiling: cutEnd,
+                        isEndIncluded: true, isCeilingIncluded: true,
+                        settings: settings with {UseBySequenceConvolutionIsomorphismOptimization = false});
+                    var inverse_raw = maxp.LowerPseudoInverse(false);
+
+                    Sequence inverse;
+                    if (ta_f_prime == f.DefinedFrom && ta_g_prime == g.DefinedFrom)
+                    {
+                        inverse = inverse_raw;
+                    }
+                    else
+                    {
+                        // note: does not handle left-open sequences
+                        var ext = Sequence.Constant(
+                            f.ValueAt(f.DefinedFrom) + g.ValueAt(g.DefinedFrom),
+                            f.DefinedFrom + g.DefinedFrom,
+                            ta_f_prime + ta_g_prime
+                        );
+                        inverse = Sequence.Minimum(ext, inverse_raw, false);
+                    }
+
+                    if (cutCeiling == Rational.PlusInfinity)
+                        return inverse;
+                    else
+                        return inverse.Elements
+                            .CutWithCeiling(cutCeiling, isCeilingIncluded)
+                            .ToSequence();
+                }
+            }
         }
 
-        var areSequenceEqual = Equivalent(a, b);
+        if (f.IsPlusInfinite || g.IsPlusInfinite)
+        {
+            var start = f.DefinedFrom + g.DefinedFrom;
+            var end = Rational.Min(f.DefinedUntil + g.DefinedUntil, cutEnd.Value);
+            return PlusInfinite(start, end);
+            // return PlusInfinite(start, end, isLeftClosed, isRightClosed);
+        }
+
+        var areSequenceEqual = Equivalent(f, g);
         #if DO_LOG
         var countStopwatch = Stopwatch.StartNew();
         #endif
-        var pairsCount = GetElementPairs().LongCount();
+        var pairsCount = GetElementPairs(true).LongCount();
         #if DO_LOG
         countStopwatch.Stop();
-        logger.Trace($"Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
+        if(cutCeiling != Rational.PlusInfinity)
+            logger.Trace($"Convolution: counted {pairsCount} pairs (ignoring cutCeiling!) in {countStopwatch.Elapsed}");
+        else
+            logger.Trace($"Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
         #endif
 
         if (cutEnd.Value.IsFinite)
         {
-            var earliestElement = a.DefinedFrom + b.DefinedFrom;
+            var earliestElement = f.DefinedFrom + g.DefinedFrom;
             #if DO_LOG
             logger.Trace($"cutEnd set to {cutEnd}, earliest element will be {earliestElement}");
             #endif
             if(cutEnd < earliestElement)
                 throw new Exception("Convolution is cut before it starts");
         }
+        #if DO_LOG
+        if(cutCeiling != Rational.PlusInfinity)
+            logger.Trace($"cutCeiling set to {cutCeiling}");
+        #endif
 
+        IEnumerable<Element> result;
         if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
-            return PartitionedConvolution();
+            result = PartitionedConvolution();
         else
         if (settings.UseParallelConvolution && pairsCount > settings.ConvolutionParallelizationThreshold)
-            return ParallelConvolution();
+            result = ParallelConvolution();
         else
-            return SerialConvolution();
+            result = SerialConvolution();
 
-        IEnumerable<(Element ea, Element eb)> GetElementPairs()
+        if (cutCeiling == Rational.PlusInfinity)
+            return result.ToSequence();
+        else
+            return result
+                .CutWithCeiling(cutCeiling, isCeilingIncluded)
+                .ToSequence();
+
+        // Returns the pairs to be involved in the convolution.
+        // If fastIteration is true, some checks are skipped - this is mainly for counting purposes.
+        IEnumerable<(Element ea, Element eb)> GetElementPairs(bool fastIteration = false)
         {
-            var elementPairs = a.Elements
+            var elementPairs = f.Elements
                 .Where(ea => ea.IsFinite)
-                .SelectMany(ea => b.Elements
+                .SelectMany(ea => g.Elements
                     .Where(eb => eb.IsFinite)
-                    .Where(eb => ea.StartTime + eb.StartTime < cutEnd)
+                    .Where(eb => PairBeforeEnd(ea, eb))                    
+                    .Where(eb => fastIteration || PairBelowCeiling(ea, eb))
                     .Select(eb => (a: ea, b: eb))
                 );
 
             // if self-convolution, filter out symmetric pairs
-            return areSequenceEqual ?
-                elementPairs.Where(pair => pair.a.StartTime <= pair.b.StartTime) :
-                elementPairs;
+            if (areSequenceEqual)
+                elementPairs = elementPairs.Where(pair => pair.a.StartTime <= pair.b.StartTime);
+
+            return elementPairs;
+
+            bool PairBeforeEnd(Element ea, Element eb)
+            {
+                if (cutEnd == Rational.PlusInfinity)
+                    return true;
+
+                if (isEndIncluded)
+                {
+                    if (ea is Point pa && eb is Point pb)
+                        return pa.Time + pb.Time <= cutEnd;
+                    else
+                        return ea.StartTime + eb.StartTime < cutEnd;
+                }
+                else
+                    return ea.StartTime + eb.StartTime < cutEnd;
+            }
+
+            bool PairBelowCeiling(Element ea, Element eb)
+            {
+                if (cutCeiling == Rational.PlusInfinity) 
+                    return true;
+
+                var ea_s = GetStart(ea);
+                var eb_s = GetStart(eb);
+                if(isCeilingIncluded)
+                {
+                    if ((ea is not Segment || ea is Segment { IsConstant: true }) && 
+                        (eb is not Segment || eb is Segment { IsConstant: true }))
+                        return ea_s + eb_s <= cutCeiling;
+                    else
+                        return ea_s + eb_s < cutCeiling;
+                }
+                else
+                    return ea_s + eb_s < cutCeiling;
+
+                Rational GetStart(Element e)
+                {
+                    switch (e)
+                    {
+                        case Point p:
+                            return p.Value;
+                        case Segment s:
+                            return s.RightLimitAtStartTime;
+                        default:
+                            throw new InvalidCastException();
+                    }
+                }
+            }
         }
 
-        Sequence SerialConvolution()
+        IEnumerable<Element> SerialConvolution()
         {
             #if DO_LOG
             logger.Trace($"Running serial convolution, {pairsCount} pairs.");
             #endif
 
             var convolutionElements = GetElementPairs() 
-                .SelectMany(pair => pair.ea.Convolution(pair.eb))
+                .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
                 .ToList();
 
-            if (a.IsFinite && b.IsFinite)
-            {
-                return new Sequence(
-                    elements: convolutionElements.LowerEnvelope(settings)
-                );
-            }
+            var lowerEnvelope = convolutionElements.LowerEnvelope(settings);
+            if (f.IsFinite && g.IsFinite)
+                return lowerEnvelope;
             else
-            {
                 // gaps may be expected
-                return new Sequence(
-                    elements: convolutionElements.LowerEnvelope(settings),
-                    fillFrom: a.DefinedFrom + b.DefinedFrom,
-                    fillTo: a.DefinedUntil + b.DefinedUntil
+                return lowerEnvelope.Fill(
+                    fillFrom: f.DefinedFrom + g.DefinedFrom,
+                    fillTo: f.DefinedUntil + g.DefinedUntil
                 );
-            }
         }
 
-        Sequence ParallelConvolution()
+        IEnumerable<Element> ParallelConvolution()
         {
             #if DO_LOG
             logger.Trace($"Running parallel convolution, {pairsCount} pairs.");
@@ -1790,69 +2037,65 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
 
             var convolutionElements = GetElementPairs()
                 .AsParallel()
-                .SelectMany(pair => Element.Convolution(pair.ea, pair.eb))
+                .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
                 .ToList();
 
-            if (a.IsFinite && b.IsFinite)
-            {
-                return new Sequence(
-                    elements: convolutionElements.LowerEnvelope(settings)
-                );
-            }
+            var lowerEnvelope = convolutionElements.LowerEnvelope(settings);
+            if (f.IsFinite && g.IsFinite)
+                return lowerEnvelope;
             else
-            {
                 // gaps may be expected
-                return new Sequence(
-                    elements: convolutionElements.LowerEnvelope(settings),
-                    fillFrom: a.DefinedFrom + b.DefinedFrom,
-                    fillTo: a.DefinedUntil + b.DefinedUntil
+                return lowerEnvelope.Fill(
+                    fillFrom: f.DefinedFrom + g.DefinedFrom,
+                    fillTo: f.DefinedUntil + g.DefinedUntil
                 );
-            }
         }
 
         // The elementPairs are partitioned in smaller sets (without any ordering)
         // From each set, the convolutions are computed and then their lower envelope
         // The resulting sequences will have gaps
         // Those partial convolutions are then merged via Sequence.LowerEnvelope
-        Sequence PartitionedConvolution()
+        IEnumerable<Element> PartitionedConvolution()
         {
             #if DO_LOG
             logger.Trace($"Running partitioned convolution, {pairsCount} pairs.");
             #endif
 
             var partialConvolutions = PartitionConvolutionElements()
-                .Select(elements => new Sequence(
-                    elements.LowerEnvelope(settings),
-                    fillFrom: a.DefinedFrom + b.DefinedFrom,
-                    fillTo: a.DefinedUntil + b.DefinedUntil
-                ))
+                .Select(elements => 
+                    elements.LowerEnvelope(settings)
+                    .Fill(
+                        fillFrom: f.DefinedFrom + g.DefinedFrom,
+                        fillTo: f.DefinedUntil + g.DefinedUntil
+                    )
+                    .ToSequence()
+                )
                 .ToList();
 
             #if DO_LOG
             logger.Trace($"Partitioned convolutions computed, proceding with lower envelope of {partialConvolutions.Count} sequences");
             #endif
 
-            if (a.IsFinite && b.IsFinite)
+            var lowerEnvelope = partialConvolutions.LowerEnvelope(settings);
+            if (f.IsFinite && g.IsFinite)
             {
-                return new Sequence(
-                    elements: partialConvolutions.LowerEnvelope(settings)
-                );
+                return lowerEnvelope
+                    .Where(e => e.IsFinite);
             }
             else
             {
                 // gaps may be expected
-                return new Sequence(
-                    elements: partialConvolutions.LowerEnvelope(settings),
-                    fillFrom: a.DefinedFrom + b.DefinedFrom,
-                    fillTo: a.DefinedUntil + b.DefinedUntil
+                return lowerEnvelope.Fill(
+                    fillFrom: f.DefinedFrom + g.DefinedFrom,
+                    fillTo: f.DefinedUntil + g.DefinedUntil
                 );
             }
 
             IEnumerable<IReadOnlyList<Element>> PartitionConvolutionElements()
             {
+                #if DO_LOG
                 int partitionsCount = (int)
                     Math.Ceiling((double)pairsCount / settings.ConvolutionPartitioningThreshold);
-                #if DO_LOG
                 logger.Trace($"Partitioning {pairsCount} pairs in {partitionsCount} chunks of {settings.ConvolutionPartitioningThreshold}.");
                 #endif
 
@@ -1866,14 +2109,14 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                     {
                         convolutionElements = partition
                             .AsParallel()
-                            .SelectMany(pair => pair.ea.Convolution(pair.eb))
+                            .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
                             .ToList()
                             .SortElements(settings);    
                     }
                     else
                     {
                         convolutionElements = partition
-                            .SelectMany(pair => pair.ea.Convolution(pair.eb))
+                            .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
                             .ToList()
                             .SortElements(settings);
                     }
@@ -1910,17 +2153,27 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// </param>
     /// <param name="settings"></param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>
     /// The number of elementary convolutions involved in computing the result of the convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is `true`.
     /// </returns>
-    public static long EstimateConvolution(Sequence a, Sequence b, ComputationSettings? settings = null, Rational? cutEnd = null, bool countElements = false)
+    public static long EstimateConvolution(
+        Sequence a, 
+        Sequence b, 
+        ComputationSettings? settings = null, 
+        Rational? cutEnd = null, 
+        Rational? cutCeiling = null, 
+        bool countElements = false
+    )
     {
         #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
         #endif
         settings ??= ComputationSettings.Default();
         cutEnd ??= Rational.PlusInfinity;
+        cutCeiling ??= Rational.PlusInfinity;
+
         if (a.IsInfinite || b.IsInfinite)
         {
             // var start = a.DefinedFrom + b.DefinedFrom;
@@ -1962,7 +2215,8 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                 .Where(ea => ea.IsFinite)
                 .SelectMany(ea => b.Elements
                     .Where(eb => eb.IsFinite)
-                    .Where(eb => ea.StartTime + eb.StartTime <= cutEnd)
+                    .Where(eb => ea.StartTime + eb.StartTime < cutEnd)
+                    .Where(eb => PairBelowCeiling(ea, eb))
                     .Select(eb => (a: ea, b: eb))
                 );
 
@@ -1970,7 +2224,33 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             if (areSequenceEqual)
                 elementPairs = elementPairs.Where(pair => pair.a.StartTime <= pair.b.StartTime);
 
-            return elementPairs;        
+            return elementPairs;
+
+            bool PairBelowCeiling(Element ea, Element eb)
+            {
+                if (cutCeiling == Rational.PlusInfinity) 
+                    return true;
+
+                var (ea_s, ea_e) = GetEndpoints(ea);
+                var (eb_s, eb_e) = GetEndpoints(eb);
+                if (ea_s + eb_s <= cutCeiling || ea_e + eb_e <= cutCeiling)
+                    return true;
+                else
+                    return false;
+
+                (Rational startValue, Rational endValue) GetEndpoints(Element e)
+                {
+                    switch (e)
+                    {
+                        case Point p:
+                            return (p.Value, p.Value);
+                        case Segment s:
+                            return (s.RightLimitAtStartTime, s.LeftLimitAtEndTime);
+                        default:
+                            throw new InvalidCastException();
+                    }
+                }
+            }
         }
     }
 
@@ -2070,18 +2350,411 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// Computes the max-plus convolution of two sequences.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="f"></param>
+    /// <param name="g"></param>
     /// <param name="settings"></param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="isEndIncluded"></param>
+    /// <param name="isCeilingIncluded"></param>
+    /// <param name="useIsomorphism"></param>
     /// <returns>The result of the convolution.</returns>
-    /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
-    public static Sequence MaxPlusConvolution(Sequence a, Sequence b, ComputationSettings? settings, Rational? cutEnd = null)
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07], section 4.4.3</remarks>
+    public static Sequence MaxPlusConvolution(
+        Sequence f, 
+        Sequence g, 
+        ComputationSettings? settings = null, 
+        Rational? cutEnd = null, 
+        Rational? cutCeiling = null,
+        bool isEndIncluded = false,
+        bool isCeilingIncluded = false,
+        bool useIsomorphism = false)
     {
-        #if DO_LOG
-        logger.Trace("Computing max-plus convolution");
+        #if MAX_CONV_AS_NEGATIVE_MIN_CONV
+        return -Convolution(-a, -b, settings, cutEnd, -cutCeiling);
+        #else
+
+        #if DO_LOG && DO_COSTLY_LOGS
+        logger.Trace($"Max-plus Convolution between sequence a [{a.GetHashString()}] of length {a.Count}:\n {a} \n and sequence b [{b.GetHashString()}] of length {b.Count}:\n {b}");
         #endif
-        return -Convolution(-a, -b, settings, cutEnd);
+
+        settings ??= ComputationSettings.Default();
+        cutEnd ??= Rational.PlusInfinity;
+        cutCeiling ??= Rational.PlusInfinity;
+
+        if (
+            settings.UseBySequenceConvolutionIsomorphismOptimization && 
+            f.IsRightContinuous && g.IsRightContinuous &&
+            f.IsNonDecreasing && g.IsNonDecreasing
+        )
+        {
+            #if CONJECTURE_GENERALIZE_BYSEQUENCE_CONVOLUTION_ISOSPEED
+            // the conjecture consists in generalizing use of by-sequence isospeed
+            // by checking that the result length is equal to the shortest operand length
+            var ta_f = f.DefinedFrom;
+            var ta_g = g.DefinedFrom;
+            var tb_f = f.DefinedUntil;
+            var tb_g = g.DefinedUntil;
+
+            var lf = tb_f - ta_f;
+            var lg = tb_g - ta_g;
+            var shortestLength = Rational.Min(lf, lg);
+            var limitCutEnd = ta_f + ta_g + shortestLength;
+
+            bool cutEndCheck;
+            if(useIsomorphism)
+                cutEndCheck = true;
+            else
+                cutEndCheck = cutEnd < limitCutEnd;
+
+            if (cutEndCheck)
+            #else
+            if (useIsomorphism)
+            #endif
+            {
+                // the following heuristic roughly computes how many elementary convolutions would be involved
+                // using direct or inverse method to choose which one to perform
+
+                var aConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: true});
+                var aNonConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: false});
+                var aPoints = f.Elements.Count(e => e is Point);
+                var aPointsNotKept = f.EndsWithPlateau ? aConstantSegments - 1 : aConstantSegments;
+                var aPointsKept = aPoints - aPointsNotKept;
+                var aKept = aNonConstantSegments + aPointsKept;
+                var aNotKept = aConstantSegments + aPointsNotKept;
+
+                var bConstantSegments = g.Elements.Count(e => e is Segment {IsConstant: true});
+                var bNonConstantSegments = g.Elements.Count(e => e is Segment {IsConstant: false});
+                var bPoints = g.Elements.Count(e => e is Point);
+                var bPointsNotKept = g.EndsWithPlateau ? bConstantSegments - 1 : bConstantSegments;
+                var bPointsKept = bPoints - bPointsNotKept;
+                var bKept = bNonConstantSegments + bPointsKept;
+                var bNotKept = bConstantSegments + bPointsNotKept;
+
+                var aDiscontinuities = f.EnumerateBreakpoints()
+                    .Count(bp => bp.right != null && bp.center.Value != bp.right.RightLimitAtStartTime);
+                var bDiscontinuities = g.EnumerateBreakpoints()
+                    .Count(bp => bp.right != null && bp.center.Value != bp.right.RightLimitAtStartTime);
+                var aReplaced = 2 * aDiscontinuities;
+                var bReplaced = 2 * bDiscontinuities;
+
+                var directCount = aNotKept * bNotKept + aNotKept * bKept + aKept * bNotKept;
+                var inverseCount = aReplaced * bReplaced + aReplaced * bKept + aKept * bReplaced;
+
+                if (directCount > inverseCount)
+                {
+                    var tb_f_prime = f.LastPlateauStart;
+                    var tb_g_prime = g.LastPlateauStart;
+
+                    var f_lpi = f.LowerPseudoInverse(false);
+                    var g_lpi = g.LowerPseudoInverse(false);
+                    var minp = Sequence.Convolution(
+                        f_lpi, g_lpi,
+                        cutEnd: cutCeiling, cutCeiling: cutEnd,
+                        isEndIncluded: true, isCeilingIncluded: true,
+                        settings: settings with {UseBySequenceConvolutionIsomorphismOptimization = false});
+                    var inverse_raw = minp.UpperPseudoInverse(false);
+                    if (inverse_raw.DefinedUntil < cutEnd)
+                    {
+                        // this means that, in minp, there was a discontinuity over the cutCeiling
+                        // hence, there should be a constant segment until cutEnd
+                        var missingSegment = Segment.Constant(
+                            inverse_raw.DefinedUntil,
+                            (Rational) cutEnd,
+                            ((Point) inverse_raw.Elements.Last()).Value
+                        );
+                        inverse_raw = inverse_raw.Elements
+                            .Append(missingSegment)
+                            .ToSequence();
+                    }
+
+                    Sequence inverse;
+                    if (tb_f_prime == f.DefinedUntil && tb_g_prime == g.DefinedUntil)
+                    {
+                        inverse = inverse_raw;
+                    }
+                    else
+                    {
+                        // todo: can be optimized by applying horizontal and vertical filtering 
+                        var missingElements = new List<Element> { };
+                        if (tb_f_prime < f.DefinedUntil)
+                        {
+                            var pf = f.GetElementAt(tb_f_prime);
+                            var sf = f.GetSegmentAfter(tb_f_prime);
+                            foreach (var eg in g.Elements)
+                            {
+                                missingElements.AddRange(Element.MaxPlusConvolution(pf, eg));
+                                missingElements.AddRange(Element.MaxPlusConvolution(sf, eg));
+                            }
+                        }
+
+                        if (tb_g_prime < g.DefinedUntil)
+                        {
+                            var pg = g.GetElementAt(tb_g_prime);
+                            var sg = g.GetSegmentAfter(tb_g_prime);
+                            foreach (var ef in f.Elements)
+                            {
+                                missingElements.AddRange(Element.MaxPlusConvolution(ef, pg));
+                                missingElements.AddRange(Element.MaxPlusConvolution(ef, sg));
+                            }
+                        }
+
+                        var upperEnvelope = missingElements.UpperEnvelope();
+                        var ext = upperEnvelope.ToSequence(
+                            fillFrom: upperEnvelope.First().StartTime, 
+                            fillTo: upperEnvelope.Last().EndTime, 
+                            fillWith: Rational.MinusInfinity
+                        );
+                        inverse = Sequence.Maximum(ext, inverse_raw, false);
+                    }
+
+                    if (cutCeiling == Rational.PlusInfinity)
+                        return inverse;
+                    else
+                        return inverse.Elements
+                            .CutWithCeiling(cutCeiling, isCeilingIncluded)
+                            .ToSequence();
+                }
+            }
+        }
+
+        if (f.IsMinusInfinite || g.IsMinusInfinite)
+        {
+            var start = f.DefinedFrom + g.DefinedFrom;
+            var end = Rational.Min(f.DefinedUntil + g.DefinedUntil, cutEnd.Value);
+            return MinusInfinite(start, end);
+        }
+
+        var areSequenceEqual = Equivalent(f, g);
+        #if DO_LOG
+        var countStopwatch = Stopwatch.StartNew();
+        #endif
+        var pairsCount = GetElementPairs().LongCount();
+        #if DO_LOG
+        countStopwatch.Stop();
+        logger.Trace($"Max-plus Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
+        #endif
+
+        if (cutEnd.Value.IsFinite)
+        {
+            var earliestElement = f.DefinedFrom + g.DefinedFrom;
+            #if DO_LOG
+            logger.Trace($"cutEnd set to {cutEnd}, earliest element will be {earliestElement}");
+            #endif
+            if(cutEnd < earliestElement)
+                throw new Exception("Convolution is cut before it starts");
+        }
+
+        IEnumerable<Element> result;
+        if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
+            result = PartitionedConvolution();
+        else
+        if (settings.UseParallelConvolution && pairsCount > settings.ConvolutionParallelizationThreshold)
+            result = ParallelConvolution();
+        else
+            result = SerialConvolution();
+
+        if (cutCeiling == Rational.PlusInfinity)
+            return result.ToSequence();
+        else
+            return result
+                .CutWithCeiling(cutCeiling, isCeilingIncluded)
+                .ToSequence();
+
+        IEnumerable<(Element ea, Element eb)> GetElementPairs()
+        {
+            var elementPairs = f.Elements
+                .Where(ea => ea.IsFinite)
+                .SelectMany(ea => g.Elements
+                    .Where(eb => eb.IsFinite)
+                    .Where(eb => PairBeforeEnd(ea, eb))
+                    #if MAX_PLUS_BYSEQ_VERTICAL_FILTER
+                    .Where(eb => PairBelowCeiling(ea, eb))
+                    #endif
+                    .Select(eb => (a: ea, b: eb))
+                );
+
+            // if self-convolution, filter out symmetric pairs
+            if (areSequenceEqual)
+                elementPairs = elementPairs.Where(pair => pair.a.StartTime <= pair.b.StartTime);
+
+            return elementPairs;
+
+            bool PairBeforeEnd(Element ea, Element eb)
+            {
+                if (cutEnd == Rational.PlusInfinity)
+                    return true;
+
+                if (isEndIncluded)
+                {
+                    if (ea is Point pa && eb is Point pb)
+                        return pa.Time + pb.Time <= cutEnd;
+                    else
+                        return ea.StartTime + eb.StartTime < cutEnd;
+                }
+                else
+                    return ea.StartTime + eb.StartTime < cutEnd;
+            }
+
+            #if MAX_PLUS_BYSEQ_VERTICAL_FILTER
+            // This filtering step cannot be easily translated to (max,+) convolution,
+            // since excluding higher-than-ceiling elements from the upper envelope may yield a false result
+            bool PairBelowCeiling(Element ea, Element eb)
+            {
+                if (cutCeiling == Rational.PlusInfinity) 
+                    return true;
+
+                var ea_s = GetStart(ea);
+                var eb_s = GetStart(eb);
+                if(isCeilingIncluded)
+                {
+                    if ((ea is not Segment || ea is Segment { IsConstant: true }) && 
+                        (eb is not Segment || eb is Segment { IsConstant: true }))
+                        return ea_s + eb_s <= cutCeiling;
+                    else
+                        return ea_s + eb_s < cutCeiling;
+                }
+                else
+                    return ea_s + eb_s < cutCeiling;
+
+                Rational GetStart(Element e)
+                {
+                    switch (e)
+                    {
+                        case Point p:
+                            return p.Value;
+                        case Segment s:
+                            return s.RightLimitAtStartTime;
+                        default:
+                            throw new InvalidCastException();
+                    }
+                }
+            }
+            #endif
+        }
+
+        IEnumerable<Element> SerialConvolution()
+        {
+            #if DO_LOG
+            logger.Trace($"Running serial convolution, {pairsCount} pairs.");
+            #endif
+
+            var convolutionElements = GetElementPairs() 
+                .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
+                .ToList();
+
+            var upperEnvelope = convolutionElements.UpperEnvelope(settings);
+            if (f.IsFinite && g.IsFinite)
+                return upperEnvelope;
+            else
+                // gaps may be expected
+                return upperEnvelope.Fill(
+                    fillFrom: f.DefinedFrom + g.DefinedFrom,
+                    fillTo: f.DefinedUntil + g.DefinedUntil,
+                    fillWith: Rational.MinusInfinity
+                );
+        }
+
+        IEnumerable<Element> ParallelConvolution()
+        {
+            #if DO_LOG
+            logger.Trace($"Running parallel convolution, {pairsCount} pairs.");
+            #endif
+
+            var convolutionElements = GetElementPairs()
+                .AsParallel()
+                .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
+                .ToList();
+
+            var upperEnvelope = convolutionElements.UpperEnvelope(settings);
+            if (f.IsFinite && g.IsFinite)
+                return upperEnvelope;
+            else
+                // gaps may be expected
+                return upperEnvelope.Fill(
+                    fillFrom: f.DefinedFrom + g.DefinedFrom,
+                    fillTo: f.DefinedUntil + g.DefinedUntil,
+                    fillWith: Rational.MinusInfinity
+                );
+        }
+
+        // The elementPairs are partitioned in smaller sets (without any ordering)
+        // From each set, the convolutions are computed and then their lower envelope
+        // The resulting sequences will have gaps
+        // Those partial convolutions are then merged via Sequence.UpperEnvelope
+        IEnumerable<Element> PartitionedConvolution()
+        {
+            #if DO_LOG
+            logger.Trace($"Running partitioned convolution, {pairsCount} pairs.");
+            #endif
+
+            var partialConvolutions = PartitionConvolutionElements()
+                .Select(elements =>
+                    elements.UpperEnvelope(settings)
+                    .Fill(
+                        fillFrom: f.DefinedFrom + g.DefinedFrom,
+                        fillTo: f.DefinedUntil + g.DefinedUntil,
+                        fillWith: Rational.MinusInfinity
+                    )
+                    .ToSequence()
+                )
+                .ToList();
+
+            #if DO_LOG
+            logger.Trace($"Partitioned convolutions computed, proceding with lower envelope of {partialConvolutions.Count} sequences");
+            #endif
+
+            var upperEnvelope = partialConvolutions.UpperEnvelope(settings);
+            if (f.IsFinite && g.IsFinite)
+            {
+                return upperEnvelope
+                    .Where(e => e.IsFinite);
+            }
+            else
+            {
+                // gaps may be expected
+                return upperEnvelope.Fill(
+                    fillFrom: f.DefinedFrom + g.DefinedFrom,
+                    fillTo: f.DefinedUntil + g.DefinedUntil,
+                    fillWith: Rational.MinusInfinity
+                );
+            }
+
+            IEnumerable<IReadOnlyList<Element>> PartitionConvolutionElements()
+            {
+                int partitionsCount = (int)
+                    Math.Ceiling((double)pairsCount / settings.ConvolutionPartitioningThreshold);
+                #if DO_LOG
+                logger.Trace($"Partitioning {pairsCount} pairs in {partitionsCount} chunks of {settings.ConvolutionPartitioningThreshold}.");
+                #endif
+
+                var partitions = GetElementPairs()
+                    .Chunk(settings.ConvolutionPartitioningThreshold);
+
+                foreach (var partition in partitions)
+                {
+                    IReadOnlyList<Element> convolutionElements;
+                    if (settings.UseParallelConvolution)
+                    {
+                        convolutionElements = partition
+                            .AsParallel()
+                            .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
+                            .ToList()
+                            .SortElements(settings);    
+                    }
+                    else
+                    {
+                        convolutionElements = partition
+                            .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
+                            .ToList()
+                            .SortElements(settings);
+                    }
+
+                    yield return convolutionElements;
+                }
+            }
+        }
+        #endif
     }
 
     /// <summary>
@@ -2092,7 +2765,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The result of the convolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
-    public Sequence MaxPlusConvolution(Sequence sequence, ComputationSettings? settings, Rational? cutEnd = null)
+    public Sequence MaxPlusConvolution(Sequence sequence, ComputationSettings? settings = null, Rational? cutEnd = null)
         => MaxPlusConvolution(this, sequence, settings, cutEnd);
 
     /// <summary>
