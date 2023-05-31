@@ -15,7 +15,7 @@ namespace Unipi.Nancy.NetworkCalculus
     /// $f(0) = 0$ is required for the curve to be <see cref="Curve.IsRegularSubAdditive"/>, hence derive from <see cref="SubAdditiveCurve"/>, 
     /// and the convolution to become the minimum, 
     /// but is not required for concavity to be stable on minimum, addition and convolution.
-    /// To keep the type system simple for the common cases of NC, we opted not to support non-regular concave functions with their own type.
+    /// To keep the type system simple for the common cases of DNC, we opted not to support non-regular concave functions with their own type.
     /// </remarks>
     public class ConcaveCurve : SubAdditiveCurve
     {

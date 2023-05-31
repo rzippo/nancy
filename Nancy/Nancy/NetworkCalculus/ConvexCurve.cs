@@ -14,7 +14,7 @@ namespace Unipi.Nancy.NetworkCalculus
     /// <remarks>
     /// $f(0) = 0$ is required for the curve to be <see cref="Curve.IsRegularSuperAdditive"/>, hence derive from <see cref="SuperAdditiveCurve" />, 
     /// but is not required for convexity to be stable on maximum, addition and convolution.
-    /// To keep the type system simple for the common cases of NC, we opted not to support non-regular convex functions with their own type.
+    /// To keep the type system simple for the common cases of DNC, we opted not to support non-regular convex functions with their own type.
     /// </remarks>
     public class ConvexCurve : SuperAdditiveCurve
     {

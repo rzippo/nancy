@@ -19,7 +19,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// $f(0) = 0$ is required for the curve to be <see cref="Curve.IsRegularSubAdditive"/> and 
 /// provides optimized algorithms for convolution as described in [ZS22],
 /// but is not required for sub-additivity to be stable on addition and convolution.
-/// To keep the type system simple for the common cases of NC, we opted not to support non-regular sub-additive functions with their own type.
+/// To keep the type system simple for the common cases of DNC, we opted not to support non-regular sub-additive functions with their own type.
 /// </remarks>
 public class SubAdditiveCurve : Curve
 {

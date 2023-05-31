@@ -104,34 +104,34 @@ public enum FontSize {
     // ReSharper disable IdentifierTypo
     // ReSharper disable CommentTypo
     
-    /// Corresponds, in LaTeX, to \tiny
+    /// Corresponds, in LaTeX, to \tiny .
     tiny,
     
-    /// Corresponds, in LaTeX, to \scriptsize
+    /// Corresponds, in LaTeX, to \scriptsize .
     scriptsize,
     
-    /// Corresponds, in LaTeX, to \footnotesize
+    /// Corresponds, in LaTeX, to \footnotesize .
     footnotesize,
     
-    /// Corresponds, in LaTeX, to \small
+    /// Corresponds, in LaTeX, to \small .
     small,
     
-    /// Corresponds, in LaTeX, to \normalsize
+    /// Corresponds, in LaTeX, to \normalsize .
     normalsize,
     
-    /// Corresponds, in LaTeX, to \large
+    /// Corresponds, in LaTeX, to \large .
     large,
     
-    /// Corresponds, in LaTeX, to \Large
+    /// Corresponds, in LaTeX, to \Large .
     Large,
     
-    /// Corresponds, in LaTeX, to \LARGE
+    /// Corresponds, in LaTeX, to \LARGE .
     LARGE,
     
-    /// Corresponds, in LaTeX, to \huge
+    /// Corresponds, in LaTeX, to \huge .
     huge,
     
-    /// Corresponds, in LaTeX, to \Huge
+    /// Corresponds, in LaTeX, to \Huge .
     Huge
     
     // ReSharper restore CommentTypo
@@ -182,13 +182,13 @@ public static class FontSizeExtensions
 public enum GridTickLayout
 {
     /// The tick marks are set to the breakpoints of the curves plotted,
-    /// and the grid layout is left to TikZ's automatic algorithms 
+    /// and the grid layout is left to TikZ's automatic algorithms.
     Auto,
     
-    /// The grid marks all natural numbers, but the ticks are not labelled
+    /// The grid marks all natural numbers, but the ticks are not labelled.
     SquareGridNoLabels,
     
-    /// The ticks and grid mark all natural numbers
+    /// The ticks and grid mark all natural numbers.
     SquareGrid
 }
 
