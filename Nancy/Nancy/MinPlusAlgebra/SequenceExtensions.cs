@@ -360,7 +360,7 @@ public static class SequenceExtensions
     /// <param name="elements">The elements to merge, must be sorted</param>
     /// <returns>A set where no further merges are possible.</returns>
     /// <remarks>Optimized for minimal allocations</remarks>
-    public static IEnumerable<Element> Merge(this IEnumerable<Element> elements)
+    public static IEnumerable<Element> MergeAsEnumerable(this IEnumerable<Element> elements)
     {
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
@@ -878,8 +878,8 @@ public static class SequenceExtensions
     public static IEnumerable<Element> LowerPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = true)
     {
         var merged = startFromZero ?
-            elements.Merge().SkipUntilValue(0):
-            elements.Merge();
+            elements.MergeAsEnumerable().SkipUntilValue(0):
+            elements.MergeAsEnumerable();
 
         using var enumerator = merged.GetEnumerator();
 
@@ -1029,8 +1029,8 @@ public static class SequenceExtensions
     public static IEnumerable<Element> UpperPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = true)
     {
         var merged = startFromZero ?
-            elements.Merge().SkipUntilValue(0):
-            elements.Merge();
+            elements.MergeAsEnumerable().SkipUntilValue(0):
+            elements.MergeAsEnumerable();
 
         using var enumerator = merged.GetEnumerator();
 

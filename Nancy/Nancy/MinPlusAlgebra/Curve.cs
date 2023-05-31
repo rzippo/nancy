@@ -2970,15 +2970,13 @@ public class Curve : IToCodeString
             {
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
                 T = Rational.Max(boundsIntersection, a.PseudoPeriodStart, b.PseudoPeriodStart);
-#if TRACE_MIN_MAX_EXTENSIONS
-                #if DO_LOG
+                #if DO_LOG && TRACE_MIN_MAX_EXTENSIONS
                 logger.Trace($"Minimum, different slopes: {a.PseudoPeriodSlope} ~ {(decimal)a.PseudoPeriodSlope}, {b.PseudoPeriodSlope} ~ {(decimal)b.PseudoPeriodSlope}");
-                #endif
                 logger.Trace($"Minimum, different slopes: must extend from \n" +
                              $"{a.PseudoPeriodStart} ~ {(decimal) a.PseudoPeriodStart} \n" +
                              $"{b.PseudoPeriodStart} ~ {(decimal) b.PseudoPeriodStart} \n" +
                              $"to {T} ~ {(decimal) T}");
-#endif
+                #endif
             }
             else
             {
@@ -3117,22 +3115,23 @@ public class Curve : IToCodeString
         {
             return curves
                 .AsParallel()
-                .Aggregate((a, b) => Minimum(a, b, settings));
+                .Aggregate((f, g) => Minimum(f, g, settings));
         }
         else
         {
+            #if DO_LOG
             Curve current = curves.First();
             int i = 1;
             foreach (var curve in curves.Skip(1))
             {
-                #if DO_LOG
                 logger.Trace($"Minimum {i} of {curves.Count - 1}");
-                #endif
                 i++;
                 current = Minimum(current, curve, settings);
             }
-
             return current;
+            #else
+            return curves.Aggregate((f, g) => Minimum(f, g, settings));
+            #endif
         }
     }
 
@@ -3341,22 +3340,23 @@ public class Curve : IToCodeString
         {
             return curves
                 .AsParallel()
-                .Aggregate((a, b) => Maximum(a, b, settings));
+                .Aggregate((f, g) => Maximum(f, g, settings));
         }
         else
         {
+            #if DO_LOG
             Curve current = curves.First();
             int i = 1;
             foreach (var curve in curves.Skip(1))
             {
-                #if DO_LOG
                 logger.Trace($"Maximum {i} of {curves.Count - 1}");
-                #endif
                 i++;
                 current = Maximum(current, curve, settings);
             }
-
             return current;
+            #else
+            return curves.Aggregate((f, g) => Maximum(f, g, settings));
+            #endif
         }
     }
 
@@ -3688,22 +3688,17 @@ public class Curve : IToCodeString
                 var T = tf + tg + d;
                 Rational c = d * Rational.Min(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
 
-                #if DO_LOG
-                    logger.Trace(
-                        $"Convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
-                #endif
-
-                    var fCut = f.Cut(tf, tf + 2*d, settings: settings);
-                    var gCut = g.Cut(tg, tg + 2*d, settings: settings);
+                var fCut = f.Cut(tf, tf + 2*d, settings: settings);
+                var gCut = g.Cut(tg, tg + 2*d, settings: settings);
 
                 #if DO_LOG
-                    logger.Trace(
-                        $"Convolution: extending from {f.PseudoPeriodicSequence.Count} and {g.PseudoPeriodicSequence.Count} to {fCut.Count} and {gCut.Count}");
+                logger.Trace(
+                    $"Convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
+                logger.Trace(
+                    $"Convolution: extending from {f.PseudoPeriodicSequence.Count} and {g.PseudoPeriodicSequence.Count} to {fCut.Count} and {gCut.Count}");
+                logger.Trace("Convolution: periodic x periodic UA");
                 #endif
 
-                #if DO_LOG
-                    logger.Trace("Convolution: periodic x periodic UA");
-                #endif
                 var cutEnd = T + d;
                 Sequence limitedConvolution = Sequence.Convolution(fCut, gCut, settings, cutEnd);
 
@@ -3755,7 +3750,7 @@ public class Curve : IToCodeString
                 );
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
-            }                
+            }
         }
     }
 
@@ -4046,7 +4041,7 @@ public class Curve : IToCodeString
                 var result = Sequence.EstimateConvolution(fCut, gCut, settings, cutEnd, countElements: countElements);
 
                 return result;
-            }                
+            }
         }
     }
 
