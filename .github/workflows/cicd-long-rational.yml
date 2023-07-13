@@ -29,13 +29,13 @@ jobs:
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v1.0.6
 
-      - name: Restore dependencies
-        run: nuget restore $SOLUTION
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           global-json-file: Nancy/global.json
+
+      - name: Restore dependencies
+        run: nuget restore $SOLUTION
 
       - name: Build
         run: dotnet build $SOLUTION --configuration $BUILD_CONFIG --no-restore
