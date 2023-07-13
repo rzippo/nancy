@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>10</LangVersion>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
 
     <RootNamespace>Unipi.Nancy</RootNamespace>
