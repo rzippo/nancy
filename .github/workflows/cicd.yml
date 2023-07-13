@@ -32,7 +32,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          global-json-file: Nancy/global.json
+          dotnet-version: | 
+            7.0.x
+            6.0.x
 
       - name: Restore dependencies
         run: nuget restore $SOLUTION
