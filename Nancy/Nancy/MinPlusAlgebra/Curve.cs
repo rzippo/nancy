@@ -2519,7 +2519,7 @@ public class Curve : IToCodeString
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
-    /// Defined and discussed in [TBP23]. 
+    /// Defined and discussed in [ZNS23a]. 
     /// </remarks>
     public Curve LowerPseudoInverseOverInterval(
         Rational start, 
@@ -2669,7 +2669,7 @@ public class Curve : IToCodeString
     /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
-    /// Defined and discussed in [TBP23]. 
+    /// Defined and discussed in [ZNS23a]. 
     /// </remarks>
     public Curve UpperPseudoInverseOverInterval(
         Rational start, 
@@ -4155,8 +4155,7 @@ public class Curve : IToCodeString
                 !f.IsUltimatelyConstant && !g.IsUltimatelyConstant
                )
             {
-                // todo: fill in reference
-                // Vertical filter optimization according to [TBP23] Th. X
+                // Vertical filtering optimization, discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
                 cutCeiling = f.ValueAt(f.PseudoPeriodStart) + g.ValueAt(g.PseudoPeriodStart) + 2 * lcm_c;
             }
@@ -4286,8 +4285,7 @@ public class Curve : IToCodeString
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
             {
-                // todo: fill in reference
-                // Optimized algorithm discussed in [TBP23] section X
+                // Isospeed algorithm, discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
                 var k_c_f = lcm_c / f.PseudoPeriodHeight;
                 var k_c_g = lcm_c / g.PseudoPeriodHeight;
@@ -4731,8 +4729,7 @@ public class Curve : IToCodeString
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
             {
-                // todo: fill in reference
-                // Optimized algorithm discussed in [TBP23] section X
+                // Optimized algorithm discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
                 var k_c_f = lcm_c / f.PseudoPeriodHeight;
                 var k_c_g = lcm_c / g.PseudoPeriodHeight;
@@ -5106,8 +5103,7 @@ public class Curve : IToCodeString
                 !f.IsUltimatelyConstant && !g.IsUltimatelyConstant
                )
             {
-                // todo: fill in reference
-                // Vertical filter optimization according to [TBP23] Th. X
+                // Vertical filtering optimization, discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
                 #if false 
                 // expression as in theory

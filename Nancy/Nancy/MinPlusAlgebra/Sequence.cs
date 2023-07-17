@@ -1821,8 +1821,11 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             if (useIsomorphism)
             #endif
             {
+                // todo: fill in reference
                 // the following heuristic roughly computes how many elementary convolutions would be involved
                 // using direct or inverse method to choose which one to perform
+                // discussed in [TBP23]
+
                 var aConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: true});
                 var aNonConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: false});
                 var aPoints = f.Elements.Count(e => e is Point);
@@ -2412,8 +2415,10 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             if (useIsomorphism)
             #endif
             {
+                // todo: fill in reference
                 // the following heuristic roughly computes how many elementary convolutions would be involved
                 // using direct or inverse method to choose which one to perform
+                // discussed in [TBP23]
 
                 var aConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: true});
                 var aNonConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: false});
