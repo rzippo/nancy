@@ -17,7 +17,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// </summary>
 /// <remarks>
 /// $f(0) = 0$ is required for the curve to be <see cref="Curve.IsRegularSubAdditive"/> and 
-/// provides optimized algorithms for convolution as described in [ZS22],
+/// provides optimized algorithms for convolution as described in [ZS23],
 /// but is not required for sub-additivity to be stable on addition and convolution.
 /// To keep the type system simple for the common cases of DNC, we opted not to support non-regular sub-additive functions with their own type.
 /// </remarks>
@@ -121,7 +121,7 @@ public class SubAdditiveCurve : Curve
     /// Computes the convolution of the two curves.
     /// </summary>
     /// <remarks>
-    /// Attempts to optimize the computations using theorems in [ZS22].
+    /// Attempts to optimize the computations using theorems in [ZS23].
     /// </remarks>
     public override Curve Convolution(Curve curve, ComputationSettings? settings = null)
     {
@@ -142,7 +142,7 @@ public class SubAdditiveCurve : Curve
     /// Computes the convolution of the two curves.
     /// </summary>
     /// <remarks>
-    /// Attempts to optimize the computations using theorems in [ZS22].
+    /// Attempts to optimize the computations using theorems in [ZS23].
     /// </remarks>    
     public SubAdditiveCurve Convolution(SubAdditiveCurve curve, ComputationSettings? settings = null)
     {
@@ -469,7 +469,7 @@ public class SubAdditiveCurve : Curve
 
     /// <summary>
     /// Computes the convolution of a set of sub-additive curves.
-    /// Order of operations is optimized to exploit theorems in [ZS22]
+    /// Order of operations is optimized to exploit theorems in [ZS23]
     /// </summary>
     /// <param name="curves">The set of sub-additive curves to be convolved.</param>
     /// <param name="settings"></param>
@@ -545,7 +545,7 @@ public class SubAdditiveCurve : Curve
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true
     /// </returns>
     /// <remarks>
-    /// Attempts to optimize the computations using theorems in [ZS22]
+    /// Attempts to optimize the computations using theorems in [ZS23]
     /// </remarks>
     public long EstimateConvolution(SubAdditiveCurve curve, bool countElements = false, ComputationSettings? settings = null)
     {

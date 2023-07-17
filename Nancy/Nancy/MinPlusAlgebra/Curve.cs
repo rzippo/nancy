@@ -22,7 +22,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// Ultimately means that the function has such property for $t \ge T$.
 /// </summary>
 /// <remarks>
-/// Implementation of data structure described in [BT07] Section 4.1
+/// Implementation of data structure described in [BT08] Section 4.1
 /// </remarks>
 /// <docs position="1"/>
 [JsonObject(MemberSerialization.OptIn)]
@@ -38,7 +38,7 @@ public class Curve : IToCodeString
     /// Point in time after which the curve has a pseudo-periodic behavior.
     /// </summary>
     /// <remarks>
-    /// Referred to as $T$ or Rank in [BT07] Section 4.1
+    /// Referred to as $T$ or Rank in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "periodStart")]
     public Rational PseudoPeriodStart { get; init; }
@@ -47,7 +47,7 @@ public class Curve : IToCodeString
     /// Time length of each pseudo-period.
     /// </summary>
     /// <remarks>
-    /// Referred to as $d$ in [BT07] Section 4.1
+    /// Referred to as $d$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "periodLength")]
     public Rational PseudoPeriodLength { get; init; }
@@ -57,7 +57,7 @@ public class Curve : IToCodeString
     /// If it's 0, the curve is truly periodic.
     /// </summary>
     /// <remarks>
-    /// Referred to as $c$ in [BT07] Section 4.1
+    /// Referred to as $c$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "periodHeight")]
     public Rational PseudoPeriodHeight { get; init; }
@@ -88,7 +88,7 @@ public class Curve : IToCodeString
     /// Combined with the UPP property, this is also allows to derive $f(t)$ for any $t \ge T + d$.
     /// </summary>
     /// <remarks>
-    /// Referred to as $[t_1, ..., t_k]$ in [BT07] Section 4.1
+    /// Referred to as $[t_1, ..., t_k]$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "sequence")]
     public Sequence BaseSequence { get; init; }
@@ -542,7 +542,7 @@ public class Curve : IToCodeString
     /// True if for all $t >$ <see cref="PseudoPeriodStart"/> the curve is either always finite or always infinite.
     /// </summary>
     /// <remarks>
-    /// Defined in [BT07], Definition 1.
+    /// Defined in [BT08], Definition 1.
     /// </remarks>
     public bool IsUltimatelyPlain =>
         IsUltimatelyFinite || IsUltimatelyInfinite;
@@ -554,7 +554,7 @@ public class Curve : IToCodeString
     /// or c) finite up to a $T$, then always plus or minus infinite (without changing sign) 
     /// </summary>
     /// <remarks>
-    /// Formally defined in [BT07], Definition 1.
+    /// Formally defined in [BT08], Definition 1.
     /// </remarks>
     public bool IsPlain 
     {
@@ -772,7 +772,7 @@ public class Curve : IToCodeString
     /// Elements describing the curve from $[0, T[$, before pseudo-periodic behavior.
     /// </summary>
     /// <remarks>
-    /// Referred to as $[t_1, ..., t_{i_0 - 1}]$ in [BT07] Section 4.1
+    /// Referred to as $[t_1, ..., t_{i_0 - 1}]$ in [BT08] Section 4.1
     /// </remarks>
     public IEnumerable<Element> TransientElements 
         => TransientSequence?.Elements ?? Enumerable.Empty<Element>();
@@ -787,7 +787,7 @@ public class Curve : IToCodeString
     /// Elements describing the pseudo-periodic behavior of the curve in $[T, T + d[$.
     /// </summary>
     /// <remarks>
-    /// Referred to as $[t_{i_0}, ..., t_k]$ in [BT07] Section 4.1
+    /// Referred to as $[t_{i_0}, ..., t_k]$ in [BT08] Section 4.1
     /// </remarks>
     public IEnumerable<Element> PseudoPeriodicElements =>
         PseudoPeriodicSequence.Elements;
@@ -1596,7 +1596,7 @@ public class Curve : IToCodeString
     /// <returns>A sequence equivalently defined from 0 to $t_{end}$.</returns>
     /// <remarks>
     /// This is a shorthand for <see cref="Cut"/>
-    /// which follows, minus the restrictions, the definition in [BT07] Section 4.1
+    /// which follows, minus the restrictions, the definition in [BT08] Section 4.1
     /// </remarks>
     public Sequence Extend(Rational targetEnd, ComputationSettings? settings = null)
         => Cut(0, targetEnd, settings: settings);
@@ -2296,7 +2296,7 @@ public class Curve : IToCodeString
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous, see [DNC18] § 3.2.1 .
-    /// Algorithmic properties discussed in [ZNS22]. 
+    /// Algorithmic properties discussed in [ZNS23b]. 
     /// </remarks>
     public Curve LowerPseudoInverse()
     {
@@ -2392,7 +2392,7 @@ public class Curve : IToCodeString
     /// The result of this operation is right-continuous.
     /// If $f$ is right-continuous and $f(t) > 0$ for $t > 0$, then the operation is revertible, 
     /// i.e., $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, see [DNC18] § 3.2.1.
-    /// Algorithmic properties discussed in [ZNS22]. 
+    /// Algorithmic properties discussed in [ZNS23b]. 
     /// </remarks>
     public Curve UpperPseudoInverse()
     {
@@ -2920,7 +2920,7 @@ public class Curve : IToCodeString
     /// Optimizes Curve representation by anticipating periodic start and reducing period length.
     /// </summary>
     /// <returns>An equivalent minimal representation for the same curve.</returns>
-    /// <remarks>This method implements representation minimization, as discussed in [ZS22].</remarks>
+    /// <remarks>This method implements representation minimization, as discussed in [ZS23].</remarks>
     public Curve Optimize()
     {
         //Attempts all optimizations methods in sequence
@@ -3305,7 +3305,7 @@ public class Curve : IToCodeString
     /// </summary>
     /// <param name="b">Second operand.</param>
     /// <returns>The curve resulting from the sum.</returns>
-    /// <remarks> Defined in [BT07] Section 4.2 </remarks>
+    /// <remarks> Defined in [BT08] Section 4.2 </remarks>
     public virtual Curve Addition(Curve b)
     {
         Rational T = Rational.Max(PseudoPeriodStart, b.PseudoPeriodStart);
@@ -3328,7 +3328,7 @@ public class Curve : IToCodeString
     /// Implements (min, +)-algebra addition operation.
     /// </summary>
     /// <returns>The curve resulting from the sum.</returns>
-    /// <remarks> Defined in [BT07] Section 4.2 </remarks>
+    /// <remarks> Defined in [BT08] Section 4.2 </remarks>
     public static Curve Addition(Curve a, Curve b)
         => a.Addition(b);
 
@@ -3406,7 +3406,7 @@ public class Curve : IToCodeString
     /// Implements (min, +)-algebra addition operation.
     /// </summary>
     /// <returns>The curve resulting from the sum.</returns>
-    /// <remarks> Defined in [BT07] Section 4.2 </remarks>
+    /// <remarks> Defined in [BT08] Section 4.2 </remarks>
     public static Curve operator +(Curve a, Curve b)
         => a.Addition(b);
 
@@ -3455,7 +3455,7 @@ public class Curve : IToCodeString
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the minimum.</returns>
     /// <remarks>
-    /// Defined in [BT07] Section 4.3
+    /// Defined in [BT08] Section 4.3
     /// </remarks>
     public virtual Curve Minimum(Curve curve, ComputationSettings? settings = null)
     {
@@ -3571,7 +3571,7 @@ public class Curve : IToCodeString
         return retVal;
     }
 
-    //Bounds intersection is proved in [BT07] proposition 4, proof 1
+    //Bounds intersection is proved in [BT08] proposition 4, proof 1
     private static Rational BoundsIntersection(Curve ultimatelyLower, Curve ultimatelyHigher)
     {
         //Bounds are computed relative to origin-passing lines with slope
@@ -3625,7 +3625,7 @@ public class Curve : IToCodeString
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the minimum.</returns>
     /// <remarks>
-    /// Defined in [BT07] Section 4.3
+    /// Defined in [BT08] Section 4.3
     /// </remarks>
     public static Curve Minimum(Curve? a, Curve? b, ComputationSettings? settings = null)
     {
@@ -3721,9 +3721,6 @@ public class Curve : IToCodeString
     /// <param name="curve">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the maximum.</returns>
-    /// <remarks>
-    /// Defined in [BT07] Section 4.3
-    /// </remarks>
     public virtual Curve Maximum(Curve curve, ComputationSettings? settings = null)
     {
         // Renaming for simmetry
@@ -3849,9 +3846,6 @@ public class Curve : IToCodeString
     /// <param name="b">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the maximum.</returns>
-    /// <remarks>
-    /// Defined in [BT07] Section 4.3
-    /// </remarks>
     public static Curve Maximum(Curve? a, Curve? b, ComputationSettings? settings = null)
     {
         a ??= MinusInfinite();
@@ -4048,7 +4042,7 @@ public class Curve : IToCodeString
     /// <param name="curve"></param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the convolution.</returns>
-    /// <remarks>Described in [BT07] Section 4.4</remarks>
+    /// <remarks>Described in [BT08] Section 4.4</remarks>
     public virtual Curve Convolution(Curve curve, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -4187,7 +4181,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
-        // Described in [BT07] Section 4.4.3
+        // Described in [BT08] Section 4.4, point 3
         Curve ConvolutionTransientTransient(
             Curve firstTransientCurve,
             Curve secondTransientCurve)
@@ -4221,7 +4215,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of a transient part and a pseudo-periodic one.
-        // Described in [BT07] Sections 4.4.4 and .5
+        // Described in [BT08] Section 4.4, points 4 and 5
         Curve ConvolutionTransientPeriodic(
             Curve transientCurve,
             Curve periodicCurve)
@@ -4250,7 +4244,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of two pseudo-periodic parts.
-        // Described in [BT07] Section 4.4.6
+        // Described in [BT08] Section 4.4, point 6
         Curve ConvolutionPeriodicPeriodic(
             Curve f,
             Curve g)
@@ -4358,7 +4352,7 @@ public class Curve : IToCodeString
             }
             else
             {
-                // Base algorithm described in [BT07] Section 4.4.6
+                // Base algorithm described in [BT08] Section 4.4, point 6
                 Rational d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
                 var tf = f.PseudoPeriodStart;
                 var tg = g.PseudoPeriodStart;
@@ -4406,7 +4400,7 @@ public class Curve : IToCodeString
     /// <param name="b">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the convolution.</returns>
-    /// <remarks>Described in [BT07] Section 4.4</remarks>
+    /// <remarks>Described in [BT08] Section 4.4</remarks>
     public static Curve Convolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Convolution(b, settings);
 
@@ -4662,7 +4656,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
-        // Described in [BT07] Section 4.4.3
+        // Described in [BT08] Section 4.4, point 3
         long EstimateConvolutionTransientTransient(
             Curve firstTransientCurve,
             Curve secondTransientCurve)
@@ -4679,7 +4673,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of a transient part and a pseudo-periodic one.
-        // Described in [BT07] Sections 4.4.4 and .5
+        // Described in [BT08] Section 4.4, points 4 and 5
         long EstimateConvolutionTransientPeriodic(
             Curve transientCurve,
             Curve periodicCurve)
@@ -4700,7 +4694,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of two pseudo-periodic parts.
-        // Described in [BT07] Section 4.4.6
+        // Described in [BT08] Section 4.4, point 6
         long EstimateConvolutionPeriodicPeriodic(
             Curve f,
             Curve g)
@@ -4787,7 +4781,7 @@ public class Curve : IToCodeString
             }
             else
             {
-                // Base algorithm described in [BT07]
+                // Base algorithm described in [BT08]
                 Rational d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
                 var tf = f.PseudoPeriodStart;
                 var tg = g.PseudoPeriodStart;
@@ -4888,7 +4882,7 @@ public class Curve : IToCodeString
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>
     /// The result is not forced to have $f(0) = 0$, see <see cref="WithZeroOrigin"/> to have this property.
-    /// Described in [BT07] Section 4.5 .
+    /// Described in [BT08] Section 4.5 .
     /// </remarks>
     public virtual Curve Deconvolution(Curve curve, ComputationSettings? settings = null)
     {
@@ -4937,7 +4931,7 @@ public class Curve : IToCodeString
     /// <returns>The result of the deconvolution</returns>
     /// <remarks>
     /// The result is not forced to have $f(0) = 0$, see <see cref="WithZeroOrigin"/> to have this property.
-    /// Described in [BT07] Section 4.5 .
+    /// Described in [BT08] Section 4.5 .
     /// </remarks>
     public static Curve Deconvolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Deconvolution(b, settings);
@@ -4952,7 +4946,7 @@ public class Curve : IToCodeString
     /// <param name="curve"></param>
     /// <param name="settings"></param>
     /// <returns>The result of the sub-additive closure.</returns>
-    /// <remarks>Described in [BT07] Section 4.6 as algorithm 7</remarks>
+    /// <remarks>Described in [BT08] Section 4.6 as algorithm 5</remarks>
     public static SubAdditiveCurve SubAdditiveClosure(Curve curve, ComputationSettings? settings = null)
         => curve.SubAdditiveClosure(settings);
 
@@ -4961,7 +4955,7 @@ public class Curve : IToCodeString
     /// </summary>
     /// <param name="settings"></param>
     /// <returns>The result of the sub-additive closure.</returns>
-    /// <remarks>Described in [BT07] Section 4.6 as algorithm 7</remarks>
+    /// <remarks>Described in [BT08] Section 4.6 as algorithm 5</remarks>
     public virtual SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
         #if DO_LOG
@@ -5004,7 +4998,7 @@ public class Curve : IToCodeString
     /// <param name="curve"></param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 4.4</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 4.4</remarks>
     public virtual Curve MaxPlusConvolution(Curve curve, ComputationSettings? settings = null)
     {
         #if MAX_CONV_AS_NEGATIVE_MIN_CONV
@@ -5163,7 +5157,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
-        // Described in [BT07] Section 4.4.3
+        // Described in [BT08] Section 4.4, point 3
         Curve MaxPlusConvolutionTransientTransient(
             Curve firstTransientCurve,
             Curve secondTransientCurve)
@@ -5198,7 +5192,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of a transient part and a pseudo-periodic one.
-        // Described in [BT07] Sections 4.4.4 and .5
+        // Described in [BT08] Section 4.4, points 4 and 5
         Curve MaxPlusConvolutionTransientPeriodic(
             Curve transientCurve,
             Curve periodicCurve)
@@ -5232,7 +5226,7 @@ public class Curve : IToCodeString
         }
 
         // Computes a partial convolution term, that is the convolution of two pseudo-periodic parts.
-        // Described in [BT07] Section 4.4.6
+        // Described in [BT08] Section 4.4, point 6
         Curve MaxPlusConvolutionPeriodicPeriodic(
             Curve f,
             Curve g)
@@ -5386,7 +5380,7 @@ public class Curve : IToCodeString
             }
             else
             {
-                // Base algorithm adapted from [BT07] Section 4.4.6
+                // Base algorithm adapted from [BT08] Section 4.4, point 6
                 Rational d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
                 var tf = f.PseudoPeriodStart;
                 var tg = g.PseudoPeriodStart;
@@ -5438,7 +5432,7 @@ public class Curve : IToCodeString
     /// <param name="b">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the max-plus convolution</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 4.4</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 4.4</remarks>
     public static Curve MaxPlusConvolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.MaxPlusConvolution(b, settings);
 
@@ -5618,7 +5612,7 @@ public class Curve : IToCodeString
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
     /// <remarks>
-    /// Algorithmic properties discussed in [ZNS22].
+    /// Algorithmic properties discussed in [ZNS23b].
     /// </remarks>
     public virtual Curve Composition(Curve g, ComputationSettings? settings = null)
     {
@@ -5645,6 +5639,7 @@ public class Curve : IToCodeString
             {
                 // composition will also be U.C.
                 // the following expression for T summarise Proposition 19, 20 and 21 from [ZNS22]
+                // todo: update with reference to [ZNS23b]
                 T = Rational.Min(
                     g.IsUltimatelyConstant ? T_g : Rational.PlusInfinity, 
                     f.IsUltimatelyConstant ? T_f : Rational.PlusInfinity
@@ -5704,7 +5699,7 @@ public class Curve : IToCodeString
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
     /// <remarks>
-    /// Algorithmic properties discussed in [ZNS22].
+    /// Algorithmic properties discussed in [ZNS23b].
     /// </remarks>
     public static Curve Composition(Curve f, Curve g, ComputationSettings? settings = null)
         => f.Composition(g, settings);

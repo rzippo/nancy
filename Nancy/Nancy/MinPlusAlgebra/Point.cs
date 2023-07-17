@@ -16,7 +16,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// A point of a function. Defined only in <see cref="Time"/>.
 /// </summary>
 /// <remarks>
-/// From unit structure defined in [BT07] Section 4.1
+/// From unit structure defined in [BT08] Section 4.1
 /// </remarks>
 /// <docs position="3"/>
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
@@ -780,7 +780,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the convolution between two <see cref="Point"/>s.
     /// </summary>
     /// <returns>The <see cref="Point"/> resulting from the convolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.1, Lemma 2</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.1, Lemma 2</remarks>
     public static Point Convolution(Point a, Point b)
     {
         return new Point(time: a.StartTime + b.StartTime, value: a.Value + b.Value);
@@ -790,7 +790,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the convolution between two <see cref="Point"/>s.
     /// </summary>
     /// <returns>The <see cref="Point"/> resulting from the convolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.1, Lemma 2</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.1, Lemma 2</remarks>
     public Point Convolution(Point point)
         => Convolution(a: this, b: point);
 
@@ -798,7 +798,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the convolution between a <see cref="Point"/> and a <see cref="Segment"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the convolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.1, Lemma 3</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.1, Lemma 3</remarks>
     public static Segment Convolution(Point point, Segment segment)
         => Segment.Convolution(segment: segment, point: point);
 
@@ -806,7 +806,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the convolution between the <see cref="Point"/> and a <see cref="Segment"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the convolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.1, Lemma 3</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.1, Lemma 3</remarks>
     public Segment Convolution(Segment segment)
         => Segment.Convolution(segment: segment, point: this);
 
@@ -838,7 +838,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the deconvolution between two <see cref="Point"/>s.
     /// </summary>
     /// <returns>The <see cref="Point"/> resulting from the deconvolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 5</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 5</remarks>
     public static Point Deconvolution(Point a, Point b)
     {
         return new Point(time: a.Time - b.Time, value: a.Value - b.Value);
@@ -848,7 +848,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the deconvolution between two <see cref="Point"/>s.
     /// </summary>
     /// <returns>The <see cref="Point"/> resulting from the deconvolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 5</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 5</remarks>
     public Point Deconvolution(Point point)
         => Deconvolution(a: this, b: point);
 
@@ -856,7 +856,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the deconvolution between a <see cref="Point"/> and a <see cref="Segment"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the deconvolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 7</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 7</remarks>
     public static Segment Deconvolution(Point point, Segment segment)
     {
         if (point.IsInfinite || segment.IsInfinite)
@@ -874,7 +874,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the deconvolution between the <see cref="Point"/> and a <see cref="Segment"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the deconvolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 7</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 7</remarks>
     public Segment Deconvolution(Segment segment)
         => Deconvolution(point: this, segment);
 
@@ -951,7 +951,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the max-plus convolution between two <see cref="Point"/>s.
     /// </summary>
     /// <returns>The <see cref="Point"/> resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 2</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1, Lemma 2</remarks>
     public static Point MaxPlusConvolution(Point a, Point b)
     {
         return new Point(time: a.StartTime + b.StartTime, value: a.Value + b.Value);
@@ -961,7 +961,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the max-plus convolution between two <see cref="Point"/>s.
     /// </summary>
     /// <returns>The <see cref="Point"/> resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 2</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1, Lemma 2</remarks>
     public Point MaxPlusConvolution(Point point)
         => MaxPlusConvolution(a: this, b: point);
 
@@ -969,7 +969,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the max-plus convolution between a <see cref="Point"/> and a <see cref="Segment"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 3</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1, Lemma 3</remarks>
     public static Segment MaxPlusConvolution(Point point, Segment segment)
         => Segment.MaxPlusConvolution(segment: segment, point: point);
 
@@ -977,7 +977,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the max-plus convolution between the <see cref="Point"/> and a <see cref="Segment"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 3</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1, Lemma 3</remarks>
     public Segment MaxPlusConvolution(Segment segment)
         => Segment.MaxPlusConvolution(segment: segment, point: this);
 

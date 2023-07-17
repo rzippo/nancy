@@ -1114,7 +1114,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// Returns an equivalent sequence optimized to have the minimum amount of segments.
     /// </summary>
-    /// <remarks>The result is a well-formed sequence [ZS22]</remarks>
+    /// <remarks>The result is a well-formed sequence [ZS23]</remarks>
     public Sequence Optimize()
     {
         var mergedElements = Elements.Merge();
@@ -1494,7 +1494,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous, see [DNC18] § 3.2.1 .
-    /// Algorithmic properties discussed in [ZNS22]. 
+    /// Algorithmic properties discussed in [ZNS23b]. 
     /// </remarks>
     public Sequence LowerPseudoInverse(bool startFromZero = true)
     {
@@ -1510,7 +1510,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is right-continuous, thus is revertible, i.e. $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous, see [DNC18] § 3.2.1 .
-    /// Algorithmic properties discussed in [ZNS22].
+    /// Algorithmic properties discussed in [ZNS23b].
     /// </remarks>
     public Sequence UpperPseudoInverse(bool startFromZero = true)
     {
@@ -1772,7 +1772,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="isCeilingIncluded"></param>
     /// <param name="useIsomorphism"></param>
     /// <returns>The result of the convolution.</returns>
-    /// <remarks>Described in [BT07], section 4.4.3</remarks>
+    /// <remarks>Described in [BT08], Section 4.4 point 3</remarks>
     public static Sequence Convolution(
         Sequence f,
         Sequence g,
@@ -2134,7 +2134,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="settings"></param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The result of the convolution.</returns>
-    /// <remarks>Described in [BT07], section 4.4.3</remarks>
+    /// <remarks>Described in [BT08], Section 4.4 point 3</remarks>
     public Sequence Convolution(Sequence sequence, ComputationSettings? settings = null, Rational? cutEnd = null)
         => Convolution(this, sequence, settings, cutEnd);
 
@@ -2267,7 +2267,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, endpoint excluded.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution.</returns>
-    /// <remarks>Described in [BT07], section 4.5</remarks>
+    /// <remarks>Described in [BT08], Section 4.5</remarks>
     public static Sequence Deconvolution(Sequence a, Sequence b, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
     {
         #if DO_LOG && DO_COSTLY_LOGS
@@ -2339,7 +2339,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, endpoint excluded.</param>
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution.</returns>
-    /// <remarks>Described in [BT07], section 4.5</remarks>
+    /// <remarks>Described in [BT08], Section 4.5</remarks>
     public Sequence Deconvolution(Sequence sequence, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
         => Deconvolution(a: this, b: sequence, cutStart, cutEnd, settings);
 
@@ -2359,7 +2359,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="isCeilingIncluded"></param>
     /// <param name="useIsomorphism"></param>
     /// <returns>The result of the convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07], section 4.4.3</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08], Section 4.4 point 3</remarks>
     public static Sequence MaxPlusConvolution(
         Sequence f, 
         Sequence g, 
@@ -2810,7 +2810,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="g">Inner function, non-negative and non-decreasing, defined in $[a, b[$.</param>
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
-    /// <remarks>Algorithmic properties discussed in [ZNS22].</remarks>
+    /// <remarks>Algorithmic properties discussed in [ZNS23b].</remarks>
     public static Sequence Composition(Sequence f, Sequence g)
     {
         if (g.IsLeftOpen || g.IsRightClosed)

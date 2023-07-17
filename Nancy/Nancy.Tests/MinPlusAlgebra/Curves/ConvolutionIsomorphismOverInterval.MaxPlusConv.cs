@@ -98,7 +98,7 @@ public partial class ConvolutionIsomorphismOverInterval
         f_t ??= Curve.MinusInfinite();
         g_t ??= Curve.MinusInfinite();
 
-        // Usual method, adapted from [BT07] for max-plus convolution
+        // Usual method, adapted from [BT08] for max-plus convolution
         var conv_tt = Curve.MaxPlusConvolution(f_t, g_t, noIsomorphismSettings);
         var conv_tp = Curve.MaxPlusConvolution(f_t, g_p, noIsomorphismSettings);
         var conv_pt = Curve.MaxPlusConvolution(f_p, g_t, noIsomorphismSettings);

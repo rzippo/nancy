@@ -302,7 +302,7 @@ public partial class ConvolutionIsomorphismOverInterval
         f_t ??= Curve.PlusInfinite();
         g_t ??= Curve.PlusInfinite();
 
-        // Usual method, as in [BT07]
+        // Usual method, as in [BT08]
         var conv_tt = Curve.Convolution(f_t, g_t, noIsomorphismSettings);
         var conv_tp = Curve.Convolution(f_t, g_p, noIsomorphismSettings);
         var conv_pt = Curve.Convolution(f_p, g_t, noIsomorphismSettings);

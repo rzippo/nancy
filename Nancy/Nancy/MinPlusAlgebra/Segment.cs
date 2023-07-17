@@ -16,7 +16,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// An open segment. Defined in ]<see cref="StartTime"/>, <see cref="EndTime"/>[. 
 /// </summary>
 /// <remarks> 
-/// From unit structure defined in [BT07] Section 4.1 
+/// From unit structure defined in [BT08] Section 4.1 
 /// </remarks>
 /// <docs position="4"/>
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
@@ -32,7 +32,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Exclusive left endpoint of the support of the segment.
     /// </summary>
     /// <remarks> 
-    /// Referred to as $x_i$ in [BT07] Section 4.1 
+    /// Referred to as $x_i$ in [BT08] Section 4.1 
     /// </remarks>
     [JsonProperty(PropertyName = "startTime")]
     public override Rational StartTime { get; }
@@ -41,7 +41,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Exclusive rigth endpoint of the support of the segment.
     /// </summary>
     /// <remarks> 
-    /// Referred to as $x_i$ in [BT07] Section 4.1 
+    /// Referred to as $x_i$ in [BT08] Section 4.1 
     /// </remarks>
     [JsonProperty(PropertyName = "endTime")]
     public override Rational EndTime { get; }
@@ -50,7 +50,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Right limit of the segment at <see cref="StartTime"/>, $f(a+)$.
     /// </summary>
     /// <remarks>
-    /// Referred to as $\rho_i$ in [BT07] Section 4.1
+    /// Referred to as $\rho_i$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "rightLimit")]
     public Rational RightLimitAtStartTime { get; }
@@ -59,7 +59,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Slope of the segment.
     /// </summary>
     /// <remarks>
-    /// Referred to as $\rho_i$ in [BT07] Section 4.1
+    /// Referred to as $\rho_i$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "slope")]
     public Rational Slope { get; }
@@ -1251,7 +1251,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the convolution between a <see cref="Segment"/> and a <see cref="Point"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the convolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.1, Lemma 3</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.1, Lemma 3</remarks>
     public static Segment Convolution(Segment segment, Point point)
     {
         return new Segment(
@@ -1266,7 +1266,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the convolution between the <see cref="Segment"/> and a <see cref="Point"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the convolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.1, Lemma 3</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.1, Lemma 3</remarks>
     public Segment Convolution(Point point)
         => Convolution(segment: this, point);
 
@@ -1274,7 +1274,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the convolution between two <see cref="Segment"/>s.
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the convolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.1, Lemma 4</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.1, Lemma 4</remarks>
     public static IEnumerable<Element> Convolution(Segment a, Segment b)
     {
         Segment minSlopeSegment, maxSlopeSegment;
@@ -1329,7 +1329,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the convolution between two <see cref="Segment"/>s.
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the convolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.1, Lemma 4</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.1, Lemma 4</remarks>
     public IEnumerable<Element> Convolution(Segment segment)
         => Convolution(a: this, b: segment);
 
@@ -1369,7 +1369,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the deconvolution between a <see cref="Segment"/> and a <see cref="Point"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the deconvolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 6</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 6</remarks>
     public static Segment Deconvolution(Segment segment, Point point)
     {
         return new Segment(
@@ -1384,7 +1384,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the deconvolution between the <see cref="Segment"/> and a <see cref="Point"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the deconvolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 6</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 6</remarks>
     public Segment Deconvolution(Point point)
         => Deconvolution(segment: this, point);
 
@@ -1392,7 +1392,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the deconvolution between two <see cref="Segment"/>s.
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the deconvolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 8</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 8</remarks>
     public static IEnumerable<Element> Deconvolution(Segment a, Segment b)
     {
         if (a.IsInfinite || b.IsInfinite)
@@ -1439,7 +1439,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the deconvolution between two <see cref="Segment"/>s.
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the deconvolution.</returns>
-    /// <remarks>Defined in [BT07] Section 3.2.2, Lemma 8</remarks>
+    /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 8</remarks>
     public IEnumerable<Element> Deconvolution(Segment segment)
         => Deconvolution(a: this, b: segment);
 
@@ -1503,7 +1503,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the max-plus convolution between a <see cref="Segment"/> and a <see cref="Point"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 3</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1, Lemma 3</remarks>
     public static Segment MaxPlusConvolution(Segment segment, Point point)
     {
         return new Segment(
@@ -1518,7 +1518,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the max-plus convolution between the <see cref="Segment"/> and a <see cref="Point"/>.
     /// </summary>
     /// <returns>The <see cref="Segment"/> resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 3</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1, Lemma 3</remarks>
     public Segment MaxPlusConvolution(Point point)
         => MaxPlusConvolution(segment: this, point);
 
@@ -1526,7 +1526,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the max-plus convolution between two <see cref="Segment"/>s.
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 4</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1, Lemma 4</remarks>
     public static IEnumerable<Element> MaxPlusConvolution(Segment a, Segment b)
     {
         Segment minSlopeSegment, maxSlopeSegment;
@@ -1581,7 +1581,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Computes the max-plus convolution between two <see cref="Segment"/>s.
     /// </summary>
     /// <returns>The set of <see cref="Element"/>s resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1, Lemma 4</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1, Lemma 4</remarks>
     public IEnumerable<Element> MaxPlusConvolution(Segment segment)
         => MaxPlusConvolution(a: this, b: segment);
 

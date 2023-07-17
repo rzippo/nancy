@@ -45,6 +45,7 @@ Both SDK and runtime for .NET are cross-platform, and can be downloaded from [he
 
 The algorithms implemented by Nancy are discussed in the following works:
 
+* [An Algorithmic Toolbox for Network Calculus](https://inria.hal.science/inria-00123643v2), Anne Bouillard and Éric Thierry, 2007
 * [An Algorithmic Toolbox for Network Calculus](https://doi.org/10.1007/s10626-007-0028-x), Anne Bouillard and Éric Thierry, 2008
 * [Deterministic Network Calculus: From Theory to Practical Implementation](http://dx.doi.org/10.1002/9781119440284), Anne Bouillard and Marc Boyer and Euriell Le Corronc, 2018
 * [Computationally efficient worst-case analysis of flow-controlled networks with Network Calculus](https://doi.org/10.1109/TIT.2023.3244276), Raffaele Zippo and Giovanni Stea, 2023

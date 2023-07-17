@@ -511,7 +511,7 @@ public abstract class Element : IToCodeString
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The set of segments resulting from the convolution.</returns>
-    /// <remarks>Described in [BT07] Section 3.2.1</remarks>
+    /// <remarks>Described in [BT08] Section 3.2.1</remarks>
     public abstract IEnumerable<Element> Convolution(Element element, Rational? cutEnd = null, Rational? cutCeiling = null);
 
     /// <summary>
@@ -522,7 +522,7 @@ public abstract class Element : IToCodeString
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The set of segments resulting from the convolution.</returns>
-    /// <remarks>Described in [BT07] Section 3.2.1</remarks>
+    /// <remarks>Described in [BT08] Section 3.2.1</remarks>
     public static IEnumerable<Element> Convolution(Element a, Element b, Rational? cutEnd = null, Rational? cutCeiling = null)
         => a.Convolution(b, cutEnd, cutCeiling);
 
@@ -534,14 +534,14 @@ public abstract class Element : IToCodeString
     /// Computes the deconvolution between two Elements.
     /// </summary>
     /// <returns>The set of segments resulting from the deconvolution.</returns>
-    /// <remarks>Described in [BT07] Section 3.2.2</remarks>
+    /// <remarks>Described in [BT08] Section 3.2.2</remarks>
     public abstract IEnumerable<Element> Deconvolution(Element element);
 
     /// <summary>
     /// Computes the deconvolution between two Elements.
     /// </summary>
     /// <returns>The set of segments resulting from the deconvolution.</returns>
-    /// <remarks>Described in [BT07] Section 3.2.2</remarks>
+    /// <remarks>Described in [BT08] Section 3.2.2</remarks>
     public static IEnumerable<Element> Deconvolution(Element a, Element b)
         => a.Deconvolution(b);
 
@@ -555,7 +555,7 @@ public abstract class Element : IToCodeString
     /// <param name="element">Second operand.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The set of segments resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1</remarks>
     public abstract IEnumerable<Element> MaxPlusConvolution(Element element, Rational? cutEnd = null);
 
     /// <summary>
@@ -565,7 +565,7 @@ public abstract class Element : IToCodeString
     /// <param name="b">Second operand.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The set of segments resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT07] Section 3.2.1</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 3.2.1</remarks>
     public static IEnumerable<Element> MaxPlusConvolution(Element a, Element b, Rational? cutEnd = null)
         => a.MaxPlusConvolution(b, cutEnd);
 
