@@ -2,7 +2,7 @@
 using Unipi.Nancy.Numerics;
 using Xunit;
 
-namespace Unipi.Nancy.Tests.Numerics.RationalTests;
+namespace Unipi.Nancy.Tests.Numerics.BigRationalTests;
 
 public class FromDecimal
 {
@@ -22,7 +22,7 @@ public class FromDecimal
     [MemberData(nameof(GetDecimals))]
     public void DecimalCtorEquivalence(decimal d, int num, int den)
     {
-        var r = new Rational(d);
+        var r = new BigRational(d);
 
         Assert.Equal(num, r.Numerator);
         Assert.Equal(den, r.Denominator);
@@ -46,6 +46,6 @@ public class FromDecimal
     [MemberData(nameof(GetHighDecimals))]
     public void DecimalCtorNoException(decimal d)
     {
-        var r = new Rational(d);
+        var r = new BigRational(d);
     }
 }

@@ -403,7 +403,7 @@ namespace Unipi.Nancy.Numerics
 
             // build up the numerator
             ulong ul = (((ulong)(uint)bits[2]) << 32) | ((ulong)(uint)bits[1]);   // (hi    << 32) | (mid)
-            Numerator = (new BigInteger(ul) << 32) | (uint)bits[0];             // (hiMid << 32) | (low)
+            Numerator = (new BigInteger(ul) << 32) | unchecked((uint)bits[0]);             // (hiMid << 32) | (low)
 
             bool isNegative = (bits[3] & DecimalSignMask) != 0;
             if (isNegative)
