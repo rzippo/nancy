@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DefineConstants>BIG_RATIONAL,MAX_PLUS_BYSEQ_VERTICAL_FILTER</DefineConstants>
+    <DefineConstants>BIG_RATIONAL</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
