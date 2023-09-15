@@ -2573,9 +2573,6 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                 .SelectMany(ea => g.Elements
                     .Where(eb => eb.IsFinite)
                     .Where(eb => PairBeforeEnd(ea, eb))
-                    #if MAX_PLUS_BYSEQ_VERTICAL_FILTER
-                    .Where(eb => PairBelowCeiling(ea, eb))
-                    #endif
                     .Select(eb => (a: ea, b: eb))
                 );
 
@@ -2583,6 +2580,49 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             if (areSequenceEqual)
                 elementPairs = elementPairs.Where(pair => pair.a.StartTime <= pair.b.StartTime);
 
+            if (cutCeiling != Rational.PlusInfinity)
+            {
+                if (isCeilingIncluded)
+                {
+                    var firstSafeCeiling = elementPairs
+                        .Select(p => ConvolutionStartingValue(p.a, p.b))
+                        .Where(v => v > cutCeiling)
+                        .Cast<Rational?>()
+                        .DefaultIfEmpty(null)
+                        .Min();
+                    
+                    if (firstSafeCeiling != null)
+                    {
+                        elementPairs = elementPairs 
+                            .Where(p => ConvolutionStartingValue(p.a, p.b) <= firstSafeCeiling);
+                    }
+                }
+                else
+                {
+                    elementPairs = elementPairs.Where(p =>  ConvolutionStartingValue(p.a, p.b) <= cutCeiling);
+                }
+                
+                Rational ConvolutionStartingValue(Element ea, Element eb)
+                {
+                    return GetStart(ea) + GetStart(eb);
+                        
+                    Rational GetStart(Element e)
+                    {
+                        switch (e)
+                        {
+                            case Point p:
+                                return p.Value;
+                            case Segment s:
+                                return s.RightLimitAtStartTime;
+                            default:
+                                throw new InvalidCastException();
+                        }
+                    }
+                }
+            }
+            else
+                return elementPairs;
+           
             return elementPairs;
 
             bool PairBeforeEnd(Element ea, Element eb)
@@ -2600,42 +2640,6 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                 else
                     return ea.StartTime + eb.StartTime < cutEnd;
             }
-
-            #if MAX_PLUS_BYSEQ_VERTICAL_FILTER
-            // This filtering step cannot be easily translated to (max,+) convolution,
-            // since excluding higher-than-ceiling elements from the upper envelope may yield a false result
-            bool PairBelowCeiling(Element ea, Element eb)
-            {
-                if (cutCeiling == Rational.PlusInfinity) 
-                    return true;
-
-                var ea_s = GetStart(ea);
-                var eb_s = GetStart(eb);
-                if(isCeilingIncluded)
-                {
-                    if ((ea is not Segment || ea is Segment { IsConstant: true }) && 
-                        (eb is not Segment || eb is Segment { IsConstant: true }))
-                        return ea_s + eb_s <= cutCeiling;
-                    else
-                        return ea_s + eb_s < cutCeiling;
-                }
-                else
-                    return ea_s + eb_s < cutCeiling;
-
-                Rational GetStart(Element e)
-                {
-                    switch (e)
-                    {
-                        case Point p:
-                            return p.Value;
-                        case Segment s:
-                            return s.RightLimitAtStartTime;
-                        default:
-                            throw new InvalidCastException();
-                    }
-                }
-            }
-            #endif
         }
 
         IEnumerable<Element> SerialConvolution()

@@ -86,6 +86,7 @@ public partial class ConvolutionIsomorphism
 
         output.WriteLine($"var f = {f.ToCodeString()};");
         output.WriteLine($"var g = {g.ToCodeString()};");
+        output.WriteLine($"var cutEnd = {cutEnd}; var cutCeiling = {cutCeiling}; var T = {T}; var d = {d};");
 
         var settings = ComputationSettings.Default() with {
             UseBySequenceConvolutionIsomorphismOptimization = false
