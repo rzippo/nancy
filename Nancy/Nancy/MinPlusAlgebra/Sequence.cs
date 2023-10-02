@@ -2271,13 +2271,17 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <param name="settings"></param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT08], Section 4.5</remarks>
-    public static Sequence Deconvolution(Sequence a, Sequence b, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
+    public static Sequence Deconvolution(
+        Sequence a, Sequence b, 
+        Rational? cutStart = null, Rational? cutEnd = null, 
+        ComputationSettings? settings = null
+    )
     {
         #if DO_LOG && DO_COSTLY_LOGS
         logger.Trace($"Convolution between sequence a:\n {a} \n and sequence b:\n {b}");
         #endif
 
-        const int ParallelizationThreshold = 1_000;
+        settings ??= ComputationSettings.Default();
 
         var elementPairs = a.Elements
             .SelectMany(ea => b.Elements
@@ -2286,12 +2290,13 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             .Where(pair => pair.a.IsFinite && pair.b.IsFinite)
             .Where(pair => cutStart == null || pair.a.EndTime - pair.b.StartTime >= cutStart)
             .ToList();
+        var pairsCount = elementPairs.Count;
 
         List<Element> result;
-        if (elementPairs.Count <= ParallelizationThreshold)
-            result = SimpleDeconvolution();
-        else
+        if (settings.UseParallelDeconvolution && pairsCount > settings.DeconvolutionParallelizationThreshold)
             result = ParallelDeconvolution();
+        else
+            result = SerialDeconvolution();
 
         var resultStart = result.First().StartTime;
         var resultEnd = result.Last().EndTime;
@@ -2312,7 +2317,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
             return result.ToSequence();
         }
 
-        List<Element> SimpleDeconvolution()
+        List<Element> SerialDeconvolution()
         {
             var deconvolutionElements = elementPairs
                 .SelectMany( pair => Element.Deconvolution(pair.a, pair.b))

@@ -17,7 +17,8 @@ public record ComputationSettings
         get
         {
             return
-                UseParallelLowerEnvelope || UseParallelConvolution ||
+                UseParallelLowerEnvelope || UseParallelUpperEnvelope ||
+                UseParallelConvolution || UseParallelDeconvolution ||
                 UseParallelListConvolution || UseParallelListMinimum || UseParallelListAddition || UseParallelListLowerEnvelope ||
                 UseParallelListMaximum || UseParallelListUpperEnvelope ||
                 UseParallelExtend || UseParallelComputeExtensionSequences ||
@@ -26,7 +27,9 @@ public record ComputationSettings
         set 
         {
             UseParallelLowerEnvelope = value;
+            UseParallelUpperEnvelope = value;
             UseParallelConvolution = value;
+            UseParallelDeconvolution = value;
             UseParallelListConvolution = value;
             UseParallelListAddition = value;
             UseParallelListMinimum = value;
@@ -115,6 +118,16 @@ public record ComputationSettings
     /// In parallel Interval.ComputeIntervals, do element-in-interval insertion in parallel too.
     /// </summary>
     public bool UseParallelInsertionComputeIntervals { get; set; } = true;
+
+    /// <summary>
+    /// If true, long sequence convolutions are processed in parallel
+    /// </summary>
+    public bool UseParallelDeconvolution { get; set; } = true;
+
+    /// <summary>
+    /// Deconvolution parallelization is done if the number of element deconvolutions is above this threshold.
+    /// </summary>
+    public int DeconvolutionParallelizationThreshold { get; set; } = 1_000;
 
     /// <summary>
     /// In Curve.Extend, compute extension sequences in parallel.
