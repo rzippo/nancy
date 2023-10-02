@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Unipi.Nancy.Numerics;
 
 #if DO_LOG
@@ -48,16 +50,17 @@ internal class Interval
     /// <summary>
     /// A set of segments whose support contains this interval
     /// </summary>
-    internal List<Element> Elements
+    internal IEnumerable<Element> Elements
         => ComputeElements();
 
     private List<Element> ElementBag { get; } = new();
 
-    private List<Element> ComputeElements()
+    private SpinLock Lock = new();
+
+    private IEnumerable<Element> ComputeElements()
     {
         return ElementBag
-            .Select(FitElement)
-            .ToList();
+            .Select(FitElement);
 
         Element FitElement(Element item)
         {
@@ -148,7 +151,13 @@ internal class Interval
             if (!item.IsDefinedFor(Start))
                 throw new ArgumentException("Element not defined for the point interval");
 
+            bool lockTaken = false;
+            while(!lockTaken)
+                Lock.Enter(ref lockTaken);
+            
             ElementBag.Add(item);
+            
+            Lock.Exit();
         }
         else
         {
@@ -162,7 +171,13 @@ internal class Interval
                     if (!(s.StartTime <= Start && s.EndTime >= End))
                         throw new ArgumentException("The given segment does not match interval boundaries");
 
+                    bool lockTaken = false;
+                    while(!lockTaken)
+                        Lock.Enter(ref lockTaken);
+                    
                     ElementBag.Add(s);
+                    
+                    Lock.Exit();
                     break;
                 }
 
@@ -184,7 +199,16 @@ internal class Interval
             foreach (var item in collection)
                 Add(item);
         else
+        {
+            bool lockTaken = false;
+            while(!lockTaken)
+                Lock.Enter(ref lockTaken);
+
             ElementBag.AddRange(collection);
+            
+            Lock.Exit();
+        }
+            
     }
 
     /// <summary>
@@ -533,128 +557,71 @@ internal class Interval
             {
                 ProcessElement(element);
             }
-
-            // Finds the overlapping intervals and adds the element to them.
-            void ProcessElement(Element element)
-            {
-                switch (element)
-                {
-                    case Point p:
-                    {
-                        var interval = intervalTree.Query(p.Time);
-
-                        if (interval == null)
-                            throw new InvalidOperationException("No interval found for point");
-
-                        if (!interval.IsPointInterval)
-                            throw new InvalidOperationException("Interval for point was a segment interval");
-
-                        interval.Add(p);
-                        return;
-                    }
-
-                    case Segment s:
-                    {
-                        var intervals = intervalTree
-                            .Query(s.StartTime, s.EndTime);
-
-                        using var enumerator = intervals.GetEnumerator();
-
-                        if (!enumerator.MoveNext())
-                            throw new InvalidOperationException("No interval found for segment");
-
-                        Rational expectedStart = s.StartTime;
-                        bool lastIntervalWasPoint = true;
-
-                        do 
-                        {
-                            var interval = enumerator.Current;
-                            if (interval.Start > expectedStart)
-                                throw new InvalidOperationException("Found gap between intervals for segment");
-
-                            if (lastIntervalWasPoint == interval.IsPointInterval)
-                                throw new InvalidOperationException("Invalid sequence of intervals");
-
-                            if (interval.Classify(s) != OverlapTypes.SegmentSupportContainsInterval)
-                                throw new InvalidOperationException("Interval too large for segment");
-
-                            interval.Add(s);
-                            expectedStart = interval.End;
-                            lastIntervalWasPoint = interval.IsPointInterval;
-                        } 
-                        while (enumerator.MoveNext());
-
-                        if (expectedStart != s.EndTime)
-                            throw new InvalidOperationException("Found gap at tail of intervals for segment");
-
-                        return;
-                    }
-
-                    default:
-                        throw new InvalidCastException();
-                }
-            }
         }
 
         void ParallelProcessing()
         {
-            var overlaps = elements
-                .AsParallel()
-                .SelectMany(GetOverlaps);
-
-            if (settings.UseParallelInsertionComputeIntervals)
+            Parallel.ForEach(elements, ProcessElement);
+        }
+        
+        // Finds the overlapping intervals and adds the element to them.
+        void ProcessElement(Element element)
+        {
+            switch (element)
             {
-                var intervalGroups = overlaps
-                    .GroupBy(ov => ov.interval);
-
-                var intervalElementsPairs = intervalGroups
-                    .AsParallel()
-                    .Select(pair => 
-                        (interval: pair.Key, elements: pair.Select(overlap => overlap.element)));
-
-                intervalElementsPairs
-                    .ForAll(pair => pair.interval.AddRange(pair.elements));
-            }
-            else
-            {
-                foreach(var overlap in overlaps)
-                    overlap.interval.Add(overlap.element);
-            }
-
-            // foreach (var (element, intervals) in overlaps)
-            //     ProcessOverlap(element, intervals);
-
-            //Queries the range tree
-            //As the index is already built, read-only operations are thread safe.
-            IEnumerable<(Element element, Interval interval)> GetOverlaps(Element element)
-            {
-                switch (element)
+                case Point p:
                 {
-                    case Point p:
-                    {
-                        var interval = intervalTree.Query(p.Time);
-                        if (interval != null)
-                        {
-                            yield return (p, interval);
-                            yield break;
-                        }
-                        else
-                            throw new InvalidOperationException("No point interval found");
-                    }
+                    var interval = intervalTree.Query(p.Time);
 
-                    case Segment s:
-                    {
-                        var intervals = intervalTree
-                            .Query(s.StartTime, s.EndTime);
+                    if (interval == null)
+                        throw new InvalidOperationException("No interval found for point");
 
-                        foreach (var interval in intervals)
-                            yield return (s, interval);
-                        yield break;
-                    }
+                    if (!interval.IsPointInterval)
+                        throw new InvalidOperationException("Interval for point was a segment interval");
 
-                    default:
-                        throw new InvalidCastException();
+                    interval.Add(p);
+                    return;
                 }
+
+                case Segment s:
+                {
+                    var intervals = intervalTree
+                        .Query(s.StartTime, s.EndTime);
+
+                    using var enumerator = intervals.GetEnumerator();
+
+                    if (!enumerator.MoveNext())
+                        throw new InvalidOperationException("No interval found for segment");
+
+                    Rational expectedStart = s.StartTime;
+                    bool lastIntervalWasPoint = true;
+
+                    do 
+                    {
+                        var interval = enumerator.Current;
+                        if (interval.Start > expectedStart)
+                            throw new InvalidOperationException("Found gap between intervals for segment");
+
+                        if (lastIntervalWasPoint == interval.IsPointInterval)
+                            throw new InvalidOperationException("Invalid sequence of intervals");
+
+                        if (interval.Classify(s) != OverlapTypes.SegmentSupportContainsInterval)
+                            throw new InvalidOperationException("Interval too large for segment");
+
+                        interval.Add(s);
+                        expectedStart = interval.End;
+                        lastIntervalWasPoint = interval.IsPointInterval;
+                    } 
+                    while (enumerator.MoveNext());
+
+                    if (expectedStart != s.EndTime)
+                        throw new InvalidOperationException("Found gap at tail of intervals for segment");
+
+                    return;
+                }
+
+                default:
+                    throw new InvalidCastException();
             }
         }
     }
