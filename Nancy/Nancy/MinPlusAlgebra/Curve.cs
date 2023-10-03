@@ -2818,8 +2818,9 @@ public class Curve : IToCodeString
     /// </summary>
     /// <param name="a">Must be non-decreasing.</param>
     /// <param name="b">Must be non-decreasing.</param>
+    /// <param name="settings"></param>
     /// <returns>A non-negative horizontal deviation.</returns>
-    public static Rational HorizontalDeviation(Curve a, Curve b)
+    public static Rational HorizontalDeviation(Curve a, Curve b, ComputationSettings? settings = null)
     {
         if (!a.IsNonDecreasing || !b.IsNonDecreasing)
             throw new ArgumentException("The arguments must be non-decreasing.");
@@ -2837,17 +2838,15 @@ public class Curve : IToCodeString
             #if false
             var a_upi = a.UpperPseudoInverse();
             var b_upi = b.UpperPseudoInverse();
-            var hDev = -MaxPlusDeconvolution(a_lpi, b_lpi).ValueAt(0);
-            #endif
-            #if false
+            var hDev = -MaxPlusDeconvolution(a_upi, b_upi, settings).ValueAt(0);
+            #elif false
             var hDev = b.LowerPseudoInverse()
-                .Composition(a)
-                .Deconvolution(new RateLatencyServiceCurve(1, 0))
+                .Composition(a, settings)
+                .Deconvolution(new RateLatencyServiceCurve(1, 0), settings)
                 .ValueAt(0);
-            #endif
-            #if true
+            #elif true
             var hDev = b.LowerPseudoInverse()
-                .Composition(a)
+                .Composition(a, settings)
                 .Subtraction(new RateLatencyServiceCurve(1, 0))
                 .SupValue();
             #endif
