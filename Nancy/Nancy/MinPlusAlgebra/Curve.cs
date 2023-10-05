@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -422,8 +422,6 @@ public class Curve : IToCodeString
         }
     }
 
-    // todo: point to the mathematical definition
-
     /// <summary>
     /// True if for any $t_0$ interior (from the left) to the given interval, $lim_{t \to t_0^-}{f(t)} = f(t_0)$.
     /// </summary>
@@ -432,6 +430,7 @@ public class Curve : IToCodeString
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
     /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    /// <remarks>See [Zippo23] Definition 14.4</remarks>
     public bool IsLeftContinuousOverInterval(
         Rational start, 
         Rational? end = null, 
@@ -469,8 +468,6 @@ public class Curve : IToCodeString
         }
     }
 
-    // todo: point to the mathematical definition
-
     /// <summary>
     /// True if for any $t_0$ interior (from the right) to the given interval, $lim_{t \to t_0^+}{f(t)} = f(t_0)$.
     /// </summary>
@@ -479,6 +476,7 @@ public class Curve : IToCodeString
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
     /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    /// <remarks>See [Zippo23] Definition 14.5</remarks>
     public bool IsRightContinuousOverInterval(        
         Rational start, 
         Rational? end = null, 
@@ -591,13 +589,11 @@ public class Curve : IToCodeString
     public bool IsUltimatelyConstant =>
         IsUltimatelyAffine && PseudoPeriodSlope == 0;
 
-    // todo: add reference to proof
-
     /// <summary>
     /// True if the curve is sub-additive, i.e. $f(t+s) \le f(t) + f(s)$.
     /// </summary>
     /// <remarks>
-    /// Based on the following property: $f(0) \ge 0, f$ is sub-additive $\iff f^\circ = f^\circ \otimes f^\circ$,
+    /// Based on [Zippo23] Lemma 9.3: $f(0) \ge 0, f$ is sub-additive $\iff f^\circ = f^\circ \otimes f^\circ$,
     /// where $f^\circ$ is defined in <see cref="Curve.WithZeroOrigin"/>.
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
@@ -639,7 +635,7 @@ public class Curve : IToCodeString
     /// True if the curve is super-additive, i.e. $f(t+s) \ge f(t) + f(s)$.
     /// </summary>
     /// <remarks>
-    /// Based on the following property: $f$ is super-additive $\iff f^\circ = f^\circ \overline{\otimes} f^\circ$,
+    /// Based on [Zippo23] Lemma 9.4: $f$ is super-additive $\iff f^\circ = f^\circ \overline{\otimes} f^\circ$,
     /// where $f^\circ$ is defined in <see cref="Curve.WithZeroOrigin"/>.
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
@@ -5633,8 +5629,7 @@ public class Curve : IToCodeString
             if (f.IsUltimatelyConstant || g.IsUltimatelyConstant)
             {
                 // composition will also be U.C.
-                // the following expression for T summarise Proposition 19, 20 and 21 from [ZNS22]
-                // todo: update with reference to [ZNS23b]
+                // the following expression for T summarise Proposition 19, 20 and 21 from [ZNS23b]
                 T = Rational.Min(
                     g.IsUltimatelyConstant ? T_g : Rational.PlusInfinity, 
                     f.IsUltimatelyConstant ? T_f : Rational.PlusInfinity
