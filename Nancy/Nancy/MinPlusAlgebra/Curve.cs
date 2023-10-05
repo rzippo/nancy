@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -4134,21 +4134,21 @@ public class Curve : IToCodeString
             #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
             #endif
-            // todo: fill in reference
-            // As discussed in [TBP23] section X, there is no improvement on the UPP parameters to be gained using isomorphisms.
-            // The optimization lies instead in the use of a vertical filter (cutCeiling), in addition to the horizontal one (cutEnd)
+            // From rho_f = rho_g it follows that k_d_f = k_c_f.
+            // Hence, there is no improvement on the UPP parameters to be gained using isomorphisms.
+            // The optimization lies instead in the use of vertical filtering, and the by-sequence heuristic  
 
             var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
             var c = f.PseudoPeriodSlope * d;
 
             var cutEnd = T + d;
+            bool useIsomorphism = settings.UseConvolutionIsomorphismOptimization &&
+                                  f.IsLeftContinuous && g.IsLeftContinuous &&
+                                  f.IsNonDecreasing && g.IsNonDecreasing &&
+                                  !f.IsUltimatelyConstant && !g.IsUltimatelyConstant;
             Rational cutCeiling;
-            if (settings.UseConvolutionIsomorphismOptimization &&
-                f.IsLeftContinuous && g.IsLeftContinuous &&
-                f.IsNonDecreasing && g.IsNonDecreasing &&
-                !f.IsUltimatelyConstant && !g.IsUltimatelyConstant
-               )
+            if (useIsomorphism)
             {
                 // Vertical filtering optimization, discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
@@ -4161,7 +4161,7 @@ public class Curve : IToCodeString
 
             var fCut = f.Cut(0, cutEnd, isEndIncluded: false, settings: settings);
             var gCut = g.Cut(0, cutEnd, isEndIncluded: false, settings: settings);
-            var sequence = Sequence.Convolution(fCut, gCut, settings, cutEnd, cutCeiling);
+            var sequence = Sequence.Convolution(fCut, gCut, settings, cutEnd, cutCeiling, useIsomorphism: useIsomorphism);
 
             var result = new Curve(
                 baseSequence: sequence.Cut(0, cutEnd),
@@ -5082,21 +5082,21 @@ public class Curve : IToCodeString
             #if DO_LOG
             logger.Trace("Max-plus Convolution: same slope, single pass");
             #endif
-            // todo: fill in reference
-            // As discussed in [TBP23] section X, there is no improvement on the UPP parameters to be gained using isomorphisms.
-            // The optimization lies instead in the use of a vertical filter (cutCeiling), in addition to the horizontal one (cutEnd)
+            // From rho_f = rho_g it follows that k_d_f = k_c_f.
+            // Hence, there is no improvement on the UPP parameters to be gained using isomorphisms.
+            // The optimization lies instead in the use of vertical filtering, and the by-sequence heuristic  
 
             var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
             var c = f.PseudoPeriodSlope * d;
 
             var cutEnd = T + d;
+            bool useIsomorphism = settings.UseConvolutionIsomorphismOptimization &&
+                                  f.IsRightContinuous && g.IsRightContinuous &&
+                                  f.IsNonDecreasing && g.IsNonDecreasing &&
+                                  !f.IsUltimatelyConstant && !g.IsUltimatelyConstant; 
             Rational cutCeiling;
-            if (settings.UseConvolutionIsomorphismOptimization &&
-                f.IsRightContinuous && g.IsRightContinuous &&
-                f.IsNonDecreasing && g.IsNonDecreasing &&
-                !f.IsUltimatelyConstant && !g.IsUltimatelyConstant
-               )
+            if (useIsomorphism)
             {
                 // Vertical filtering optimization, discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
@@ -5126,15 +5126,11 @@ public class Curve : IToCodeString
 
             var fCut = f.Cut(0, cutEnd, isEndIncluded: false, settings: settings);
             var gCut = g.Cut(0, cutEnd, isEndIncluded: false, settings: settings);
-            var sequence = Sequence.MaxPlusConvolution(fCut, gCut, settings, cutEnd, cutCeiling);
+            var sequence = Sequence.MaxPlusConvolution(fCut, gCut, settings, cutEnd, cutCeiling, useIsomorphism: useIsomorphism);
 
-            #if true
             var resultEnd = sequence.Elements.Last(e => e.IsFinite).EndTime;
             var resultT = resultEnd - d;
             var minT = Rational.Min(T, resultT);
-            #else
-            var minT = T;
-            #endif
 
             var result = new Curve(
                 baseSequence: sequence.Cut(0, minT + d),
