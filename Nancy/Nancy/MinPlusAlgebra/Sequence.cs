@@ -1526,6 +1526,8 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
     /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
     /// <returns>The sequence resulting from the sum.</returns>
     public static Sequence Addition(Sequence a, Sequence b)
     {
@@ -1551,6 +1553,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
     /// </summary>
+    /// <param name="b"></param>
     /// <returns>The sequence resulting from the sum.</returns>
     public Sequence Addition(Sequence b)
         => Addition(this, b);
@@ -1558,6 +1561,8 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
     /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
     /// <returns>The sequence resulting from the sum.</returns>
     public static Sequence operator +(Sequence a, Sequence b)
         => Addition(a, b);
@@ -1587,6 +1592,8 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
     /// <remarks>
     /// The result is forced to be non-negative.
     /// Use <see cref="Subtraction(Unipi.Nancy.MinPlusAlgebra.Sequence, Unipi.Nancy.MinPlusAlgebra.Sequence,bool)"/> to have results with negative values.
@@ -2860,7 +2867,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         {
             // We need two breakpoints to compute the composition between them
             // Thus at each time we build the point and segment for the prevTime
-            // For the last one, which is g.DefinedFrom, we do not define the composition because the support is right-open
+            // For the last one, which is g.DefinedUntil, we do not define the composition because the support is right-open
             Rational? prevTime = null;
             int lastIndexF = 0, lastIndexG = 0;
             foreach (var time in times)
