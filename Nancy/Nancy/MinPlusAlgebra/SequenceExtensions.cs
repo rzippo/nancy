@@ -1311,6 +1311,7 @@ public static class SequenceExtensions
             var _ceiling = (Rational) ceiling;
             using var enumerator = elements.GetEnumerator();
             var lastValue = Rational.MinusInfinity;
+            
             while (enumerator.MoveNext())
             {
                 switch (enumerator.Current)
@@ -1328,6 +1329,8 @@ public static class SequenceExtensions
                                 yield return new Point(p.Time, _ceiling);
                             yield break; // we presume non-decreasing sequence
                         }
+
+                        lastValue = p.Value;
                         break;
                     }
 

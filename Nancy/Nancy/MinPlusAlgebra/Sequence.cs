@@ -2597,11 +2597,11 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                 if (isCeilingIncluded)
                 {
                     var firstSafeCeiling = elementPairs
-                        .Select(p => ConvolutionStartingValue(p.a, p.b))
-                        .Where(v => v > cutCeiling)
-                        .Cast<Rational?>()
-                        .DefaultIfEmpty(null)
-                        .Min();
+                        .Select(p => ConvolutionStartingPoint(p.a, p.b))
+                        .Where(p => p.value > cutCeiling)
+                        .Cast<(Rational time, Rational value)?>()
+                        .MinBy(p => p?.time)
+                        ?.value;
                     
                     if (firstSafeCeiling != null)
                     {
@@ -2614,10 +2614,18 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
                     elementPairs = elementPairs.Where(p =>  ConvolutionStartingValue(p.a, p.b) <= cutCeiling);
                 }
                 
+                (Rational time, Rational value) ConvolutionStartingPoint(Element ea, Element eb)
+                {
+                    return (
+                        time: ea.StartTime + eb.StartTime,
+                        value: ConvolutionStartingValue(ea, eb)
+                    );
+                }
+                
                 Rational ConvolutionStartingValue(Element ea, Element eb)
                 {
                     return GetStart(ea) + GetStart(eb);
-                        
+
                     Rational GetStart(Element e)
                     {
                         switch (e)
