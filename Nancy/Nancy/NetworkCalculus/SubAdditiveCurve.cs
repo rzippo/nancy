@@ -200,7 +200,7 @@ public class SubAdditiveCurve : Curve
                     lower = curve;
                     higher = this;
                 }
-                else if (this.Match(minimum.PseudoPeriodicSequence))
+                else if (this.Match(minimum.PseudoPeriodicSequence, settings))
                 {
                     lower = this;
                     higher = curve;
