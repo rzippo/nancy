@@ -147,10 +147,15 @@ public class SubAdditiveCurve : Curve
     public SubAdditiveCurve Convolution(SubAdditiveCurve curve, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
+
+        // This implementation relies on the minimum of the two curves being correctly computed using Curve.Minimum()
+        if (!Curve.IsMinimumUltimatelyPseudoPeriodic(this, curve))
+            return new SubAdditiveCurve(base.Convolution(curve, settings), false);
+
         #if DO_LOG
         var stopwatch = Stopwatch.StartNew();
         #endif
-
+       
         var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for th. 2
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
         bool isCurveLower = Curve.Equivalent(curve, minimum, settings); // curve <= this

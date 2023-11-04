@@ -3444,6 +3444,18 @@ public class Curve : IToCodeString
     #region Minimum and maximum operators
 
     /// <summary>
+    /// True if $f \wedge g$ is known to be ultimately pseudo-periodic.
+    /// Tests the sufficient (but not necessary) conditions from [BT08].
+    /// </summary>
+    /// <remarks>
+    /// If false, the result <see cref="Minimum(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> may be invalid. 
+    /// </remarks>
+    public static bool IsMinimumUltimatelyPseudoPeriodic(Curve f, Curve g)
+    {
+        return f.IsUltimatelyPlain && g.IsUltimatelyPlain;
+    }
+    
+    /// <summary>
     /// Implements (min, +)-algebra minimum operation over two curves.
     /// </summary>
     /// <param name="curve">Second operand.</param>
@@ -3710,6 +3722,18 @@ public class Curve : IToCodeString
         return result;
     }
 
+    /// <summary>
+    /// True if $f \vee g$ is known to be ultimately pseudo-periodic.
+    /// Tests the sufficient (but not necessary) conditions from [BT08].
+    /// </summary>
+    /// <remarks>
+    /// If false, the result <see cref="Maximum(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> may be invalid. 
+    /// </remarks>
+    public static bool IsMaximumUltimatelyPseudoPeriodic(Curve f, Curve g)
+    {
+        return f.IsUltimatelyPlain && g.IsUltimatelyPlain;
+    }
+    
     /// <summary>
     /// Implements (max, +)-algebra maximum operation over two curves.
     /// </summary>
