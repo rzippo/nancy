@@ -156,13 +156,13 @@ public class SubAdditiveCurve : Curve
         var stopwatch = Stopwatch.StartNew();
         #endif
        
-        var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for th. 2
+        var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for Theorem 2
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
         bool isCurveLower = Curve.Equivalent(curve, minimum, settings); // curve <= this
 
         if (isThisLower || isCurveLower) // this <= curve || curve <= this
         {
-            // Use theorem 1 [3]
+            // Use [ZS23, Theorem 1]
             #if DO_LOG
             logger.Trace($"Optimized convolution between sub-additive curves: complete skip." +
                          $"{this.GetHashCode():X} of {this.BaseSequence.Count} elements " +
@@ -182,7 +182,7 @@ public class SubAdditiveCurve : Curve
                 curve.Match(minimum.PseudoPeriodicSequence, settings)
             )
             {
-                // Use theorem 3.5.8 [3]
+                // Use [ZS23, Theorem 2]
                 #if DO_LOG
                 logger.Trace($"Optimized convolution between sub-additive curves: partial skip." +
                              $"{this.GetHashCode():X} of {this.BaseSequence.Count} elements " +
@@ -219,7 +219,7 @@ public class SubAdditiveCurve : Curve
                     isPartialCurve: true
                 );
 
-                // Compare costs, do generic algorithm if costs less
+                // Compare costs, do generic algorithm if it appears to cost less
                 if (EstimateConvolution(lower, higher_a, false, settings) <=
                     EstimateConvolution(lower, higher, false, settings with { UseSubAdditiveConvolutionOptimizations = false }))
                 {
@@ -242,7 +242,7 @@ public class SubAdditiveCurve : Curve
                 (settings.UseMinimumSelfConvolutionForCurvesWithInfinities || (this.IsFinite && curve.IsFinite))        
             )
             {
-                // Use theorem 3 and related properties [3]
+                // Use [ZS23, Theorem 3] and related properties
                 return SpecializedConvolution(this, curve, minimum.TransientReduction(), settings);
             }
         }
@@ -327,9 +327,9 @@ public class SubAdditiveCurve : Curve
             {
                 return sa.Elements
                     .SelectMany((ea, ia) => sb.Elements
-                        .Where((_, ib) => colors[startIndexOfA + ia] != colors[ib] || colors[ib] == Color.Both)    // filter out same-color pairs
-                        .Where(eb => ea.StartTime < eb.StartTime)   // filter out symmetric pairs
-                        .Where(eb => ea.StartTime + eb.StartTime < cutEnd) // filter out pairs outside the cut boundary
+                        .Where((_, ib) => colors[startIndexOfA + ia] != colors[ib] || colors[ib] == Color.Both)    // filter out same-color pairs [ZS23, Property 4]
+                        .Where(eb => ea.StartTime < eb.StartTime)   // filter out symmetric pairs [ZS23, Property 3]
+                        .Where(eb => ea.StartTime + eb.StartTime < cutEnd) // filter out pairs outside the cut boundary [ZNS23a, horizontal filtering]
                         .Select(eb => (a: ea, b: eb))
                     )
                     .Where(pair => pair.a.IsFinite && pair.b.IsFinite)
@@ -556,13 +556,13 @@ public class SubAdditiveCurve : Curve
     {
         settings ??= ComputationSettings.Default();
 
-        var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for th. 2);
+        var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for Theorem 2
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
         bool isCurveLower = Curve.Equivalent(curve, minimum, settings); // curve <= this
 
         if (isThisLower || isCurveLower) // this <= curve || curve <= this
         {
-            // Use theorem 1 [3]
+            // Use [ZS23, Theorem 1]
             #if DO_LOG
             logger.Trace($"Optimized convolution between sub-additive curves: complete skip." +
                          $"{this.GetHashCode().ToString("X")} of {this.BaseSequence.Count} elements " +
@@ -579,7 +579,7 @@ public class SubAdditiveCurve : Curve
                 curve.Match(minimum.PseudoPeriodicSequence, settings)
             )
             {
-                // Use theorem 3.5.8 [3]
+                // Use [ZS23, Theorem 2]
                 #if DO_LOG
                 logger.Trace($"Optimized convolution between sub-additive curves: partial skip." +
                              $"{this.GetHashCode():X} of {this.BaseSequence.Count} elements " +
@@ -623,7 +623,7 @@ public class SubAdditiveCurve : Curve
                 (settings.UseMinimumSelfConvolutionForCurvesWithInfinities || (this.IsFinite && curve.IsFinite))        
             )
             {
-                // Use theorem 3 and related properties [3]
+                // Use [ZS23, Theorem 3] and related properties
                 return SpecializedEstimateConvolution(this, curve, minimum, countElements, settings);
             }
         }
@@ -709,9 +709,9 @@ public class SubAdditiveCurve : Curve
             {
                 return sa.Elements
                     .SelectMany((ea, ia) => sb.Elements
-                        .Where((_, ib) => colors[startIndexOfA + ia] != colors[ib])    // filter out same-color pairs
-                        .Where(eb => ea.StartTime < eb.StartTime)   // filter out symmetric pairs
-                        .Where(eb => ea.StartTime + eb.StartTime <= cutEnd) // filter out pairs outside the cut boundary
+                        .Where((_, ib) => colors[startIndexOfA + ia] != colors[ib])    // filter out same-color pairs [ZS23, Property 4]
+                        .Where(eb => ea.StartTime < eb.StartTime)   // filter out symmetric pairs [ZS23, Property 3]
+                        .Where(eb => ea.StartTime + eb.StartTime <= cutEnd) // filter out pairs outside the cut boundary [ZNS23a, horizontal filtering]
                         .Select(eb => (a: ea, b: eb))
                     )
                     .Where(pair => pair.a.IsFinite && pair.b.IsFinite)
