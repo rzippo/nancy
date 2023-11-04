@@ -18,39 +18,37 @@ public class SubAdditiveConvolutions
         this.output = output;
     }
 
-    public static IEnumerable<object[]> StaircasePairTestCases()
+    public static List<(FlowControlCurve a, FlowControlCurve b)> StaircasePairs = new()
     {
-        var testCases = new (FlowControlCurve a, FlowControlCurve b)[]
-        {
-            (
-                new FlowControlCurve(height: 363, latency: 149, rate: 2), 
-                new FlowControlCurve(height: 682, latency: 341, rate: 924)
-            ),
-            (
-                new FlowControlCurve(3, 3, 2),
-                new FlowControlCurve(3,5, 5)
-            ),
-            (
-                new FlowControlCurve(416, 835, 313),
-                new FlowControlCurve(552,571, 970)
-            ),
-            (
-                new FlowControlCurve(3, 3, 2),
-                new FlowControlCurve(3,0, 5)
-            ),
-            (
-                new FlowControlCurve(4, 12, 4),
-                new FlowControlCurve(3,12, 3)
-            ),
-            (
-                new FlowControlCurve(4, 12, 4),
-                new FlowControlCurve(3,11, 3)
-            ),
-            (
-                new FlowControlCurve(5, 12, 4),
-                new FlowControlCurve(3,11, 3)
-            ),
-            #if !SKIP_LONG_TESTS
+        (
+            new FlowControlCurve(height: 363, latency: 149, rate: 2), 
+            new FlowControlCurve(height: 682, latency: 341, rate: 924)
+        ),
+        (
+            new FlowControlCurve(3, 3, 2),
+            new FlowControlCurve(3,5, 5)
+        ),
+        (
+            new FlowControlCurve(416, 835, 313),
+            new FlowControlCurve(552,571, 970)
+        ),
+        (
+            new FlowControlCurve(3, 3, 2),
+            new FlowControlCurve(3,0, 5)
+        ),
+        (
+            new FlowControlCurve(4, 12, 4),
+            new FlowControlCurve(3,12, 3)
+        ),
+        (
+            new FlowControlCurve(4, 12, 4),
+            new FlowControlCurve(3,11, 3)
+        ),
+        (
+            new FlowControlCurve(5, 12, 4),
+            new FlowControlCurve(3,11, 3)
+        ),
+        #if !SKIP_LONG_TESTS
             (
                 new FlowControlCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
                 new FlowControlCurve(new Rational(5, 7), 5000, new Rational(5, 7))
@@ -59,64 +57,66 @@ public class SubAdditiveConvolutions
                 new FlowControlCurve(new Rational(2*5*11), 4000, new Rational(2*5*11)),
                 new FlowControlCurve(new Rational(3*7*13), 5000, new Rational(3*7*13))
             ),
-            #endif
-            // (
-            //     new FlowControlCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
-            //     new FlowControlCurve(new Rational(17, 19), 5000, new Rational(17, 19))
-            // )
-        };
-
-        foreach (var testCase in testCases)
-        {
-            yield return new object[] {testCase.a, testCase.b};
-        }
-    }
-
-    public static IEnumerable<object[]> NonStaircasePairTestCases()
+        #endif
+        // (
+        //     new FlowControlCurve(new Rational(11, 13), 4000, new Rational(11, 13)),
+        //     new FlowControlCurve(new Rational(17, 19), 5000, new Rational(17, 19))
+        // )
+    };
+    
+    public static List<(SubAdditiveCurve a, SubAdditiveCurve b)> NonStaircasePairs = new()
     {
-        var testCases = new (SubAdditiveCurve a, SubAdditiveCurve b)[]
-        {
-            (
-                new SubAdditiveCurve(
-                    baseSequence: new Sequence(
-                        new Element[]
-                        {
-                            Point.Origin(),
-                            new Segment(0, 3, 1, 3),
-                            new Point(3, 10),
-                            new Segment(3, 6, 10, 2)
-                        }),
-                    pseudoPeriodStart: 3,
-                    pseudoPeriodLength: 3,
-                    pseudoPeriodHeight: 6
-                ),
-                new SubAdditiveCurve(
-                    baseSequence: new Sequence(
-                        new Element[]
-                        {
-                            Point.Origin(),
-                            new Segment(0, 2, 0, 4),
-                            new Point(2, 8),
-                            new Segment(2, 5, 8, new Rational(2, 3)),
-                            new Point(5, 10),
-                            new Segment(5, 10, 10, new Rational(10, 5))
-                        }),
-                    pseudoPeriodStart: 5,
-                    pseudoPeriodLength: 5,
-                    pseudoPeriodHeight: 10
-                )
+        (
+            new SubAdditiveCurve(
+                baseSequence: new Sequence(
+                    new Element[]
+                    {
+                        Point.Origin(),
+                        new Segment(0, 3, 1, 3),
+                        new Point(3, 10),
+                        new Segment(3, 6, 10, 2)
+                    }),
+                pseudoPeriodStart: 3,
+                pseudoPeriodLength: 3,
+                pseudoPeriodHeight: 6
+            ),
+            new SubAdditiveCurve(
+                baseSequence: new Sequence(
+                    new Element[]
+                    {
+                        Point.Origin(),
+                        new Segment(0, 2, 0, 4),
+                        new Point(2, 8),
+                        new Segment(2, 5, 8, new Rational(2, 3)),
+                        new Point(5, 10),
+                        new Segment(5, 10, 10, new Rational(10, 5))
+                    }),
+                pseudoPeriodStart: 5,
+                pseudoPeriodLength: 5,
+                pseudoPeriodHeight: 10
             )
-        };
-
-        foreach (var testCase in testCases)
+        ),
+        (
+            new SubAdditiveCurve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,0,0) }),pseudoPeriodStart: 0,pseudoPeriodLength: 1,pseudoPeriodHeight: 0),
+            new SubAdditiveCurve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,5,new Rational(1, 0),0) }),pseudoPeriodStart: 0,pseudoPeriodLength: 5,pseudoPeriodHeight: -12)
+        )
+    };
+    
+    public static IEnumerable<object[]> ConvolutionEquivalence_Pair_TestCases()
+    {
+        foreach (var testCase in StaircasePairs)
+        {
+            yield return new object[] {testCase.a, testCase.b};
+        }
+        
+        foreach (var testCase in NonStaircasePairs)
         {
             yield return new object[] {testCase.a, testCase.b};
         }
     }
-
+    
     [Theory]
-    [MemberData(nameof(StaircasePairTestCases))]
-    [MemberData(nameof(NonStaircasePairTestCases))]
+    [MemberData(nameof(ConvolutionEquivalence_Pair_TestCases))]
     public void ConvolutionEquivalence_Pair(SubAdditiveCurve a, SubAdditiveCurve b)
     {
         var settings = new ComputationSettings
