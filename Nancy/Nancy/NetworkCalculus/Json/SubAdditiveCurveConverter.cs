@@ -41,7 +41,7 @@ public class SubAdditiveCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         Sequence? sequence = jo[BaseSequenceName]?.ToObject<Sequence>(serializer);
         if (sequence == null)
@@ -67,7 +67,7 @@ public class SubAdditiveCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         SubAdditiveCurve curve = (SubAdditiveCurve) value;
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {

@@ -31,7 +31,7 @@ public class DelayServiceCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         Rational delay = jo[DelayName]!.ToObject<Rational>(serializer);
 
@@ -48,7 +48,7 @@ public class DelayServiceCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         DelayServiceCurve curve = (DelayServiceCurve) value;
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {

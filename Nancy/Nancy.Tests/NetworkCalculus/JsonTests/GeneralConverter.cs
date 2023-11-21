@@ -107,7 +107,7 @@ public class CurveJson
     [MemberData(nameof(SimplifiedRationalNotationCases))]
     public void SimplifiedRationalNotation(Curve curve, string expected)
     {
-        var serialization = JsonConvert.SerializeObject(curve, new GenericCurveConverter(), new RationalConverter());
+        var serialization = JsonConvert.SerializeObject(curve, new GenericCurveConverter(), new RationalNewtonsoftJsonConverter());
         Assert.Equal(expected, serialization);
     }
 }

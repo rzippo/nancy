@@ -12,7 +12,7 @@ public class JsonTests
         LongRational value = new LongRational(1, 2);
         string expected = "{\"num\":1,\"den\":2}";
 
-        string serialization = JsonConvert.SerializeObject(value, new RationalConverter());
+        string serialization = JsonConvert.SerializeObject(value, new RationalNewtonsoftJsonConverter());
 
         Assert.Equal(expected, serialization);
     }
@@ -23,7 +23,7 @@ public class JsonTests
     [InlineData("2", 2, 1)]
     public void DeserializeFinite(string serialization, int expectedNum, int expectedDen)
     {
-        LongRational deserialized = JsonConvert.DeserializeObject<LongRational>(serialization, new RationalConverter());
+        LongRational deserialized = JsonConvert.DeserializeObject<LongRational>(serialization, new RationalNewtonsoftJsonConverter());
 
         Assert.True(deserialized.IsFinite);
         Assert.Equal(expectedNum, deserialized.Numerator);
@@ -36,7 +36,7 @@ public class JsonTests
         LongRational value = LongRational.PlusInfinity;
         string expected = "{\"num\":1,\"den\":0}";
 
-        string serialization = JsonConvert.SerializeObject(value, new RationalConverter());
+        string serialization = JsonConvert.SerializeObject(value, new RationalNewtonsoftJsonConverter());
 
         Assert.Equal(expected, serialization);
     }
@@ -46,7 +46,7 @@ public class JsonTests
     {
         string serialization = "{\"num\":1,\"den\":0}";
 
-        LongRational deserialized = JsonConvert.DeserializeObject<LongRational>(serialization, new RationalConverter());
+        LongRational deserialized = JsonConvert.DeserializeObject<LongRational>(serialization, new RationalNewtonsoftJsonConverter());
 
         Assert.True(deserialized.IsInfinite);
         Assert.Equal(LongRational.PlusInfinity, deserialized);
@@ -58,7 +58,7 @@ public class JsonTests
         LongRational value = LongRational.MinusInfinity;
         string expected = "{\"num\":-1,\"den\":0}";
 
-        string serialization = JsonConvert.SerializeObject(value, new RationalConverter());
+        string serialization = JsonConvert.SerializeObject(value, new RationalNewtonsoftJsonConverter());
 
         Assert.Equal(expected, serialization);
     }
@@ -68,7 +68,7 @@ public class JsonTests
     {
         string serialization = "{\"num\":-1,\"den\":0}";
 
-        LongRational deserialized = JsonConvert.DeserializeObject<LongRational>(serialization, new RationalConverter());
+        LongRational deserialized = JsonConvert.DeserializeObject<LongRational>(serialization, new RationalNewtonsoftJsonConverter());
 
         Assert.True(deserialized.IsInfinite);
         Assert.Equal(LongRational.MinusInfinity, deserialized);

@@ -102,7 +102,7 @@ public abstract class Element : IToCodeString
     /// </summary>
     public override string ToString()
     {
-        return JsonConvert.SerializeObject(this, new RationalConverter());
+        return JsonConvert.SerializeObject(this, new RationalNewtonsoftJsonConverter());
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public abstract class Element : IToCodeString
     /// </summary>
     public static Element FromJson(string json)
     {
-        var element = JsonConvert.DeserializeObject<Element>(json, new RationalConverter());
+        var element = JsonConvert.DeserializeObject<Element>(json, new RationalNewtonsoftJsonConverter());
         if (element == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return element;

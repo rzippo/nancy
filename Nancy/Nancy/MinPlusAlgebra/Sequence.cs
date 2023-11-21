@@ -1208,7 +1208,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// </summary>
     public override string ToString()
     {
-        return JsonConvert.SerializeObject(this, new RationalConverter());
+        return JsonConvert.SerializeObject(this, new RationalNewtonsoftJsonConverter());
     }
 
     /// <summary>
@@ -1216,7 +1216,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// </summary>
     public static Sequence FromJson(string json)
     {
-        var sequence = JsonConvert.DeserializeObject<Sequence>(json, new RationalConverter());
+        var sequence = JsonConvert.DeserializeObject<Sequence>(json, new RationalNewtonsoftJsonConverter());
         if (sequence == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return sequence;

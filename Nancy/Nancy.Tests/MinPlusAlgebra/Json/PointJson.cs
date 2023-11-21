@@ -43,9 +43,9 @@ public class PointJson
     [MemberData(nameof(GetPoints))]
     public void PointSerialization(Point point)
     {
-        string serialization = JsonConvert.SerializeObject(point, new RationalConverter());
+        string serialization = JsonConvert.SerializeObject(point, new RationalNewtonsoftJsonConverter());
         output.WriteLine(serialization);
-        Point deserialized = JsonConvert.DeserializeObject<Point>(serialization, new RationalConverter())!;
+        Point deserialized = JsonConvert.DeserializeObject<Point>(serialization, new RationalNewtonsoftJsonConverter())!;
 
         Assert.Equal(point, deserialized);
     }
@@ -84,7 +84,7 @@ public class PointJson
     [MemberData(nameof(GetSerializedPoints))]
     public void PointDeserialization(string serialization, decimal expectedTime, decimal expectedValue)
     {
-        Point deserialized = JsonConvert.DeserializeObject<Point>(serialization, new RationalConverter())!;
+        Point deserialized = JsonConvert.DeserializeObject<Point>(serialization, new RationalNewtonsoftJsonConverter())!;
         Assert.Equal(expectedTime, deserialized.Time);
         Assert.Equal(expectedValue, deserialized.Value);
     }

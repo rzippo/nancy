@@ -32,7 +32,7 @@ public class SigmaRhoArrivalCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         Rational sigma = jo[SigmaName]!.ToObject<Rational>(serializer);
         Rational rho = jo[RhoName]!.ToObject<Rational>(serializer);
@@ -51,7 +51,7 @@ public class SigmaRhoArrivalCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         SigmaRhoArrivalCurve curve = (SigmaRhoArrivalCurve) value;
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {

@@ -32,7 +32,7 @@ public class RateLatencyServiceCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
         Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
@@ -48,7 +48,7 @@ public class RateLatencyServiceCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         RateLatencyServiceCurve curve = (RateLatencyServiceCurve) value;
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {

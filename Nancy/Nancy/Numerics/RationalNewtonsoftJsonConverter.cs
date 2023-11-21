@@ -7,9 +7,9 @@ namespace Unipi.Nancy.Numerics;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="Rational"/>.
+/// Custom Newtonsoft.Json JsonConverter for <see cref="Rational"/>.
 /// </summary>
-public class RationalConverter : JsonConverter
+public class RationalNewtonsoftJsonConverter : JsonConverter
 {
     private static readonly string NumeratorName = "num";
     private static readonly string DenominatorName = "den";

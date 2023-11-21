@@ -323,6 +323,45 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// Constructor.
     /// </summary>
     /// <param name="numerator"></param>
+    /// <param name="denominator"></param>
+    /// <exception cref="UndeterminedResultException"></exception>
+    public BigRational(long numerator, long denominator = 1)
+    {
+        if (denominator == 0)
+        {
+            if (numerator < 0)
+                Numerator = BigInteger.MinusOne;
+            else if (numerator > 0)
+                Numerator = BigInteger.One;
+            else
+                throw new UndeterminedResultException("Zero over zero");
+
+            Denominator = BigInteger.Zero;
+        }
+        else if (numerator == 0)
+        {
+            // 0/m -> 0/1
+            Numerator = BigInteger.Zero;
+            Denominator = BigInteger.One;
+        }
+        else if (denominator < 0)
+        {
+            Numerator = BigInteger.Negate(numerator);
+            Denominator = BigInteger.Negate(denominator);
+        }
+        else
+        {
+            Numerator = numerator;
+            Denominator = denominator;
+        }
+
+        Simplify();
+    }
+    
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="numerator"></param>
     public BigRational(BigInteger numerator)
     {
         Numerator = numerator;

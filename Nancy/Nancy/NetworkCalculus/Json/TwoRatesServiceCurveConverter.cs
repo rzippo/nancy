@@ -34,7 +34,7 @@ public class TwoRatesServiceCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         Rational delay = jo[DelayName]!.ToObject<Rational>(serializer);
         Rational transientRate = jo[TransientRateName]!.ToObject<Rational>(serializer);
@@ -57,7 +57,7 @@ public class TwoRatesServiceCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         TwoRatesServiceCurve curve = (TwoRatesServiceCurve) value;
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {

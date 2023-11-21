@@ -174,7 +174,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     public new static Point FromJson(string json)
     {
-        var point = JsonConvert.DeserializeObject<Point>(json, new RationalConverter());
+        var point = JsonConvert.DeserializeObject<Point>(json, new RationalNewtonsoftJsonConverter());
         if (point == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return point;

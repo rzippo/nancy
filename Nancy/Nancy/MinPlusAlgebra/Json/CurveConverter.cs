@@ -35,7 +35,7 @@ public class CurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         Sequence? sequence = jo[BaseSequenceName]?.ToObject<Sequence>();
         if (sequence == null)
@@ -60,7 +60,7 @@ public class CurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         Curve curve = (Curve) value;
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {

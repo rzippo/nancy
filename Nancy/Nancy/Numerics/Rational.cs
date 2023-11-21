@@ -10,7 +10,7 @@ using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 
@@ -27,6 +27,7 @@ namespace Unipi.Nancy.Numerics
     [Serializable]
     [ComVisible(false)]
     [JsonObject(MemberSerialization.OptIn)]
+    [System.Text.Json.Serialization.JsonConverter(typeof(RationalSystemJsonConverter))]
     public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString
     {
         #region Static public values
@@ -59,35 +60,47 @@ namespace Unipi.Nancy.Numerics
         #region Public Properties
 
         /// <inheritdoc cref="BigRational.Sign"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public Int32 Sign => Numerator.Sign;
 
         /// <inheritdoc cref="BigRational.Numerator"/>
         [JsonProperty(PropertyName = "num")]
+        [JsonPropertyName("num")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(BigIntegerSystemJsonConverter))]
         public BigInteger Numerator { get; private set; }
 
         /// <inheritdoc cref="BigRational.Denominator"/>
         [JsonProperty(PropertyName = "den")]
+        [JsonPropertyName("den")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(BigIntegerSystemJsonConverter))]
         public BigInteger Denominator { get; private set; }
 
         /// <inheritdoc cref="BigRational.IsFinite"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsFinite => Denominator != 0;
 
         /// <inheritdoc cref="BigRational.IsInfinite"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsInfinite => Denominator == 0;
 
         /// <inheritdoc cref="BigRational.IsPlusInfinite"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
 
         /// <inheritdoc cref="BigRational.IsMinusInfinite"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
 
         /// <inheritdoc cref="BigRational.IsZero"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsZero => this == Zero;
 
         /// <inheritdoc cref="BigRational.IsPositive"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsPositive => this.Sign > 0;
 
         /// <inheritdoc cref="BigRational.IsNegative"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsNegative => this.Sign < 0;
 
         #endregion Public Properties
@@ -335,6 +348,40 @@ namespace Unipi.Nancy.Numerics
             Simplify();
         }
 
+        /// <inheritdoc cref="BigRational(long, long)"/>
+        public Rational(long numerator, long denominator = 1)
+        {
+            if (denominator == 0)
+            {
+                if (numerator < 0)
+                    Numerator = BigInteger.MinusOne;
+                else if (numerator > 0)
+                    Numerator = BigInteger.One;
+                else
+                    throw new UndeterminedResultException("Zero over zero");
+
+                Denominator = BigInteger.Zero;
+            }
+            else if (numerator == 0)
+            {
+                // 0/m -> 0/1
+                Numerator = BigInteger.Zero;
+                Denominator = BigInteger.One;
+            }
+            else if (denominator < 0)
+            {
+                Numerator = BigInteger.Negate(numerator);
+                Denominator = BigInteger.Negate(denominator);
+            }
+            else
+            {
+                Numerator = numerator;
+                Denominator = denominator;
+            }
+
+            Simplify();
+        }
+        
         /// <inheritdoc cref="BigRational(BigInteger)"/>
         public Rational(BigInteger numerator)
         {
@@ -1309,6 +1356,7 @@ using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 
@@ -1327,6 +1375,7 @@ namespace Unipi.Nancy.Numerics
     [Serializable]
     [ComVisible(false)]
     [JsonObject(MemberSerialization.OptIn)]
+    [System.Text.Json.Serialization.JsonConverter(typeof(RationalSystemJsonConverter))]
     public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString
     {
         #region Static public values
@@ -1359,35 +1408,45 @@ namespace Unipi.Nancy.Numerics
         #region Public Properties
 
         /// <inheritdoc cref="LongRational.Sign"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public int Sign => Math.Sign(Numerator);
 
         /// <inheritdoc cref="LongRational.Numerator"/>
         [JsonProperty(PropertyName = "num")]
+        [JsonPropertyName("num")]
         public long Numerator { get; private set; }
 
         /// <inheritdoc cref="LongRational.Denominator"/>
         [JsonProperty(PropertyName = "den")]
+        [JsonPropertyName("den")]
         public long Denominator { get; private set; }
 
         /// <inheritdoc cref="LongRational.IsInfinite"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsInfinite => Denominator == 0;
 
         /// <inheritdoc cref="LongRational.IsFinite"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsFinite => Denominator != 0;
 
         /// <inheritdoc cref="LongRational.IsPlusInfinite"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
 
         /// <inheritdoc cref="LongRational.IsMinusInfinite"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
 
         /// <inheritdoc cref="LongRational.IsZero"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsZero => this == Zero;
 
         /// <inheritdoc cref="LongRational.IsPositive"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsPositive => this.Sign > 0;
 
         /// <inheritdoc cref="LongRational.IsNegative"/>
+        [System.Text.Json.Serialization.JsonIgnore]
         public bool IsNegative => this.Sign < 0;
 
         #endregion Public Properties

@@ -27,9 +27,9 @@ public class SequenceJson
 
         foreach (var sequence in testSequences)
         {
-            string serialization = JsonConvert.SerializeObject(sequence, new RationalConverter());
+            string serialization = JsonConvert.SerializeObject(sequence, new RationalNewtonsoftJsonConverter());
             output.WriteLine(serialization);
-            Sequence deserialized = JsonConvert.DeserializeObject<Sequence>(serialization, new RationalConverter())!;
+            Sequence deserialized = JsonConvert.DeserializeObject<Sequence>(serialization, new RationalNewtonsoftJsonConverter())!;
 
             Assert.Equal(sequence, deserialized);
         }

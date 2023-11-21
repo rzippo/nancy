@@ -41,7 +41,7 @@ public class JsonMinimum
         foreach (var curveName in TestCaseNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(curveName);
-            var testCase = JsonConvert.DeserializeObject<TestCase>(json, new RationalConverter())!;
+            var testCase = JsonConvert.DeserializeObject<TestCase>(json, new RationalNewtonsoftJsonConverter())!;
 
             yield return new object[] { testCase.a, testCase.b, testCase.cutToOverlap };
         }

@@ -49,12 +49,12 @@ public class CurveLowerBounds
     [MemberData(nameof(GetTwoRatesTestCases))]
     public void TwoRatesTest(string curveJson)
     {
-        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalConverter())!;
+        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalNewtonsoftJsonConverter())!;
         var delay = curve.FirstNonZeroTime;
 
         var twoRates = curve.TwoRatesLowerBound();
 
-        output.WriteLine(JsonConvert.SerializeObject(twoRates, new GenericCurveConverter(), new RationalConverter()));
+        output.WriteLine(JsonConvert.SerializeObject(twoRates, new GenericCurveConverter(), new RationalNewtonsoftJsonConverter()));
 
         Assert.True(twoRates.IsContinuous);
         Assert.True(twoRates.IsRightContinuous);
@@ -123,7 +123,7 @@ public class CurveLowerBounds
     [MemberData(nameof(GetRateLatencyAlphaTestCases))]
     public void RateLatencyAlphaTest(string curveJson, Rational minDelay, Rational minRate, Rational maxDelay, Rational maxRate)
     {
-        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalConverter())!;
+        var curve = JsonConvert.DeserializeObject<Curve>(curveJson, new GenericCurveConverter(), new RationalNewtonsoftJsonConverter())!;
 
         var minRateLatency = curve.RateLatencyLowerBound(alpha: 0);
         Assert.True(minRateLatency <= curve);

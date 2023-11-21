@@ -35,9 +35,9 @@ public class SegmentJson
     [MemberData(nameof(GetSegments))]
     public void SegmentSerialization(Segment segment)
     {
-        string serialization = JsonConvert.SerializeObject(segment, new RationalConverter());
+        string serialization = JsonConvert.SerializeObject(segment, new RationalNewtonsoftJsonConverter());
         output.WriteLine(serialization);
-        Segment deserialized = JsonConvert.DeserializeObject<Segment>(serialization, new RationalConverter())!;
+        Segment deserialized = JsonConvert.DeserializeObject<Segment>(serialization, new RationalNewtonsoftJsonConverter())!;
 
         Assert.Equal(segment, deserialized);
     }

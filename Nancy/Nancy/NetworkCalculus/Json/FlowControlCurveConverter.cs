@@ -33,7 +33,7 @@ public class FlowControlCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         Rational delay = jo[DelayName]!.ToObject<Rational>(serializer);
         Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
@@ -54,7 +54,7 @@ public class FlowControlCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         FlowControlCurve curve = (FlowControlCurve) value;
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {

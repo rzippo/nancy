@@ -456,7 +456,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     public new static Segment FromJson(string json)
     {
-        var segment = JsonConvert.DeserializeObject<Segment>(json, new RationalConverter());
+        var segment = JsonConvert.DeserializeObject<Segment>(json, new RationalNewtonsoftJsonConverter());
         if (segment == null)
             throw new InvalidOperationException("Invalid JSON format.");
         return segment;

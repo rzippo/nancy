@@ -27,7 +27,7 @@ public class Concat
         foreach (var elementsName in JsonTestCases)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(elementsName);
-            var sequences = JsonConvert.DeserializeObject<Sequence[]>(json, new RationalConverter())!;
+            var sequences = JsonConvert.DeserializeObject<Sequence[]>(json, new RationalNewtonsoftJsonConverter())!;
 
             yield return new object[] { sequences };
         }

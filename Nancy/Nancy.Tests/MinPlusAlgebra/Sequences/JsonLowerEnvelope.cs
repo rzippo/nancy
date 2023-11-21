@@ -38,7 +38,7 @@ public class JsonLowerEnvelope
         foreach (var elementsName in NonOverflowingElementsNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(elementsName);
-            var elements = JsonConvert.DeserializeObject<Element[]>(json, new RationalConverter())!;
+            var elements = JsonConvert.DeserializeObject<Element[]>(json, new RationalNewtonsoftJsonConverter())!;
 
             yield return new object[] { elements };
         }
@@ -49,7 +49,7 @@ public class JsonLowerEnvelope
         foreach (var elementsName in OverflowingElementsNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(elementsName);
-            var elements = JsonConvert.DeserializeObject<Element[]>(json, new RationalConverter())!;
+            var elements = JsonConvert.DeserializeObject<Element[]>(json, new RationalNewtonsoftJsonConverter())!;
 
             yield return new object[] { elements };
         }

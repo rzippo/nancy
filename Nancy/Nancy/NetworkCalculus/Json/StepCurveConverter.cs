@@ -32,7 +32,7 @@ public class StepCurveConverter : JsonConverter
     {
         JObject jo = JObject.Load(reader);
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         Rational value = jo[ValueName]!.ToObject<Rational>(serializer);
         Rational stepTime = jo[StepTimeName]!.ToObject<Rational>(serializer);
@@ -51,7 +51,7 @@ public class StepCurveConverter : JsonConverter
             throw new ArgumentNullException(nameof(value));
         StepCurve curve = (StepCurve) value;
 
-        serializer.Converters.Add(new RationalConverter());
+        serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {
