@@ -1,61 +1,30 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json;
+using Newtonsoft.Json;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.Numerics.RationalTests;
 
-public class SystemJsonTests
+public class NewtonsoftJsonTests
 {
-    public static List<(int numerator, int denominator, string serialization)> SerializeFinitePairs = new()
+    [Fact]
+    public void SerializeFinite()
     {
-        (1, 2, "{\"num\":1,\"den\":2}"),
-        (2, 1, "2"),
-        (-1, 2, "{\"num\":-1,\"den\":2}"),
-        (-2, 1, "-2"),
-    };
+        Rational value = new Rational(1, 2);
+        string expected = "{\"num\":1,\"den\":2}";
 
-    public static IEnumerable<object[]> SerializeFiniteTestCases()
-    {
-        foreach (var (numerator, denominator, serialization) in SerializeFinitePairs)
-        {
-            yield return new object[] { numerator, denominator, serialization };
-        }
-    }
-    
-    [Theory]
-    [MemberData(nameof(SerializeFiniteTestCases))]
-    public void SerializeFinite(int numerator, int denominator, string expected)
-    {
-        Rational value = new Rational(numerator, denominator);
-        string serialization = JsonSerializer.Serialize(value);
+        string serialization = JsonConvert.SerializeObject(value, new RationalNewtonsoftJsonConverter());
 
         Assert.Equal(expected, serialization);
     }
 
-    public static List<(int numerator, int denominator, string serialization)> DeserializeFinitePairs = new()
-    {
-        (1, 2, "{\"num\":1,\"den\":2}"),
-        (2, 1, "{\"num\":2,\"den\":1}"),
-        (2, 1, "2"),
-        (-1, 2, "{\"num\":-1,\"den\":2}"),
-        (-2, 1, "{\"num\":-2,\"den\":1}"),
-        (-2, 1, "-2"),
-    };
-
-    public static IEnumerable<object[]> DeserializeFiniteTestCases()
-    {
-        foreach (var (numerator, denominator, serialization) in DeserializeFinitePairs)
-        {
-            yield return new object[] { numerator, denominator, serialization };
-        }
-    }
-    
     [Theory]
-    [MemberData(nameof(DeserializeFiniteTestCases))]
-    public void DeserializeFinite(int expectedNum, int expectedDen, string serialization)
+    [InlineData("{\"num\":1,\"den\":2}", 1, 2)]
+    [InlineData("{\"num\":2,\"den\":1}", 2, 1)]
+    [InlineData("2", 2, 1)]
+    public void DeserializeFinite(string serialization, int expectedNum, int expectedDen)
     {
-        Rational deserialized = JsonSerializer.Deserialize<Rational>(serialization);
+        Rational deserialized = JsonConvert.DeserializeObject<Rational>(serialization, new RationalNewtonsoftJsonConverter());
 
         Assert.True(deserialized.IsFinite);
         Assert.Equal(expectedNum, deserialized.Numerator);
@@ -68,7 +37,7 @@ public class SystemJsonTests
         Rational value = Rational.PlusInfinity;
         string expected = "{\"num\":1,\"den\":0}";
 
-        string serialization = JsonSerializer.Serialize(value);
+        string serialization = JsonConvert.SerializeObject(value, new RationalNewtonsoftJsonConverter());
 
         Assert.Equal(expected, serialization);
     }
@@ -78,7 +47,7 @@ public class SystemJsonTests
     {
         string serialization = "{\"num\":1,\"den\":0}";
 
-        Rational deserialized = JsonSerializer.Deserialize<Rational>(serialization);
+        Rational deserialized = JsonConvert.DeserializeObject<Rational>(serialization, new RationalNewtonsoftJsonConverter());
 
         Assert.True(deserialized.IsInfinite);
         Assert.Equal(Rational.PlusInfinity, deserialized);
@@ -90,7 +59,7 @@ public class SystemJsonTests
         Rational value = Rational.MinusInfinity;
         string expected = "{\"num\":-1,\"den\":0}";
 
-        string serialization = JsonSerializer.Serialize(value);
+        string serialization = JsonConvert.SerializeObject(value, new RationalNewtonsoftJsonConverter());
 
         Assert.Equal(expected, serialization);
     }
@@ -100,7 +69,7 @@ public class SystemJsonTests
     {
         string serialization = "{\"num\":-1,\"den\":0}";
 
-        Rational deserialized = JsonSerializer.Deserialize<Rational>(serialization);
+        Rational deserialized = JsonConvert.DeserializeObject<Rational>(serialization, new RationalNewtonsoftJsonConverter());
 
         Assert.True(deserialized.IsInfinite);
         Assert.Equal(Rational.MinusInfinity, deserialized);
@@ -135,7 +104,7 @@ public class SystemJsonTests
     [MemberData(nameof(SimplifiedSerializationCases))]
     public void SimplifiedSerialization(object value, string expected)
     {
-        var serialization = JsonSerializer.Serialize(value);
+        var serialization = JsonConvert.SerializeObject(value, new RationalNewtonsoftJsonConverter());
         Assert.Equal(expected, serialization);
     }
 }
