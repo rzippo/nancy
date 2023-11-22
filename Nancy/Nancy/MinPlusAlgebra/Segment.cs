@@ -52,7 +52,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <remarks>
     /// Referred to as $\rho_i$ in [BT08] Section 4.1
     /// </remarks>
-    [JsonProperty(PropertyName = "rightLimit")]
+    [JsonProperty(PropertyName = "rightLimitAtStartTime")]
     public Rational RightLimitAtStartTime { get; }
 
     /// <summary>
@@ -155,7 +155,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         else
         {
             if (rightLimitAtStartTime.IsInfinite && slope.IsInfinite && rightLimitAtStartTime != slope)
-                throw new ArgumentException("Cannot have opposite infinites as rightLimit and slope");
+                throw new ArgumentException("Cannot have opposite infinites as rightLimitAtStartTime and slope");
 
             if (rightLimitAtStartTime.IsPlusInfinite || slope.IsPlusInfinite)
             {

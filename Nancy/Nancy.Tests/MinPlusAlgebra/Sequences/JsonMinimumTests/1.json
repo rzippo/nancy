@@ -10,7 +10,7 @@
         "startTime": { "num": 0, "den": 1 },
         "endTime": { "num": 150, "den": 1 },
         "slope": { "num": 0, "den": 1 },
-        "rightLimit": { "num": 4, "den": 1 },
+        "rightLimitAtStartTime": { "num": 4, "den": 1 },
         "type": "segment"
       }
     ]
@@ -26,7 +26,7 @@
         "startTime": { "num": 0, "den": 1 },
         "endTime": { "num": 100, "den": 1 },
         "slope": { "num": 1, "den": 0 },
-        "rightLimit": { "num": 1, "den": 0 },
+        "rightLimitAtStartTime": { "num": 1, "den": 0 },
         "type": "segment"
       },
       {
@@ -38,7 +38,7 @@
         "startTime": { "num": 100, "den": 1 },
         "endTime": { "num": 150, "den": 1 },
         "slope": { "num": 0, "den": 1 },
-        "rightLimit": { "num": 8, "den": 1 },
+        "rightLimitAtStartTime": { "num": 8, "den": 1 },
         "type": "segment"
       }
     ]

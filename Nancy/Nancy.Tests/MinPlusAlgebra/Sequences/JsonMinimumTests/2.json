@@ -10,7 +10,7 @@
         "startTime": { "num": 0, "den": 1 },
         "endTime": { "num": 4, "den": 1 },
         "slope": { "num": 0, "den": 1 },
-        "rightLimit": { "num": 0, "den": 1 },
+        "rightLimitAtStartTime": { "num": 0, "den": 1 },
         "type": "segment"
       },
       {
@@ -22,7 +22,7 @@
         "startTime": { "num": 4, "den": 1 },
         "endTime": { "num": 8, "den": 1 },
         "slope": { "num": 0, "den": 1 },
-        "rightLimit": { "num": 5, "den": 1 },
+        "rightLimitAtStartTime": { "num": 5, "den": 1 },
         "type": "segment"
       },
       {
@@ -34,7 +34,7 @@
         "startTime": { "num": 8, "den": 1 },
         "endTime": { "num": 12, "den": 1 },
         "slope": { "num": 1, "den": 0 },
-        "rightLimit": { "num": 1, "den": 0 },
+        "rightLimitAtStartTime": { "num": 1, "den": 0 },
         "type": "segment"
       }
     ]
@@ -50,7 +50,7 @@
         "startTime": { "num": 0, "den": 1 },
         "endTime": { "num": 4, "den": 1 },
         "slope": { "num": 1, "den": 0 },
-        "rightLimit": { "num": 1, "den": 0 },
+        "rightLimitAtStartTime": { "num": 1, "den": 0 },
         "type": "segment"
       },
       {
@@ -62,7 +62,7 @@
         "startTime": { "num": 4, "den": 1 },
         "endTime": { "num": 8, "den": 1 },
         "slope": { "num": 0, "den": 1 },
-        "rightLimit": { "num": 5, "den": 1 },
+        "rightLimitAtStartTime": { "num": 5, "den": 1 },
         "type": "segment"
       },
       {
@@ -74,7 +74,7 @@
         "startTime": { "num": 8, "den": 1 },
         "endTime": { "num": 29, "den": 3 },
         "slope": { "num": 3, "den": 1 },
-        "rightLimit": { "num": 5, "den": 1 },
+        "rightLimitAtStartTime": { "num": 5, "den": 1 },
         "type": "segment"
       },
       {
@@ -86,7 +86,7 @@
         "startTime": { "num": 29, "den": 3 },
         "endTime": { "num": 12, "den": 1 },
         "slope": { "num": 0, "den": 1 },
-        "rightLimit": { "num": 10, "den": 1 },
+        "rightLimitAtStartTime": { "num": 10, "den": 1 },
         "type": "segment"
       }
     ]

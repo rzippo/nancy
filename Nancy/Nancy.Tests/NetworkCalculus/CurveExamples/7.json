@@ -12,7 +12,7 @@
                 "startTime": 0,
                 "endTime": 30,
                 "slope": 0,
-                "rightLimit": 0
+                "rightLimitAtStartTime": 0
             },
             {                
                 "type": "point",
@@ -24,7 +24,7 @@
                 "startTime": 30,
                 "endTime": 60,
                 "slope": 0,
-                "rightLimit": 10
+                "rightLimitAtStartTime": 10
             }
         ]
     },

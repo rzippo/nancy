@@ -27,7 +27,7 @@
           "num": 0,
           "den": 1
         },
-        "rightLimit": {
+        "rightLimitAtStartTime": {
           "num": 0,
           "den": 1
         }
@@ -57,7 +57,7 @@
           "num": 160,
           "den": 1
         },
-        "rightLimit": {
+        "rightLimitAtStartTime": {
           "num": 0,
           "den": 1
         }
@@ -87,7 +87,7 @@
           "num": 160,
           "den": 1
         },
-        "rightLimit": {
+        "rightLimitAtStartTime": {
           "num": 9280,
           "den": 1
         }
