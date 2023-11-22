@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -32,49 +33,59 @@ public sealed class Point : Element, IEquatable<Point>
     /// Time for which the point is defined.
     /// </summary>
     [JsonProperty(PropertyName = "time")]
+    [JsonPropertyName("time")]
     public Rational Time { get; }
 
     /// <summary>
     /// Value of the point.
     /// </summary>
     [JsonProperty(PropertyName = "value")]
+    [JsonPropertyName("value")]
     public Rational Value { get; }
 
     /// <inheritdoc />
+    [System.Text.Json.Serialization.JsonIgnore]
     public override Rational StartTime => Time;
 
     /// <inheritdoc />
+    [System.Text.Json.Serialization.JsonIgnore]
     public override Rational EndTime => Time;
 
     /// <summary>
     /// Slope, w.r.t. origin, of the point.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational PointSlope => Value / Time;
 
     /// <summary>
     /// True if the value of the point is $\pm\infty$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public override bool IsInfinite => Value.IsInfinite;
 
     /// <summary>
     /// True if the value of the point is $+\infty$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public override bool IsPlusInfinite => Value.IsPlusInfinite;
 
     /// <summary>
     /// True if the value of the point is $-\infty$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public override bool IsMinusInfinite => Value.IsMinusInfinite;
 
     /// <summary>
     /// True if the value of the point is 0.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public override bool IsZero
         => Value.IsZero;
 
     /// <summary>
     /// True if the point is $(0, 0)$
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsOrigin
         => Time.IsZero && Value.IsZero;
 
@@ -92,6 +103,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Type identification property for JSON (de)serialization.
     /// </summary>
     [JsonProperty(PropertyName = "type")]
+    [JsonPropertyName("type")]
     public override string Type { get; } = TypeCode;
 
     #endregion

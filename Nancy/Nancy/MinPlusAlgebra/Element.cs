@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using JsonSubTypes;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
@@ -13,7 +14,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// Can be either a <see cref="Point"/> or a <see cref="Segment"/>.
 /// </summary>
 /// <docs position="5"/>
-[JsonConverter(typeof(JsonSubtypes), "type")]
+[Newtonsoft.Json.JsonConverter(typeof(JsonSubtypes), "type")]
 [JsonSubtypes.KnownSubType(typeof(Point), Point.TypeCode)]
 [JsonSubtypes.KnownSubType(typeof(Segment), Segment.TypeCode)]
 public abstract class Element : IToCodeString
@@ -39,6 +40,7 @@ public abstract class Element : IToCodeString
     /// If the element is a <see cref="Segment"/>, it is strictly greater than 0.
     /// If the element is a <see cref="Point"/>, it is equal to 0.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational Length => EndTime - StartTime;
 
     /// <summary>
@@ -59,6 +61,7 @@ public abstract class Element : IToCodeString
     /// <summary>
     /// True if the element has finite value.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsFinite => !IsInfinite;
 
     /// <summary>
@@ -75,6 +78,7 @@ public abstract class Element : IToCodeString
     /// Type identification property for JSON (de)serialization.
     /// </summary>
     [JsonProperty(PropertyName = "type")]
+    [JsonPropertyName("type")]
     public abstract string Type { get; }
 
     #endregion
