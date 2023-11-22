@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -35,6 +36,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Referred to as $x_i$ in [BT08] Section 4.1 
     /// </remarks>
     [JsonProperty(PropertyName = "startTime")]
+    [JsonPropertyName("startTime")]
     public override Rational StartTime { get; }
 
     /// <summary>
@@ -44,6 +46,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Referred to as $x_i$ in [BT08] Section 4.1 
     /// </remarks>
     [JsonProperty(PropertyName = "endTime")]
+    [JsonPropertyName("endTime")]
     public override Rational EndTime { get; }
 
     /// <summary>
@@ -53,6 +56,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Referred to as $\rho_i$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "rightLimitAtStartTime")]
+    [JsonPropertyName("rightLimitAtStartTime")]
     public Rational RightLimitAtStartTime { get; }
 
     /// <summary>
@@ -62,42 +66,50 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Referred to as $\rho_i$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "slope")]
+    [JsonPropertyName("slope")]
     public Rational Slope { get; }
 
     /// <summary>
     /// Left limit of the segment at <see cref="EndTime"/>, $f(b-)$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational LeftLimitAtEndTime => RightLimitAtStartTime + Slope * Length;
 
     /// <summary>
     /// True if the segment has value plus/minus infinite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public override bool IsInfinite => RightLimitAtStartTime.IsInfinite;
 
     /// <summary>
     /// True if the segment has value plus infinite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public override bool IsPlusInfinite => RightLimitAtStartTime.IsPlusInfinite;
 
     /// <summary>
     /// True if the segment has value minus infinite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public override bool IsMinusInfinite => RightLimitAtStartTime.IsMinusInfinite;
 
     /// <summary>
     /// True if the segment has value 0 over all of its support.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public override bool IsZero => 
         RightLimitAtStartTime.IsZero && Slope.IsZero;
 
     /// <summary>
     /// True if the segment has a constant value
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsConstant => Slope == 0;
 
     /// <summary>
     /// Slope, w.r.t. origin, of the left endpoint of the segment.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational StartSlope => StartTime > 0 ?
         RightLimitAtStartTime / StartTime :
         Rational.PlusInfinity;
@@ -105,6 +117,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <summary>
     /// Slope, w.r.t. origin, of the right endpoint of the segment.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational EndSlope => LeftLimitAtEndTime / EndTime;
 
     #endregion Properties
@@ -121,6 +134,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Type identification property for JSON (de)serialization.
     /// </summary>
     [JsonProperty(PropertyName = "type")]
+    [JsonPropertyName("type")]
     public override string Type { get; } = TypeCode;
 
     #endregion
@@ -135,6 +149,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <param name="rightLimitAtStartTime">Right limit of the segment at startTime, f(a+).</param>
     /// <param name="slope">Slope of the segment.</param>
     /// <exception cref="ArgumentException"></exception>
+    [System.Text.Json.Serialization.JsonConstructor]
     public Segment(
         Rational startTime,
         Rational endTime,

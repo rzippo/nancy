@@ -26,6 +26,7 @@ public abstract class Element : IToCodeString
     /// If the element is a <see cref="Segment"/>, it is exclusive and strictly lower than <see cref="EndTime"/>.
     /// If the element is a <see cref="Point"/>, it is inclusive and equal to <see cref="EndTime"/>.
     /// </summary>
+    [JsonPropertyName("startTime")]
     public abstract Rational StartTime { get; }
 
     /// <summary>
@@ -33,6 +34,7 @@ public abstract class Element : IToCodeString
     /// If the element is a <see cref="Segment"/>, it is exclusive and strictly greater than <see cref="StartTime"/>.
     /// If the element is a <see cref="Point"/>, it is inclusive and equal to <see cref="StartTime"/>.
     /// </summary>
+    [JsonPropertyName("endTime")]
     public abstract Rational EndTime { get; }
 
     /// <summary>
@@ -46,16 +48,19 @@ public abstract class Element : IToCodeString
     /// <summary>
     /// True if the element has plus/minus infinite value.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public abstract bool IsInfinite { get; }
 
     /// <summary>
     /// True if the element has plus infinite value.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public abstract bool IsPlusInfinite { get; }
 
     /// <summary>
     /// True if the element has minus infinite value.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public abstract bool IsMinusInfinite { get; }
 
     /// <summary>
@@ -68,6 +73,7 @@ public abstract class Element : IToCodeString
     /// True if the element has 0 value.
     /// If the element is a <see cref="Segment"/>, this must be true for all its support.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public abstract bool IsZero { get; }
 
     #endregion
