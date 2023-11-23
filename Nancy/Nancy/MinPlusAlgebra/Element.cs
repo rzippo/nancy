@@ -17,8 +17,22 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 [Newtonsoft.Json.JsonConverter(typeof(JsonSubtypes), "type")]
 [JsonSubtypes.KnownSubType(typeof(Point), Point.TypeCode)]
 [JsonSubtypes.KnownSubType(typeof(Segment), Segment.TypeCode)]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(Point), Point.TypeCode)]
+[JsonDerivedType(typeof(Segment), Segment.TypeCode)]
 public abstract class Element : IToCodeString
 {
+    #region Serialization
+
+    /// <summary>
+    /// Type identification property for JSON (de)serialization.
+    /// </summary>
+    [JsonProperty(PropertyName = "type")]
+    [JsonPropertyName("type")]
+    public abstract string Type { get; }
+
+    #endregion
+    
     #region Properties
 
     /// <summary>
@@ -75,17 +89,6 @@ public abstract class Element : IToCodeString
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public abstract bool IsZero { get; }
-
-    #endregion
-
-    #region Serialization
-
-    /// <summary>
-    /// Type identification property for JSON (de)serialization.
-    /// </summary>
-    [JsonProperty(PropertyName = "type")]
-    [JsonPropertyName("type")]
-    public abstract string Type { get; }
 
     #endregion
 

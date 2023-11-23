@@ -27,6 +27,24 @@ public sealed class Point : Element, IEquatable<Point>
     private static Logger logger = LogManager.GetCurrentClassLogger();
     #endif
 
+    #region Serialization
+
+    /// <summary>
+    /// Type identification constant for JSON (de)serialization.
+    /// </summary>
+    /// <exclude />
+    public const string TypeCode = "point";
+
+    /// <summary>
+    /// Type identification property for JSON (de)serialization.
+    /// </summary>
+    [JsonProperty(PropertyName = "type")]
+    [JsonPropertyName("type")]
+    [System.Text.Json.Serialization.JsonIgnore]
+    public override string Type { get; } = TypeCode;
+
+    #endregion
+    
     #region Properties
 
     /// <summary>
@@ -90,23 +108,6 @@ public sealed class Point : Element, IEquatable<Point>
         => Time.IsZero && Value.IsZero;
 
     #endregion Properties
-
-    #region Serialization
-
-    /// <summary>
-    /// Type identification constant for JSON (de)serialization.
-    /// </summary>
-    /// <exclude />
-    public const string TypeCode = "point";
-
-    /// <summary>
-    /// Type identification property for JSON (de)serialization.
-    /// </summary>
-    [JsonProperty(PropertyName = "type")]
-    [JsonPropertyName("type")]
-    public override string Type { get; } = TypeCode;
-
-    #endregion
 
     #region Constructors
 
