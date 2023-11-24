@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -90,7 +90,7 @@ public class Curve : IToCodeString
     /// <remarks>
     /// Referred to as $[t_1, ..., t_k]$ in [BT08] Section 4.1
     /// </remarks>
-    [JsonProperty(PropertyName = "sequence")]
+    [JsonProperty(PropertyName = "baseSequence")]
     public Sequence BaseSequence { get; init; }
 
     /// <summary>

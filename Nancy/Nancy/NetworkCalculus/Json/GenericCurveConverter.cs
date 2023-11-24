@@ -29,7 +29,7 @@ public class GenericCurveConverter : JsonConverter
 
         var settings = new JsonSerializerSettings() {
             Converters = new JsonConverter[] {
-                new CurveConverter(),
+                new CurveNewtonsoftJsonConverter(),
                 new ConstantCurveConverter(),
                 new StepCurveConverter(),
                 new SigmaRhoArrivalCurveConverter(),
@@ -51,7 +51,7 @@ public class GenericCurveConverter : JsonConverter
         Curve? result;
         switch(typename)
         {
-            case CurveConverter.TypeCode:
+            case CurveNewtonsoftJsonConverter.TypeCode:
                 result = jo.ToObject<Curve>(curveSerializer);
                 break;
 
@@ -112,7 +112,7 @@ public class GenericCurveConverter : JsonConverter
 
         var settings = new JsonSerializerSettings() {
             Converters = new JsonConverter[] {
-                new CurveConverter(),
+                new CurveNewtonsoftJsonConverter(),
                 new ConstantCurveConverter(),
                 new StepCurveConverter(),
                 new SigmaRhoArrivalCurveConverter(),

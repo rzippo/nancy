@@ -8,9 +8,9 @@ namespace Unipi.Nancy.MinPlusAlgebra.Json;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="Curve"/>.
+/// Custom Newtonsoft.Json JsonConverter for <see cref="Curve"/>.
 /// </summary>
-public class CurveConverter : JsonConverter
+public class CurveNewtonsoftJsonConverter : JsonConverter
 {
     private const string TypeName = "type";
 
@@ -19,7 +19,7 @@ public class CurveConverter : JsonConverter
     /// </summary>
     public const string TypeCode = "curve";
 
-    private static readonly string BaseSequenceName = "sequence";
+    private static readonly string BaseSequenceName = "baseSequence";
     private static readonly string PseudoPeriodStartTimeName = "periodStart";
     private static readonly string PseudoPeriodLengthName = "periodLength";
     private static readonly string PseudoPeriodHeightName = "periodHeight";
