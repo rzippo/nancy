@@ -70,8 +70,9 @@ public class PointSystemJson
     public void MethodsCoherency(Point point)
     {
         var serialization = point.ToString();
-        var p2 = Point.FromJson(serialization);
-        Assert.Equal(point.Time, p2.Time);
-        Assert.Equal(point.Value, p2.Value);
+        output.WriteLine(serialization);
+        var deserialized = Point.FromJson(serialization);
+        
+        Assert.Equal(point, deserialized);
     }
 }
