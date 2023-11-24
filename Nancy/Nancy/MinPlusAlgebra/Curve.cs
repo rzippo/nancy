@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.NetworkCalculus.Json;
@@ -26,11 +27,19 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </remarks>
 /// <docs position="1"/>
 [JsonObject(MemberSerialization.OptIn)]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(Curve), Curve.TypeCode)]
 public class Curve : IToCodeString
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
     #endif
+
+    /// <summary>
+    /// Type identification constant for JSON (de)serialization.
+    /// </summary>
+    /// <exclude />
+    public const string TypeCode = "curve";
 
     #region Properties
 
@@ -41,6 +50,7 @@ public class Curve : IToCodeString
     /// Referred to as $T$ or Rank in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "periodStart")]
+    [JsonPropertyName("periodStart")]
     public Rational PseudoPeriodStart { get; init; }
 
     /// <summary>
@@ -50,6 +60,7 @@ public class Curve : IToCodeString
     /// Referred to as $d$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "periodLength")]
+    [JsonPropertyName("periodLength")]
     public Rational PseudoPeriodLength { get; init; }
 
     /// <summary>
@@ -60,12 +71,14 @@ public class Curve : IToCodeString
     /// Referred to as $c$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "periodHeight")]
+    [JsonPropertyName("periodHeight")]
     public Rational PseudoPeriodHeight { get; init; }
 
     /// <summary>
     /// Average slope of curve in pseudo-periodic behavior.
     /// If it's 0, the curve is truly periodic.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational PseudoPeriodSlope =>
         PseudoPeriodicSequence.IsInfinite
             ? (PseudoPeriodicElements.First().IsPlusInfinite ? Rational.PlusInfinity : Rational.MinusInfinity)
@@ -74,12 +87,14 @@ public class Curve : IToCodeString
     /// <summary>
     /// End time of the first pseudo period.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstPseudoPeriodEnd =>
         PseudoPeriodStart + PseudoPeriodLength;
 
     /// <summary>
     /// End time of the second pseudo period.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational SecondPseudoPeriodEnd =>
         FirstPseudoPeriodEnd + PseudoPeriodLength;
 
@@ -91,23 +106,27 @@ public class Curve : IToCodeString
     /// Referred to as $[t_1, ..., t_k]$ in [BT08] Section 4.1
     /// </remarks>
     [JsonProperty(PropertyName = "baseSequence")]
+    [JsonPropertyName("baseSequence")]
     public Sequence BaseSequence { get; init; }
 
     /// <summary>
     /// True if the curve has finite value for any $t$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsFinite => BaseSequence.IsFinite;
 
     /// <summary>
     /// The first instant around which the curve is not infinite.
     /// Does not specify whether it's inclusive or not, i.e. if $f(t)$ is finite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstFiniteTime => BaseSequence.FirstFiniteTime;
 
     /// <summary>
     /// The first instant around which the curve is not infinite, excluding the origin point.
     /// Does not specify whether it's inclusive or not, i.e. if $f(t)$ is finite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstFiniteTimeExceptOrigin
     {
         get
@@ -126,6 +145,7 @@ public class Curve : IToCodeString
     /// The first instant around which the curve is not 0.
     /// Does not specify whether it's inclusive or not, i.e. if $f(\overline{t}) = 0$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstNonZeroTime =>
         IsZero
             ? Rational.PlusInfinity
@@ -135,6 +155,7 @@ public class Curve : IToCodeString
     /// Returns the minimum $T_L$ such that $f(t + d) = f(t) + c$ for all $t > T_L$.
     /// It is the infimum of all valid <see cref="PseudoPeriodStart"/>, i.e. $T_L = \inf\{ T | f(t + d) = f(t) + c \forall t \ge T \}$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational PseudoPeriodStartInfimum
     {
         get
@@ -158,24 +179,28 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if the curve is 0 for all $t$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsZero =>
         BaseSequence.IsZero && PseudoPeriodHeight.IsZero;
 
     /// <summary>
     /// True if the curve has $+\infty$ value for any $t$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsPlusInfinite =>
         this.Equivalent(PlusInfinite());
 
     /// <summary>
     /// True if the curve has $-\infty$ value for any $t$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsMinusInfinite =>
         this.Equivalent(MinusInfinite());
 
     /// <summary>
     /// True if there is no infinite value or discontinuity within the curve.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsContinuous
     {
         get
@@ -195,6 +220,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if there is no discontinuity within the curve, except at most in origin.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsContinuousExceptOrigin
     {
         get
@@ -216,6 +242,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if there is no left-discontinuity within the curve.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsLeftContinuous
         => _isLeftContinuous ??= Cut(0, SecondPseudoPeriodEnd).IsLeftContinuous;
 
@@ -227,6 +254,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if there is no right-discontinuity within the curve.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRightContinuous
         => _isRightContinuous ??= Cut(0, SecondPseudoPeriodEnd).IsRightContinuous;
 
@@ -257,6 +285,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if the curve is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonNegative
         => _isNonNegative ??= InfValue() >= 0;
 
@@ -314,6 +343,7 @@ public class Curve : IToCodeString
     /// The first instant around which the curve is non-negative.
     /// Does not specify whether it's inclusive or not, i.e. if $f(\overline{t}) >= 0$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstNonNegativeTime
     {
         get
@@ -369,6 +399,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonDecreasing
         => _isNonDecreasing ??= CutAsEnumerable(0, SecondPseudoPeriodEnd).IsNonDecreasing();
 
@@ -520,12 +551,14 @@ public class Curve : IToCodeString
     /// <remarks>
     /// This property does not check if $f(t), t &lt;$ <see cref="PseudoPeriodStart"/> is either infinite, finite or both.
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyFinite =>
         PseudoPeriodicElements.All(elem => elem.IsFinite);
 
     /// <summary>
     /// True if, for $b \in \{-\infty, +\infty\}$ and some $T$, $f(t) = b$ for all $t \ge T$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyInfinite
     {
         get
@@ -542,6 +575,7 @@ public class Curve : IToCodeString
     /// <remarks>
     /// Defined in [BT08], Definition 1.
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyPlain =>
         IsUltimatelyFinite || IsUltimatelyInfinite;
 
@@ -554,6 +588,7 @@ public class Curve : IToCodeString
     /// <remarks>
     /// Formally defined in [BT08], Definition 1.
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsPlain 
     {
         get
@@ -577,6 +612,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is affine.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyAffine =>
         IsUltimatelyFinite
         && PseudoPeriodicElements.Count() == 2
@@ -586,6 +622,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if for $t \ge$ <see cref="PseudoPeriodStart"/> the curve is constant.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyConstant =>
         IsUltimatelyAffine && PseudoPeriodSlope == 0;
 
@@ -597,6 +634,7 @@ public class Curve : IToCodeString
     /// where $f^\circ$ is defined in <see cref="Curve.WithZeroOrigin"/>.
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public virtual bool IsSubAdditive
     {
         get
@@ -628,6 +666,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if the curve is sub-additive with $f(0) = 0$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularSubAdditive
         => IsSubAdditive && ValueAt(0) == 0;
 
@@ -639,6 +678,7 @@ public class Curve : IToCodeString
     /// where $f^\circ$ is defined in <see cref="Curve.WithZeroOrigin"/>.
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public virtual bool IsSuperAdditive
     {
         get
@@ -670,6 +710,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// True if the curve is super-additive with $f(0) = 0$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularSuperAdditive
         => IsSuperAdditive && ValueAt(0) == 0;
 
@@ -683,6 +724,7 @@ public class Curve : IToCodeString
     /// a) $f$ is continuous, or it is continuous for $t > 0$ and $f(0) \le f(0^+)$, and
     /// b) $f$ is composed of segments with decreasing slopes.
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsConcave
     {
         get
@@ -710,6 +752,7 @@ public class Curve : IToCodeString
     /// <summary>
     /// Tests if the curve is concave with $f(0) = 0$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularConcave
         => IsConcave && ValueAt(0) == 0;
 
@@ -722,6 +765,7 @@ public class Curve : IToCodeString
     /// a) $f$ is continuous, or it is continuous for $t > 0$ and $f(0) \ge f(0^+)$, and
     /// b) $f$ is composed of segments with increasing slopes.
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsConvex
     {
         get
@@ -749,18 +793,21 @@ public class Curve : IToCodeString
     /// <summary>
     /// Tests if the curve is convex with $f(0) = 0$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularConvex
         => IsConvex && ValueAt(0) == 0;
 
     /// <summary>
     /// True if pseudo-periodic behavior starts at $T > 0$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool HasTransient =>
         PseudoPeriodStart > 0;
 
     /// <summary>
     /// Sequence describing the curve in $[0, T[$, before pseudo-periodic behavior.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Sequence? TransientSequence 
         => HasTransient ? BaseSequence.Cut(0, PseudoPeriodStart) : null;
 
@@ -770,12 +817,14 @@ public class Curve : IToCodeString
     /// <remarks>
     /// Referred to as $[t_1, ..., t_{i_0 - 1}]$ in [BT08] Section 4.1
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public IEnumerable<Element> TransientElements 
         => TransientSequence?.Elements ?? Enumerable.Empty<Element>();
 
     /// <summary>
     /// Sequence describing the pseudo-periodic behavior of the curve in $[T, T + d[$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Sequence PseudoPeriodicSequence =>
         BaseSequence.Cut(PseudoPeriodStart, FirstPseudoPeriodEnd);
 
@@ -785,6 +834,7 @@ public class Curve : IToCodeString
     /// <remarks>
     /// Referred to as $[t_{i_0}, ..., t_k]$ in [BT08] Section 4.1
     /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
     public IEnumerable<Element> PseudoPeriodicElements =>
         PseudoPeriodicSequence.Elements;
 
@@ -799,13 +849,55 @@ public class Curve : IToCodeString
     /// <param name="pseudoPeriodStart">Time from which the curve is pseudo-periodic, $T$.</param>
     /// <param name="pseudoPeriodLength">Length of each pseudo-period, $d$.</param>
     /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
+    [System.Text.Json.Serialization.JsonConstructor]
+    public Curve(
+        Sequence baseSequence,
+        Rational pseudoPeriodStart,
+        Rational pseudoPeriodLength,
+        Rational pseudoPeriodHeight
+    )
+    {
+        if (baseSequence.DefinedFrom != 0 || baseSequence.DefinedUntil != pseudoPeriodStart + pseudoPeriodLength)
+        {
+            throw new ArgumentException("Base sequence must start at t = 0 and end at T + d");
+        }
+        else if (
+            pseudoPeriodHeight.IsInfinite && 
+            baseSequence
+                .CutAsEnumerable(pseudoPeriodStart, pseudoPeriodStart + pseudoPeriodLength)
+                .Any(e => e.IsFinite)
+        )
+        {
+            // non-conforming infinite curve
+            pseudoPeriodStart = baseSequence.DefinedUntil;
+            baseSequence = baseSequence.Elements
+                .Fill(0, pseudoPeriodStart + pseudoPeriodLength, fillWith: pseudoPeriodHeight)
+                .ToSequence();
+        }
+
+        BaseSequence = baseSequence
+            .Optimize()
+            .Cut(cutStart: 0, cutEnd: pseudoPeriodStart + pseudoPeriodLength, isStartIncluded: true, isEndIncluded: false)
+            .EnforceSplitAt(pseudoPeriodStart);
+        PseudoPeriodStart = pseudoPeriodStart;
+        PseudoPeriodLength = pseudoPeriodLength;
+        PseudoPeriodHeight = pseudoPeriodHeight;
+    }
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="baseSequence">Describes the curve in $[0, T + d[$.</param>
+    /// <param name="pseudoPeriodStart">Time from which the curve is pseudo-periodic, $T$.</param>
+    /// <param name="pseudoPeriodLength">Length of each pseudo-period, $d$.</param>
+    /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
     /// <param name="isPartialCurve">True if the curve is partially described, and should be filled by pre- and post-pending $+\infty$ to <see cref="BaseSequence"/>.</param>
     public Curve(
         Sequence baseSequence,
         Rational pseudoPeriodStart,
         Rational pseudoPeriodLength,
         Rational pseudoPeriodHeight,
-        bool isPartialCurve = false
+        bool isPartialCurve
     )
     {
         if (baseSequence.DefinedFrom != 0 || baseSequence.DefinedUntil != pseudoPeriodStart + pseudoPeriodLength)
