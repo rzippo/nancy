@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.Numerics;
 
@@ -32,54 +33,64 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// Set of elements composing the sequence.
     /// </summary>
     [JsonProperty(PropertyName = "elements")]
-    public ReadOnlyCollection<Element> Elements { get; }
+    [JsonPropertyName("elements")]
+    public IReadOnlyList<Element> Elements { get; }
 
     /// <summary>
     /// Left endpoint of the support of the sequence.
     /// Can be either inclusive or exclusive, see <see cref="IsLeftClosed"/> or <see cref="IsLeftOpen"/>.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational DefinedFrom => Elements.First().StartTime;
 
     /// <summary>
     /// Right endpoint of the support of the sequence.
     /// Can be either inclusive or exclusive, see <see cref="IsRightClosed"/> or <see cref="IsRightOpen"/>.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational DefinedUntil => Elements.Last().EndTime;
 
     /// <summary>
     /// Length of the support of the sequence.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational Length => DefinedUntil - DefinedFrom;
 
     /// <summary>
     /// Number of points and segments composing the sequence.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public int Count => Elements.Count;
 
     /// <summary>
     /// True if all elements of the sequence are finite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsFinite => Elements.All(e => e.IsFinite);
 
     /// <summary>
     /// True if all elements of the sequence are infinite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsInfinite => Elements.All(e => e.IsInfinite);
 
     /// <summary>
     /// True if all elements of the sequence are plus infinite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsPlusInfinite => Elements.All(e => e.IsPlusInfinite);
 
     /// <summary>
     /// True if all elements of the sequence are minus infinite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsMinusInfinite => Elements.All(e => e.IsMinusInfinite);
 
     /// <summary>
     /// The first instant around which the sequence is not infinite.
     /// Does not specify whether it's inclusive or not, i.e. if $f(t)$ is finite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstFiniteTime => 
         Elements.FirstOrDefault(e => e.IsFinite)?.StartTime ?? Rational.PlusInfinity;
 
@@ -95,6 +106,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// The first instant around which the sequence is not finite.
     /// Does not specify whether it's inclusive or not, i.e. if $f(t)$ is infinite.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstInfiniteTime =>
         Elements.FirstOrDefault(e => e.IsInfinite)?.StartTime ?? Rational.PlusInfinity;
 
@@ -102,18 +114,21 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// The first instant around which the curve is not 0.
     /// Does not specify whether it's inclusive or not, i.e. if $f(t)$ is 0.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstNonZeroTime =>
         Elements.FirstOrDefault(e => !e.IsZero)?.StartTime ?? Rational.PlusInfinity;
 
     /// <summary>
     /// True if the sequence is 0 for all $t$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsZero =>
         Elements.All(e => e.IsZero);
 
     /// <summary>
     /// True if there is no discontinuity within the sequence.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsContinuous
     {
         get
@@ -153,6 +168,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// True if there is left-discontinuity within the sequence.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsLeftContinuous
         => _isLeftContinuous ??= TestIsLeftContinuous();
 
@@ -177,6 +193,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// True if there is right-discontinuity within the sequence.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRightContinuous
         => _isRightContinuous ??= TestIsRightContinuous();
 
@@ -248,12 +265,14 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonNegative
         => MinValue() >= 0;
 
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonDecreasing
         => _isNonDecreasing ??= TestIsNonDecreasing();
 
@@ -278,31 +297,37 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// True if <see cref="DefinedFrom"/> is exclusive.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsLeftOpen => Elements.First() is Segment;
 
     /// <summary>
     /// True if <see cref="DefinedFrom"/> is inclusive.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsLeftClosed => !IsLeftOpen;
 
     /// <summary>
     /// True if <see cref="DefinedUntil"/> is exclusive.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRightOpen => Elements.Last() is Segment;
 
     /// <summary>
     /// True if <see cref="DefinedUntil"/> is inclusive.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRightClosed => !IsRightOpen;
 
     /// <summary>
     /// True if the sequence consists of only a <see cref="Point"/>, meaning it is has 0 time length.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsPoint => Elements.Count == 1 && Elements.Single() is Point;
 
     /// <summary>
     /// True if the the sequence starts with a plateau.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool StartsWithPlateau
     {
         get
@@ -324,6 +349,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// <summary>
     /// True if the sequence ends with a plateau.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool EndsWithPlateau
     {
         get
@@ -346,6 +372,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// Returns the end time of the plateau at the start of the sequence,
     /// or the sequence start if there is no such plateau.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstPlateauEnd
     {
         get 
@@ -364,6 +391,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// Returns the start time of the plateau at the end of the sequence,
     /// or the sequence end if there is no such plateau.
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public Rational LastPlateauStart
     {
         get 
@@ -386,7 +414,20 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
     /// Constructor.
     /// </summary>
     /// <param name="elements">Set of elements composing the sequence. Must be in uninterrupted order.</param>
-    [JsonConstructor]
+    [Newtonsoft.Json.JsonConstructor]
+    [System.Text.Json.Serialization.JsonConstructor]
+    public Sequence(IReadOnlyList<Element> elements)
+    {
+        if (!elements.AreUninterruptedSequence())
+            throw new ArgumentException("Elements are not uninterrupted");
+
+        Elements = elements;
+    }
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="elements">Set of elements composing the sequence. Must be in uninterrupted order.</param>
     public Sequence(IEnumerable<Element> elements)
     {
         var list = elements.ToList();
