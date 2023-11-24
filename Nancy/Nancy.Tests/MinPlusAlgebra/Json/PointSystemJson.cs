@@ -61,8 +61,7 @@ public class PointSystemJson
     public void PointDeserialization(Point expected, string serialization)
     {
         Point deserialized = JsonSerializer.Deserialize<Point>(serialization)!;
-        Assert.Equal(expected.Time, deserialized.Time);
-        Assert.Equal(expected.Value, deserialized.Value);
+        Assert.Equal(expected, deserialized);
     }
 
     [Theory]
