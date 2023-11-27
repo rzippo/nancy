@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 #if DO_LOG
@@ -21,6 +23,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// but is not required for sub-additivity to be stable on addition and convolution.
 /// To keep the type system simple for the common cases of DNC, we opted not to support non-regular sub-additive functions with their own type.
 /// </remarks>
+[JsonConverter(typeof(SubAdditiveCurveSystemJsonConverter))]
 public class SubAdditiveCurve : Curve
 {
     #if DO_LOG

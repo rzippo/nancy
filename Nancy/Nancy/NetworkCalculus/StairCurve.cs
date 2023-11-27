@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -7,6 +9,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// <summary>
 /// Stair curve defined in [TLBB21] as $v(t) = a \cdot \left\lceil \frac{t}{b} \right\rceil$
 /// </summary>
+[JsonConverter(typeof(StairCurveSystemJsonConverter))]
 public class StairCurve : Curve
 {
     /// <summary>

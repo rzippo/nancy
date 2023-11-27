@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json.Serialization;
 using NLog;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -11,6 +13,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// <summary>
 /// Used to represent curves that are known to be super-additive.
 /// </summary>
+[JsonConverter(typeof(SuperAdditiveCurveSystemJsonConverter))]
 public class SuperAdditiveCurve : Curve
 {
     #if DO_LOG

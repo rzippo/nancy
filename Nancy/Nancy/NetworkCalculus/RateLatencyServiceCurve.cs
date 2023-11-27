@@ -1,7 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using NLog;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -9,6 +11,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// <summary>
 /// A rate-latency service curve
 /// </summary>
+[JsonConverter(typeof(RateLatencyServiceCurveSystemJsonConverter))]
 public class RateLatencyServiceCurve : ConvexCurve
 {
     #if DO_LOG
@@ -24,16 +27,19 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// <summary>
     /// Minimum rate of service.
     /// </summary>
+    [JsonPropertyName("rate")]
     public Rational Rate { get; }
 
     /// <summary>
     /// Maximum latency of service.
     /// </summary>
+    [JsonPropertyName("latency")]
     public Rational Latency { get; }
 
     /// <summary>
     /// Constructor.
     /// </summary>
+    [JsonConstructor]
     public RateLatencyServiceCurve(Rational rate, Rational latency)
         : base(
             baseSequence: BuildSequence(rate, latency),

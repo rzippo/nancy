@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -10,6 +12,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// Result of the sub-additive closure of a rate-latency service curve and a constant, as used in static window flow control: $\overline{\beta_{R, \theta} + W}$.
 /// For completeness, also degenerate cases are defined.
 /// </summary>
+[JsonConverter(typeof(FlowControlCurveSystemJsonConverter))]
 public class FlowControlCurve : SubAdditiveCurve
 {
     /// <summary>

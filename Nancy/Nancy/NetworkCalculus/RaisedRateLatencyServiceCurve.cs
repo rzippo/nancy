@@ -1,4 +1,6 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+﻿using System.Text.Json.Serialization;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -7,6 +9,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// Result of the sum of a <see cref="RateLatencyServiceCurve"/> and a <see cref="ConstantCurve"/>.
 /// Used to optimize its sub-additive closure.
 /// </summary>
+[JsonConverter(typeof(RaisedRateLatencyServiceCurveSystemJsonConverter))]
 public class RaisedRateLatencyServiceCurve : Curve
 {
     /// <summary>
@@ -33,10 +36,9 @@ public class RaisedRateLatencyServiceCurve : Curve
     /// <summary>
     /// Constructor.
     /// </summary>
-    public RaisedRateLatencyServiceCurve(Rational rate, Rational latency, Rational bufferShift,
-        bool withZeroOrigin = false)
+    public RaisedRateLatencyServiceCurve(Rational rate, Rational latency, Rational bufferShift)
         : base(
-            baseSequence: BuildSequence(rate, latency, bufferShift, withZeroOrigin),
+            baseSequence: BuildSequence(rate, latency, bufferShift),
             pseudoPeriodStart: PeriodStart(latency, bufferShift),
             pseudoPeriodLength: DefaultPeriodLength,
             pseudoPeriodHeight: PeriodHeight(latency, rate)
@@ -50,7 +52,7 @@ public class RaisedRateLatencyServiceCurve : Curve
     /// <summary>
     /// Builds the sequence for the base class constructor.
     /// </summary>
-    internal static Sequence BuildSequence(Rational rate, Rational latency, Rational bufferShift, bool withZeroOrigin)
+    internal static Sequence BuildSequence(Rational rate, Rational latency, Rational bufferShift, bool withZeroOrigin = false)
     {
         Element[] elements;
         if (latency == 0)

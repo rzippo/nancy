@@ -1,4 +1,6 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+﻿using System.Text.Json.Serialization;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -7,6 +9,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// A curve that is 0 for any t less or equal to T,
 /// and of constant value for t > T.
 /// </summary>
+[JsonConverter(typeof(StepCurveSystemJsonConverter))]
 public class StepCurve : Curve
 {
     /// <summary>

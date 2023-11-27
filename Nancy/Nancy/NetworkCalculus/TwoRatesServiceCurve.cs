@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -8,6 +10,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// <summary>
 /// A continuous two-rates service curve.
 /// </summary>
+[JsonConverter(typeof(TwoRatesServiceCurveSystemJsonConverter))]
 public class TwoRatesServiceCurve : Curve
 {
     /// <summary>

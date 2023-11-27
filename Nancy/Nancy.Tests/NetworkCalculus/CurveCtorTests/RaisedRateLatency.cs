@@ -57,7 +57,7 @@ public class RaisedRateLatency
     [MemberData(nameof(GetTestCases))]
     public void RaisedRateLatencyCtor_WithZeroOrigin(Rational latency, Rational rate, Rational bufferShift)
     {
-        RaisedRateLatencyServiceCurve curve = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift, withZeroOrigin: true);
+        var curve = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift).WithZeroOrigin();
 
         Assert.True(curve.IsFinite);
         Assert.False(curve.IsZero);

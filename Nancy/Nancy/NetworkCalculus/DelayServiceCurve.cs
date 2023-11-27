@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -8,6 +10,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// A pure delay service model.
 /// Given delay $\tau$, $f(t) = 0$ if $t \le \tau$, $f(t) = +\infty$ otherwise.
 /// </summary>
+[JsonConverter(typeof(DelayServiceCurveSystemJsonConverter))]
 public class DelayServiceCurve : SuperAdditiveCurve
 {
     /// <summary>

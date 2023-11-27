@@ -1,5 +1,7 @@
-﻿using NLog;
+﻿using System.Text.Json.Serialization;
+using NLog;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -8,6 +10,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// A (sigma, rho) traffic model, also know as token-bucket or leaky-bucket.
 /// Sub-additive
 /// </summary>
+[JsonConverter(typeof(SigmaRhoArrivalCurveSystemJsonConverter))]
 public class SigmaRhoArrivalCurve : ConcaveCurve
 {
     #if DO_LOG

@@ -1,4 +1,6 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+﻿using System.Text.Json.Serialization;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.NetworkCalculus;
@@ -8,6 +10,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// It is equivalent to a step function with stepTime = 0.
 /// Sub-additive.
 /// </summary>
+[JsonConverter(typeof(ConstantCurveSystemJsonConverter))]
 public class ConstantCurve : SubAdditiveCurve
 {
     /// <summary>

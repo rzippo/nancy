@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -27,8 +27,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </remarks>
 /// <docs position="1"/>
 [JsonObject(MemberSerialization.OptIn)]
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(Curve), Curve.TypeCode)]
+[System.Text.Json.Serialization.JsonConverter(typeof(GenericCurveSystemJsonConverter))]
 public class Curve : IToCodeString
 {
     #if DO_LOG
