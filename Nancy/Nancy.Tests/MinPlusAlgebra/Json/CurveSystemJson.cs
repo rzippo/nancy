@@ -44,7 +44,7 @@ public class CurveSystemJson
                 pseudoPeriodLength: 2,
                 pseudoPeriodHeight: 3
             ),
-            "{\"type\":\"curve\",\"baseSequence\":{\"elements\":[{\"type\":\"point\",\"time\":0,\"value\":0},{\"type\":\"segment\",\"startTime\":0,\"endTime\":3,\"rightLimitAtStartTime\":0,\"slope\":0},{\"type\":\"point\",\"time\":3,\"value\":5},{\"type\":\"segment\",\"startTime\":3,\"endTime\":5,\"rightLimitAtStartTime\":5,\"slope\":0}]},\"periodStart\":3,\"periodLength\":2,\"periodHeight\":3}"
+            "{\"type\":\"curve\",\"baseSequence\":{\"elements\":[{\"type\":\"point\",\"time\":0,\"value\":0},{\"type\":\"segment\",\"startTime\":0,\"endTime\":3,\"rightLimitAtStartTime\":0,\"slope\":0},{\"type\":\"point\",\"time\":3,\"value\":5},{\"type\":\"segment\",\"startTime\":3,\"endTime\":5,\"rightLimitAtStartTime\":5,\"slope\":0}]},\"pseudoPeriodStart\":3,\"pseudoPeriodLength\":2,\"pseudoPeriodHeight\":3}"
         )
     };
     

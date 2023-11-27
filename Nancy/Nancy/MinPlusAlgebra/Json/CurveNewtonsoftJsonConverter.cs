@@ -20,9 +20,9 @@ public class CurveNewtonsoftJsonConverter : JsonConverter
     public const string TypeCode = "curve";
 
     private static readonly string BaseSequenceName = "baseSequence";
-    private static readonly string PseudoPeriodStartTimeName = "periodStart";
-    private static readonly string PseudoPeriodLengthName = "periodLength";
-    private static readonly string PseudoPeriodHeightName = "periodHeight";
+    private static readonly string PseudoPeriodStartTimeName = "pseudoPeriodStart";
+    private static readonly string PseudoPeriodLengthName = "pseudoPeriodLength";
+    private static readonly string PseudoPeriodHeightName = "pseudoPeriodHeight";
 
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)

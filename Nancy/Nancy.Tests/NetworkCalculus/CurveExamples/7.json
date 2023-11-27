@@ -28,7 +28,7 @@
             }
         ]
     },
-    "periodStart": 30,
-    "periodLength": 30,
-    "periodHeight": 10
+    "pseudoPeriodStart": 30,
+    "pseudoPeriodLength": 30,
+    "pseudoPeriodHeight": 10
 }

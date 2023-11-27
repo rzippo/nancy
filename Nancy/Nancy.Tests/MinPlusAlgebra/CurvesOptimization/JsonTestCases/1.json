@@ -1894,15 +1894,15 @@
       }
     ]
   },
-  "periodStart": {
+  "pseudoPeriodStart": {
     "num": 1674,
     "den": 1
   },
-  "periodLength": {
+  "pseudoPeriodLength": {
     "num": 1550,
     "den": 1
   },
-  "periodHeight": {
+  "pseudoPeriodHeight": {
     "num": 3875,
     "den": 6
   }

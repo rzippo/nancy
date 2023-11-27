@@ -52,7 +52,7 @@
       }
     ]
   },
-  "periodStart": 7,
-  "periodLength": 1,
-  "periodHeight": 2
+  "pseudoPeriodStart": 7,
+  "pseudoPeriodLength": 1,
+  "pseudoPeriodHeight": 2
 }

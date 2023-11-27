@@ -13,7 +13,7 @@ public class ConcaveCurveTests
         {
             (
                 a: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":100,\"den\":1},\"latency\":{\"num\":0,\"den\":1}}"),
-                b: Curve.FromJson("{\"type\":\"curve\",\"baseSequence\":{\"elements\":[{\"time\":{\"num\":0,\"den\":1},\"value\":{\"num\":83,\"den\":80},\"type\":\"point\"},{\"startTime\":{\"num\":0,\"den\":1},\"endTime\":{\"num\":1,\"den\":1},\"slope\":{\"num\":15,\"den\":2},\"rightLimitAtStartTime\":{\"num\":83,\"den\":80},\"type\":\"segment\"},{\"time\":{\"num\":1,\"den\":1},\"value\":{\"num\":683,\"den\":80},\"type\":\"point\"},{\"startTime\":{\"num\":1,\"den\":1},\"endTime\":{\"num\":2,\"den\":1},\"slope\":{\"num\":15,\"den\":2},\"rightLimitAtStartTime\":{\"num\":683,\"den\":80},\"type\":\"segment\"}]},\"periodStart\":{\"num\":1,\"den\":1},\"periodLength\":{\"num\":1,\"den\":1},\"periodHeight\":{\"num\":15,\"den\":2}}")
+                b: Curve.FromJson("{\"type\":\"curve\",\"baseSequence\":{\"elements\":[{\"time\":{\"num\":0,\"den\":1},\"value\":{\"num\":83,\"den\":80},\"type\":\"point\"},{\"startTime\":{\"num\":0,\"den\":1},\"endTime\":{\"num\":1,\"den\":1},\"slope\":{\"num\":15,\"den\":2},\"rightLimitAtStartTime\":{\"num\":83,\"den\":80},\"type\":\"segment\"},{\"time\":{\"num\":1,\"den\":1},\"value\":{\"num\":683,\"den\":80},\"type\":\"point\"},{\"startTime\":{\"num\":1,\"den\":1},\"endTime\":{\"num\":2,\"den\":1},\"slope\":{\"num\":15,\"den\":2},\"rightLimitAtStartTime\":{\"num\":683,\"den\":80},\"type\":\"segment\"}]},\"pseudoPeriodStart\":{\"num\":1,\"den\":1},\"pseudoPeriodLength\":{\"num\":1,\"den\":1},\"pseudoPeriodHeight\":{\"num\":15,\"den\":2}}")
             )        
         };
 

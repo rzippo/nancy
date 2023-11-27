@@ -94,15 +94,15 @@
             }
         ]
     },
-    "periodStart": {
+    "pseudoPeriodStart": {
         "num": 30,
         "den": 1
     },
-    "periodLength": {
+    "pseudoPeriodLength": {
         "num": 30,
         "den": 1
     },
-    "periodHeight": {
+    "pseudoPeriodHeight": {
         "num": 50,
         "den": 1
     }

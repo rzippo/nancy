@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -49,8 +49,8 @@ public class Curve : IToCodeString
     /// <remarks>
     /// Referred to as $T$ or Rank in [BT08] Section 4.1
     /// </remarks>
-    [JsonProperty(PropertyName = "periodStart")]
-    [JsonPropertyName("periodStart")]
+    [JsonProperty(PropertyName = "pseudoPeriodStart")]
+    [JsonPropertyName("pseudoPeriodStart")]
     public Rational PseudoPeriodStart { get; init; }
 
     /// <summary>
@@ -59,8 +59,8 @@ public class Curve : IToCodeString
     /// <remarks>
     /// Referred to as $d$ in [BT08] Section 4.1
     /// </remarks>
-    [JsonProperty(PropertyName = "periodLength")]
-    [JsonPropertyName("periodLength")]
+    [JsonProperty(PropertyName = "pseudoPeriodLength")]
+    [JsonPropertyName("pseudoPeriodLength")]
     public Rational PseudoPeriodLength { get; init; }
 
     /// <summary>
@@ -70,8 +70,8 @@ public class Curve : IToCodeString
     /// <remarks>
     /// Referred to as $c$ in [BT08] Section 4.1
     /// </remarks>
-    [JsonProperty(PropertyName = "periodHeight")]
-    [JsonPropertyName("periodHeight")]
+    [JsonProperty(PropertyName = "pseudoPeriodHeight")]
+    [JsonPropertyName("pseudoPeriodHeight")]
     public Rational PseudoPeriodHeight { get; init; }
 
     /// <summary>
