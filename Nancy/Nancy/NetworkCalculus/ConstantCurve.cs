@@ -11,6 +11,12 @@ namespace Unipi.Nancy.NetworkCalculus;
 public class ConstantCurve : SubAdditiveCurve
 {
     /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "constantCurve";
+
+    /// <summary>
     /// Value of the curve for any t > 0
     /// </summary>
     public Rational Value { get; }

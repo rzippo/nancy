@@ -7,24 +7,19 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="RateLatencyServiceCurve"/>.
+/// Custom Newtonsoft.Json JsonConverter for <see cref="SigmaRhoArrivalCurve"/>.
 /// </summary>
-public class RateLatencyServiceCurveConverter : JsonConverter
+public class SigmaRhoArrivalCurveNewtonsoftJsonConverter : JsonConverter
 {
     private const string TypeName = "type";
 
-    /// <summary>
-    /// Code used in JSON output to distinguish this type 
-    /// </summary>
-    public const string TypeCode = "rateLatencyServiceCurve";
-
-    private static readonly string LatencyName = "latency";
-    private static readonly string RateName = "rate";
+    private static readonly string SigmaName = "sigma";
+    private static readonly string RhoName = "rho";
 
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
-        return (objectType == typeof(RateLatencyServiceCurve));
+        return (objectType == typeof(SigmaRhoArrivalCurve));
     }
 
     /// <inheritdoc />
@@ -34,10 +29,13 @@ public class RateLatencyServiceCurveConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
-        Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
+        Rational sigma = jo[SigmaName]!.ToObject<Rational>(serializer);
+        Rational rho = jo[RhoName]!.ToObject<Rational>(serializer);
 
-        RateLatencyServiceCurve curve = new RateLatencyServiceCurve(rate: rate, latency: latency);
+        SigmaRhoArrivalCurve curve = new SigmaRhoArrivalCurve(
+            sigma: sigma,
+            rho: rho
+        );
         return curve;
     }
 
@@ -46,15 +44,15 @@ public class RateLatencyServiceCurveConverter : JsonConverter
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
-        RateLatencyServiceCurve curve = (RateLatencyServiceCurve) value;
+        SigmaRhoArrivalCurve curve = (SigmaRhoArrivalCurve) value;
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode, serializer) },
-            { RateName, JToken.FromObject(curve.Rate, serializer) },
-            { LatencyName, JToken.FromObject(curve.Latency, serializer) }
+            { TypeName, JToken.FromObject(SigmaRhoArrivalCurve.TypeCode, serializer) },
+            { SigmaName, JToken.FromObject(curve.Sigma, serializer) },
+            { RhoName, JToken.FromObject(curve.Rho, serializer) }
         };
 
         jo.WriteTo(writer);

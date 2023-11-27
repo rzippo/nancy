@@ -7,24 +7,18 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="StepCurve"/>.
+/// Custom Newtonsoft.Json JsonConverter for <see cref="DelayServiceCurve"/>.
 /// </summary>
-public class StepCurveConverter : JsonConverter
+public class DelayServiceCurveNewtonsoftJsonConverter : JsonConverter
 {
-    private const string TypeName = "type";
+    public const string TypeName = "type";
 
-    /// <summary>
-    /// Code used in JSON output to distinguish this type 
-    /// </summary>
-    public const string TypeCode = "stepCurve";
-
-    private static readonly string ValueName = "value";
-    private static readonly string StepTimeName = "stepTime";
+    public static readonly string DelayName = nameof(DelayServiceCurve.Delay).ToLower();
 
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
-        return (objectType == typeof(StepCurve));
+        return (objectType == typeof(DelayServiceCurve));
     }
 
     /// <inheritdoc />
@@ -34,12 +28,10 @@ public class StepCurveConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational value = jo[ValueName]!.ToObject<Rational>(serializer);
-        Rational stepTime = jo[StepTimeName]!.ToObject<Rational>(serializer);
+        Rational delay = jo[DelayName]!.ToObject<Rational>(serializer);
 
-        StepCurve curve = new StepCurve(
-            value: value,
-            stepTime: stepTime
+        DelayServiceCurve curve = new DelayServiceCurve(
+            delay: delay
         );
         return curve;
     }
@@ -49,15 +41,14 @@ public class StepCurveConverter : JsonConverter
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
-        StepCurve curve = (StepCurve) value;
+        DelayServiceCurve curve = (DelayServiceCurve) value;
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode, serializer) },
-            { ValueName, JToken.FromObject(curve.Value, serializer) },
-            { StepTimeName, JToken.FromObject(curve.StepTime, serializer) }
+            { TypeName, JToken.FromObject(DelayServiceCurve.TypeCode, serializer) },
+            { DelayName, JToken.FromObject(curve.Delay, serializer) }
         };
 
         jo.WriteTo(writer);

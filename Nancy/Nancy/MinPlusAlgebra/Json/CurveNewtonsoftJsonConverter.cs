@@ -12,17 +12,12 @@ namespace Unipi.Nancy.MinPlusAlgebra.Json;
 /// </summary>
 public class CurveNewtonsoftJsonConverter : JsonConverter
 {
-    private const string TypeName = "type";
+    public const string TypeName = "type";
 
-    /// <summary>
-    /// Type identification constant for JSON (de)serialization.
-    /// </summary>
-    public const string TypeCode = "curve";
-
-    private static readonly string BaseSequenceName = "baseSequence";
-    private static readonly string PseudoPeriodStartTimeName = "pseudoPeriodStart";
-    private static readonly string PseudoPeriodLengthName = "pseudoPeriodLength";
-    private static readonly string PseudoPeriodHeightName = "pseudoPeriodHeight";
+    public static readonly string BaseSequenceName = "baseSequence";
+    public static readonly string PseudoPeriodStartName = "pseudoPeriodStart";
+    public static readonly string PseudoPeriodLengthName = "pseudoPeriodLength";
+    public static readonly string PseudoPeriodHeightName = "pseudoPeriodHeight";
 
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
@@ -40,7 +35,7 @@ public class CurveNewtonsoftJsonConverter : JsonConverter
         Sequence? sequence = jo[BaseSequenceName]?.ToObject<Sequence>();
         if (sequence == null)
             throw new InvalidOperationException("Invalid JSON format.");
-        Rational periodStart = jo[PseudoPeriodStartTimeName]!.ToObject<Rational>();
+        Rational periodStart = jo[PseudoPeriodStartName]!.ToObject<Rational>();
         Rational periodLength = jo[PseudoPeriodLengthName]!.ToObject<Rational>();
         Rational periodHeight = jo[PseudoPeriodHeightName]!.ToObject<Rational>();
 
@@ -64,9 +59,9 @@ public class CurveNewtonsoftJsonConverter : JsonConverter
 
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { TypeName, JToken.FromObject(Curve.TypeCode, serializer) },
             { BaseSequenceName, JToken.FromObject(curve.BaseSequence, serializer) },
-            { PseudoPeriodStartTimeName, JToken.FromObject(curve.PseudoPeriodStart, serializer) },
+            { PseudoPeriodStartName, JToken.FromObject(curve.PseudoPeriodStart, serializer) },
             { PseudoPeriodLengthName, JToken.FromObject(curve.PseudoPeriodLength, serializer) },
             { PseudoPeriodHeightName, JToken.FromObject(curve.PseudoPeriodHeight, serializer) }
         };

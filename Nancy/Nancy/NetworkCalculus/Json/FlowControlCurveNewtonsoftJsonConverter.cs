@@ -7,25 +7,20 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="RaisedRateLatencyServiceCurve"/>.
+/// Custom JsonConverter for <see cref="FlowControlCurve"/>.
 /// </summary>
-public class RaisedRateLatencyServiceCurveConverter : JsonConverter
+public class FlowControlCurveNewtonsoftJsonConverter : JsonConverter
 {
     private const string TypeName = "type";
 
-    /// <summary>
-    /// Code used in JSON output to distinguish this type 
-    /// </summary>
-    public const string TypeCode = "raisedRateLatencyServiceCurve";
-
-    private static readonly string LatencyName = "latency";
-    private static readonly string RateName = "rate";
-    private static readonly string BufferShiftName = "bufferShift";
+    private static readonly string LatencyName = nameof(FlowControlCurve.Latency).ToLower();
+    private static readonly string RateName = nameof(FlowControlCurve.Rate).ToLower();
+    private static readonly string HeightName = nameof(FlowControlCurve.Height).ToLower();
 
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
-        return (objectType == typeof(RaisedRateLatencyServiceCurve));
+        return (objectType == typeof(FlowControlCurve));
     }
 
     /// <inheritdoc />
@@ -37,10 +32,13 @@ public class RaisedRateLatencyServiceCurveConverter : JsonConverter
 
         Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
         Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
-        Rational bufferShift = jo[BufferShiftName]!.ToObject<Rational>(serializer);
+        Rational height = jo[HeightName]!.ToObject<Rational>(serializer);
 
-        RaisedRateLatencyServiceCurve curve = new RaisedRateLatencyServiceCurve(rate: rate,
-            latency: latency, bufferShift: bufferShift);
+        FlowControlCurve curve = new FlowControlCurve(
+            latency,
+            rate,
+            height
+        );
         return curve;
     }
 
@@ -49,16 +47,16 @@ public class RaisedRateLatencyServiceCurveConverter : JsonConverter
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
-        RaisedRateLatencyServiceCurve curve = (RaisedRateLatencyServiceCurve) value;
+        FlowControlCurve curve = (FlowControlCurve) value;
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode, serializer) },
-            { RateName, JToken.FromObject(curve.Rate, serializer) },
+            { TypeName, JToken.FromObject(FlowControlCurve.TypeCode, serializer) },
             { LatencyName, JToken.FromObject(curve.Latency, serializer) },
-            { BufferShiftName, JToken.FromObject(curve.BufferShift, serializer) }
+            { RateName, JToken.FromObject(curve.Rate, serializer) },
+            { HeightName, JToken.FromObject(curve.Height, serializer) }
         };
 
         jo.WriteTo(writer);

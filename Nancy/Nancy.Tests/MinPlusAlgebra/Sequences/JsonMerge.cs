@@ -33,7 +33,7 @@ public class JsonMerge
         foreach (var curveName in ElementsNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(curveName);
-            var elements = JsonConvert.DeserializeObject<Element[]>(json, new GenericCurveConverter(), new RationalNewtonsoftJsonConverter())!;
+            var elements = JsonConvert.DeserializeObject<Element[]>(json, new GenericCurveNewtonsoftJsonConverter(), new RationalNewtonsoftJsonConverter())!;
 
             yield return new object[] { elements };
         }

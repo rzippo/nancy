@@ -10,6 +10,12 @@ namespace Unipi.Nancy.NetworkCalculus;
 public class StairCurve : Curve
 {
     /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "stairCurve";
+
+    /// <summary>
     /// Vertical height of each step.
     /// </summary>
     public Rational A { get; }

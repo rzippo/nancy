@@ -10,6 +10,12 @@ namespace Unipi.Nancy.NetworkCalculus;
 public class StepCurve : Curve
 {
     /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "stepCurve";
+
+    /// <summary>
     /// Value of the curve for any t > <see cref="StepTime"/>
     /// </summary>
     public Rational Value { get; }

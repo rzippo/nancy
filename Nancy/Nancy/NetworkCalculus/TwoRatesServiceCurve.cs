@@ -11,6 +11,12 @@ namespace Unipi.Nancy.NetworkCalculus;
 public class TwoRatesServiceCurve : Curve
 {
     /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "twoRatesServiceCurve";
+    
+    /// <summary>
     /// Maximum delay of service.
     /// </summary>
     public Rational Delay { get; }

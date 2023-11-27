@@ -11,6 +11,12 @@ namespace Unipi.Nancy.NetworkCalculus;
 public class DelayServiceCurve : SuperAdditiveCurve
 {
     /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "delayServiceCurve";
+
+    /// <summary>
     /// Models service of a delay-only server.
     /// </summary>
     public Rational Delay { get; }

@@ -9,14 +9,9 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// <summary>
 /// Custom JsonConverter for <see cref="StairCurve"/>.
 /// </summary>
-public class StairCurveConverter : JsonConverter
+public class StairCurveNewtonsoftJsonConverter : JsonConverter
 {
     private const string TypeName = "type";
-
-    /// <summary>
-    /// Code used in JSON output to distinguish this type 
-    /// </summary>
-    public const string TypeCode = "stairCurve";
 
     private static readonly string AName = "a";
     private static readonly string BName = "b";
@@ -55,7 +50,7 @@ public class StairCurveConverter : JsonConverter
 
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { TypeName, JToken.FromObject(StairCurve.TypeCode, serializer) },
             { AName, JToken.FromObject(curve.A, serializer) },
             { BName, JToken.FromObject(curve.B, serializer) }
         };

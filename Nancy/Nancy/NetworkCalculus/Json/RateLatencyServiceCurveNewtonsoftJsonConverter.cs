@@ -7,23 +7,19 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 
 /// <exclude />
 /// <summary>
-/// Custom JsonConverter for <see cref="ConstantCurve"/>.
+/// Custom Newtonsoft.Json JsonConverter for <see cref="RateLatencyServiceCurve"/>.
 /// </summary>
-public class ConstantCurveConverter : JsonConverter
+public class RateLatencyServiceCurveNewtonsoftJsonConverter : JsonConverter
 {
     private const string TypeName = "type";
 
-    /// <summary>
-    /// Code used in JSON output to distinguish this type 
-    /// </summary>
-    public const string TypeCode = "constantCurve";
-
-    private static readonly string ValueName = "value";
+    private const string LatencyName = "latency";
+    private const string RateName = "rate";
 
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
     {
-        return (objectType == typeof(ConstantCurve));
+        return (objectType == typeof(RateLatencyServiceCurve));
     }
 
     /// <inheritdoc />
@@ -33,11 +29,10 @@ public class ConstantCurveConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational value = jo[ValueName]!.ToObject<Rational>(serializer);
+        Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
+        Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
 
-        ConstantCurve curve = new ConstantCurve(
-            value: value
-        );
+        RateLatencyServiceCurve curve = new RateLatencyServiceCurve(rate: rate, latency: latency);
         return curve;
     }
 
@@ -46,14 +41,15 @@ public class ConstantCurveConverter : JsonConverter
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
-        ConstantCurve curve = (ConstantCurve) value;
+        RateLatencyServiceCurve curve = (RateLatencyServiceCurve) value;
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode, serializer) },
-            { ValueName, JToken.FromObject(curve.Value, serializer) }
+            { TypeName, JToken.FromObject(RateLatencyServiceCurve.TypeCode, serializer) },
+            { RateName, JToken.FromObject(curve.Rate, serializer) },
+            { LatencyName, JToken.FromObject(curve.Latency, serializer) }
         };
 
         jo.WriteTo(writer);

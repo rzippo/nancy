@@ -28,6 +28,12 @@ public class SubAdditiveCurve : Curve
     #endif
 
     /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "subAdditiveCurve";
+
+    /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="baseSequence">Describes the curve from 0 to <see cref="Curve.PseudoPeriodStart"/> + <see cref="Curve.PseudoPeriodLength"/>.</param>

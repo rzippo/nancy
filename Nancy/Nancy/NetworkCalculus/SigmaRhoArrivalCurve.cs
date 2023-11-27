@@ -10,7 +10,15 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// </summary>
 public class SigmaRhoArrivalCurve : ConcaveCurve
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
+
+    /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "sigmaRhoArrivalCurve";
 
     /// <summary>
     /// Maximum burst of the traffic
@@ -63,7 +71,9 @@ public class SigmaRhoArrivalCurve : ConcaveCurve
     /// <inheritdoc cref="Curve.Scale(Rational)"/>
     public override Curve Scale(Rational scaling)
     {
+        #if DO_LOG
         logger.Trace("Optimized SR Scale");
+        #endif
         return new SigmaRhoArrivalCurve(sigma: scaling * Sigma, rho: scaling * Rho);
     }
 

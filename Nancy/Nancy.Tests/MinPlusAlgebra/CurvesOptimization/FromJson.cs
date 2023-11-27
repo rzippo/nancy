@@ -26,7 +26,7 @@ public class FromJson
         foreach (var curveName in CurveNames)
         {
             string json = EmbeddedResourceDataAttribute.ReadManifestData(curveName);
-            var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveConverter(), new RationalNewtonsoftJsonConverter())!;
+            var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveNewtonsoftJsonConverter(), new RationalNewtonsoftJsonConverter())!;
 
             yield return new object[] { curve };
         }
@@ -89,7 +89,7 @@ public class FromJson
             .Select(name =>
             {
                 string json = EmbeddedResourceDataAttribute.ReadManifestData(name);
-                var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveConverter(), new RationalNewtonsoftJsonConverter());
+                var curve = JsonConvert.DeserializeObject<Curve>(json, new GenericCurveNewtonsoftJsonConverter(), new RationalNewtonsoftJsonConverter());
                 return curve;
             })
             .ToList();

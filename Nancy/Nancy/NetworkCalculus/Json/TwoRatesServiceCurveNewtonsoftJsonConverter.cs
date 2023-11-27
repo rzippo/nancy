@@ -9,14 +9,9 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// <summary>
 /// Custom JsonConverter for <see cref="TwoRatesServiceCurve"/>.
 /// </summary>
-public class TwoRatesServiceCurveConverter : JsonConverter
+public class TwoRatesServiceCurveNewtonsoftJsonConverter : JsonConverter
 {
     private const string TypeName = "type";
-
-    /// <summary>
-    /// Code used in JSON output to distinguish this type 
-    /// </summary>
-    public const string TypeCode = "twoRatesServiceCurve";
 
     private static readonly string DelayName = "delay";
     private static readonly string TransientRateName = "transientRate";
@@ -61,7 +56,7 @@ public class TwoRatesServiceCurveConverter : JsonConverter
 
         JObject jo = new JObject
         {
-            { TypeName, JToken.FromObject(TypeCode, serializer) },
+            { TypeName, JToken.FromObject(TwoRatesServiceCurve.TypeCode, serializer) },
             { DelayName, JToken.FromObject(curve.Delay, serializer) },
             { TransientRateName, JToken.FromObject(curve.TransientRate, serializer) },
             { TransientEndName, JToken.FromObject(curve.TransientEnd, serializer) },

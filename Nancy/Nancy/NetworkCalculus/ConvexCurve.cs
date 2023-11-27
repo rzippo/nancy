@@ -19,6 +19,12 @@ namespace Unipi.Nancy.NetworkCalculus
     public class ConvexCurve : SuperAdditiveCurve
     {
         /// <summary>
+        /// Type identification constant for JSON (de)serialization. 
+        /// </summary>
+        /// <exclude />
+        public new const string TypeCode = "convexCurve";
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public ConvexCurve(Sequence baseSequence, Rational pseudoPeriodStart, Rational pseudoPeriodLength,

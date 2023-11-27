@@ -13,7 +13,15 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// </summary>
 public class SuperAdditiveCurve : Curve
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
+
+    /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "superAdditiveCurve";
 
     /// <summary>
     /// Constructor

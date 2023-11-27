@@ -13,6 +13,12 @@ namespace Unipi.Nancy.NetworkCalculus;
 public class FlowControlCurve : SubAdditiveCurve
 {
     /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "flowControlCurve";
+
+    /// <summary>
     /// Time in-between a step and the next one.
     /// </summary>
     public Rational Latency { get; }

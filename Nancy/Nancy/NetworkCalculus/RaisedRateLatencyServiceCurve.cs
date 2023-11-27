@@ -10,6 +10,12 @@ namespace Unipi.Nancy.NetworkCalculus;
 public class RaisedRateLatencyServiceCurve : Curve
 {
     /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "raisedRateLatencyServiceCurve";
+
+    /// <summary>
     /// Maximum latency of service.
     /// </summary>
     public Rational Latency { get; }

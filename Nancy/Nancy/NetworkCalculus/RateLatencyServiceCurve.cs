@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -11,7 +11,15 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// </summary>
 public class RateLatencyServiceCurve : ConvexCurve
 {
+    #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
+    #endif
+
+    /// <summary>
+    /// Type identification constant for JSON (de)serialization. 
+    /// </summary>
+    /// <exclude />
+    public new const string TypeCode = "rateLatencyServiceCurve";
 
     /// <summary>
     /// Minimum rate of service.
@@ -91,14 +99,18 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// <inheritdoc cref="Curve.Scale(Rational)"/>
     public override Curve Scale(Rational scaling)
     {
+        #if DO_LOG
         logger.Trace("Optimized RL Scale");
+        #endif
         return new RateLatencyServiceCurve(rate: scaling * Rate, latency: Latency);
     }
 
     /// <inheritdoc cref="Curve.DelayBy(Rational)"/>
     public override Curve DelayBy(Rational delay)
     {
+        #if DO_LOG
         logger.Trace("Optimized RL DelayBy");
+        #endif
         return new RateLatencyServiceCurve(rate: Rate, latency: delay + Latency);
     }
 
@@ -106,7 +118,9 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// <inheritdoc cref="Curve.Addition(Curve)"/>
     public override Curve Addition(Curve curve)
     {
+        #if DO_LOG
         logger.Trace("Optimized RL Addition");
+        #endif
         if (curve is ConstantCurve bufferCurve)
             return new RaisedRateLatencyServiceCurve(Rate, Latency, bufferCurve.Value);
         else
@@ -118,7 +132,9 @@ public class RateLatencyServiceCurve : ConvexCurve
     {
         if (exceptOrigin)
         {
+            #if DO_LOG
             logger.Trace("Optimized RL VerticalShift");
+            #endif
             return new RaisedRateLatencyServiceCurve(Rate, Latency, shift);
         }
         else
@@ -146,7 +162,9 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// </remarks>
     public RateLatencyServiceCurve Convolution(RateLatencyServiceCurve dr, ComputationSettings? settings = null)
     {
+        #if DO_LOG
         logger.Trace("Optimized RL Convolution");
+        #endif
         return new RateLatencyServiceCurve(rate: Rational.Min(Rate, dr.Rate), latency: Latency + dr.Latency);
     }
 

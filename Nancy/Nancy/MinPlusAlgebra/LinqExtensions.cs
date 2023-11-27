@@ -43,7 +43,7 @@ public static class LinqExtensions
     /// </summary>
     public static string ToJsonString<T>(this IEnumerable<T> items)
     {
-        return JsonConvert.SerializeObject(items, new GenericCurveConverter(), new RationalNewtonsoftJsonConverter());
+        return JsonConvert.SerializeObject(items, new GenericCurveNewtonsoftJsonConverter(), new RationalNewtonsoftJsonConverter());
     }
 
     /// <summary>
