@@ -11,8 +11,9 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class ConstantCurveNewtonsoftJsonConverter : JsonConverter
 {
-    public const string TypeName = "type";
+    private const string TypeName = "type";
 
+    /// Json name for <see cref="ConstantCurve.Value"/>
     public static readonly string ValueName = "value";
 
     /// <inheritdoc />

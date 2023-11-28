@@ -17,6 +17,7 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
     private const string TypeName = "type";
 
     // ugly hack?
+    /// Proxy class for the serialization of <see cref="Curve"/>.
     public record PlainCurve(string type, Sequence baseSequence, Rational pseudoPeriodStart, Rational pseudoPeriodLength, Rational pseudoPeriodHeight);
     
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
@@ -74,7 +75,9 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
 
             case Curve.TypeCode:
             {
-                var plain = JsonSerializer.Deserialize<PlainCurve>(ref reader, options)!;
+                var plain = JsonSerializer.Deserialize<PlainCurve>(ref reader, options);
+                if(plain == null || plain.baseSequence == null )
+                    throw new JsonException();
                 return new Curve(
                     plain.baseSequence, 
                     plain.pseudoPeriodStart, 

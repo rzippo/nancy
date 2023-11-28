@@ -13,7 +13,7 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class ConvexCurveNewtonsoftJsonConverter : JsonConverter
 {
-    public const string TypeName = "type";
+    private const string TypeName = "type";
 
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)

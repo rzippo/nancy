@@ -22,9 +22,4 @@ public class UndeterminedResultException : Exception
     public UndeterminedResultException(string message, Exception innerException) : base(message, innerException)
     {
     }
-
-    /// <inheritdoc />
-    protected UndeterminedResultException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
 }

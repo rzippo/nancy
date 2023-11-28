@@ -2651,7 +2651,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                     var firstSafeCeiling = elementPairs
                         .Select(p => ConvolutionStartingPoint(p.a, p.b))
                         .Where(p => p.value > cutCeiling)
-                        .Cast<(Rational time, Rational value)?>()
+                        .Select(p => new (Rational time, Rational value)?(p))
                         .MinBy(p => p?.time)
                         ?.value;
                     

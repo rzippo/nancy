@@ -22,7 +22,7 @@ public class GenericCurveNewtonsoftJsonConverter : JsonConverter
         return typeof(Curve).IsAssignableFrom(objectType);
     }
 
-    public static readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings() {
+    private static readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings() {
             Converters = new JsonConverter[] {
                 new CurveNewtonsoftJsonConverter(),
                 new RateLatencyServiceCurveNewtonsoftJsonConverter(),

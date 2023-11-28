@@ -3,6 +3,9 @@ using System.Numerics;
 
 namespace Unipi.Nancy.Utility;
 
+/// <summary>
+/// Set of extension methods, providing <see cref="IStableHashCode.GetStableHashCode"/> through system classes
+/// </summary>
 public static class StableHashCodeExtensions
 {
     #region Base types

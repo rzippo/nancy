@@ -11,8 +11,9 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class DelayServiceCurveNewtonsoftJsonConverter : JsonConverter
 {
-    public const string TypeName = "type";
+    private const string TypeName = "type";
 
+    /// Json name for <see cref="DelayServiceCurve.Delay"/>
     public static readonly string DelayName = nameof(DelayServiceCurve.Delay).ToLower();
 
     /// <inheritdoc />
