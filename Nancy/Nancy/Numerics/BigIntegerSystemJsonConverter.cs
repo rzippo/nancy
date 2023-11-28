@@ -20,7 +20,7 @@ public class BigIntegerSystemJsonConverter : JsonConverter<BigInteger>
         var value = reader.TokenType switch
         {
             JsonTokenType.Number when reader.TryGetInt64(out long l) => new BigInteger(l),
-            JsonTokenType.String => BigInteger.Parse(reader.GetString()),
+            JsonTokenType.String => BigInteger.Parse(reader.GetString()!),
             _ => throw new JsonException()
         };
         return value;

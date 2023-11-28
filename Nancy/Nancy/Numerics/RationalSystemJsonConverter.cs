@@ -64,6 +64,8 @@ public class RationalSystemJsonConverter : JsonConverter<Rational>
             default:
             {
                 var plain = JsonSerializer.Deserialize<PlainRational>(ref reader);
+                if (plain == null)
+                    throw new JsonException();
                 return new Rational(plain.num, plain.den);
             }
         }
