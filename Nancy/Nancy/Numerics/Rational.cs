@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.Numerics
 {
@@ -28,7 +29,7 @@ namespace Unipi.Nancy.Numerics
     [ComVisible(false)]
     [JsonObject(MemberSerialization.OptIn)]
     [System.Text.Json.Serialization.JsonConverter(typeof(RationalSystemJsonConverter))]
-    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString
+    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString, IStableHashCode
     {
         #region Static public values
 
@@ -242,6 +243,14 @@ namespace Unipi.Nancy.Numerics
         public override int GetHashCode()
         {
             return HashCode.Combine(Numerator, Denominator);
+        }
+        
+        /// <summary>
+        /// A stable hashcode.
+        /// </summary>
+        public int GetStableHashCode()
+        {
+            return (Numerator, Denominator).GetStableHashCode();
         }
 
         // IComparable
@@ -1359,6 +1368,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Utility;
 
 // Adapted from BigRational with the aim of reducing perfomance impact
 // Profiling highlighted heavy use of Compare, which was measured to be up to 30x slower on a BigInteger implementation compared to long
@@ -1376,7 +1386,7 @@ namespace Unipi.Nancy.Numerics
     [ComVisible(false)]
     [JsonObject(MemberSerialization.OptIn)]
     [System.Text.Json.Serialization.JsonConverter(typeof(RationalSystemJsonConverter))]
-    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString
+    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString, IStableHashCode
     {
         #region Static public values
 
@@ -1584,6 +1594,14 @@ namespace Unipi.Nancy.Numerics
         public override int GetHashCode()
         {
             return (Numerator, Denominator).GetHashCode();
+        }
+
+        /// <summary>
+        /// A stable hashcode.
+        /// </summary>
+        public int GetStableHashCode()
+        {
+            return (Numerator, Denominator).GetStableHashCode();
         }
 
         // IComparable

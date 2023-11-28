@@ -6,6 +6,7 @@ using System.Text;
 
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.Numerics;
 
@@ -19,7 +20,7 @@ namespace Unipi.Nancy.Numerics;
 [Serializable]
 [ComVisible(false)]
 [JsonObject(MemberSerialization.OptIn)]
-public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<BigRational>, IToCodeString
+public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<BigRational>, IToCodeString, IStableHashCode
 {
     #region Static public values
 
@@ -211,9 +212,17 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <inheritdoc />
     public override int GetHashCode()
     {
-        return (Numerator / Denominator).GetHashCode();
+        return (Numerator, Denominator).GetHashCode();
     }
 
+    /// <summary>
+    /// A stable hashcode.
+    /// </summary>
+    public int GetStableHashCode()
+    {
+        return (Numerator, Denominator).GetStableHashCode();
+    }
+    
     // IComparable
     int IComparable.CompareTo(object? obj)
     {

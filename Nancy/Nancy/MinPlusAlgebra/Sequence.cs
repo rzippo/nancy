@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
 
 #if DO_LOG
 using NLog;
@@ -21,7 +22,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </summary>
 /// <docs position="2"/>
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public sealed class Sequence : IEquatable<Sequence>, IToCodeString
+public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashCode
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -549,6 +550,16 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString
         int hash = 0;
         foreach (var element in Elements)
             hash ^= element.GetHashCode();
+        return hash;
+    }
+    
+    /// A stable hashcode.
+    public int GetStableHashCode()
+    {
+        int[] hashes = Elements
+            .Select(e => e.GetStableHashCode())
+            .ToArray();
+        var hash = StableHashCodeExtensions.HashStableCombine(hashes);
         return hash;
     }
 

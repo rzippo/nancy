@@ -6,6 +6,7 @@ using System.Text;
 
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.Numerics;
 
@@ -19,7 +20,7 @@ namespace Unipi.Nancy.Numerics;
 [Serializable]
 [ComVisible(false)]
 [JsonObject(MemberSerialization.OptIn)]
-public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<LongRational>, IToCodeString
+public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<LongRational>, IToCodeString, IStableHashCode
 {
     #region Static public values
 
@@ -263,6 +264,14 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     public override int GetHashCode()
     {
         return (Numerator, Denominator).GetHashCode();
+    }
+    
+    /// <summary>
+    /// A stable hashcode.
+    /// </summary>
+    public int GetStableHashCode()
+    {
+        return (Numerator, Denominator).GetStableHashCode();
     }
 
     // IComparable

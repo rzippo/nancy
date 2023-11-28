@@ -6,6 +6,7 @@ using JsonSubTypes;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -20,7 +21,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(Point), Point.TypeCode)]
 [JsonDerivedType(typeof(Segment), Segment.TypeCode)]
-public abstract class Element : IToCodeString
+public abstract class Element : IToCodeString, IStableHashCode
 {
     #region Serialization
 
@@ -135,6 +136,9 @@ public abstract class Element : IToCodeString
     /// </summary>
     public abstract string ToCodeString(bool formatted = false, int indentation = 0);
 
+    /// A stable hashcode.
+    public abstract int GetStableHashCode();
+    
     #endregion Json Methods
 
     #region Basic manipulations

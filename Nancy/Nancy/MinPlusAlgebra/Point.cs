@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
 
 #if DO_LOG
 using NLog;
@@ -206,6 +207,12 @@ public sealed class Point : Element, IEquatable<Point>
         sb.Append(")");
 
         return sb.ToString();
+    }
+
+    /// <inheritdoc cref="Element.GetStableHashCode"/>
+    public override int GetStableHashCode()
+    {
+        return (Time, Value).GetStableHashCode();
     }
 
     #endregion Methods

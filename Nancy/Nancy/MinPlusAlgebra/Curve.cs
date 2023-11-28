@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
 
 #if DO_LOG
 using NLog;
@@ -28,7 +29,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// <docs position="1"/>
 [JsonObject(MemberSerialization.OptIn)]
 [System.Text.Json.Serialization.JsonConverter(typeof(GenericCurveSystemJsonConverter))]
-public class Curve : IToCodeString
+public class Curve : IToCodeString, IStableHashCode
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -1006,6 +1007,12 @@ public class Curve : IToCodeString
     public override int GetHashCode()
         => (BaseSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight).GetHashCode();
 
+    /// <summary>
+    /// A stable hashcode.
+    /// </summary>
+    public int GetStableHashCode()
+        => (BaseSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight).GetStableHashCode();
+    
     /// <summary>
     /// Returns <code>true</code> if its operands are equal, <code>false</code> otherwise
     /// </summary>
