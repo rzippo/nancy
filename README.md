@@ -38,7 +38,7 @@ The above two requirements are met, for open source projects, if you report the 
 
 ## Language and requirements
 
-Nancy is a .NET 7.0 library, written in C# 11.
+Nancy is a .NET 8.0 library, written in C# 12.
 Both SDK and runtime for .NET are cross-platform, and can be downloaded from [here](https://dotnet.microsoft.com/en-us/download).
 
 ## References
@@ -49,5 +49,5 @@ The algorithms implemented by Nancy are discussed in the following works:
 * [An Algorithmic Toolbox for Network Calculus](https://doi.org/10.1007/s10626-007-0028-x), Anne Bouillard and Éric Thierry, 2008
 * [Deterministic Network Calculus: From Theory to Practical Implementation](http://dx.doi.org/10.1002/9781119440284), Anne Bouillard and Marc Boyer and Euriell Le Corronc, 2018
 * [Computationally efficient worst-case analysis of flow-controlled networks with Network Calculus](https://doi.org/10.1109/TIT.2023.3244276), Raffaele Zippo and Giovanni Stea, 2023
-* Extending the Network Calculus Algorithmic Toolbox for Ultimately Pseudo-Periodic Functions: Pseudo-Inverse and Composition, Raffaele Zippo and Paul Nikolaus and Giovanni Stea, To appear in 2023
+* [Extending the Network Calculus Algorithmic Toolbox for Ultimately Pseudo-Periodic Functions: Pseudo-Inverse and Composition](https://doi.org/10.1007/s10626-022-00373-5), Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2023
 * [Isospeed: Improving (min,+) Convolution by Exploiting (min,+)/(max,+) Isomorphism](https://doi.org/10.4230/LIPIcs.ECRTS.2023.12), Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2023
