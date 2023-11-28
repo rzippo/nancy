@@ -21,7 +21,7 @@ public class ConstantCurveSystemJsonConverter : JsonConverter<ConstantCurve>
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<PlainConstantCurve>(ref reader);
-        if (plain.type != ConstantCurve.TypeCode)
+        if (plain?.type != ConstantCurve.TypeCode)
             throw new JsonException();
         return new ConstantCurve(plain.value);
     }

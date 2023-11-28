@@ -21,7 +21,7 @@ public class DelayServiceCurveSystemJsonConverter : JsonConverter<DelayServiceCu
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<PlainDelayServiceCurve>(ref reader);
-        if (plain.type != DelayServiceCurve.TypeCode)
+        if (plain?.type != DelayServiceCurve.TypeCode)
             throw new JsonException();
         return new DelayServiceCurve(plain.delay);
     }

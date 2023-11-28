@@ -18,7 +18,7 @@ public class ConcaveCurveSystemJsonConverter : JsonConverter<ConcaveCurve>
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<GenericCurveSystemJsonConverter.PlainCurve>(ref reader);
-        if (plain.type != ConcaveCurve.TypeCode)
+        if (plain?.type != ConcaveCurve.TypeCode)
             throw new JsonException();
         return new ConcaveCurve(plain.baseSequence, plain.pseudoPeriodStart, plain.pseudoPeriodLength, plain.pseudoPeriodHeight);
     }

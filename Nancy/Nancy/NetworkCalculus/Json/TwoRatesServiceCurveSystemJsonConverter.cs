@@ -21,7 +21,7 @@ public class TwoRatesServiceCurveSystemJsonConverter : JsonConverter<TwoRatesSer
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<PlainTwoRatesServiceCurve>(ref reader);
-        if (plain.type != TwoRatesServiceCurve.TypeCode)
+        if (plain?.type != TwoRatesServiceCurve.TypeCode)
             throw new JsonException();
         return new TwoRatesServiceCurve(plain.delay, plain.transientRate, plain.transientEnd, plain.steadyRate);
     }

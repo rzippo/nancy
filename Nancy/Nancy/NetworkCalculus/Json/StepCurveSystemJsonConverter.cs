@@ -21,7 +21,7 @@ public class StepCurveSystemJsonConverter : JsonConverter<StepCurve>
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<PlainStepCurve>(ref reader);
-        if (plain.type != StepCurve.TypeCode)
+        if (plain?.type != StepCurve.TypeCode)
             throw new JsonException();
         return new StepCurve(plain.value, plain.stepTime);
     }

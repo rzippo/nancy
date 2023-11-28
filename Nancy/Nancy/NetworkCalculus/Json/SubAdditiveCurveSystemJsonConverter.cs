@@ -18,7 +18,7 @@ public class SubAdditiveCurveSystemJsonConverter : JsonConverter<SubAdditiveCurv
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<GenericCurveSystemJsonConverter.PlainCurve>(ref reader);
-        if (plain.type != SubAdditiveCurve.TypeCode)
+        if (plain?.type != SubAdditiveCurve.TypeCode)
             throw new JsonException();
         return new SubAdditiveCurve(plain.baseSequence, plain.pseudoPeriodStart, plain.pseudoPeriodLength, plain.pseudoPeriodHeight);
     }

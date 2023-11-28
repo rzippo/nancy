@@ -21,7 +21,7 @@ public class StairCurveSystemJsonConverter : JsonConverter<StairCurve>
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<PlainStairCurve>(ref reader);
-        if (plain.type != StairCurve.TypeCode)
+        if (plain?.type != StairCurve.TypeCode)
             throw new JsonException();
         return new StairCurve(plain.a, plain.b);
     }

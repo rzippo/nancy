@@ -21,7 +21,7 @@ public class SigmaRhoArrivalCurveSystemJsonConverter : JsonConverter<SigmaRhoArr
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<PlainSigmaRhoArrivalCurve>(ref reader);
-        if (plain.type != SigmaRhoArrivalCurve.TypeCode)
+        if (plain?.type != SigmaRhoArrivalCurve.TypeCode)
             throw new JsonException();
         return new SigmaRhoArrivalCurve(plain.sigma, plain.rho);
     }

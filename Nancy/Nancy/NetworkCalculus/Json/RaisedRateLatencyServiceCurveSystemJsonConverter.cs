@@ -21,7 +21,7 @@ public class RaisedRateLatencyServiceCurveSystemJsonConverter : JsonConverter<Ra
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<PlainRaisedRateLatencyServiceCurve>(ref reader);
-        if (plain.type != RaisedRateLatencyServiceCurve.TypeCode)
+        if (plain?.type != RaisedRateLatencyServiceCurve.TypeCode)
             throw new JsonException();
         return new RaisedRateLatencyServiceCurve(plain.rate, plain.latency, plain.bufferShift);
     }

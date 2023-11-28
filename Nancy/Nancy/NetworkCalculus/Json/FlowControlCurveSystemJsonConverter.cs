@@ -21,7 +21,7 @@ public class FlowControlCurveSystemJsonConverter : JsonConverter<FlowControlCurv
         JsonSerializerOptions options)
     {
         var plain = JsonSerializer.Deserialize<PlainFlowControlCurve>(ref reader);
-        if (plain.type != FlowControlCurve.TypeCode)
+        if (plain?.type != FlowControlCurve.TypeCode)
             throw new JsonException();
         return new FlowControlCurve(plain.latency, plain.rate, plain.height);
     }
