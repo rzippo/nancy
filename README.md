@@ -4,7 +4,7 @@
 [![Nuget](https://img.shields.io/nuget/v/Unipi.Nancy)](https://www.nuget.org/packages/Unipi.Nancy/)
 [![DOI:10.1016/j.softx.2022.101178](http://img.shields.io/badge/DOI-10.1016/j.softx.2022.101178-B31B1B.svg)](https://doi.org/10.1016/j.softx.2022.101178)
 
-Nancy is a C# library implementing min-plus and max-plus operators for ultimately pseudo-periodic piecewise affine curves.
+Nancy is a C# library implementing (min,+) and (max,+) operators for ultimately pseudo-periodic piecewise affine curves.
 
 <figure>
     <img src="./img/01.png" alt="Plot of a generic NC curve"/>
