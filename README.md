@@ -1,6 +1,7 @@
 # Nancy
 ## _A computational library for Deterministic Network Calculus_
 
+[![MIT License](https://img.shields.io/badge/license-MIT-green)](/LICENSE.txt)
 [![Nuget](https://img.shields.io/nuget/v/Unipi.Nancy)](https://www.nuget.org/packages/Unipi.Nancy/)
 [![DOI:10.1016/j.softx.2022.101178](http://img.shields.io/badge/DOI-10.1016/j.softx.2022.101178-B31B1B.svg)](https://doi.org/10.1016/j.softx.2022.101178)
 
