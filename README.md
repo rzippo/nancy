@@ -53,3 +53,4 @@ The algorithms implemented by Nancy are discussed in the following works:
 * [Computationally efficient worst-case analysis of flow-controlled networks with Network Calculus](https://doi.org/10.1109/TIT.2023.3244276), Raffaele Zippo and Giovanni Stea, 2023
 * [Extending the Network Calculus Algorithmic Toolbox for Ultimately Pseudo-Periodic Functions: Pseudo-Inverse and Composition](https://doi.org/10.1007/s10626-022-00373-5), Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2023
 * [Isospeed: Improving (min,+) Convolution by Exploiting (min,+)/(max,+) Isomorphism](https://doi.org/10.4230/LIPIcs.ECRTS.2023.12), Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2023
+* [Analysis of Algorithmic and Computational Aspects of Deterministic Network Calculus](https://flore.unifi.it/handle/2158/1320671), Raffaele Zippo, PhD thesis, 2023
