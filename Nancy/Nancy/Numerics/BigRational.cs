@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -100,39 +101,44 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     public BigInteger Denominator { get; private set; }
 
     /// <summary>
-    /// True of the number is finite.
+    /// True if the number is finite.
     /// </summary>
     public bool IsFinite => Denominator != 0;
 
     /// <summary>
-    /// True of the number is infinite.
+    /// True if the number is infinite.
     /// </summary>
     public bool IsInfinite => Denominator == 0;
 
     /// <summary>
-    /// True of the number is $+\infty$.
+    /// True if the number is $+\infty$.
     /// </summary>
     public bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
 
     /// <summary>
-    /// True of the number is $-\infty$.
+    /// True if the number is $-\infty$.
     /// </summary>
     public bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
 
     /// <summary>
-    /// True of the number is 0.
+    /// True if the number is 0.
     /// </summary>
     public bool IsZero => this == Zero;
 
     /// <summary>
-    /// True of the number is $> 0$.
+    /// True if the number is $> 0$.
     /// </summary>
     public bool IsPositive => this.Sign > 0;
 
     /// <summary>
-    /// True of the number is $&lt; 0$.
+    /// True if the number is $&lt; 0$.
     /// </summary>
     public bool IsNegative => this.Sign < 0;
+
+    /// <summary>
+    /// True if the number is an integer.
+    /// </summary>
+    public bool IsInteger => Denominator.IsOne;
 
     #endregion Public Properties
 
@@ -183,7 +189,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
     public BigInteger GetWholePart()
     {
         return BigInteger.Divide(Numerator, Denominator);
@@ -192,7 +197,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
     public BigRational GetFractionPart()
     {
         return new BigRational(BigInteger.Remainder(Numerator, Denominator), Denominator);
@@ -622,7 +626,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     /// <param name="baseValue"></param>
     /// <param name="exponent"></param>
-    /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
     public static BigRational Pow(BigRational baseValue, BigInteger exponent)
     {
@@ -677,7 +680,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static BigRational GreatestCommonDivisor(BigRational a, BigRational b)
     {
         while (b != 0)
@@ -694,7 +696,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static BigRational LeastCommonMultiple(BigRational a, BigRational b)
     {
         return (a / BigRational.GreatestCommonDivisor(a, b)) * b;
@@ -764,7 +765,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static BigRational Max(BigRational a, BigRational b) => a > b ? a : b;
 
     /// <summary>
@@ -773,15 +773,18 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <param name="c"></param>
-    /// <returns></returns>
     public static BigRational Max(BigRational a, BigRational b, BigRational c) => Max(a, Max(b, c));    //good enough
+
+    /// <summary>
+    /// Max of a set of numbers.
+    /// </summary>
+    public static BigRational Max(params BigRational[] values) => values.Aggregate(Max);
 
     /// <summary>
     /// Min of the two numbers.
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static BigRational Min(BigRational a, BigRational b) => a > b ? b : a;
 
     /// <summary>
@@ -790,8 +793,12 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <param name="c"></param>
-    /// <returns></returns>
     public static BigRational Min(BigRational a, BigRational b, BigRational c) => Min(a, Min(b, c));
+
+    /// <summary>
+    /// Min of a set of numbers.
+    /// </summary>
+    public static BigRational Min(params BigRational[] values) => values.Aggregate(Min);
 
     #endregion Public Static Methods
 
@@ -977,7 +984,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator SByte(BigRational value)
     {
         return (SByte)(BigInteger.Divide(value.Numerator, value.Denominator));
@@ -987,7 +993,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator UInt16(BigRational value)
     {
         return (UInt16)(BigInteger.Divide(value.Numerator, value.Denominator));
@@ -997,7 +1002,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator UInt32(BigRational value)
     {
         return (UInt32)(BigInteger.Divide(value.Numerator, value.Denominator));
@@ -1007,7 +1011,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator UInt64(BigRational value)
     {
         return (UInt64)(BigInteger.Divide(value.Numerator, value.Denominator));
@@ -1017,7 +1020,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Byte(BigRational value)
     {
         return (Byte)(BigInteger.Divide(value.Numerator, value.Denominator));
@@ -1027,7 +1029,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Int16(BigRational value)
     {
         return (Int16)(BigInteger.Divide(value.Numerator, value.Denominator));
@@ -1037,7 +1038,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Int32(BigRational value)
     {
         return (Int32)(BigInteger.Divide(value.Numerator, value.Denominator));
@@ -1047,7 +1047,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Int64(BigRational value)
     {
         return (Int64)(BigInteger.Divide(value.Numerator, value.Denominator));
@@ -1057,7 +1056,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator BigInteger(BigRational value)
     {
         return BigInteger.Divide(value.Numerator, value.Denominator);
@@ -1067,7 +1065,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Single(BigRational value)
     {
         // The Single value type represents a single-precision 32-bit number with
@@ -1080,7 +1077,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Double(BigRational value)
     {
         // The Double value type represents a double-precision 64-bit number with
@@ -1128,7 +1124,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     /// <exception cref="OverflowException"></exception>
     public static explicit operator Decimal(BigRational value)
     {
@@ -1170,7 +1165,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(SByte value)
     {
         return new BigRational((BigInteger)value);
@@ -1180,7 +1174,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(UInt16 value)
     {
         return new BigRational((BigInteger)value);
@@ -1190,7 +1183,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(UInt32 value)
     {
         return new BigRational((BigInteger)value);
@@ -1200,7 +1192,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(UInt64 value)
     {
         return new BigRational((BigInteger)value);
@@ -1210,7 +1201,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(Byte value)
     {
         return new BigRational((BigInteger)value);
@@ -1220,7 +1210,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(Int16 value)
     {
         return new BigRational((BigInteger)value);
@@ -1230,7 +1219,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(Int32 value)
     {
         return new BigRational((BigInteger)value);
@@ -1240,7 +1228,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(Int64 value)
     {
         return new BigRational((BigInteger)value);
@@ -1250,7 +1237,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(BigInteger value)
     {
         return new BigRational(value);
@@ -1275,7 +1261,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator BigRational(Decimal value)
     {
         return new BigRational(value);

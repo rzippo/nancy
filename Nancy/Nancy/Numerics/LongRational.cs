@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -100,39 +101,44 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     public long Denominator { get; private set; }
 
     /// <summary>
-    /// True of the number is finite.
+    /// True if the number is finite.
     /// </summary>
     public bool IsFinite => Denominator != 0;
 
     /// <summary>
-    /// True of the number is infinite.
+    /// True if the number is infinite.
     /// </summary>
     public bool IsInfinite => Denominator == 0;
 
     /// <summary>
-    /// True of the number is $+\infty$.
+    /// True if the number is $+\infty$.
     /// </summary>
     public bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
 
     /// <summary>
-    /// True of the number is $-\infty$.
+    /// True if the number is $-\infty$.
     /// </summary>
     public bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
 
     /// <summary>
-    /// True of the number is 0.
+    /// True if the number is 0.
     /// </summary>
     public bool IsZero => this == Zero;
 
     /// <summary>
-    /// True of the number is $> 0$.
+    /// True if the number is $> 0$.
     /// </summary>
     public bool IsPositive => this.Sign > 0;
 
     /// <summary>
-    /// True of the number is $&lt; 0$.
+    /// True if the number is $&lt; 0$.
     /// </summary>
     public bool IsNegative => this.Sign < 0;
+
+    /// <summary>
+    /// True if the number is an integer.
+    /// </summary>
+    public bool IsInteger => Denominator == 1;
 
     #endregion Public Properties
 
@@ -183,7 +189,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
     public long GetWholePart()
     {
         return Numerator / Denominator;
@@ -192,7 +197,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
     public LongRational GetFractionPart()
     {
         return new LongRational(Numerator % Denominator, Denominator);
@@ -201,7 +205,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
     public long Floor()
     {
         var wholePart = GetWholePart();
@@ -223,7 +226,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
     public long Ceil()
     {
         var wholePart = GetWholePart();
@@ -246,7 +248,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="obj"></param>
-    /// <returns></returns>
     public override bool Equals(object? obj)
     {
         if (obj == null)
@@ -260,7 +261,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
     public override int GetHashCode()
     {
         return (Numerator, Denominator).GetHashCode();
@@ -289,7 +289,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="other"></param>
-    /// <returns></returns>
     public int CompareTo(LongRational other)
     {
         return Compare(this, other);
@@ -299,7 +298,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
     public override String ToString()
     {
         StringBuilder ret = new StringBuilder();
@@ -334,7 +332,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="other"></param>
-    /// <returns></returns>
     public Boolean Equals(LongRational other)
     {
         if (this.Denominator == other.Denominator)
@@ -350,6 +347,45 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     #endregion Public Instance Methods
 
     #region Constructors
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="numerator"></param>
+    /// <param name="denominator"></param>
+    /// <exception cref="UndeterminedResultException"></exception>
+    public LongRational(int numerator, int denominator = 1)
+    {
+        if (denominator == 0)
+        {
+            if (numerator < 0)
+                Numerator = -1;
+            else if (numerator > 0)
+                Numerator = 1;
+            else
+                throw new UndeterminedResultException("Zero over zero");
+
+            Denominator = 0;
+        }
+        else if (numerator == 0)
+        {
+            // 0/m -> 0/1
+            Numerator = 0;
+            Denominator = 1;
+        }
+        else if (denominator < 0)
+        {
+            Numerator = -numerator;
+            Denominator = -denominator;
+        }
+        else
+        {
+            Numerator = numerator;
+            Denominator = denominator;
+        }
+
+        Simplify();
+    }
 
     /// <summary>
     /// Constructor.
@@ -533,7 +569,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </summary>
     /// <param name="baseValue"></param>
     /// <param name="exponent"></param>
-    /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
     public static LongRational Pow(LongRational baseValue, long exponent)
     {
@@ -588,7 +623,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static LongRational GreatestCommonDivisor(LongRational a, LongRational b)
     {
         while (b != 0)
@@ -605,7 +639,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static long GreatestCommonDivisor(long a, long b)
     {
         a = Math.Abs(a);
@@ -625,7 +658,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static LongRational LeastCommonMultiple(LongRational a, LongRational b)
     {
         return (a / LongRational.GreatestCommonDivisor(a, b)) * b;
@@ -691,7 +723,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static LongRational Max(LongRational a, LongRational b) => a > b ? a : b;
 
     /// <summary>
@@ -700,15 +731,18 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <param name="c"></param>
-    /// <returns></returns>
     public static LongRational Max(LongRational a, LongRational b, LongRational c) => Max(a, Max(b, c));    //good enough
+
+    /// <summary>
+    /// Max of a set of numbers.
+    /// </summary>
+    public static LongRational Max(params LongRational[] values) => values.Aggregate(Max);
 
     /// <summary>
     /// Min of the two numbers.
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    /// <returns></returns>
     public static LongRational Min(LongRational a, LongRational b) => a > b ? b : a;
 
     /// <summary>
@@ -717,8 +751,12 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <param name="c"></param>
-    /// <returns></returns>
     public static LongRational Min(LongRational a, LongRational b, LongRational c) => Min(a, Min(b, c));
+
+    /// <summary>
+    /// Min of a set of numbers.
+    /// </summary>
+    public static LongRational Min(params LongRational[] values) => values.Aggregate(Min);
 
     #endregion Public Static Methods
 
@@ -900,7 +938,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator SByte(LongRational value)
     {
         return (SByte)(value.Numerator / value.Denominator);
@@ -910,7 +947,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator UInt16(LongRational value)
     {
         return (UInt16)(value.Numerator / value.Denominator);
@@ -920,7 +956,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator UInt32(LongRational value)
     {
         return (UInt32)(value.Numerator / value.Denominator);
@@ -930,7 +965,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator UInt64(LongRational value)
     {
         return (UInt64)(value.Numerator / value.Denominator);
@@ -940,7 +974,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Byte(LongRational value)
     {
         return (Byte)(value.Numerator / value.Denominator);
@@ -950,7 +983,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Int16(LongRational value)
     {
         return (Int16)(value.Numerator / value.Denominator);
@@ -960,7 +992,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Int32(LongRational value)
     {
         return (Int32)(value.Numerator / value.Denominator);
@@ -970,7 +1001,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Int64(LongRational value)
     {
         return (Int64)(value.Numerator / value.Denominator);
@@ -980,7 +1010,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Single(LongRational value)
     {
         // The Single value type represents a single-precision 32-bit number with
@@ -993,7 +1022,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Double(LongRational value)
     {
         // The Double value type represents a double-precision 64-bit number with
@@ -1041,7 +1069,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static explicit operator Decimal(LongRational value)
     {
         if (value.IsInfinite)
@@ -1087,7 +1114,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(SByte value)
     {
         return new LongRational((long)value);
@@ -1097,7 +1123,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(UInt16 value)
     {
         return new LongRational((long)value);
@@ -1107,7 +1132,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(UInt32 value)
     {
         return new LongRational((long)value);
@@ -1117,7 +1141,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(UInt64 value)
     {
         return new LongRational((long)value);
@@ -1127,7 +1150,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(Byte value)
     {
         return new LongRational((long)value);
@@ -1137,7 +1159,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(Int16 value)
     {
         return new LongRational((long)value);
@@ -1147,7 +1168,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(Int32 value)
     {
         return new LongRational((long)value);
@@ -1157,7 +1177,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(Int64 value)
     {
         return new LongRational((long)value);
@@ -1167,7 +1186,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(BigInteger value)
     {
         return new LongRational((long)value);
@@ -1181,7 +1199,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator Rational(Single value)
     {
         return new Rational((Double)value);
@@ -1191,7 +1208,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator Rational(Double value)
     {
         return new Rational(value);
@@ -1202,7 +1218,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="value"></param>
-    /// <returns></returns>
     public static implicit operator LongRational(Decimal value)
     {
         return new LongRational(value);
