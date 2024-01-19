@@ -1309,6 +1309,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     /// <param name="time">The target time of the limit.</param>
     /// <returns>The value of $f(t^-)$.</returns>
+    /// <exception cref="ArgumentException">The argument is 0, as a curve is not defined for $t &lt; 0$.</exception>
     public Rational LeftLimitAt(Rational time)
     {
         if (time == 0)
