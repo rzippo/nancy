@@ -5,8 +5,15 @@ using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Utility;
 
-public static class PrintTraceExtension
+/// <summary>
+/// Helper methods that print a trace such as the ones produced by <see cref="Curve.TraceConvolution"/> and similar methods.
+/// </summary>
+public static class PrintTraceExtensions
 {
+    /// <summary>
+    /// Helper method that prints a trace such as the ones produced by <see cref="Curve.TraceConvolution"/> and similar methods.
+    /// Prints to a series of string, one for each line. 
+    /// </summary>
     public static IEnumerable<string> PrintToLines(this IEnumerable<(Element, Element)> trace, string traceName = "trace")
     {
         yield return $"{traceName}: [";
@@ -15,12 +22,20 @@ public static class PrintTraceExtension
         yield return "]";
     }
     
+    /// <summary>
+    /// Helper method that prints a trace such as the ones produced by <see cref="Curve.TraceConvolution"/> and similar methods.
+    /// Prints directly to standard output. 
+    /// </summary>
     public static void Print(this IEnumerable<(Element, Element)> trace, string traceName = "trace")
     {
         foreach (var line in PrintToLines(trace, traceName))
             Console.WriteLine(line);
     }
     
+    /// <summary>
+    /// Helper method that prints a trace such as the ones produced by <see cref="Curve.TraceConvolution"/> and similar methods.
+    /// Prints to a single string. 
+    /// </summary>
     public static string PrintToString(this IEnumerable<(Element, Element)> trace, string traceName = "trace")
     {
         var sb = new StringBuilder();
