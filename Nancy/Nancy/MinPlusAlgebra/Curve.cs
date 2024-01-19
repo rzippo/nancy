@@ -359,7 +359,7 @@ public class Curve : IToCodeString, IStableHashCode
                 return Rational.PlusInfinity;
             else
             {
-                var k = (-ValueAt(FirstPseudoPeriodEnd) / PseudoPeriodSlope).FastFloor();
+                var k = (-ValueAt(PseudoPeriodStart) / PseudoPeriodHeight).FastFloor();
                 return FindFirstNonNegativeInSequence(
                     CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 1) * PseudoPeriodLength, isEndIncluded: true)
                 );
