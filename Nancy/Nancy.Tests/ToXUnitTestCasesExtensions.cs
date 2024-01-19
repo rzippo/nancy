@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Unipi.Nancy.Tests;
 
@@ -13,10 +14,7 @@ public static class ToXUnitTestCasesExtensions
     /// </summary>
     public static IEnumerable<object[]> ToXUnitTestCases<T1>(this IEnumerable<T1> list)
     {
-        foreach (var t1 in list)
-        {
-            yield return new object[] { t1 };
-        }
+        return list.Select(t1 => new object[] { t1! });
     }
     
     /// <summary>
@@ -26,7 +24,7 @@ public static class ToXUnitTestCasesExtensions
     {
         foreach (var (t1, t2) in tuplesList)
         {
-            yield return new object[] { t1, t2 };
+            yield return new object[] { t1!, t2! };
         }
     }
     
@@ -37,7 +35,7 @@ public static class ToXUnitTestCasesExtensions
     {
         foreach (var (t1, t2, t3) in tuplesList)
         {
-            yield return new object[] { t1, t2, t3 };
+            yield return new object[] { t1!, t2!, t3! };
         }
     }
     
@@ -48,7 +46,7 @@ public static class ToXUnitTestCasesExtensions
     {
         foreach (var (t1, t2, t3, t4) in tuplesList)
         {
-            yield return new object[] { t1, t2, t3, t4 };
+            yield return new object[] { t1!, t2!, t3!, t4! };
         }
     }
     
@@ -59,7 +57,7 @@ public static class ToXUnitTestCasesExtensions
     {
         foreach (var (t1, t2, t3, t4, t5) in tuplesList)
         {
-            yield return new object[] { t1, t2, t3, t4, t5 };
+            yield return new object[] { t1!, t2!, t3!, t4!, t5! };
         }
     }
     
