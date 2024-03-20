@@ -1492,6 +1492,49 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     }
 
     /// <summary>
+    /// Concatenates two sequences.
+    /// Let $t$ be the right edge of <paramref name="a"/> and $x$ its value.
+    /// Then <paramref name="b"/> is concatenated at $t$, starting from value $x +$ <paramref name="addedShift"/>.
+    /// </summary>
+    /// <param name="a">The first sequence of the concatenation. It must be finite in its right end.</param>
+    /// <param name="b">The second sequence of the concatenation. It must be finite in its left end.</param>
+    /// <param name="addedShift">
+    /// The concatenation will have an additional shift of this size.
+    /// </param>
+    /// <returns>The sequence obtained from concatenating sequence <paramref name="b"/> at the end of sequence <paramref name="a"/>.</returns>
+    /// <exception cref="ArgumentException">If either sequence is infinite at the end where concatenation happens.</exception>
+    public static Sequence Concat(Sequence a, Sequence b, Rational addedShift)
+    {
+        var aEndingValue = a.IsRightClosed ? a.ValueAt(a.DefinedUntil) : a.LeftLimitAt(a.DefinedUntil);
+        var bStartingValue = b.IsLeftClosed ? b.ValueAt(b.DefinedFrom) : b.RightLimitAt(b.DefinedFrom);
+
+        if (aEndingValue.IsInfinite)
+            throw new ArgumentException("Left sequence is infinite in its right end, cannot concatenate.");
+
+        if (bStartingValue.IsInfinite)
+            throw new ArgumentException("Right sequence is infinite in its left end, cannot concatenate.");
+
+        var displacedB = b
+            // reset to origin
+            .Delay(a.DefinedUntil - b.DefinedFrom, prependWithZero: false)
+            .VerticalShift(aEndingValue - bStartingValue)
+            // apply added shift
+            .VerticalShift(addedShift);
+
+        IEnumerable<Element> elements;
+        if (a.IsRightOpen && b.IsLeftOpen)
+            elements = a.Elements
+                .Append(new Point(time: a.DefinedUntil, value: aEndingValue))
+                .Concat(displacedB.Elements);
+        else
+            elements = a.Elements
+                .Concat(displacedB.Elements);
+
+        var sequence = new Sequence(elements);
+        return sequence;
+    }
+
+    /// <summary>
     /// Concatenates a set of sequences, in the order they are provided.
     /// </summary>
     /// <param name="sequences">
