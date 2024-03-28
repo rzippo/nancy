@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <RootNamespace>Unipi.Nancy.Interactive</RootNamespace>
+    <AssemblyName>Unipi.Nancy.Interactive.Local</AssemblyName>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <Title>Nancy.Interactive</Title>
+    <Authors>Raffaele Zippo</Authors>
+    <Description>.NET Interactive integrations for Nancy</Description>
+    <Copyright>Raffaele Zippo, University of Pisa</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="XPlot.Plotly.Interactive" Version="4.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nancy\Nancy.csproj" />
+  </ItemGroup>
+  
+</Project>
