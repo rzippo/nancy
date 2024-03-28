@@ -4,272 +4,40 @@
 
 #!markdown
 
-This tutorials shows the code used for the examples in the *Quick Intro*.
+This tutorials shows the code used for the examples in the *Quick Intro*, although using the library **compiled locally** instead of the public version on Nuget.
 
-The following three cells are setup: they compile the library, reference the necessary packages, define the functions we use to plot.
-If I could abstract this out of view I would, alas you will have to scroll a bit.
+This is useful to test changes as you work on them.
 
-#!markdown
-
-**The following compiles and uses Nancy locally, instead of the public version on Nuget**
+The following three cells are setup: they compile the library, reference its DLLs, import the namespaces.
 
 #!pwsh
 
 # Compile the library
 # Warning: if you modified the source, restart the notebook kernel before re-compiling! Use ctrl+shift+P to find this command in VS Code
-dotnet publish -c Release ../Nancy/Nancy/Nancy.csproj
+dotnet publish -c Release ../Nancy/Nancy/Nancy.csproj -f net8.0
+dotnet publish -c Release ../Nancy/Nancy.Interactive/Nancy.Interactive.Local.csproj -f net8.0
 
 #!csharp
 
-// Load library and other dependencies 
-#r "../Nancy/Nancy/bin/Release/net6.0/publish/Unipi.Nancy.dll"
-#r "../Nancy/Nancy/bin/Release/net6.0/publish/NLog.dll"
-#r "../Nancy/Nancy/bin/Release/net6.0/publish/JsonSubTypes.dll"
-#r "../Nancy/Nancy/bin/Release/net6.0/publish/Newtonsoft.Json.dll"
+// Load Nancy library and its dependencies 
+#r "../Nancy/Nancy/bin/Release/net8.0/publish/Unipi.Nancy.dll"
+#r "../Nancy/Nancy/bin/Release/net8.0/publish/NLog.dll"
+#r "../Nancy/Nancy/bin/Release/net8.0/publish/JsonSubTypes.dll"
+#r "../Nancy/Nancy/bin/Release/net8.0/publish/Newtonsoft.Json.dll"
 
-// The following is the package we use to plot inside notebooks
-#r "nuget: XPlot.Plotly.Interactive"
+// Load the plotting extension, Nancy.Interactive.Local, and its dependencies
+#r "../Nancy/Nancy.Interactive/bin/Release/net8.0/publish/Unipi.Nancy.Interactive.Local.dll"
+#r "../Nancy/Nancy.Interactive/bin/Release/net8.0/publish/XPlot.Plotly.dll"
+#r "../Nancy/Nancy.Interactive/bin/Release/net8.0/publish/XPlot.Plotly.Interactive.dll"
 
 #!csharp
 
-// Preamble code, see README.md for a quick reference on plot() 
-
-using XPlot.Plotly;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
-
-// the plot method, and its overloads, uses XPlot to plot the given curves
-// there is no particular reason in the choice of XPlot, only that it works well in this context - it can be replaced with other libraries in other context
-void plot(IEnumerable<Curve> curves, IEnumerable<string> names, Rational? upTo = null)
-{
-    //Console.WriteLine("plot(IEnumerable<(Curve curve, string name)> namedCurves, Rational? upTo = null)");
-    Rational t;
-    if(upTo is not null)
-        t = (Rational) upTo;
-    else
-        t = curves.Max(c => c.SecondPseudoPeriodEnd);
-    t = t == 0 ? 10 : t;
-    //Console.WriteLine(t);
-
-    var cuts = curves
-        .Select(c => c.Cut(0, t, isEndIncluded: true))
-        .ToList();
-    
-    plot(cuts, names);
-}
-
-void plot(Curve curve, string name, Rational? upTo = null)
-{
-    //Console.WriteLine("plot(Curve curve, string name, Rational? upTo = null)");
-    plot(new []{curve}, new []{name}, upTo);
-}
-
-void plot(IEnumerable<Curve> curves, Rational? upTo = null)
-{
-    //Console.WriteLine("plot(IEnumerable<Curve> curves, Rational? upTo = null)");
-    var names = curves.Select((_, i) => $"{(char)('a' + i)}");
-    plot(curves, names, upTo);
-}
-
-void plot(Curve curve, Rational? upTo = null)
-{
-    //Console.WriteLine("plot(Curve curve, Rational? upTo = null)");
-    plot(new []{curve}, new []{"a"}, upTo);
-}
-
-void plot(params Curve[] curves)
-{
-    //Console.WriteLine("plot(params Curve[] curves)");
-    plot(curves, null);
-}
-
-void plot(IEnumerable<Sequence> sequences, IEnumerable<string> names)
-{
-    //Console.WriteLine("plot(IEnumerable<(Sequence sequence, string name)> namedSequences)");
-    var colors = new List<string> {
-        "#636EFA",
-        "#EF553B",
-        "#00CC96",
-        "#AB63FA",
-        "#FFA15A",
-        "#19D3F3",
-        "#FF6692",
-        "#B6E880",
-        "#FF97FF",
-        "#FECB52"
-    };
-
-    var traces = Enumerable.Zip(sequences, names) 
-        .SelectMany((ns, i) => getTrace(ns.First, ns.Second, i));
-
-    var chart = Chart.Plot(traces);
-    
-    chart.WithLayout(
-        new Layout.Layout {
-            xaxis = new Xaxis { zeroline = true, showgrid = true, title = "time" },
-            yaxis = new Yaxis { zeroline = true, showgrid = true, title = "data" },
-            showlegend = true,
-            hovermode = "closest"
-        }
-    );
-
-    display(chart);
-    
-    IEnumerable<Scattergl> getTrace(Sequence sequence, string name, int index)
-    {
-        var color = colors[index % colors.Count];
-
-        if(sequence.IsContinuous)
-        {
-            var points = sequence.Elements
-                .Where(e => e is Point)
-                .Select(e => (Point) e)
-                .Select(p => (x: (decimal) p.Time, y: (decimal) p.Value))
-                .ToList();
-
-            if(sequence.IsRightOpen)
-            {
-                var tail = sequence.Elements.Last() as Segment;
-                points.Add((x: (decimal) tail.EndTime, y: (decimal) tail.LeftLimitAtEndTime));
-            }
-
-            var trace = new Scattergl {
-                x = points.Select(p => p.x).ToArray(),
-                y = points.Select(p => p.y).ToArray(),
-                name = name,
-                fillcolor = color,
-                mode = "lines+markers",
-                line = new Line {
-                    color = color
-                },
-                marker = new Marker {
-                    symbol = "circle",
-                    color = color
-                }
-            };
-            yield return trace;
-        }
-        else
-        {
-            var segments = new List<((decimal x, decimal y) a, (decimal x, decimal y) b)>();
-            var points = new List<(decimal x, decimal y)>();
-            var discontinuities = new List<(decimal x, decimal y)>();
-            
-            var breakpoints = sequence.EnumerateBreakpoints();
-            foreach(var (left, center, right) in breakpoints)
-            {
-                points.Add((x: (decimal) center.Time, y: (decimal) center.Value));
-                if(left is not null && left.LeftLimitAtEndTime != center.Value)
-                {
-                    discontinuities.Add((x: (decimal) center.Time, y: (decimal) left.LeftLimitAtEndTime));
-                }
-                if(right is not null)
-                {
-                    segments.Add((
-                        a: (x: (decimal) right.StartTime, y: (decimal) right.RightLimitAtStartTime),
-                        b: (x: (decimal) right.EndTime, y: (decimal) right.LeftLimitAtEndTime)
-                    ));
-                    if(right.RightLimitAtStartTime != center.Value)
-                    {
-                        discontinuities.Add((x: (decimal) center.Time, y: (decimal) right.RightLimitAtStartTime));
-                    }
-                }
-            }
-            if(sequence.IsRightOpen)
-            {
-                var tail = sequence.Elements.Last() as Segment;
-                segments.Add((
-                    a: (x: (decimal) tail.StartTime, y: (decimal) tail.RightLimitAtStartTime),
-                    b: (x: (decimal) tail.EndTime, y: (decimal) tail.LeftLimitAtEndTime)
-                ));
-            }
-
-            var segmentsLegend = segments.Any();
-
-            bool isFirst = true;
-            foreach(var (a, b) in segments)
-            {
-                var trace = new Scattergl {
-                    x = new []{ a.x, b.x },
-                    y = new []{ a.y, b.y },
-                    name = name,
-                    legendgroup = name,
-                    fillcolor = color,
-                    mode = "lines",
-                    line = new Line {
-                        color = color
-                    },
-                    showlegend = segmentsLegend && isFirst
-                };
-                yield return trace;
-                isFirst = false; 
-            }
-            
-            var pointsTrace = new Scattergl {
-                x = points.Select(p => p.x).ToArray(),
-                y = points.Select(p => p.y).ToArray(),
-                name = name,
-                legendgroup = name,
-                fillcolor = color,
-                mode = "markers",
-                line = new Line {
-                    color = color
-                },
-                marker = new Marker {
-                    symbol = "circle",
-                    color = color
-                },
-                showlegend = !segmentsLegend
-            };
-            yield return pointsTrace;
-
-            var discontinuitiesTrace = new Scattergl {
-                x = discontinuities.Select(p => p.x).ToArray(),
-                y = discontinuities.Select(p => p.y).ToArray(),
-                name = name,
-                legendgroup = name,
-                fillcolor = color,
-                mode = "markers",
-                line = new Line {
-                    color = color
-                },
-                marker = new Marker {
-                    symbol = "circle-open",
-                    color = color,
-                    line = new Line {
-                        color = color
-                    }
-                },
-                showlegend = false,
-            };
-            yield return discontinuitiesTrace;
-        }
-    }
-}
-
-void plot(Sequence sequence, string name)
-{
-    //Console.WriteLine("plot(Sequence sequence, string name)");
-    plot(new []{sequence}, new []{name});
-}
-
-void plot(IEnumerable<Sequence> sequences)
-{
-    //Console.WriteLine("plot(IEnumerable<Sequence> sequences)");
-    var names = sequences.Select((_, i) => $"{(char)('a' + i)}");
-    plot(sequences, names);
-}
-
-void plot(Sequence sequence)
-{
-    //Console.WriteLine("plot(Sequence sequence)");
-    plot(new []{sequence}, new []{"a"});
-}
+using Unipi.Nancy.Interactive;
 
 #!markdown
-
-**The tutorial starts here**.
 
 The first example shows the generic `Curve` constructor, which can be used to represent any UPP curve.
 
@@ -289,7 +57,7 @@ var c = new Curve(
     pseudoPeriodLength: 2,
     pseudoPeriodHeight: 1
 );
-plot(c, "c", 10);
+Plots.Plot(c, upTo: 10);
 
 #!markdown
 
@@ -299,7 +67,7 @@ The library also provides simplified constructors for common types of curves.
 
 var sc = new RateLatencyServiceCurve(rate: 3, latency: 3);
 var ac = new SigmaRhoArrivalCurve(sigma: 4, rho: 1);
-plot(new Curve[]{sc, ac}, new []{"sc", "ac"}, 10);
+Plots.Plot([sc, ac], ["sc", "ac"], 10);
 
 #!markdown
 
@@ -321,7 +89,7 @@ var sc = Curve.Minimum(
     new RateLatencyServiceCurve(3, 4) + 3
 );
 var ac = new SigmaRhoArrivalCurve(1, 1);
-plot(new Curve[]{sc, ac}, new []{"sc", "ac"});
+Plots.Plot([sc, ac], ["sc", "ac"]);
 var delay = Curve.HorizontalDeviation(ac, sc);
 Console.WriteLine(delay);
 
@@ -339,7 +107,7 @@ var delta_theta = new DelayServiceCurve(theta);
 var alpha_theta = Curve.Convolution(alpha, delta_theta);
 var diff = Curve.Subtraction(beta, alpha_theta, nonNegative: true);
 var residual = Curve.Minimum(diff, delta_theta);
-plot(residual, "residual sc", 10);
+Plots.Plot(residual, "residual sc", 10);
 
 #!markdown
 
@@ -396,4 +164,4 @@ for(int k = 0; k < weights[i]; k++)
 var U_i = Curve.Addition(stairs); // summation of min-plus curves
 var gamma_i = Curve.Convolution(unit_rate, U_i);
 var beta_i = Curve.Composition(gamma_i, beta);
-plot(beta_i, "iwrr sc");
+Plots.Plot(beta_i, "iwrr sc");
