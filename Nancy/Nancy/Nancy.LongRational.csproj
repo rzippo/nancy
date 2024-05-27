@@ -18,7 +18,7 @@
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
     <PackageTags>network-calculus</PackageTags>
-    <PackageVersion>1.1.8</PackageVersion>
+    <PackageVersion>1.2.0</PackageVersion>
 
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
