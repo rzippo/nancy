@@ -1894,7 +1894,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
         cutCeiling ??= Rational.PlusInfinity;
 
         if (
-            settings.UseBySequenceConvolutionIsomorphismOptimization && 
+            settings.UseBySequenceConvolutionIsospeedOptimization && 
             f.IsLeftContinuous && g.IsLeftContinuous &&
             f.IsNonDecreasing && g.IsNonDecreasing
         )
@@ -1926,7 +1926,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                 // todo: fill in reference
                 // the following heuristic roughly computes how many elementary convolutions would be involved
                 // using direct or inverse method to choose which one to perform
-                // discussed in [TBP23]
+                // discussed in [TBP]
 
                 var aConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: true});
                 var aNonConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: false});
@@ -1965,7 +1965,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                         a_upi, b_upi,
                         cutEnd: cutCeiling, cutCeiling: cutEnd,
                         isEndIncluded: true, isCeilingIncluded: true,
-                        settings: settings with {UseBySequenceConvolutionIsomorphismOptimization = false});
+                        settings: settings with {UseBySequenceConvolutionIsospeedOptimization = false});
                     var inverse_raw = maxp.LowerPseudoInverse(false);
 
                     Sequence inverse;
@@ -2493,7 +2493,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
         cutCeiling ??= Rational.PlusInfinity;
 
         if (
-            settings.UseBySequenceConvolutionIsomorphismOptimization && 
+            settings.UseBySequenceConvolutionIsospeedOptimization && 
             f.IsRightContinuous && g.IsRightContinuous &&
             f.IsNonDecreasing && g.IsNonDecreasing
         )
@@ -2525,7 +2525,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                 // todo: fill in reference
                 // the following heuristic roughly computes how many elementary convolutions would be involved
                 // using direct or inverse method to choose which one to perform
-                // discussed in [TBP23]
+                // discussed in [TBP]
 
                 var aConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: true});
                 var aNonConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: false});
@@ -2564,7 +2564,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                         f_lpi, g_lpi,
                         cutEnd: cutCeiling, cutCeiling: cutEnd,
                         isEndIncluded: true, isCeilingIncluded: true,
-                        settings: settings with {UseBySequenceConvolutionIsomorphismOptimization = false});
+                        settings: settings with {UseBySequenceConvolutionIsospeedOptimization = false});
                     var inverse_raw = minp.UpperPseudoInverse(false);
                     if (inverse_raw.DefinedUntil < cutEnd)
                     {
@@ -2689,24 +2689,17 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
 
             if (cutCeiling != Rational.PlusInfinity)
             {
-                if (isCeilingIncluded)
+                var firstSafeCeiling = elementPairs
+                    .Select(p => ConvolutionStartingPoint(p.a, p.b))
+                    .Where(p => p.value > cutCeiling)
+                    .Select(p => new (Rational time, Rational value)?(p))
+                    .MinBy(p => p?.time)
+                    ?.value;
+                
+                if (firstSafeCeiling != null)
                 {
-                    var firstSafeCeiling = elementPairs
-                        .Select(p => ConvolutionStartingPoint(p.a, p.b))
-                        .Where(p => p.value > cutCeiling)
-                        .Select(p => new (Rational time, Rational value)?(p))
-                        .MinBy(p => p?.time)
-                        ?.value;
-                    
-                    if (firstSafeCeiling != null)
-                    {
-                        elementPairs = elementPairs 
-                            .Where(p => ConvolutionStartingValue(p.a, p.b) <= firstSafeCeiling);
-                    }
-                }
-                else
-                {
-                    elementPairs = elementPairs.Where(p =>  ConvolutionStartingValue(p.a, p.b) <= cutCeiling);
+                    elementPairs = elementPairs 
+                        .Where(p => ConvolutionStartingValue(p.a, p.b) <= firstSafeCeiling);
                 }
                 
                 (Rational time, Rational value) ConvolutionStartingPoint(Element ea, Element eb)

@@ -18,7 +18,7 @@ public class MaxPlusConvolution
     
     public static ComputationSettings settings = ComputationSettings.Default() with 
     {
-        UseConvolutionIsomorphismOptimization = false,
+        UseConvolutionIsospeedOptimization = false,
         UseSubAdditiveConvolutionOptimizations = false
     };
     public static IEnumerable<(Curve f, Curve g, Curve expected)> PairsWithExpected()

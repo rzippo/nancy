@@ -104,6 +104,9 @@ namespace Unipi.Nancy.Numerics
         [System.Text.Json.Serialization.JsonIgnore]
         public bool IsNegative => this.Sign < 0;
 
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsInteger => Denominator.IsOne;
+
         #endregion Public Properties
 
         #region Static members for Internal Support
@@ -1458,6 +1461,9 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsNegative"/>
         [System.Text.Json.Serialization.JsonIgnore]
         public bool IsNegative => this.Sign < 0;
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsInteger => Denominator == 1;
 
         #endregion Public Properties
 

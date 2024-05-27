@@ -80,7 +80,7 @@ public partial class ConvolutionIsomorphism
         output.WriteLine($"var g = {g.ToCodeString()};");
 
         var settings = ComputationSettings.Default() with {
-            UseBySequenceConvolutionIsomorphismOptimization = false
+            UseBySequenceConvolutionIsospeedOptimization = false
         };
 
         // direct algorithm, using min-plus convolution
@@ -254,7 +254,7 @@ public partial class ConvolutionIsomorphism
         output.WriteLine($"var f = {f.ToCodeString()};");
         output.WriteLine($"var g = {g.ToCodeString()};");
 
-        var settings = ComputationSettings.Default() with {UseBySequenceConvolutionIsomorphismOptimization = false};
+        var settings = ComputationSettings.Default() with {UseBySequenceConvolutionIsospeedOptimization = false};
 
         // for simplicity, we only support this case for now
         Assert.True(f.IsLeftClosed);

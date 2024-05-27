@@ -19,7 +19,7 @@ public class Convolution
 
     public static ComputationSettings settings = ComputationSettings.Default() with 
     {
-        UseConvolutionIsomorphismOptimization = false,
+        UseConvolutionIsospeedOptimization = false,
         UseSubAdditiveConvolutionOptimizations = false
     };
     

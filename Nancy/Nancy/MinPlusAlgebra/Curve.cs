@@ -4267,7 +4267,7 @@ public class Curve : IToCodeString, IStableHashCode
             var c = f.PseudoPeriodSlope * d;
 
             var cutEnd = T + d;
-            bool useIsomorphism = settings.UseConvolutionIsomorphismOptimization &&
+            bool useIsomorphism = settings.UseConvolutionIsospeedOptimization &&
                                   f.IsLeftContinuous && g.IsLeftContinuous &&
                                   f.IsNonDecreasing && g.IsNonDecreasing &&
                                   !f.IsUltimatelyConstant && !g.IsUltimatelyConstant;
@@ -4399,17 +4399,29 @@ public class Curve : IToCodeString, IStableHashCode
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
             }
-            else if (settings.UseConvolutionIsomorphismOptimization && 
+            else if (settings.UseConvolutionIsospeedOptimization && 
                  f.IsLeftContinuousOverInterval(f.PseudoPeriodStart) && g.IsLeftContinuousOverInterval(g.PseudoPeriodStart) &&
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
             {
-                // Isospeed algorithm, discussed in [ZNS23a]
-                var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
-                var k_c_f = lcm_c / f.PseudoPeriodHeight;
-                var k_c_g = lcm_c / g.PseudoPeriodHeight;
-                var lcm_d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
-                var d = Rational.Min(lcm_d, Rational.Max(k_c_f * f.PseudoPeriodLength, k_c_g * g.PseudoPeriodLength));
+                // super-isospeed algorithm, discussed in [TBP]
+                var d_f = f.PseudoPeriodLength;
+                var d_g = g.PseudoPeriodLength;
+                var lcm_d = Rational.LeastCommonMultiple(d_f, d_g);
+                var k_d_f = lcm_d / d_f;
+                var k_d_g = lcm_d / d_g;
+                
+                var c_f = f.PseudoPeriodHeight;
+                var c_g = g.PseudoPeriodHeight;
+                var lcm_c = Rational.LeastCommonMultiple(c_f, c_g);
+                var k_c_f = lcm_c / c_f;
+                var k_c_g = lcm_c / c_g;
+                
+                var d = settings.UseConvolutionSuperIsospeedOptimization ?
+                    (k_c_f * d_f > k_c_g * d_g ?
+                        Rational.GreatestCommonDivisor(k_d_f, k_c_f) * d_f :
+                        Rational.GreatestCommonDivisor(k_d_g, k_c_g) * d_g) :
+                    Rational.Min(lcm_d, Rational.Max(k_c_f * d_f, k_c_g * d_g));
                 var c = d * Rational.Min(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
 
                 var tf = f.PseudoPeriodStart;
@@ -4423,16 +4435,16 @@ public class Curve : IToCodeString, IStableHashCode
 
                 var fSegmentAfterTf = f.GetSegmentAfter(tf);
                 var tf_prime = (f.IsRightContinuousAt(tf) && fSegmentAfterTf.IsConstant) ? fSegmentAfterTf.EndTime : tf;
-                var fCutEnd_minp = tf + 2 * lcm_d;
-                var fCutEnd_iso = tf_prime + 2 * k_c_f * f.PseudoPeriodLength;
+                var fCutEnd_minp = tf + lcm_d + d;
+                var fCutEnd_iso = tf_prime + 2 * k_c_f * d_f;
                 var fCut = fCutEnd_minp <= fCutEnd_iso 
                     ? f.Cut(tf, fCutEnd_minp, isEndIncluded: false, settings: settings)
                     : f.Cut(tf, fCutEnd_iso, isEndIncluded: true, settings: settings);
 
                 var gSegmentAfterTg = g.GetSegmentAfter(tg);
                 var tg_prime = (g.IsRightContinuousAt(tg) && gSegmentAfterTg.IsConstant) ? gSegmentAfterTg.EndTime : tg;
-                var gCutEnd_minp = tg + 2 * lcm_d;
-                var gCutEnd_iso = tg_prime + 2 * k_c_g * g.PseudoPeriodLength;
+                var gCutEnd_minp = tg + lcm_d + d;
+                var gCutEnd_iso = tg_prime + 2 * k_c_g * d_g;
                 var gCut = gCutEnd_minp <= gCutEnd_iso 
                    ? g.Cut(tg, gCutEnd_minp, isEndIncluded: false, settings: settings)
                    : g.Cut(tg, gCutEnd_iso, isEndIncluded: true, settings: settings);
@@ -4742,7 +4754,7 @@ public class Curve : IToCodeString, IStableHashCode
             #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
             #endif
-            // As discussed in [TBP23], there is no improvement on the UPP parameters to be gained using isomorphisms.
+            // As discussed in [TBP], there is no improvement on the UPP parameters to be gained using isomorphisms.
             // The optimization lies instead in the use of a vertical filter (cutCeiling), in addition to the horizontal one (cutEnd)
 
             var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
@@ -4752,7 +4764,7 @@ public class Curve : IToCodeString, IStableHashCode
             var cutEnd = T + d;
             Rational cutCeiling;
             if (
-                settings.UseConvolutionIsomorphismOptimization &&
+                settings.UseConvolutionIsospeedOptimization &&
                 f.IsLeftContinuousOverInterval(f.FirstFiniteTime) && g.IsLeftContinuousOverInterval(g.FirstFiniteTime) &&
                 f.IsNonDecreasingOverInterval(f.FirstFiniteTime) && g.IsNonDecreasingOverInterval(g.FirstFiniteTime) &&
                 !f.IsUltimatelyConstant && !g.IsUltimatelyConstant
@@ -4843,11 +4855,13 @@ public class Curve : IToCodeString, IStableHashCode
 
                 return result;
             }
-            else if (settings.UseConvolutionIsomorphismOptimization && 
+            else if (settings.UseConvolutionIsospeedOptimization && 
                  f.IsLeftContinuousOverInterval(f.PseudoPeriodStart) && g.IsLeftContinuousOverInterval(g.PseudoPeriodStart) &&
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
             {
+                // todo: update this estimate with super-isospeed [TBP]
+
                 // Optimized algorithm discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
                 var k_c_f = lcm_c / f.PseudoPeriodHeight;
@@ -5215,7 +5229,7 @@ public class Curve : IToCodeString, IStableHashCode
             var c = f.PseudoPeriodSlope * d;
 
             var cutEnd = T + d;
-            bool useIsomorphism = settings.UseConvolutionIsomorphismOptimization &&
+            bool useIsomorphism = settings.UseConvolutionIsospeedOptimization &&
                                   f.IsRightContinuous && g.IsRightContinuous &&
                                   f.IsNonDecreasing && g.IsNonDecreasing &&
                                   !f.IsUltimatelyConstant && !g.IsUltimatelyConstant; 
@@ -5382,15 +5396,15 @@ public class Curve : IToCodeString, IStableHashCode
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
             }
-            else if (settings.UseConvolutionIsomorphismOptimization && 
+            else if (settings.UseConvolutionIsospeedOptimization && 
                  f.IsRightContinuousOverInterval(f.PseudoPeriodStart) && g.IsRightContinuousOverInterval(g.PseudoPeriodStart) &&
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
             {
-                // todo: fill in reference
-                // Optimized algorithm discussed in [TBP23] section X
+                // todo: fill in references
+                // super-isospeed algorithm discussed in [TBP]
 
-                // Check for Lemma X in [TBP23]
+                // Check for Lemma X in [TBP]
                 #if false 
                 // expression as in theory
                 var tstar_f = f.LowerPseudoInverseOverInterval(f.PseudoPeriodStart)
@@ -5411,7 +5425,7 @@ public class Curve : IToCodeString, IStableHashCode
                     tstar_g < g.FirstPseudoPeriodEnd)
                 {
                     // todo: fill in reference
-                    // If Lemma X does not apply, workaround according to Remark Y in [TBP23]
+                    // If Lemma X does not apply, workaround according to Remark Y in [TBP]
                     var fpstarCut = f
                         .CutAsEnumerable(f.PseudoPeriodStart, tstar_f + f.PseudoPeriodLength)
                         .Fill(0, f.PseudoPeriodStart, fillWith: Rational.MinusInfinity)
@@ -5436,11 +5450,23 @@ public class Curve : IToCodeString, IStableHashCode
                     return MaxPlusConvolution(fpstar, gpstar, settings);
                 }
 
-                var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
-                var k_c_f = lcm_c / f.PseudoPeriodHeight;
-                var k_c_g = lcm_c / g.PseudoPeriodHeight;
-                var lcm_d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
-                var d = Rational.Min(lcm_d, Rational.Min(k_c_f * f.PseudoPeriodLength, k_c_g * g.PseudoPeriodLength));
+                var d_f = f.PseudoPeriodLength;
+                var d_g = g.PseudoPeriodLength;
+                var lcm_d = Rational.LeastCommonMultiple(d_f, d_g);
+                var k_d_f = lcm_d / d_f;
+                var k_d_g = lcm_d / d_g;
+                
+                var c_f = f.PseudoPeriodHeight;
+                var c_g = g.PseudoPeriodHeight;
+                var lcm_c = Rational.LeastCommonMultiple(c_f, c_g);
+                var k_c_f = lcm_c / c_f;
+                var k_c_g = lcm_c / c_g;
+                
+                var d = settings.UseConvolutionSuperIsospeedOptimization ?
+                    (k_c_f * d_f < k_c_g * d_g ?
+                        Rational.GreatestCommonDivisor(k_d_f, k_c_f) * d_f :
+                        Rational.GreatestCommonDivisor(k_d_g, k_c_g) * d_g) :
+                    Rational.Min(lcm_d, Rational.Min(k_c_f * d_f, k_c_g * d_g));
                 var c = d * Rational.Max(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
 
                 var tf = f.PseudoPeriodStart;
@@ -5452,12 +5478,17 @@ public class Curve : IToCodeString, IStableHashCode
                     $"Max-plus Convolution: extending from Tf {tf} df {f.PseudoPeriodLength}  Tg {tg} dg {g.PseudoPeriodLength} to T {T} d {d}");
                 #endif
 
-                var fCut = lcm_d <= k_c_f * f.PseudoPeriodLength 
-                    ? f.Cut(tf, tf + 2 * lcm_d, isEndIncluded: false, settings: settings)
-                    : f.Cut(tf, tf + 2 * k_c_f * f.PseudoPeriodLength, isEndIncluded: true, settings: settings);
-                var gCut = lcm_d <= k_c_g * g.PseudoPeriodLength 
-                    ? g.Cut(tg, tg + 2 * lcm_d, isEndIncluded: false, settings: settings)
-                    : g.Cut(tg, tg + 2 * k_c_g * g.PseudoPeriodLength, isEndIncluded: true, settings: settings);
+                var fCutEnd_direct = tf + lcm_d + d;
+                var fCutEnd_iso = tf + 2 * k_c_f * d_f;
+                var fCut = fCutEnd_direct <= fCutEnd_iso
+                    ? f.Cut(tf, fCutEnd_direct, isEndIncluded: false, settings: settings)
+                    : f.Cut(tf, fCutEnd_iso, isEndIncluded: true, settings: settings);
+
+                var gCutEnd_direct = tg + lcm_d + d;
+                var gCutEnd_iso = tg + 2 * k_c_g * d_g;
+                var gCut = gCutEnd_direct <= gCutEnd_iso 
+                    ? g.Cut(tg, gCutEnd_direct, isEndIncluded: false, settings: settings)
+                    : g.Cut(tg, gCutEnd_iso, isEndIncluded: true, settings: settings);
 
                 #if DO_LOG
                 logger.Trace(

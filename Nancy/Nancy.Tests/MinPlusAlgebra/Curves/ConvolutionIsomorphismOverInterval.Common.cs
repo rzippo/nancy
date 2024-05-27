@@ -19,19 +19,19 @@ public partial class ConvolutionIsomorphismOverInterval
 
     private static ComputationSettings noIsomorphismSettings = ComputationSettings.Default() with
     {
-        UseConvolutionIsomorphismOptimization = false,
+        UseConvolutionIsospeedOptimization = false,
         UseSubAdditiveConvolutionOptimizations = false
     };
 
     public ComputationSettings convolutionIsomorphismSettings = ComputationSettings.Default() with
     {
-        UseConvolutionIsomorphismOptimization = true,
+        UseConvolutionIsospeedOptimization = true,
         UseSubAdditiveConvolutionOptimizations = false
     };
 
     public ComputationSettings convolutionIsomorphismNoTSettings = ComputationSettings.Default() with
     {
-        UseConvolutionIsomorphismOptimization = true,
+        UseConvolutionIsospeedOptimization = true,
         UseSubAdditiveConvolutionOptimizations = false
     };
 

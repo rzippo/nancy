@@ -44,23 +44,36 @@ public partial class ConvolutionIsomorphism
             // todo: fill in reference
             // from here on, f and g satisfy Lemma X 
             
-            var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
-            var k_c_f = lcm_c / f.PseudoPeriodHeight;
-            var k_c_g = lcm_c / g.PseudoPeriodHeight;
-            var lcm_d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
-            var d = Rational.Min(lcm_d, Rational.Min(k_c_f * f.PseudoPeriodLength, k_c_g * g.PseudoPeriodLength));
+            var d_f = f.PseudoPeriodLength;
+            var d_g = g.PseudoPeriodLength;
+            var lcm_d = Rational.LeastCommonMultiple(d_f, d_g);
+            var k_d_f = lcm_d / d_f;
+            var k_d_g = lcm_d / d_g;
+            
+            var c_f = f.PseudoPeriodHeight;
+            var c_g = g.PseudoPeriodHeight;
+            var lcm_c = Rational.LeastCommonMultiple(c_f, c_g);
+            var k_c_f = lcm_c / c_f;
+            var k_c_g = lcm_c / c_g;
+            
+            var d = Rational.Min(lcm_d, Rational.Min(k_c_f * d_f, k_c_g * d_g));
             var c = d * Rational.Max(f.PseudoPeriodSlope, g.PseudoPeriodSlope);
 
             var tf = f.PseudoPeriodStart;
             var tg = g.PseudoPeriodStart;
             var T = tf + tg + lcm_d;
 
-            var fCut = lcm_d <= k_c_f * f.PseudoPeriodLength 
-                ? f.Cut(tf, tf + 2 * lcm_d, isEndIncluded: false)
-                : f.Cut(tf, tf + 2 * k_c_f * f.PseudoPeriodLength, isEndIncluded: true);
-            var gCut = lcm_d <= k_c_g * g.PseudoPeriodLength 
-                ? g.Cut(tg, tg + 2 * lcm_d, isEndIncluded: false)
-                : g.Cut(tg, tg + 2 * k_c_g * g.PseudoPeriodLength, isEndIncluded: true);
+            var fCutEnd_direct = tf + lcm_d + d;
+            var fCutEnd_iso = tf + 2 * k_c_f * d_f;
+            var fCut = fCutEnd_direct <= fCutEnd_iso
+                ? f.Cut(tf, fCutEnd_direct, isEndIncluded: false)
+                : f.Cut(tf, fCutEnd_iso, isEndIncluded: true);
+
+            var gCutEnd_direct = tg + lcm_d + d;
+            var gCutEnd_iso = tg + 2 * k_c_g * d_g;
+            var gCut = gCutEnd_direct <= gCutEnd_iso 
+                ? g.Cut(tg, gCutEnd_direct, isEndIncluded: false)
+                : g.Cut(tg, gCutEnd_iso, isEndIncluded: true);
 
             var cutEnd = tf + tg + lcm_d + d;
             var cutCeiling = f.ValueAt(tf) + g.ValueAt(tg) + 2 * lcm_c;
@@ -68,14 +81,9 @@ public partial class ConvolutionIsomorphism
             yield return (fCut, gCut, cutEnd, cutCeiling, T, d); 
         }
     }
-    
+
     public static IEnumerable<object[]> IsospeedMaxPlusConvolutionsTestCases()
-    {
-        foreach(var (f, g, cutEnd, cutCeiling, T, d) in IsospeedMaxPlusConvolutions())
-        {
-            yield return new object[] { f, g, cutEnd, cutCeiling, T, d };
-        }
-    }
+        => IsospeedMaxPlusConvolutions().ToXUnitTestCases();
 
     [Theory]
     [MemberData(nameof(IsospeedMaxPlusConvolutionsTestCases))]
@@ -89,7 +97,7 @@ public partial class ConvolutionIsomorphism
         output.WriteLine($"var cutEnd = {cutEnd}; var cutCeiling = {cutCeiling}; var T = {T}; var d = {d};");
 
         var settings = ComputationSettings.Default() with {
-            UseBySequenceConvolutionIsomorphismOptimization = false
+            UseBySequenceConvolutionIsospeedOptimization = false
         };
 
         // direct algorithm, using max-plus convolution

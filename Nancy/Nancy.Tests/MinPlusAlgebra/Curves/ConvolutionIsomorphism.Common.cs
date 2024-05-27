@@ -17,16 +17,25 @@ public partial class ConvolutionIsomorphism
         this.output = output;
     }
 
-    public ComputationSettings noIsomorphismSettings = ComputationSettings.Default() with
+    public ComputationSettings noIsospeedSettings = ComputationSettings.Default() with
     {
-        UseConvolutionIsomorphismOptimization = false,
+        UseConvolutionIsospeedOptimization = false,
         UseSubAdditiveConvolutionOptimizations = false
     };
 
-    public ComputationSettings convolutionIsomorphismSettings = ComputationSettings.Default() with
+    public ComputationSettings convolutionIsospeedSettings = ComputationSettings.Default() with
     {
-        UseConvolutionIsomorphismOptimization = true,
-        UseBySequenceConvolutionIsomorphismOptimization = true,
+        UseConvolutionIsospeedOptimization = true,
+        UseBySequenceConvolutionIsospeedOptimization = true,
+        UseConvolutionSuperIsospeedOptimization = false,
+        UseSubAdditiveConvolutionOptimizations = false
+    };
+    
+    public ComputationSettings convolutionSuperIsospeedSettings = ComputationSettings.Default() with
+    {
+        UseConvolutionIsospeedOptimization = true,
+        UseBySequenceConvolutionIsospeedOptimization = true,
+        UseConvolutionSuperIsospeedOptimization = true,
         UseSubAdditiveConvolutionOptimizations = false
     };
 
