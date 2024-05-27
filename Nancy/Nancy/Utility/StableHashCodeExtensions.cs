@@ -134,8 +134,58 @@ public static class StableHashCodeExtensions
             tuple.Item5?.GetStableHashCode() ?? 0
         );
     }
-    
-    // todo: continue with others...
+
+    /// <summary>
+    /// Returns the stable hash code for the current <see cref="ValueTuple{T1, T2, T3, T4, T5, T6}"/> instance.
+    /// </summary>
+    /// <returns>A 32-bit signed integer stable hash code.</returns>
+    public static int GetStableHashCode<T1, T2, T3, T4, T5, T6>(this ValueTuple<T1, T2, T3, T4, T5, T6> tuple)
+    {
+        return HashStableCombine(
+            tuple.Item1?.GetStableHashCode() ?? 0,
+            tuple.Item2?.GetStableHashCode() ?? 0,
+            tuple.Item3?.GetStableHashCode() ?? 0,
+            tuple.Item4?.GetStableHashCode() ?? 0,
+            tuple.Item5?.GetStableHashCode() ?? 0,
+            tuple.Item6?.GetStableHashCode() ?? 0
+        );
+    }
+
+    /// <summary>
+    /// Returns the stable hash code for the current <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7}"/> instance.
+    /// </summary>
+    /// <returns>A 32-bit signed integer stable hash code.</returns>
+    public static int GetStableHashCode<T1, T2, T3, T4, T5, T6, T7>(this ValueTuple<T1, T2, T3, T4, T5, T6, T7> tuple)
+    {
+        return HashStableCombine(
+            tuple.Item1?.GetStableHashCode() ?? 0,
+            tuple.Item2?.GetStableHashCode() ?? 0,
+            tuple.Item3?.GetStableHashCode() ?? 0,
+            tuple.Item4?.GetStableHashCode() ?? 0,
+            tuple.Item5?.GetStableHashCode() ?? 0,
+            tuple.Item6?.GetStableHashCode() ?? 0,
+            tuple.Item7?.GetStableHashCode() ?? 0
+        );
+    }
+
+    /// <summary>
+    /// Returns the stable hash code for the current <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7}"/> instance.
+    /// </summary>
+    /// <returns>A 32-bit signed integer stable hash code.</returns>
+    public static int GetStableHashCode<T1, T2, T3, T4, T5, T6, T7, TRest>(this ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> tuple)
+    where TRest : struct
+    {
+        return HashStableCombine(
+            tuple.Item1?.GetStableHashCode() ?? 0,
+            tuple.Item2?.GetStableHashCode() ?? 0,
+            tuple.Item3?.GetStableHashCode() ?? 0,
+            tuple.Item4?.GetStableHashCode() ?? 0,
+            tuple.Item5?.GetStableHashCode() ?? 0,
+            tuple.Item6?.GetStableHashCode() ?? 0,
+            tuple.Item7?.GetStableHashCode() ?? 0,
+            tuple.Rest.GetStableHashCode()
+        );
+    }
 
     #endregion ValueTuple
 
