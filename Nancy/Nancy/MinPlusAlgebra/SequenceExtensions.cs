@@ -822,6 +822,22 @@ public static class SequenceExtensions
     }
 
     /// <summary>
+    /// True if for any $t > s$, $f(t) > f(s)$.
+    /// </summary>
+    public static bool IsIncreasing(this IEnumerable<Element> elements)
+    {
+        foreach (var breakpoint in elements.EnumerateBreakpoints())
+        {
+            if (
+                (breakpoint.left is Segment l && ( l.Slope <= 0 || l.LeftLimitAtEndTime > breakpoint.center.Value )) ||
+                (breakpoint.right is Segment r && ( r.Slope <= 0 || breakpoint.center.Value > r.RightLimitAtStartTime ))
+            )
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>
     /// True if for any $t$, $\left|f(t)\right| &lt; +\infty$.
     /// </summary>
     /// <param name="elements"></param>

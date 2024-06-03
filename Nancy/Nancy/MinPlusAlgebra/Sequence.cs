@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -256,6 +256,18 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// Private cache field for <see cref="IsNonDecreasing"/>
     /// </summary>
     internal bool? _isNonDecreasing;
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) > f(s)$.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsIncreasing
+        => _isIncreasing ??= Elements.IsIncreasing();
+
+    /// <summary>
+    /// Private cache field for <see cref="IsIncreasing"/>
+    /// </summary>
+    internal bool? _isIncreasing;
 
     /// <summary>
     /// True if <see cref="DefinedFrom"/> is exclusive.

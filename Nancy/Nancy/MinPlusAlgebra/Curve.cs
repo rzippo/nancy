@@ -418,6 +418,17 @@ public class Curve : IToCodeString, IStableHashCode
     internal bool? _isNonDecreasing;
 
     /// <summary>
+    /// True if for any $t > s$, $f(t) > f(s)$.
+    /// </summary>
+    public bool IsIncreasing
+        => _isIncreasing ??= CutAsEnumerable(0, SecondPseudoPeriodEnd).IsIncreasing();
+
+    /// <summary>
+    /// Private cache field for <see cref="IsIncreasing"/>
+    /// </summary>
+    internal bool? _isIncreasing;
+
+    /// <summary>
     /// True if for any pair $t,s$ in the given interval, $t > s$, $f(t) \ge f(s)$.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
