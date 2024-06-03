@@ -11,7 +11,8 @@
 			"extensions": [
 				"ms-dotnettools.csharp",
 				"ms-dotnettools.csdevkit",
-				"ms-dotnettools.dotnet-interactive-vscode"
+				"ms-dotnettools.dotnet-interactive-vscode",
+				"github.vscode-github-actions"
 			]
 		}
 	}
