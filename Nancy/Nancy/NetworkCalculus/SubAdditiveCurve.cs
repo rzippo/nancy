@@ -103,7 +103,7 @@ public class SubAdditiveCurve : Curve
     /// </remarks>
     public bool IsRegularSubAdditiveCheck()
     {
-        return base.IsSubAdditive && ValueAt(0) == 0;
+        return base.IsSubAdditive && IsPassingThroughOrigin;
     }
 
     /// <inheritdoc />
@@ -247,7 +247,7 @@ public class SubAdditiveCurve : Curve
                 }
             }
             else if(
-                this.ValueAt(0) == 0 && curve.ValueAt(0) == 0 &&
+                this.IsPassingThroughOrigin && curve.IsPassingThroughOrigin &&
                 (settings.UseMinimumSelfConvolutionForCurvesWithInfinities || (this.IsFinite && curve.IsFinite))        
             )
             {
@@ -628,7 +628,7 @@ public class SubAdditiveCurve : Curve
                 return Curve.EstimateConvolution(lower, higher_a, countElements, settings);
             }
             else if(
-                this.ValueAt(0) == 0 && curve.ValueAt(0) == 0 &&
+                this.IsPassingThroughOrigin && curve.IsPassingThroughOrigin &&
                 (settings.UseMinimumSelfConvolutionForCurvesWithInfinities || (this.IsFinite && curve.IsFinite))        
             )
             {

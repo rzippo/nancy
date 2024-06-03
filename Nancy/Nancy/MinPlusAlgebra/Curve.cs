@@ -198,6 +198,15 @@ public class Curve : IToCodeString, IStableHashCode
         this.Equivalent(MinusInfinite());
 
     /// <summary>
+    /// True if $f(0) = 0$.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsPassingThroughOrigin
+        => _isPassingThroughOrigin ??= ValueAt(0) == 0;
+
+    internal bool? _isPassingThroughOrigin;
+
+    /// <summary>
     /// True if there is no infinite value or discontinuity within the curve.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
@@ -668,7 +677,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularSubAdditive
-        => IsSubAdditive && ValueAt(0) == 0;
+        => IsSubAdditive && IsPassingThroughOrigin;
 
     /// <summary>
     /// True if the curve is super-additive, i.e. $f(t+s) \ge f(t) + f(s)$.
@@ -712,7 +721,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularSuperAdditive
-        => IsSuperAdditive && ValueAt(0) == 0;
+        => IsSuperAdditive && IsPassingThroughOrigin;
 
 
     /// <summary>
@@ -754,7 +763,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularConcave
-        => IsConcave && ValueAt(0) == 0;
+        => IsConcave && IsPassingThroughOrigin;
 
     /// <summary>
     /// Tests if the curve is convex, 
@@ -795,7 +804,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularConvex
-        => IsConvex && ValueAt(0) == 0;
+        => IsConvex && IsPassingThroughOrigin;
 
     /// <summary>
     /// True if pseudo-periodic behavior starts at $T > 0$.
@@ -2376,7 +2385,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     public Curve WithZeroOrigin()
     {
-        if (this.ValueAt(0) == 0)
+        if (IsPassingThroughOrigin)
         {
             return this;
         }

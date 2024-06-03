@@ -527,7 +527,7 @@ public class UpperPseudoInverse
     public void CornerCases(Curve operand, Curve expected)
     {
         var result = operand.UpperPseudoInverse();
-        if(!operand.IsUltimatelyConstant && result.ValueAt(0) == 0)
+        if(!operand.IsUltimatelyConstant && result.IsPassingThroughOrigin)
             Assert.True(result.IsLeftContinuous);
         Assert.True(Curve.Equivalent(expected, result));
 
@@ -536,7 +536,7 @@ public class UpperPseudoInverse
             return;
 
         var result2 = result.UpperPseudoInverse();
-        if(!result.IsUltimatelyConstant && result.ValueAt(0) == 0)
+        if(!result.IsUltimatelyConstant && result.IsPassingThroughOrigin)
             Assert.True(result2.IsLeftContinuous);
         Assert.True(Curve.EquivalentAfter(operand, result2, operand.FirstNonZeroTime));
     }

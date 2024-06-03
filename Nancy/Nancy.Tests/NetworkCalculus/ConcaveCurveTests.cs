@@ -61,7 +61,7 @@ public class ConcaveCurveTests
         var conv_asIs = Curve.Convolution(a, b);
         var min_asIs = Curve.Minimum(a, b);
 
-        if (a.ValueAt(0) == 0 && b.ValueAt(0) == 0)
+        if (a.IsPassingThroughOrigin && b.IsPassingThroughOrigin)
         {
             Assert.True(Curve.Equivalent(conv_asIs, min_asIs));
         }
