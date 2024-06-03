@@ -1,0 +1,45 @@
+name: Nancy.Interactive.Local-test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - "Nancy/Nancy/*"
+      - "Nancy/Nancy.Interactive/*"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "Nancy/Nancy/*"
+      - "Nancy/Nancy.Interactive/*"
+
+jobs:
+  Nancy-Interactive-Local-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-sdk-version: [ '8.0.x' ]
+        
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY: "Nancy/Nancy/Nancy.csproj"
+      NANCY_INTERACTIVE: "Nancy/Nancy.Interactive/Nancy.Interactive.Local.csproj"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+
+      - name: Build Nancy
+        run: dotnet build $NANCY --configuration $BUILD_CONFIG
+
+      - name: Build Nancy.Interactive.Local
+        run: dotnet build $NANCY_INTERACTIVE --configuration $BUILD_CONFIG
+
+      # No actual tests available

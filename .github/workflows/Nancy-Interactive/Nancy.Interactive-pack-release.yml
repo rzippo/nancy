@@ -1,0 +1,46 @@
+name: Nancy.Interactive-pack-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - "Nancy/Nancy.Interactive/Nancy.Interactive.csproj"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "Nancy/Nancy.Interactive/Nancy.Interactive.csproj"
+
+jobs:
+  Nancy-Interactive-pack-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-sdk-version: [ '8.0.x' ]
+        
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_INTERACTIVE: "Nancy/Nancy.Interactive/Nancy.Interactive.csproj"
+      NANCY_INTERACTIVE_PACKS: "Nancy/Nancy.Interactive/bin/Release/**/*.nupkg"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+
+      - name: Build Nancy.Interactive
+        run: dotnet build $NANCY_INTERACTIVE --configuration $BUILD_CONFIG
+
+      # No actual tests available
+
+      - name: Pack
+        run: dotnet pack $NANCY_INTERACTIVE --configuration $BUILD_CONFIG --no-restore --no-build
+
+      - name: Publish
+        run: nuget push $NANCY_INTERACTIVE_PACKS -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}

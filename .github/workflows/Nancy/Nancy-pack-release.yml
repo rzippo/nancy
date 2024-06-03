@@ -1,0 +1,54 @@
+name: Nancy-pack-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy/Nancy.csproj'
+      - 'Nancy/Nancy/Nancy.LongRational.csproj'  
+  pull_request:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy/Nancy.csproj'
+      - 'Nancy/Nancy/Nancy.LongRational.csproj'
+
+jobs:
+  Nancy-pack-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-sdk-version: [ '8.0.x' ]
+        nancy-release: [ "", ".LongRational" ]
+    
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY: "Nancy/Nancy/Nancy${{ matrix.nancy-release }}.csproj"
+      NANCY_TESTS: "Nancy/Nancy.Tests/Nancy.Tests${{ matrix.nancy-release }}.csproj"
+      NANCY_PACKS: "Nancy/Nancy/bin/Release/**/*.nupkg"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+
+      - name: Build Nancy${{ matrix.nancy-release }}
+        run: dotnet build $NANCY --configuration $BUILD_CONFIG
+
+      - name: Build Nancy.Tests${{ matrix.nancy-release }}
+        run: dotnet build $NANCY_TESTS --configuration $BUILD_CONFIG
+
+      - name: Test Nancy${{ matrix.nancy-release }}
+        run: dotnet test $NANCY_TESTS /p:Configuration=$BUILD_CONFIG
+
+      - name: Pack
+        run: dotnet pack $NANCY --configuration $BUILD_CONFIG --no-restore --no-build
+
+      - name: Publish
+        run: nuget push $NANCY_PACKS -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
