@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -171,44 +171,19 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsLeftContinuous
-        => _isLeftContinuous ??= TestIsLeftContinuous();
-
-    private bool TestIsLeftContinuous()
-        {
-            foreach(var breakpoint in this.EnumerateBreakpoints())
-            {
-                if (breakpoint.left is { } s &&
-                    s.LeftLimitAtEndTime != breakpoint.center.Value)
-                    return false;
-            }
-
-            return true;
-        }
+        => _isLeftContinuous ??= Elements.IsLeftContinuous();
 
     /// <summary>
     /// Private cache field for <see cref="IsLeftContinuous"/>
     /// </summary>
     internal bool? _isLeftContinuous;
 
-
     /// <summary>
     /// True if there is right-discontinuity within the sequence.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRightContinuous
-        => _isRightContinuous ??= TestIsRightContinuous();
-
-    private bool TestIsRightContinuous()
-        {
-            foreach (var breakpoint in this.EnumerateBreakpoints())
-            {
-                if (breakpoint.right is { } s &&
-                    s.RightLimitAtStartTime != breakpoint.center.Value)
-                    return false;
-            }
-
-            return true;
-        }
+        => _isRightContinuous ??= Elements.IsRightContinuous();
 
     /// <summary>
     /// Private cache field for <see cref="IsRightContinuous"/>
@@ -275,20 +250,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonDecreasing
-        => _isNonDecreasing ??= TestIsNonDecreasing();
-
-    private bool TestIsNonDecreasing()
-        {
-            foreach (var breakpoint in this.EnumerateBreakpoints())
-            {
-                if (
-                    (breakpoint.left is Segment l && ( l.Slope < 0 || l.LeftLimitAtEndTime > breakpoint.center.Value )) ||
-                    (breakpoint.right is Segment r && ( r.Slope < 0 || breakpoint.center.Value > r.RightLimitAtStartTime ))
-                )
-                    return false;
-            }
-            return true;
-        }
+        => _isNonDecreasing ??= Elements.IsNonDecreasing();
 
     /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>
