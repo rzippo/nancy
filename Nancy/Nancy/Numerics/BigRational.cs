@@ -86,7 +86,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </item>
     /// </list>
     /// </returns>
-    public Int32 Sign => Numerator.Sign;
+    public readonly Int32 Sign => Numerator.Sign;
 
     /// <summary>
     /// The numerator of the rational.
@@ -103,42 +103,42 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// True if the number is finite.
     /// </summary>
-    public bool IsFinite => Denominator != 0;
+    public readonly bool IsFinite => Denominator != 0;
 
     /// <summary>
     /// True if the number is infinite.
     /// </summary>
-    public bool IsInfinite => Denominator == 0;
+    public readonly bool IsInfinite => Denominator == 0;
 
     /// <summary>
     /// True if the number is $+\infty$.
     /// </summary>
-    public bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
+    public readonly bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
 
     /// <summary>
     /// True if the number is $-\infty$.
     /// </summary>
-    public bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
+    public readonly bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
 
     /// <summary>
     /// True if the number is 0.
     /// </summary>
-    public bool IsZero => this == Zero;
+    public readonly bool IsZero => this == Zero;
 
     /// <summary>
     /// True if the number is $> 0$.
     /// </summary>
-    public bool IsPositive => this.Sign > 0;
+    public readonly bool IsPositive => this.Sign > 0;
 
     /// <summary>
     /// True if the number is $&lt; 0$.
     /// </summary>
-    public bool IsNegative => this.Sign < 0;
+    public readonly bool IsNegative => this.Sign < 0;
 
     /// <summary>
     /// True if the number is an integer.
     /// </summary>
-    public bool IsInteger => Denominator.IsOne;
+    public readonly bool IsInteger => Denominator.IsOne;
 
     #endregion Public Properties
 
@@ -189,7 +189,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// 
     /// </summary>
-    public BigInteger GetWholePart()
+    public readonly BigInteger GetWholePart()
     {
         return BigInteger.Divide(Numerator, Denominator);
     }
@@ -197,24 +197,24 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// 
     /// </summary>
-    public BigRational GetFractionPart()
+    public readonly BigRational GetFractionPart()
     {
         return new BigRational(BigInteger.Remainder(Numerator, Denominator), Denominator);
     }
 
     /// <inheritdoc />
-    public override bool Equals(object? obj)
+    public override readonly bool Equals(object? obj)
     {
         if (obj == null)
             return false;
 
-        if (!(obj is BigRational))
+        if (obj is not BigRational)
             return false;
         return this.Equals((BigRational)obj);
     }
 
     /// <inheritdoc />
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return (Numerator, Denominator).GetHashCode();
     }
@@ -222,31 +222,31 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// A stable hashcode.
     /// </summary>
-    public int GetStableHashCode()
+    public readonly int GetStableHashCode()
     {
         return (Numerator, Denominator).GetStableHashCode();
     }
-    
+
     // IComparable
-    int IComparable.CompareTo(object? obj)
+    readonly int IComparable.CompareTo(object? obj)
     {
         if (obj == null)
             return 1;
-        if (!(obj is BigRational))
-            throw new ArgumentException("Argument must be of type BigRational", "obj");
+        if (obj is not BigRational)
+            throw new ArgumentException("Argument must be of type BigRational", nameof(obj));
         return Compare(this, (BigRational)obj);
     }
 
     // IComparable<BigRational>
     /// <inheritdoc />
-    public int CompareTo(BigRational other)
+    public readonly int CompareTo(BigRational other)
     {
         return Compare(this, other);
     }
 
     // Object.ToString
     /// <inheritdoc />
-    public override String ToString()
+    public override readonly String ToString()
     {
         StringBuilder ret = new StringBuilder();
         ret.Append(Numerator.ToString("R", CultureInfo.InvariantCulture));
@@ -259,7 +259,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// Returns a string containing C# code to create this BigRational.
     /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
     /// </summary>
-    public string ToCodeString(bool formatted = false, int indentation = 0)
+    public readonly string ToCodeString(bool formatted = false, int indentation = 0)
     {
         if (Denominator == 1)
             return Numerator.ToString();
@@ -277,7 +277,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     // IEquatable<BigRational>
     // a/b = c/d, iff ad = bc
     /// <inheritdoc />
-    public Boolean Equals(BigRational other)
+    public readonly Boolean Equals(BigRational other)
     {
         if (this.Denominator == other.Denominator)
         {
@@ -388,11 +388,11 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     {
         if (Double.IsNaN(value))
         {
-            throw new ArgumentException("Argument is not a number", "value");
+            throw new ArgumentException("Argument is not a number", nameof(value));
         }
         else if (Double.IsInfinity(value))
         {
-            throw new ArgumentException("Argument is infinity", "value");
+            throw new ArgumentException("Argument is infinity", nameof(value));
         }
 
         bool isFinite;
@@ -437,7 +437,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         int[] bits = Decimal.GetBits(value);
         if (bits == null || bits.Length != 4 || (bits[3] & ~(DecimalSignMask | DecimalScaleMask)) != 0 || (bits[3] & DecimalScaleMask) > (28 << 16))
         {
-            throw new ArgumentException("invalid Decimal", "value");
+            throw new ArgumentException("invalid Decimal", nameof(value));
         }
 
         if (value == Decimal.Zero)
@@ -639,7 +639,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         {
             if (baseValue == BigRational.Zero)
             {
-                throw new ArgumentException("cannot raise zero to a negative power", "baseValue");
+                throw new ArgumentException("cannot raise zero to a negative power", nameof(baseValue));
             }
             // n^(-e) -> (1/n)^e
             baseValue = BigRational.Invert(baseValue);

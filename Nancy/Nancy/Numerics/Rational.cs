@@ -114,7 +114,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.Sign"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public Int32 Sign 
+        public readonly Int32 Sign 
         #if BIG_RATIONAL
             => Numerator.Sign;
         #elif LONG_RATIONAL
@@ -155,7 +155,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsFinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public bool IsFinite => Denominator != 0;
+        public readonly bool IsFinite => Denominator != 0;
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsInfinite"/>
@@ -163,7 +163,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsInfinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public bool IsInfinite => Denominator == 0;
+        public readonly bool IsInfinite => Denominator == 0;
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsPlusInfinite"/>
@@ -171,7 +171,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsPlusInfinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
+        public readonly bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsMinusInfinite"/>
@@ -179,7 +179,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsMinusInfinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
+        public readonly bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsZero"/>
@@ -187,7 +187,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsZero"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public bool IsZero => this == Zero;
+        public readonly bool IsZero => this == Zero;
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsPositive"/>
@@ -195,7 +195,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsPositive"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public bool IsPositive => this.Sign > 0;
+        public readonly bool IsPositive => this.Sign > 0;
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsNegative"/>
@@ -203,7 +203,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsNegative"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public bool IsNegative => this.Sign < 0;
+        public readonly bool IsNegative => this.Sign < 0;
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsInteger"/>
@@ -211,7 +211,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsInteger"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public bool IsInteger => 
+        public readonly bool IsInteger => 
         #if BIG_RATIONAL
             Denominator.IsOne;
         #elif LONG_RATIONAL
@@ -268,12 +268,12 @@ namespace Unipi.Nancy.Numerics
         /// 
         /// </summary>
         #if BIG_RATIONAL
-        public BigInteger GetWholePart()
+        public readonly BigInteger GetWholePart()
         {
             return BigInteger.Divide(Numerator, Denominator);
         }
         #elif LONG_RATIONAL
-        public long GetWholePart()
+        public readonly long GetWholePart()
         {
             return Numerator / Denominator;
         }
@@ -282,7 +282,7 @@ namespace Unipi.Nancy.Numerics
         /// <summary>
         /// 
         /// </summary>
-        public Rational GetFractionPart()
+        public readonly Rational GetFractionPart()
         {
             #if BIG_RATIONAL
             return new Rational(BigInteger.Remainder(Numerator, Denominator), Denominator);
@@ -295,9 +295,9 @@ namespace Unipi.Nancy.Numerics
         /// 
         /// </summary>
         #if BIG_RATIONAL
-        public BigInteger Floor()
+        public readonly BigInteger Floor()
         #elif LONG_RATIONAL
-        public long Floor()
+        public readonly long Floor()
         #endif
         {
             var wholePart = GetWholePart();
@@ -319,7 +319,7 @@ namespace Unipi.Nancy.Numerics
         /// <summary>
         /// 
         /// </summary>
-        public BigInteger Ceil()
+        public readonly BigInteger Ceil()
         {
             var wholePart = GetWholePart();
             var fractionPart = GetFractionPart();
@@ -341,7 +341,7 @@ namespace Unipi.Nancy.Numerics
         /// <summary>
         /// 
         /// </summary>
-        public int FastFloor()
+        public readonly int FastFloor()
         {
             var d = (decimal)this;
             return (int)Math.Floor(d);
@@ -350,20 +350,20 @@ namespace Unipi.Nancy.Numerics
         /// <summary>
         /// 
         /// </summary>
-        public int FastCeil()
+        public readonly int FastCeil()
         {
             var d = (decimal)this;
             return (int)Math.Ceiling(d);
         }
 
         /// <inheritdoc />
-        public override bool Equals(object? obj)
+        public override readonly bool Equals(object? obj)
         {
             return obj is Rational other && Equals(other);
         }
 
         /// <inheritdoc />
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return HashCode.Combine(Numerator, Denominator);
         }
@@ -371,13 +371,13 @@ namespace Unipi.Nancy.Numerics
         /// <summary>
         /// A stable hashcode.
         /// </summary>
-        public int GetStableHashCode()
+        public readonly int GetStableHashCode()
         {
             return (Numerator, Denominator).GetStableHashCode();
         }
 
         // IComparable
-        int IComparable.CompareTo(object? obj)
+        readonly int IComparable.CompareTo(object? obj)
         {
             if (obj == null)
                 return 1;
@@ -388,14 +388,14 @@ namespace Unipi.Nancy.Numerics
 
         // IComparable<Rational>
         /// <inheritdoc />
-        public int CompareTo(Rational other)
+        public readonly int CompareTo(Rational other)
         {
             return Compare(this, other);
         }
 
         // Object.ToString
         /// <inheritdoc />
-        public override String ToString()
+        public override readonly String ToString()
         {
             StringBuilder ret = new StringBuilder();
             ret.Append(Numerator.ToString("R", CultureInfo.InvariantCulture));
@@ -412,7 +412,7 @@ namespace Unipi.Nancy.Numerics
         /// Returns a string containing C# code to create this Rational.
         /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
         /// </summary>
-        public string ToCodeString(bool formatted = false, int indentation = 0)
+        public readonly string ToCodeString(bool formatted = false, int indentation = 0)
         {
             if (Denominator == 1)
                 return Numerator.ToString();
@@ -430,7 +430,7 @@ namespace Unipi.Nancy.Numerics
         // IEquatable<Rational>
         // a/b = c/d, iff ad = bc
         /// <inheritdoc />
-        public Boolean Equals(Rational other)
+        public readonly Boolean Equals(Rational other)
         {
             if (this.Denominator == other.Denominator)
             {
@@ -573,11 +573,11 @@ namespace Unipi.Nancy.Numerics
         {
             if (Double.IsNaN(value))
             {
-                throw new ArgumentException("Argument is not a number", "value");
+                throw new ArgumentException("Argument is not a number", nameof(value));
             }
             else if (Double.IsInfinity(value))
             {
-                throw new ArgumentException("Argument is infinity", "value");
+                throw new ArgumentException("Argument is infinity", nameof(value));
             }
 
             bool isFinite;
@@ -622,7 +622,7 @@ namespace Unipi.Nancy.Numerics
             int[] bits = Decimal.GetBits(value);
             if (bits == null || bits.Length != 4 || (bits[3] & ~(DecimalSignMask | DecimalScaleMask)) != 0 || (bits[3] & DecimalScaleMask) > (28 << 16))
             {
-                throw new ArgumentException("invalid Decimal", "value");
+                throw new ArgumentException("invalid Decimal", nameof(value));
             }
 
             if (value == Decimal.Zero)
@@ -865,7 +865,7 @@ namespace Unipi.Nancy.Numerics
             {
                 if (baseValue == Rational.Zero)
                 {
-                    throw new ArgumentException("cannot raise zero to a negative power", "baseValue");
+                    throw new ArgumentException("cannot raise zero to a negative power", nameof(baseValue));
                 }
                 // n^(-e) -> (1/n)^e
                 baseValue = Rational.Invert(baseValue);

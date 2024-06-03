@@ -86,7 +86,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </item>
     /// </list>
     /// </returns>
-    public int Sign => Math.Sign(Numerator);
+    public readonly int Sign => Math.Sign(Numerator);
 
     /// <summary>
     /// The numerator of the rational.
@@ -103,42 +103,42 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// True if the number is finite.
     /// </summary>
-    public bool IsFinite => Denominator != 0;
+    public readonly bool IsFinite => Denominator != 0;
 
     /// <summary>
     /// True if the number is infinite.
     /// </summary>
-    public bool IsInfinite => Denominator == 0;
+    public readonly bool IsInfinite => Denominator == 0;
 
     /// <summary>
     /// True if the number is $+\infty$.
     /// </summary>
-    public bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
+    public readonly bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
 
     /// <summary>
     /// True if the number is $-\infty$.
     /// </summary>
-    public bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
+    public readonly bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
 
     /// <summary>
     /// True if the number is 0.
     /// </summary>
-    public bool IsZero => this == Zero;
+    public readonly bool IsZero => this == Zero;
 
     /// <summary>
     /// True if the number is $> 0$.
     /// </summary>
-    public bool IsPositive => this.Sign > 0;
+    public readonly bool IsPositive => this.Sign > 0;
 
     /// <summary>
     /// True if the number is $&lt; 0$.
     /// </summary>
-    public bool IsNegative => this.Sign < 0;
+    public readonly bool IsNegative => this.Sign < 0;
 
     /// <summary>
     /// True if the number is an integer.
     /// </summary>
-    public bool IsInteger => Denominator == 1;
+    public readonly bool IsInteger => Denominator == 1;
 
     #endregion Public Properties
 
@@ -189,7 +189,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    public long GetWholePart()
+    public readonly long GetWholePart()
     {
         return Numerator / Denominator;
     }
@@ -197,7 +197,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    public LongRational GetFractionPart()
+    public readonly LongRational GetFractionPart()
     {
         return new LongRational(Numerator % Denominator, Denominator);
     }
@@ -205,7 +205,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    public long Floor()
+    public readonly long Floor()
     {
         var wholePart = GetWholePart();
         var fractionPart = GetFractionPart();
@@ -226,7 +226,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    public long Ceil()
+    public readonly long Ceil()
     {
         var wholePart = GetWholePart();
         var fractionPart = GetFractionPart();
@@ -248,7 +248,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="obj"></param>
-    public override bool Equals(object? obj)
+    public override readonly bool Equals(object? obj)
     {
         if (obj == null)
             return false;
@@ -261,7 +261,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return (Numerator, Denominator).GetHashCode();
     }
@@ -269,18 +269,18 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// A stable hashcode.
     /// </summary>
-    public int GetStableHashCode()
+    public readonly int GetStableHashCode()
     {
         return (Numerator, Denominator).GetStableHashCode();
     }
 
     // IComparable
-    int IComparable.CompareTo(object? obj)
+    readonly int IComparable.CompareTo(object? obj)
     {
         if (obj == null)
             return 1;
         if (!(obj is LongRational))
-            throw new ArgumentException("Argument must be of type Rational", "obj");
+            throw new ArgumentException("Argument must be of type Rational", nameof(obj));
         return Compare(this, (LongRational)obj);
     }
 
@@ -289,7 +289,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="other"></param>
-    public int CompareTo(LongRational other)
+    public readonly int CompareTo(LongRational other)
     {
         return Compare(this, other);
     }
@@ -298,7 +298,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <summary>
     /// 
     /// </summary>
-    public override String ToString()
+    public override readonly String ToString()
     {
         StringBuilder ret = new StringBuilder();
         ret.Append(Numerator.ToString());
@@ -311,7 +311,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// Returns a string containing C# code to create this LongRational.
     /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
     /// </summary>
-    public string ToCodeString(bool formatted = false, int indentation = 0)
+    public readonly string ToCodeString(bool formatted = false, int indentation = 0)
     {
         if (Denominator == 1)
             return Numerator.ToString();
@@ -332,7 +332,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// 
     /// </summary>
     /// <param name="other"></param>
-    public Boolean Equals(LongRational other)
+    public readonly Boolean Equals(LongRational other)
     {
         if (this.Denominator == other.Denominator)
         {
@@ -582,7 +582,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         {
             if (baseValue == LongRational.Zero)
             {
-                throw new ArgumentException("cannot raise zero to a negative power", "baseValue");
+                throw new ArgumentException("cannot raise zero to a negative power", nameof(baseValue));
             }
             // n^(-e) -> (1/n)^e
             baseValue = LongRational.Invert(baseValue);
