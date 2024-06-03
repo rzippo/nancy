@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
 
@@ -18,7 +18,7 @@
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
     <PackageTags>network-calculus</PackageTags>
-    <PackageVersion>1.2.0</PackageVersion>
+    <PackageVersion>1.2.1</PackageVersion>
 
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
