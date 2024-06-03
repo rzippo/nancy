@@ -5,9 +5,15 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'Nancy/Nancy/*'
+      - 'Nancy/Nancy.Tests/*'
   pull_request:
     branches:
       - master
+    paths:
+      - 'Nancy/Nancy/*'
+      - 'Nancy/Nancy.Tests/*'
 
 jobs:
   Nancy-test:
