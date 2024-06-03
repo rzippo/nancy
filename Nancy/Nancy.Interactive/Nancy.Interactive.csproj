@@ -19,14 +19,14 @@
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rzippo/nancy-interactive</RepositoryUrl>
     <PackageTags>network-calculus</PackageTags>
-    <PackageVersion>1.0.0</PackageVersion>
+    <PackageVersion>1.0.1</PackageVersion>
 
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>   
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Unipi.Nancy" Version="1.1.8" />
+    <PackageReference Include="Unipi.Nancy" Version="1.2.1" />
     <PackageReference Include="XPlot.Plotly.Interactive" Version="4.0.7" />
   </ItemGroup>
 
