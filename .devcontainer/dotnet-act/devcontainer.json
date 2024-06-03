@@ -1,10 +1,11 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/dotnet
 {
-	"name": "C# (.NET)",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0",
-	"features": {},
+	"name": "C# (.NET) + act",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],
 	"customizations": {
 		"vscode": {
 			"extensions": [
