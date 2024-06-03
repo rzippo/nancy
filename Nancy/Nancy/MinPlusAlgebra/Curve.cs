@@ -576,18 +576,25 @@ public class Curve : IToCodeString, IStableHashCode
         PseudoPeriodicElements.All(elem => elem.IsFinite);
 
     /// <summary>
+    /// True if, for some $T$, $f(t) = +\infty$ for all $t \ge T$.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsUltimatelyPlusInfinite
+        => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsPlusInfinite();
+
+    /// <summary>
+    /// True if, for some $T$, $f(t) = -\infty$ for all $t \ge T$.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsUltimatelyMinusInfinite
+        => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite();
+    
+    /// <summary>
     /// True if, for $b \in \{-\infty, +\infty\}$ and some $T$, $f(t) = b$ for all $t \ge T$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyInfinite
-    {
-        get
-        {
-            var isUltPlusInfinite = CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsPlusInfinite();
-            var isUltMinusInfinite = CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite();
-            return isUltPlusInfinite || isUltMinusInfinite;
-        }
-    }
+        => IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite;
 
     /// <summary>
     /// True if for all $t >$ <see cref="PseudoPeriodStart"/> the curve is either always finite or always infinite.
@@ -597,7 +604,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyPlain =>
-        IsUltimatelyFinite || IsUltimatelyInfinite;
+        IsUltimatelyFinite || IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite;
 
     /// <summary>
     /// True if $f$ is plain, i.e., it is either
@@ -2439,7 +2446,7 @@ public class Curve : IToCodeString, IStableHashCode
                 pseudoPeriodHeight: 0
             );
         }
-        else if (IsUltimatelyInfinite)
+        else if (IsUltimatelyPlusInfinite)
         {
             var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
             if (lastFiniteTime == 0)
@@ -2546,7 +2553,7 @@ public class Curve : IToCodeString, IStableHashCode
                 pseudoPeriodHeight: 0
             );
         }
-        else if (IsUltimatelyInfinite)
+        else if (IsUltimatelyPlusInfinite)
         {
             var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
             if (lastFiniteTime == 0)
@@ -2715,7 +2722,7 @@ public class Curve : IToCodeString, IStableHashCode
                     pseudoPeriodHeight: 0
                 );
             }
-            else if (IsUltimatelyInfinite)
+            else if (IsUltimatelyPlusInfinite)
             {
                 var lastFiniteTime = Rational.Max(PseudoPeriodStartInfimum, start); // T_I
                 if (lastFiniteTime == 0)
@@ -2868,7 +2875,7 @@ public class Curve : IToCodeString, IStableHashCode
                     pseudoPeriodHeight: 0
                 );
             }
-            else if (IsUltimatelyInfinite)
+            else if (IsUltimatelyPlusInfinite)
             {
                 var lastFiniteTime = Rational.Max(PseudoPeriodStartInfimum, start); // T_I
                 if (lastFiniteTime == 0)
