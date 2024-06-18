@@ -172,8 +172,8 @@ public class Deconvolution
         };
 
         var tuples = curves
-            .SelectMany(f => 
-                curves.SelectMany(g => 
+            .SelectMany(f =>
+                curves.SelectMany(g =>
                     curves.Select(h => (f, g, h))
                 )
             );
@@ -194,7 +194,7 @@ public class Deconvolution
 
         Assert.True(left <= right);
     }
-    
+
     /// <summary>
     /// Tests the equivalence stated in [DNC18] Proposition 2.8 point 1)
     /// In the text the statement is wrong, probably due to a typo, but the proof shows the correct equivalence:
