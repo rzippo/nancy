@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -159,5 +160,53 @@ public class Deconvolution
     {
         var self_deconv = curve.Deconvolution(curve);
         Assert.Equal(curve, self_deconv);
+    }
+
+    public static IEnumerable<object[]> GetDeconvolutionDistributionTestCases()
+    {
+        var curves = new Curve[]
+        {
+            new RateLatencyServiceCurve(1, 2),
+            new RateLatencyServiceCurve(2, 4),
+            new RateLatencyServiceCurve(3, 5)
+        };
+
+        var tuples = curves
+            .SelectMany(f => 
+                curves.SelectMany(g => 
+                    curves.Select(h => (f, g, h))
+                )
+            );
+
+        return tuples.ToXUnitTestCases();
+    }
+
+    /// <summary>
+    /// Tests the inequality stated in [DNC18] Proposition 2.7 point 6)
+    /// (f \wedge g) \oslash h \le (f \oslash h) \wedge (g \oslash h)
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetDeconvolutionDistributionTestCases))]
+    public void DeconvolutionBoundWithDistributionOverMin(Curve f, Curve g, Curve h)
+    {
+        var left = Curve.Minimum(f, g).Deconvolution(h);
+        var right = Curve.Minimum(Curve.Deconvolution(f, h), Curve.Deconvolution(g, h));
+
+        Assert.True(left <= right);
+    }
+    
+    /// <summary>
+    /// Tests the equivalence stated in [DNC18] Proposition 2.8 point 1)
+    /// In the text the statement is wrong, probably due to a typo, but the proof shows the correct equivalence:
+    /// (f \vee g) \oslash h = (f \oslash h) \vee (g \oslash h)
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetDeconvolutionDistributionTestCases))]
+    public void DeconvolutionDistributesOverMax(Curve f, Curve g, Curve h)
+    {
+        var left = Curve.Maximum(f, g).Deconvolution(h);
+        var right = Curve.Maximum(Curve.Deconvolution(f, h), Curve.Deconvolution(g, h));
+
+        Assert.True(Curve.Equivalent(left, right));
     }
 }
