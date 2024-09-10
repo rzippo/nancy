@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IncludeBuildOutput>true</IncludeBuildOutput>
+
+        <RootNamespace>Unipi.Nancy.Expressions.Interactive</RootNamespace>
+        <AssemblyName>Unipi.Nancy.Expressions.Interactive</AssemblyName>
+
+        <IsPackable>true</IsPackable>
+        <PackageDescription>Formats Nancy expressions using LaTeX in .NET Interactive</PackageDescription>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Nancy\Nancy.Expressions\Nancy.Expressions.csproj" />
+      <ProjectReference Include="..\Nancy.Expressions\Nancy.Expressions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
+      <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.24164.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="bin\**" />
+        <EmbeddedResource Remove="bin\**" />
+        <None Remove="bin\**" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <None Include="extension.dib" Pack="true" PackagePath="interactive-extensions/dotnet" />
+    </ItemGroup>
+    
+</Project>
