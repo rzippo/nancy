@@ -17,11 +17,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="XPlot.Plotly.Interactive" Version="4.0.7" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Nancy\Nancy.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="XPlot.Plotly.Interactive" Version="4.0.7" />
   </ItemGroup>
   
 </Project>
