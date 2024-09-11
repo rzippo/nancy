@@ -1,0 +1,46 @@
+name: Nancy.Expressions.Interactive-pack-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - "Nancy/Nancy.Expressions.Interactive/Nancy.Expressions.Interactive.csproj"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "Nancy/Nancy.Expressions.Interactive/Nancy.Expressions.Interactive.csproj"
+
+jobs:
+  Nancy-Expressions-Interactive-pack-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-sdk-version: [ '8.0.x' ]
+        
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_EXPRESSIONS_INTERACTIVE: "Nancy/Nancy.Expressions.Interactive/Nancy.Expressions.Interactive.csproj"
+      NANCY_EXPRESSIONS_INTERACTIVE_PACKS: "Nancy/Nancy.Expressions.Interactive/bin/Release/**/*.nupkg"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+
+      - name: Build Nancy.Expressions.Interactive
+        run: dotnet build $NANCY_EXPRESSIONS_INTERACTIVE --configuration $BUILD_CONFIG
+
+      # No actual tests available
+
+      - name: Pack
+        run: dotnet pack $NANCY_EXPRESSIONS_INTERACTIVE --configuration $BUILD_CONFIG --no-restore --no-build
+
+      - name: Publish
+        run: nuget push $NANCY_EXPRESSIONS_INTERACTIVE_PACKS -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}

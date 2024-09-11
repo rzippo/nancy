@@ -1,0 +1,51 @@
+name: Nancy.Expressions-pack-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy.Expressions/Nancy.Expressions.csproj'
+  pull_request:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy.Expressions/Nancy.Expressions.csproj'
+
+jobs:
+  Nancy-Expressions-pack-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-sdk-version: [ '8.0.x' ]
+    
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_EXPRESSIONS: "Nancy/Nancy.Expressions/Nancy.Expressions.csproj"
+      NANCY_EXPRESSIONS_TESTS: "Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Tests.csproj"
+      NANCY_EXPRESSIONS_PACKS: "Nancy/Nancy.Expressions/bin/Release/**/*.nupkg"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+
+      - name: Build Nancy.Expressions
+        run: dotnet build $NANCY_EXPRESSIONS --configuration $BUILD_CONFIG
+
+      - name: Build Nancy.Expressions.Tests
+        run: dotnet build $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG
+
+      - name: Test Nancy.Expressions
+        run: dotnet test $NANCY_EXPRESSIONS_TESTS /p:Configuration=$BUILD_CONFIG
+
+      - name: Pack
+        run: dotnet pack $NANCY_EXPRESSIONS --configuration $BUILD_CONFIG --no-restore --no-build
+
+      - name: Publish
+        run: nuget push $NANCY_EXPRESSIONS_PACKS -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}

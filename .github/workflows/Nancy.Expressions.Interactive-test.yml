@@ -1,0 +1,39 @@
+name: Nancy.Expressions.Interactive-test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - "Nancy/Nancy.Expressions.Interactive/*"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "Nancy/Nancy.Expressions.Interactive/*"
+
+jobs:
+  Nancy-Expressions-Interactive-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-sdk-version: [ '8.0.x' ]
+        
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_EXPRESSIONS_INTERACTIVE: "Nancy/Nancy.Expressions.Interactive/Nancy.Expressions.Interactive.csproj"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+
+      - name: Build Nancy.Expressions.Interactive
+        run: dotnet build $NANCY_EXPRESSIONS_INTERACTIVE --configuration $BUILD_CONFIG
+
+      # No actual tests available

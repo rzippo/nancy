@@ -1,0 +1,46 @@
+name: Nancy.Expressions-test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Expressions/*'
+      - 'Nancy/Nancy.Expressions.Tests/*'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Expressions/*'
+      - 'Nancy/Nancy.Expressions.Tests/*'
+
+jobs:
+  Nancy-Expressions-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-sdk-version: [ '8.0.x' ]
+    
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_EXPRESSIONS: "Nancy/Nancy.Expressions/Nancy.Expressions.Local.csproj"
+      NANCY_EXPRESSIONS_TESTS: "Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Local.Tests.csproj"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+
+      - name: Build Nancy.Expressions.Local
+        run: dotnet build $NANCY_EXPRESSIONS --configuration $BUILD_CONFIG
+
+      - name: Build Nancy.Expressions.Local.Tests
+        run: dotnet build $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG
+
+      - name: Test Nancy.Expressions.Local
+        run: dotnet test $NANCY_EXPRESSIONS_TESTS /p:Configuration=$BUILD_CONFIG
