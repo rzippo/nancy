@@ -17,8 +17,8 @@
     <PackageIcon>nancy.png</PackageIcon>
     <PackageReadmeFile>nuget.md</PackageReadmeFile>
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/rzippo/nancy-interactive</RepositoryUrl>
-    <PackageTags>network-calculus</PackageTags>
+    <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
+    <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
     <PackageVersion>1.0.1</PackageVersion>
 
     <IncludeSymbols>true</IncludeSymbols>

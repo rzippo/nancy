@@ -1,6 +1,6 @@
-# Nancy.Interactive
+# Nancy.Expressions.Interactive
 
-This package provides native integration of [Nancy](https://www.nuget.org/packages/Unipi.Nancy/) with .NET Interactive and several methods used for plotting curves.
+This package provides native integration of [Nancy.Expressions](https://www.nuget.org/packages/Unipi.Nancy.Expressions/) with .NET Interactive and several methods used for printing expressions and plotting curves.
 
 Checkout the [webpage](https://rzippo.github.io/nancy/) for tutorials and the full documentation.
 

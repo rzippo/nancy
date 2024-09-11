@@ -10,14 +10,14 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <Title>Nancy</Title>
     <Authors>Raffaele Zippo</Authors>
-    <Description>A computational library for Network Calculus</Description>
+    <Description>A computational library for Deterministic Network Calculus</Description>
     <Copyright>Raffaele Zippo, University of Pisa</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>nancy.png</PackageIcon>
     <PackageReadmeFile>nuget.md</PackageReadmeFile>
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
-    <PackageTags>network-calculus</PackageTags>
+    <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
     <PackageVersion>1.2.1</PackageVersion>
 
     <IncludeSymbols>true</IncludeSymbols>
