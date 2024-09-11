@@ -6,11 +6,11 @@
     <IsPackable>false</IsPackable>
 
     <RootNamespace>Unipi.Nancy.Expressions.Tests</RootNamespace>
-    <AssemblyName>Unipi.Nancy.Expressions.Tests</AssemblyName>
+    <AssemblyName>Unipi.Nancy.Expressions.Tests.Local</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-	  <ProjectReference Include="..\Nancy.Expressions\Nancy.Expressions.csproj" />
+	  <ProjectReference Include="..\Nancy.Expressions\Nancy.Expressions.Local.csproj" />
   </ItemGroup>
 	
   <ItemGroup>

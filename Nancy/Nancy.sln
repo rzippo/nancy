@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Expressions.Interacti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Expressions.Interactive.Local", "Nancy.Expressions.Interactive\Nancy.Expressions.Interactive.Local.csproj", "{340A41D4-5ACC-4DB6-AB7D-5F5B2C631473}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Expressions.Tests.Local", "Nancy.Expressions.Tests\Nancy.Expressions.Tests.Local.csproj", "{C168770E-BD7E-4E58-B844-71DF166800C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,10 @@ Global
 		{340A41D4-5ACC-4DB6-AB7D-5F5B2C631473}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{340A41D4-5ACC-4DB6-AB7D-5F5B2C631473}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{340A41D4-5ACC-4DB6-AB7D-5F5B2C631473}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C168770E-BD7E-4E58-B844-71DF166800C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C168770E-BD7E-4E58-B844-71DF166800C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C168770E-BD7E-4E58-B844-71DF166800C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C168770E-BD7E-4E58-B844-71DF166800C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +105,7 @@ Global
 		{DEDFF522-7476-439C-92F7-F11B58A748AC} = {63A4B6E7-ACF2-4C4F-A54F-E70B8AF44C77}
 		{7C7DB56E-1F56-4671-B433-E262F719F4D8} = {B50A07D1-7C93-474F-98E8-50F3A6077F56}
 		{340A41D4-5ACC-4DB6-AB7D-5F5B2C631473} = {B50A07D1-7C93-474F-98E8-50F3A6077F56}
+		{C168770E-BD7E-4E58-B844-71DF166800C1} = {63A4B6E7-ACF2-4C4F-A54F-E70B8AF44C77}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B378BEB-8939-431D-9E23-562DEF7D5F5D}
