@@ -45,8 +45,4 @@
     <None Include="extension.dib" Pack="true" PackagePath="interactive-extensions/dotnet" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Nancy\Nancy.csproj" />
-  </ItemGroup>
-    
 </Project>

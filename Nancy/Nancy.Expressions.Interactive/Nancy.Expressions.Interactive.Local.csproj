@@ -7,26 +7,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
 
     <RootNamespace>Unipi.Nancy.Expressions.Interactive</RootNamespace>
-    <AssemblyName>Unipi.Nancy.Expressions.Interactive</AssemblyName>
+    <AssemblyName>Unipi.Nancy.Expressions.Interactive.Local</AssemblyName>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <Title>Nancy.Expressions.Interactive</Title>
     <Authors>Andrea Trasacco, Raffaele Zippo</Authors>
     <Description>.NET Interactive integrations for Nancy.Expressions</Description>
     <Copyright>Raffaele Zippo, University of Pisa</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageIcon>nancy-expressions.png</PackageIcon>
-    <PackageReadmeFile>nuget.md</PackageReadmeFile>
-    <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/rzippo/nancy-interactive</RepositoryUrl>
-    <PackageTags>deterministic-network-calculus,network-calculus,computer-algebra-system</PackageTags>
-    <PackageVersion>1.0.0-beta.1</PackageVersion>
-
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>   
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Unipi.Nancy.Expressions" Version="1.0.0-beta.1" />
+    <ProjectReference Include="..\Nancy.Expressions\Nancy.Expressions.Local.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.24164.1" />
   </ItemGroup>
 
@@ -34,17 +28,6 @@
     <Compile Remove="bin\**" />
     <EmbeddedResource Remove="bin\**" />
     <None Remove="bin\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="nancy-expressions.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <None Include="nuget.md">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

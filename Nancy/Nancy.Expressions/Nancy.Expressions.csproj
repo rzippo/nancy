@@ -1,18 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <TargetFramework>net8.0</TargetFramework>
-        <LangVersion>12</LangVersion>
+      <TargetFramework>net8.0</TargetFramework>
+      <LangVersion>12</LangVersion>
+      <Nullable>enable</Nullable>
+      <ImplicitUsings>enable</ImplicitUsings>
 
-        <RootNamespace>Unipi.Nancy.Expressions</RootNamespace>
-        <AssemblyName>Unipi.Nancy.Expressions</AssemblyName>
+      <RootNamespace>Unipi.Nancy.Expressions</RootNamespace>
+      <AssemblyName>Unipi.Nancy.Expressions</AssemblyName>
+      <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+      <Title>Nancy.Expressions</Title>
+      <Authors>Andrea Trasacco, Raffaele Zippo</Authors>
+      <Description>A Computer Algebra System for Deterministic Network Calculus</Description>
+      <Copyright>Andrea Trasacco, Raffaele Zippo, University of Pisa</Copyright>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
+      <PackageIcon>nancy-expressions.png</PackageIcon>
+      <PackageReadmeFile>nuget.md</PackageReadmeFile>
+      <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
+      <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
+      <PackageTags>deterministic-network-calculus,network-calculus,computer-algebra-system</PackageTags>
+      <PackageVersion>1.0.0-beta.1</PackageVersion>
+
+      <IncludeSymbols>true</IncludeSymbols>
+      <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
       <PackageReference Include="Unipi.Nancy" Version="1.2.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="nancy-expressions.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
+      <None Include="nuget.md">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
     </ItemGroup>
 
 </Project>
