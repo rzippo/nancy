@@ -1,4 +1,4 @@
-name: Nancy.Expressions-test
+name: Nancy.Expressions.Local-test
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ on:
       - 'Nancy/Nancy.Expressions.Tests/*'
 
 jobs:
-  Nancy-Expressions-test:
+  Nancy-Expressions-Local-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,7 +26,7 @@ jobs:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.sln"
       NANCY_EXPRESSIONS: "Nancy/Nancy.Expressions/Nancy.Expressions.Local.csproj"
-      NANCY_EXPRESSIONS_TESTS: "Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Local.Tests.csproj"
+      NANCY_EXPRESSIONS_TESTS: "Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Tests.Local.csproj"
 
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
       - name: Build Nancy.Expressions.Local
         run: dotnet build $NANCY_EXPRESSIONS --configuration $BUILD_CONFIG
 
-      - name: Build Nancy.Expressions.Local.Tests
+      - name: Build Nancy.Expressions.Tests.Local
         run: dotnet build $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG
 
       - name: Test Nancy.Expressions.Local
