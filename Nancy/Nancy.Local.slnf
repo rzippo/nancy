@@ -1,0 +1,15 @@
+{
+  "solution": {
+    "path": "Nancy.sln",
+    "projects": [
+      "Nancy.Expressions.Interactive\\Nancy.Expressions.Interactive.Local.csproj",
+      "Nancy.Expressions.Tests\\Nancy.Expressions.Tests.Local.csproj",
+      "Nancy.Expressions\\Nancy.Expressions.Local.csproj",
+      "Nancy.Interactive\\Nancy.Interactive.Local.csproj",
+      "Nancy.Tests\\Nancy.Tests.LongRational.csproj",
+      "Nancy.Tests\\Nancy.Tests.csproj",
+      "Nancy\\Nancy.LongRational.csproj",
+      "Nancy\\Nancy.csproj"
+    ]
+  }
+}
