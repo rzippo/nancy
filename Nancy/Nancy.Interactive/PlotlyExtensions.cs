@@ -17,10 +17,10 @@ namespace Unipi.Nancy.Interactive;
 public static class PlotlyExtensions
 {
     /// <summary>
-    /// Produces a &lt;script&gt; tag that imports plotly-1.49.2 using require, and contains the given script.
+    /// Produces a script tag that imports plotly-1.49.2 using require, and contains the given script.
     /// </summary>
     /// <param name="script">The script contained by the tag.</param>
-    /// <returns>A string with the &lt;script&gt; tag.</returns>
+    /// <returns>A string with the script tag.</returns>
     public static string GetScriptElementWithRequire(string script)
     {
         var newScript = new StringBuilder();

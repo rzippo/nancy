@@ -25,6 +25,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>   
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\Unipi.Nancy.Interactive.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Unipi.Nancy" Version="1.2.2" />
     <PackageReference Include="XPlot.Plotly.Interactive" Version="4.0.7" />
