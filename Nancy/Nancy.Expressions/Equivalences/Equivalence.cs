@@ -2,6 +2,7 @@
 using Antlr4.Runtime;
 using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.Expressions.ExpressionsUtility.Internals;
+using Unipi.Nancy.Expressions.Grammar;
 using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;

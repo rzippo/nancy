@@ -1,4 +1,6 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+﻿using Unipi.Nancy.Expressions.Grammar;
+
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// Visitor class which translates a textual equivalence, written using the new grammar defined in the library, to a
