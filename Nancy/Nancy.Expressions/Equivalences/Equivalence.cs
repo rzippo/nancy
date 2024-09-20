@@ -461,10 +461,15 @@ public class Equivalence
         };
     }
 
-    public static List<Equivalence> ReadEquivalences(string fileName)
+    public static List<Equivalence> ReadEquivalencesFromFile(string fileName)
+    {
+        var equivalenceCatalog = File.ReadAllText(fileName);
+        return ReadEquivalencesFromFile(equivalenceCatalog);
+    }
+
+    public static List<Equivalence> ReadEquivalences(string equivalenceCatalog)
     {
         List<Equivalence> equivalenceList = [];
-        var equivalenceCatalog = File.ReadAllText(fileName);
         var inputStream = new AntlrInputStream(equivalenceCatalog);
         var lexer = new NetCalGLexer(inputStream);
         var commonTokenStream = new CommonTokenStream(lexer);
