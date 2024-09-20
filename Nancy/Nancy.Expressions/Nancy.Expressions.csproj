@@ -35,6 +35,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Update="references.md">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Include="nancy-expressions.png">
         <Pack>True</Pack>
         <PackagePath></PackagePath>
