@@ -1,6 +1,6 @@
 ﻿using Unipi.Nancy.Expressions.Internals;
 
-namespace Nancy.Expressions.Expressions;
+namespace Unipi.Nancy.Expressions;
 
 /// <summary>
 /// Interface with members and functions which allow to define a n-ary expression, i.e. an expression whose root node

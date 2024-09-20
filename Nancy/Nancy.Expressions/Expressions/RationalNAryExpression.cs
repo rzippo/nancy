@@ -1,4 +1,3 @@
-using Nancy.Expressions.Expressions;
 using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.Numerics;
 
