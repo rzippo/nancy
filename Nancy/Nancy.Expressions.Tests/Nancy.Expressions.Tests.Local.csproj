@@ -24,8 +24,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="Equivalences\equivalences.eq">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="Equivalences/equivalences.eq" />
   </ItemGroup>
 </Project>

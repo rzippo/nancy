@@ -17,11 +17,11 @@ public class Equivalence
         _testOutputHelper = testOutputHelper;
     }
 
-    [Fact]
-    public void ReadEquivalences_AntlrGrammar()
+    [Theory]
+    [EmbeddedResourceData("Unipi.Nancy.Expressions.Tests/Equivalences/equivalences.eq")]
+    public void ReadEquivalences_AntlrGrammar(string equivalenceCatalog)
     {
-        var list = Nancy.Expressions.Equivalences.Equivalence.ReadEquivalences(
-            @"..\..\..\Equivalences\equivalences.eq");
+        var list = Nancy.Expressions.Equivalences.Equivalence.ReadEquivalences(equivalenceCatalog);
 
         Curve a = new RateLatencyServiceCurve(1, 2).SubAdditiveClosure();
         Curve b = new RateLatencyServiceCurve(2, 4).SubAdditiveClosure();
@@ -31,7 +31,7 @@ public class Equivalence
         Assert.Equal("a", eq.ToUnicodeString());
         Assert.True(expression.Equivalent(eq));
         Assert.False(expression == eq);
-        
+
         var beta1 = new RateLatencyServiceCurve(10,20);
         var beta2 = new RateLatencyServiceCurve(3,4);
 
