@@ -2251,7 +2251,9 @@ public class Curve : IToCodeString, IStableHashCode
 
         if (HasTransient)
         {
-            foreach (var (left, center, right) in TransientSequence!.EnumerateBreakpoints())
+            // all elements in [0, T]
+            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true);
+            foreach (var (left, center, right) in transient.EnumerateBreakpoints())
             {
                 if (
                     left is not null && left.LeftLimitAtEndTime > center.Value ||

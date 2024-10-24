@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -53,7 +54,7 @@ public class ToLowerNonDecreasing
                 )
             ),
             (
-                // this is essentially the same test, but the baseSequence ends before the intersection 
+                // this is essentially the same test, but the baseSequence ends before the intersection
                 operand: new Curve(
                     baseSequence: new Sequence(new Element[]
                     {
@@ -147,7 +148,6 @@ public class ToLowerNonDecreasing
                         new Segment(2, 4, 1, 1),
                         new Point(4, 3),
                         new Segment(4, 5, 3, 1),
-
                     }),
                     pseudoPeriodStart: 4,
                     pseudoPeriodLength: 1,
@@ -211,6 +211,58 @@ public class ToLowerNonDecreasing
                     pseudoPeriodLength: 2,
                     pseudoPeriodHeight: 1
                 )
+            ),
+            (
+                operand: new Curve(
+                    baseSequence: new Sequence(new List<Element>
+                    {
+                        new Point(0, 0), new Segment(0, new Rational(11, 30), 0, 0), new Point(new Rational(11, 30), 0),
+                        new Segment(new Rational(11, 30), new Rational(13, 30), 2, -5),
+                        new Point(new Rational(13, 30), new Rational(5, 3)),
+                        new Segment(new Rational(13, 30), new Rational(143, 300), new Rational(5, 3), 10)
+                    }),
+                    pseudoPeriodStart: new Rational(13, 30),
+                    pseudoPeriodLength: new Rational(13, 300),
+                    pseudoPeriodHeight: new Rational(13, 30)
+                ),
+                expected: new Curve(
+                    baseSequence: new Sequence(new List<Element>
+                    {
+                        new Point(0, 0), new Segment(0, new Rational(11, 30), 0, 0), new Point(new Rational(11, 30), 0),
+                        new Segment(new Rational(11, 30), new Rational(13, 30), new Rational(5, 3), 0),
+                        new Point(new Rational(13, 30), new Rational(5, 3)),
+                        new Segment(new Rational(13, 30), new Rational(143, 300), new Rational(5, 3), 10)
+                    }),
+                    pseudoPeriodStart: new Rational(13, 30),
+                    pseudoPeriodLength: new Rational(13, 300),
+                    pseudoPeriodHeight: new Rational(13, 30)
+                )
+            ),
+            (
+                operand: new Curve(
+                    baseSequence: new Sequence(new List<Element>
+                    {
+                        new Point(0, 0), new Segment(0, new Rational(1, 2), new Rational(7, 5), -1),
+                        new Point(new Rational(1, 2), new Rational(9, 10)),
+                        new Segment(new Rational(1, 2), new Rational(23, 30), new Rational(9, 10), new Rational(-1, 2)),
+                        new Point(new Rational(23, 30), new Rational(23, 30)),
+                        new Segment(new Rational(23, 30), new Rational(53, 30), new Rational(23, 30), 1)
+                    }),
+                    pseudoPeriodStart: new Rational(23, 30),
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 1
+                ),
+                expected: new Curve(
+                    baseSequence: new Sequence(new List<Element>
+                    {
+                        new Point(0, 0), new Segment(0, new Rational(23, 30), new Rational(23, 30), 0),
+                        new Point(new Rational(23, 30), new Rational(23, 30)),
+                        new Segment(new Rational(23, 30), new Rational(53, 30), new Rational(23, 30), 1)
+                    }),
+                    pseudoPeriodStart: new Rational(23, 30),
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 1
+                )
             )
         };
 
@@ -226,14 +278,14 @@ public class ToLowerNonDecreasing
     {
         output.WriteLine($"var operand = {operand.ToCodeString()}");
         Assert.False(operand.IsNonDecreasing);
-        
+
         var result = operand.ToLowerNonDecreasing();
         output.WriteLine($"var result = {result.ToCodeString()}");
         output.WriteLine($"var expected = {expected.ToCodeString()}");
-        
+
         Assert.True(result.IsNonDecreasing);
         Assert.True(Curve.Equivalent(result, expected));
-        
+
         var (dominance, lower, upper) = Curve.Dominance(operand, result);
         Assert.True(dominance);
         Assert.True(Curve.Equivalent(lower, result));
