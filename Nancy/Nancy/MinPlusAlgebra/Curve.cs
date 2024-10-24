@@ -276,7 +276,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// True if the curve is continuous at <paramref name="time"/>.
     /// </summary>
     public bool IsContinuousAt(Rational time)
-        => time > 0 ? 
+        => time > 0 ?
             IsLeftContinuousAt(time) && IsRightContinuousAt(time) : IsRightContinuousAt(time);
 
     /// <summary>
@@ -311,10 +311,10 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
     /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
-    public bool IsNonNegativeOverInterval(        
-        Rational start, 
-        Rational? end = null, 
-        bool isStartIncluded = true, 
+    public bool IsNonNegativeOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
         bool isEndIncluded = false
     )
     {
@@ -436,10 +436,10 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
     /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
-    public bool IsNonDecreasingOverInterval(        
-        Rational start, 
-        Rational? end = null, 
-        bool isStartIncluded = true, 
+    public bool IsNonDecreasingOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
         bool isEndIncluded = false
     )
     {
@@ -483,9 +483,9 @@ public class Curve : IToCodeString, IStableHashCode
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <remarks>See [Zippo23] Definition 14.4</remarks>
     public bool IsLeftContinuousOverInterval(
-        Rational start, 
-        Rational? end = null, 
-        bool isStartIncluded = true, 
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
         bool isEndIncluded = false
     )
     {
@@ -528,10 +528,10 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <remarks>See [Zippo23] Definition 14.5</remarks>
-    public bool IsRightContinuousOverInterval(        
-        Rational start, 
-        Rational? end = null, 
-        bool isStartIncluded = true, 
+    public bool IsRightContinuousOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
         bool isEndIncluded = false
     )
     {
@@ -588,7 +588,7 @@ public class Curve : IToCodeString, IStableHashCode
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyMinusInfinite
         => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite();
-    
+
     /// <summary>
     /// True if, for $b \in \{-\infty, +\infty\}$ and some $T$, $f(t) = b$ for all $t \ge T$.
     /// </summary>
@@ -610,13 +610,13 @@ public class Curve : IToCodeString, IStableHashCode
     /// True if $f$ is plain, i.e., it is either
     /// a) always finite,
     /// b) always plus or minus infinite (without changing sign),
-    /// or c) finite up to a $T$, then always plus or minus infinite (without changing sign) 
+    /// or c) finite up to a $T$, then always plus or minus infinite (without changing sign)
     /// </summary>
     /// <remarks>
     /// Formally defined in [BT08], Definition 1.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPlain 
+    public bool IsPlain
     {
         get
         {
@@ -722,7 +722,7 @@ public class Curve : IToCodeString, IStableHashCode
                 }
                 else
                 {
-                    // this check may be more restrictive than necessary 
+                    // this check may be more restrictive than necessary
                     return Equivalent(PlusInfinite());
                 }
             }
@@ -743,11 +743,11 @@ public class Curve : IToCodeString, IStableHashCode
 
 
     /// <summary>
-    /// Tests if the curve is concave, 
+    /// Tests if the curve is concave,
     /// i.e. for any two points $(t, f(t))$ the straight line joining them is below $f$.
     /// </summary>
     /// <remarks>
-    /// The property is checked via the following property: $f$ is concave $\iff$ 
+    /// The property is checked via the following property: $f$ is concave $\iff$
     /// a) $f$ is continuous, or it is continuous for $t > 0$ and $f(0) \le f(0^+)$, and
     /// b) $f$ is composed of segments with decreasing slopes.
     /// </remarks>
@@ -784,11 +784,11 @@ public class Curve : IToCodeString, IStableHashCode
         => IsConcave && IsPassingThroughOrigin;
 
     /// <summary>
-    /// Tests if the curve is convex, 
+    /// Tests if the curve is convex,
     /// i.e. for any two points $(t, f(t))$ the straight line joining them is above $f$.
     /// </summary>
     /// <remarks>
-    /// The property is checked via the following property: $f$ is convex $\iff$ 
+    /// The property is checked via the following property: $f$ is convex $\iff$
     /// a) $f$ is continuous, or it is continuous for $t > 0$ and $f(0) \ge f(0^+)$, and
     /// b) $f$ is composed of segments with increasing slopes.
     /// </remarks>
@@ -835,7 +835,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// Sequence describing the curve in $[0, T[$, before pseudo-periodic behavior.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public Sequence? TransientSequence 
+    public Sequence? TransientSequence
         => HasTransient ? BaseSequence.Cut(0, PseudoPeriodStart) : null;
 
     /// <summary>
@@ -845,7 +845,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// Referred to as $[t_1, ..., t_{i_0 - 1}]$ in [BT08] Section 4.1
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public IEnumerable<Element> TransientElements 
+    public IEnumerable<Element> TransientElements
         => TransientSequence?.Elements ?? Enumerable.Empty<Element>();
 
     /// <summary>
@@ -889,7 +889,7 @@ public class Curve : IToCodeString, IStableHashCode
             throw new ArgumentException("Base sequence must start at t = 0 and end at T + d");
         }
         else if (
-            pseudoPeriodHeight.IsInfinite && 
+            pseudoPeriodHeight.IsInfinite &&
             baseSequence
                 .CutAsEnumerable(pseudoPeriodStart, pseudoPeriodStart + pseudoPeriodLength)
                 .Any(e => e.IsFinite)
@@ -942,7 +942,7 @@ public class Curve : IToCodeString, IStableHashCode
             }
         }
         else if (
-            pseudoPeriodHeight.IsInfinite && 
+            pseudoPeriodHeight.IsInfinite &&
             baseSequence
                 .CutAsEnumerable(pseudoPeriodStart, pseudoPeriodStart + pseudoPeriodLength)
                 .Any(e => e.IsFinite)
@@ -1039,7 +1039,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     public int GetStableHashCode()
         => (BaseSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight).GetStableHashCode();
-    
+
     /// <summary>
     /// Returns <code>true</code> if its operands are equal, <code>false</code> otherwise
     /// </summary>
@@ -1063,7 +1063,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     public static bool Equivalent(Curve a, Curve b, ComputationSettings? settings = null)
     {
-        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart) 
+        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
                             + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
 
         var seqA = a.CutAsEnumerable(0, cutEnd, true, true, settings);
@@ -1073,7 +1073,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// True if all the curves in the set represent the same function. 
+    /// True if all the curves in the set represent the same function.
     /// </summary>
     /// <param name="curves"></param>
     /// <param name="settings"></param>
@@ -1192,13 +1192,13 @@ public class Curve : IToCodeString, IStableHashCode
     /// True if the curves represent the same function, except for origin.
     /// </summary>
     public bool EquivalentExceptOrigin(Curve curve, ComputationSettings? settings = null)
-        => EquivalentExceptOrigin(this, curve, settings); 
+        => EquivalentExceptOrigin(this, curve, settings);
 
     /// <summary>
     /// True if the curves represent the same function, except for origin.
     /// </summary>
     public static bool EquivalentExceptOrigin(Curve a, Curve b, ComputationSettings? settings = null)
-    {        
+    {
         var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
                           + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
 
@@ -1327,7 +1327,7 @@ public class Curve : IToCodeString, IStableHashCode
     {
         var segment = GetSegmentAfter(time, false);
         return (segment.StartTime == time) ?
-            segment.RightLimitAtStartTime 
+            segment.RightLimitAtStartTime
             : segment.ValueAt(time);
     }
 
@@ -1344,7 +1344,7 @@ public class Curve : IToCodeString, IStableHashCode
 
         Segment segment = GetSegmentBefore(time);
         return (segment.EndTime == time) ?
-            segment.LeftLimitAtEndTime 
+            segment.LeftLimitAtEndTime
             : segment.ValueAt(time);
     }
 
@@ -1391,7 +1391,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="time">Time t of the sample.</param>
     /// <param name="autoMerge">
     /// If true, it seeks for possible merges to return the longest finite-length segment, i.e.,
-    /// such that either $f$ is not differentiable at its end time or the segment length extends to $+\infty$. 
+    /// such that either $f$ is not differentiable at its end time or the segment length extends to $+\infty$.
     /// </param>
     /// <returns>The <see cref="Segment"/> describing the curve after time t.</returns>
     public Segment GetSegmentAfter(Rational time, bool autoMerge = true)
@@ -1405,8 +1405,8 @@ public class Curve : IToCodeString, IStableHashCode
         }
         else
         {
-            var segment = (time < FirstPseudoPeriodEnd) 
-                ? BaseSequence.GetSegmentAfter(time) 
+            var segment = (time < FirstPseudoPeriodEnd)
+                ? BaseSequence.GetSegmentAfter(time)
                 : GetExtensionSequenceAt(time).GetSegmentAfter(time);
             var t = segment.EndTime;
 
@@ -1509,7 +1509,7 @@ public class Curve : IToCodeString, IStableHashCode
             {
                 var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
                 var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                if (isEndIncluded) 
+                if (isEndIncluded)
                     endingPseudoPeriodIndex++;
 
                 var indexes = settings.UseParallelExtend
@@ -1528,7 +1528,7 @@ public class Curve : IToCodeString, IStableHashCode
             else
             {
                 var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                if (isEndIncluded) 
+                if (isEndIncluded)
                     endingPseudoPeriodIndex++;
 
                 var indexes = settings.UseParallelExtend
@@ -1561,7 +1561,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="settings"></param>
     /// <returns>A sequence equivalently defined within the given interval.</returns>
     public Sequence Cut(
-        Rational cutStart, 
+        Rational cutStart,
         Rational cutEnd,
         bool isStartIncluded = true,
         bool isEndIncluded = false,
@@ -1712,7 +1712,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     /// <param name="targetEnd">
     /// Exclusive end $t_{end}$ of the resulting <see cref="Sequence"/>.
-    /// It is _not_ required to be greater than <see cref="FirstPseudoPeriodEnd"/>.  
+    /// It is _not_ required to be greater than <see cref="FirstPseudoPeriodEnd"/>.
     /// </param>
     /// <param name="settings"></param>
     /// <returns>A sequence equivalently defined from 0 to $t_{end}$.</returns>
@@ -1827,7 +1827,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Computes the first time the curve is at or above given <paramref name="value"/>, 
+    /// Computes the first time the curve is at or above given <paramref name="value"/>,
     /// i.e., $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right \}$
     /// </summary>
     /// <param name="value">The value to reach.</param>
@@ -1877,7 +1877,7 @@ public class Curve : IToCodeString, IStableHashCode
         if (_splitTime >= PseudoPeriodStart)
         {
             var start_seq = _splitTime == 0 ?
-                    new List<Element> {} 
+                    new List<Element> {}
                     : minDecomposition
                     ? new List<Element> {Point.PlusInfinite(0), Segment.PlusInfinite(0, _splitTime)}
                     : new List<Element> {Point.MinusInfinite(0), Segment.MinusInfinite(0, _splitTime)};
@@ -1894,7 +1894,7 @@ public class Curve : IToCodeString, IStableHashCode
         else
         {
             var start_seq = _splitTime == 0 ?
-                new List<Element> {} 
+                new List<Element> {}
                 : minDecomposition
                 ? new List<Element> {Point.PlusInfinite(0), Segment.PlusInfinite(0, _splitTime)}
                 : new List<Element> {Point.MinusInfinite(0), Segment.MinusInfinite(0, _splitTime)};
@@ -2093,7 +2093,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Computes a non-negative version of this curve, 
+    /// Computes a non-negative version of this curve,
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
     /// </summary>
     /// <remarks>
@@ -2140,7 +2140,7 @@ public class Curve : IToCodeString, IStableHashCode
 
         if(PseudoPeriodSlope > 0)
         {
-            foreach (var (left, center, right) in 
+            foreach (var (left, center, right) in
                      Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
             {
                 if (
@@ -2153,11 +2153,11 @@ public class Curve : IToCodeString, IStableHashCode
                     var value = (left, center, right).GetBreakpointValues().Max();
                     curves.Add(GetPeriodicLowerboundCurve(time, value));
                 }
-            }   
+            }
         }
         else
         {
-            foreach (var (left, center, right) in 
+            foreach (var (left, center, right) in
                      Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
             {
                 if (
@@ -2244,7 +2244,7 @@ public class Curve : IToCodeString, IStableHashCode
     {
         if (IsNonDecreasing)
             return this;
-        
+
         // this list will contain the curve to transform plus,
         // for each breakpoint at which a decrease ends, a constant segment with the min value at the breakpoint and $+\infty$ after it.
         List<Curve> curves = new (){ this };
@@ -2268,7 +2268,7 @@ public class Curve : IToCodeString, IStableHashCode
 
         if(PseudoPeriodSlope > 0)
         {
-            foreach (var (left, center, right) in 
+            foreach (var (left, center, right) in
                      Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
             {
                 if (
@@ -2281,11 +2281,11 @@ public class Curve : IToCodeString, IStableHashCode
                     var value = (left, center, right).GetBreakpointValues().Min();
                     curves.Add(GetPeriodicUpperboundCurve(time, value));
                 }
-            }   
+            }
         }
         else
         {
-            foreach (var (left, center, right) in 
+            foreach (var (left, center, right) in
                      Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
             {
                 if (
@@ -2380,7 +2380,7 @@ public class Curve : IToCodeString, IStableHashCode
             PseudoPeriodHeight
         ).TransientReduction();
     }
-    
+
     /// <summary>
     /// Computes a right-continuous version of this curve.
     /// </summary>
@@ -2397,7 +2397,7 @@ public class Curve : IToCodeString, IStableHashCode
             PseudoPeriodHeight
         ).TransientReduction();
     }
-    
+
     /// <summary>
     /// Enforces $f(0) = 0$, i.e. it returns $f^\circ = \min \left( f, \delta_0 \right)$.
     /// </summary>
@@ -2419,7 +2419,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous, see [DNC18] § 3.2.1 .
-    /// Algorithmic properties discussed in [ZNS23b]. 
+    /// Algorithmic properties discussed in [ZNS23b].
     /// </remarks>
     public Curve LowerPseudoInverse()
     {
@@ -2452,13 +2452,13 @@ public class Curve : IToCodeString, IStableHashCode
             if (lastFiniteTime == 0)
                 return Zero();
             var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : 
+            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
                 lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
             var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
             var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).LowerPseudoInverse();
-            var lpi = isLastFiniteConstant 
+            var lpi = isLastFiniteConstant
                 ? transient_lpi
-                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 2, lastFiniteTime)) 
+                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 2, lastFiniteTime))
                 : transient_lpi
                     .Append(new Point(lastFiniteValue, lastFiniteTime))
                     .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
@@ -2513,9 +2513,9 @@ public class Curve : IToCodeString, IStableHashCode
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is right-continuous.
-    /// If $f$ is right-continuous and $f(t) > 0$ for $t > 0$, then the operation is revertible, 
+    /// If $f$ is right-continuous and $f(t) > 0$ for $t > 0$, then the operation is revertible,
     /// i.e., $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, see [DNC18] § 3.2.1.
-    /// Algorithmic properties discussed in [ZNS23b]. 
+    /// Algorithmic properties discussed in [ZNS23b].
     /// </remarks>
     public Curve UpperPseudoInverse()
     {
@@ -2526,10 +2526,10 @@ public class Curve : IToCodeString, IStableHashCode
         {
             var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
-            var transient_upi = constant_start > 0 
+            var transient_upi = constant_start > 0
                 ? CutAsEnumerable(0, constant_start).UpperPseudoInverse()
                 : Enumerable.Empty<Element>();
-            var upi = IsRightContinuousAt(constant_start) 
+            var upi = IsRightContinuousAt(constant_start)
                 ? transient_upi
                     .Append(Point.PlusInfinite(constant_value))
                     .Append(Segment.PlusInfinite(constant_value, constant_value + 1))
@@ -2559,11 +2559,11 @@ public class Curve : IToCodeString, IStableHashCode
             if (lastFiniteTime == 0)
                 return Zero();
             var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : 
+            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
                 lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
             var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
             var transient_upi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse();
-            var upi = isLastFiniteConstant 
+            var upi = isLastFiniteConstant
                 ? transient_upi
                     .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime))
                 : transient_upi
@@ -2642,12 +2642,12 @@ public class Curve : IToCodeString, IStableHashCode
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
-    /// Defined and discussed in [ZNS23a]. 
+    /// Defined and discussed in [ZNS23a].
     /// </remarks>
     public Curve LowerPseudoInverseOverInterval(
-        Rational start, 
-        Rational? end = null, 
-        bool isStartIncluded = true, 
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
         bool isEndIncluded = false
     )
     {
@@ -2728,16 +2728,16 @@ public class Curve : IToCodeString, IStableHashCode
                 if (lastFiniteTime == 0)
                     return Zero();
                 var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-                var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : 
+                var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
                     lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
                 var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
-                var transient_lpi = start < lastFiniteTime  
+                var transient_lpi = start < lastFiniteTime
                     ? BaseSequence.CutAsEnumerable(start, lastFiniteTime)
                         .LowerPseudoInverse(startFromZero)
                     : Enumerable.Empty<Element>();
-                var lpi = isLastFiniteConstant 
+                var lpi = isLastFiniteConstant
                     ? transient_lpi
-                        .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 2, lastFiniteTime)) 
+                        .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 2, lastFiniteTime))
                     : transient_lpi
                         .Append(new Point(lastFiniteValue, lastFiniteTime))
                         .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
@@ -2792,12 +2792,12 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
-    /// Defined and discussed in [ZNS23a]. 
+    /// Defined and discussed in [ZNS23a].
     /// </remarks>
     public Curve UpperPseudoInverseOverInterval(
-        Rational start, 
-        Rational? end = null, 
-        bool isStartIncluded = true, 
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
         bool isEndIncluded = false
     )
     {
@@ -2847,11 +2847,11 @@ public class Curve : IToCodeString, IStableHashCode
             {
                 var constant_start = Rational.Max(PseudoPeriodStartInfimum, start);
                 var constant_value = ValueAt(PseudoPeriodStart);
-                var transient_upi = start < constant_start  
+                var transient_upi = start < constant_start
                     ? CutAsEnumerable(start, constant_start)
                         .UpperPseudoInverse()
                     : Enumerable.Empty<Element>();
-                var upi = IsRightContinuousAt(constant_start) 
+                var upi = IsRightContinuousAt(constant_start)
                     ? transient_upi
                         .Append(Point.PlusInfinite(constant_value))
                         .Append(Segment.PlusInfinite(constant_value, constant_value + 1))
@@ -2861,7 +2861,7 @@ public class Curve : IToCodeString, IStableHashCode
                         .Append(Point.PlusInfinite(constant_value))
                         .Append(Segment.PlusInfinite(constant_value, constant_value + 1));
 
-                var valueAtStart = ValueAt(start); 
+                var valueAtStart = ValueAt(start);
                 var sequence = valueAtStart > 0
                     ? Sequence.MinusInfinite(0, valueAtStart).Elements
                         .Concat(upi)
@@ -2881,21 +2881,21 @@ public class Curve : IToCodeString, IStableHashCode
                 if (lastFiniteTime == 0)
                     return Zero();
                 var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-                var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : 
+                var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
                     lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
                 var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
-                var transient_upi = start < lastFiniteTime 
+                var transient_upi = start < lastFiniteTime
                     ? BaseSequence.CutAsEnumerable(start, lastFiniteTime)
                         .UpperPseudoInverse()
                     : Enumerable.Empty<Element>();
-                var upi = isLastFiniteConstant 
+                var upi = isLastFiniteConstant
                     ? transient_upi
                         .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime))
                     : transient_upi
                         .Append(new Point(lastFiniteValue, lastFiniteTime))
                         .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
 
-                var valueAtStart = ValueAt(start).IsFinite ? ValueAt(start) : LeftLimitAt(start); 
+                var valueAtStart = ValueAt(start).IsFinite ? ValueAt(start) : LeftLimitAt(start);
                 var sequence = valueAtStart > 0
                     ? Sequence.MinusInfinite(0, valueAtStart).Elements
                         .Concat(upi)
@@ -2918,7 +2918,7 @@ public class Curve : IToCodeString, IStableHashCode
                     .UpperPseudoInverse()
                     .SkipLast(1);
 
-                var valueAtStart = ValueAt(start); 
+                var valueAtStart = ValueAt(start);
                 var sequence = valueAtStart > 0
                     ? Sequence.MinusInfinite(0, valueAtStart).Elements
                         .Concat(upi)
@@ -3051,7 +3051,7 @@ public class Curve : IToCodeString, IStableHashCode
             .AffineNormalization()
             .TransientReduction();
 
-        #if DO_LOG    
+        #if DO_LOG
         if (optimizedCurve != this)
         {
             logger.Debug($"Optimization: " +
@@ -3142,7 +3142,7 @@ public class Curve : IToCodeString, IStableHashCode
             {
                 var verticalDiff = endingLeftLimit - startingValue;
                 if (
-                    startingValue != startingRightLimit || // is there a right-discontinuity? 
+                    startingValue != startingRightLimit || // is there a right-discontinuity?
                     verticalDiff != periodHeight || // is there a left-discontinuity?
                     startingSlope != endingSlope // is there a slope change?
                 )
@@ -3539,8 +3539,8 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     /// <returns>The curve resulting from the subtraction.</returns>
     public virtual Curve Subtraction(Curve b, bool nonNegative = true)
-        => nonNegative ? 
-            Addition(-b).ToNonNegative() : 
+        => nonNegative ?
+            Addition(-b).ToNonNegative() :
             Addition(-b);
 
     /// <summary>
@@ -3575,13 +3575,13 @@ public class Curve : IToCodeString, IStableHashCode
     /// Tests the sufficient (but not necessary) conditions from [BT08].
     /// </summary>
     /// <remarks>
-    /// If false, the result <see cref="Minimum(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> may be invalid. 
+    /// If false, the result <see cref="Minimum(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> may be invalid.
     /// </remarks>
     public static bool IsMinimumUltimatelyPseudoPeriodic(Curve f, Curve g)
     {
         return f.IsUltimatelyPlain && g.IsUltimatelyPlain;
     }
-    
+
     /// <summary>
     /// Implements (min, +)-algebra minimum operation over two curves.
     /// </summary>
@@ -3791,8 +3791,8 @@ public class Curve : IToCodeString, IStableHashCode
         if (curves.Count == 2)
             return Minimum(curves.ElementAt(0), curves.ElementAt(1), settings);
 
-        bool parallelizeDueCount = 
-            settings.UseParallelListMinimum && 
+        bool parallelizeDueCount =
+            settings.UseParallelListMinimum &&
             curves.Count >= Parallelization_CountThreshold;
         bool parallelizeDueComplexity =
             settings.UseParallelListMinimum &&
@@ -3854,13 +3854,13 @@ public class Curve : IToCodeString, IStableHashCode
     /// Tests the sufficient (but not necessary) conditions from [BT08].
     /// </summary>
     /// <remarks>
-    /// If false, the result <see cref="Maximum(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> may be invalid. 
+    /// If false, the result <see cref="Maximum(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> may be invalid.
     /// </remarks>
     public static bool IsMaximumUltimatelyPseudoPeriodic(Curve f, Curve g)
     {
         return f.IsUltimatelyPlain && g.IsUltimatelyPlain;
     }
-    
+
     /// <summary>
     /// Implements (max, +)-algebra maximum operation over two curves.
     /// </summary>
@@ -4287,7 +4287,7 @@ public class Curve : IToCodeString, IStableHashCode
             #endif
             // From rho_f = rho_g it follows that k_d_f = k_c_f.
             // Hence, there is no improvement on the UPP parameters to be gained using isomorphisms.
-            // The optimization lies instead in the use of vertical filtering, and the by-sequence heuristic  
+            // The optimization lies instead in the use of vertical filtering, and the by-sequence heuristic
 
             var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
@@ -4426,7 +4426,7 @@ public class Curve : IToCodeString, IStableHashCode
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
             }
-            else if (settings.UseConvolutionIsospeedOptimization && 
+            else if (settings.UseConvolutionIsospeedOptimization &&
                  f.IsLeftContinuousOverInterval(f.PseudoPeriodStart) && g.IsLeftContinuousOverInterval(g.PseudoPeriodStart) &&
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
@@ -4437,13 +4437,13 @@ public class Curve : IToCodeString, IStableHashCode
                 var lcm_d = Rational.LeastCommonMultiple(d_f, d_g);
                 var k_d_f = lcm_d / d_f;
                 var k_d_g = lcm_d / d_g;
-                
+
                 var c_f = f.PseudoPeriodHeight;
                 var c_g = g.PseudoPeriodHeight;
                 var lcm_c = Rational.LeastCommonMultiple(c_f, c_g);
                 var k_c_f = lcm_c / c_f;
                 var k_c_g = lcm_c / c_g;
-                
+
                 var d = settings.UseConvolutionSuperIsospeedOptimization ?
                     (k_c_f * d_f > k_c_g * d_g ?
                         Rational.GreatestCommonDivisor(k_d_f, k_c_f) * d_f :
@@ -4464,7 +4464,7 @@ public class Curve : IToCodeString, IStableHashCode
                 var tf_prime = (f.IsRightContinuousAt(tf) && fSegmentAfterTf.IsConstant) ? fSegmentAfterTf.EndTime : tf;
                 var fCutEnd_minp = tf + lcm_d + d;
                 var fCutEnd_iso = tf_prime + 2 * k_c_f * d_f;
-                var fCut = fCutEnd_minp <= fCutEnd_iso 
+                var fCut = fCutEnd_minp <= fCutEnd_iso
                     ? f.Cut(tf, fCutEnd_minp, isEndIncluded: false, settings: settings)
                     : f.Cut(tf, fCutEnd_iso, isEndIncluded: true, settings: settings);
 
@@ -4472,7 +4472,7 @@ public class Curve : IToCodeString, IStableHashCode
                 var tg_prime = (g.IsRightContinuousAt(tg) && gSegmentAfterTg.IsConstant) ? gSegmentAfterTg.EndTime : tg;
                 var gCutEnd_minp = tg + lcm_d + d;
                 var gCutEnd_iso = tg_prime + 2 * k_c_g * d_g;
-                var gCut = gCutEnd_minp <= gCutEnd_iso 
+                var gCut = gCutEnd_minp <= gCutEnd_iso
                    ? g.Cut(tg, gCutEnd_minp, isEndIncluded: false, settings: settings)
                    : g.Cut(tg, gCutEnd_iso, isEndIncluded: true, settings: settings);
 
@@ -4630,7 +4630,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// The element pairs, however, are searched using all elements of $f$ and $g$ between 0 and time, i.e., the search does not use smart cuts.
     ///
     /// If the result of the convolution is mathematically wrong, this method will provide the pairs that are considered for that result and,
-    /// more importantly, will not include the pairs that should have instead been considered for the correct result. 
+    /// more importantly, will not include the pairs that should have instead been considered for the correct result.
     /// </remarks>
     /// <exception cref="ArgumentException"></exception>
     public static IEnumerable<(Element, Element)> TraceConvolution(Curve f, Curve g, Rational time, ComputationSettings? settings = null)
@@ -4645,7 +4645,7 @@ public class Curve : IToCodeString, IStableHashCode
         var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true);
         var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true);
 
-        var convolutionPairs = fCut.SelectMany(e_f => 
+        var convolutionPairs = fCut.SelectMany(e_f =>
                 gCut.Select(e_g => (e_f, e_g))
         );
         var relevantPairs = convolutionPairs
@@ -4658,7 +4658,7 @@ public class Curve : IToCodeString, IStableHashCode
                 else
                 {
                     return pair.e_f.StartTime + pair.e_g.StartTime < time &&
-                        pair.e_f.EndTime + pair.e_g.EndTime > time;   
+                        pair.e_f.EndTime + pair.e_g.EndTime > time;
                 }
             });
         var exactValuePairs = relevantPairs
@@ -4676,7 +4676,7 @@ public class Curve : IToCodeString, IStableHashCode
     #region EstimateConvolution
 
     // todo: implement horizontal and vertical filtering in EstimateConvolution
-    
+
     /// <summary>
     /// Computes the number of elementary convolutions involved in computing the (min,+) convolution of the two curves,
     /// avoiding allocations as much as possible.
@@ -4882,7 +4882,7 @@ public class Curve : IToCodeString, IStableHashCode
 
                 return result;
             }
-            else if (settings.UseConvolutionIsospeedOptimization && 
+            else if (settings.UseConvolutionIsospeedOptimization &&
                  f.IsLeftContinuousOverInterval(f.PseudoPeriodStart) && g.IsLeftContinuousOverInterval(g.PseudoPeriodStart) &&
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
@@ -4910,7 +4910,7 @@ public class Curve : IToCodeString, IStableHashCode
                 var tf_prime = (f.IsRightContinuousAt(tf) && fSegmentAfterTf.IsConstant) ? fSegmentAfterTf.EndTime : tf;
                 var fCutEnd_minp = tf + 2 * lcm_d;
                 var fCutEnd_iso = tf_prime + 2 * k_c_f * f.PseudoPeriodLength;
-                var fCut = fCutEnd_minp <= fCutEnd_iso 
+                var fCut = fCutEnd_minp <= fCutEnd_iso
                     ? f.Cut(tf, fCutEnd_minp, isEndIncluded: false, settings: settings)
                     : f.Cut(tf, fCutEnd_iso, isEndIncluded: true, settings: settings);
 
@@ -4918,7 +4918,7 @@ public class Curve : IToCodeString, IStableHashCode
                 var tg_prime = (g.IsRightContinuousAt(tg) && gSegmentAfterTg.IsConstant) ? gSegmentAfterTg.EndTime : tg;
                 var gCutEnd_minp = tg + 2 * lcm_d;
                 var gCutEnd_iso = tg_prime + 2 * k_c_g * g.PseudoPeriodLength;
-                var gCut = gCutEnd_minp <= gCutEnd_iso 
+                var gCut = gCutEnd_minp <= gCutEnd_iso
                    ? g.Cut(tg, gCutEnd_minp, isEndIncluded: false, settings: settings)
                    : g.Cut(tg, gCutEnd_iso, isEndIncluded: true, settings: settings);
 
@@ -5004,7 +5004,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
     /// </returns>
     public virtual long EstimateMaxPlusConvolution(
-        Curve curve, 
+        Curve curve,
         bool countElements = false,
         ComputationSettings? settings = null
     )
@@ -5249,7 +5249,7 @@ public class Curve : IToCodeString, IStableHashCode
             #endif
             // From rho_f = rho_g it follows that k_d_f = k_c_f.
             // Hence, there is no improvement on the UPP parameters to be gained using isomorphisms.
-            // The optimization lies instead in the use of vertical filtering, and the by-sequence heuristic  
+            // The optimization lies instead in the use of vertical filtering, and the by-sequence heuristic
 
             var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
@@ -5259,13 +5259,13 @@ public class Curve : IToCodeString, IStableHashCode
             bool useIsomorphism = settings.UseConvolutionIsospeedOptimization &&
                                   f.IsRightContinuous && g.IsRightContinuous &&
                                   f.IsNonDecreasing && g.IsNonDecreasing &&
-                                  !f.IsUltimatelyConstant && !g.IsUltimatelyConstant; 
+                                  !f.IsUltimatelyConstant && !g.IsUltimatelyConstant;
             Rational cutCeiling;
             if (useIsomorphism)
             {
                 // Vertical filtering optimization, discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
-                #if false 
+                #if false
                 // expression as in theory
                 var tstar_f = f.LowerPseudoInverseOverInterval(f.PseudoPeriodStart)
                     .ValueAt(f.ValueAt(f.PseudoPeriodStart) + f.PseudoPeriodHeight);
@@ -5423,7 +5423,7 @@ public class Curve : IToCodeString, IStableHashCode
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
             }
-            else if (settings.UseConvolutionIsospeedOptimization && 
+            else if (settings.UseConvolutionIsospeedOptimization &&
                  f.IsRightContinuousOverInterval(f.PseudoPeriodStart) && g.IsRightContinuousOverInterval(g.PseudoPeriodStart) &&
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
@@ -5432,7 +5432,7 @@ public class Curve : IToCodeString, IStableHashCode
                 // super-isospeed algorithm discussed in [TBP]
 
                 // Check for Lemma X in [TBP]
-                #if false 
+                #if false
                 // expression as in theory
                 var tstar_f = f.LowerPseudoInverseOverInterval(f.PseudoPeriodStart)
                     .ValueAt(f.ValueAt(f.PseudoPeriodStart) + f.PseudoPeriodHeight);
@@ -5482,13 +5482,13 @@ public class Curve : IToCodeString, IStableHashCode
                 var lcm_d = Rational.LeastCommonMultiple(d_f, d_g);
                 var k_d_f = lcm_d / d_f;
                 var k_d_g = lcm_d / d_g;
-                
+
                 var c_f = f.PseudoPeriodHeight;
                 var c_g = g.PseudoPeriodHeight;
                 var lcm_c = Rational.LeastCommonMultiple(c_f, c_g);
                 var k_c_f = lcm_c / c_f;
                 var k_c_g = lcm_c / c_g;
-                
+
                 var d = settings.UseConvolutionSuperIsospeedOptimization ?
                     (k_c_f * d_f < k_c_g * d_g ?
                         Rational.GreatestCommonDivisor(k_d_f, k_c_f) * d_f :
@@ -5513,7 +5513,7 @@ public class Curve : IToCodeString, IStableHashCode
 
                 var gCutEnd_direct = tg + lcm_d + d;
                 var gCutEnd_iso = tg + 2 * k_c_g * d_g;
-                var gCut = gCutEnd_direct <= gCutEnd_iso 
+                var gCut = gCutEnd_direct <= gCutEnd_iso
                     ? g.Cut(tg, gCutEnd_direct, isEndIncluded: false, settings: settings)
                     : g.Cut(tg, gCutEnd_iso, isEndIncluded: true, settings: settings);
 
@@ -5677,7 +5677,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// The element pairs, however, are searched using all elements of $f$ and $g$ between 0 and time, i.e., the search does not use smart cuts.
     ///
     /// If the result of the convolution is mathematically wrong, this method will provide the pairs that are considered for that result and,
-    /// more importantly, will not include the pairs that should have instead been considered for the correct result. 
+    /// more importantly, will not include the pairs that should have instead been considered for the correct result.
     /// </remarks>
     /// <exception cref="ArgumentException"></exception>
     public static IEnumerable<(Element, Element)> TraceMaxPlusConvolution(Curve f, Curve g, Rational time, ComputationSettings? settings = null)
@@ -5692,7 +5692,7 @@ public class Curve : IToCodeString, IStableHashCode
         var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true);
         var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true);
 
-        var convolutionPairs = fCut.SelectMany(e_f => 
+        var convolutionPairs = fCut.SelectMany(e_f =>
             gCut.Select(e_g => (e_f, e_g))
         );
         var relevantPairs = convolutionPairs
@@ -5705,7 +5705,7 @@ public class Curve : IToCodeString, IStableHashCode
                 else
                 {
                     return pair.e_f.StartTime + pair.e_g.StartTime < time &&
-                           pair.e_f.EndTime + pair.e_g.EndTime > time;   
+                           pair.e_f.EndTime + pair.e_g.EndTime > time;
                 }
             });
         var exactValuePairs = relevantPairs
@@ -5809,7 +5809,7 @@ public class Curve : IToCodeString, IStableHashCode
                 // composition will also be U.C.
                 // the following expression for T summarise Proposition 19, 20 and 21 from [ZNS23b]
                 T = Rational.Min(
-                    g.IsUltimatelyConstant ? T_g : Rational.PlusInfinity, 
+                    g.IsUltimatelyConstant ? T_g : Rational.PlusInfinity,
                     f.IsUltimatelyConstant ? T_f : Rational.PlusInfinity
                 );
                 d = 1;
