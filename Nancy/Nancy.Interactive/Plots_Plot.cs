@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using Microsoft.DotNet.Interactive.Formatting;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
@@ -61,21 +62,56 @@ public static partial class Plots
 
     /// <summary>
     /// Plots a set of curves.
-    /// The curves will be given default names f, g, h and so on.
+    /// It attempts to parse the names for the curves from the optional parameter <paramref name="names"/> or
+    /// from the expression used for the <paramref name="curves"/> parameter.
+    /// Otherwise, the curves will be given default names f, g, h and so on.
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
+    /// <param name="names">The names for the curves to plot. If manually specified, the recommended format is "[name1, name2, ...]".</param>
     /// <param name="upTo">
     /// The x-axis right edge of the plot.
     /// If null, it is set by default as $max_{i}(T_i + 2 * d_i)$.
     /// </param>
+    /// <remarks>
+    /// The names of the curves can be automatically captured if one uses a syntax like "Plots.Plot([b1, b2, b3], upTo: 10);"
+    /// Note that this works if each curve has its own variable name, rather than being the result of an expression.
+    /// </remarks>
     public static void Plot(
         this IReadOnlyCollection<Curve> curves,
+        [CallerArgumentExpression("curves")] string names = "",
         Rational? upTo = null
     )
     {
-        var names = curves.Select((_, i) => $"{(char)('f' + i)}");
-        var plot = GetPlot(curves, names, upTo);
+        // this code tries to recognize patterns for variable names
+        // if it fails, the default [f, g, h, ...] names will be used
+        var parsedNames = ParseNames(names);
+
+        var plot = GetPlot(curves, parsedNames, upTo);
         plot.DisplayOnNotebook();
+
+        IEnumerable<string> ParseNames(string expr)
+        {
+            if (string.IsNullOrEmpty(expr))
+                return DefaultNames();
+
+            // matches collection expressions, like "[f, g, h]"
+            var bracketsNotationRegex = new Regex(@"\[(?:([\w\d_]+)(?:,\s+)?)+\]");
+            if (bracketsNotationRegex.IsMatch(expr))
+            {
+                var match = bracketsNotationRegex.Match(expr);
+                var pNames = match.Groups[1].Captures
+                    .Select(c => c.Value);
+                return pNames;
+            }
+
+            // todo: match new List<>{} and new[]{} expressions
+
+            // if all else failed
+            return DefaultNames();
+
+            IEnumerable<string> DefaultNames()
+                => curves.Select((_, i) => $"{(char)('f' + i)}");
+        }
     }
 
     /// <summary>
