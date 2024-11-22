@@ -15,7 +15,7 @@
 				"github.vscode-github-actions"
 			]
 		}
-	}
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -29,7 +29,7 @@
 	// }
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "dotnet restore",
+	"postCreateCommand": "sudo chmod 666 /var/run/docker.sock",
 
 	// Configure tool-specific properties.
 	// "customizations": {},

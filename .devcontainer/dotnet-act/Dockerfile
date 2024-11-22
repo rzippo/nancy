@@ -18,11 +18,12 @@ RUN dpkg -i powershell_7.4.2-1.deb_amd64.deb
 ## Cleanup
 RUN rm powershell_7.4.2-1.deb_amd64.deb
 
-# Add dotnet 8.0, using user-local install
+# Add dotnet 8.0 and 9.0, using user-local install
 USER dotnet
 RUN wget https://dot.net/v1/dotnet-install.sh -O /home/dotnet/dotnet-install.sh && \
     chmod +x /home/dotnet/dotnet-install.sh
 RUN /home/dotnet/dotnet-install.sh --channel 8.0
+RUN /home/dotnet/dotnet-install.sh --channel 9.0
 ## Cleanup
 RUN rm /home/dotnet/dotnet-install.sh
 
