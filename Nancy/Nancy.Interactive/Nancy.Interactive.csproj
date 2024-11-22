@@ -37,9 +37,11 @@
   <ItemGroup>
     <None Include="nancy.png">
       <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </None>
     <None Include="nuget.md">
       <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 
