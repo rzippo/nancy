@@ -18,9 +18,6 @@ on:
 jobs:
   Nancy-Interactive-Local-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-sdk-version: [ '8.0.x' ]
         
     env:
       BUILD_CONFIG: "Release"
@@ -31,10 +28,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+      - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+          dotnet-version: |
+            8.0.x
+            9.0.x
 
       - name: Build Nancy
         run: dotnet build $NANCY --configuration $BUILD_CONFIG
