@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -19,7 +19,7 @@
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
     <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
-    <PackageVersion>1.0.3</PackageVersion>
+    <PackageVersion>1.0.4</PackageVersion>
 
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>   
@@ -30,18 +30,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Unipi.Nancy" Version="1.2.3" />
-    <PackageReference Include="XPlot.Plotly.Interactive" Version="4.0.7" />
+    <PackageReference Include="Unipi.Nancy" Version="1.2.4" />
+    <PackageReference Include="XPlot.Plotly.Interactive" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="nancy.png">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
     </None>
     <None Include="nuget.md">
       <Pack>True</Pack>
-      <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 
@@ -49,4 +47,7 @@
     <None Include="extension.dib" Pack="true" PackagePath="interactive-extensions/dotnet" />
   </ItemGroup>
 
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.Runtime.Loader.UseRidGraph" Value="true" />
+  </ItemGroup>
 </Project>
