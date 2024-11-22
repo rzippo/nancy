@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-sdk-version: [ '8.0.x', '9.0.x' ]
+        target-framework: [ 'net8.0', 'net9.0' ]
         nancy-release: [ "", ".LongRational" ]
     
     env:
@@ -32,16 +32,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup dotnet ${{ matrix.dotnet-sdk-version }}
+      - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ matrix.dotnet-sdk-version }}
+          dotnet-version: |
+            8.0.x            
+            9.0.x
 
-      - name: Build Nancy${{ matrix.nancy-release }}
-        run: dotnet build $NANCY --configuration $BUILD_CONFIG --framework ${{ matrix.dotnet-sdk-version }}
+      - name: Build Nancy${{ matrix.nancy-release }} ${{ matrix.target-framework }}
+        run: dotnet build $NANCY --configuration $BUILD_CONFIG --framework ${{ matrix.target-framework }}
 
-      - name: Build Nancy.Tests${{ matrix.nancy-release }}
-        run: dotnet build $NANCY_TESTS --configuration $BUILD_CONFIG --framework ${{ matrix.dotnet-sdk-version }}
+      - name: Build Nancy.Tests${{ matrix.nancy-release }} ${{ matrix.target-framework }}
+        run: dotnet build $NANCY_TESTS --configuration $BUILD_CONFIG --framework ${{ matrix.target-framework }}
 
-      - name: Test Nancy${{ matrix.nancy-release }}
-        run: dotnet test $NANCY_TESTS /p:Configuration=$BUILD_CONFIG --framework ${{ matrix.dotnet-sdk-version }}
+      - name: Test Nancy${{ matrix.nancy-release }} ${{ matrix.target-framework }}
+        run: dotnet test $NANCY_TESTS /p:Configuration=$BUILD_CONFIG --framework ${{ matrix.target-framework }}
