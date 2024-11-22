@@ -35,47 +35,47 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
         switch (type)
         {
             case RateLatencyServiceCurve.TypeCode:
-                return JsonSerializer.Deserialize<RateLatencyServiceCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.RateLatencyServiceCurve)!;
 
             case ConvexCurve.TypeCode:
-                return JsonSerializer.Deserialize<ConvexCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.ConvexCurve)!;
 
             case DelayServiceCurve.TypeCode:
-                return JsonSerializer.Deserialize<DelayServiceCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.DelayServiceCurve)!;
 
             case SuperAdditiveCurve.TypeCode:
-                return JsonSerializer.Deserialize<SuperAdditiveCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.SuperAdditiveCurve)!;
 
             case ConstantCurve.TypeCode:
-                return JsonSerializer.Deserialize<ConstantCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.ConstantCurve)!;
 
             case SigmaRhoArrivalCurve.TypeCode:
-                return JsonSerializer.Deserialize<SigmaRhoArrivalCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.SigmaRhoArrivalCurve)!;
 
             case ConcaveCurve.TypeCode:
-                return JsonSerializer.Deserialize<ConcaveCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.ConcaveCurve)!;
 
             case FlowControlCurve.TypeCode:
-                return JsonSerializer.Deserialize<FlowControlCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.FlowControlCurve)!;
 
             case SubAdditiveCurve.TypeCode:
-                return JsonSerializer.Deserialize<SubAdditiveCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.SubAdditiveCurve)!;
 
             case StairCurve.TypeCode:
-                return JsonSerializer.Deserialize<StairCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.StairCurve)!;
 
             case StepCurve.TypeCode:
-                return JsonSerializer.Deserialize<StepCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.StepCurve)!;
 
             case RaisedRateLatencyServiceCurve.TypeCode:
-                return JsonSerializer.Deserialize<RaisedRateLatencyServiceCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.RaisedRateLatencyServiceCurve)!;
 
             case TwoRatesServiceCurve.TypeCode:
-                return JsonSerializer.Deserialize<TwoRatesServiceCurve>(ref reader, options)!;
+                return JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.TwoRatesServiceCurve)!;
 
             case Curve.TypeCode:
             {
-                var plain = JsonSerializer.Deserialize<PlainCurve>(ref reader, options);
+                var plain = JsonSerializer.Deserialize<PlainCurve>(ref reader, NancyJsonSerializerContext.Default.PlainCurve);
                 if(plain == null || plain.baseSequence == null )
                     throw new JsonException();
                 return new Curve(
@@ -101,79 +101,79 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
         {
             case RateLatencyServiceCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.RateLatencyServiceCurve);
                 break;
             }
             
             case ConvexCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.ConvexCurve);
                 break;
             }
 
             case DelayServiceCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.DelayServiceCurve);
                 break;
             }
 
             case SuperAdditiveCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.SuperAdditiveCurve);
                 break;
             }
 
             case ConstantCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.ConstantCurve);
                 break;
             }
 
             case SigmaRhoArrivalCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.SigmaRhoArrivalCurve);
                 break;
             }
 
             case ConcaveCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.ConcaveCurve);
                 break;
             }
 
             case FlowControlCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.FlowControlCurve);
                 break;
             }
 
             case SubAdditiveCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.SubAdditiveCurve);
                 break;
             }
 
             case StairCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.StairCurve);
                 break;
             }
             
             case StepCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.StepCurve);
                 break;
             }
             
             case RaisedRateLatencyServiceCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.RaisedRateLatencyServiceCurve);
                 break;
             }
 
             case TwoRatesServiceCurve c:
             {
-                JsonSerializer.Serialize(writer, c, options);
+                JsonSerializer.Serialize(writer, c, NancyJsonSerializerContext.Default.TwoRatesServiceCurve);
                 break;
             }
 
@@ -186,7 +186,7 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
                     value.PseudoPeriodLength,
                     value.PseudoPeriodHeight
                 );
-                JsonSerializer.Serialize(writer, plain, options);
+                JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainCurve);
                 break;
             }
         }
