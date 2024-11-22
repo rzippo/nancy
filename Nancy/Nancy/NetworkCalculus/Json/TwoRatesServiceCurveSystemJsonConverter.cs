@@ -12,15 +12,15 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 public class TwoRatesServiceCurveSystemJsonConverter : JsonConverter<TwoRatesServiceCurve>
 {
     // ugly hack?
-    record PlainTwoRatesServiceCurve(string type, Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate);
-    
+    internal record PlainTwoRatesServiceCurve(string type, Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate);
+
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override TwoRatesServiceCurve Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var plain = JsonSerializer.Deserialize<PlainTwoRatesServiceCurve>(ref reader);
+        var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainTwoRatesServiceCurve);
         if (plain?.type != TwoRatesServiceCurve.TypeCode)
             throw new JsonException();
         return new TwoRatesServiceCurve(plain.delay, plain.transientRate, plain.transientEnd, plain.steadyRate);
@@ -33,6 +33,6 @@ public class TwoRatesServiceCurveSystemJsonConverter : JsonConverter<TwoRatesSer
         JsonSerializerOptions options)
     {
         var plain = new PlainTwoRatesServiceCurve(TwoRatesServiceCurve.TypeCode, value.Delay, value.TransientRate, value.TransientEnd, value.SteadyRate);
-        JsonSerializer.Serialize(writer, plain, options);
+        JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainTwoRatesServiceCurve);
     }
 }

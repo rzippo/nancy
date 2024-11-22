@@ -17,7 +17,7 @@ public class ConcaveCurveSystemJsonConverter : JsonConverter<ConcaveCurve>
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var plain = JsonSerializer.Deserialize<GenericCurveSystemJsonConverter.PlainCurve>(ref reader);
+        var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainCurve);
         if (plain?.type != ConcaveCurve.TypeCode)
             throw new JsonException();
         return new ConcaveCurve(plain.baseSequence, plain.pseudoPeriodStart, plain.pseudoPeriodLength, plain.pseudoPeriodHeight);
@@ -36,6 +36,6 @@ public class ConcaveCurveSystemJsonConverter : JsonConverter<ConcaveCurve>
             value.PseudoPeriodLength, 
             value.PseudoPeriodHeight
         );
-        JsonSerializer.Serialize(writer, plain, options);
+        JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainCurve);
     }
 }

@@ -12,15 +12,15 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 public class RaisedRateLatencyServiceCurveSystemJsonConverter : JsonConverter<RaisedRateLatencyServiceCurve>
 {
     // ugly hack?
-    record PlainRaisedRateLatencyServiceCurve(string type, Rational rate, Rational latency, Rational bufferShift);
-    
+    internal record PlainRaisedRateLatencyServiceCurve(string type, Rational rate, Rational latency, Rational bufferShift);
+
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override RaisedRateLatencyServiceCurve Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var plain = JsonSerializer.Deserialize<PlainRaisedRateLatencyServiceCurve>(ref reader);
+        var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainRaisedRateLatencyServiceCurve);
         if (plain?.type != RaisedRateLatencyServiceCurve.TypeCode)
             throw new JsonException();
         return new RaisedRateLatencyServiceCurve(plain.rate, plain.latency, plain.bufferShift);
@@ -33,6 +33,6 @@ public class RaisedRateLatencyServiceCurveSystemJsonConverter : JsonConverter<Ra
         JsonSerializerOptions options)
     {
         var plain = new PlainRaisedRateLatencyServiceCurve(RaisedRateLatencyServiceCurve.TypeCode, value.Rate, value.Latency, value.BufferShift);
-        JsonSerializer.Serialize(writer, plain, options);
+        JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainRaisedRateLatencyServiceCurve);
     }
 }

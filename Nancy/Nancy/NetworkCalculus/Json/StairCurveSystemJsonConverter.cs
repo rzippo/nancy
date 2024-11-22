@@ -12,15 +12,15 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 public class StairCurveSystemJsonConverter : JsonConverter<StairCurve>
 {
     // ugly hack?
-    record PlainStairCurve(string type, Rational a, Rational b);
-    
+    internal record PlainStairCurve(string type, Rational a, Rational b);
+
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override StairCurve Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var plain = JsonSerializer.Deserialize<PlainStairCurve>(ref reader);
+        var plain = JsonSerializer.Deserialize<PlainStairCurve>(ref reader, NancyJsonSerializerContext.Default.PlainStairCurve);
         if (plain?.type != StairCurve.TypeCode)
             throw new JsonException();
         return new StairCurve(plain.a, plain.b);
@@ -33,6 +33,6 @@ public class StairCurveSystemJsonConverter : JsonConverter<StairCurve>
         JsonSerializerOptions options)
     {
         var plain = new PlainStairCurve(StairCurve.TypeCode, value.A, value.B);
-        JsonSerializer.Serialize(writer, plain, options);
+        JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainStairCurve);
     }
 }

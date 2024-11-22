@@ -12,15 +12,15 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 public class FlowControlCurveSystemJsonConverter : JsonConverter<FlowControlCurve>
 {
     // ugly hack?
-    record PlainFlowControlCurve(string type, Rational latency, Rational rate, Rational height);
-    
+    internal record PlainFlowControlCurve(string type, Rational latency, Rational rate, Rational height);
+
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override FlowControlCurve Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var plain = JsonSerializer.Deserialize<PlainFlowControlCurve>(ref reader);
+        var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainFlowControlCurve);
         if (plain?.type != FlowControlCurve.TypeCode)
             throw new JsonException();
         return new FlowControlCurve(plain.latency, plain.rate, plain.height);
@@ -33,6 +33,6 @@ public class FlowControlCurveSystemJsonConverter : JsonConverter<FlowControlCurv
         JsonSerializerOptions options)
     {
         var plain = new PlainFlowControlCurve(FlowControlCurve.TypeCode, value.Latency, value.Rate, value.Height);
-        JsonSerializer.Serialize(writer, plain, options);
+        JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainFlowControlCurve);
     }
 }

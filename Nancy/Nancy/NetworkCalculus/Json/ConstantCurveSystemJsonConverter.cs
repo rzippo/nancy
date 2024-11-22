@@ -12,15 +12,15 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 public class ConstantCurveSystemJsonConverter : JsonConverter<ConstantCurve>
 {
     // ugly hack?
-    record PlainConstantCurve(string type, Rational value);
-    
+    internal record PlainConstantCurve(string type, Rational value);
+
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override ConstantCurve Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var plain = JsonSerializer.Deserialize<PlainConstantCurve>(ref reader);
+        var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainConstantCurve);
         if (plain?.type != ConstantCurve.TypeCode)
             throw new JsonException();
         return new ConstantCurve(plain.value);
@@ -33,6 +33,6 @@ public class ConstantCurveSystemJsonConverter : JsonConverter<ConstantCurve>
         JsonSerializerOptions options)
     {
         var plain = new PlainConstantCurve(ConstantCurve.TypeCode, value.Value);
-        JsonSerializer.Serialize(writer, plain, options);
+        JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainConstantCurve);
     }
 }

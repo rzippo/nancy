@@ -17,7 +17,7 @@ public class SubAdditiveCurveSystemJsonConverter : JsonConverter<SubAdditiveCurv
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var plain = JsonSerializer.Deserialize<GenericCurveSystemJsonConverter.PlainCurve>(ref reader);
+        var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainCurve);
         if (plain?.type != SubAdditiveCurve.TypeCode)
             throw new JsonException();
         return new SubAdditiveCurve(plain.baseSequence, plain.pseudoPeriodStart, plain.pseudoPeriodLength, plain.pseudoPeriodHeight);
@@ -36,6 +36,6 @@ public class SubAdditiveCurveSystemJsonConverter : JsonConverter<SubAdditiveCurv
             value.PseudoPeriodLength, 
             value.PseudoPeriodHeight
         );
-        JsonSerializer.Serialize(writer, plain, options);
+        JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainCurve);
     }
 }

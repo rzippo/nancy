@@ -13,16 +13,16 @@ public class RationalSystemJsonConverter : JsonConverter<Rational>
 {
     // ugly hack...
     #if BIG_RATIONAL
-    record PlainRational(
-        [property: JsonConverter(typeof(BigIntegerSystemJsonConverter))]
-        BigInteger num, 
-        [property: JsonConverter(typeof(BigIntegerSystemJsonConverter))]
-        BigInteger den
-    );
+        internal record PlainRational(
+            [property: JsonConverter(typeof(BigIntegerSystemJsonConverter))]
+            BigInteger num, 
+            [property: JsonConverter(typeof(BigIntegerSystemJsonConverter))]
+            BigInteger den
+        );
     #else
-    record PlainRational(long num, long den);
+        internal record PlainRational(long num, long den);
     #endif
-    
+
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override Rational Read(
         ref Utf8JsonReader reader,
@@ -63,7 +63,7 @@ public class RationalSystemJsonConverter : JsonConverter<Rational>
 
             default:
             {
-                var plain = JsonSerializer.Deserialize<PlainRational>(ref reader);
+                var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainRational);
                 if (plain == null)
                     throw new JsonException();
                 return new Rational(plain.num, plain.den);
@@ -88,7 +88,7 @@ public class RationalSystemJsonConverter : JsonConverter<Rational>
         else
         {
             var plain = new PlainRational(value.Numerator, value.Denominator);
-            JsonSerializer.Serialize(writer, plain, options);
+            JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainRational);
         }
     }
 }

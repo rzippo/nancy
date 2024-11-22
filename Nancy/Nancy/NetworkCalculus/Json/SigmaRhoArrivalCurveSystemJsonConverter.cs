@@ -12,15 +12,15 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 public class SigmaRhoArrivalCurveSystemJsonConverter : JsonConverter<SigmaRhoArrivalCurve>
 {
     // ugly hack?
-    record PlainSigmaRhoArrivalCurve(string type, Rational sigma, Rational rho);
-    
+    internal record PlainSigmaRhoArrivalCurve(string type, Rational sigma, Rational rho);
+
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override SigmaRhoArrivalCurve Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
     {
-        var plain = JsonSerializer.Deserialize<PlainSigmaRhoArrivalCurve>(ref reader);
+        var plain = JsonSerializer.Deserialize<PlainSigmaRhoArrivalCurve>(ref reader, NancyJsonSerializerContext.Default.PlainSigmaRhoArrivalCurve);
         if (plain?.type != SigmaRhoArrivalCurve.TypeCode)
             throw new JsonException();
         return new SigmaRhoArrivalCurve(plain.sigma, plain.rho);
@@ -33,6 +33,6 @@ public class SigmaRhoArrivalCurveSystemJsonConverter : JsonConverter<SigmaRhoArr
         JsonSerializerOptions options)
     {
         var plain = new PlainSigmaRhoArrivalCurve(SigmaRhoArrivalCurve.TypeCode, value.Sigma, value.Rho);
-        JsonSerializer.Serialize(writer, plain, options);
+        JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainSigmaRhoArrivalCurve);
     }
 }
