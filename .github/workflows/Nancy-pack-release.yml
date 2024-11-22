@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-sdk-version: [ '8.0.x' ]
+        dotnet-sdk-version: [ '8.0.x', '9.0.x' ]
         nancy-release: [ "", ".LongRational" ]
     
     env:
