@@ -155,7 +155,7 @@ public static partial class Plots
 
                 if (sequence.IsRightOpen)
                 {
-                    var tail = sequence.Elements.Last() as Segment;
+                    var tail = (Segment)sequence.Elements.Last();
                     points.Add((x: (decimal)tail.EndTime, y: (decimal)tail.LeftLimitAtEndTime));
                 }
 
@@ -208,7 +208,7 @@ public static partial class Plots
 
                 if (sequence.IsRightOpen)
                 {
-                    var tail = sequence.Elements.Last() as Segment;
+                    var tail = (Segment)sequence.Elements.Last();
                     segments.Add((
                         a: (x: (decimal)tail.StartTime, y: (decimal)tail.RightLimitAtStartTime),
                         b: (x: (decimal)tail.EndTime, y: (decimal)tail.LeftLimitAtEndTime)

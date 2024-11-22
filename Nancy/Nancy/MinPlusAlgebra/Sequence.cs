@@ -294,13 +294,13 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     public bool IsRightClosed => !IsRightOpen;
 
     /// <summary>
-    /// True if the sequence consists of only a <see cref="Point"/>, meaning it is has 0 time length.
+    /// True if the sequence consists of only a <see cref="Point"/>, meaning it has 0 time length.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsPoint => Elements.Count == 1 && Elements.Single() is Point;
 
     /// <summary>
-    /// True if the the sequence starts with a plateau.
+    /// True if the sequence starts with a plateau.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool StartsWithPlateau
@@ -959,7 +959,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                 p = p2;
             else
                 p = (e as Segment)!.Sample(cutStart);
-            return new Sequence(new Element[] {p});
+            return new Sequence([p]);
         }
 
         // binary search for cut start
@@ -1394,7 +1394,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
         var offsettedElements = Elements
             .Select(e =>
             {
-                if (exceptOrigin && e is Point p && p.Time.IsZero)
+                if (exceptOrigin && e is Point { Time.IsZero: true })
                 {
                     return e;
                 }
@@ -2027,7 +2027,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                 .Where(ea => ea.IsFinite)
                 .SelectMany(ea => g.Elements
                     .Where(eb => eb.IsFinite)
-                    .Where(eb => PairBeforeEnd(ea, eb))                    
+                    .Where(eb => PairBeforeEnd(ea, eb))
                     .Where(eb => fastIteration || PairBelowCeiling(ea, eb))
                     .Select(eb => (a: ea, b: eb))
                 );
@@ -2383,8 +2383,8 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
             if (cutEnd != null)
                 cutResult = cutResult.Fill(resultStart, cutEnd.Value);
 
-            var start = cutStart != null ? cutStart.Value : resultStart;
-            var end = cutEnd != null ? cutEnd.Value : resultEnd;
+            var start = cutStart ?? resultStart;
+            var end = cutEnd ?? resultEnd;
             cutResult = cutResult.Cut(start, end);
             return cutResult.ToSequence();
         }
@@ -2669,13 +2669,13 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                     .Select(p => new (Rational time, Rational value)?(p))
                     .MinBy(p => p?.time)
                     ?.value;
-                
+
                 if (firstSafeCeiling != null)
                 {
                     elementPairs = elementPairs 
                         .Where(p => ConvolutionStartingValue(p.a, p.b) <= firstSafeCeiling);
                 }
-                
+
                 (Rational time, Rational value) ConvolutionStartingPoint(Element ea, Element eb)
                 {
                     return (
@@ -2683,7 +2683,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                         value: ConvolutionStartingValue(ea, eb)
                     );
                 }
-                
+
                 Rational ConvolutionStartingValue(Element ea, Element eb)
                 {
                     return GetStart(ea) + GetStart(eb);
@@ -2704,7 +2704,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
             }
             else
                 return elementPairs;
-           
+
             return elementPairs;
 
             bool PairBeforeEnd(Element ea, Element eb)
