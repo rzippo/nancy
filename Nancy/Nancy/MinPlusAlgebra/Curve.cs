@@ -2118,7 +2118,7 @@ public class Curve : IToCodeString, IStableHashCode
         // since here we add terms to the global maximum only if there actually is a decrease.
 
         // this list will contain the curve to transform plus,
-        // for each breakpoint at which a decrease happens, a constant segment with the max value at the breakpoint and $-\infty$ before it.
+        // for each breakpoint at which a decrease happens, a constant segment with the sup value at the breakpoint and $-\infty$ before it.
         List<Curve> curves = new (){ this };
 
         if (HasTransient)
@@ -2132,7 +2132,7 @@ public class Curve : IToCodeString, IStableHashCode
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).GetBreakpointValues().Max();
+                    var value = (left, center, right).BreakpointSupValue();
                     curves.Add(GetLowerboundCurve(time, value));
                 }
             }
@@ -2150,7 +2150,7 @@ public class Curve : IToCodeString, IStableHashCode
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).GetBreakpointValues().Max();
+                    var value = (left, center, right).BreakpointSupValue();
                     curves.Add(GetPeriodicLowerboundCurve(time, value));
                 }
             }
@@ -2167,7 +2167,7 @@ public class Curve : IToCodeString, IStableHashCode
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).GetBreakpointValues().Max();
+                    var value = (left, center, right).BreakpointSupValue();
                     curves.Add(GetLowerboundCurve(time, value));
                 }
             }
@@ -2246,7 +2246,7 @@ public class Curve : IToCodeString, IStableHashCode
             return this;
 
         // this list will contain the curve to transform plus,
-        // for each breakpoint at which a decrease ends, a constant segment with the min value at the breakpoint and $+\infty$ after it.
+        // for each breakpoint at which a decrease ends, a constant segment with the inf value at the breakpoint and $+\infty$ after it.
         List<Curve> curves = new (){ this };
 
         if (HasTransient)
@@ -2262,7 +2262,7 @@ public class Curve : IToCodeString, IStableHashCode
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).GetBreakpointValues().Min();
+                    var value = (left, center, right).BreakpointInfValue();
                     curves.Add(GetUpperboundCurve(time, value));
                 }
             }
@@ -2280,7 +2280,7 @@ public class Curve : IToCodeString, IStableHashCode
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).GetBreakpointValues().Min();
+                    var value = (left, center, right).BreakpointInfValue();
                     curves.Add(GetPeriodicUpperboundCurve(time, value));
                 }
             }
@@ -2297,7 +2297,7 @@ public class Curve : IToCodeString, IStableHashCode
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).GetBreakpointValues().Min();
+                    var value = (left, center, right).BreakpointInfValue();
                     curves.Add(GetUpperboundCurve(time, value));
                 }
             }
@@ -3006,12 +3006,12 @@ public class Curve : IToCodeString, IStableHashCode
     /// If the curve is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
     /// </summary>
-    public Rational SupValue()
+    public Rational SupValue(ComputationSettings? settings = null)
     {
         if (PseudoPeriodSlope <= 0)
         {
-            var breakpoints = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints();
-            return breakpoints.GetBreakpointsValues().Max();
+            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            return cut.SupValue();
         }
         else
         {
@@ -3020,20 +3020,118 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
+    /// If the curve has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public Rational? MaxValue(ComputationSettings? settings = null)
+    {
+        if (PseudoPeriodSlope <= 0)
+        {
+            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            return cut.MaxValue();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// If the curve is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$, returns $\sup x$.
     /// Otherwise, returns $-\infty$.
     /// </summary>
-    public Rational InfValue()
+    public Rational InfValue(ComputationSettings? settings = null)
     {
         if (PseudoPeriodSlope >= 0)
         {
-            var breakpoints = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints();
-            return breakpoints.GetBreakpointsValues().Min();
+            var cut = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            return cut.InfValue();
         }
         else
         {
             return Rational.MinusInfinity;
         }
+    }
+
+    /// <summary>
+    /// If the curve has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public Rational? MinValue(ComputationSettings? settings = null)
+    {
+        if (PseudoPeriodSlope >= 0)
+        {
+            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            return cut.MinValue();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// If the curve is upper-bounded in interval $I$, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
+    /// Otherwise, returns $+\infty$.
+    /// </summary>
+    public Rational SupValueOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.SupValue();
+    }
+
+    /// <summary>
+    /// If the curve has a maximum in interval $I$, i.e., exist $x$ and $t^* \in I$ such that $f(t) \le x$ for any $t \in I$ and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public Rational? MaxValueOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.MaxValue();
+    }
+
+    /// <summary>
+    /// If the curve is lower-bounded in interval $I$, i.e., exists $x$ such that $f(t) \ge x$ for any $t \in I$, returns $\sup x$.
+    /// Otherwise, returns $-\infty$.
+    /// </summary>
+    public Rational InfValueOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.InfValue();
+    }
+
+    /// <summary>
+    /// If the curve has a minimum in interval $I$, i.e., exist $x$ and $t^* \in I$ such that $f(t) \ge x$ for any $t \in I$ and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public Rational? MinValueOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.MinValue();
     }
 
     #endregion

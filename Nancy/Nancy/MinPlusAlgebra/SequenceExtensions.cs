@@ -705,7 +705,7 @@ public static class SequenceExtensions
     /// <summary>
     /// Enumerates the left-limit, the value and right-limit at the breakpoint.
     /// </summary>
-    public static IEnumerable<Rational> GetBreakpointValues(
+    public static IEnumerable<Rational> GetBreakpointBoundaryValues(
         this (Segment? left, Point center, Segment? right) breakpoint
     )
     {
@@ -720,11 +720,30 @@ public static class SequenceExtensions
     /// <summary>
     /// Enumerates, for each breakpoint, the left-limit, the value and right-limit at the breakpoint.
     /// </summary>
-    public static IEnumerable<Rational> GetBreakpointsValues(
+    public static IEnumerable<Rational> GetBreakpointsBoundaryValues(
         this IEnumerable<(Segment? left, Point center, Segment? right)> breakpoints)
     {
         return breakpoints
-            .SelectMany(GetBreakpointValues);
+            .SelectMany(GetBreakpointBoundaryValues);
+    }
+
+    /// <summary>
+    /// Enumerates for each point its value, and for each segment its right-limit at start and left-limit at end.
+    /// </summary>
+    public static IEnumerable<Rational> GetElementsBoundaryValues(this IEnumerable<Element> elements)
+    {
+        foreach (var element in elements)
+        {
+            if (element is Segment segment)
+            {
+                yield return segment.RightLimitAtStartTime;
+                yield return segment.LeftLimitAtEndTime;
+            }
+            else if (element is Point point)
+            {
+                yield return point.Value;
+            }
+        }
     }
 
     /// <summary>
@@ -856,7 +875,7 @@ public static class SequenceExtensions
     {
         return elements.All(e => e.IsMinusInfinite);
     }
-    
+
     /// <summary>
     /// True if for any $t$, $f(t) = +\infty$.
     /// </summary>
@@ -866,15 +885,55 @@ public static class SequenceExtensions
     {
         return elements.All(e => e.IsPlusInfinite);
     }
-    
+
+    /// <summary>
+    /// If the sequence is upper-bounded around the breakpoint $t_c$, i.e., exists $x$ such that $f(t) \le x$ for any $t \in [t_c - \varepsilon, t_c + \varepsilon]$, returns $\inf x$.
+    /// Otherwise, returns $+\infty$.
+    /// </summary>
+
+    public static Rational BreakpointSupValue(this (Segment? left, Point center, Segment? right) breakpoint)
+    {
+        return breakpoint.GetBreakpointBoundaryValues().Max();
+    }
+
     /// <summary>
     /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
     /// </summary>
     public static Rational SupValue(this IEnumerable<Element> elements)
     {
-        var breakpoints = elements.EnumerateBreakpoints();
-        return breakpoints.GetBreakpointsValues().Max();
+        return elements.GetElementsBoundaryValues().Max();
+    }
+
+    /// <summary>
+    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public static Rational? MaxValue(this IEnumerable<Element> elements)
+    {
+        var list = elements.ToList();
+        var sup = list.SupValue();
+        if (list.Any(e => e is Point p && p.Value == sup))
+            return sup;
+        else
+            return null;
+    }
+
+    /// <inheritdoc cref="MaxValue(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
+    public static Rational? MaxValue(this IReadOnlyCollection<Element> elements)
+    {
+        var sup = elements.SupValue();
+        if (elements.Any(e => e is Point p && p.Value == sup))
+            return sup;
+        else
+            return null;
+    }
+
+    /// If the sequence is upper-bounded around the breakpoint $t_c$, i.e., exists $x$ such that $f(t) \ge x$ for any $t \in [t_c - \varepsilon, t_c + \varepsilon]$, returns $\sup x$.
+    /// Otherwise, returns $-\infty$.
+    public static Rational BreakpointInfValue(this (Segment? left, Point center, Segment? right) breakpoint)
+    {
+        return breakpoint.GetBreakpointBoundaryValues().Min();
     }
 
     /// <summary>
@@ -883,8 +942,32 @@ public static class SequenceExtensions
     /// </summary>
     public static Rational InfValue(this IEnumerable<Element> elements)
     {
-        var breakpoints = elements.EnumerateBreakpoints();
-        return breakpoints.GetBreakpointsValues().Min();
+        return elements.GetElementsBoundaryValues().Min();
+    }
+
+    /// <summary>
+    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public static Rational? MinValue(this IEnumerable<Element> elements)
+    {
+        var list = elements.ToList();
+        var inf = list.InfValue();
+        if (list.Any(e => e is Point p && p.Value == inf))
+            return inf;
+        else
+            return null;
+    }
+
+    /// <inheritdoc cref="MinValue(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
+    public static Rational? MinValue(this IReadOnlyCollection<Element> elements)
+    {
+        var list = elements.ToList();
+        var inf = list.InfValue();
+        if (list.Any(e => e is Point p && p.Value == inf))
+            return inf;
+        else
+            return null;
     }
 
     /// <summary>
@@ -914,7 +997,7 @@ public static class SequenceExtensions
             isStart = false;
         }
     }
-    
+
     /// <summary>
     /// Computes a right-continuous version of this sequence. 
     /// </summary>
@@ -941,7 +1024,7 @@ public static class SequenceExtensions
             isStart = false;
         }
     }
-    
+
     /// <summary>
     /// Computes the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.

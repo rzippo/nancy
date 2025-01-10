@@ -182,7 +182,7 @@ public static class ToTikzPlotExtension
         var ymarks = sequences
             .SelectMany(s => s
                 .EnumerateBreakpoints()
-                .GetBreakpointsValues())
+                .GetBreakpointsBoundaryValues())
             .Where(y => y.IsFinite)
             .OrderBy(y => y)
             .Distinct()

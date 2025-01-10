@@ -243,7 +243,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonNegative
-        => MinValue() >= 0;
+        => InfValue() >= 0;
 
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
@@ -1189,22 +1189,30 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// If the sequence is upper-bounded, i.e. $f(t) &lt;= x$ for any $t$, returns $x$.
     /// Otherwise, returns <see cref="Rational.PlusInfinity"/>
     /// </summary>
-    public Rational MaxValue()
-    {
-        var breakpoints = this.EnumerateBreakpoints();
-        return breakpoints.GetBreakpointsValues().Max();
-    }
+    public Rational SupValue()
+        => Elements.SupValue();
+
+    /// <summary>
+    /// If the sequence has a maximum, i.e., exist $x and t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public Rational? MaxValue()
+        => Elements.MaxValue();
 
     /// <summary>
     /// If the sequence is lower-bounded, i.e. $f(t) &gt;= x$ for any $t$, returns $x$.
     /// Otherwise, returns <see cref="Rational.MinusInfinity"/>
     /// </summary>
-    public Rational MinValue()
-    {
-        var breakpoints = this.EnumerateBreakpoints();
-        return breakpoints.GetBreakpointsValues().Min();
-    }
+    public Rational InfValue()
+        => Elements.InfValue();
 
+    /// <summary>
+    /// If the sequence has a minimum, i.e., exist $x and t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public Rational? MinValue()
+        => Elements.MinValue();
+    
     /// <summary>
     /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.
     /// </summary>
