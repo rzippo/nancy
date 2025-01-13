@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
@@ -256,6 +257,17 @@ public class BoundaryValues
             null,
             new Rational(275, 6),
             new Rational(275, 6)
+        ),
+        (
+            new RateLatencyServiceCurve(10, 10),
+            0,
+            10,
+            false,
+            false,
+            0,
+            0,
+            0,
+            0
         )
     ];
 

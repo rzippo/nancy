@@ -913,7 +913,7 @@ public static class SequenceExtensions
     {
         var list = elements.ToList();
         var sup = list.SupValue();
-        if (list.Any(e => e is Point p && p.Value == sup))
+        if (list.Any(e => e.ContainsValue(sup)))
             return sup;
         else
             return null;
@@ -923,7 +923,7 @@ public static class SequenceExtensions
     public static Rational? MaxValue(this IReadOnlyCollection<Element> elements)
     {
         var sup = elements.SupValue();
-        if (elements.Any(e => e is Point p && p.Value == sup))
+        if (elements.Any(e => e.ContainsValue(sup)))
             return sup;
         else
             return null;
@@ -953,7 +953,7 @@ public static class SequenceExtensions
     {
         var list = elements.ToList();
         var inf = list.InfValue();
-        if (list.Any(e => e is Point p && p.Value == inf))
+        if (list.Any(e => e.ContainsValue(inf)))
             return inf;
         else
             return null;
@@ -964,7 +964,7 @@ public static class SequenceExtensions
     {
         var list = elements.ToList();
         var inf = list.InfValue();
-        if (list.Any(e => e is Point p && p.Value == inf))
+        if (list.Any(e => e.ContainsValue(inf)))
             return inf;
         else
             return null;

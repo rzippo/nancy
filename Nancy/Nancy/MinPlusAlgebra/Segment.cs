@@ -286,6 +286,15 @@ public sealed class Segment : Element, IEquatable<Segment>
         return time > StartTime && time < EndTime;
     }
 
+    /// <inheritdoc />
+    public override bool ContainsValue(Rational value)
+    {
+        if(IsConstant)
+            return RightLimitAtStartTime == value;
+        else
+            return (RightLimitAtStartTime < value && value < LeftLimitAtEndTime);
+    }
+
     /// <summary>
     /// Splits the segment in a segment-point-segment set.
     /// </summary>

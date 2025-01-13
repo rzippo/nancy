@@ -183,6 +183,12 @@ public sealed class Point : Element, IEquatable<Point>
         return time == Time;
     }
 
+    /// <inheritdoc />
+    public override bool ContainsValue(Rational value)
+    {
+        return Value == value;
+    }
+
     /// <summary>
     /// Deserializes a <see cref="Point"/>.
     /// </summary>

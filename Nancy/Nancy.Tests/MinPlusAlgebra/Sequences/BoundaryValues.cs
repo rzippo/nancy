@@ -116,6 +116,13 @@ public class BoundaryValues
             null,
             new Rational(275, 6),
             new Rational(275, 6)
+        ),
+        (
+            Sequence.Constant(0, 0, 10, false, false),
+            0,
+            0,
+            0,
+            0
         )
     ];
 

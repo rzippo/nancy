@@ -33,7 +33,7 @@ public abstract class Element : IToCodeString, IStableHashCode
     public abstract string Type { get; }
 
     #endregion
-    
+
     #region Properties
 
     /// <summary>
@@ -106,6 +106,11 @@ public abstract class Element : IToCodeString, IStableHashCode
     /// True if given time is between the element's definition bounds.
     /// </summary>
     public abstract bool IsDefinedFor(Rational time);
+
+    /// <summary>
+    /// True if, for some $t$ in the element's definition bounds, $e(t) = value$.
+    /// </summary>
+    public abstract bool ContainsValue(Rational value);
 
     #endregion Methods
 
