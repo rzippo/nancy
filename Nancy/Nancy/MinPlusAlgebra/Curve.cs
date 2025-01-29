@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -3379,8 +3379,8 @@ public class Curve : IToCodeString, IStableHashCode
             )
             {
                 var t = candidatePoint.Time;
-                var d = t > 0 ? t / 10 : 1;
-                var c = affineSegment.Slope * d;
+                var d = this.PseudoPeriodLength;
+                var c = this.PseudoPeriodHeight;
                 return new Curve(
                     baseSequence: Cut(0, t + d),
                     pseudoPeriodStart: t,
