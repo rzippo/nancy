@@ -3668,7 +3668,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// <returns>The non-negative curve resulting from the subtraction.</returns>
     /// <remarks>
     /// The result is forced to be non-negative.
-    /// Use <see cref="Subtraction(Unipi.Nancy.MinPlusAlgebra.Curve, Unipi.Nancy.MinPlusAlgebra.Curve,bool)"/> to have results with negative values.
+    /// Use <see cref="Subtraction(Unipi.Nancy.MinPlusAlgebra.Curve, Unipi.Nancy.MinPlusAlgebra.Curve, bool, ComputationSettings)"/> to have results with negative values.
     /// </remarks>
     public static Curve operator -(Curve a, Curve b)
         => a.Subtraction(b, true);
