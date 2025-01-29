@@ -47,17 +47,17 @@ public class ConvexCurve : SuperAdditiveCurve
             throw new InvalidOperationException("The curve constructed is not actually convex with f(0) = 0");
     }
 
-    /// <inheritdoc cref="Curve.Addition(Curve)"/>
-    public override Curve Addition(Curve b)
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
+    public override Curve Addition(Curve b, ComputationSettings? settings = null)
     {
-        var sum = base.Addition(b);
+        var sum = base.Addition(b, settings);
         if (b is ConvexCurve)
             return new ConvexCurve(sum);
         else
             return sum;
     }
 
-    /// <inheritdoc cref="Curve.Addition(Curve)"/>
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
     public ConvexCurve Addition(ConvexCurve b)
     {
         return new ConvexCurve(base.Addition(b));

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -3526,24 +3526,29 @@ public class Curve : IToCodeString, IStableHashCode
     /// Implements (min, +)-algebra addition operation.
     /// </summary>
     /// <param name="b">Second operand.</param>
+    /// <param name="settings"></param>
     /// <returns>The curve resulting from the sum.</returns>
     /// <remarks> Defined in [BT08] Section 4.2 </remarks>
-    public virtual Curve Addition(Curve b)
+    public virtual Curve Addition(Curve b, ComputationSettings? settings = null)
     {
+        settings ??= new ComputationSettings();
+        
         Rational T = Rational.Max(PseudoPeriodStart, b.PseudoPeriodStart);
         Rational d = Rational.LeastCommonMultiple(PseudoPeriodLength, b.PseudoPeriodLength);
         Rational c = d * (PseudoPeriodSlope + b.PseudoPeriodSlope);
 
-        Sequence extendedSequence1 = Extend(T + d);
-        Sequence extendedSequence2 = b.Extend(T + d);
+        Sequence extendedSequence1 = Extend(T + d, settings);
+        Sequence extendedSequence2 = b.Extend(T + d, settings);
 
         Sequence baseSequence = extendedSequence1 + extendedSequence2;
-        return new Curve(
+        var result = new Curve(
             baseSequence: baseSequence,
             pseudoPeriodStart: T,
             pseudoPeriodLength: d,
             pseudoPeriodHeight: c
         );
+
+        return settings.UseRepresentationMinimization ? result.Optimize() : result;
     }
 
     /// <summary>
@@ -3551,7 +3556,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     /// <returns>The curve resulting from the sum.</returns>
     /// <remarks> Defined in [BT08] Section 4.2 </remarks>
-    public static Curve Addition(Curve a, Curve b)
+    public static Curve Addition(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Addition(b);
 
     /// <summary>
@@ -3569,12 +3574,12 @@ public class Curve : IToCodeString, IStableHashCode
         {
             result = curves
                 .AsParallel()
-                .Aggregate(Addition);
+                .Aggregate((f, g) => Addition(f, g, settings));
         }
         else
         {
             result = curves
-                .Aggregate(Addition);
+                .Aggregate((f, g) => Addition(f, g, settings));
         }
 
         return result;
@@ -3615,12 +3620,12 @@ public class Curve : IToCodeString, IStableHashCode
         {
             return curves
                 .AsParallel()
-                .Aggregate(Addition);
+                .Aggregate((f, g) => Addition(f, g, settings));
         }
         else
         {
             return curves
-                .Aggregate(Addition);
+                .Aggregate((f, g) => Addition(f, g, settings));
         }
     }
 
@@ -3637,11 +3642,12 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     /// <param name="b">Second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
+    /// <param name="settings"></param>
     /// <returns>The curve resulting from the subtraction.</returns>
-    public virtual Curve Subtraction(Curve b, bool nonNegative = true)
+    public virtual Curve Subtraction(Curve b, bool nonNegative = true, ComputationSettings? settings = null)
         => nonNegative ?
-            Addition(-b).ToNonNegative() :
-            Addition(-b);
+            Addition(-b, settings).ToNonNegative() :
+            Addition(-b, settings);
 
     /// <summary>
     /// Implements subtraction operation between two curves.
@@ -3649,9 +3655,10 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
+    /// <param name="settings"></param>
     /// <returns>The curve resulting from the subtraction.</returns>
-    public static Curve Subtraction(Curve a, Curve b, bool nonNegative = true)
-        => a.Subtraction(b, nonNegative);
+    public static Curve Subtraction(Curve a, Curve b, bool nonNegative = true, ComputationSettings? settings = null)
+        => a.Subtraction(b, nonNegative, settings);
 
     /// <summary>
     /// Implements subtraction operation between two curves.

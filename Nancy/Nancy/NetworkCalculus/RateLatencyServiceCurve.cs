@@ -121,8 +121,8 @@ public class RateLatencyServiceCurve : ConvexCurve
     }
 
 
-    /// <inheritdoc cref="Curve.Addition(Curve)"/>
-    public override Curve Addition(Curve curve)
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
+    public override Curve Addition(Curve curve, ComputationSettings? settings = null)
     {
         #if DO_LOG
         logger.Trace("Optimized RL Addition");
@@ -130,7 +130,7 @@ public class RateLatencyServiceCurve : ConvexCurve
         if (curve is ConstantCurve bufferCurve)
             return new RaisedRateLatencyServiceCurve(Rate, Latency, bufferCurve.Value);
         else
-            return base.Addition(curve);
+            return base.Addition(curve, settings);
     }
 
     /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>

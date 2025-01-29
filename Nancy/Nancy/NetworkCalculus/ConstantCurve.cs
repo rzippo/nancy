@@ -86,12 +86,12 @@ public class ConstantCurve : SubAdditiveCurve
             return base.VerticalShift(shift, exceptOrigin);
     }
 
-    /// <inheritdoc cref="Curve.Addition(Curve)"/>
-    public override Curve Addition(Curve curve)
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
+    public override Curve Addition(Curve curve, ComputationSettings? settings = null)
     {
         if (curve is RateLatencyServiceCurve serviceCurve)
             return new RaisedRateLatencyServiceCurve(serviceCurve.Rate, serviceCurve.Latency, Value);
         else
-            return base.Addition(curve);
+            return base.Addition(curve, settings);
     }
 }

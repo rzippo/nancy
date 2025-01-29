@@ -48,17 +48,17 @@ public class ConcaveCurve : SubAdditiveCurve
             throw new InvalidOperationException("The curve constructed is not actually concave with f(0) = 0");
     }
 
-    /// <inheritdoc cref="Curve.Addition(Curve)"/>
-    public override Curve Addition(Curve b)
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
+    public override Curve Addition(Curve b, ComputationSettings? settings = null)
     {
-        var sum = base.Addition(b);
+        var sum = base.Addition(b, settings);
         if (b is ConcaveCurve)
             return new ConcaveCurve(sum);
         else
             return sum;
     }
 
-    /// <inheritdoc cref="Curve.Addition(Curve)"/>
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
     public ConcaveCurve Addition(ConcaveCurve b)
     {
         return new ConcaveCurve(base.Addition(b));
