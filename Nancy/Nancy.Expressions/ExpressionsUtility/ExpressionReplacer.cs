@@ -618,41 +618,42 @@ public class ExpressionReplacer<T1, T2>(
         switch (result)
         {
             case 1 when typeof(T) == typeof(Curve):
-                _tempCurveExpression =
-                    Activator.CreateInstance(binaryExpression.GetType(),
-                        [
-                            newExpressionToReplace, binaryExpression.RightExpression,
-                            ((CurveExpression)binaryExpression).Name, binaryExpression.Settings
-                        ])
-                        as IGenericExpression<Curve>;
+                _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
+                    [
+                        newExpressionToReplace, 
+                        binaryExpression.RightExpression,
+                        ((CurveExpression)binaryExpression).Name, 
+                        binaryExpression.Settings
+                    ]) as IGenericExpression<Curve>;
                 break;
             case 1:
-                _tempRationalExpression =
-                    Activator.CreateInstance(binaryExpression.GetType(),
-                        [
-                            newExpressionToReplace, binaryExpression.RightExpression,
-                            ((CurveExpression)binaryExpression).Name, binaryExpression.Settings
-                        ])
-                        as IGenericExpression<Rational>;
+                _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
+                    [
+                        newExpressionToReplace, 
+                        binaryExpression.RightExpression,
+                        ((RationalExpression)binaryExpression).Name, 
+                        binaryExpression.Settings
+                    ]) as IGenericExpression<Rational>;
                 break;
             case 2 when typeof(T) == typeof(Curve):
                 _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
                     [
-                        _tempCurveExpression, binaryExpression.RightExpression,
-                        ((CurveExpression)binaryExpression).Name, binaryExpression.Settings
-                    ])
-                    as IGenericExpression<Curve>;
+                        (typeof(TLeft) == typeof(Curve))?_tempCurveExpression: _tempRationalExpression, 
+                        binaryExpression.RightExpression,
+                        ((CurveExpression)binaryExpression).Name, 
+                        binaryExpression.Settings
+                    ]) as IGenericExpression<Curve>;
                 break;
             case 2:
-                _tempRationalExpression =
-                    Activator.CreateInstance(binaryExpression.GetType(),
-                        [
-                            _tempRationalExpression, binaryExpression.RightExpression,
-                            ((CurveExpression)binaryExpression).Name, binaryExpression.Settings
-                        ])
-                        as IGenericExpression<Rational>;
+                _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
+                    [
+                        (typeof(TLeft) == typeof(Curve))?_tempCurveExpression: _tempRationalExpression, 
+                        binaryExpression.RightExpression,
+                        ((RationalExpression)binaryExpression).Name, 
+                        binaryExpression.Settings
+                    ]) as IGenericExpression<Rational>;
                 break;
-            case -1:
+            default:
                 return -1;
         }
 
@@ -663,44 +664,47 @@ public class ExpressionReplacer<T1, T2>(
         IGenericBinaryExpression<TLeft, TRight, T> binaryExpression)
     {
         var result = ReplaceByPosition(positionPath, binaryExpression.RightExpression);
-        if (result == 1)
+        switch (result)
         {
-            if (typeof(T) == typeof(Curve))
-                _tempCurveExpression =
-                    Activator.CreateInstance(binaryExpression.GetType(),
-                        [
-                            binaryExpression.LeftExpression, newExpressionToReplace,
-                            ((CurveExpression)binaryExpression).Name, binaryExpression.Settings
-                        ])
-                        as IGenericExpression<Curve>;
-            else
-                _tempRationalExpression =
-                    Activator.CreateInstance(binaryExpression.GetType(),
-                        [
-                            binaryExpression.LeftExpression, newExpressionToReplace,
-                            ((CurveExpression)binaryExpression).Name, binaryExpression.Settings
-                        ])
-                        as IGenericExpression<Rational>;
-        }
-        else if (result == 2)
-        {
-            if (typeof(T) == typeof(Curve))
+            case 1 when typeof(T) == typeof(Curve):
                 _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
                     [
-                        binaryExpression.LeftExpression, _tempCurveExpression, ((CurveExpression)binaryExpression).Name,
+                        binaryExpression.LeftExpression, 
+                        newExpressionToReplace,
+                        ((CurveExpression)binaryExpression).Name, 
                         binaryExpression.Settings
-                    ])
-                    as IGenericExpression<Curve>;
-            else
-                _tempRationalExpression =
-                    Activator.CreateInstance(binaryExpression.GetType(),
-                        [
-                            binaryExpression.LeftExpression, _tempRationalExpression,
-                            ((CurveExpression)binaryExpression).Name, binaryExpression.Settings
-                        ])
-                        as IGenericExpression<Rational>;
+                    ]) as IGenericExpression<Curve>;
+                break;
+            case 1:
+                _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
+                    [
+                        binaryExpression.LeftExpression, 
+                        newExpressionToReplace,
+                        ((RationalExpression)binaryExpression).Name, 
+                        binaryExpression.Settings
+                    ]) as IGenericExpression<Rational>;
+                break;
+            case 2 when typeof(T) == typeof(Curve):
+                _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
+                    [
+                        binaryExpression.LeftExpression,
+                        (typeof(TRight) == typeof(Curve))?_tempCurveExpression: _tempRationalExpression, 
+                        ((CurveExpression)binaryExpression).Name,
+                        binaryExpression.Settings
+                    ]) as IGenericExpression<Curve>;
+                break;
+            case 2:
+                _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
+                    [
+                        binaryExpression.LeftExpression, 
+                        (typeof(TRight) == typeof(Curve))?_tempCurveExpression: _tempRationalExpression,
+                        ((RationalExpression)binaryExpression).Name, 
+                        binaryExpression.Settings
+                    ]) as IGenericExpression<Rational>;
+                break;
+            default:
+                return -1;
         }
-        else if (result == -1) return -1;
 
         return 2;
     }
