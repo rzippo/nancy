@@ -1151,4 +1151,6 @@ public static class Expressions
     /// </summary>
     public static bool Equivalent(CurveExpression e1, CurveExpression e2)
         => e1.Equivalent(e2);
+    
+    //todo: add method to check equivalent expressions without computing them
 }
