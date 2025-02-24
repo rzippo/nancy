@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Unipi.Nancy.Utility;
@@ -198,6 +199,25 @@ public static class StableHashCodeExtensions
     /// <param name="hashes"></param>
     /// <returns></returns>
     public static int HashStableCombine(params int[] hashes)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (var nextHash in hashes)
+            {
+                hash = hash * 31 + nextHash;
+            }
+
+            return hash;
+        }
+    }
+
+    /// <summary>
+    /// Combines a set of hashes into a single stable hash.
+    /// </summary>
+    /// <param name="hashes"></param>
+    /// <returns></returns>
+    public static int HashStableCombine(IEnumerable<int> hashes)
     {
         unchecked
         {

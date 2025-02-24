@@ -526,13 +526,12 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
             hash ^= element.GetHashCode();
         return hash;
     }
-    
+
     /// A stable hashcode.
     public int GetStableHashCode()
     {
-        int[] hashes = Elements
-            .Select(e => e.GetStableHashCode())
-            .ToArray();
+        var hashes = Elements
+            .Select(e => e.GetStableHashCode());
         var hash = StableHashCodeExtensions.HashStableCombine(hashes);
         return hash;
     }
