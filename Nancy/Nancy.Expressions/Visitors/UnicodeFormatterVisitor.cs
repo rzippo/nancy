@@ -62,6 +62,19 @@ public partial class UnicodeFormatterVisitor : ICurveExpressionVisitor, IRationa
         { "omega", "\u03C9" }
     };
 
+    private void VisitUnaryPrefix<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        string unicodeOperation
+    )
+    {
+        Depth--;
+        Result.Append(unicodeOperation);
+        Result.Append("(");
+        expression.Expression.Accept(this);
+        Result.Append(")");
+        Depth++;
+    }
+
     private void VisitBinaryInfix<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
         string unicodeOperation
@@ -186,7 +199,7 @@ public partial class UnicodeFormatterVisitor : ICurveExpressionVisitor, IRationa
         => VisitNAryInfix(expression, " + ");
     
     public virtual void Visit(RationalSubtractionExpression expression)
-        => VisitBinaryInfix(expression, "-");
+        => VisitBinaryInfix(expression, " - ");
 
     public virtual void Visit(RationalProductExpression expression)
         => VisitNAryInfix(expression, " * ");
@@ -253,11 +266,7 @@ public partial class UnicodeFormatterVisitor : ICurveExpressionVisitor, IRationa
             return;
         }
 
-        Depth--;
-        Result.Append("subadditiveClosure{");
-        expression.Expression.Accept(this);
-        Result.Append("}");
-        Depth++;
+        VisitUnaryPrefix(expression, "subadditiveClosure");
     }
 
     public virtual void Visit(SuperAdditiveClosureExpression expression)
@@ -268,11 +277,7 @@ public partial class UnicodeFormatterVisitor : ICurveExpressionVisitor, IRationa
             return;
         }
 
-        Depth--;
-        Result.Append("superadditiveClosure{");
-        expression.Expression.Accept(this);
-        Result.Append("}");
-        Depth++;
+        VisitUnaryPrefix(expression, "superadditiveClosure");
     }
 
     public virtual void Visit(ToUpperNonDecreasingExpression expression)
@@ -317,10 +322,7 @@ public partial class UnicodeFormatterVisitor : ICurveExpressionVisitor, IRationa
             return;
         }
 
-        Depth--;
-        Result.Append("toLeftContinuous ");
-        expression.Expression.Accept(this);
-        Depth++;
+        VisitUnaryPrefix(expression, "toLeftContinuous");
     }
 
     public virtual void Visit(ToRightContinuousExpression expression)
@@ -331,10 +333,7 @@ public partial class UnicodeFormatterVisitor : ICurveExpressionVisitor, IRationa
             return;
         }
 
-        Depth--;
-        Result.Append("toRightContinuous ");
-        expression.Expression.Accept(this);
-        Depth++;
+        VisitUnaryPrefix(expression, "toRightContinuous");
     }
 
     public virtual void Visit(WithZeroOriginExpression expression)
