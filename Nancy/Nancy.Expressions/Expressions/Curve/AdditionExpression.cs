@@ -6,7 +6,7 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class representing an expression whose root operation is the addition (n-ary operation)
 /// </summary>
-public class AdditionExpression : CurveNAryExpression
+public record AdditionExpression : CurveNAryExpression
 {
     /// <summary>
     /// Creates an addition expression

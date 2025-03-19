@@ -7,11 +7,7 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class representing an expression whose root operation is the deconvolution
 /// </summary>
-public class DeconvolutionExpression(
-    CurveExpression leftExpression,
-    CurveExpression rightExpression,
-    string expressionName = "", ExpressionSettings? settings = null)
-    : CurveBinaryExpression<Curve, Curve>(leftExpression, rightExpression, expressionName, settings)
+public record DeconvolutionExpression : CurveBinaryExpression<Curve, Curve>
 {
     /// <summary>
     /// Statically adds the set of well-known equivalences involving the deconvolution operation to the dictionary of
@@ -31,9 +27,14 @@ public class DeconvolutionExpression(
     /// <summary>
     /// Creates a deconvolution expression
     /// </summary>
-    public DeconvolutionExpression(Curve curveL, string nameL, Curve curveR, string nameR,
-        string expressionName = "", ExpressionSettings? settings = null) :
-        this(new ConcreteCurveExpression(curveL, nameL), new ConcreteCurveExpression(curveR, nameR), expressionName, settings)
+    public DeconvolutionExpression(
+        Curve curveL,
+        string nameL,
+        Curve curveR,
+        string nameR,
+        string expressionName = "",
+        ExpressionSettings? settings = null) 
+        : this(new ConcreteCurveExpression(curveL, nameL), new ConcreteCurveExpression(curveR, nameR), expressionName, settings)
     {
     }
 
@@ -41,9 +42,25 @@ public class DeconvolutionExpression(
     /// <summary>
     /// Creates a deconvolution expression
     /// </summary>
-    public DeconvolutionExpression(Curve curveL, string nameL, CurveExpression rightExpression,
-        string expressionName = "", ExpressionSettings? settings = null) :
-        this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+    public DeconvolutionExpression(
+        Curve curveL,
+        string nameL,
+        CurveExpression rightExpression,
+        string expressionName = "",
+        ExpressionSettings? settings = null) 
+        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+    {
+    }
+
+    /// <summary>
+    /// Creates a deconvolution expression
+    /// </summary>
+    public DeconvolutionExpression(
+        CurveExpression LeftExpression,
+        CurveExpression RightExpression,
+        string ExpressionName = "",
+        ExpressionSettings? Settings = null) 
+        : base(LeftExpression, RightExpression, ExpressionName, Settings)
     {
     }
 

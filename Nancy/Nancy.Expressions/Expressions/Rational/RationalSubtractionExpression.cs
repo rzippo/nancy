@@ -6,13 +6,20 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class representing an expression whose root operation is the subtraction between rational numbers
 /// </summary>
-public class RationalSubtractionExpression(
-    IGenericExpression<Rational> leftExpression,
-    IGenericExpression<Rational> rightExpression,
-    string expressionName = "",
-    ExpressionSettings? settings = null)
-    : RationalBinaryExpression<Rational, Rational>(leftExpression, rightExpression, expressionName, settings)
+public record RationalSubtractionExpression : RationalBinaryExpression<Rational, Rational>
 {
+    /// <summary>
+    /// Class representing an expression whose root operation is the subtraction between rational numbers
+    /// </summary>
+    public RationalSubtractionExpression(
+        IGenericExpression<Rational> leftExpression,
+        IGenericExpression<Rational> rightExpression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : base(leftExpression, rightExpression, expressionName, settings)
+    {
+    }
+
     public override void Accept(IRationalExpressionVisitor visitor)
         => visitor.Visit(this);
 }

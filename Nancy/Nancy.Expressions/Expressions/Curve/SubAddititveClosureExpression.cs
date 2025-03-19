@@ -8,8 +8,7 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// Class representing an expression whose root operation is the sub-additive closure
 /// (<see cref="Curve.SubAdditiveClosure(ComputationSettings)"/>)
 /// </summary>
-public class SubAdditiveClosureExpression(CurveExpression expression, string expressionName = "", ExpressionSettings? settings = null)
-    : CurveUnaryExpression<Curve>(expression, expressionName, settings)
+public record SubAdditiveClosureExpression : CurveUnaryExpression<Curve>
 {
     /// <summary>
     /// Statically adds the set of well-known equivalences involving the sub-additive closure operation to the
@@ -24,8 +23,24 @@ public class SubAdditiveClosureExpression(CurveExpression expression, string exp
     /// <summary>
     /// Creates the sub-additive closure expression
     /// </summary>
-    public SubAdditiveClosureExpression(Curve curve, string name, string expressionName = "", ExpressionSettings? settings = null) : this(
-        new ConcreteCurveExpression(curve, name), expressionName, settings)
+    public SubAdditiveClosureExpression(
+        Curve curve,
+        string name,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : this(new ConcreteCurveExpression(curve, name), expressionName, settings)
+    {
+    }
+
+    /// <summary>
+    /// Class representing an expression whose root operation is the sub-additive closure
+    /// (<see cref="Curve.SubAdditiveClosure(ComputationSettings)"/>)
+    /// </summary>
+    public SubAdditiveClosureExpression(
+        CurveExpression expression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : base(expression, expressionName, settings)
     {
     }
 

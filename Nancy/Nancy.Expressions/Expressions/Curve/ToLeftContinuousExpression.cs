@@ -7,14 +7,29 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// Class representing an expression whose root operation is the conversion of a curve to be left-continuous
 /// (<see cref="Curve.ToLeftContinuous"/>)
 /// </summary>
-public class ToLeftContinuousExpression(CurveExpression expression, string expressionName = "", ExpressionSettings? settings = null)
-    : CurveUnaryExpression<Curve>(expression, expressionName, settings)
+public record ToLeftContinuousExpression : CurveUnaryExpression<Curve>
 {
     /// <summary>
     /// Creates the "to-left-continuous" expression
     /// </summary>
-    public ToLeftContinuousExpression(Curve curve, string name, string expressionName = "", ExpressionSettings? settings = null) : this(
-        new ConcreteCurveExpression(curve, name), expressionName, settings)
+    public ToLeftContinuousExpression(
+        Curve curve,
+        string name,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : this(new ConcreteCurveExpression(curve, name), expressionName, settings)
+    {
+    }
+
+    /// <summary>
+    /// Class representing an expression whose root operation is the conversion of a curve to be left-continuous
+    /// (<see cref="Curve.ToLeftContinuous"/>)
+    /// </summary>
+    public ToLeftContinuousExpression(
+        CurveExpression expression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : base(expression, expressionName, settings)
     {
     }
 

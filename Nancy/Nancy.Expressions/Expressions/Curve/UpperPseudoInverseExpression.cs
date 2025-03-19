@@ -8,8 +8,7 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// Class representing an expression whose root operation is the upper pseudo-inverse
 /// (<see cref="Curve.UpperPseudoInverse"/>)
 /// </summary>
-public class UpperPseudoInverseExpression(CurveExpression expression, string expressionName = "", ExpressionSettings? settings = null)
-    : CurveUnaryExpression<Curve>(expression, expressionName, settings)
+public record UpperPseudoInverseExpression : CurveUnaryExpression<Curve>
 {
     /// <summary>
     /// Statically adds the set of well-known equivalences involving the upper pseudo-inverse operation to the
@@ -23,8 +22,24 @@ public class UpperPseudoInverseExpression(CurveExpression expression, string exp
     /// <summary>
     /// Creates the upper pseudo-inverse expression
     /// </summary>
-    public UpperPseudoInverseExpression(Curve curve, string name, string expressionName = "", ExpressionSettings? settings = null) : this(
-        new ConcreteCurveExpression(curve, name), expressionName, settings)
+    public UpperPseudoInverseExpression(
+        Curve curve,
+        string name,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : this(new ConcreteCurveExpression(curve, name), expressionName, settings)
+    {
+    }
+
+    /// <summary>
+    /// Class representing an expression whose root operation is the upper pseudo-inverse
+    /// (<see cref="Curve.UpperPseudoInverse"/>)
+    /// </summary>
+    public UpperPseudoInverseExpression(
+        CurveExpression expression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : base(expression, expressionName, settings)
     {
     }
 

@@ -7,7 +7,7 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class describing an expression composed of a concrete curve
 /// </summary>
-public class ConcreteCurveExpression : CurveExpression
+public record ConcreteCurveExpression : CurveExpression
 {
     /// <summary>
     /// Creates a concrete curve expression with a default curve

@@ -9,13 +9,18 @@ namespace Unipi.Nancy.Expressions;
 /// </summary>
 /// <typeparam name="T1">The type of the value of the left operand</typeparam>
 /// <typeparam name="T2">The type of the value of the right operand</typeparam>
-public abstract class CurveBinaryExpression<T1, T2>(
-    IGenericExpression<T1> leftExpression,
-    IGenericExpression<T2> rightExpression,
-    string expressionName = "", 
-    ExpressionSettings? settings = null)
-    : CurveExpression(expressionName, settings), IGenericBinaryExpression<T1, T2, Curve>
+public abstract record CurveBinaryExpression<T1, T2> : CurveExpression, IGenericBinaryExpression<T1, T2, Curve>
 {
-    public IGenericExpression<T1> LeftExpression { get; } = leftExpression;
-    public IGenericExpression<T2> RightExpression { get; } = rightExpression;
+    protected CurveBinaryExpression(
+        IGenericExpression<T1> leftExpression,
+        IGenericExpression<T2> rightExpression,
+        string ExpressionName = "", 
+        ExpressionSettings? Settings = null) : base(ExpressionName, Settings)
+    {
+        LeftExpression = leftExpression;
+        RightExpression = rightExpression;
+    }
+
+    public IGenericExpression<T1> LeftExpression { get; init; }
+    public IGenericExpression<T2> RightExpression { get; init; }
 }

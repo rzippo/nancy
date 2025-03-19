@@ -7,14 +7,28 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// Class representing an expression whose root operation is the upper non-decreasing closure of a curve
 /// (<see cref="Curve.ToUpperNonDecreasing"/>)
 /// </summary>
-public class ToUpperNonDecreasingExpression(CurveExpression expression, string expressionName = "", ExpressionSettings? settings = null)
-    : CurveUnaryExpression<Curve>(expression, expressionName, settings)
+public record ToUpperNonDecreasingExpression : CurveUnaryExpression<Curve>
 {
     /// <summary>
     /// Creates the upper non-decreasing closure expression
     /// </summary>
-    public ToUpperNonDecreasingExpression(Curve curve, string name, string expressionName = "", ExpressionSettings? settings = null) : this(
-        new ConcreteCurveExpression(curve, name), expressionName, settings)
+    public ToUpperNonDecreasingExpression(
+        Curve curve,
+        string name,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : this(new ConcreteCurveExpression(curve, name), expressionName, settings)
+    {
+    }
+
+    /// <summary>
+    /// Creates the upper non-decreasing closure expression
+    /// </summary>
+    public ToUpperNonDecreasingExpression(
+        CurveExpression expression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : base(expression, expressionName, settings)
     {
     }
 

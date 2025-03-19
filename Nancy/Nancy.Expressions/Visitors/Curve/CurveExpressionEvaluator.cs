@@ -6,7 +6,7 @@ namespace Unipi.Nancy.Expressions.Visitors;
 /// <summary>
 /// Visitor class used to compute the value of a curve expression.
 /// </summary>
-public class CurveExpressionEvaluator : ICurveExpressionVisitor
+public record CurveExpressionEvaluator : ICurveExpressionVisitor
 {
     /// <summary>
     /// Field used as intermediate and final result of the visitor
@@ -76,7 +76,7 @@ public class CurveExpressionEvaluator : ICurveExpressionVisitor
         => VisitNAry(expression, curves => Curve.Addition(curves, expression.Settings?.ComputationSettings));
 
     public virtual void Visit(SubtractionExpression expression)
-        => VisitBinary(expression, (leftCurve, rightCurve) => Curve.Subtraction(leftCurve, rightCurve));
+        => VisitBinary(expression, (leftCurve, rightCurve) => Curve.Subtraction(leftCurve, rightCurve, expression.NonNegative));
 
     public virtual void Visit(MinimumExpression expression)
         => VisitNAry(expression, curves => Curve.Minimum(curves, expression.Settings?.ComputationSettings));

@@ -9,25 +9,41 @@ namespace Unipi.Nancy.Expressions.ExpressionsUtility.Internals;
 /// Class which allows to manipulate DNC expressions. It manages replacement by-value and by-position. The features
 /// are also reused for applying equivalence by-value and by-position.
 /// </summary>
-/// <param name="originalExpression">The main DNC expression, a sub-expression of it needs to be replaced.</param>
-/// <param name="newExpressionToReplace">The new expression which must be "inserted" inside the main expression.</param>
-/// <typeparam name="T1">Value type of <paramref name="originalExpression"/> (Curve or Rational)</typeparam>
-/// <typeparam name="T2">Value type of <paramref name="newExpressionToReplace"/> (Curve or Rational)</typeparam>
-public class ExpressionReplacer<T1, T2>(
-    IGenericExpression<T1> originalExpression,
-    IGenericExpression<T2> newExpressionToReplace)
+/// <typeparam name="TExpressionResult">Value type of <paramref name="originalExpression"/> (Curve or Rational)</typeparam>
+/// <typeparam name="TReplacedOperand">Value type of <paramref name="newExpressionToReplace"/> (Curve or Rational)</typeparam>
+public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
 {
     private IGenericExpression<Curve>? _tempCurveExpression;
     private IGenericExpression<Rational>? _tempRationalExpression;
-    private readonly Equivalence? _equivalence;
-    private readonly CheckType _checkType;
+    
+    public Equivalence? Equivalence { get; init; }
+    public CheckType CheckType { get; init; }
+    
+    public IGenericExpression<TExpressionResult> OriginalExpression { get; init; }
+    public IGenericExpression<TReplacedOperand> NewExpressionToReplace { get; private set; }
 
-    public ExpressionReplacer(IGenericExpression<T1> originalExpression,
+    public ExpressionReplacer(IGenericExpression<TExpressionResult> originalExpression,
         Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly) : this(originalExpression,
-        (IGenericExpression<T2>)Expressions.FromCurve(Curve.Zero()))
+        (IGenericExpression<TReplacedOperand>)Expressions.FromCurve(Curve.Zero()))
     {
-        _equivalence = equivalence;
-        _checkType = checkType;
+        Equivalence = equivalence;
+        CheckType = checkType;
+    }
+
+    /// <summary>
+    /// Class which allows to manipulate DNC expressions. It manages replacement by-value and by-position. The features
+    /// are also reused for applying equivalence by-value and by-position.
+    /// </summary>
+    /// <param name="originalExpression">The main DNC expression, a sub-expression of it needs to be replaced.</param>
+    /// <param name="newExpressionToReplace">The new expression which must be "inserted" inside the main expression.</param>
+    /// <typeparam name="TExpressionResult">Value type of <paramref name="originalExpression"/> (Curve or Rational)</typeparam>
+    /// <typeparam name="TReplacedOperand">Value type of <paramref name="newExpressionToReplace"/> (Curve or Rational)</typeparam>
+    public ExpressionReplacer(
+        IGenericExpression<TExpressionResult> originalExpression,
+        IGenericExpression<TReplacedOperand> newExpressionToReplace)
+    {
+        OriginalExpression = originalExpression;
+        NewExpressionToReplace = newExpressionToReplace;
     }
 
     /// <summary>
@@ -197,33 +213,33 @@ public class ExpressionReplacer<T1, T2>(
         return newExpressionToReplace;
     }
 
-    public IGenericExpression<T1> ReplaceByValue(IGenericExpression<T2> expressionPattern)
+    public IGenericExpression<TExpressionResult> ReplaceByValue(IGenericExpression<TReplacedOperand> expressionPattern)
     {
-        switch (originalExpression)
+        switch (OriginalExpression)
         {
             case IGenericExpression<Curve> e:
                 if (ReplaceByValue(expressionPattern, e) == 1)
-                    return (IGenericExpression<T1>)getNewExpressionToReplace(newExpressionToReplace);
+                    return (IGenericExpression<TExpressionResult>)getNewExpressionToReplace(NewExpressionToReplace);
                 if (_tempCurveExpression != null)
-                    return (IGenericExpression<T1>)_tempCurveExpression;
+                    return (IGenericExpression<TExpressionResult>)_tempCurveExpression;
                 break;
             case IGenericExpression<Rational> e:
                 if (ReplaceByValue(expressionPattern, e) == 1)
-                    return (IGenericExpression<T1>)getNewExpressionToReplace(newExpressionToReplace);
+                    return (IGenericExpression<TExpressionResult>)getNewExpressionToReplace(NewExpressionToReplace);
                 if (_tempRationalExpression != null)
-                    return (IGenericExpression<T1>)_tempRationalExpression;
+                    return (IGenericExpression<TExpressionResult>)_tempRationalExpression;
                 break;
         }
 
-        return originalExpression;
+        return OriginalExpression;
     }
 
     // Return value: 0 = No Replacement | 1 = Replacement at the root | 2 = Replacement deeper in the expression
-    private int ReplaceByValue<T>(IGenericExpression<T2> expressionPattern,
+    private int ReplaceByValue<T>(IGenericExpression<TReplacedOperand> expressionPattern,
         IGenericExpression<T> expression) // Top-down match
     {
         bool match;
-        switch (expressionPattern, expression, _equivalence)
+        switch (expressionPattern, expression, _equivalence: Equivalence)
         {
             case (IGenericExpression<Curve> p, IGenericExpression<Curve> e, null):
                 match = MatchPattern(p, e, true);
@@ -232,10 +248,10 @@ public class ExpressionReplacer<T1, T2>(
                 match = MatchPattern(p, e, true);
                 break;
             case (IGenericExpression<Curve>, IGenericExpression<Curve> e, _):
-                var result = _equivalence.Apply(e, _checkType);
+                var result = Equivalence.Apply(e, CheckType);
                 if (result != null)
                 {
-                    newExpressionToReplace = (IGenericExpression<T2>)result;
+                    NewExpressionToReplace = (IGenericExpression<TReplacedOperand>)result;
                     match = true;
                 }
                 else
@@ -273,7 +289,7 @@ public class ExpressionReplacer<T1, T2>(
                     {
                         case 1:
                             matchInOperands = true;
-                            tempList.Add((CurveExpression)getNewExpressionToReplace(newExpressionToReplace));
+                            tempList.Add((CurveExpression)getNewExpressionToReplace(NewExpressionToReplace));
                             break;
                         case 2:
                             matchInOperands = true;
@@ -303,7 +319,7 @@ public class ExpressionReplacer<T1, T2>(
                     {
                         case 1:
                             rationalMatchInOperands = true;
-                            rationalTempList.Add((RationalExpression)getNewExpressionToReplace(newExpressionToReplace));
+                            rationalTempList.Add((RationalExpression)getNewExpressionToReplace(NewExpressionToReplace));
                             break;
                         case 2:
                             rationalMatchInOperands = true;
@@ -329,7 +345,7 @@ public class ExpressionReplacer<T1, T2>(
         }
     }
 
-    private int ReplaceByValueUnaryExpression<TArg, T>(IGenericExpression<T2> expressionPattern,
+    private int ReplaceByValueUnaryExpression<TArg, T>(IGenericExpression<TReplacedOperand> expressionPattern,
         IGenericUnaryExpression<TArg, T> unaryExpression)
     {
         var result = ReplaceByValue(expressionPattern, unaryExpression.Expression);
@@ -345,7 +361,7 @@ public class ExpressionReplacer<T1, T2>(
                     _tempCurveExpression =
                         Activator.CreateInstance(unaryExpression.GetType(),
                             [
-                                getNewExpressionToReplace(newExpressionToReplace), ((CurveExpression)unaryExpression).Name,
+                                getNewExpressionToReplace(NewExpressionToReplace), ((CurveExpression)unaryExpression).Name,
                                 unaryExpression.Settings
                             ]) as
                             IGenericExpression<Curve>;
@@ -353,7 +369,7 @@ public class ExpressionReplacer<T1, T2>(
                     _tempRationalExpression =
                         Activator.CreateInstance(unaryExpression.GetType(),
                             [
-                                getNewExpressionToReplace(newExpressionToReplace), ((CurveExpression)unaryExpression).Name,
+                                getNewExpressionToReplace(NewExpressionToReplace), ((CurveExpression)unaryExpression).Name,
                                 unaryExpression.Settings
                             ]) as
                             IGenericExpression<Rational>;
@@ -377,7 +393,7 @@ public class ExpressionReplacer<T1, T2>(
         }
     }
 
-    private int ReplaceByValueBinaryExpression<TLeft, TRight, T>(IGenericExpression<T2> expressionPattern,
+    private int ReplaceByValueBinaryExpression<TLeft, TRight, T>(IGenericExpression<TReplacedOperand> expressionPattern,
         IGenericBinaryExpression<TLeft, TRight, T> binaryExpression)
     {
         var resultL = ReplaceByValue(expressionPattern, binaryExpression.LeftExpression);
@@ -386,7 +402,7 @@ public class ExpressionReplacer<T1, T2>(
         {
             tempL = resultL switch
             {
-                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(newExpressionToReplace),
+                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(NewExpressionToReplace),
                 2 => _tempCurveExpression,
                 _ => binaryExpression.LeftExpression as IGenericExpression<Curve>
             };
@@ -395,7 +411,7 @@ public class ExpressionReplacer<T1, T2>(
         {
             tempL = resultL switch
             {
-                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(newExpressionToReplace),
+                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(NewExpressionToReplace),
                 2 => _tempRationalExpression,
                 _ => binaryExpression.LeftExpression as IGenericExpression<Rational>
             };
@@ -407,7 +423,7 @@ public class ExpressionReplacer<T1, T2>(
         {
             tempR = resultR switch
             {
-                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(newExpressionToReplace),
+                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(NewExpressionToReplace),
                 2 => _tempCurveExpression,
                 _ => binaryExpression.RightExpression as IGenericExpression<Curve>
             };
@@ -416,7 +432,7 @@ public class ExpressionReplacer<T1, T2>(
         {
             tempR = resultR switch
             {
-                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(newExpressionToReplace),
+                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(NewExpressionToReplace),
                 2 => _tempRationalExpression,
                 _ => binaryExpression.RightExpression as IGenericExpression<Rational>
             };
@@ -434,42 +450,56 @@ public class ExpressionReplacer<T1, T2>(
         return 2;
     }
 
-    public IGenericExpression<T1> ReplaceByPosition(IEnumerable<string> expressionPosition)
+    public IGenericExpression<TExpressionResult> ReplaceByPosition(IEnumerable<string> expressionPosition)
     {
         var positionPath = expressionPosition.ToList();
         if (!ExpressionPosition.ValidateExpressionPosition(positionPath))
             throw new ArgumentException("Invalid position", nameof(expressionPosition));
 
-        switch (originalExpression)
+        switch (OriginalExpression)
         {
             case IGenericExpression<Curve> e:
                 if (ReplaceByPosition(positionPath.GetEnumerator(), e) == 1)
-                    return (IGenericExpression<T1>)newExpressionToReplace;
+                    return (IGenericExpression<TExpressionResult>)NewExpressionToReplace;
                 if (_tempCurveExpression != null)
-                    return (IGenericExpression<T1>)_tempCurveExpression;
+                    return (IGenericExpression<TExpressionResult>)_tempCurveExpression;
                 break;
             case IGenericExpression<Rational> e:
                 if (ReplaceByPosition(positionPath.GetEnumerator(), e) == 1)
-                    return (IGenericExpression<T1>)newExpressionToReplace;
+                    return (IGenericExpression<TExpressionResult>)NewExpressionToReplace;
                 if (_tempRationalExpression != null)
-                    return (IGenericExpression<T1>)_tempRationalExpression;
+                    return (IGenericExpression<TExpressionResult>)_tempRationalExpression;
                 break;
         }
 
-        return originalExpression;
+        return OriginalExpression;
     }
 
-    // Return value: 1 = Replacement at root | 2 = Replacement deeper in the expression | Exception if position path wrong
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="positionPath"></param>
+    /// <param name="expression"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns>
+    /// Returns
+    /// <list type="bullet">
+    /// <item>1, if replacement happens at root</item>
+    /// <item>2, if replacement happens deeper in the expression</item>
+    /// <item>-1, if replacement did not happen</item>
+    /// </list>
+    /// </returns>
+    /// <exception cref="ArgumentException">If path is invalid</exception>
     private int ReplaceByPosition<T>(IEnumerator<string> positionPath, IGenericExpression<T> expression)
     {
         if (!positionPath.MoveNext())
         {
-            if (_equivalence == null)
+            if (Equivalence == null)
                 return 1;
             if (expression is not CurveExpression curveExpression) return -1;
-            var result = _equivalence.Apply(curveExpression, _checkType);
+            var result = Equivalence.Apply(curveExpression, CheckType);
             if (result == null) return -1;
-            newExpressionToReplace = (IGenericExpression<T2>)result;
+            NewExpressionToReplace = (IGenericExpression<TReplacedOperand>)result;
             return 1;
         }
 
@@ -520,7 +550,7 @@ public class ExpressionReplacer<T1, T2>(
                                 switch (ReplaceByPosition(positionPath, e))
                                 {
                                     case 1:
-                                        tempList.Add((CurveExpression)newExpressionToReplace);
+                                        tempList.Add((CurveExpression)NewExpressionToReplace);
                                         break;
                                     case 2:
                                         tempList.Add((CurveExpression)_tempCurveExpression!);
@@ -550,7 +580,7 @@ public class ExpressionReplacer<T1, T2>(
                                 switch (ReplaceByPosition(positionPath, e))
                                 {
                                     case 1:
-                                        rationalTempList.Add((RationalExpression)newExpressionToReplace);
+                                        rationalTempList.Add((RationalExpression)NewExpressionToReplace);
                                         break;
                                     case 2:
                                         rationalTempList.Add((RationalExpression)_tempRationalExpression!);
@@ -582,13 +612,13 @@ public class ExpressionReplacer<T1, T2>(
             case 1 when typeof(T) == typeof(Curve):
                 _tempCurveExpression =
                     Activator.CreateInstance(unaryExpression.GetType(),
-                            [newExpressionToReplace, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings])
+                            [NewExpressionToReplace, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings])
                         as IGenericExpression<Curve>;
                 break;
             case 1:
                 _tempRationalExpression =
                     Activator.CreateInstance(unaryExpression.GetType(),
-                            [newExpressionToReplace, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings])
+                            [NewExpressionToReplace, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings])
                         as IGenericExpression<Rational>;
                 break;
             case 2 when typeof(T) == typeof(Curve):
@@ -611,48 +641,70 @@ public class ExpressionReplacer<T1, T2>(
         return 2;
     }
 
-    private int ReplaceByPositionLeftExpression<TLeft, TRight, T>(IEnumerator<string> positionPath,
-        IGenericBinaryExpression<TLeft, TRight, T> binaryExpression)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="positionPath"></param>
+    /// <param name="binaryExpression"></param>
+    /// <typeparam name="TLeft">Type of the left operand</typeparam>
+    /// <typeparam name="TRight">Type of the right operand</typeparam>
+    /// <typeparam name="TResult">Type of the result, and therefore of the expression</typeparam>
+    /// <returns>
+    /// Returns
+    /// <list type="bullet">
+    /// <item>1, if replacement happens at root</item>
+    /// <item>2, if replacement happens deeper in the expression</item>
+    /// <item>-1, if replacement did not happen</item>
+    /// </list>
+    /// </returns>
+    private int ReplaceByPositionLeftExpression<TLeft, TRight, TResult>(
+        IEnumerator<string> positionPath,
+        IGenericBinaryExpression<TLeft, TRight, TResult> binaryExpression
+    )
     {
         var result = ReplaceByPosition(positionPath, binaryExpression.LeftExpression);
         switch (result)
         {
-            case 1 when typeof(T) == typeof(Curve):
-                _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [
-                        newExpressionToReplace, 
-                        binaryExpression.RightExpression,
-                        ((CurveExpression)binaryExpression).Name, 
-                        binaryExpression.Settings
-                    ]) as IGenericExpression<Curve>;
+            case 1 when typeof(TResult) == typeof(Curve):
+            {
+                var curveBinaryExpression = (CurveBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
+                _tempCurveExpression = curveBinaryExpression with
+                {
+                    LeftExpression = NewExpressionToReplace
+                };
                 break;
-            case 1:
-                _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [
-                        newExpressionToReplace, 
-                        binaryExpression.RightExpression,
-                        ((RationalExpression)binaryExpression).Name, 
-                        binaryExpression.Settings
-                    ]) as IGenericExpression<Rational>;
+            }
+            case 1 when typeof(TResult) == typeof(Rational):
+            {
+                var rationalBinaryExpression = (RationalBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
+                _tempRationalExpression = rationalBinaryExpression with
+                {
+                    LeftExpression = NewExpressionToReplace
+                };
                 break;
-            case 2 when typeof(T) == typeof(Curve):
-                _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [
-                        (typeof(TLeft) == typeof(Curve))?_tempCurveExpression: _tempRationalExpression, 
-                        binaryExpression.RightExpression,
-                        ((CurveExpression)binaryExpression).Name, 
-                        binaryExpression.Settings
-                    ]) as IGenericExpression<Curve>;
+            }
+            case 2 when typeof(TResult) == typeof(Curve):
+            {
+                var curveBinaryExpression = (CurveBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
+                _tempCurveExpression = curveBinaryExpression with
+                {
+                    LeftExpression = (typeof(TReplacedOperand) == typeof(Curve)) ?
+                        (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
+                        (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
+                };
                 break;
+            }
             case 2:
-                _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [
-                        (typeof(TLeft) == typeof(Curve))?_tempCurveExpression: _tempRationalExpression, 
-                        binaryExpression.RightExpression,
-                        ((RationalExpression)binaryExpression).Name, 
-                        binaryExpression.Settings
-                    ]) as IGenericExpression<Rational>;
+            {
+                var rationalBinaryExpression = (RationalBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
+                _tempRationalExpression = rationalBinaryExpression with
+                {
+                    LeftExpression = (typeof(TReplacedOperand) == typeof(Curve)) ? 
+                        (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
+                        (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
+                };
                 break;
+            }
             default:
                 return -1;
         }
@@ -660,48 +712,69 @@ public class ExpressionReplacer<T1, T2>(
         return 2;
     }
 
-    private int ReplaceByPositionRightExpression<TLeft, TRight, T>(IEnumerator<string> positionPath,
-        IGenericBinaryExpression<TLeft, TRight, T> binaryExpression)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="positionPath"></param>
+    /// <param name="binaryExpression"></param>
+    /// <typeparam name="TLeft">Type of the left operand</typeparam>
+    /// <typeparam name="TRight">Type of the right operand</typeparam>
+    /// <typeparam name="TResult">Type of the result, and therefore of the expression</typeparam>
+    /// <returns>
+    /// Returns
+    /// <list type="bullet">
+    /// <item>1, if replacement happens at root</item>
+    /// <item>2, if replacement happens deeper in the expression</item>
+    /// <item>-1, if replacement did not happen</item>
+    /// </list>
+    /// </returns>
+    private int ReplaceByPositionRightExpression<TLeft, TRight, TResult>(
+        IEnumerator<string> positionPath,
+        IGenericBinaryExpression<TLeft, TRight, TResult> binaryExpression)
     {
         var result = ReplaceByPosition(positionPath, binaryExpression.RightExpression);
         switch (result)
         {
-            case 1 when typeof(T) == typeof(Curve):
-                _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [
-                        binaryExpression.LeftExpression, 
-                        newExpressionToReplace,
-                        ((CurveExpression)binaryExpression).Name, 
-                        binaryExpression.Settings
-                    ]) as IGenericExpression<Curve>;
+            case 1 when typeof(TResult) == typeof(Curve):
+            {
+                var curveBinaryExpression = (CurveBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
+                _tempCurveExpression = curveBinaryExpression with
+                {
+                    RightExpression = NewExpressionToReplace
+                };
                 break;
-            case 1:
-                _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [
-                        binaryExpression.LeftExpression, 
-                        newExpressionToReplace,
-                        ((RationalExpression)binaryExpression).Name, 
-                        binaryExpression.Settings
-                    ]) as IGenericExpression<Rational>;
+            }
+            case 1 when typeof(TResult) == typeof(Rational):
+            {
+                var rationalBinaryExpression = (RationalBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
+                _tempRationalExpression = rationalBinaryExpression with
+                {
+                    RightExpression = NewExpressionToReplace
+                };
                 break;
-            case 2 when typeof(T) == typeof(Curve):
-                _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [
-                        binaryExpression.LeftExpression,
-                        (typeof(TRight) == typeof(Curve))?_tempCurveExpression: _tempRationalExpression, 
-                        ((CurveExpression)binaryExpression).Name,
-                        binaryExpression.Settings
-                    ]) as IGenericExpression<Curve>;
+            }
+            case 2 when typeof(TResult) == typeof(Curve):
+            {
+                var curveBinaryExpression = (CurveBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
+                _tempCurveExpression = curveBinaryExpression with
+                {
+                    RightExpression = (typeof(TReplacedOperand) == typeof(Curve)) ?
+                        (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
+                        (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
+                };
                 break;
-            case 2:
-                _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [
-                        binaryExpression.LeftExpression, 
-                        (typeof(TRight) == typeof(Curve))?_tempCurveExpression: _tempRationalExpression,
-                        ((RationalExpression)binaryExpression).Name, 
-                        binaryExpression.Settings
-                    ]) as IGenericExpression<Rational>;
+            }
+            case 2 when typeof(TResult) == typeof(Rational):
+            {
+                var rationalBinaryExpression = (RationalBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
+                _tempRationalExpression = rationalBinaryExpression with
+                {
+                    RightExpression = (typeof(TReplacedOperand) == typeof(Curve)) ?
+                        (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
+                        (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
+                };
                 break;
+            }
             default:
                 return -1;
         }

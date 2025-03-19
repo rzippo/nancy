@@ -7,13 +7,25 @@ namespace Unipi.Nancy.Expressions.Visitors;
 /// <summary>
 /// Used for visiting an expression and create its representation using the Unicode character set.
 /// </summary>
-/// <param name="depth">The maximum level of the expression tree (starting from the root) which must be fully expanded
-/// in the representation (after this level, the expression name is used, if not empty)</param>
-/// <param name="showRationalsAsName">If true, rational numbers are not shown using their value, but using their name
-/// </param>
-public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsAsName = true)
-    : ICurveExpressionVisitor, IRationalExpressionVisitor
+public partial class UnicodeFormatterVisitor : ICurveExpressionVisitor, IRationalExpressionVisitor
 {
+    // todo: should be refactored into two separate ints, current and max depth
+    public int Depth { get; private set; }
+    public bool ShowRationalsAsName { get; init; }
+
+    /// <summary>
+    /// Used for visiting an expression and create its representation using the Unicode character set.
+    /// </summary>
+    /// <param name="depth">The maximum level of the expression tree (starting from the root) which must be fully expanded
+    /// in the representation (after this level, the expression name is used, if not empty)</param>
+    /// <param name="showRationalsAsName">If true, rational numbers are not shown using their value, but using their name
+    /// </param>
+    public UnicodeFormatterVisitor(int depth = 20, bool showRationalsAsName = true)
+    {
+        Depth = depth;
+        ShowRationalsAsName = showRationalsAsName;
+    }
+
     /// <summary>
     /// Textual representation of the expression
     /// </summary>
@@ -55,19 +67,19 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
         string unicodeOperation
     )
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append('(');
         expression.LeftExpression.Accept(this);
         Result.Append(unicodeOperation);
         expression.RightExpression.Accept(this);
         Result.Append(')');
-        depth++;
+        Depth++;
     }
 
     private void VisitBinaryPrefix<T1, T2, TResult>(
@@ -75,20 +87,20 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
         string unicodeOperation
     )
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append(unicodeOperation);
         Result.Append('(');
         expression.LeftExpression.Accept(this);
         Result.Append(", ");
         expression.RightExpression.Accept(this);
         Result.Append(')');
-        depth++;
+        Depth++;
     }
 
     private void VisitNAryInfix<T, TResult>(
@@ -96,13 +108,13 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
         string unicodeOperation
     )
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append('(');
         var c = expression.Expressions.Count;
         foreach (var e in expression.Expressions)
@@ -114,7 +126,7 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
         }
 
         Result.Append(')');
-        depth++;
+        Depth++;
     }
     
     private void VisitNAryPrefix<T, TResult>(
@@ -122,13 +134,13 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
         string unicodeOperation
     )
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append(unicodeOperation);
         Result.Append('(');
         var c = expression.Expressions.Count;
@@ -141,7 +153,7 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
         }
 
         Result.Append(')');
-        depth++;
+        Depth++;
     }
 
     /// <summary>
@@ -190,7 +202,7 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
 
     public virtual void Visit(RationalNumberExpression numberExpression)
     {
-        if (!numberExpression.Name.Equals("") && (showRationalsAsName || depth <= 0))
+        if (!numberExpression.Name.Equals("") && (ShowRationalsAsName || Depth <= 0))
         {
             FormatName(numberExpression.Name);
             return;
@@ -201,28 +213,28 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
 
     public virtual void Visit(NegateExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append("-(");
         expression.Expression.Accept(this);
         Result.Append(')');
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(ToNonNegativeExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         var squareParenthesis = expression.Expression is not (ConcreteCurveExpression
             or ToUpperNonDecreasingExpression
             or ToLowerNonDecreasingExpression);
@@ -230,151 +242,162 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
         expression.Expression.Accept(this);
         if (squareParenthesis) Result.Append(']');
         Result.Append('⁺');
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append("subadditiveClosure{");
         expression.Expression.Accept(this);
         Result.Append("}");
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(SuperAdditiveClosureExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append("superadditiveClosure{");
         expression.Expression.Accept(this);
         Result.Append("}");
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(ToUpperNonDecreasingExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         var squareParenthesis = expression.Expression is not (ConcreteCurveExpression or ToNonNegativeExpression);
         if (squareParenthesis) Result.Append('[');
         expression.Expression.Accept(this);
         if (squareParenthesis) Result.Append(']');
         Result.Append('↑');
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(ToLowerNonDecreasingExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         var squareParenthesis = expression.Expression is not (ConcreteCurveExpression or ToNonNegativeExpression);
         if (squareParenthesis) Result.Append('[');
         expression.Expression.Accept(this);
         if (squareParenthesis) Result.Append(']');
         Result.Append('↓');
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(ToLeftContinuousExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append("toLeftContinuous ");
         expression.Expression.Accept(this);
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(ToRightContinuousExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append("toRightContinuous ");
         expression.Expression.Accept(this);
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(WithZeroOriginExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append('(');
         expression.Expression.Accept(this);
         Result.Append("°)");
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(LowerPseudoInverseExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         expression.Expression.Accept(this);
         Result.Append('↓');
         Result.Append("\u207B" + "\u00B9");
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(UpperPseudoInverseExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         expression.Expression.Accept(this);
         Result.Append('↑');
         Result.Append("\u207B\u00B9");
-        depth++;
+        Depth++;
     }
 
     public virtual void Visit(AdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
 
     public virtual void Visit(SubtractionExpression expression)
-        => VisitBinaryInfix(expression, " - ");
+    {
+        if (expression.NonNegative)
+        {
+            var asNegative = expression with { NonNegative = false };
+            var toNonNegative = new ToNonNegativeExpression(asNegative);
+            Visit(toNonNegative);
+        }
+        else
+        {
+            VisitBinaryInfix(expression, " - ");
+        }
+    }
 
     public virtual void Visit(MinimumExpression expression)
         => VisitNAryInfix(expression, " \u2227 ");
@@ -434,19 +457,19 @@ public partial class UnicodeFormatterVisitor(int depth = 20, bool showRationalsA
 
     public virtual void Visit(ScaleExpression expression)
     {
-        if (depth <= 0 && !expression.Name.Equals(""))
+        if (Depth <= 0 && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        depth--;
+        Depth--;
         Result.Append('(');
         expression.RightExpression.Accept(this);
         Result.Append('*');
         expression.LeftExpression.Accept(this);
         Result.Append(')');
-        depth++;
+        Depth++;
     }
     
     /// <summary>

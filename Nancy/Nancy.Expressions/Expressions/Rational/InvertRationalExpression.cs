@@ -6,17 +6,30 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class representing an expression whose root operation is the inversion of a rational number
 /// </summary>
-public class InvertRationalExpression(RationalExpression expression, string expressionName = "", ExpressionSettings? settings = null)
-    : RationalUnaryExpression<Rational>(expression, expressionName, settings)
+public record InvertRationalExpression : RationalUnaryExpression<Rational>
 {
     /// <summary>
     /// Creates a "rational inversion expression"
     /// </summary>
-    public InvertRationalExpression(Rational number, string expressionName = "", ExpressionSettings? settings = null) : this(
-        new RationalNumberExpression(number), expressionName, settings)
+    public InvertRationalExpression(
+        Rational number,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : this(new RationalNumberExpression(number), expressionName, settings)
     {
     }
-    
+
+    /// <summary>
+    /// Class representing an expression whose root operation is the inversion of a rational number
+    /// </summary>
+    public InvertRationalExpression(
+        RationalExpression expression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : base(expression, expressionName, settings)
+    {
+    }
+
     /// <summary>
     /// Creates a "rational inversion expression"
     /// </summary>

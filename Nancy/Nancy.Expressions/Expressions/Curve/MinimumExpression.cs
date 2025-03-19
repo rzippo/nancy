@@ -6,7 +6,7 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class representing an expression whose root operation is the minimum (n-ary operation)
 /// </summary>
-public class MinimumExpression : CurveNAryExpression
+public record MinimumExpression : CurveNAryExpression
 {
     /// <summary>
     /// Creates a minimum expression

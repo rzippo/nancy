@@ -6,17 +6,31 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class representing an expression whose root operation is the negation
 /// </summary>
-public class NegateExpression(CurveExpression expression, string expressionName = "", ExpressionSettings? settings = null)
-    : CurveUnaryExpression<Curve>(expression, expressionName, settings)
+public record NegateExpression : CurveUnaryExpression<Curve>
 {
     /// <summary>
     /// Creates the negation expression
     /// </summary>
-    public NegateExpression(Curve curve, string name, string expressionName = "", ExpressionSettings? settings = null) : this(
-        new ConcreteCurveExpression(curve, name), expressionName, settings)
+    public NegateExpression(
+        Curve curve,
+        string name,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        : this(new ConcreteCurveExpression(curve, name), expressionName, settings)
     {
     }
-    
+
+    /// <summary>
+    /// Class representing an expression whose root operation is the negation
+    /// </summary>
+    public NegateExpression(
+        CurveExpression Expression,
+        string ExpressionName = "",
+        ExpressionSettings? Settings = null)
+        : base(Expression, ExpressionName, Settings)
+    {
+    }
+
     public override void Accept(ICurveExpressionVisitor visitor)
         => visitor.Visit(this);
 }

@@ -5,7 +5,7 @@
 /// specifying, using the different methods, the path from the root of the expression tree to the node representing
 /// the sub-expression.
 /// </summary>
-public class ExpressionPosition()
+public class ExpressionPosition
 {
     /// <summary>
     /// List of strings representing the directions from the root expression to a sub-expression
@@ -26,6 +26,15 @@ public class ExpressionPosition()
             _positionPath = enumerable;
         else
             throw new ArgumentException("Invalid direction string!", nameof(positionPath));
+    }
+
+    /// <summary>
+    /// Class which models the position of a sub-expression inside a DNC expression. The position is obtained by
+    /// specifying, using the different methods, the path from the root of the expression tree to the node representing
+    /// the sub-expression.
+    /// </summary>
+    public ExpressionPosition()
+    {
     }
 
     /// <summary>

@@ -289,37 +289,37 @@ public static class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two expressions passed as arguments.
     /// </summary>
-    public static CurveExpression Subtraction(CurveExpression expressionL, CurveExpression expressionR,
+    public static CurveExpression Subtraction(CurveExpression expressionL, CurveExpression expressionR, bool nonNegative = true,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expressionL.Subtraction(expressionR, expressionName, settings);
+        => expressionL.Subtraction(expressionR, nonNegative, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Subtraction(CurveExpression expression, Curve curve,
+    public static CurveExpression Subtraction(CurveExpression expression, Curve curve, bool nonNegative = true,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Subtraction(curve, name, expressionName, settings);
+        => expression.Subtraction(curve, nonNegative, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Subtraction(Curve curveL, Curve curveR,
+    public static CurveExpression Subtraction(Curve curveL, Curve curveR, bool nonNegative = true,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new SubtractionExpression(curveL, nameL, curveR, nameR, expressionName, settings);
+        => new SubtractionExpression(curveL, nameL, curveR, nameR, nonNegative, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the curve <see cref="curveL"/> (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as
     /// arguments.
     /// </summary>
-    public static CurveExpression Subtraction(Curve curveL, CurveExpression expressionR,
+    public static CurveExpression Subtraction(Curve curveL, CurveExpression expressionR, bool nonNegative = true,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new SubtractionExpression(curveL, nameL, expressionR, expressionName, settings);
+        => new SubtractionExpression(curveL, nameL, expressionR, nonNegative, expressionName, settings);
 
     #endregion Subtraction
 

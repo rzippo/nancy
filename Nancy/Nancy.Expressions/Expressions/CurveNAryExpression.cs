@@ -7,7 +7,7 @@ namespace Unipi.Nancy.Expressions;
 /// Class representing expressions whose value is a <see cref="Curve"/> object and the root is an operation which
 /// accepts n (n >= 2) operands (which are curve expressions) and is commutative and associative.
 /// </summary>
-public abstract class
+public abstract record
     CurveNAryExpression : CurveExpression, IGenericNAryExpression<Curve, Curve> // For operators on curves that are commutative and associative
 {
     public IReadOnlyCollection<IGenericExpression<Curve>> Expressions { get; }

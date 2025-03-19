@@ -7,15 +7,27 @@ namespace Unipi.Nancy.Expressions;
 /// Class which describes binary (nor commutative or associative) expressions whose value is a <see cref="Rational"/>
 /// object.
 /// </summary>
-/// <typeparam name="T1">The type of the value of the left operand</typeparam>
-/// <typeparam name="T2">The type of the value of the right operand</typeparam>
-public abstract class RationalBinaryExpression<T1, T2>(
-    IGenericExpression<T1> leftExpression,
-    IGenericExpression<T2> rightExpression,
-    string expressionName = "", 
-    ExpressionSettings? settings = null)
-    : RationalExpression(expressionName, settings), IGenericBinaryExpression<T1, T2, Rational>
+/// <typeparam name="TLeftOperand">The type of the value of the left operand</typeparam>
+/// <typeparam name="TRightOperand">The type of the value of the right operand</typeparam>
+public abstract record RationalBinaryExpression<TLeftOperand, TRightOperand> : RationalExpression, IGenericBinaryExpression<TLeftOperand, TRightOperand, Rational>
 {
-    public IGenericExpression<T1> LeftExpression { get; } = leftExpression;
-    public IGenericExpression<T2> RightExpression { get; } = rightExpression;
+    /// <summary>
+    /// Class which describes binary (nor commutative or associative) expressions whose value is a <see cref="Rational"/>
+    /// object.
+    /// </summary>
+    /// <typeparam name="TLeftOperand">The type of the value of the left operand</typeparam>
+    /// <typeparam name="TRightOperand">The type of the value of the right operand</typeparam>
+    protected RationalBinaryExpression(
+        IGenericExpression<TLeftOperand> leftExpression,
+        IGenericExpression<TRightOperand> rightExpression,
+        string ExpressionName = "", 
+        ExpressionSettings? Settings = null) 
+        : base(ExpressionName, Settings)
+    {
+        LeftExpression = leftExpression;
+        RightExpression = rightExpression;
+    }
+
+    public IGenericExpression<TLeftOperand> LeftExpression { get; init; }
+    public IGenericExpression<TRightOperand> RightExpression { get; init; }
 }

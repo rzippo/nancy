@@ -7,7 +7,7 @@ namespace Unipi.Nancy.Expressions.Visitors;
 /// <summary>
 /// Visitor class used to compute the value of a rational expression.
 /// </summary>
-public class RationalExpressionEvaluator : IRationalExpressionVisitor
+public record RationalExpressionEvaluator : IRationalExpressionVisitor
 {
     /// <summary>
     /// Field used as intermediate and final result of the visitor

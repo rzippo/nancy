@@ -14,21 +14,18 @@ namespace Unipi.Nancy.Expressions;
 /// Class which describes NetCal expressions that evaluate to curves. The class aims at providing the main methods to
 /// build, manipulate and print network calculus expressions.
 /// </summary>
-/// <param name="expressionName">The name of the expression</param>
-/// <param name="settings"></param>
-public abstract class CurveExpression(string expressionName = "", ExpressionSettings? settings = null)
-    : IGenericExpression<Curve>, IVisitableCurve
+public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCurve
 {
     #region Properties
 
-    public string Name { get; } = expressionName;
+    public string Name { get; init; }
 
     /// <summary>
     /// Static dictionary field collecting the well-known equivalences, indexed by the "main" type of equivalence
     /// </summary>
     public static readonly ConcurrentDictionary<Type, List<Equivalence>> Equivalences = new();
 
-    public ExpressionSettings? Settings { get; } = settings;
+    public ExpressionSettings? Settings { get; init; }
     
     /// <summary>
     /// Private cache field for <see cref="Value"/>
@@ -243,7 +240,19 @@ public abstract class CurveExpression(string expressionName = "", ExpressionSett
     internal bool? _isWellDefined;
 
     /// <summary>
-    /// True if the operation described by the expression is well-defined according to the definition in
+    /// Class which describes NetCal expressions that evaluate to curves. The class aims at providing the main methods to
+    /// build, manipulate and print network calculus expressions.
+    /// </summary>
+    /// <param name="ExpressionName">The name of the expression</param>
+    /// <param name="Settings"></param>
+    protected CurveExpression(string expressionName = "", ExpressionSettings? settings = null)
+    {
+        Name = expressionName;
+        Settings = settings;
+    }
+
+    /// <summary>
+    /// True if the operation described by the expression is well-defined according to the definition
     /// in [BT08] Section 2.1.
     /// </summary>
     public bool IsWellDefined
@@ -383,17 +392,17 @@ public abstract class CurveExpression(string expressionName = "", ExpressionSett
     /// Creates a new expression composed of the subtraction between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Subtraction(CurveExpression expression, string expressionName = "",
+    public CurveExpression Subtraction(CurveExpression expression, bool nonNegative = true, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new SubtractionExpression(this, expression, expressionName, settings);
+        => new SubtractionExpression(this, expression, nonNegative, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
-    public CurveExpression Subtraction(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+    public CurveExpression Subtraction(Curve curve, bool nonNegative = true, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => Subtraction(new ConcreteCurveExpression(curve, name), expressionName, settings);
+        => Subtraction(new ConcreteCurveExpression(curve, name), nonNegative, expressionName, settings);
 
     #endregion Subtraction
     
@@ -670,7 +679,8 @@ public abstract class CurveExpression(string expressionName = "", ExpressionSett
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
     /// <returns>New expression object (of type <see cref="CurveExpression"/>) with the replaced sub-expression.
     /// </returns>
-    public CurveExpression ReplaceByPosition<T1>(IEnumerable<string> positionPath,
+    public CurveExpression ReplaceByPosition<T1>(
+        IEnumerable<string> positionPath,
         IGenericExpression<T1> newExpressionToReplace)
     {
         var replacer = new ExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
@@ -825,9 +835,9 @@ public abstract class CurveExpression(string expressionName = "", ExpressionSett
     /// <summary>
     /// Returns a string that represents the current expression using the Unicode character set.
     /// </summary>
-    public override string ToString()
+    public sealed override string ToString()
         => ToUnicodeString();
-
+    
     public double Estimate()
     {
         throw new NotImplementedException();
@@ -835,6 +845,8 @@ public abstract class CurveExpression(string expressionName = "", ExpressionSett
 
     public ExpressionPosition RootPosition() => new();
 
+    // todo: is this redundant?
+    
     /// <summary>
     /// Changes the name of the expression.
     /// </summary>

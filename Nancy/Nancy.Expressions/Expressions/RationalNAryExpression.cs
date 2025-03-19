@@ -7,7 +7,7 @@ namespace Unipi.Nancy.Expressions;
 /// Class representing expressions whose value is a <see cref="Rational"/> object and the root is an operation which
 /// accepts n (n >= 2) operands (which are rational expressions) and is commutative and associative.
 /// </summary>
-public abstract class
+public abstract record
     RationalNAryExpression : RationalExpression, IGenericNAryExpression<Rational, Rational> // For operators on rationals that are commutative and associative
 {
     public IReadOnlyCollection<IGenericExpression<Rational>> Expressions { get; }

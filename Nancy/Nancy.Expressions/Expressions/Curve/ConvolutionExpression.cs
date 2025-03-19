@@ -7,7 +7,7 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class representing an expression whose root operation is the convolution (n-ary operation)
 /// </summary>
-public class ConvolutionExpression : CurveNAryExpression
+public record ConvolutionExpression : CurveNAryExpression
 {
     /// <summary>
     /// Statically adds the set of well-known equivalences involving the convolution operation to the dictionary of the

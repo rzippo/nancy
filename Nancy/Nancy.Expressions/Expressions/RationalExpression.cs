@@ -13,24 +13,36 @@ namespace Unipi.Nancy.Expressions;
 /// The class aims at providing the main methods to build, manipulate and print expressions which evaluate to rational
 /// numbers and are based on NetCal curves.
 /// </summary>
-/// <param name="expressionName">The name of the expression</param>
-/// <param name="settings"></param>
-public abstract class RationalExpression(string expressionName = "", ExpressionSettings? settings = null)
-    : IGenericExpression<Rational>, IVisitableRational
+public abstract record RationalExpression : IGenericExpression<Rational>, IVisitableRational
 {
     #region Properties
 
-    public string Name { get; } = expressionName;
+    public string Name { get; init; }
 
-    public ExpressionSettings? Settings { get; } = settings;
+    public ExpressionSettings? Settings { get; init; }
 
     /// <summary>
     /// Private cache field for <see cref="Value"/>
     /// </summary>
     internal Rational? _value;
 
-    public Rational Value => _value ??= Compute();
+    /// <summary>
+    /// The class aims at providing the main methods to build, manipulate and print expressions which evaluate to rational
+    /// numbers and are based on NetCal curves.
+    /// </summary>
+    /// <param name="ExpressionName">The name of the expression</param>
+    /// <param name="Settings"></param>
+    protected RationalExpression(
+        string expressionName = "", 
+        ExpressionSettings? settings = null
+    )
+    {
+        Name = expressionName;
+        Settings = settings;
+    }
 
+    public Rational Value => _value ??= Compute();
+    
     #endregion Properties
 
     #region Methods
@@ -70,7 +82,7 @@ public abstract class RationalExpression(string expressionName = "", ExpressionS
         return unicodeExpr;
     }
 
-    public override string ToString()
+    public sealed override string ToString()
         => ToUnicodeString();
 
     public double Estimate()
@@ -133,6 +145,8 @@ public abstract class RationalExpression(string expressionName = "", ExpressionS
     #endregion Replace
 
     public ExpressionPosition RootPosition() => new();
+
+    // todo: is this redundant?
 
     /// <summary>
     /// Changes the name of the expression.

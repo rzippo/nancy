@@ -6,29 +6,51 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Class representing an expression whose root operation is the subtraction
 /// </summary>
-public class SubtractionExpression(
-    CurveExpression leftExpression,
-    CurveExpression rightExpression,
-    string expressionName = "",
-    ExpressionSettings? settings = null)
-    : CurveBinaryExpression<Curve, Curve>(leftExpression, rightExpression, expressionName, settings)
+public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
 {
+    public bool NonNegative { get; init; }
+    
     /// <summary>
     /// Creates a subtraction expression
     /// </summary>
-    public SubtractionExpression(Curve curveL, string nameL, Curve curveR, string nameR,
-        string expressionName = "", ExpressionSettings? settings = null) :
-        this(new ConcreteCurveExpression(curveL, nameL), new ConcreteCurveExpression(curveR, nameR), expressionName, settings)
+    public SubtractionExpression(
+        Curve curveL, 
+        string nameL, 
+        Curve curveR, 
+        string nameR, 
+        bool nonNegative = false,
+        string expressionName = "", 
+        ExpressionSettings? settings = null) 
+        : this(new ConcreteCurveExpression(curveL, nameL), new ConcreteCurveExpression(curveR, nameR), nonNegative, expressionName, settings)
     {
     }
 
     /// <summary>
     /// Creates a subtraction expression
     /// </summary>
-    public SubtractionExpression(Curve curveL, string nameL, CurveExpression rightExpression,
-        string expressionName = "", ExpressionSettings? settings = null) :
-        this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+    public SubtractionExpression(
+        Curve curveL, 
+        string nameL, 
+        CurveExpression rightExpression, 
+        bool nonNegative = false,
+        string expressionName = "", 
+        ExpressionSettings? settings = null) 
+        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, nonNegative, expressionName, settings)
     {
+    }
+
+    /// <summary>
+    /// Creates a subtraction expression
+    /// </summary>
+    public SubtractionExpression(
+        CurveExpression leftExpression,
+        CurveExpression rightExpression,
+        bool nonNegative = false,
+        string expressionName = "",
+        ExpressionSettings? settings = null) 
+        : base(leftExpression, rightExpression, expressionName, settings)
+    {
+        NonNegative = nonNegative;
     }
 
     public override void Accept(ICurveExpressionVisitor visitor)

@@ -131,7 +131,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
         var right = (CurveExpression)context.curveExpression()[1].Accept(this);
-        return Expressions.Subtraction(left, right);
+        return Expressions.Subtraction(left, right, nonNegative: false);
     }
 
     public override object VisitCompositionExpression(NetCalGParser.CompositionExpressionContext context)
