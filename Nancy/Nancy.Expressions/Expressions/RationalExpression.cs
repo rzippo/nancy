@@ -98,16 +98,24 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
     /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expressions.</returns>
-    public RationalExpression ReplaceByValue<T1>(IGenericExpression<T1> expressionPattern,
-        IGenericExpression<T1> newExpressionToReplace)
+    public RationalExpression ReplaceByValue<T1>(
+        IGenericExpression<T1> expressionPattern,
+        IGenericExpression<T1> newExpressionToReplace,
+        bool ignoreNotMatchedExpressions = false
+    )
     {
-        var replacer = new ExpressionReplacer<Rational, T1>(this, newExpressionToReplace);
-        return (RationalExpression)replacer.ReplaceByValue(expressionPattern);
+        var replacer = new OneTimeExpressionReplacer<Rational, T1>(this, newExpressionToReplace);
+        return (RationalExpression)replacer.ReplaceByValue(
+            expressionPattern,
+            ignoreNotMatchedExpressions
+        );
     }
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
-        IGenericExpression<T1> newExpressionToReplace) => ReplaceByValue(expressionPattern, newExpressionToReplace);
+        IGenericExpression<T1> newExpressionToReplace,
+        bool ignoreNotMatchedExpressions = false) 
+        => ReplaceByValue(expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
@@ -135,7 +143,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression ReplaceByPosition<T1>(IEnumerable<string> positionPath,
         IGenericExpression<T1> newExpressionToReplace)
     {
-        var replacer = new ExpressionReplacer<Rational, T1>(this, newExpressionToReplace);
+        var replacer = new OneTimeExpressionReplacer<Rational, T1>(this, newExpressionToReplace);
         return (RationalExpression)replacer.ReplaceByPosition(positionPath);
     }
 
@@ -536,7 +544,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </returns>
     public RationalExpression ApplyEquivalence(Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new ExpressionReplacer<Rational, Curve>(this, equivalence, checkType);
+        var replacer = new OneTimeExpressionReplacer<Rational, Curve>(this, equivalence, checkType);
         // In the case of equivalences the argument of ReplaceByValue is not significant
         return (RationalExpression)replacer.ReplaceByValue(equivalence.LeftSideExpression);
     }
@@ -561,7 +569,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new ExpressionReplacer<Rational, Curve>(this, equivalence, checkType);
+        var replacer = new OneTimeExpressionReplacer<Rational, Curve>(this, equivalence, checkType);
         return (RationalExpression)replacer.ReplaceByPosition(positionPath);
     }
 

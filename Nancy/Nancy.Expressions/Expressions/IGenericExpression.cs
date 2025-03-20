@@ -59,8 +59,11 @@ public interface IGenericExpression<out T>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced</param>
     /// <param name="newExpressionToReplace">The new sub-expression</param>
     /// <returns>New expression object with replaced sub-expressions</returns>
-    public IGenericExpression<T> ReplaceByValue<T1>(IGenericExpression<T1> expressionPattern,
-        IGenericExpression<T1> newExpressionToReplace);
+    public IGenericExpression<T> ReplaceByValue<T1>(
+        IGenericExpression<T1> expressionPattern,
+        IGenericExpression<T1> newExpressionToReplace,
+        bool ignoreNotMatchedExpressions = false
+    );
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.

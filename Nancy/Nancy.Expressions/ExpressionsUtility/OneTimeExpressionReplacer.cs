@@ -6,15 +6,19 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.ExpressionsUtility.Internals;
 
 /// <summary>
-/// Class which allows to manipulate DNC expressions. It manages replacement by-value and by-position. The features
-/// are also reused for applying equivalence by-value and by-position.
+/// Class which allows to manipulate DNC expressions.
+/// It manages replacement by-value and by-position.
+/// The features are also reused for applying equivalence by-value and by-position.
 /// </summary>
+/// <remarks>Each instance is safe to use only once.</remarks>
 /// <typeparam name="TExpressionResult">Value type of <paramref name="originalExpression"/> (Curve or Rational)</typeparam>
 /// <typeparam name="TReplacedOperand">Value type of <paramref name="newExpressionToReplace"/> (Curve or Rational)</typeparam>
-public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
+internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
 {
     private IGenericExpression<Curve>? _tempCurveExpression;
     private IGenericExpression<Rational>? _tempRationalExpression;
+
+    public bool AlreadyUsed { get; private set; } = false;
     
     public Equivalence? Equivalence { get; init; }
     public CheckType CheckType { get; init; }
@@ -22,7 +26,7 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
     public IGenericExpression<TExpressionResult> OriginalExpression { get; init; }
     public IGenericExpression<TReplacedOperand> NewExpressionToReplace { get; private set; }
 
-    public ExpressionReplacer(IGenericExpression<TExpressionResult> originalExpression,
+    public OneTimeExpressionReplacer(IGenericExpression<TExpressionResult> originalExpression,
         Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly) : this(originalExpression,
         (IGenericExpression<TReplacedOperand>)Expressions.FromCurve(Curve.Zero()))
     {
@@ -38,7 +42,7 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// <param name="newExpressionToReplace">The new expression which must be "inserted" inside the main expression.</param>
     /// <typeparam name="TExpressionResult">Value type of <paramref name="originalExpression"/> (Curve or Rational)</typeparam>
     /// <typeparam name="TReplacedOperand">Value type of <paramref name="newExpressionToReplace"/> (Curve or Rational)</typeparam>
-    public ExpressionReplacer(
+    public OneTimeExpressionReplacer(
         IGenericExpression<TExpressionResult> originalExpression,
         IGenericExpression<TReplacedOperand> newExpressionToReplace)
     {
@@ -53,52 +57,76 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// <param name="expression">The expression checked against the pattern</param>
     /// <param name="patternRoot">Indication of whether the match is at the root of the pattern or not</param>
     /// <returns>True if the expression matches the pattern, False otherwise</returns>
-    public static bool MatchPattern<T>(IGenericExpression<T> pattern, IGenericExpression<T> expression,
+    public static MatchPatternResult MatchPattern<T>(
+        IGenericExpression<T> pattern, 
+        IGenericExpression<T> expression,
         bool patternRoot)
     {
-        if (pattern.GetType() != expression.GetType()) return false;
+        if (pattern.GetType() != expression.GetType()) 
+            return new MatchPatternResult { IsMatch = false };
 
         switch (pattern, expression)
         {
             case (CurvePlaceholderExpression p, CurvePlaceholderExpression e):
-                return p.Name.Equals(e.Name);
+                return new MatchPatternResult { IsMatch = p.Name.Equals(e.Name) };
             case (RationalPlaceholderExpression p, RationalPlaceholderExpression e):
-                return p.Name.Equals(e.Name);
+                return new MatchPatternResult { IsMatch = p.Name.Equals(e.Name) };
             case (ConcreteCurveExpression p, ConcreteCurveExpression e):
-                return p.Name.Equals(e.Name) && p.Value.Equivalent(e.Value);
+                return new MatchPatternResult { IsMatch = p.Name.Equals(e.Name) && p.Value.Equivalent(e.Value) };
             case (IGenericUnaryExpression<Curve, T> p, IGenericUnaryExpression<Curve, T> e):
                 return MatchPattern(p.Expression, e.Expression, false);
             case (IGenericUnaryExpression<Rational, T> p, IGenericUnaryExpression<Rational, T> e):
                 return MatchPattern(p.Expression, e.Expression, false);
             case (IGenericBinaryExpression<Curve, Curve, T> p, IGenericBinaryExpression<Curve, Curve, T> e):
-                return MatchPattern(p.LeftExpression, e.LeftExpression, false) &&
-                       MatchPattern(p.RightExpression, e.RightExpression, false);
+            {
+                var leftMatch = MatchPattern(p.LeftExpression, e.LeftExpression, false);
+                var rightMatch = MatchPattern(p.RightExpression, e.RightExpression, false);
+                return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
+            }
             case (IGenericBinaryExpression<Rational, Rational, T> p, IGenericBinaryExpression<Rational, Rational, T> e):
-                return MatchPattern(p.LeftExpression, e.LeftExpression, false) &&
-                       MatchPattern(p.RightExpression, e.RightExpression, false);
+            {
+                var leftMatch = MatchPattern(p.LeftExpression, e.LeftExpression, false);
+                var rightMatch = MatchPattern(p.RightExpression, e.RightExpression, false);
+                return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
+            }
             case (IGenericBinaryExpression<Rational, Curve, T> p, IGenericBinaryExpression<Rational, Curve, T> e):
-                return MatchPattern(p.LeftExpression, e.LeftExpression, false) &&
-                       MatchPattern(p.RightExpression, e.RightExpression, false);
+            {
+                var leftMatch = MatchPattern(p.LeftExpression, e.LeftExpression, false);
+                var rightMatch = MatchPattern(p.RightExpression, e.RightExpression, false);
+                return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
+            }
             case (IGenericBinaryExpression<Curve, Rational, T> p, IGenericBinaryExpression<Curve, Rational, T> e):
-                return MatchPattern(p.LeftExpression, e.LeftExpression, false) &&
-                       MatchPattern(p.RightExpression, e.RightExpression, false);
+            {
+                var leftMatch = MatchPattern(p.LeftExpression, e.LeftExpression, false);
+                var rightMatch = MatchPattern(p.RightExpression, e.RightExpression, false);
+                return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
+            }
             case (CurveNAryExpression p, CurveNAryExpression e):
                 return MatchPatternNAry(p, e, patternRoot);
             case (RationalNAryExpression p, RationalNAryExpression e):
                 return MatchPatternNAry(p, e, patternRoot);
             case (RationalNumberExpression p, RationalNumberExpression e):
-                return p.Value.Equals(e.Value) && p.Name.Equals(e.Name);
+                return new MatchPatternResult { IsMatch = p.Value.Equals(e.Value) && p.Name.Equals(e.Name) };
             default:
                 throw new InvalidOperationException("Missing type " + pattern.GetType());
         }
     }
 
-    private static bool MatchPatternNAry<T, TResult>(IGenericNAryExpression<T, TResult> pattern,
-        IGenericNAryExpression<T, TResult> expression, bool patternRoot)
+    private static MatchPatternNAryResult MatchPatternNAry<T, TResult>(
+        IGenericNAryExpression<T, TResult> pattern,
+        IGenericNAryExpression<T, TResult> expression, 
+        bool patternRoot
+    )
     {
-        if (!patternRoot && pattern.Expressions.Count != expression.Expressions.Count) return false;
-        if (patternRoot && pattern.Expressions.Count > expression.Expressions.Count) return false;
-        var result = true;
+        var result = new MatchPatternNAryResult();
+        
+        if (!patternRoot && pattern.Expressions.Count != expression.Expressions.Count) 
+            return result with { IsMatch = false };
+        if (patternRoot && pattern.Expressions.Count > expression.Expressions.Count) 
+            return result with { IsMatch = false };
+        
+        result.IsMatch = true;
+        
         List<int> alreadyMatchedIndexes = [];
         var operands = expression.Expressions.ToArray();
         // For each operand o1 of pattern Expression
@@ -110,7 +138,7 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
             {
                 if (alreadyMatchedIndexes.Contains(i)) continue;
                 var operand = operands[i];
-                temp = MatchPattern(ePattern, operand, false);
+                temp = MatchPattern(ePattern, operand, false).IsMatch;
                 if (temp) // If o2 matches o1 --> move to next operand o1 (and don't consider anymore o2)
                 {
                     alreadyMatchedIndexes.Add(i);
@@ -118,8 +146,9 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
                 }
             }
 
-            result = result && temp;
-            if (!result) return false;
+            result.IsMatch &= temp;
+            if (!result.IsMatch) 
+                return result;
         }
 
         if (patternRoot)
@@ -133,171 +162,235 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
                 switch (notMatchedExpressions)
                 {
                     case List<IGenericExpression<Curve>> list:
-                        NotMatchedExpressionsCurve = list;
+                        result.NotMatchedExpressionsCurve = list;
                         break;
                     case List<IGenericExpression<Rational>> list:
-                        NotMatchedExpressionsRational = list;
+                        result.NotMatchedExpressionsRational = list;
                         break;
                 }
 
-                NaryTypePartialMatch = expression.GetType();
-                NaryNamePartialMatch = expression.Name;
-                NarySettingsPartialMatch = expression.Settings;
+                result.NaryTypePartialMatch = expression.GetType();
+                result.NaryNamePartialMatch = expression.Name;
+                result.NarySettingsPartialMatch = expression.Settings;
             }
         }
 
-        return true;
+        return result;
     }
-
-    internal static List<IGenericExpression<Curve>>? NotMatchedExpressionsCurve { get; set; }
-    internal static List<IGenericExpression<Rational>>? NotMatchedExpressionsRational { get; set; }
-    internal static Type? NaryTypePartialMatch { get; set; }
-    internal static string? NaryNamePartialMatch { get; set; }
-    internal static ExpressionSettings? NarySettingsPartialMatch { get; set; }
-
-    internal static bool IgnoreNotMatchedExpressions = false;
     
-    private static IGenericExpression<T> getNewExpressionToReplace<T>(IGenericExpression<T> newExpressionToReplace)
+    private static IGenericExpression<T> getNewExpressionToReplace<T>(
+        IGenericExpression<T> newExpressionToReplace,
+        MatchPatternResult matchResult,
+        bool ignoreNotMatchedExpressions = false
+    )
     {
-        if (IgnoreNotMatchedExpressions) return newExpressionToReplace;
+        if (ignoreNotMatchedExpressions) 
+            return newExpressionToReplace;
+        if (matchResult is not MatchPatternNAryResult matchNAryResult)
+            return newExpressionToReplace;
         IGenericExpression<T> ret;
         switch (newExpressionToReplace)
         {
             case IGenericExpression<Curve> e:
-                if (NotMatchedExpressionsCurve == null)
+                if (matchNAryResult.NotMatchedExpressionsCurve.Count == 0)
                     return newExpressionToReplace;
                 // The pattern matched only some operands of n-ary expression, thus we need to keep the non-matched ones
-                if (newExpressionToReplace.GetType() != NaryTypePartialMatch)
+                if (newExpressionToReplace.GetType() != matchNAryResult.NaryTypePartialMatch)
                 {
-                    var operandsList = NotMatchedExpressionsCurve;
+                    var operandsList = matchNAryResult.NotMatchedExpressionsCurve;
                     operandsList.Add(e);
-                    ret = Activator.CreateInstance(NaryTypePartialMatch!,
-                        [operandsList, NaryNamePartialMatch, NarySettingsPartialMatch]) as IGenericExpression<T> ?? throw new InvalidOperationException();
+                    ret = Activator.CreateInstance(matchNAryResult.NaryTypePartialMatch!,
+                        [operandsList, matchNAryResult.NaryNamePartialMatch, matchNAryResult.NarySettingsPartialMatch]) as IGenericExpression<T> ?? throw new InvalidOperationException();
                 }
                 else
                 {
                     var exprToReturn = newExpressionToReplace as CurveNAryExpression;
-                    exprToReturn = NotMatchedExpressionsCurve.Aggregate(exprToReturn,
+                    exprToReturn = matchNAryResult.NotMatchedExpressionsCurve.Aggregate(exprToReturn,
                         (current, operand) => (CurveNAryExpression)current!.Append(operand));
 
                     ret = (exprToReturn as IGenericExpression<T>)!;
                 }
 
-                NotMatchedExpressionsCurve = null;
+                matchNAryResult.NotMatchedExpressionsCurve = [];
                 return ret;
             case IGenericExpression<Rational> e:
-                if (NotMatchedExpressionsRational == null)
+                if (matchNAryResult.NotMatchedExpressionsRational.Count == 0)
                     return newExpressionToReplace;
                 // The pattern matched only some operands of n-ary expression, thus we need to keep the non-matched ones
-                if (newExpressionToReplace.GetType() != NaryTypePartialMatch)
+                if (newExpressionToReplace.GetType() != matchNAryResult.NaryTypePartialMatch)
                 {
-                    var operandsList = NotMatchedExpressionsRational;
+                    var operandsList = matchNAryResult.NotMatchedExpressionsRational;
                     operandsList.Add(e);
-                    ret = Activator.CreateInstance(NaryTypePartialMatch!,
-                        [operandsList, NaryNamePartialMatch, NarySettingsPartialMatch]) as IGenericExpression<T> ?? throw new
+                    ret = Activator.CreateInstance(matchNAryResult.NaryTypePartialMatch!,
+                        [operandsList, matchNAryResult.NaryNamePartialMatch, matchNAryResult.NarySettingsPartialMatch]) as IGenericExpression<T> ?? throw new
                         InvalidOperationException();
                 }
                 else
                 {
                     var exprToReturn = newExpressionToReplace as RationalNAryExpression;
-                    exprToReturn = NotMatchedExpressionsRational.Aggregate(exprToReturn,
+                    exprToReturn = matchNAryResult.NotMatchedExpressionsRational.Aggregate(exprToReturn,
                         (current, operand) => (RationalNAryExpression)current!.Append(operand));
 
                     ret = (exprToReturn as IGenericExpression<T>)!;
                 }
                 
-                NotMatchedExpressionsRational = null;
+                matchNAryResult.NotMatchedExpressionsRational = [];
                 return ret;
         }
 
         return newExpressionToReplace;
     }
 
-    public IGenericExpression<TExpressionResult> ReplaceByValue(IGenericExpression<TReplacedOperand> expressionPattern)
+    public IGenericExpression<TExpressionResult> ReplaceByValue(
+        IGenericExpression<TReplacedOperand> expressionPattern,
+        bool ignoreNotMatchedExpressions = false
+    )
     {
+        if(AlreadyUsed)
+            throw new InvalidOperationException("This replacer was already used.");
+        AlreadyUsed = true;
+        
         switch (OriginalExpression)
         {
             case IGenericExpression<Curve> e:
-                if (ReplaceByValue(expressionPattern, e) == 1)
-                    return (IGenericExpression<TExpressionResult>)getNewExpressionToReplace(NewExpressionToReplace);
+            {
+                var replaceResult = ReplaceByValue(expressionPattern, e);
+                if (replaceResult.Code == 1)
+                {
+                    var matchResult = replaceResult.MatchPatternResult;
+                    return (IGenericExpression<TExpressionResult>)getNewExpressionToReplace(
+                        NewExpressionToReplace, 
+                        matchResult, 
+                        ignoreNotMatchedExpressions
+                    );
+                }
                 if (_tempCurveExpression != null)
                     return (IGenericExpression<TExpressionResult>)_tempCurveExpression;
                 break;
+            }
             case IGenericExpression<Rational> e:
-                if (ReplaceByValue(expressionPattern, e) == 1)
-                    return (IGenericExpression<TExpressionResult>)getNewExpressionToReplace(NewExpressionToReplace);
+            {
+                var replaceResult = ReplaceByValue(expressionPattern, e);
+                if (replaceResult.Code == 1)
+                {
+                    var matchResult = replaceResult.MatchPatternResult;
+                    return (IGenericExpression<TExpressionResult>)getNewExpressionToReplace(
+                        NewExpressionToReplace, 
+                        matchResult, 
+                        ignoreNotMatchedExpressions
+                    );
+                }
                 if (_tempRationalExpression != null)
                     return (IGenericExpression<TExpressionResult>)_tempRationalExpression;
                 break;
+            }
         }
 
         return OriginalExpression;
     }
 
-    // Return value: 0 = No Replacement | 1 = Replacement at the root | 2 = Replacement deeper in the expression
-    private int ReplaceByValue<T>(IGenericExpression<TReplacedOperand> expressionPattern,
+    private ReplaceResult ReplaceByValue<T>(
+        IGenericExpression<TReplacedOperand> expressionPattern,
         IGenericExpression<T> expression) // Top-down match
     {
-        bool match;
+        var replaceResult = new ReplaceResult();
         switch (expressionPattern, expression, _equivalence: Equivalence)
         {
             case (IGenericExpression<Curve> p, IGenericExpression<Curve> e, null):
-                match = MatchPattern(p, e, true);
+            {
+                replaceResult.MatchPatternResult = MatchPattern(p, e, true);
                 break;
+            }
             case (IGenericExpression<Rational> p, IGenericExpression<Rational> e, null):
-                match = MatchPattern(p, e, true);
+            {
+                replaceResult.MatchPatternResult = MatchPattern(p, e, true);
                 break;
+            }
             case (IGenericExpression<Curve>, IGenericExpression<Curve> e, _):
-                var result = Equivalence.Apply(e, CheckType);
-                if (result != null)
+            {
+                var equivalenceApplyResult = Equivalence.Apply(e, CheckType);
+                if (equivalenceApplyResult.NewExpression != null)
                 {
-                    NewExpressionToReplace = (IGenericExpression<TReplacedOperand>)result;
-                    match = true;
+                    NewExpressionToReplace = (IGenericExpression<TReplacedOperand>)equivalenceApplyResult.NewExpression;
+                    replaceResult.MatchPatternResult = equivalenceApplyResult.MatchPatternResult;
                 }
                 else
-                    match = false;
+                    replaceResult.MatchPatternResult.IsMatch = false;
 
                 break;
+            }
             default:
-                match = false;
+            {
+                replaceResult.MatchPatternResult.IsMatch = false;
                 break;
+            }
         }
 
-        if (match)
-            return 1;
+        if (replaceResult.MatchPatternResult.IsMatch)
+        {
+            replaceResult.Code = 1;
+            return replaceResult;
+        }
 
         switch (expression)
         {
             case IGenericUnaryExpression<Curve, T> c:
-                return ReplaceByValueUnaryExpression(expressionPattern, c);
+            {
+                replaceResult.Code = ReplaceByValueUnaryExpression(expressionPattern, c).Code;
+                return replaceResult;
+            }
             case IGenericUnaryExpression<Rational, T> c:
-                return ReplaceByValueUnaryExpression(expressionPattern, c);
+            {
+                replaceResult.Code = ReplaceByValueUnaryExpression(expressionPattern, c).Code;
+                return replaceResult;
+            }
             case IGenericBinaryExpression<Curve, Curve, T> c:
-                return ReplaceByValueBinaryExpression(expressionPattern, c);
+            {
+                replaceResult.Code = ReplaceByValueBinaryExpression(expressionPattern, c).Code;
+                return replaceResult;
+            }
             case IGenericBinaryExpression<Curve, Rational, T> c:
-                return ReplaceByValueBinaryExpression(expressionPattern, c);
+            {
+                replaceResult.Code = ReplaceByValueBinaryExpression(expressionPattern, c).Code;
+                return replaceResult;
+            }
             case IGenericBinaryExpression<Rational, Curve, T> c:
-                return ReplaceByValueBinaryExpression(expressionPattern, c);
+            {
+                replaceResult.Code = ReplaceByValueBinaryExpression(expressionPattern, c).Code;
+                return replaceResult;
+            }
             case IGenericBinaryExpression<Rational, Rational, T> c:
-                return ReplaceByValueBinaryExpression(expressionPattern, c);
+            {
+                replaceResult.Code = ReplaceByValueBinaryExpression(expressionPattern, c).Code;
+                return replaceResult;
+            }
             case CurveNAryExpression c:
+            {
                 List<CurveExpression> tempList = [];
                 var matchInOperands = false;
                 foreach (var e in c.Expressions)
                 {
-                    switch (ReplaceByValue(expressionPattern, e))
+                    var innerReplaceResult = ReplaceByValue(expressionPattern, e); 
+                    switch (innerReplaceResult.Code)
                     {
                         case 1:
+                        {
                             matchInOperands = true;
-                            tempList.Add((CurveExpression)getNewExpressionToReplace(NewExpressionToReplace));
+                            var innerMatchResult = innerReplaceResult.MatchPatternResult;
+                            tempList.Add((CurveExpression)getNewExpressionToReplace(NewExpressionToReplace, innerMatchResult));
                             break;
+                        }
                         case 2:
+                        {
                             matchInOperands = true;
                             tempList.Add((CurveExpression)_tempCurveExpression!);
                             break;
+                        }
                         default:
+                        {
                             tempList.Add((CurveExpression)e);
                             break;
+                        }
                     }
                 }
 
@@ -306,28 +399,42 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
                     _tempCurveExpression =
                         Activator.CreateInstance(c.GetType(),
                             [tempList, c.Name, c.Settings]) as IGenericExpression<Curve>;
-                    return 2;
+                    replaceResult.Code = 2;
+                    return replaceResult;
                 }
-
-                return 0;
+                else
+                {
+                    replaceResult.Code = 0;
+                    return replaceResult;
+                }
+            }
             case RationalNAryExpression c:
+            {
                 List<RationalExpression> rationalTempList = [];
                 var rationalMatchInOperands = false;
                 foreach (var e in c.Expressions)
                 {
-                    switch (ReplaceByValue(expressionPattern, e))
+                    var innerReplaceResult = ReplaceByValue(expressionPattern, e);
+                    switch (innerReplaceResult.Code)
                     {
                         case 1:
+                        {
+                            var innerMatchResult = (MatchPatternNAryResult) innerReplaceResult.MatchPatternResult;
                             rationalMatchInOperands = true;
-                            rationalTempList.Add((RationalExpression)getNewExpressionToReplace(NewExpressionToReplace));
+                            rationalTempList.Add((RationalExpression)getNewExpressionToReplace(NewExpressionToReplace, innerMatchResult));
                             break;
+                        }
                         case 2:
+                        {
                             rationalMatchInOperands = true;
                             rationalTempList.Add((RationalExpression)_tempRationalExpression!);
                             break;
+                        }
                         default:
+                        {
                             rationalTempList.Add((RationalExpression)e);
                             break;
+                        }
                     }
                 }
 
@@ -336,32 +443,46 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
                     _tempRationalExpression =
                         Activator.CreateInstance(c.GetType(),
                             [rationalTempList, c.Name, c.Settings]) as IGenericExpression<Rational>;
-                    return 2;
+                    replaceResult.Code = 2;
+                    return replaceResult;
                 }
-
-                return 0;
+                else
+                {
+                    replaceResult.Code = 0;
+                    return replaceResult;
+                }
+            }
             default:
-                return 0; // No match
+            {
+                // No match
+                replaceResult.Code = 0;
+                return replaceResult; 
+            }
         }
     }
 
-    private int ReplaceByValueUnaryExpression<TArg, T>(IGenericExpression<TReplacedOperand> expressionPattern,
+    private ReplaceResult ReplaceByValueUnaryExpression<TArg, T>(
+        IGenericExpression<TReplacedOperand> expressionPattern,
         IGenericUnaryExpression<TArg, T> unaryExpression)
     {
-        var result = ReplaceByValue(expressionPattern, unaryExpression.Expression);
+        var result = new ReplaceResult();
+        var innerReplaceResult = ReplaceByValue(expressionPattern, unaryExpression.Expression);
         object? temp;
         if (typeof(TArg) == typeof(Curve))
             temp = _tempCurveExpression;
         else
             temp = _tempRationalExpression;
-        switch (result)
+        switch (innerReplaceResult.Code)
         {
             case 1:
+            {
+                var innerMatchResult = innerReplaceResult.MatchPatternResult;
                 if (typeof(T) == typeof(Curve))
                     _tempCurveExpression =
                         Activator.CreateInstance(unaryExpression.GetType(),
                             [
-                                getNewExpressionToReplace(NewExpressionToReplace), ((CurveExpression)unaryExpression).Name,
+                                getNewExpressionToReplace(NewExpressionToReplace, innerMatchResult),
+                                ((CurveExpression)unaryExpression).Name,
                                 unaryExpression.Settings
                             ]) as
                             IGenericExpression<Curve>;
@@ -369,13 +490,17 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
                     _tempRationalExpression =
                         Activator.CreateInstance(unaryExpression.GetType(),
                             [
-                                getNewExpressionToReplace(NewExpressionToReplace), ((CurveExpression)unaryExpression).Name,
+                                getNewExpressionToReplace(NewExpressionToReplace, innerMatchResult),
+                                ((CurveExpression)unaryExpression).Name,
                                 unaryExpression.Settings
                             ]) as
                             IGenericExpression<Rational>;
 
-                return 2;
+                result.Code = 2; 
+                return result;
+            }
             case 2:
+            {
                 if (typeof(T) == typeof(Curve))
                     _tempCurveExpression =
                         Activator.CreateInstance(unaryExpression.GetType(),
@@ -387,58 +512,77 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
                                 [temp, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings]) as
                             IGenericExpression<Rational>;
 
-                return 2;
+                result.Code = 2; 
+                return result;
+            }
             default:
-                return 0;
+            {
+                result.Code = 0; 
+                return result;
+            }
         }
     }
 
-    private int ReplaceByValueBinaryExpression<TLeft, TRight, T>(IGenericExpression<TReplacedOperand> expressionPattern,
+    private ReplaceResult ReplaceByValueBinaryExpression<TLeft, TRight, T>(IGenericExpression<TReplacedOperand> expressionPattern,
         IGenericBinaryExpression<TLeft, TRight, T> binaryExpression)
     {
-        var resultL = ReplaceByValue(expressionPattern, binaryExpression.LeftExpression);
+        var result = new ReplaceResult();
+        var innerResultLeft = ReplaceByValue(expressionPattern, binaryExpression.LeftExpression);
         object? tempL;
         if (typeof(TLeft) == typeof(Curve))
         {
-            tempL = resultL switch
+            tempL = innerResultLeft.Code switch
             {
-                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(NewExpressionToReplace),
+                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(
+                    NewExpressionToReplace, 
+                    innerResultLeft.MatchPatternResult),
                 2 => _tempCurveExpression,
                 _ => binaryExpression.LeftExpression as IGenericExpression<Curve>
             };
         }
         else
         {
-            tempL = resultL switch
+            tempL = innerResultLeft.Code switch
             {
-                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(NewExpressionToReplace),
+                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(
+                    NewExpressionToReplace,
+                    innerResultLeft.MatchPatternResult),
                 2 => _tempRationalExpression,
                 _ => binaryExpression.LeftExpression as IGenericExpression<Rational>
             };
         }
 
-        var resultR = ReplaceByValue(expressionPattern, binaryExpression.RightExpression);
+        var innerResultRight = ReplaceByValue(expressionPattern, binaryExpression.RightExpression);
         object? tempR;
         if (typeof(TRight) == typeof(Curve))
         {
-            tempR = resultR switch
+            tempR = innerResultRight.Code switch
             {
-                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(NewExpressionToReplace),
+                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(
+                    NewExpressionToReplace,
+                    innerResultLeft.MatchPatternResult),
                 2 => _tempCurveExpression,
                 _ => binaryExpression.RightExpression as IGenericExpression<Curve>
             };
         }
         else
         {
-            tempR = resultR switch
+            tempR = innerResultRight.Code switch
             {
-                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(NewExpressionToReplace),
+                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(
+                    NewExpressionToReplace,
+                    innerResultLeft.MatchPatternResult),
                 2 => _tempRationalExpression,
                 _ => binaryExpression.RightExpression as IGenericExpression<Rational>
             };
         }
 
-        if (resultL == 0 && resultR == 0) return 0;
+        if (innerResultLeft.Code == 0 && innerResultRight.Code == 0)
+        {
+            result.Code = 0; 
+            return result;
+        }
+
         if (typeof(T) == typeof(Curve))
             _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
                     [tempL, tempR, ((CurveExpression)binaryExpression).Name, binaryExpression.Settings])
@@ -447,11 +591,18 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
             _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
                     [tempL, tempR, ((CurveExpression)binaryExpression).Name, binaryExpression.Settings])
                 as IGenericExpression<Rational>;
-        return 2;
+        
+        result.Code = 2; 
+        return result;
     }
 
-    public IGenericExpression<TExpressionResult> ReplaceByPosition(IEnumerable<string> expressionPosition)
+    public IGenericExpression<TExpressionResult> ReplaceByPosition(
+        IEnumerable<string> expressionPosition)
     {
+        if(AlreadyUsed)
+            throw new InvalidOperationException("This replacer was already used.");
+        AlreadyUsed = true;
+        
         var positionPath = expressionPosition.ToList();
         if (!ExpressionPosition.ValidateExpressionPosition(positionPath))
             throw new ArgumentException("Invalid position", nameof(expressionPosition));
@@ -781,4 +932,33 @@ public class ExpressionReplacer<TExpressionResult, TReplacedOperand>
 
         return 2;
     }
+}
+
+public record MatchPatternResult
+{
+    public bool IsMatch { get; set; } = false;
+}
+
+public record MatchPatternNAryResult : MatchPatternResult
+{
+    public List<IGenericExpression<Curve>> NotMatchedExpressionsCurve { get; set; } = [];
+    public List<IGenericExpression<Rational>> NotMatchedExpressionsRational { get; set; } = [];
+    public Type? NaryTypePartialMatch { get; set; } = null;
+    public string? NaryNamePartialMatch { get; set; } = null;
+    public ExpressionSettings? NarySettingsPartialMatch { get; set; } = null;
+}
+
+public record ReplaceResult
+{
+    /// <summary>
+    /// Result of the replacement.
+    /// <list type="bullet">
+    /// <item>0 = No Replacement</item>
+    /// <item>1 = Replacement at the root</item>
+    /// <item>2 = Replacement deeper in the expression</item>
+    /// </list>
+    /// </summary>
+    public int Code { get; set; } = 0;
+    
+    public MatchPatternResult MatchPatternResult { get; set; } = new MatchPatternResult();
 }

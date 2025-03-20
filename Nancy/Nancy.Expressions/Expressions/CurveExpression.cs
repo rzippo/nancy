@@ -647,15 +647,20 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
     /// <returns>New expression object (of type <see cref="CurveExpression"/>) with replaced sub-expressions.</returns>
-    public CurveExpression ReplaceByValue<T1>(IGenericExpression<T1> expressionPattern,
+    public CurveExpression ReplaceByValue<T1>(
+        IGenericExpression<T1> expressionPattern,
         IGenericExpression<T1> newExpressionToReplace)
     {
-        var replacer = new ExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
+        var replacer = new OneTimeExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
         return (CurveExpression)replacer.ReplaceByValue(expressionPattern);
     }
 
-    IGenericExpression<Curve> IGenericExpression<Curve>.ReplaceByValue<T1>(IGenericExpression<T1> expressionPattern,
-        IGenericExpression<T1> newExpressionToReplace) => ReplaceByValue(expressionPattern, newExpressionToReplace);
+    IGenericExpression<Curve> IGenericExpression<Curve>.ReplaceByValue<T1>(
+        IGenericExpression<T1> expressionPattern,
+        IGenericExpression<T1> newExpressionToReplace,
+        bool ignoreNotMatchedExpressions = false
+    ) 
+    => ReplaceByValue(expressionPattern, newExpressionToReplace);
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
@@ -683,7 +688,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         IEnumerable<string> positionPath,
         IGenericExpression<T1> newExpressionToReplace)
     {
-        var replacer = new ExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
+        var replacer = new OneTimeExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
         return (CurveExpression)replacer.ReplaceByPosition(positionPath);
     }
 
@@ -705,7 +710,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </returns>
     public CurveExpression ApplyEquivalence(Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new ExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
+        var replacer = new OneTimeExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
         // In the case of equivalences the argument of ReplaceByValue is not significant
         return (CurveExpression)replacer.ReplaceByValue(equivalence.LeftSideExpression);
     }
@@ -729,7 +734,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new ExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
+        var replacer = new OneTimeExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
         return (CurveExpression)replacer.ReplaceByPosition(positionPath);
     }
 
