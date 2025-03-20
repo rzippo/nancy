@@ -26,6 +26,6 @@ public class DeconvAndSubAdditiveClosure
         
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
-        Assert.Equal("a ⊗ subadditiveClosure{b}", eq.ToUnicodeString());
+        Assert.Equal("a ⊗ subadditiveClosure(b)", eq.ToUnicodeString());
     }
 }

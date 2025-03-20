@@ -21,7 +21,7 @@ public class SubAdditiveClosureOfMin
         var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.SubAdditiveClosureOfMin());
         
         Assert.False(e == eq);
-        Assert.Equal("subadditiveClosure{a} ⊗ subadditiveClosure{b}", eq.ToUnicodeString());
+        Assert.Equal("subadditiveClosure(a) ⊗ subadditiveClosure(b)", eq.ToUnicodeString());
         Assert.True(e.Equivalent(eq));
     }
 }
