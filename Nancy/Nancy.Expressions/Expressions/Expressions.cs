@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
@@ -707,23 +707,24 @@ public static class Expressions
     #region DelayBy
 
     /// <summary>
-    /// Creates a new expression composed of the operation to delay the curve corresponding to the expression
-    /// <see cref="expressionL"/> by the rational number described by <see cref="expressionR"/>. </summary>
+    /// Creates a new expression that delays the curve expression
+    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t - T)$.
+    /// </summary>
     public static CurveExpression DelayBy(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.DelayBy(expressionR, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to delay the curve corresponding to the expression
-    /// passed as first argument by the rational number <see cref="delay"/>.
+    /// Creates a new expression that delays the curve expression
+    /// <see cref="expression"/> by the rational <see cref="delay"/>, i.e., computing $f(t - T)$.
     /// </summary>
     public static CurveExpression DelayBy(CurveExpression expression, Rational delay,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.DelayBy(delay, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to delay the curve <see cref="curveL"/>
-    /// by the rational number <see cref="delay"/>.
+    /// Creates a new expression that delays the curve <see cref="curveL"/>
+    /// by the rational <see cref="delay"/>, i.e., computing $f(t - T)$.
     /// </summary>
     public static CurveExpression DelayBy(Curve curveL, Rational delay,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -731,8 +732,8 @@ public static class Expressions
         => new DelayByExpression(curveL, nameL, delay, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to delay the curve <see cref="curveL"/>
-    /// by the rational number described by the expression <see cref="expressionR"/>.
+    /// Creates a new expression that delays the curve <see cref="curveL"/>
+    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t - T)$.
     /// </summary>
     public static CurveExpression DelayBy(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -782,23 +783,24 @@ public static class Expressions
     #region Scale
 
     /// <summary>
-    /// Creates a new expression composed of the operation to scale the curve corresponding to the expression
-    /// <see cref="expressionL"/> by the rational number described by <see cref="expressionR"/>. </summary>
+    /// Creates a new expression that scales the curve expression
+    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e. $k \cdot f(t)$. 
+    /// </summary>
     public static CurveExpression Scale(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Scale(expressionR, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to scale the curve corresponding to the expression
-    /// passed as first argument by the rational number <see cref="scaleFactor"/>.
+    /// Creates a new expression that scales the curve expression
+    /// <see cref="expression"> by the rational <see cref="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
     public static CurveExpression Scale(CurveExpression expression, Rational scaleFactor,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.Scale(scaleFactor, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to scale the curve <see cref="curveL"/>
-    /// by the rational number <see cref="scaleFactor"/>.
+    /// Creates a new expression that scales the curve <see cref="curveL"/>
+    /// by the rational <see cref="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
     public static CurveExpression Scale(Curve curveL, Rational scaleFactor,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -806,8 +808,8 @@ public static class Expressions
         => new ScaleExpression(curveL, nameL, scaleFactor, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to scale the curve <see cref="curveL"/>
-    /// by the rational number described by the expression <see cref="expressionR"/>.
+    /// Creates a new expression that scales the curve <see cref="curveL"/>
+    /// by the rational expression <see cref="expressionR"/>, i.e. $k \cdot f(t)$.
     /// </summary>
     public static CurveExpression Scale(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",

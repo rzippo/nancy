@@ -5,12 +5,13 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// Class representing an expression whose root operation is the operation delay a curve by a certain time
+/// Class representing an expression whose root operation is to delay a curve by a certain time,
+/// i.e. computing $f(t - T)$.
 /// </summary>
 public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
 {
-    /// <summary>
-    /// Creates the "delay-by" expression
+/// <summary>
+    /// Creates the $f(t - T)$ expression.
     /// </summary>
     public DelayByExpression(
         Curve curveL,
@@ -22,8 +23,8 @@ public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
     {
     }
 
-    /// <summary>
-    /// Creates the "delay-by" expression
+/// <summary>
+    /// Creates the $f(t - T)$ expression.
     /// </summary>
     public DelayByExpression(
         Curve curveL,
@@ -35,8 +36,8 @@ public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
     {
     }
 
-    /// <summary>
-    /// Creates the "delay-by" expression
+/// <summary>
+    /// Creates the $f(t - T)$ expression.
     /// </summary>
     public DelayByExpression(
         CurveExpression leftExpression,

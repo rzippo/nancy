@@ -71,7 +71,7 @@ The library implements the NC operators for all representable curves, which incl
 
 Manipulations:
 
- * `DelayBy` and `AnticipateBy`
+ * `DelayBy` and `ForwardBy`
  * `VerticalShift`
  * `Cut` over finite interval
 
