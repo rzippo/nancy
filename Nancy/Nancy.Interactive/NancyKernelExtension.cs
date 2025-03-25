@@ -4,8 +4,14 @@ using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Interactive;
 
+/// <summary>
+/// Adds support of Nancy classes in DotNet.Interactive 
+/// </summary>
 public static class NancyKernelExtension
 {
+    /// <summary>
+    /// Registers formatters for Nancy classes. 
+    /// </summary>
     public static void Load(Kernel kernel)
     {
         Formatter.Register<Curve>(

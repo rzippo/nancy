@@ -97,11 +97,12 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </summary>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
+    /// <param name="ignoreNotMatchedExpressions"></param>
     /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expressions.</returns>
     public RationalExpression ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
         IGenericExpression<T1> newExpressionToReplace,
-        bool ignoreNotMatchedExpressions = false
+        bool ignoreNotMatchedExpressions
     )
     {
         var replacer = new OneTimeExpressionReplacer<Rational, T1>(this, newExpressionToReplace);
@@ -114,7 +115,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     IGenericExpression<Rational> IGenericExpression<Rational>.ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
         IGenericExpression<T1> newExpressionToReplace,
-        bool ignoreNotMatchedExpressions = false) 
+        bool ignoreNotMatchedExpressions) 
         => ReplaceByValue(expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
 
     /// <summary>

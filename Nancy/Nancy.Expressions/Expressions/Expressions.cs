@@ -792,7 +792,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that scales the curve expression
-    /// <see cref="expression"> by the rational <see cref="scaleFactor"/>, i.e. $k \cdot f(t)$.
+    /// <see cref="expression"/> by the rational <see cref="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
     public static CurveExpression Scale(CurveExpression expression, Rational scaleFactor,
         string expressionName = "", ExpressionSettings? settings = null)

@@ -29,7 +29,7 @@ public class OneTimeEquivalenceApplier
     /// </summary>
     private int _matchedSide = -1; 
     
-    public Equivalence Equivalence { get; init; }
+    public required Equivalence Equivalence { get; init; }
 
     public bool AlreadyUsed { get; private set; } = false;
     
