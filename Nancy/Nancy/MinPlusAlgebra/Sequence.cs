@@ -1314,7 +1314,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     }
 
     /// <summary>
-    /// Translates forward the support by the given time quantity.
+    /// Delays the support by the given time quantity, i.e. $f(t - T)$.
     /// </summary>
     public Sequence Delay(Rational delay, bool prependWithZero = true)
     {
@@ -1346,9 +1346,9 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     }
 
     /// <summary>
-    /// Translates backwards the support by the given time quantity.
+    /// Brings forward the support by the given time quantity, i.e. $f(t + T)$.
     /// </summary>
-    public Sequence Anticipate(Rational time)
+    public Sequence Forward(Rational time)
     {
         if (time < 0)
             throw new ArgumentException("Time must be >= 0");
@@ -1364,7 +1364,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                 if(p.Time < time)
                     continue;
                 else
-                    elements.Add(p.Anticipate(time));
+                    elements.Add(p.Forward(time));
             }
             else
             {
@@ -1374,15 +1374,15 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                     if (s.IsDefinedFor(time))
                     {
                         var (_, center, right) = s.Split(time);
-                        elements.Add(center.Anticipate(time));
-                        elements.Add(right.Anticipate(time));
+                        elements.Add(center.Forward(time));
+                        elements.Add(right.Forward(time));
                     }
                     else
                         continue;
                 }
                 else
                 {
-                    elements.Add(s.Anticipate(time));
+                    elements.Add(s.Forward(time));
                 }
             }
         }

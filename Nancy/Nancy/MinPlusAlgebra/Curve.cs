@@ -2006,6 +2006,7 @@ public class Curve : IToCodeString, IStableHashCode
 
     /// <summary>
     /// Delays the curve, adding a 0-valued padding at the start.
+    /// Computes $f(t - T)$.
     /// </summary>
     public virtual Curve DelayBy(Rational delay)
     {
@@ -2024,9 +2025,10 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Anticipates the curve, removing the parts from 0 to the given time.
+    /// Brings forward the curve, removing the parts from 0 to the given time.
+    /// Computes $f(t + T)$.
     /// </summary>
-    public virtual Curve AnticipateBy(Rational time)
+    public virtual Curve ForwardBy(Rational time)
     {
         if (time < 0)
             throw new ArgumentException("Time must be >= 0");
@@ -2037,7 +2039,7 @@ public class Curve : IToCodeString, IStableHashCode
         if (time <= PseudoPeriodStart)
         {
             return new Curve(
-                baseSequence: BaseSequence.Anticipate(time),
+                baseSequence: BaseSequence.Forward(time),
                 pseudoPeriodStart: PseudoPeriodStart - time,
                 pseudoPeriodLength: PseudoPeriodLength,
                 pseudoPeriodHeight: PseudoPeriodHeight
@@ -2046,7 +2048,7 @@ public class Curve : IToCodeString, IStableHashCode
         else
         {
             return new Curve(
-                baseSequence: Cut(0, time + PseudoPeriodLength).Anticipate(time),
+                baseSequence: Cut(0, time + PseudoPeriodLength).Forward(time),
                 pseudoPeriodStart: 0,
                 pseudoPeriodLength: PseudoPeriodLength,
                 pseudoPeriodHeight: PseudoPeriodHeight

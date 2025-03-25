@@ -84,7 +84,7 @@ public class Deconvolution
         };
         var arrival = Curve.Minimum(arrivalParts);
         var service = new RateLatencyServiceCurve(2, 2);
-        var expected = arrival.AnticipateBy(2);
+        var expected = arrival.ForwardBy(2);
 
         var deconv = Curve.Deconvolution(arrival, service);
         Assert.True(Curve.Equivalent(expected, deconv));

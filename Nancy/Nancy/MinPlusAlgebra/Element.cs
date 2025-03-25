@@ -166,14 +166,14 @@ public abstract class Element : IToCodeString, IStableHashCode
         => element.Scale(scaling);
 
     /// <summary>
-    /// Translates forwards the support by the given time quantity.
+    /// Delays the support by the given time quantity, i.e. $f(t - T)$.
     /// </summary>
     public abstract Element Delay(Rational delay);
 
     /// <summary>
-    /// Translates backwards the support by the given time quantity.
+    /// Brings forward the support by the given time quantity, i.e. $f(t + T)$.
     /// </summary>
-    public abstract Element Anticipate(Rational time);
+    public abstract Element Forward(Rational time);
 
     /// <summary>
     /// Shifts the element vertically by an additive factor.

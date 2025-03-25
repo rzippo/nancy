@@ -246,7 +246,7 @@ public sealed class Point : Element, IEquatable<Point>
     }
 
     /// <inheritdoc />
-    public override Element Anticipate(Rational time)
+    public override Element Forward(Rational time)
     {
         return new Point(
             time: Time - time,

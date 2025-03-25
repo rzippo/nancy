@@ -540,7 +540,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     }
 
     /// <inheritdoc />
-    public override Element Anticipate(Rational time)
+    public override Element Forward(Rational time)
     {
         return new Segment(
             startTime: StartTime - time,
