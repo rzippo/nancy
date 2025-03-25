@@ -19,7 +19,7 @@
       <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
       <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
       <PackageTags>deterministic-network-calculus,network-calculus,computer-algebra-system</PackageTags>
-      <PackageVersion>1.0.0-beta.7</PackageVersion>
+      <PackageVersion>1.0.0-beta.8</PackageVersion>
 
       <IncludeSymbols>true</IncludeSymbols>
       <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -31,7 +31,7 @@
 
     <ItemGroup>
       <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
-      <PackageReference Include="Unipi.Nancy" Version="1.2.5" />
+      <PackageReference Include="Unipi.Nancy" Version="1.2.6" />
     </ItemGroup>
 
     <ItemGroup>
