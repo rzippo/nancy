@@ -641,27 +641,30 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public Curve Compute() => _value ??= new CurveExpressionEvaluator().GetResult(this);
 
     #region Replace
-    
+
     /// <summary>
     /// Replaces every occurence of a sub-expression in the expression to which the method is applied.
     /// </summary>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
+    /// <param name="ignoreNotMatchedExpressions"></param>
     /// <returns>New expression object (of type <see cref="CurveExpression"/>) with replaced sub-expressions.</returns>
     public CurveExpression ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
-        IGenericExpression<T1> newExpressionToReplace)
+        IGenericExpression<T1> newExpressionToReplace,
+        bool ignoreNotMatchedExpressions = false
+    )
     {
         var replacer = new OneTimeExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
-        return (CurveExpression)replacer.ReplaceByValue(expressionPattern);
+        return (CurveExpression)replacer.ReplaceByValue(expressionPattern, ignoreNotMatchedExpressions);
     }
 
     IGenericExpression<Curve> IGenericExpression<Curve>.ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
         IGenericExpression<T1> newExpressionToReplace,
-        bool ignoreNotMatchedExpressions = false
+        bool ignoreNotMatchedExpressions
     ) 
-    => ReplaceByValue(expressionPattern, newExpressionToReplace);
+    => ReplaceByValue(expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
