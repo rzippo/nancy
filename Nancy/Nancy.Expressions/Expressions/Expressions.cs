@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
@@ -741,42 +741,43 @@ public static class Expressions
 
     #endregion DelayBy
 
-    #region AnticipateBy
+    #region ForwardBy
 
     /// <summary>
-    /// Creates a new expression composed of the operation to anticipate the curve corresponding to the expression
-    /// <see cref="expressionL"/> by the rational number described by <see cref="expressionR"/>. </summary>
-    public static CurveExpression AnticipateBy(CurveExpression expressionL, RationalExpression expressionR,
-        string expressionName = "", ExpressionSettings? settings = null)
-        => expressionL.AnticipateBy(expressionR, expressionName, settings);
-
-    /// <summary>
-    /// Creates a new expression composed of the operation to anticipate the curve corresponding to the expression
-    /// passed as first argument by the rational number <see cref="time"/>.
+    /// Creates a new expression that forwards the curve expression
+    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$.
     /// </summary>
-    public static CurveExpression AnticipateBy(CurveExpression expression, Rational time,
+    public static CurveExpression ForwardBy(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.AnticipateBy(time, expressionName, settings);
+        => expressionL.ForwardBy(expressionR, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to anticipate the curve <see cref="curveL"/>
-    /// by the rational number <see cref="time"/>.
+    /// Creates a new expression that forwards the curve expression
+    /// <see cref="expression"/> by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
     /// </summary>
-    public static CurveExpression AnticipateBy(Curve curveL, Rational time,
+    public static CurveExpression ForwardBy(CurveExpression expression, Rational time,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => expression.ForwardBy(time, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that forwards the curve <see cref="curveL"/>
+    /// by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
+    /// </summary>
+    public static CurveExpression ForwardBy(Curve curveL, Rational time,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new AnticipateByExpression(curveL, nameL, time, expressionName, settings);
+        => new ForwardByExpression(curveL, nameL, time, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to anticipate the curve <see cref="curveL"/>
-    /// by the rational number described by the expression <see cref="expressionR"/>.
+    /// Creates a new expression that forwards the curve <see cref="curveL"/>
+    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$.
     /// </summary>
-    public static CurveExpression AnticipateBy(Curve curveL, RationalExpression expressionR,
+    public static CurveExpression ForwardBy(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new AnticipateByExpression(curveL, nameL, expressionR, expressionName, settings);
+        => new ForwardByExpression(curveL, nameL, expressionR, expressionName, settings);
 
-    #endregion AnticipateBy
+    #endregion ForwardBy
 
     #region Scale
 

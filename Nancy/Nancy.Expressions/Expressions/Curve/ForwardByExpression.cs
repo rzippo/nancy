@@ -5,14 +5,15 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// Class representing an expression whose root operation is the operation to anticipate a curve by a certain time
+/// Class representing an expression whose root operation is to forward a curve by a certain time,
+/// i.e. computing $f(t + T)$.
 /// </summary>
-public record AnticipateByExpression : CurveBinaryExpression<Curve, Rational>
+public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
 {
     /// <summary>
-    /// Creates the "anticipate-by" expression
+    /// Creates the $f(t + T)$ expression.
     /// </summary>
-    public AnticipateByExpression(
+    public ForwardByExpression(
         Curve curveL, 
         string nameL, 
         Rational time, 
@@ -23,9 +24,9 @@ public record AnticipateByExpression : CurveBinaryExpression<Curve, Rational>
     }
 
     /// <summary>
-    /// Creates the "anticipate-by" expression
+    /// Creates the $f(t + T)$ expression.
     /// </summary>
-    public AnticipateByExpression(
+    public ForwardByExpression(
         Curve curveL, 
         string nameL, 
         RationalExpression rightExpression,
@@ -36,9 +37,9 @@ public record AnticipateByExpression : CurveBinaryExpression<Curve, Rational>
     }
 
     /// <summary>
-    /// Creates the "anticipate-by" expression
+    /// Creates the $f(t + T)$ expression.
     /// </summary>
-    public AnticipateByExpression(
+    public ForwardByExpression(
         CurveExpression leftExpression,
         RationalExpression rightExpression,
         string expressionName = "", 

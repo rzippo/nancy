@@ -129,7 +129,7 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
         throw new NotImplementedException();
     }
 
-    public virtual void Visit(AnticipateByExpression expression)
+    public virtual void Visit(ForwardByExpression expression)
     {
         throw new NotImplementedException();
     }

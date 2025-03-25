@@ -601,23 +601,24 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     #endregion DelayBy
 
-    #region AnticipateBy
+    #region ForwardBy
 
     /// <summary>
-    /// Creates a new expression composed of the operation to anticipate the curve corresponding to the current
-    /// expression by the rational number described by the argument <see cref="expression"/> of type
-    /// <see cref="RationalExpression"/>. </summary>
-    public CurveExpression AnticipateBy(RationalExpression expression, string expressionName = "",
+    /// Creates a new expression that forwards the current current
+    /// expression by the rational <see cref="expression"/>, i.e., computing $f(t + T)$. 
+    /// </summary>
+    public CurveExpression ForwardBy(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new DelayByExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to anticipate the curve corresponding to the current
-    /// expression by the rational number <see cref="time"/>.</summary>
-    public CurveExpression AnticipateBy(Rational time, string expressionName = "", ExpressionSettings? settings = null)
-        => AnticipateBy(new RationalNumberExpression(time), expressionName, settings);
+    /// Creates a new expression that forwards the current curve
+    /// expression by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
+    /// </summary>
+    public CurveExpression ForwardBy(Rational time, string expressionName = "", ExpressionSettings? settings = null)
+        => ForwardBy(new RationalNumberExpression(time), expressionName, settings);
 
-    #endregion AnticipateBy
+    #endregion ForwardBy
     
     #region Scale
     

@@ -96,9 +96,9 @@ public interface ICurveExpressionVisitor : IExpressionVisitor
     /// </summary>
     public void Visit(DelayByExpression expression);
     /// <summary>
-    /// Visit method for the type <see cref="AnticipateByExpression"/>
+    /// Visit method for the type <see cref="ForwardByExpression"/>
     /// </summary>
-    public void Visit(AnticipateByExpression expression);
+    public void Visit(ForwardByExpression expression);
     /// <summary>
     /// Visit method for the type <see cref="CurvePlaceholderExpression"/>
     /// </summary>

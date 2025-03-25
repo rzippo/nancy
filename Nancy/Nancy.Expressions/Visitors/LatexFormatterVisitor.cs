@@ -459,8 +459,8 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
     public virtual void Visit(DelayByExpression expression)
         => VisitBinaryPrefix(expression, " delayBy");
 
-    public virtual void Visit(AnticipateByExpression expression)
-        => VisitBinaryPrefix(expression, " anticipateBy");
+    public virtual void Visit(ForwardByExpression expression)
+        => VisitBinaryPrefix(expression, " forwardBy");
 
     public virtual void Visit(NegateRationalExpression expression)
     {

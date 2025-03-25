@@ -81,7 +81,7 @@ public class IsRightContinuousVisitor : ICurveExpressionVisitor
 
     public virtual void Visit(DelayByExpression expression) => _throughCurveComputation(expression);
     
-    public virtual void Visit(AnticipateByExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ForwardByExpression expression) => _throughCurveComputation(expression);
     
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");

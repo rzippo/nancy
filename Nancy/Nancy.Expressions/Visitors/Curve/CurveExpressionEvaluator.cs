@@ -102,8 +102,8 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
     public virtual void Visit(DelayByExpression expression)
         => _result = expression.LeftExpression.Value.DelayBy(expression.RightExpression.Value);
 
-    public virtual void Visit(AnticipateByExpression expression)
-        => _result = expression.LeftExpression.Value.AnticipateBy(expression.RightExpression.Value);
+    public virtual void Visit(ForwardByExpression expression)
+        => _result = expression.LeftExpression.Value.ForwardBy(expression.RightExpression.Value);
 
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException("Can't evaluate an expression with placeholders!");

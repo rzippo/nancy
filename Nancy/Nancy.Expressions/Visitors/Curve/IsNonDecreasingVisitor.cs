@@ -138,7 +138,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
 
     public virtual void Visit(DelayByExpression expression) => expression.LeftExpression.Accept(this);
 
-    public virtual void Visit(AnticipateByExpression expression) => expression.LeftExpression.Accept(this);
+    public virtual void Visit(ForwardByExpression expression) => expression.LeftExpression.Accept(this);
 
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");
