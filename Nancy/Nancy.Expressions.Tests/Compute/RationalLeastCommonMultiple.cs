@@ -38,7 +38,6 @@ public class RationalLeastCommonMultiple
             expected = Rational.LeastCommonMultiple(expected, lcmArg);
         
         // then compute through expression
-        // todo: add and use Rational.ToExpression()
         var lcmArgsExpr = lcmArgs.Select(r => Expressions.FromRational(r))
             .ToList();
         // todo: add and test collection version of LCM

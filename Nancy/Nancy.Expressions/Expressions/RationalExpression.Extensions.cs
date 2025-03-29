@@ -1,4 +1,6 @@
+using System.Runtime.CompilerServices;
 using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Expressions;
 
@@ -7,6 +9,10 @@ namespace Unipi.Nancy.Expressions;
 /// </summary>
 public static class RationalExpressionExtensions
 {
+    /// <inheritdoc cref="Expressions.FromRational"/>
+    public static RationalNumberExpression ToExpression(this Rational r, [CallerArgumentExpression("r")] string name = "")
+        => Expressions.FromRational(r, name);
+    
     /// <summary>
     /// Creates an expression composed of the addition between the rational expressions passed as arguments.
     /// </summary>

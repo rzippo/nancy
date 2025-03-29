@@ -38,7 +38,6 @@ public class RationalGreatestCommonDivisor
             expected = Rational.GreatestCommonDivisor(expected, lcmArg);
         
         // then compute through expression
-        // todo: add and use Rational.ToExpression()
         var lcmArgsExpr = lcmArgs.Select(r => Expressions.FromRational(r))
             .ToList();
         // todo: add and test collection version of LCM

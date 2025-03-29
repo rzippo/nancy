@@ -1,4 +1,6 @@
+using System.Runtime.CompilerServices;
 using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Expressions;
 
@@ -7,6 +9,10 @@ namespace Unipi.Nancy.Expressions;
 /// </summary>
 public static class CurveExpressionExtensions
 {
+    /// <inheritdoc cref="Expressions.FromCurve"/>
+    public static ConcreteCurveExpression ToExpression(this Curve c, [CallerArgumentExpression("c")] string name = "")
+        => Expressions.FromCurve(c, name);
+    
     /// <summary>
     /// Creates an expression composed of the addition between the expressions passed as arguments.
     /// </summary>
