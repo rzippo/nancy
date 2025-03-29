@@ -41,7 +41,7 @@ public static class ToTikzPlotExtension
 
     /// <summary>
     /// Get a list of <paramref name="n"/> default names.
-    /// These are lowercase letters, e.g., {f, g, h}.
+    /// These are lowercase letters, e.g., [f, g, h].
     /// </summary>
     /// <param name="n">The number of names to return.</param>
     /// <param name="firstLetter">The starting letter, defaults to 'f'.</param>
