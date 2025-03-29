@@ -43,12 +43,22 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
 
     public Rational Value => _value ??= Compute();
     
+    /// <inheritdoc cref="IExpression.IsComputed"/>
+    public bool IsComputed
+        => _value != null;
+    
     #endregion Properties
 
     #region Methods
 
     public Rational Compute() => _value ??= new RationalExpressionEvaluator().GetResult(this);
 
+    /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
+    public void ComputeWithoutResult()
+    {
+        Compute();
+    }
+    
     public void Accept(IExpressionVisitor visitor)
         => Accept((IRationalExpressionVisitor)visitor);
 

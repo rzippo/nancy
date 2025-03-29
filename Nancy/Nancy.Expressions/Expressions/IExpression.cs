@@ -47,6 +47,20 @@ public interface IExpression
     /// Represents the expression in textual format.
     /// </summary>
     public string ToString();
+
+    /// <summary>
+    /// True if the expression has already been computed.
+    /// </summary>
+    public bool IsComputed { get; }
+
+    /// <summary>
+    /// Computes the expression, without returning its result.
+    /// </summary>
+    /// <remarks>
+    /// Useful to perform operations through the <see cref="IExpression"/> interface, avoiding unnecessary casts.
+    /// A cast to <see cref="IGenericExpression{T}"/> is needed to access the computed result value.
+    /// </remarks>
+    public void ComputeWithoutResult();
     
     /// <summary>
     /// Evaluates the computational complexity of the expression.

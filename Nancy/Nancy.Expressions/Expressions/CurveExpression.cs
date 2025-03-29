@@ -34,6 +34,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     public Curve Value => _value ??= Compute();
 
+    /// <inheritdoc cref="IExpression.IsComputed"/>
+    public bool IsComputed
+        => _value != null;
+    
     /// <summary>
     /// Private cache field for <see cref="IsSubAdditive"/>.
     /// </summary>
@@ -639,6 +643,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #endregion Scale
 
     public Curve Compute() => _value ??= new CurveExpressionEvaluator().GetResult(this);
+
+    /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
+    public void ComputeWithoutResult()
+    {
+        Compute();
+    }
 
     #region Replace
 
