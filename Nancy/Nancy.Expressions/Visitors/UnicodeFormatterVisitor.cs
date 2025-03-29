@@ -212,6 +212,12 @@ public partial class UnicodeFormatterVisitor : ICurveExpressionVisitor, IRationa
 
     public virtual void Visit(RationalGreatestCommonDivisorExpression expression)
         => VisitNAryPrefix(expression, "gcd");
+    
+    public virtual void Visit(RationalMinimumExpression expression)
+        => VisitNAryPrefix(expression, "min");
+    
+    public virtual void Visit(RationalMaximumExpression expression)
+        => VisitNAryPrefix(expression, "max");
 
     public virtual void Visit(RationalNumberExpression numberExpression)
     {

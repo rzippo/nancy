@@ -210,8 +210,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     #region Addition
 
     /// <summary>
-    /// Creates a new expression composed of the addition between the current expression and the one passed as
-    /// argument.
+    /// Creates a new expression composed of the addition between the current expression and the one passed as argument.
     /// </summary>
     public RationalExpression Addition(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
@@ -522,6 +521,89 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
 
     #endregion GreatestCommonDivisor
 
+    #region Minimum
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum between the current expression and the one passed as argument.
+    /// </summary>
+    public RationalExpression Min(RationalExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => CheckNAryExpressionTypes(typeof(RationalMinimumExpression), this, expression) switch
+        {
+            1 => ((RationalMinimumExpression)this).Append(expression, expressionName, settings),
+            2 => ((RationalMinimumExpression)expression).Append(this, expressionName, settings),
+            _ => new RationalMinimumExpression([this, expression], expressionName, settings),
+        };
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum between the expressions <see cref="left"/> and <see cref="right"/> passed as arguments.
+    /// </summary>
+    public static RationalExpression Min(RationalExpression left, RationalExpression right,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => left.Min(right, expressionName, settings:settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum between the current expression and the rational number passed as argument.
+    /// </summary>
+    public RationalExpression Min(Rational rational, [CallerArgumentExpression("rational")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+    {
+        if (this is RationalMinimumExpression e)
+            return e.Append(new RationalNumberExpression(rational, name), expressionName, settings);
+        return new RationalMinimumExpression([this, new RationalNumberExpression(rational, name)], expressionName,
+            settings);
+    }
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum between the expression <see cref="left"/> and the rational number <see cref="right"/> passed as arguments.
+    /// </summary>
+    public static RationalExpression Min(RationalExpression left, Rational right, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => left.Min(right, expressionName:expressionName, settings:settings);
+    
+    #endregion Minimum
+    
+    #region Maximum
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum between the current expression and the one passed as argument.
+    /// </summary>
+    public RationalExpression Max(RationalExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => CheckNAryExpressionTypes(typeof(RationalMaximumExpression), this, expression) switch
+        {
+            1 => ((RationalMaximumExpression)this).Append(expression, expressionName, settings),
+            2 => ((RationalMaximumExpression)expression).Append(this, expressionName, settings),
+            _ => new RationalMaximumExpression([this, expression], expressionName, settings),
+        };
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum between the expressions <see cref="left"/> and <see cref="right"/> passed as arguments.
+    /// </summary>
+    public static RationalExpression Max(RationalExpression left, RationalExpression right,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => left.Max(right, expressionName, settings:settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum between the current expression and the rational number passed as argument.
+    /// </summary>
+    public RationalExpression Max(Rational rational, [CallerArgumentExpression("rational")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+    {
+        if (this is RationalMaximumExpression e)
+            return e.Append(new RationalNumberExpression(rational, name), expressionName, settings);
+        return new RationalMaximumExpression([this, new RationalNumberExpression(rational, name)], expressionName,
+            settings);
+    }
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum between the expression <see cref="left"/> and the rational number <see cref="right"/> passed as arguments.
+    /// </summary>
+    public static RationalExpression Max(RationalExpression left, Rational right, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => left.Max(right, expressionName:expressionName, settings:settings);
+    
+    #endregion Maximum
     /// <summary>
     /// Private function used during the creation of the expressions to keep the n-ary expressions at the same level
     /// of the expression tree. 

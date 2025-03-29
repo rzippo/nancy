@@ -50,6 +50,12 @@ public class ChangeNameRationalVisitor : IRationalExpressionVisitor
     public virtual void Visit(RationalGreatestCommonDivisorExpression expression)
         => Result = expression with { Name = NewName };
 
+    public void Visit(RationalMinimumExpression expression)
+        => Result = expression with { Name = NewName };
+
+    public void Visit(RationalMaximumExpression expression)
+        => Result = expression with { Name = NewName };
+
     public virtual void Visit(RationalNumberExpression expression)
         => Result = expression with { Name = NewName };
 

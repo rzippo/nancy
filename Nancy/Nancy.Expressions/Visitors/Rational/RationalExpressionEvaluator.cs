@@ -51,6 +51,12 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
             .Select(e => e.Value )
             .Aggregate((current, next) => Rational.GreatestCommonDivisor(current, next));
 
+    public virtual void Visit(RationalMinimumExpression expression)
+        => _result = expression.Expressions.Aggregate(Rational.PlusInfinity, (current, e) => Rational.Min(current, e.Value));
+    
+    public virtual void Visit(RationalMaximumExpression expression)
+        => _result = expression.Expressions.Aggregate(Rational.MinusInfinity, (current, e) => Rational.Max(current, e.Value));
+    
     public virtual void Visit(RationalNumberExpression expression) => _result = expression.Value;
 
     public virtual void Visit(NegateRationalExpression expression) => _result = Rational.Negate(expression.Expression.Value);

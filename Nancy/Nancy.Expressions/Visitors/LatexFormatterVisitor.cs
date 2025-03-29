@@ -208,6 +208,12 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
     public virtual void Visit(RationalGreatestCommonDivisorExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{gcd}");
 
+    public void Visit(RationalMinimumExpression expression)
+        => VisitNAryPrefix(expression, "\\operatorname{min}");
+
+    public void Visit(RationalMaximumExpression expression)
+        => VisitNAryPrefix(expression, "\\operatorname{max}");
+
     public virtual void Visit(RationalNumberExpression numberExpression)
     {
         if (!numberExpression.Name.Equals("") && (ShowRationalsAsName || Depth <= 0))

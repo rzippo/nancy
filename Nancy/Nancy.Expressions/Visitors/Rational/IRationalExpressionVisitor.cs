@@ -40,6 +40,14 @@ public interface IRationalExpressionVisitor : IExpressionVisitor
     /// </summary>
     public void Visit(RationalGreatestCommonDivisorExpression expression);
     /// <summary>
+    /// Visit method for the type <see cref="RationalMinimumExpression"/>
+    /// </summary>
+    public void Visit(RationalMinimumExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalMaximumExpression"/>
+    /// </summary>
+    public void Visit(RationalMaximumExpression expression);
+    /// <summary>
     /// Visit method for the type <see cref="RationalNumberExpression"/>
     /// </summary>
     public void Visit(RationalNumberExpression expression);

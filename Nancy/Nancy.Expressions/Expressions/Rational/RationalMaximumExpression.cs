@@ -4,15 +4,15 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// An expression that computes the addition between rational numbers.
+/// An expression that computes the maximum between rational numbers.
 /// N-ary operator.
 /// </summary>
-public record RationalAdditionExpression : RationalNAryExpression
+public record RationalMaximumExpression : RationalNAryExpression
 {
     /// <summary>
-    /// Creates an expression for addition of rational numbers.
+    /// Creates an expression for maximum of rational numbers.
     /// </summary>
-    public RationalAdditionExpression(
+    public RationalMaximumExpression(
         IReadOnlyCollection<IGenericExpression<Rational>> expressions,
         string expressionName = "",
         ExpressionSettings? settings = null)
@@ -21,9 +21,9 @@ public record RationalAdditionExpression : RationalNAryExpression
     }
 
     /// <summary>
-    /// Creates an expression for addition of rational numbers.
+    /// Creates an expression for maximum of rational numbers.
     /// </summary>
-    public RationalAdditionExpression(
+    public RationalMaximumExpression(
         IReadOnlyCollection<Rational> rationals,
         IReadOnlyCollection<string> names,
         string expressionName = "",
