@@ -20,12 +20,12 @@ public interface IGenericExpression<out T> : IExpression
     public T Value { get; }
 
     /// <summary>
-    /// Settings for the expression (contains also the settings for the evaluation of the expression)
+    /// Settings for the expression (contains also the settings for the evaluation of the expression).
     /// </summary>
     public ExpressionSettings? Settings { get; }
 
     /// <summary>
-    /// Computes the value the expression evaluates to
+    /// Computes the value the expression evaluates to.
     /// </summary>
     public T Compute();
 
