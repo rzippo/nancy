@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
@@ -41,6 +42,11 @@ public class DelayServiceCurve : SuperAdditiveCurve
 
     private static Sequence BuildSequence(Rational delay)
     {
+        if(delay.IsNegative)
+            throw new ArgumentException($"Delay curve parameter must be a finite positive number: {delay} is not valid.", nameof(delay));
+        if(delay.IsPlusInfinite)
+            throw new ArgumentException($"Delay curve parameter must be a finite positive number: {delay} is not valid.", nameof(delay));
+        
         if (delay == 0)
         {
             return new Sequence(new Element[]

@@ -1,11 +1,20 @@
-﻿using Unipi.Nancy.NetworkCalculus;
+﻿using System;
+using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.NetworkCalculus.CurveCtorTests;
 
 public class Delay
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public Delay(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void DelayCtor()
     {
@@ -57,5 +66,14 @@ public class Delay
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(6));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(8));
         Assert.Equal(Rational.PlusInfinity, curve.ValueAt(15));
+    }
+    
+    [Fact]
+    public void InfiniteCtor()
+    {
+        var exception = Assert.Throws<ArgumentException>(
+            () => new DelayServiceCurve(Rational.PlusInfinity)
+        );
+        _testOutputHelper.WriteLine(exception.Message);
     }
 }
