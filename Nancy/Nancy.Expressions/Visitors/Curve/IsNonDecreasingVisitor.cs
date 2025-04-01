@@ -14,9 +14,11 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// </summary>
     public bool IsNonDecreasing;
 
-    public virtual void Visit(ConcreteCurveExpression expression) => IsNonDecreasing = expression.Value.IsNonDecreasing;
+    public virtual void Visit(ConcreteCurveExpression expression) 
+        => IsNonDecreasing = expression.Value.IsNonDecreasing;
 
-    private void _throughCurveComputation(IGenericExpression<Curve> expression) =>
+    private void _throughCurveComputation(IGenericExpression<Curve> expression) 
+        =>
         IsNonDecreasing = expression.Compute().IsNonDecreasing;
 
     public virtual void Visit(NegateExpression expression)
@@ -26,7 +28,8 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
         else _throughCurveComputation(expression);
     }
 
-    public virtual void Visit(ToNonNegativeExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ToNonNegativeExpression expression) 
+        => _throughCurveComputation(expression);
 
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
@@ -38,17 +41,23 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
         _throughCurveComputation(expression);
     }
 
-    public virtual void Visit(SuperAdditiveClosureExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(SuperAdditiveClosureExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(ToUpperNonDecreasingExpression expression) => IsNonDecreasing = true;
+    public virtual void Visit(ToUpperNonDecreasingExpression expression) 
+        => IsNonDecreasing = true;
 
-    public virtual void Visit(ToLowerNonDecreasingExpression expression) => IsNonDecreasing = true;
+    public virtual void Visit(ToLowerNonDecreasingExpression expression) 
+        => IsNonDecreasing = true;
 
-    public virtual void Visit(ToLeftContinuousExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ToLeftContinuousExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(ToRightContinuousExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ToRightContinuousExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(WithZeroOriginExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(WithZeroOriginExpression expression) 
+        => _throughCurveComputation(expression);
 
     public virtual void Visit(LowerPseudoInverseExpression expression)
     {
@@ -78,7 +87,8 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
         if(!IsNonDecreasing) _throughCurveComputation(expression);
     }
 
-    public virtual void Visit(SubtractionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(SubtractionExpression expression) 
+        => _throughCurveComputation(expression);
 
     public virtual void Visit(MinimumExpression expression)
     {
@@ -96,7 +106,8 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
         if(!IsNonDecreasing) _throughCurveComputation(expression);
     }
 
-    public virtual void Visit(MaximumExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(MaximumExpression expression) 
+        => _throughCurveComputation(expression);
 
     public virtual void Visit(ConvolutionExpression expression)
     {
@@ -130,15 +141,23 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
         _throughCurveComputation(expression);
     }
 
-    public virtual void Visit(MaxPlusConvolutionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(MaxPlusConvolutionExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(MaxPlusDeconvolutionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(MaxPlusDeconvolutionExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(CompositionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(CompositionExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(DelayByExpression expression) => expression.LeftExpression.Accept(this);
+    public virtual void Visit(DelayByExpression expression) 
+        => expression.LeftExpression.Accept(this);
 
-    public virtual void Visit(ForwardByExpression expression) => expression.LeftExpression.Accept(this);
+    public virtual void Visit(ForwardByExpression expression) 
+        => expression.LeftExpression.Accept(this);
+    
+    public virtual void Visit(ShiftExpression expression) 
+        => expression.LeftExpression.Accept(this);
 
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");

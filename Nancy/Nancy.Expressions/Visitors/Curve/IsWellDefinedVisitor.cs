@@ -134,6 +134,11 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
         throw new NotImplementedException();
     }
 
+    public void Visit(ShiftExpression expression)
+    {
+        throw new NotImplementedException();
+    }
+
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");
 

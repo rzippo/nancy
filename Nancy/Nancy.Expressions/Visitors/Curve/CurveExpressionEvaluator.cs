@@ -105,6 +105,9 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
     public virtual void Visit(ForwardByExpression expression)
         => _result = expression.LeftExpression.Value.ForwardBy(expression.RightExpression.Value);
 
+    public void Visit(ShiftExpression expression)
+        => _result = expression.LeftExpression.Value.VerticalShift(expression.RightExpression.Value, false);
+
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException("Can't evaluate an expression with placeholders!");
 

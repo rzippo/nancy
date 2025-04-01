@@ -19,45 +19,62 @@ public class IsRightContinuousVisitor : ICurveExpressionVisitor
         IsRightContinuous = expression.Value.IsRightContinuous;
     }
 
-    private void _throughCurveComputation(IGenericExpression<Curve> expression) =>
+    private void _throughCurveComputation(IGenericExpression<Curve> expression) 
+        =>
         IsRightContinuous = expression.Compute().IsRightContinuous;
     
-    public virtual void Visit(NegateExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(NegateExpression expression) 
+        => expression.Expression.Accept(this);
 
-    public virtual void Visit(ToNonNegativeExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ToNonNegativeExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(SubAdditiveClosureExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(SubAdditiveClosureExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(SuperAdditiveClosureExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(SuperAdditiveClosureExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(ToUpperNonDecreasingExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ToUpperNonDecreasingExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(ToLowerNonDecreasingExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ToLowerNonDecreasingExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(ToLeftContinuousExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ToLeftContinuousExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(ToRightContinuousExpression expression) => IsRightContinuous = true;
+    public virtual void Visit(ToRightContinuousExpression expression) 
+        => IsRightContinuous = true;
 
-    public virtual void Visit(WithZeroOriginExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(WithZeroOriginExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(LowerPseudoInverseExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(LowerPseudoInverseExpression expression) 
+        => _throughCurveComputation(expression);
 
     public virtual void Visit(UpperPseudoInverseExpression expression)
     {
         IsRightContinuous = true;
     }
 
-    public virtual void Visit(AdditionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(AdditionExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(SubtractionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(SubtractionExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(MinimumExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(MinimumExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(MaximumExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(MaximumExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(ConvolutionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ConvolutionExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(DeconvolutionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(DeconvolutionExpression expression) 
+        => _throughCurveComputation(expression);
 
     public virtual void Visit(MaxPlusConvolutionExpression expression)
     {
@@ -75,13 +92,20 @@ public class IsRightContinuousVisitor : ICurveExpressionVisitor
         if(!IsRightContinuous) _throughCurveComputation(expression);
     }
 
-    public virtual void Visit(MaxPlusDeconvolutionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(MaxPlusDeconvolutionExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(CompositionExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(CompositionExpression expression) 
+        => _throughCurveComputation(expression);
 
-    public virtual void Visit(DelayByExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(DelayByExpression expression) 
+        => _throughCurveComputation(expression);
     
-    public virtual void Visit(ForwardByExpression expression) => _throughCurveComputation(expression);
+    public virtual void Visit(ForwardByExpression expression) 
+        => _throughCurveComputation(expression);
+    
+    public virtual void Visit(ShiftExpression expression) 
+        => _throughCurveComputation(expression);
     
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");

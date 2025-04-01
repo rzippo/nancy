@@ -100,6 +100,10 @@ public interface ICurveExpressionVisitor : IExpressionVisitor
     /// </summary>
     public void Visit(ForwardByExpression expression);
     /// <summary>
+    /// Visit method for the type <see cref="ShiftExpression"/>
+    /// </summary>
+    public void Visit(ShiftExpression expression);
+    /// <summary>
     /// Visit method for the type <see cref="CurvePlaceholderExpression"/>
     /// </summary>
     public void Visit(CurvePlaceholderExpression expression);

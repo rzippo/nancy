@@ -4,7 +4,7 @@ using Unipi.Nancy.MinPlusAlgebra;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// Class representing an expression whose root operation is the addition (n-ary operation)
+/// Class representing an expression which computes the addition (n-ary operation)
 /// </summary>
 public record AdditionExpression : CurveNAryExpression
 {

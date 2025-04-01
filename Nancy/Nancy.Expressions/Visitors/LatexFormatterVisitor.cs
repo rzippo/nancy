@@ -468,6 +468,37 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
     public virtual void Visit(ForwardByExpression expression)
         => VisitBinaryPrefix(expression, " forwardBy");
 
+    public void Visit(ShiftExpression expression)
+    {
+        switch (expression.RightExpression)
+        {
+            case NegateRationalExpression negate:
+            {
+                var inner = negate.Expression;
+                var substitute = new ShiftExpression(
+                    (CurveExpression) expression.LeftExpression, 
+                    (RationalExpression) inner);
+                VisitBinaryInfix(substitute, " - ");
+                break;
+            }
+
+            case RationalNumberExpression rex when rex.Value.IsNegative:
+            {
+                var substitute = new ShiftExpression(
+                    (CurveExpression) expression.LeftExpression, 
+                    new RationalNumberExpression(-rex.Value));
+                VisitBinaryInfix(substitute, " - ");
+                break;
+            }
+
+            default:
+            {
+                VisitBinaryInfix(expression, " + ");
+                break;
+            }
+        }
+    }
+
     public virtual void Visit(NegateRationalExpression expression)
     {
         if (Depth <= 0 && !expression.Name.Equals(""))

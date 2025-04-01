@@ -608,7 +608,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region ForwardBy
 
     /// <summary>
-    /// Creates a new expression that forwards the current current
+    /// Creates a new expression that forwards the current
     /// expression by the rational <see cref="expression"/>, i.e., computing $f(t + T)$. 
     /// </summary>
     public CurveExpression ForwardBy(RationalExpression expression, string expressionName = "",
@@ -623,6 +623,31 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => ForwardBy(new RationalNumberExpression(time), expressionName, settings);
 
     #endregion ForwardBy
+    
+    #region Shift
+
+    /// <summary>
+    /// Creates a new expression that shifts the current
+    /// expression by the rational <see cref="expression"/>, i.e., computing $f(t) + K$. 
+    /// </summary>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public CurveExpression Shift(RationalExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new ShiftExpression(this, expression, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that shifts the current curve
+    /// expression by the rational <see cref="value"/>, i.e., computing $f(t) + K$.
+    /// </summary>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public CurveExpression Shift(Rational value, string expressionName = "", ExpressionSettings? settings = null)
+        => Shift(new RationalNumberExpression(value), expressionName, settings);
+
+    #endregion Shift
     
     #region Scale
     
@@ -893,6 +918,32 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public static bool operator >=(CurveExpression expressionL, CurveExpression expressionR)
         => expressionL.Compute() >= expressionR.Compute();
 
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="CurveExpression"/>
+    /// by <see cref="rationalExpression"/>, i.e., computing $f(t) + K$.
+    /// </summary>
+    /// <param name="curveExpression"></param>
+    /// <param name="rationalExpression"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public static CurveExpression operator +(CurveExpression curveExpression, RationalExpression rationalExpression)
+        => curveExpression.Shift(rationalExpression);
+    
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="CurveExpression"/>
+    /// by <see cref="rational"/>, i.e., computing $f(t) + K$.
+    /// </summary>
+    /// <param name="curveExpression"></param>
+    /// <param name="rational"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public static CurveExpression operator +(CurveExpression curveExpression, Rational rational)
+        => curveExpression.Shift(rational);
+    
     /// <summary>
     /// Returns true if for $t \ge$ <see cref="Curve.PseudoPeriodStart"/> the curve expression is constant.
     /// Implemented by computing the value of the expression.
