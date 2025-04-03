@@ -538,6 +538,66 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
     public virtual void Visit(VerticalDeviationExpression expression)
         => VisitBinaryPrefix(expression, "vdev");
 
+    public void Visit(ValueAtExpression expression)
+    {
+        if (Depth <= 0 && !expression.Name.Equals(""))
+        {
+            FormatName(expression.Name);
+            return;
+        }
+
+        Depth--;
+        Result.Append("\\left(");
+        expression.LeftExpression.Accept(this);
+        Result.Append("\\right)");
+        Result.Append("\\left(");
+        expression.RightExpression.Accept(this);
+        Result.Append("\\right)");
+        Depth++;
+    }
+
+    public void Visit(LeftLimitAtExpression expression)
+    {
+        if (Depth <= 0 && !expression.Name.Equals(""))
+        {
+            FormatName(expression.Name);
+            return;
+        }
+
+        Depth--;
+        Result.Append("\\left(");
+        expression.LeftExpression.Accept(this);
+        Result.Append("\\right)");
+        Result.Append("\\left(");
+        Result.Append("(");
+        expression.RightExpression.Accept(this);
+        Result.Append(")");
+        Result.Append("^-");
+        Result.Append("\\right)");
+        Depth++;
+    }
+    
+    public void Visit(RightLimitAtExpression expression)
+    {
+        if (Depth <= 0 && !expression.Name.Equals(""))
+        {
+            FormatName(expression.Name);
+            return;
+        }
+
+        Depth--;
+        Result.Append("\\left(");
+        expression.LeftExpression.Accept(this);
+        Result.Append("\\right)");
+        Result.Append("\\left(");
+        Result.Append("(");
+        expression.RightExpression.Accept(this);
+        Result.Append(")");
+        Result.Append("^+");
+        Result.Append("\\right)");
+        Depth++;
+    }
+
     public virtual void Visit(CurvePlaceholderExpression expression)
         => Result.Append(expression.Name);
 

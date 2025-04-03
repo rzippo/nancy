@@ -16,6 +16,18 @@ public interface IRationalExpressionVisitor : IExpressionVisitor
     /// </summary>
     public void Visit(VerticalDeviationExpression expression);
     /// <summary>
+    /// Visit method for the type <see cref="ValueAtExpression"/>
+    /// </summary>
+    public void Visit(ValueAtExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="LeftLimitAtExpression"/>
+    /// </summary>
+    public void Visit(LeftLimitAtExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RightLimitAtExpression"/>
+    /// </summary>
+    public void Visit(RightLimitAtExpression expression);
+    /// <summary>
     /// Visit method for the type <see cref="RationalAdditionExpression"/>
     /// </summary>
     public void Visit(RationalAdditionExpression expression);

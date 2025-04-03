@@ -32,6 +32,15 @@ public class ChangeNameRationalVisitor : IRationalExpressionVisitor
     public virtual void Visit(VerticalDeviationExpression expression)
         => Result = expression with { Name = NewName };
 
+    public void Visit(ValueAtExpression expression)
+        => Result = expression with { Name = NewName };
+
+    public void Visit(LeftLimitAtExpression expression)
+        => Result = expression with { Name = NewName };
+
+    public void Visit(RightLimitAtExpression expression)
+        => Result = expression with { Name = NewName };
+
     public virtual void Visit(RationalAdditionExpression expression)
         => Result = expression with { Name = NewName };
 

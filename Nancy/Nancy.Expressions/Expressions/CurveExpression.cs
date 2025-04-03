@@ -666,6 +666,88 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => Scale(new RationalNumberExpression(scaleFactor), expressionName, settings);
 
     #endregion Scale
+    
+    #region Sampling
+
+    /// <summary>
+    /// Creates a new expression that computes the value of the curve expression at <see cref="time"/>.
+    /// </summary>
+    /// <param name="time"></param>
+    /// <param name="expressionName"></param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    public RationalExpression ValueAt(
+        Rational time,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new ValueAtExpression(this, new RationalNumberExpression(time), expressionName, settings);
+    
+    /// <summary>
+    /// Creates a new expression that computes the value of the curve expression at the time given by <see cref="timeExpression"/>.
+    /// </summary>
+    /// <param name="timeExpression"></param>
+    /// <param name="expressionName"></param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    public RationalExpression ValueAt(
+        RationalExpression timeExpression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new ValueAtExpression(this, timeExpression, expressionName, settings);
+    
+    /// <summary>
+    /// Creates a new expression that computes the left-limit value of the curve expression at <see cref="time"/>.
+    /// </summary>
+    /// <param name="time"></param>
+    /// <param name="expressionName"></param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    public RationalExpression LeftLimitAt(
+        Rational time,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new LeftLimitAtExpression(this, new RationalNumberExpression(time), expressionName, settings);
+    
+    /// <summary>
+    /// Creates a new expression that computes the left-limit value of the curve expression at the time given by <see cref="timeExpression"/>.
+    /// </summary>
+    /// <param name="timeExpression"></param>
+    /// <param name="expressionName"></param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    public RationalExpression LeftLimitAt(
+        RationalExpression timeExpression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new LeftLimitAtExpression(this, timeExpression, expressionName, settings);
+    
+    /// <summary>
+    /// Creates a new expression that computes the right-limit value of the curve expression at <see cref="time"/>.
+    /// </summary>
+    /// <param name="time"></param>
+    /// <param name="expressionName"></param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    public RationalExpression RightLimitAt(
+        Rational time,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new RightLimitAtExpression(this, new RationalNumberExpression(time), expressionName, settings);
+    
+    /// <summary>
+    /// Creates a new expression that computes the right-limit value of the curve expression at the time given by <see cref="timeExpression"/>.
+    /// </summary>
+    /// <param name="timeExpression"></param>
+    /// <param name="expressionName"></param>
+    /// <param name="settings"></param>
+    /// <returns></returns>
+    public RationalExpression RightLimitAt(
+        RationalExpression timeExpression,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new RightLimitAtExpression(this, timeExpression, expressionName, settings);
+        
+    #endregion Sampling
 
     public Curve Compute() => _value ??= new CurveExpressionEvaluator().GetResult(this);
 

@@ -29,6 +29,15 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
     public virtual void Visit(VerticalDeviationExpression expression)
         => _result = Curve.HorizontalDeviation(expression.LeftExpression.Value, expression.RightExpression.Value);
 
+    public void Visit(ValueAtExpression expression)
+        => _result = expression.LeftExpression.Value.ValueAt(expression.RightExpression.Value);
+
+    public void Visit(LeftLimitAtExpression expression)
+        => _result = expression.LeftExpression.Value.LeftLimitAt(expression.RightExpression.Value);
+
+    public void Visit(RightLimitAtExpression expression)
+        => _result = expression.LeftExpression.Value.RightLimitAt(expression.RightExpression.Value);
+
     public virtual void Visit(RationalAdditionExpression expression)
         => _result = expression.Expressions.Aggregate(Rational.Zero, (current, e) => current + e.Value);
 
