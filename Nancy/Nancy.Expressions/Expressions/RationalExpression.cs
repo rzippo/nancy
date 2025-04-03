@@ -74,8 +74,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         Accept(latexFormatterVisitor);
 
         var latexExpr = latexFormatterVisitor.Result.ToString();
-        if (latexExpr is ['(', _, ..] && latexExpr[^1] == ')') // ^1 accesses the last character
-            latexExpr = latexExpr[1..^1];
+        // this is too simplistic, the two parentheses may not be matched with each other
+        // if (latexExpr is ['(', _, ..] && latexExpr[^1] == ')') // ^1 accesses the last character
+        //     latexExpr = latexExpr[1..^1];
 
         return latexExpr;
     }
@@ -86,8 +87,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         Accept(unicodeFormatterVisitor);
 
         var unicodeExpr = unicodeFormatterVisitor.Result.ToString();
-        if (unicodeExpr is ['(', _, ..] && unicodeExpr[^1] == ')') // ^1 accesses the last character
-            unicodeExpr = unicodeExpr[1..^1];
+        // this is too simplistic, the two parentheses may not be matched with each other
+        // if (unicodeExpr is ['(', _, ..] && unicodeExpr[^1] == ')') // ^1 accesses the last character
+        //     unicodeExpr = unicodeExpr[1..^1];
 
         return unicodeExpr;
     }

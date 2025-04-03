@@ -855,11 +855,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         Accept(latexFormatterVisitor);
 
         var latexExpr = latexFormatterVisitor.Result.ToString();
-        var startsWithLeftParenthesis = latexExpr.StartsWith("\\left(");
-        var endsWithRightParenthesis = latexExpr.EndsWith("\\right)");
-
-        if (startsWithLeftParenthesis && endsWithRightParenthesis)
-            latexExpr = latexExpr[6..^7];
+        // this is too simplistic, the two parentheses may not be matched with each other
+        // var startsWithLeftParenthesis = latexExpr.StartsWith("\\left(");
+        // var endsWithRightParenthesis = latexExpr.EndsWith("\\right)");
+        // if (startsWithLeftParenthesis && endsWithRightParenthesis)
+        //     latexExpr = latexExpr[6..^7];
 
         return latexExpr;
     }
@@ -870,8 +870,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         Accept(unicodeFormatterVisitor);
 
         var unicodeExpr = unicodeFormatterVisitor.Result.ToString();
-        if (unicodeExpr is ['(', _, ..] && unicodeExpr[^1] == ')') // ^1 accesses the last character
-            unicodeExpr = unicodeExpr[1..^1];
+        // this is too simplistic, the two parentheses may not be matched with each other
+        // if (unicodeExpr is ['(', _, ..] && unicodeExpr[^1] == ')') // ^1 accesses the last character
+        //     unicodeExpr = unicodeExpr[1..^1];
 
         return unicodeExpr;
     }
