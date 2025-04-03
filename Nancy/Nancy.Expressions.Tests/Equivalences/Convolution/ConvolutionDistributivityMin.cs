@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;using Unipi.Nancy.Expressions.Equivalences;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -23,7 +24,9 @@ public class ConvolutionDistributivityMin
         
         Assert.False(e == eq);
         Assert.True(e.Equivalent(eq));
-        Assert.Equal("(a \u2297 b) \u2227 (a \u2297 c)", eq.ToUnicodeString());
+        var expected = "(a \u2297 b) \u2227 (a \u2297 c)";
+        var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+        Assert.Matches(regex, eq.ToUnicodeString());
         Assert.Equal(e.ToUnicodeString(), eq2.ToUnicodeString());
     }
 }

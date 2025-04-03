@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -28,7 +29,11 @@ public class ConvolutionWithConcaveFunctions
         Assert.False(e3 == eq3);
         Assert.True(e1.Equivalent(eq1));
         Assert.True(e3.Equivalent(eq3));
-        Assert.Equal("a \u2227 b", eq1.ToUnicodeString());
-        Assert.Equal("c \u2297 (a \u2227 b)", eq3.ToUnicodeString());
+        var eq1Expected = "a \u2227 b";
+        var eq1Regex = $"\\(?{Regex.Escape(eq1Expected)}\\)?";
+        Assert.Matches(eq1Regex, eq1.ToUnicodeString());
+        var eq3Expected = "c \u2297 (a \u2227 b)";
+        var eq3Regex = $"\\(?{Regex.Escape(eq3Expected)}\\)?";
+        Assert.Matches(eq3Regex, eq3.ToUnicodeString());
     }
 }

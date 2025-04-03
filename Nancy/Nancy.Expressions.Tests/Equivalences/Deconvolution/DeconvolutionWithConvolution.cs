@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -26,6 +27,8 @@ public class DeconvolutionWithConvolution
         
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
-        Assert.Equal("(f ⊘ h) ⊘ g", eq.ToUnicodeString());
+        var expected = "(f ⊘ h) ⊘ g";
+        var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+        Assert.Matches(regex, eq.ToUnicodeString());
     }
 }

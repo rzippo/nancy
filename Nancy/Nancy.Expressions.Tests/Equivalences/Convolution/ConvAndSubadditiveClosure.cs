@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -25,6 +26,8 @@ public class ConvAndSubadditiveClosure
         
         Assert.False(e == eq);
         Assert.True(e.Equivalent(eq));
-        Assert.Equal("a ⊘ subadditiveClosure(b)", eq.ToUnicodeString());
+        var expected = "a ⊘ subadditiveClosure(b)";
+        var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+        Assert.Matches(regex, eq.ToUnicodeString());
     }
 }

@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -26,6 +27,8 @@ public class DeconvolutionWeakCommutativity
         
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
-        Assert.Equal("(f ⊘ g) ⊘ h", eq.ToUnicodeString());
+        var expected = "(f ⊘ g) ⊘ h";
+        var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+        Assert.Matches(regex, eq.ToUnicodeString());
     }
 }

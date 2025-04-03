@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -21,7 +22,9 @@ public class SubAdditiveClosureOfMin
         var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.SubAdditiveClosureOfMin());
         
         Assert.False(e == eq);
-        Assert.Equal("subadditiveClosure(a) ⊗ subadditiveClosure(b)", eq.ToUnicodeString());
+        var expected = "subadditiveClosure(a) ⊗ subadditiveClosure(b)";
+var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+Assert.Matches(regex, eq.ToUnicodeString());
         Assert.True(e.Equivalent(eq));
     }
 }

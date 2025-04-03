@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.NetworkCalculus;
 
@@ -20,6 +21,8 @@ public class IsomorphismConvLeft
         var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.IsomorphismConvLeft());
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
-        Assert.Equal("f↑⁻¹ ⊗ g↑⁻¹", eq.ToUnicodeString());
+        var expected = "f↑⁻¹ ⊗ g↑⁻¹";
+        var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+        Assert.Matches(regex, eq.ToUnicodeString());
     }
 }

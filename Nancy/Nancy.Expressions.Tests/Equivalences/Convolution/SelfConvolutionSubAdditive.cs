@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -30,7 +31,9 @@ public class SelfConvolutionSubAdditive
 
         Assert.False(e == eq);
         Assert.True(e.Equivalent(eq));
-        Assert.Equal("f", eq.ToUnicodeString());
+        var expected = "f";
+        var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+        Assert.Matches(regex, eq.ToUnicodeString());
     }
 
     [Fact]

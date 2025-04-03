@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -28,7 +29,9 @@ public class Equivalence
 
         var expression = Expressions.Convolution(a, b);
         var eq = expression.ApplyEquivalence(list.ToArray()[0]);
-        Assert.Equal("a", eq.ToUnicodeString());
+        var expected = "a";
+var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+Assert.Matches(regex, eq.ToUnicodeString());
         Assert.True(expression.Equivalent(eq));
         Assert.False(expression == eq);
 

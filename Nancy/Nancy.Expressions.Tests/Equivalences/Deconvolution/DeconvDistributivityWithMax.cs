@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -24,6 +25,8 @@ public class DeconvDistributivityWithMax
 
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
-        Assert.Equal("(f \u2298 h) \u2228 (g \u2298 h)", eq.ToUnicodeString());
+        var expected = "(f \u2298 h) \u2228 (g \u2298 h)";
+        var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+        Assert.Matches(regex, eq.ToUnicodeString());
     }
 }

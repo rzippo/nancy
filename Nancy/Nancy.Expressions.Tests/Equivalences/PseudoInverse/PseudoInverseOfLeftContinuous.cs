@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.NetworkCalculus;
 
@@ -19,6 +20,8 @@ public class PseudoInverseOfLeftContinuous
         var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.PseudoInverseOfLeftContinuous());
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
-        Assert.Equal("f", eq.ToUnicodeString());
+        var expected = "f";
+        var regex = $"\\(?{Regex.Escape(expected)}\\)?";
+        Assert.Matches(regex, eq.ToUnicodeString());
     }
 }

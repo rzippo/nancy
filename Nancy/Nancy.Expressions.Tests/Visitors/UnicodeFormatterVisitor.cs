@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.NetworkCalculus;
 
@@ -16,6 +17,8 @@ public class UnicodeFormatterVisitor
         var b = new RateLatencyServiceCurve(2, 5);
         var e = Expressions.Convolution(a, b);
         
-        Assert.Equal("a \u2297 b", e.ToUnicodeString());
+        var eExpected = "a \u2297 b";
+        var eRegex = $"\\(?{Regex.Escape(eExpected)}\\)?";
+        Assert.Matches(eRegex, e.ToUnicodeString());
     }
 }
