@@ -10,11 +10,13 @@ namespace Unipi.Nancy.Expressions.Visitors;
 public interface IExpressionVisitor
 {
     /// <summary>
-    /// Visit method of a generic expression
+    /// Visit method of a generic expression.
+    /// Fallback method in case no more specific one is available, always raises a <exception cref="NotImplementedException"/>.
     /// </summary>
     /// <typeparam name="T">Type of the value of the expression</typeparam>
-    /// <exception cref="InvalidOperationException">Always raised if the method is executed, it means that a more
-    /// specific Visit method is missing</exception>
+    /// <exception cref="NotImplementedException">
+    /// Always raised if the method is executed, it means that a more specific Visit method is missing.
+    /// </exception>
     void Visit<T>(IGenericExpression<T> expression)
-        => throw new InvalidOperationException("Missing Visit method for type " + expression.GetType());
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
 }
