@@ -58,8 +58,10 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     {
         Compute();
     }
-    
-    public void Accept(IExpressionVisitor visitor)
+
+    #region Accept
+
+    public void Accept(IExpressionVisitor<Rational> visitor)
         => Accept((IRationalExpressionVisitor)visitor);
 
     /// <summary>
@@ -67,6 +69,13 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </summary>
     /// <param name="visitor">The Visitor object</param>
     public abstract void Accept(IRationalExpressionVisitor visitor);
+
+    public TResult Accept<TResult>(IExpressionVisitor<Rational, TResult> visitor)
+        => Accept((IRationalExpressionVisitor<TResult>) visitor);
+
+    public abstract TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor);
+
+    #endregion Accept
 
     public string ToLatexString(int depth = 20, bool showRationalsAsName = false)
     {
@@ -84,13 +93,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public string ToUnicodeString(int depth = 20, bool showRationalsAsName = false)
     {
         var unicodeFormatterVisitor = new UnicodeFormatterVisitor(depth, showRationalsAsName);
-        Accept(unicodeFormatterVisitor);
-
-        var unicodeExpr = unicodeFormatterVisitor.Result.ToString();
-        // this is too simplistic, the two parentheses may not be matched with each other
-        // if (unicodeExpr is ['(', _, ..] && unicodeExpr[^1] == ')') // ^1 accesses the last character
-        //     unicodeExpr = unicodeExpr[1..^1];
-
+        var (sb, _) = Accept(unicodeFormatterVisitor);
+        var unicodeExpr = sb.ToString();
+        
         return unicodeExpr;
     }
 

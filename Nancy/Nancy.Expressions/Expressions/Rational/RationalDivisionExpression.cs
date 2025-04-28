@@ -22,4 +22,7 @@ public record RationalDivisionExpression : RationalBinaryExpression<Rational, Ra
 
     public override void Accept(IRationalExpressionVisitor visitor)
         => visitor.Visit(this);
+
+    public override TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor)
+        => visitor.Visit(this);
 }

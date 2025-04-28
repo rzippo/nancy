@@ -69,12 +69,6 @@ public interface IExpression
     public double Estimate();
     
     /// <summary>
-    /// Method used for implementing the Visitor design pattern: the visited object must "accept" the visitor object.
-    /// </summary>
-    /// <param name="visitor">The Visitor object</param>
-    public void Accept(IExpressionVisitor visitor);
-    
-    /// <summary>
     /// This method can be used as a starting point to build a symbolic path through the expression.
     /// </summary>
     /// <returns>Returns the position of the root of the expression</returns>

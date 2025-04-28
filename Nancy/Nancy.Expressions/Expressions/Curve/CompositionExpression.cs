@@ -50,4 +50,7 @@ public record CompositionExpression : CurveBinaryExpression<Curve, Curve>
 
     public override void Accept(ICurveExpressionVisitor visitor)
         => visitor.Visit(this);
+    
+    public override TResult Accept<TResult>(ICurveExpressionVisitor<TResult> visitor)
+        => visitor.Visit(this);
 }

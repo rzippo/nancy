@@ -35,4 +35,7 @@ public record InvertRationalExpression : RationalUnaryExpression<Rational>
     /// </summary>
     public override void Accept(IRationalExpressionVisitor visitor)
         => visitor.Visit(this);
+
+    public override TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor)
+        => visitor.Visit(this);
 }

@@ -21,5 +21,8 @@ public record RationalPlaceholderExpression : RationalExpression
     public override void Accept(IRationalExpressionVisitor visitor)
         => visitor.Visit(this);
 
+    public override TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor)
+        => visitor.Visit(this);
+
     public string RationalName { get; init; }
 }

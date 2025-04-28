@@ -1,11 +1,12 @@
 ﻿using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Expressions.Visitors;
 
 /// <summary>
 /// Visitor interface of the Visitor design pattern for curve expressions. 
 /// </summary>
-public interface ICurveExpressionVisitor : IExpressionVisitor
+public interface ICurveExpressionVisitor : IExpressionVisitor<Curve>
 {
     /// <summary>
     /// Visit method for the type <see cref="ConcreteCurveExpression"/>
@@ -111,4 +112,116 @@ public interface ICurveExpressionVisitor : IExpressionVisitor
     /// Visit method for the type <see cref="ScaleExpression"/>
     /// </summary>
     public void Visit(ScaleExpression expression);
+}
+
+/// <summary>
+/// Visitor interface of the Visitor design pattern for curve expressions. 
+/// </summary>
+/// <typeparam name="TResult">Type of the value produce by the visit.</typeparam>
+public interface ICurveExpressionVisitor<out TResult> : IExpressionVisitor<Curve, TResult>
+{
+    /// <summary>
+    /// Visit method for the type <see cref="ConcreteCurveExpression"/>
+    /// </summary>
+    public TResult Visit(ConcreteCurveExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="NegateExpression"/>
+    /// </summary>
+    public TResult Visit(NegateExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ToNonNegativeExpression"/>
+    /// </summary>
+    public TResult Visit(ToNonNegativeExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="SubAdditiveClosureExpression"/>
+    /// </summary>
+    public TResult Visit(SubAdditiveClosureExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="SuperAdditiveClosureExpression"/>
+    /// </summary>
+    public TResult Visit(SuperAdditiveClosureExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ToUpperNonDecreasingExpression"/>
+    /// </summary>
+    public TResult Visit(ToUpperNonDecreasingExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ToLowerNonDecreasingExpression"/>
+    /// </summary>
+    public TResult Visit(ToLowerNonDecreasingExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ToLeftContinuousExpression"/>
+    /// </summary>
+    public TResult Visit(ToLeftContinuousExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ToRightContinuousExpression"/>
+    /// </summary>
+    public TResult Visit(ToRightContinuousExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="WithZeroOriginExpression"/>
+    /// </summary>
+    public TResult Visit(WithZeroOriginExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="LowerPseudoInverseExpression"/>
+    /// </summary>
+    public TResult Visit(LowerPseudoInverseExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="UpperPseudoInverseExpression"/>
+    /// </summary>
+    public TResult Visit(UpperPseudoInverseExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="AdditionExpression"/>
+    /// </summary>
+    public TResult Visit(AdditionExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="SubtractionExpression"/>
+    /// </summary>
+    public TResult Visit(SubtractionExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ConcreteCurveExpression"/>
+    /// </summary>
+    public TResult Visit(MinimumExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="MaximumExpression"/>
+    /// </summary>
+    public TResult Visit(MaximumExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ConvolutionExpression"/>
+    /// </summary>
+    public TResult Visit(ConvolutionExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="DeconvolutionExpression"/>
+    /// </summary>
+    public TResult Visit(DeconvolutionExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="MaxPlusConvolutionExpression"/>
+    /// </summary>
+    public TResult Visit(MaxPlusConvolutionExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="MaxPlusDeconvolutionExpression"/>
+    /// </summary>
+    public TResult Visit(MaxPlusDeconvolutionExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="CompositionExpression"/>
+    /// </summary>
+    public TResult Visit(CompositionExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="DelayByExpression"/>
+    /// </summary>
+    public TResult Visit(DelayByExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ForwardByExpression"/>
+    /// </summary>
+    public TResult Visit(ForwardByExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ShiftExpression"/>
+    /// </summary>
+    public TResult Visit(ShiftExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="CurvePlaceholderExpression"/>
+    /// </summary>
+    public TResult Visit(CurvePlaceholderExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ScaleExpression"/>
+    /// </summary>
+    public TResult Visit(ScaleExpression expression);
 }

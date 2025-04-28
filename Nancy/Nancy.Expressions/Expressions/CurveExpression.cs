@@ -906,10 +906,19 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     
     #endregion Equivalence
     
-    public void Accept(IExpressionVisitor visitor)
-        => Accept((ICurveExpressionVisitor)visitor);
+    #region Accept
+    
+    public void Accept(IExpressionVisitor<Curve> visitor)
+        => Accept((ICurveExpressionVisitor) visitor);
 
     public abstract void Accept(ICurveExpressionVisitor visitor);
+    
+    public TResult Accept<TResult>(IExpressionVisitor<Curve, TResult> visitor)
+        => Accept((ICurveExpressionVisitor<TResult>) visitor);
+
+    public abstract TResult Accept<TResult>(ICurveExpressionVisitor<TResult> visitor);
+    
+    #endregion Accept
     
     /// <summary>
     /// Private function used during the creation of the expressions to keep the n-ary expressions at the same level
@@ -949,13 +958,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public string ToUnicodeString(int depth = 20, bool showRationalsAsName = false)
     {
         var unicodeFormatterVisitor = new UnicodeFormatterVisitor(depth, showRationalsAsName);
-        Accept(unicodeFormatterVisitor);
-
-        var unicodeExpr = unicodeFormatterVisitor.Result.ToString();
-        // this is too simplistic, the two parentheses may not be matched with each other
-        // if (unicodeExpr is ['(', _, ..] && unicodeExpr[^1] == ')') // ^1 accesses the last character
-        //     unicodeExpr = unicodeExpr[1..^1];
-
+        var (sb, _) = Accept(unicodeFormatterVisitor);
+        var unicodeExpr = sb.ToString();
+        
         return unicodeExpr;
     }
 

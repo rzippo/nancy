@@ -47,13 +47,13 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
         string latexOperation
     )
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
         }
 
-        Depth--;
+        CurrentDepth++;
         Result.Append("\\left(");
         expression.LeftExpression.Accept(this);
         Result.Append(latexOperation);
@@ -67,7 +67,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
         string latexOperation
     )
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -88,7 +88,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
         string latexCommand
     )
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -109,7 +109,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
         string latexOperation
     )
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -135,7 +135,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
         string latexOperation
     )
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -216,7 +216,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(RationalNumberExpression numberExpression)
     {
-        if (!numberExpression.Name.Equals("") && (ShowRationalsAsName || Depth <= 0))
+        if (!numberExpression.Name.Equals("") && (ShowRationalsAsName || CurrentDepth >= MaxDepth))
         {
             FormatName(numberExpression.Name);
             return;
@@ -230,7 +230,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(NegateExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -244,7 +244,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(ToNonNegativeExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -273,7 +273,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -288,7 +288,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(SuperAdditiveClosureExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -303,7 +303,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(ToUpperNonDecreasingExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -329,7 +329,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(ToLowerNonDecreasingExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -355,7 +355,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(ToLeftContinuousExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -369,7 +369,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(ToRightContinuousExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -383,7 +383,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(WithZeroOriginExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -398,7 +398,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(LowerPseudoInverseExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -412,7 +412,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(UpperPseudoInverseExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -501,7 +501,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(NegateRationalExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -515,7 +515,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(InvertRationalExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -540,7 +540,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public void Visit(ValueAtExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -558,7 +558,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public void Visit(LeftLimitAtExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -579,7 +579,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
     
     public void Visit(RightLimitAtExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;
@@ -606,7 +606,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
 
     public virtual void Visit(ScaleExpression expression)
     {
-        if (Depth <= 0 && !expression.Name.Equals(""))
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
             FormatName(expression.Name);
             return;

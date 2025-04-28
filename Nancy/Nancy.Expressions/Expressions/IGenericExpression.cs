@@ -9,15 +9,15 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <summary>
 /// Interface which defines the rules each Nancy expression must follow.
 /// </summary>
-/// <typeparam name="T">
+/// <typeparam name="TExpressionResult">
 /// The type the expression evaluates to, either <see cref="Curve"/> or <see cref="Rational"/>.
 /// </typeparam>
-public interface IGenericExpression<out T> : IExpression
+public interface IGenericExpression<out TExpressionResult> : IExpression
 {
     /// <summary>
     /// The value of the expression
     /// </summary>
-    public T Value { get; }
+    public TExpressionResult Value { get; }
 
     /// <summary>
     /// Settings for the expression (contains also the settings for the evaluation of the expression).
@@ -27,7 +27,20 @@ public interface IGenericExpression<out T> : IExpression
     /// <summary>
     /// Computes the value the expression evaluates to.
     /// </summary>
-    public T Compute();
+    public TExpressionResult Compute();
+    
+    /// <summary>
+    /// Method used for implementing the Visitor design pattern: the visited object must "accept" the visitor object.
+    /// </summary>
+    /// <param name="visitor">The Visitor object</param>
+    public void Accept(IExpressionVisitor<TExpressionResult> visitor);
+    
+    /// <summary>
+    /// Method used for implementing the Visitor design pattern: the visited object must "accept" the visitor object.
+    /// </summary>
+    /// <param name="visitor">The Visitor object</param>
+    public TResult Accept<TResult>(IExpressionVisitor<TExpressionResult, TResult> visitor);
+
 
     /// <summary>
     /// Replaces every occurence of a sub-expression in the expression to which the method is applied.
@@ -35,7 +48,7 @@ public interface IGenericExpression<out T> : IExpression
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced</param>
     /// <param name="newExpressionToReplace">The new sub-expression</param>
     /// <returns>New expression object with replaced sub-expressions</returns>
-    public IGenericExpression<T> ReplaceByValue<T1>(
+    public IGenericExpression<TExpressionResult> ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
         IGenericExpression<T1> newExpressionToReplace,
         bool ignoreNotMatchedExpressions = false
@@ -47,8 +60,10 @@ public interface IGenericExpression<out T> : IExpression
     /// <param name="expressionPosition">Position of the expression to be replaced</param>
     /// <param name="newExpression">The new sub-expression</param>
     /// <returns>New expression object with replaced sub-expression</returns>
-    public IGenericExpression<T> ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
-        IGenericExpression<T1> newExpression);
+    public IGenericExpression<TExpressionResult> ReplaceByPosition<T1>(
+        ExpressionPosition expressionPosition,
+        IGenericExpression<T1> newExpression
+    );
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
@@ -58,15 +73,17 @@ public interface IGenericExpression<out T> : IExpression
     /// for binary operators, "Operand(index)" for n-ary operators</param>
     /// <param name="newExpression">The new sub-expression</param>
     /// <returns>New expression object with replaced sub-expression</returns>
-    public IGenericExpression<T> ReplaceByPosition<T1>(IEnumerable<string> positionPath,
-        IGenericExpression<T1> newExpression);
+    public IGenericExpression<TExpressionResult> ReplaceByPosition<T1>(
+        IEnumerable<string> positionPath,
+        IGenericExpression<T1> newExpression
+    );
 
     /// <summary>
     /// Changes the name of the expression.
     /// </summary>
     /// <param name="expressionName">The new name of the expression</param>
     /// <returns>The expression (new object) with the new name</returns>
-    public IGenericExpression<T> WithName(string expressionName);
+    public IGenericExpression<TExpressionResult> WithName(string expressionName);
 
     /// <summary>
     /// Applies an equivalence to the current expression.
@@ -77,7 +94,7 @@ public interface IGenericExpression<out T> : IExpression
     /// and substitution with the right side, or vice versa, or both).</param>
     /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
     /// </returns>
-    public IGenericExpression<T> ApplyEquivalence(Equivalence equivalence,
+    public IGenericExpression<TExpressionResult> ApplyEquivalence(Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly);
 
     /// <summary>
@@ -93,7 +110,7 @@ public interface IGenericExpression<out T> : IExpression
     /// and substitution with the right side, or vice versa, or both).</param>
     /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
     /// </returns>
-    public IGenericExpression<T> ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
+    public IGenericExpression<TExpressionResult> ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly);
 
     /// <summary>
@@ -107,7 +124,7 @@ public interface IGenericExpression<out T> : IExpression
     /// and substitution with the right side, or vice versa, or both).</param>
     /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
     /// </returns>
-    public IGenericExpression<T> ApplyEquivalenceByPosition(ExpressionPosition expressionPosition,
+    public IGenericExpression<TExpressionResult> ApplyEquivalenceByPosition(ExpressionPosition expressionPosition,
         Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly);
 }
