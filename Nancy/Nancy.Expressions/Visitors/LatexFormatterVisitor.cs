@@ -405,7 +405,7 @@ public partial class LatexFormatterVisitor :
     }
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubAdditiveClosureExpression expression)
-        => VisitUnaryPrefix(expression, "\\overline");
+        => VisitUnaryCommand(expression, @"\overline");
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(
         SuperAdditiveClosureExpression expression)
@@ -414,7 +414,7 @@ public partial class LatexFormatterVisitor :
             return (FormatName(expression.Name), false);
         else
         {
-            var (temp, _) = VisitUnaryPrefix(expression, "\\overline{\\overline");
+            var (temp, _) = VisitUnaryPrefix(expression, @"\overline{\overline");
             temp.Append('}');
             return (temp, false);
         }

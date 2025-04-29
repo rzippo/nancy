@@ -348,13 +348,11 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var squareParentheses = expression.Expression is not (ConcreteCurveExpression
-                or ToUpperNonDecreasingExpression
-                or ToLowerNonDecreasingExpression);
-            if (squareParentheses) sb.Append('[');
+            var needsSquareParentheses = expression.Expression is not ConcreteCurveExpression cce || !FormatName(cce.Name).ToString().Contains('_');
+            if (needsSquareParentheses) sb.Append('[');
             var (unicode, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
             sb.Append(unicode);
-            if (squareParentheses) sb.Append(']');
+            if (needsSquareParentheses) sb.Append(']');
             sb.Append('⁺');
             CurrentDepth--;
             return (sb, false);
