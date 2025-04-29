@@ -402,6 +402,7 @@ public partial class UnicodeFormatterVisitor :
             var squareParentheses = needsParentheses && !parenthesesExceptions;
             if (squareParentheses)
                 sb.Append('[');
+            sb.Append(unicode);
             if (squareParentheses)
                 sb.Append(']');
             sb.Append('↓');

@@ -384,20 +384,20 @@ public partial class LatexFormatterVisitor :
             var squareParenthesis = expression.Expression is not (ConcreteCurveExpression
                 or ToUpperNonDecreasingExpression
                 or ToLowerNonDecreasingExpression);
-            if (squareParenthesis) sb.Append('[');
+            if (squareParenthesis) sb.Append(@"\left[ ");
             var (latex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
             sb.Append(latex);
-            if (squareParenthesis) sb.Append(']');
+            if (squareParenthesis) sb.Append(@" \right]");
             string resultToString = sb.ToString();
             // Usually ToNonNegative is used together with ToUpperNonDecreasing or ToLowerNonDecreasing
             // The following instructions are used to obtain the proper Latex formatting
-            if (resultToString.EndsWith("{_\\uparrow}") || resultToString.EndsWith("{_\\downarrow}"))
+            if (resultToString.EndsWith(@"_{\uparrow}") || resultToString.EndsWith(@"_{\downarrow}"))
             {
                 sb.Remove(sb.Length - 1, 1);
                 sb.Append("^{+}}");
             }
             else
-                sb.Append("{^{+}}");
+                sb.Append("^{+}");
 
             CurrentDepth--;
             return (sb, false);
@@ -427,20 +427,78 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var squareParenthesis = expression.Expression is not (ConcreteCurveExpression or ToNonNegativeExpression);
-            if (squareParenthesis) sb.Append('[');
-            var (latex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
-            sb.Append(latex);
-            if (squareParenthesis) sb.Append(']');
-            // Usually ToUpperNonDecreasing is used together with ToNonNegative 
-            // The following instructions are used to obtain the proper Latex formatting
-            if (sb.ToString().EndsWith("{^{+}}"))
+            switch (expression.Expression)
             {
-                sb.Remove(sb.Length - 1, 1);
-                sb.Append("_\\uparrow}");
+                case ConcreteCurveExpression concreteCurveOperand:
+                {
+                    var formattedName = FormatName(concreteCurveOperand.Name).ToString();
+                    var needsSquareParentheses = formattedName.Contains('_');
+                    if (needsSquareParentheses)
+                    {
+                        sb.Append(@"\left[ ");
+                        sb.Append(formattedName);
+                        sb.Append(@" \right]");
+                    }
+                    else
+                        sb.Append(formattedName);
+                    sb.Append(@"_{\uparrow}");
+                    break;
+                }
+
+                // non-negative and non-decreasing closures are formatted together
+                case ToNonNegativeExpression toNonNegativeOperand:
+                {
+                    var innerOperand = toNonNegativeOperand.Expression;
+                    if (innerOperand is ConcreteCurveExpression concreteCurveOperand)
+                    {
+                        // no need for square parentheses if name is plain
+                        var formattedName = FormatName(concreteCurveOperand.Name).ToString();
+                        var needsSquareParentheses = formattedName.Contains('_');
+                        if (needsSquareParentheses)
+                        {
+                            sb.Append(@"\left[ ");
+                            sb.Append(formattedName);
+                            sb.Append(@" \right]");
+                        }
+                        else
+                            sb.Append(formattedName);
+                    }
+                    else
+                    {
+                        var (innerLatex, _) = innerOperand.Accept<(StringBuilder, bool)>(this);
+                        sb.Append(@"\left[ ");
+                        sb.Append(innerLatex);
+                        sb.Append(@" \right]");
+                    }
+                    // add both non-negative and upper non-decreasing closures
+                    sb.Append(@"^{+}_{\uparrow}");
+                    break;
+                }
+
+                // curve subtractions may imply non-negative closure
+                case SubtractionExpression subtractionOperand:
+                {
+                    var (innerLatex, _) = VisitBinaryInfix(subtractionOperand, " - ");
+                    sb.Append(@"\left[ ");
+                    sb.Append(innerLatex);
+                    sb.Append(@" \right]");
+                    if (subtractionOperand.NonNegative)
+                        sb.Append(@"^{+}_{\uparrow}");
+                    else
+                        sb.Append(@"_{\uparrow}");
+                    break;
+                }
+
+                default:
+                {
+                    var (innerLatex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+                    sb.Append(@"\left[ ");
+                    sb.Append(innerLatex);
+                    sb.Append(@" \right]");
+                    sb.Append(@"_{\uparrow}");
+                    break;
+                }
             }
-            else
-                sb.Append("{_\\uparrow}");
 
             CurrentDepth--;
             return (sb, false);
@@ -451,24 +509,81 @@ public partial class LatexFormatterVisitor :
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
-        else
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var squareParenthesis = expression.Expression is not (ConcreteCurveExpression or ToNonNegativeExpression);
-            if (squareParenthesis) sb.Append('[');
-            var (latex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
-            sb.Append(latex);
-            if (squareParenthesis) sb.Append(']');
-            // Usually ToLowerNonDecreasing is used together with ToNonNegative 
-            // The following instructions are used to obtain the proper Latex formatting
-            if (sb.ToString().EndsWith("{^{+}}"))
+            switch (expression.Expression)
             {
-                sb.Remove(sb.Length - 1, 1);
-                sb.Append("_\\downarrow}");
+                case ConcreteCurveExpression concreteCurveOperand:
+                {
+                    var formattedName = FormatName(concreteCurveOperand.Name).ToString();
+                    var needsSquareParentheses = formattedName.Contains('_');
+                    if (needsSquareParentheses)
+                    {
+                        sb.Append(@"\left[ ");
+                        sb.Append(formattedName);
+                        sb.Append(@" \right]");
+                    }
+                    else
+                        sb.Append(formattedName);
+                    sb.Append(@"_{\downarrow}");
+                    break;
+                }
+
+                // non-negative and non-decreasing closures are formatted together
+                case ToNonNegativeExpression toNonNegativeOperand:
+                {
+                    var innerOperand = toNonNegativeOperand.Expression;
+                    if (innerOperand is ConcreteCurveExpression concreteCurveOperand)
+                    {
+                        // no need for square parentheses if name is plain
+                        var formattedName = FormatName(concreteCurveOperand.Name).ToString();
+                        var needsSquareParentheses = formattedName.Contains('_');
+                        if (needsSquareParentheses)
+                        {
+                            sb.Append(@"\left[ ");
+                            sb.Append(formattedName);
+                            sb.Append(@" \right]");
+                        }
+                        else
+                            sb.Append(formattedName);
+                    }
+                    else
+                    {
+                        var (innerLatex, _) = innerOperand.Accept<(StringBuilder, bool)>(this);
+                        sb.Append(@"\left[ ");
+                        sb.Append(innerLatex);
+                        sb.Append(@" \right]");
+                    }
+                    // add both non-negative and upper non-decreasing closures
+                    sb.Append(@"^{+}_{\downarrow}");
+                    break;
+                }
+
+                // curve subtractions may imply non-negative closure
+                case SubtractionExpression subtractionOperand:
+                {
+                    var (innerLatex, _) = VisitBinaryInfix(subtractionOperand, " - ");
+                    sb.Append(@"\left[ ");
+                    sb.Append(innerLatex);
+                    sb.Append(@" \right]");
+                    if (subtractionOperand.NonNegative)
+                        sb.Append(@"^{+}_{\downarrow}");
+                    else
+                        sb.Append(@"_{\downarrow}");
+                    break;
+                }
+                
+                default:
+                {
+                    var (innerLatex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+                    sb.Append(@"\left[ ");
+                    sb.Append(innerLatex);
+                    sb.Append(@" \right]");
+                    sb.Append(@"_{\downarrow}");
+                    break;
+                }
             }
-            else
-                sb.Append("{_\\downarrow}");
 
             CurrentDepth--;
             return (sb, false);
@@ -485,10 +600,10 @@ public partial class LatexFormatterVisitor :
         => VisitUnaryPostfix(expression, @"^{\circ}", true);
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
-        => VisitUnaryPostfix(expression, @"_{\downarrow}^{-1}", true);
+        => VisitUnaryPostfix(expression, @"^{-1}_{\downarrow}", true);
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(UpperPseudoInverseExpression expression)
-        => VisitUnaryPostfix(expression, @"_{\uparrow}^{-1}", true);
+        => VisitUnaryPostfix(expression, @"^{-1}_{\uparrow}", true);
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(AdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
