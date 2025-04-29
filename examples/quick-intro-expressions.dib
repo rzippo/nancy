@@ -1,0 +1,128 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp"},{"name":"fsharp","languageName":"F#","aliases":["f#","fs"]},{"name":"html","languageName":"HTML"},{"name":"http","languageName":"HTTP"},{"name":"javascript","languageName":"JavaScript","aliases":["js"]},{"name":"mermaid","languageName":"Mermaid"},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"value"}]}}
+
+#!markdown
+
+This tutorial shows examples of use of Nancy.Expressions.
+
+> Note: at the time of writing, the first execution of the first cell yields `Error: Failed to load kernel extension`.
+>
+> However, running the cell again will not yield any error.
+
+#!csharp
+
+// this package includes both Nancy and the extensions to plot in .NET Interactive
+#r "nuget: Unipi.Nancy.Interactive, 1.0.5"
+// this package includes both Nancy.Expressions and the extensions to render Latex in .NET Interactive
+#r "nuget: Unipi.Nancy.Expressions.Interactive, 1.0.0-beta.6"
+
+#!csharp
+
+// Nancy
+using Unipi.Nancy.Numerics;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Interactive;
+
+// Nancy.Expressions
+using Unipi.Nancy.Expressions;
+using Unipi.Nancy.Expressions.Visitors;
+using Unipi.Nancy.Expressions.Interactive;
+
+#!markdown
+
+The following code cell constructs the DNC expression $(\overline{f} \otimes g) \oslash \overline{f}$.
+
+#!csharp
+
+var f = Expressions.FromCurve(
+    curve: new Curve(
+        baseSequence: new Sequence(new Element[]
+        {
+            new Point(time: 0, value: 0),
+            new Segment(startTime: 0, endTime: 2, rightLimitAtStartTime:0, slope: 1),
+            new Point(2, 2),
+            new Segment(2,  3, 2, 0),
+            new Point(3, 2),
+            new Segment(3, 4, 2, 1)
+        }),
+        pseudoPeriodStart: 2,
+        pseudoPeriodLength: 2,
+        pseudoPeriodHeight: 1
+    ), 
+    name: "f");
+var g = Expressions.FromCurve(
+    curve: new Curve(
+        baseSequence: new Sequence(new Element[]
+        {
+            new Point(time: 0, value: 0),
+            new Segment(startTime: 0, endTime: 1, rightLimitAtStartTime:0, slope: 3),
+            new Point(1, 3),
+            new Segment(1,  5, 1, 0),
+            new Point(5, 3),
+            new Segment(5, 6, 5, 3)
+        }),
+        pseudoPeriodStart: 1,
+        pseudoPeriodLength: 5,
+        pseudoPeriodHeight: 3
+    ),
+    name: "g");
+var f_sac = f.SubAdditiveClosure();
+var conv = Expressions.Convolution(f_sac, g);
+var deconv = Expressions.Deconvolution(conv, f_sac);
+
+#!markdown
+
+*Nancy.Expressions* allows visualization of expressions using either plaintext, suitable for CLI environments, or LaTeX syntax, useful for environments that can render it, such as interactive notebooks.
+
+#!csharp
+
+Console.WriteLine(deconv); // plaintext syntax
+display(deconv); // LaTeX syntax
+
+#!markdown
+
+Another kind of flexibility is provided by allowing to print DNC expressions at different levels of detail. This feature is especially useful when expressions are huge and difficult to read if fully printed.
+
+#!markdown
+
+To provide such feature each method for the construction of the expressions allows the user to specify the expression name. Therefore, when visualizing an expression the user can select the depth at which the expression tree must be fully expanded: this means that operations before said depth will be printed esplicitly, deeper operations, instaed, will be hidden and collapsed by printing only the expression name (if set) of nodes at said depth.
+
+#!markdown
+
+The next code cell shows how to specify the name of the expressions (and sub-expressions) being constructed.
+
+#!csharp
+
+Curve beta1 = new RateLatencyServiceCurve(1,1);
+Curve beta2 = new RateLatencyServiceCurve(1,1);
+Curve beta3 = new RateLatencyServiceCurve(1,1);
+Curve beta4 = new RateLatencyServiceCurve(1,1);
+Curve alpha1 = new SigmaRhoArrivalCurve(1,1);
+Curve alpha3 = new SigmaRhoArrivalCurve(1,1);
+Curve alpha4 = new SigmaRhoArrivalCurve(1,1);
+
+var exprLeft = Expressions.Subtraction(beta1, alpha1, expressionName:"subL")
+    .ToNonNegative()
+    .ToUpperNonDecreasing();
+
+var  b3 = Expressions.FromCurve(beta3);
+var temp1 = Expressions.Addition(alpha3, alpha4).WithName("add")
+    .Deconvolution(b3, expressionName:"deconv");
+var exprRight = Expressions.Subtraction(beta4, temp1, expressionName:"subR")
+    .ToUpperNonDecreasing()
+    .ToNonNegative();
+
+var finalExpr =  Expressions.Convolution(exprLeft, exprRight, expressionName:"conv");
+
+#!markdown
+
+Now, we print the final expression at different levels of detail.
+
+#!csharp
+
+Console.WriteLine("Depth " + 3 + ": " + finalExpr.ToUnicodeString(3));
+Console.WriteLine("Depth " + 4 + ": " + finalExpr.ToUnicodeString(4));
+Console.WriteLine("Depth " + 5 + ": " + finalExpr.ToUnicodeString(5));
+Console.WriteLine("Depth " + 6 + ": " + finalExpr.ToUnicodeString(6));

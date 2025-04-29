@@ -1,6 +1,6 @@
 #!meta
 
-{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"name":"csharp"}]}}
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp"},{"name":"fsharp","languageName":"F#","aliases":["f#","fs"]},{"name":"html","languageName":"HTML"},{"name":"http","languageName":"HTTP"},{"name":"javascript","languageName":"JavaScript","aliases":["js"]},{"name":"mermaid","languageName":"Mermaid"},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"value"}]}}
 
 #!markdown
 
@@ -8,10 +8,14 @@ This tutorials shows the code used for the examples in the *Quick Intro*.
 
 The following two cells are setup: they reference the necessary packages (Nancy and plotting extensions) and import the namespaces
 
+> Note: at the time of writing, the first execution of the first cell yields `Error: Failed to load kernel extension`.
+>
+> However, running the cell again will not yield any error.
+
 #!csharp
 
 // this package includes both Nancy and the extensions to plot in .NET Interactive
-#r "nuget: Unipi.Nancy.Interactive"
+#r "nuget: Unipi.Nancy.Interactive, 1.0.5"
 
 #!csharp
 
