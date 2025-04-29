@@ -19,7 +19,7 @@
     <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
     <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
-    <PackageVersion>1.0.4</PackageVersion>
+    <PackageVersion>1.0.5</PackageVersion>
 
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>   
@@ -30,8 +30,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Unipi.Nancy" Version="1.2.4" />
+    <PackageReference Include="Unipi.Nancy" Version="1.2.6" />
     <PackageReference Include="XPlot.Plotly.Interactive" Version="4.1.0" />
+    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.23258.3" />
   </ItemGroup>
 
   <ItemGroup>
