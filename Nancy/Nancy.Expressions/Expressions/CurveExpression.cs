@@ -943,14 +943,8 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public string ToLatexString(int depth = 20, bool showRationalsAsName = false)
     {
         var latexFormatterVisitor = new LatexFormatterVisitor(depth, showRationalsAsName);
-        Accept(latexFormatterVisitor);
-
-        var latexExpr = latexFormatterVisitor.Result.ToString();
-        // this is too simplistic, the two parentheses may not be matched with each other
-        // var startsWithLeftParenthesis = latexExpr.StartsWith("\\left(");
-        // var endsWithRightParenthesis = latexExpr.EndsWith("\\right)");
-        // if (startsWithLeftParenthesis && endsWithRightParenthesis)
-        //     latexExpr = latexExpr[6..^7];
+        var (sb, _) = Accept(latexFormatterVisitor);
+        var latexExpr = sb.ToString();
 
         return latexExpr;
     }

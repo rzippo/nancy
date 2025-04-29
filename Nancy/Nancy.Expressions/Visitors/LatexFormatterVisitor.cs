@@ -1,16 +1,33 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Expressions.Visitors;
 
 /// <summary>
 /// Used for visiting an expression and create its representation using Latex code.
 /// </summary>
-public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalExpressionVisitor
+public partial class LatexFormatterVisitor : 
+    ICurveExpressionVisitor<(StringBuilder UnicodeBuilder, bool NeedsParentheses)>, 
+    IRationalExpressionVisitor<(StringBuilder UnicodeBuilder, bool NeedsParentheses)>
 {
-    // todo: should be refactored into two separate ints, current and max depth
-    public int Depth { get; private set; }
+    /// <summary>
+    /// The current depth of visit.
+    /// 0 means root node, and is incremented during each child visit.
+    /// </summary>
+    public int CurrentDepth { get; private set; }
+    
+    /// <summary>
+    /// Max depth at which children should be fully expanded.
+    /// After this depth is reached, any node that has a name is represented through that name, instead of being expanded further.
+    /// </summary>
+    /// <remarks>
+    /// If set to 0, any node that has a name is not expanded.
+    /// </remarks>
+    public int MaxDepth { get; init; }
+
     public bool ShowRationalsAsName { get; init; }
 
     /// <summary>
@@ -22,15 +39,11 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
     /// </param>
     public LatexFormatterVisitor(int depth = 20, bool showRationalsAsName = true)
     {
-        Depth = depth;
+        MaxDepth = depth;
+        CurrentDepth = 0;
         ShowRationalsAsName = showRationalsAsName;
     }
 
-    /// <summary>
-    /// Latex code for the textual representation of the expression
-    /// </summary>
-    public StringBuilder Result { get; } = new();
-    
     /// <summary>
     /// List of greek letters to substitute the expanded letters with their correspondent Latex symbol
     /// </summary>
@@ -42,128 +55,253 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
     
     // todo: explore having generic entry points that take a PreferredOperatorNotation enum or something similar
     
-    private void VisitBinaryInfix<T1, T2, TResult>(
-        IGenericBinaryExpression<T1, T2, TResult> expression,
-        string latexOperation
-    )
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        CurrentDepth++;
-        Result.Append("\\left(");
-        expression.LeftExpression.Accept(this);
-        Result.Append(latexOperation);
-        expression.RightExpression.Accept(this);
-        Result.Append("\\right)");
-        Depth++;
-    }
-
-    private void VisitBinaryPrefix<T1, T2, TResult>(
-        IGenericBinaryExpression<T1, T2, TResult> expression,
-        string latexOperation
-    )
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        Result.Append(latexOperation);
-        Result.Append("\\left(");
-        expression.LeftExpression.Accept(this);
-        Result.Append(", ");
-        expression.RightExpression.Accept(this);
-        Result.Append("\\right)");
-        Depth++;
-    }
+    #region Default formatters
     
-    private void VisitBinaryCommand<T1, T2, TResult>(
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) GeneralizedAccept<TExpressionResult>(
+        IGenericExpression<TExpressionResult> expression
+    )
+    {
+        if (expression is IGenericExpression<Curve> curveExpression)
+            return curveExpression.Accept<(StringBuilder, bool)>(this);
+        else if (expression is IGenericExpression<Rational> rationalExpression)
+            return rationalExpression.Accept<(StringBuilder, bool)>(this);
+        else
+            throw new NotImplementedException();
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryCommand<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        string latexCommand
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (innerUnicode, _) = GeneralizedAccept(expression.Expression);
+            
+            sb.Append(latexCommand);
+            sb.Append('{');
+            sb.Append(innerUnicode);
+            sb.Append('}');
+        
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryPrefix<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        string operation
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (innerUnicode, _) = GeneralizedAccept(expression.Expression);
+            
+            sb.Append(operation);
+            sb.Append(@"\left( ");
+            sb.Append(innerUnicode);
+            sb.Append(@" \right)");
+        
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryPostfix<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        string operation,
+        bool forceParentheses = true
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (innerUnicode, needsParentheses) = GeneralizedAccept(expression.Expression);
+            if (forceParentheses || needsParentheses)
+            {
+                sb.Append(@"\left( ");
+                sb.Append(innerUnicode);
+                sb.Append(@" \right)");
+                sb.Append(operation);
+            }
+            else
+            {
+                sb.Append(innerUnicode);
+                sb.Append(operation);
+            }
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryCommand<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
         string latexCommand
     )
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
         {
-            FormatName(expression.Name);
-            return;
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            sb.Append(latexCommand);
+            sb.Append("{");
+            var (leftLatex, _) = GeneralizedAccept(expression.LeftExpression);
+            sb.Append(leftLatex);
+            sb.Append("}{");
+            var (rightLatex, _) = GeneralizedAccept(expression.RightExpression);
+            sb.Append(rightLatex);
+            sb.Append('}');
+            CurrentDepth--;
+            return (sb, false);
         }
-
-        Depth--;
-        Result.Append(latexCommand);
-        Result.Append('{');
-        expression.LeftExpression.Accept(this);
-        Result.Append("}{");
-        expression.RightExpression.Accept(this);
-        Result.Append('}');
-        Depth++;
     }
 
-    private void VisitNAryInfix<T, TResult>(
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryInfix<T1, T2, TResult>(
+        IGenericBinaryExpression<T1, T2, TResult> expression,
+        string latexOperation
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            
+            var (leftUnicodeBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftExpression);
+            if (leftNeedsParentheses)
+            {
+                sb.Append(@"\left( ");
+                sb.Append(leftUnicodeBuilder);
+                sb.Append(@" \right)");
+            }
+            else
+                sb.Append(leftUnicodeBuilder);
+            
+            sb.Append(latexOperation);
+            
+            var (rightUnicodeBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightExpression);
+            if (rightNeedsParentheses)
+            {
+                sb.Append(@"\left( ");
+                sb.Append(rightUnicodeBuilder);
+                sb.Append(@" \right)");
+            }
+            else
+                sb.Append(rightUnicodeBuilder);
+            CurrentDepth--;
+
+            return (sb, true);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryPrefix<T1, T2, TResult>(
+        IGenericBinaryExpression<T1, T2, TResult> expression,
+        string latexOperation
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            sb.Append(latexOperation);
+            sb.Append(@"\left( ");
+            var (leftUnicode, _) = GeneralizedAccept(expression.LeftExpression);
+            sb.Append(leftUnicode);
+            sb.Append(", ");
+            var (rightUnicode, _) = GeneralizedAccept(expression.RightExpression);
+            sb.Append(rightUnicode);
+            sb.Append(@" \right)");
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitNAryInfix<T, TResult>(
         IGenericNAryExpression<T, TResult> expression, 
         string latexOperation
     )
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
         {
-            FormatName(expression.Name);
-            return;
-        }
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            
+            var c = expression.Expressions.Count;
+            foreach (var e in expression.Expressions)
+            {
+                var (unicode, needsParentheses) = GeneralizedAccept(e);
+                if (needsParentheses)
+                {
+                    sb.Append(@"\left( ");
+                    sb.Append(unicode);
+                    sb.Append(@" \right)");
+                }
+                else
+                    sb.Append(unicode);
+                c--;
+                if (c > 0)
+                    sb.Append(latexOperation);
+            }
 
-        Depth--;
-        Result.Append("\\left(");
-        var c = expression.Expressions.Count;
-        foreach (var e in expression.Expressions)
-        {
-            e.Accept(this);
-            c--;
-            if (c > 0)
-                Result.Append(latexOperation);
+            CurrentDepth--;
+            return (sb, true);
         }
-
-        Result.Append("\\right)");
-        Depth++;
     }
-
-    private void VisitNAryPrefix<T, TResult>(
+    
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitNAryPrefix<T, TResult>(
         IGenericNAryExpression<T, TResult> expression, 
         string latexOperation
     )
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
         {
-            FormatName(expression.Name);
-            return;
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            sb.Append(latexOperation);
+            sb.Append(@"\left( ");
+            var c = expression.Expressions.Count;
+            foreach (var e in expression.Expressions)
+            {
+                var (unicode, _) = GeneralizedAccept(e);
+                sb.Append(unicode);
+                c--;
+                if (c > 0)
+                    sb.Append(", ");
+            }
+            sb.Append(@" \right)");
+            CurrentDepth--;
+            return (sb, false);
         }
-
-        Depth--;
-        Result.Append(latexOperation);
-        Result.Append("\\left(");
-        var c = expression.Expressions.Count;
-        foreach (var e in expression.Expressions)
-        {
-            e.Accept(this);
-            c--;
-            if (c > 0)
-                Result.Append(", ");
-        }
-
-        Result.Append("\\right)");
-        Depth++;
     }
+    
 
     /// <summary>
     /// Formats the name of an expression putting as subscript the ending digits and substituting a greek letter using
     /// the correspondent Latex command
     /// </summary>
-    protected void FormatName(string name)
+    private StringBuilder FormatName(string name)
     {
-        var match = MyRegex().Match(name);
+        var match = OperandNameRegex().Match(name);
         string nameLetters;
         string? nameNumber = null;
         if (match.Success)
@@ -175,300 +313,228 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
             nameLetters = name;
 
         var nameLettersLower = nameLetters.ToLower();
+        
+        var sb = new StringBuilder();
         if (GreekLetters.Any(s => s.Equals(nameLettersLower)))
-            Result.Append("\\" + nameLettersLower);
+            sb.Append("\\" + nameLettersLower);
         else
-            Result.Append(nameLetters);
+            sb.Append(nameLetters);
 
-        Result.Append(nameNumber != null ? "_{{" + nameNumber + "}" : "");
+        sb.Append(nameNumber != null ? "_{{" + nameNumber + "}" : "");
 
-        Result.Append(nameNumber != null ? "}" : "");
+        sb.Append(nameNumber != null ? "}" : "");
+        return sb;
     }
+    
+    #endregion Default formatters
 
-    public virtual void Visit(ConcreteCurveExpression expression)
-    {
-        FormatName(expression.Name);
-    }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConcreteCurveExpression expression)
+        => (FormatName(expression.Name), false);
 
-    public virtual void Visit(RationalAdditionExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalAdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
 
-    public virtual void Visit(RationalSubtractionExpression expression)
-        => VisitBinaryCommand(expression, " - ");
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalSubtractionExpression expression)
+        => VisitBinaryInfix(expression, " - ");
     
-    public virtual void Visit(RationalProductExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalProductExpression expression)
         => VisitNAryInfix(expression, " \\cdot ");
 
-    public virtual void Visit(RationalDivisionExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalDivisionExpression expression)
         => VisitBinaryCommand(expression, "\\frac");
 
-    public virtual void Visit(RationalLeastCommonMultipleExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalLeastCommonMultipleExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{lcm}");
 
-    public virtual void Visit(RationalGreatestCommonDivisorExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalGreatestCommonDivisorExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{gcd}");
 
-    public void Visit(RationalMinimumExpression expression)
+    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalMinimumExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{min}");
 
-    public void Visit(RationalMaximumExpression expression)
+    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalMaximumExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{max}");
 
-    public virtual void Visit(RationalNumberExpression numberExpression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalNumberExpression numberExpression)
     {
         if (!numberExpression.Name.Equals("") && (ShowRationalsAsName || CurrentDepth >= MaxDepth))
-        {
-            FormatName(numberExpression.Name);
-            return;
-        }
-        
-        if(numberExpression.Value.Denominator == 1)
-            Result.Append($"{numberExpression.Value.Numerator}");
+            return (FormatName(numberExpression.Name), false);
         else
-            Result.Append($"\\frac{numberExpression.Value.Numerator}{numberExpression.Value.Denominator}");
+        {
+            var sb = new StringBuilder();
+            if (numberExpression.Value.Denominator == 1)
+                sb.Append($"{numberExpression.Value.Numerator}");
+            else
+                sb.Append($"\\frac{numberExpression.Value.Numerator}{numberExpression.Value.Denominator}");
+            return (sb, false);
+        }
     }
 
-    public virtual void Visit(NegateExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(NegateExpression expression)
+        => VisitUnaryPrefix(expression, "-");
+
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToNonNegativeExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        Result.Append('-');
-        expression.Expression.Accept(this);
-        Depth++;
-    }
-
-    public virtual void Visit(ToNonNegativeExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        var squareParenthesis = expression.Expression is not (ConcreteCurveExpression
-            or ToUpperNonDecreasingExpression
-            or ToLowerNonDecreasingExpression);
-        if (squareParenthesis) Result.Append('[');
-        expression.Expression.Accept(this);
-        if (squareParenthesis) Result.Append(']');
-        string resultToString = Result.ToString();
-        // Usually ToNonNegative is used together with ToUpperNonDecreasing or ToLowerNonDecreasing
-        // The following instructions are used to obtain the proper Latex formatting
-        if (resultToString.EndsWith("{_\\uparrow}") || resultToString.EndsWith("{_\\downarrow}"))
-        {
-            Result.Remove(Result.Length - 1, 1);
-            Result.Append("^{+}}");
-        }
+            return (FormatName(expression.Name), false);
         else
-            Result.Append("{^{+}}");
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var squareParenthesis = expression.Expression is not (ConcreteCurveExpression
+                or ToUpperNonDecreasingExpression
+                or ToLowerNonDecreasingExpression);
+            if (squareParenthesis) sb.Append('[');
+            var (latex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            sb.Append(latex);
+            if (squareParenthesis) sb.Append(']');
+            string resultToString = sb.ToString();
+            // Usually ToNonNegative is used together with ToUpperNonDecreasing or ToLowerNonDecreasing
+            // The following instructions are used to obtain the proper Latex formatting
+            if (resultToString.EndsWith("{_\\uparrow}") || resultToString.EndsWith("{_\\downarrow}"))
+            {
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append("^{+}}");
+            }
+            else
+                sb.Append("{^{+}}");
 
-        Depth++;
+            CurrentDepth--;
+            return (sb, false);
+        }
     }
 
-    public virtual void Visit(SubAdditiveClosureExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubAdditiveClosureExpression expression)
+        => VisitUnaryPrefix(expression, "\\overline");
+
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(
+        SuperAdditiveClosureExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        Result.Append(" \\overline {");
-        expression.Expression.Accept(this);
-        Result.Append("} ");
-        Depth++;
-    }
-
-    public virtual void Visit(SuperAdditiveClosureExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        Result.Append(@" \overline{\overline{");
-        expression.Expression.Accept(this);
-        Result.Append("}} ");
-        Depth++;
-    }
-
-    public virtual void Visit(ToUpperNonDecreasingExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        var squareParenthesis = expression.Expression is not (ConcreteCurveExpression or ToNonNegativeExpression);
-        if (squareParenthesis) Result.Append('[');
-        expression.Expression.Accept(this);
-        if (squareParenthesis) Result.Append(']');
-        // Usually ToUpperNonDecreasing is used together with ToNonNegative 
-        // The following instructions are used to obtain the proper Latex formatting
-        if (Result.ToString().EndsWith("{^{+}}"))
-        {
-            Result.Remove(Result.Length - 1, 1);
-            Result.Append("_\\uparrow}");
-        }
+            return (FormatName(expression.Name), false);
         else
-            Result.Append("{_\\uparrow}");
-
-        Depth++;
+        {
+            var (temp, _) = VisitUnaryPrefix(expression, "\\overline{\\overline");
+            temp.Append('}');
+            return (temp, false);
+        }
     }
 
-    public virtual void Visit(ToLowerNonDecreasingExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToUpperNonDecreasingExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
         {
-            FormatName(expression.Name);
-            return;
-        }
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var squareParenthesis = expression.Expression is not (ConcreteCurveExpression or ToNonNegativeExpression);
+            if (squareParenthesis) sb.Append('[');
+            var (latex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            sb.Append(latex);
+            if (squareParenthesis) sb.Append(']');
+            // Usually ToUpperNonDecreasing is used together with ToNonNegative 
+            // The following instructions are used to obtain the proper Latex formatting
+            if (sb.ToString().EndsWith("{^{+}}"))
+            {
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append("_\\uparrow}");
+            }
+            else
+                sb.Append("{_\\uparrow}");
 
-        Depth--;
-        var squareParenthesis = expression.Expression is not (ConcreteCurveExpression or ToNonNegativeExpression);
-        if (squareParenthesis) Result.Append('[');
-        expression.Expression.Accept(this);
-        if (squareParenthesis) Result.Append(']');
-        // Usually ToLowerNonDecreasing is used together with ToNonNegative 
-        // The following instructions are used to obtain the proper Latex formatting
-        if (Result.ToString().EndsWith("{^{+}}"))
-        {
-            Result.Remove(Result.Length - 1, 1);
-            Result.Append("_\\downarrow}");
+            CurrentDepth--;
+            return (sb, false);
         }
+    }
+
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLowerNonDecreasingExpression expression)
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
         else
-            Result.Append("{_\\downarrow}");
-
-        Depth++;
-    }
-
-    public virtual void Visit(ToLeftContinuousExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
         {
-            FormatName(expression.Name);
-            return;
-        }
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var squareParenthesis = expression.Expression is not (ConcreteCurveExpression or ToNonNegativeExpression);
+            if (squareParenthesis) sb.Append('[');
+            var (latex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            sb.Append(latex);
+            if (squareParenthesis) sb.Append(']');
+            // Usually ToLowerNonDecreasing is used together with ToNonNegative 
+            // The following instructions are used to obtain the proper Latex formatting
+            if (sb.ToString().EndsWith("{^{+}}"))
+            {
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append("_\\downarrow}");
+            }
+            else
+                sb.Append("{_\\downarrow}");
 
-        Depth--;
-        Result.Append("toLeftContinuous ");
-        expression.Expression.Accept(this);
-        Depth++;
+            CurrentDepth--;
+            return (sb, false);
+        }
     }
 
-    public virtual void Visit(ToRightContinuousExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLeftContinuousExpression expression)
+        => VisitUnaryPrefix(expression, "toLeftContinuous");
 
-        Depth--;
-        Result.Append("toRightContinuous ");
-        expression.Expression.Accept(this);
-        Depth++;
-    }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToRightContinuousExpression expression)
+        => VisitUnaryPrefix(expression, "toRightContinuous");
 
-    public virtual void Visit(WithZeroOriginExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(WithZeroOriginExpression expression)
+        => VisitUnaryPostfix(expression, @"^{\circ}", true);
 
-        Depth--;
-        Result.Append("\\left(");
-        expression.Expression.Accept(this);
-        Result.Append("°)");
-        Depth++;
-    }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
+        => VisitUnaryPostfix(expression, @"_{\downarrow}^{-1}", true);
 
-    public virtual void Visit(LowerPseudoInverseExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(UpperPseudoInverseExpression expression)
+        => VisitUnaryPostfix(expression, @"_{\uparrow}^{-1}", true);
 
-        Depth--;
-        expression.Expression.Accept(this);
-        Result.Append("{_\\downarrow^{-1}}");
-        Depth++;
-    }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(AdditionExpression expression)
+        => VisitNAryInfix(expression, " + ");
 
-    public virtual void Visit(UpperPseudoInverseExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        expression.Expression.Accept(this);
-        Result.Append("{_\\uparrow^{-1}}");
-        Depth++;
-    }
-
-    public virtual void Visit(AdditionExpression expression)
-        => VisitNAryInfix(expression, "+");
-
-    public virtual void Visit(SubtractionExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubtractionExpression expression)
     {
         if (expression.NonNegative)
         {
             var asNegative = expression with { NonNegative = false };
             var toNonNegative = new ToNonNegativeExpression(asNegative);
-            Visit(toNonNegative);
+            return Visit(toNonNegative);
         }
         else
         {
-            VisitBinaryInfix(expression, "-");
+            return VisitBinaryInfix(expression, " - ");
         }
     }
 
-    public virtual void Visit(MinimumExpression expression)
-        => VisitNAryInfix(expression, " \\wedge ");
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MinimumExpression expression)
+        => VisitNAryInfix(expression, @" \wedge ");
 
-    public virtual void Visit(MaximumExpression expression)
-        => VisitNAryInfix(expression, " \\vee ");
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaximumExpression expression)
+        => VisitNAryInfix(expression, @" \vee ");
 
-    public virtual void Visit(ConvolutionExpression expression)
-        => VisitNAryInfix(expression, " \\otimes ");
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConvolutionExpression expression)
+        => VisitNAryInfix(expression, @" \otimes ");
 
-    public virtual void Visit(DeconvolutionExpression expression)
-        => VisitBinaryInfix(expression, " \\oslash ");
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(DeconvolutionExpression expression)
+        => VisitBinaryInfix(expression, @" \oslash ");
 
-    public virtual void Visit(MaxPlusConvolutionExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxPlusConvolutionExpression expression)
         => VisitNAryInfix(expression, @" \overline{\otimes} ");
 
-    public virtual void Visit(MaxPlusDeconvolutionExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxPlusDeconvolutionExpression expression)
         => VisitBinaryInfix(expression, @" \overline{\oslash} ");
 
-    public virtual void Visit(CompositionExpression expression)
-        => VisitBinaryInfix(expression, " \\circ ");
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CompositionExpression expression)
+        => VisitBinaryInfix(expression, @" \circ ");
 
-    public virtual void Visit(DelayByExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(DelayByExpression expression)
         => VisitBinaryPrefix(expression, " delayBy");
 
-    public virtual void Visit(ForwardByExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ForwardByExpression expression)
         => VisitBinaryPrefix(expression, " forwardBy");
 
-    public void Visit(ShiftExpression expression)
+    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ShiftExpression expression)
     {
         switch (expression.RightExpression)
         {
@@ -478,8 +544,7 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
                 var substitute = new ShiftExpression(
                     (CurveExpression) expression.LeftExpression, 
                     (RationalExpression) inner);
-                VisitBinaryInfix(substitute, " - ");
-                break;
+                return VisitBinaryInfix(substitute, " - ");
             }
 
             case RationalNumberExpression rex when rex.Value.IsNegative:
@@ -487,143 +552,134 @@ public partial class LatexFormatterVisitor : ICurveExpressionVisitor, IRationalE
                 var substitute = new ShiftExpression(
                     (CurveExpression) expression.LeftExpression, 
                     new RationalNumberExpression(-rex.Value));
-                VisitBinaryInfix(substitute, " - ");
-                break;
+                return VisitBinaryInfix(substitute, " - ");
             }
 
             default:
             {
-                VisitBinaryInfix(expression, " + ");
-                break;
+                return VisitBinaryInfix(expression, " + ");
             }
         }
     }
 
-    public virtual void Visit(NegateRationalExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(NegateRationalExpression expression)
+        => VisitUnaryPrefix(expression, "-");
 
-        Depth--;
-        Result.Append('-');
-        expression.Expression.Accept(this);
-        Depth++;
-    }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
+        => VisitUnaryPostfix(expression, "^{-1}", expression.Expression is RationalNumberExpression);
 
-    public virtual void Visit(InvertRationalExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        var parenthesis = expression.Expression is RationalNumberExpression;
-        if (parenthesis)
-            Result.Append("\\left(");
-        expression.Expression.Accept(this);
-        if (parenthesis)
-            Result.Append("\\right)");
-        Result.Append("^{-1}");
-        Depth++;
-    }
-
-    public virtual void Visit(HorizontalDeviationExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(HorizontalDeviationExpression expression)
         => VisitBinaryPrefix(expression, "hdev");
 
-    public virtual void Visit(VerticalDeviationExpression expression)
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(VerticalDeviationExpression expression)
         => VisitBinaryPrefix(expression, "vdev");
 
-    public void Visit(ValueAtExpression expression)
+    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
         {
-            FormatName(expression.Name);
-            return;
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            if (curveNeedsParentheses)
+            {
+                sb.Append(@"\left(");
+                sb.Append(curveUnicode);
+                sb.Append(@"\right)");
+            }
+            else
+                sb.Append(curveUnicode);
+            var (timeUnicode, _) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            sb.Append(@"\left(");
+            sb.Append(timeUnicode);
+            sb.Append(@"\right)");
+            CurrentDepth--;
+            return (sb, false);
         }
-
-        Depth--;
-        Result.Append("\\left(");
-        expression.LeftExpression.Accept(this);
-        Result.Append("\\right)");
-        Result.Append("\\left(");
-        expression.RightExpression.Accept(this);
-        Result.Append("\\right)");
-        Depth++;
     }
 
-    public void Visit(LeftLimitAtExpression expression)
+    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
         {
-            FormatName(expression.Name);
-            return;
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            if (curveNeedsParentheses)
+            {
+                sb.Append(@"\left(");
+                sb.Append(curveUnicode);
+                sb.Append(@"\right)");
+            }
+            else
+                sb.Append(curveUnicode);
+            var (timeUnicode, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            sb.Append(@"\left(");
+            if (timeNeedsParentheses)
+            {
+                sb.Append(@"\left(");
+                sb.Append(timeUnicode);
+                sb.Append("^-");
+                sb.Append(@"\right)");
+            }
+            else
+                sb.Append(timeUnicode);
+            sb.Append(@"\right)");
+            CurrentDepth--;
+            return (sb, false);
         }
-
-        Depth--;
-        Result.Append("\\left(");
-        expression.LeftExpression.Accept(this);
-        Result.Append("\\right)");
-        Result.Append("\\left(");
-        Result.Append("(");
-        expression.RightExpression.Accept(this);
-        Result.Append(")");
-        Result.Append("^-");
-        Result.Append("\\right)");
-        Depth++;
     }
     
-    public void Visit(RightLimitAtExpression expression)
+    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
         {
-            FormatName(expression.Name);
-            return;
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            if (curveNeedsParentheses)
+            {
+                sb.Append(@"\left(");
+                sb.Append(curveUnicode);
+                sb.Append(@"\right)");
+            }
+            else
+                sb.Append(curveUnicode);
+            var (timeUnicode, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            sb.Append(@"\left(");
+            if (timeNeedsParentheses)
+            {
+                sb.Append(@"\left(");
+                sb.Append(timeUnicode);
+                sb.Append("^+");
+                sb.Append(@"\right)");
+            }
+            else
+                sb.Append(timeUnicode);
+            sb.Append(@"\right)");
+            CurrentDepth--;
+            return (sb, false);
         }
-
-        Depth--;
-        Result.Append("\\left(");
-        expression.LeftExpression.Accept(this);
-        Result.Append("\\right)");
-        Result.Append("\\left(");
-        Result.Append("(");
-        expression.RightExpression.Accept(this);
-        Result.Append(")");
-        Result.Append("^+");
-        Result.Append("\\right)");
-        Depth++;
     }
 
-    public virtual void Visit(CurvePlaceholderExpression expression)
-        => Result.Append(expression.Name);
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)
+        => (new StringBuilder(expression.Name), false);
 
-    public virtual void Visit(RationalPlaceholderExpression expression)
-        => Result.Append(expression.Name);
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalPlaceholderExpression expression)
+        => (new StringBuilder(expression.Name), false);
 
-    public virtual void Visit(ScaleExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-        {
-            FormatName(expression.Name);
-            return;
-        }
-
-        Depth--;
-        Result.Append("\\left(");
-        expression.RightExpression.Accept(this);
-        Result.Append(" \\cdot ");
-        expression.LeftExpression.Accept(this);
-        Result.Append("\\right)");
-        Depth++;
-    }
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ScaleExpression expression)
+        => VisitBinaryInfix(expression, @" \cdot ");
 
     /// <summary>
     /// Regular expression to detect strings which terminate with digits
     /// </summary>
     [GeneratedRegex("^(.*?)(\\d+)$")]
-    private static partial Regex MyRegex();
+    private static partial Regex OperandNameRegex();
 }

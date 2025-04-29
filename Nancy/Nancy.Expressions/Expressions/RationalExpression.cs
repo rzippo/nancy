@@ -80,12 +80,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public string ToLatexString(int depth = 20, bool showRationalsAsName = false)
     {
         var latexFormatterVisitor = new LatexFormatterVisitor(depth, showRationalsAsName);
-        Accept(latexFormatterVisitor);
-
-        var latexExpr = latexFormatterVisitor.Result.ToString();
-        // this is too simplistic, the two parentheses may not be matched with each other
-        // if (latexExpr is ['(', _, ..] && latexExpr[^1] == ')') // ^1 accesses the last character
-        //     latexExpr = latexExpr[1..^1];
+        var (sb, _) = Accept(latexFormatterVisitor);
+        var latexExpr = sb.ToString();
 
         return latexExpr;
     }

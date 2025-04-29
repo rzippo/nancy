@@ -28,12 +28,6 @@ public partial class UnicodeFormatterVisitor :
     /// </remarks>
     public int MaxDepth { get; init; }
     
-    /// <summary>
-    /// After a child visit, stores its result.
-    /// If needsParentheses is true, the result should be wrapped in parentheses before composition with other operators.
-    /// </summary>
-    private (string toString, bool needsParentheses) LastChildVisitResult { get; set; }
-    
     public bool ShowRationalsAsName { get; init; }
 
     /// <summary>
@@ -277,8 +271,6 @@ public partial class UnicodeFormatterVisitor :
             return (sb, false);
         }
     }
-    
-    #endregion Default formatters
 
     /// <summary>
     /// Formats the name of an expression substituting a greek letter using the correspondent symbol
@@ -305,6 +297,8 @@ public partial class UnicodeFormatterVisitor :
             sb.Append(nameNumber);
         return sb;
     }
+
+    #endregion Default formatters
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConcreteCurveExpression expression)
         => (FormatName(expression.Name), false);
@@ -354,12 +348,13 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var squareParenthesis = expression.Expression is not (ConcreteCurveExpression
+            var squareParentheses = expression.Expression is not (ConcreteCurveExpression
                 or ToUpperNonDecreasingExpression
                 or ToLowerNonDecreasingExpression);
-            if (squareParenthesis) sb.Append('[');
-            expression.Expression.Accept<(StringBuilder, bool)>(this);
-            if (squareParenthesis) sb.Append(']');
+            if (squareParentheses) sb.Append('[');
+            var (unicode, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            sb.Append(unicode);
+            if (squareParentheses) sb.Append(']');
             sb.Append('⁺');
             CurrentDepth--;
             return (sb, false);
