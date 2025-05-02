@@ -57,6 +57,30 @@ public partial class LatexFormatterVisitor :
 
     // todo: explore having generic entry points that take a PreferredOperatorNotation enum or something similar
 
+    /// <summary>
+    /// Returns true if the latex produced by the given expression contains, in right-most part, a subscript or superscript.
+    /// Used, e.g., to force parentheses in post-fix unary operators that add their own subscript or superscript.
+    /// </summary>
+    /// <typeparam name="TResult"></typeparam>
+    /// <param name="expression"></param>
+    /// <returns></returns>
+    public static bool ContainsSubscriptOrSuperscript<TResult>(IGenericExpression<TResult> expression)
+    {
+        // todo: improve with other cases
+        if (expression is (
+                LowerPseudoInverseExpression or 
+                UpperPseudoInverseExpression or
+                ToLowerNonDecreasingExpression or
+                ToUpperNonDecreasingExpression or
+                ToNonNegativeExpression or
+                ToLeftContinuousExpression or
+                ToRightContinuousExpression
+        ))
+            return true;
+        else
+            return false;
+    }
+
     #region Default formatters
 
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) GeneralizedAccept<TExpressionResult>(
@@ -600,35 +624,33 @@ public partial class LatexFormatterVisitor :
         }
     }
 
+    /// <summary>
+    /// Uses the notation from the PhD thesis of Damien Guidolin--Pina, where the operation is called "left projection".
+    /// </summary>
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLeftContinuousExpression expression)
-        => VisitUnaryPrefix(expression, "toLeftContinuous");
+        => VisitUnaryPostfix(expression, "_{l}",
+            innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
+        );
 
+    /// <summary>
+    /// Uses the notation from the PhD thesis of Damien Guidolin--Pina, where the operation is called "right projection".
+    /// </summary>
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToRightContinuousExpression expression)
-        => VisitUnaryPrefix(expression, "toRightContinuous");
+        => VisitUnaryPostfix(expression, "_{r}",
+            innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
+        );
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(WithZeroOriginExpression expression)
         => VisitUnaryPostfix(expression, @"^{\circ}", true);
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
         => VisitUnaryPostfix(expression, @"^{\underline{-1}}", 
-            (innerExpression => innerExpression is (
-                LowerPseudoInverseExpression or 
-                UpperPseudoInverseExpression or
-                ToLowerNonDecreasingExpression or
-                ToUpperNonDecreasingExpression or
-                ToNonNegativeExpression
-            ))
+            innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
         );
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(UpperPseudoInverseExpression expression)
         => VisitUnaryPostfix(expression, @"^{\overline{-1}}", 
-            (innerExpression => innerExpression is (
-                LowerPseudoInverseExpression or 
-                UpperPseudoInverseExpression or
-                ToLowerNonDecreasingExpression or
-                ToUpperNonDecreasingExpression or
-                ToNonNegativeExpression
-            ))
+            innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
         );
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(AdditionExpression expression)
