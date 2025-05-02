@@ -5,12 +5,22 @@ namespace Unipi.Nancy.Expressions.Equivalences;
 
 public partial class Equivalence
 {
+    /// <summary>
+    /// Reads a set of equivalences from a text file.
+    /// </summary>
+    /// <param name="fileName">Path to text file.</param>
+    /// <returns></returns>
     public static List<Equivalence> ReadEquivalencesFromFile(string fileName)
     {
         var equivalenceCatalog = File.ReadAllText(fileName);
-        return ReadEquivalencesFromFile(equivalenceCatalog);
+        return ReadEquivalences(equivalenceCatalog);
     }
 
+    /// <summary>
+    /// Reads a set of equivalences from a string.
+    /// </summary>
+    /// <param name="equivalenceCatalog">The string containing the equivalences.</param>
+    /// <returns></returns>
     public static List<Equivalence> ReadEquivalences(string equivalenceCatalog)
     {
         List<Equivalence> equivalenceList = [];
