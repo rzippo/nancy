@@ -3,9 +3,9 @@
 /// <summary>
 /// Lemma 4.12 PhD Thesis Zippo
 /// </summary>
-public class PseudoInverseOfLeftContinuous : Equivalence
+public class PseudoInversesOfLeftContinuous : Equivalence
 {
-    public PseudoInverseOfLeftContinuous() :
+    public PseudoInversesOfLeftContinuous() :
         base(Expressions.LowerPseudoInverse(Expressions.UpperPseudoInverse(Expressions.Placeholder("f"))),
             Expressions.Placeholder("f"))
     {

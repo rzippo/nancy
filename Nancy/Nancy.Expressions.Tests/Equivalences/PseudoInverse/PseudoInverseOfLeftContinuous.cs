@@ -6,7 +6,7 @@ using Unipi.Nancy.NetworkCalculus;
 namespace Unipi.Nancy.Expressions.Tests.Equivalences.PseudoInverse;
 
 
-[TestSubject(typeof(Nancy.Expressions.Equivalences.PseudoInverseOfLeftContinuous))]
+[TestSubject(typeof(Nancy.Expressions.Equivalences.PseudoInversesOfLeftContinuous))]
 public class PseudoInverseOfLeftContinuous
 {
 
@@ -17,7 +17,7 @@ public class PseudoInverseOfLeftContinuous
 
         var e = Expressions.LowerPseudoInverse(Expressions.UpperPseudoInverse(f));
         
-        var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.PseudoInverseOfLeftContinuous());
+        var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.PseudoInversesOfLeftContinuous());
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
         var expected = "f";

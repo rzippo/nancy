@@ -6,7 +6,7 @@ using Unipi.Nancy.NetworkCalculus;
 namespace Unipi.Nancy.Expressions.Tests.Equivalences.PseudoInverse;
 
 
-[TestSubject(typeof(Nancy.Expressions.Equivalences.PseudoInverseOfRightContinuous))]
+[TestSubject(typeof(Nancy.Expressions.Equivalences.PseudoInversesOfRightContinuous))]
 public class PseudoInverseOfRightContinuous
 {
 
@@ -18,7 +18,7 @@ public class PseudoInverseOfRightContinuous
         var e = Expressions.UpperPseudoInverse(
             Expressions.LowerPseudoInverse(f));
 
-        var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.PseudoInverseOfRightContinuous());
+        var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.PseudoInversesOfRightContinuous());
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
         var expected = "f";

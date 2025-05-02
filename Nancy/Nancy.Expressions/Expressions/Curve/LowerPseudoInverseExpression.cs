@@ -17,7 +17,7 @@ public record LowerPseudoInverseExpression : CurveUnaryExpression<Curve>
     static LowerPseudoInverseExpression()
     {
         AddEquivalence(typeof(LowerPseudoInverseExpression), new IsomorphismConvRight());
-        AddEquivalence(typeof(LowerPseudoInverseExpression), new PseudoInverseOfLeftContinuous());
+        AddEquivalence(typeof(LowerPseudoInverseExpression), new PseudoInversesOfLeftContinuous());
     }
     
     /// <summary>

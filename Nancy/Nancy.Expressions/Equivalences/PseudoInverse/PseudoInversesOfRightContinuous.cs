@@ -1,8 +1,8 @@
 ﻿namespace Unipi.Nancy.Expressions.Equivalences;
 
-public class PseudoInverseOfRightContinuous : Equivalence // Lemma 4.13 PhD Thesis Zippo
+public class PseudoInversesOfRightContinuous : Equivalence // Lemma 4.13 PhD Thesis Zippo
 {
-    public PseudoInverseOfRightContinuous() :
+    public PseudoInversesOfRightContinuous() :
         base(Expressions.UpperPseudoInverse(Expressions.LowerPseudoInverse(Expressions.Placeholder("f"))),
             Expressions.Placeholder("f"))
     {
