@@ -18,7 +18,7 @@ public partial class UnicodeFormatterVisitor :
     /// 0 means root node, and is incremented during each child visit.
     /// </summary>
     public int CurrentDepth { get; private set; }
-    
+
     /// <summary>
     /// Max depth at which children should be fully expanded.
     /// After this depth is reached, any node that has a name is represented through that name, instead of being expanded further.
@@ -27,7 +27,7 @@ public partial class UnicodeFormatterVisitor :
     /// If set to 0, any node that has a name is not expanded.
     /// </remarks>
     public int MaxDepth { get; init; }
-    
+
     public bool ShowRationalsAsName { get; init; }
 
     /// <summary>
@@ -43,11 +43,6 @@ public partial class UnicodeFormatterVisitor :
         CurrentDepth = 0;
         ShowRationalsAsName = showRationalsAsName;
     }
-
-    // /// <summary>
-    // /// Textual representation of the expression
-    // /// </summary>
-    // public StringBuilder Result { get; } = new();
 
     /// <summary>
     /// Dictionary of greek letters to substitute the expanded letters with their correspondent Unicode symbol
@@ -79,7 +74,7 @@ public partial class UnicodeFormatterVisitor :
         { "psi", "\u03C8" },
         { "omega", "\u03C9" }
     };
-    
+
     #region Default formatters
 
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) GeneralizedAccept<TExpressionResult>(
@@ -93,7 +88,7 @@ public partial class UnicodeFormatterVisitor :
         else
             throw new NotImplementedException();
     }
-    
+
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryPrefix<T1, TResult>(
         IGenericUnaryExpression<T1, TResult> expression,
         string unicodeOperation
@@ -106,14 +101,14 @@ public partial class UnicodeFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder();
             var (innerUnicode, _) = GeneralizedAccept(expression.Expression);
-            
-            sb.Append(unicodeOperation);    
+
+            sb.Append(unicodeOperation);
             sb.Append('(');
             sb.Append(innerUnicode);
             sb.Append(')');
-        
+
             CurrentDepth--;
-            return (sb, false);    
+            return (sb, false);
         }
     }
 
@@ -135,7 +130,7 @@ public partial class UnicodeFormatterVisitor :
                 sb.Append('(');
                 sb.Append(innerUnicode);
                 sb.Append(')');
-                sb.Append(unicodeOperation);    
+                sb.Append(unicodeOperation);
             }
             else
             {
@@ -143,7 +138,7 @@ public partial class UnicodeFormatterVisitor :
                 sb.Append(unicodeOperation);
             }
             CurrentDepth--;
-            return (sb, false);    
+            return (sb, false);
         }
     }
 
@@ -158,7 +153,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            
+
             var (leftUnicodeBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftExpression);
             if (leftNeedsParentheses)
             {
@@ -168,9 +163,9 @@ public partial class UnicodeFormatterVisitor :
             }
             else
                 sb.Append(leftUnicodeBuilder);
-            
+
             sb.Append(unicodeOperation);
-            
+
             var (rightUnicodeBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightExpression);
             if (rightNeedsParentheses)
             {
@@ -221,7 +216,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            
+
             var c = expression.Expressions.Count;
             foreach (var e in expression.Expressions)
             {
@@ -243,7 +238,7 @@ public partial class UnicodeFormatterVisitor :
             return (sb, true);
         }
     }
-    
+
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitNAryPrefix<T, TResult>(
         IGenericNAryExpression<T, TResult> expression, 
         string unicodeOperation
@@ -289,7 +284,7 @@ public partial class UnicodeFormatterVisitor :
             nameLetters = name;
 
         var nameLettersLower = nameLetters.ToLower();
-        
+
         var sb = new StringBuilder();
         sb.Append(GreekLetters.GetValueOrDefault(nameLettersLower, nameLetters));
 
@@ -304,12 +299,12 @@ public partial class UnicodeFormatterVisitor :
     {
         var formattedName = FormatName(expression.Name).ToString();
         var needsParentheses = formattedName.Contains(' ');
-        return (new StringBuilder(formattedName), needsParentheses);   
+        return (new StringBuilder(formattedName), needsParentheses);
     }
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalAdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
-    
+
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalSubtractionExpression expression)
         => VisitBinaryInfix(expression, " - ");
 
@@ -324,10 +319,10 @@ public partial class UnicodeFormatterVisitor :
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalGreatestCommonDivisorExpression expression)
         => VisitNAryPrefix(expression, "gcd");
-    
+
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalMinimumExpression expression)
         => VisitNAryPrefix(expression, "min");
-    
+
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalMaximumExpression expression)
         => VisitNAryPrefix(expression, "max");
 
@@ -473,7 +468,7 @@ public partial class UnicodeFormatterVisitor :
             {
                 sb.Append(unicode);
                 sb.Append('↓');
-                sb.Append("\u207B" + "\u00B9");    
+                sb.Append("\u207B" + "\u00B9");
             }
             CurrentDepth--;
             return (sb, false);
@@ -509,7 +504,7 @@ public partial class UnicodeFormatterVisitor :
             {
                 sb.Append(unicode);
                 sb.Append('↑');
-                sb.Append("\u207B\u00B9");    
+                sb.Append("\u207B\u00B9");
             }
             CurrentDepth--;
             return (sb, false);
@@ -587,7 +582,7 @@ public partial class UnicodeFormatterVisitor :
             }
         }
     }
-    
+
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(NegateRationalExpression expression)
         => VisitUnaryPrefix(expression, "-");
 
@@ -613,7 +608,7 @@ public partial class UnicodeFormatterVisitor :
             {
                 sb.Append('(');
                 sb.Append(curveUnicode);
-                sb.Append(')');    
+                sb.Append(')');
             }
             else
                 sb.Append(curveUnicode);
@@ -639,7 +634,7 @@ public partial class UnicodeFormatterVisitor :
             {
                 sb.Append('(');
                 sb.Append(curveUnicode);
-                sb.Append(')');    
+                sb.Append(')');
             }
             else
                 sb.Append(curveUnicode);
@@ -659,7 +654,7 @@ public partial class UnicodeFormatterVisitor :
             return (sb, false);
         }
     }
-    
+
     public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -673,7 +668,7 @@ public partial class UnicodeFormatterVisitor :
             {
                 sb.Append('(');
                 sb.Append(curveUnicode);
-                sb.Append(')');    
+                sb.Append(')');
             }
             else
                 sb.Append(curveUnicode);
@@ -693,7 +688,7 @@ public partial class UnicodeFormatterVisitor :
             return (sb, false);
         }
     }
-    
+
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)
         => (new StringBuilder(expression.Name), false);
 

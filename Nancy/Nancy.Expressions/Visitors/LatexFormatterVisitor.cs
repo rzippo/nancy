@@ -18,7 +18,7 @@ public partial class LatexFormatterVisitor :
     /// 0 means root node, and is incremented during each child visit.
     /// </summary>
     public int CurrentDepth { get; private set; }
-    
+
     /// <summary>
     /// Max depth at which children should be fully expanded.
     /// After this depth is reached, any node that has a name is represented through that name, instead of being expanded further.
@@ -52,11 +52,11 @@ public partial class LatexFormatterVisitor :
         "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda", "mu", "nu",
         "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
     ];
-    
+
     // todo: explore having generic entry points that take a PreferredOperatorNotation enum or something similar
-    
+
     #region Default formatters
-    
+
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) GeneralizedAccept<TExpressionResult>(
         IGenericExpression<TExpressionResult> expression
     )
@@ -81,12 +81,12 @@ public partial class LatexFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder();
             var (innerUnicode, _) = GeneralizedAccept(expression.Expression);
-            
+
             sb.Append(latexCommand);
             sb.Append('{');
             sb.Append(innerUnicode);
             sb.Append('}');
-        
+
             CurrentDepth--;
             return (sb, false);
         }
@@ -104,12 +104,12 @@ public partial class LatexFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder();
             var (innerUnicode, _) = GeneralizedAccept(expression.Expression);
-            
+
             sb.Append(operation);
             sb.Append(@"\left( ");
             sb.Append(innerUnicode);
             sb.Append(@" \right)");
-        
+
             CurrentDepth--;
             return (sb, false);
         }
@@ -180,7 +180,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            
+
             var (leftUnicodeBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftExpression);
             if (leftNeedsParentheses)
             {
@@ -190,9 +190,9 @@ public partial class LatexFormatterVisitor :
             }
             else
                 sb.Append(leftUnicodeBuilder);
-            
+
             sb.Append(latexOperation);
-            
+
             var (rightUnicodeBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightExpression);
             if (rightNeedsParentheses)
             {
@@ -243,7 +243,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            
+
             var c = expression.Expressions.Count;
             foreach (var e in expression.Expressions)
             {
@@ -265,7 +265,7 @@ public partial class LatexFormatterVisitor :
             return (sb, true);
         }
     }
-    
+
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitNAryPrefix<T, TResult>(
         IGenericNAryExpression<T, TResult> expression, 
         string latexOperation
@@ -293,7 +293,6 @@ public partial class LatexFormatterVisitor :
             return (sb, false);
         }
     }
-    
 
     /// <summary>
     /// Formats the name of an expression putting as subscript the ending digits and substituting a greek letter using
@@ -313,7 +312,7 @@ public partial class LatexFormatterVisitor :
             nameLetters = name;
 
         var nameLettersLower = nameLetters.ToLower();
-        
+
         var sb = new StringBuilder();
         if (GreekLetters.Any(s => s.Equals(nameLettersLower)))
             sb.Append("\\" + nameLettersLower);
@@ -325,7 +324,7 @@ public partial class LatexFormatterVisitor :
         sb.Append(nameNumber != null ? "}" : "");
         return sb;
     }
-    
+
     #endregion Default formatters
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConcreteCurveExpression expression)
@@ -336,7 +335,7 @@ public partial class LatexFormatterVisitor :
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalSubtractionExpression expression)
         => VisitBinaryInfix(expression, " - ");
-    
+
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalProductExpression expression)
         => VisitNAryInfix(expression, " \\cdot ");
 
@@ -573,7 +572,7 @@ public partial class LatexFormatterVisitor :
                         sb.Append(@"_{\downarrow}");
                     break;
                 }
-                
+
                 default:
                 {
                     var (innerLatex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
@@ -748,7 +747,7 @@ public partial class LatexFormatterVisitor :
             return (sb, false);
         }
     }
-    
+
     public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
