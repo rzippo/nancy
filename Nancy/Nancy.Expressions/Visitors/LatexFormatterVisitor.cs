@@ -6,6 +6,8 @@ using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Expressions.Visitors;
 
+// todo: document notation used by the library
+
 /// <summary>
 /// Used for visiting an expression and create its representation using Latex code.
 /// </summary>
@@ -127,8 +129,9 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerUnicode, needsParentheses) = GeneralizedAccept(expression.Expression);
-            if (forceParentheses || needsParentheses)
+            var (innerUnicode, innerNeedsParentheses) = GeneralizedAccept(expression.Expression);
+            var needsParentheses = innerNeedsParentheses || forceParentheses; 
+            if (needsParentheses)
             {
                 sb.Append(@"\left( ");
                 sb.Append(innerUnicode);
@@ -144,6 +147,13 @@ public partial class LatexFormatterVisitor :
             return (sb, false);
         }
     }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryPostfix<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        string operation,
+        Func<IGenericExpression<T1>, bool> parenthesesDeterminator
+    )
+        => VisitUnaryPostfix(expression, operation, parenthesesDeterminator(expression.Expression));
 
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryCommand<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
@@ -403,6 +413,7 @@ public partial class LatexFormatterVisitor :
         }
     }
 
+    // todo: review notation for subAdditive and superAdditive closures
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubAdditiveClosureExpression expression)
         => VisitUnaryCommand(expression, @"\overline");
 
@@ -599,10 +610,26 @@ public partial class LatexFormatterVisitor :
         => VisitUnaryPostfix(expression, @"^{\circ}", true);
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
-        => VisitUnaryPostfix(expression, @"^{-1}_{\downarrow}", true);
+        => VisitUnaryPostfix(expression, @"^{\underline{-1}}", 
+            (innerExpression => innerExpression is (
+                LowerPseudoInverseExpression or 
+                UpperPseudoInverseExpression or
+                ToLowerNonDecreasingExpression or
+                ToUpperNonDecreasingExpression or
+                ToNonNegativeExpression
+            ))
+        );
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(UpperPseudoInverseExpression expression)
-        => VisitUnaryPostfix(expression, @"^{-1}_{\uparrow}", true);
+        => VisitUnaryPostfix(expression, @"^{\overline{-1}}", 
+            (innerExpression => innerExpression is (
+                LowerPseudoInverseExpression or 
+                UpperPseudoInverseExpression or
+                ToLowerNonDecreasingExpression or
+                ToUpperNonDecreasingExpression or
+                ToNonNegativeExpression
+            ))
+        );
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(AdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
