@@ -301,7 +301,11 @@ public partial class UnicodeFormatterVisitor :
     #endregion Default formatters
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConcreteCurveExpression expression)
-        => (FormatName(expression.Name), false);
+    {
+        var formattedName = FormatName(expression.Name).ToString();
+        var needsParentheses = formattedName.Contains(' ');
+        return (new StringBuilder(formattedName), needsParentheses);   
+    }
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalAdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
@@ -448,7 +452,15 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (unicode, needsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            var (unicode, innerNeedsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            var operationNeedsParentheses = expression.Expression is (
+                LowerPseudoInverseExpression or 
+                UpperPseudoInverseExpression or
+                ToLowerNonDecreasingExpression or
+                ToUpperNonDecreasingExpression or
+                ToNonNegativeExpression
+            );
+            var needsParentheses = innerNeedsParentheses || operationNeedsParentheses;
             if (needsParentheses)
             {
                 sb.Append('(');
@@ -476,7 +488,15 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (unicode, needsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            var (unicode, innerNeedsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            var operationNeedsParentheses = expression.Expression is (
+                LowerPseudoInverseExpression or 
+                UpperPseudoInverseExpression or
+                ToLowerNonDecreasingExpression or
+                ToUpperNonDecreasingExpression or
+                ToNonNegativeExpression
+                );
+            var needsParentheses = innerNeedsParentheses || operationNeedsParentheses;
             if (needsParentheses)
             {
                 sb.Append('(');
@@ -681,8 +701,8 @@ public partial class UnicodeFormatterVisitor :
         => (new StringBuilder(expression.Name), false);
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ScaleExpression expression)
-        => VisitBinaryInfix(expression, "*");
-    
+        => VisitBinaryInfix(expression, "·");
+
     /// <summary>
     /// Regular expression to detect strings which terminate with digits
     /// </summary>
