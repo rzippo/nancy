@@ -584,9 +584,20 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         }
 
         if (typeof(T) == typeof(Curve))
-            _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [tempL, tempR, ((CurveExpression)binaryExpression).Name, binaryExpression.Settings])
-                as IGenericExpression<Curve>;
+        {
+            if (binaryExpression is SubtractionExpression se)
+            {
+                _tempCurveExpression = Activator.CreateInstance(typeof(SubtractionExpression),
+                        [tempL, tempR, se.NonNegative, se.Name, se.Settings])
+                    as IGenericExpression<Curve>;
+            }
+            else
+            {
+                _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
+                        [tempL, tempR, ((CurveExpression)binaryExpression).Name, binaryExpression.Settings])
+                    as IGenericExpression<Curve>;    
+            }
+        }
         else
             _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
                     [tempL, tempR, ((CurveExpression)binaryExpression).Name, binaryExpression.Settings])
