@@ -6,9 +6,9 @@ namespace Unipi.Nancy.Expressions.Visitors;
 // todo: is this redundant?
 
 /// <summary>
-/// Visitor class used to update the name of a curve expression.
+/// Visitor class used to change the name of a curve expression.
 /// </summary>
-public class ChangeNameCurveVisitor : ICurveExpressionVisitor
+public class RenameCurveVisitor : ICurveExpressionVisitor
 {
     /// <summary>
     /// Field used as intermediate and final result of the visitor
@@ -18,66 +18,78 @@ public class ChangeNameCurveVisitor : ICurveExpressionVisitor
     public string NewName { get; init; }
 
     /// <summary>
-    /// Visitor class used to update the name of a curve expression.
+    /// Visitor class used to change the name of a curve expression.
     /// </summary>
     /// <param name="newName">The new name of the expression</param>
-    public ChangeNameCurveVisitor(string newName)
+    public RenameCurveVisitor(string newName)
     {
         NewName = newName;
     }
 
+    private void CommonVisit(CurveExpression expression)
+    {
+        Result = expression with
+        {
+            Name = NewName,
+            // Since we know renaming does not change the result,
+            // it is safe to explicitly copy over the cache fields
+            _value = expression.Value,
+            _isSubAdditive = expression.IsSubAdditive,
+        };
+    }
+
     public virtual void Visit(ConcreteCurveExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(NegateExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(ToNonNegativeExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(SubAdditiveClosureExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(SuperAdditiveClosureExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(ToUpperNonDecreasingExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(ToLowerNonDecreasingExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(ToLeftContinuousExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(ToRightContinuousExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(WithZeroOriginExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(LowerPseudoInverseExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(UpperPseudoInverseExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(AdditionExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
 
     public virtual void Visit(SubtractionExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(MinimumExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     public virtual void Visit(MaximumExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
 
     public virtual void Visit(ConvolutionExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
 
     public virtual void Visit(DeconvolutionExpression expression)

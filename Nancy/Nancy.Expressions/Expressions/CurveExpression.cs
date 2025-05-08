@@ -277,6 +277,22 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     #endregion Properties
 
+    #region Constructors
+
+    /// <summary>
+    /// Copy constructor.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <remarks>
+    /// This constructor was made explicit to *not* copy the private cache fields when using the with operator.
+    /// </remarks>
+    public CurveExpression(CurveExpression other)
+    {
+        Name = other.Name;
+    }
+    
+    #endregion Constructors
+    
     #region Methods
 
     /// <summary>
@@ -971,16 +987,20 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     public ExpressionPosition RootPosition() => new();
 
-    // todo: is this redundant?
-    
     /// <summary>
     /// Changes the name of the expression.
     /// </summary>
     /// <param name="expressionName">The new name of the expression</param>
-    /// <returns>The expression (new object of type <see cref="CurveExpression"/>) with the new name</returns>
+    /// <returns>
+    /// The expression (new object of type <see cref="CurveExpression"/>) with the new name.
+    /// </returns>
+    /// <remarks>
+    /// Renaming can be done using the with operator, but that will clear out the cache fields, causing re-computation of the expression.
+    /// This method will instead copy over the cache fields.
+    /// </remarks>
     public CurveExpression WithName(string expressionName)
     {
-        var changeNameVisitor = new ChangeNameCurveVisitor(expressionName);
+        var changeNameVisitor = new RenameCurveVisitor(expressionName);
         Accept(changeNameVisitor);
 
         return changeNameVisitor.Result;

@@ -49,6 +49,22 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     
     #endregion Properties
 
+    #region Constructors
+
+    /// <summary>
+    /// Copy constructor.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <remarks>
+    /// This constructor was made explicit to *not* copy the private cache fields when using the with operator.
+    /// </remarks>
+    public RationalExpression(RationalExpression other)
+    {
+        Name = other.Name;
+    }
+
+    #endregion Constructors
+    
     #region Methods
 
     public Rational Compute() => _value ??= new RationalExpressionEvaluator().GetResult(this);
@@ -168,16 +184,20 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
 
     public ExpressionPosition RootPosition() => new();
 
-    // todo: is this redundant?
-
     /// <summary>
     /// Changes the name of the expression.
     /// </summary>
     /// <param name="expressionName">The new name of the expression</param>
-    /// <returns>The expression (new object of type <see cref="RationalExpression"/>) with the new name</returns>
+    /// <returns>
+    /// The expression (new object of type <see cref="RationalExpression"/>) with the new name.
+    /// </returns>
+    /// <remarks>
+    /// Renaming can be done using the with operator, but that will clear out the cache fields, causing re-computation of the expression.
+    /// This method will instead copy over the cache fields.
+    /// </remarks>
     public RationalExpression WithName(string expressionName)
     {
-        var changeNameVisitor = new ChangeNameRationalVisitor(expressionName);
+        var changeNameVisitor = new RenameRationalVisitor(expressionName);
         Accept(changeNameVisitor);
 
         return changeNameVisitor.Result;
