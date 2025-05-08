@@ -157,9 +157,41 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         IGenericExpression<T1> newExpressionToReplace)
         => ReplaceByPosition(expressionPosition.GetPositionPath(), newExpressionToReplace);
 
+    /// <summary>
+    /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced.</param>
+    /// <param name="newExpressionToReplace">The new sub-expression.</param>
+    /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expression.</returns>
     IGenericExpression<Rational> IGenericExpression<Rational>.ReplaceByPosition<T1>(
         ExpressionPosition expressionPosition, IGenericExpression<T1> newExpressionToReplace) =>
         ReplaceByPosition(expressionPosition, newExpressionToReplace);
+    
+    /// <summary>
+    /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced.</param>
+    /// <param name="newValueToReplace">The new value to replace the sub-expression.</param>
+    /// /// <param name="name">The name of the new value.</param>
+    /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expression.</returns>
+    public RationalExpression ReplaceByPosition(ExpressionPosition expressionPosition,
+        Curve newValueToReplace,
+        [CallerArgumentExpression("newValueToReplace")] string name = ""
+    )
+        => ReplaceByPosition(expressionPosition.GetPositionPath(), newValueToReplace.ToExpression(name));
+
+    /// <summary>
+    /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced.</param>
+    /// <param name="newValueToReplace">The new value to replace the sub-expression.</param>
+    /// <param name="name">The name of the new value.</param>
+    /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expression.</returns>
+    public RationalExpression ReplaceByPosition(ExpressionPosition expressionPosition,
+        Rational newValueToReplace,
+        [CallerArgumentExpression("newValueToReplace")] string name = ""
+    )
+        => ReplaceByPosition(expressionPosition.GetPositionPath(), newValueToReplace.ToExpression(name));
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.

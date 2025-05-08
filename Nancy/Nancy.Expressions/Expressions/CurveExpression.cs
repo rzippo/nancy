@@ -829,6 +829,32 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         return (CurveExpression)replacer.ReplaceByPosition(positionPath);
     }
 
+    /// <summary>
+    /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced.</param>
+    /// <param name="newValueToReplace">The new value to replace the sub-expression.</param>
+    /// /// <param name="name">The name of the new value.</param>
+    /// <returns>New expression object (of type <see cref="CurveExpression"/>) with replaced sub-expression.</returns>
+    public CurveExpression ReplaceByPosition(ExpressionPosition expressionPosition,
+        Curve newValueToReplace,
+        [CallerArgumentExpression("newValueToReplace")] string name = ""
+    )
+        => ReplaceByPosition(expressionPosition.GetPositionPath(), newValueToReplace.ToExpression(name));
+
+    /// <summary>
+    /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced.</param>
+    /// <param name="newValueToReplace">The new value to replace the sub-expression.</param>
+    /// <param name="name">The name of the new value.</param>
+    /// <returns>New expression object (of type <see cref="CurveExpression"/>) with replaced sub-expression.</returns>
+    public CurveExpression ReplaceByPosition(ExpressionPosition expressionPosition,
+        Rational newValueToReplace,
+        [CallerArgumentExpression("newValueToReplace")] string name = ""
+    )
+        => ReplaceByPosition(expressionPosition.GetPositionPath(), newValueToReplace.ToExpression(name));
+
     IGenericExpression<Curve> IGenericExpression<Curve>.ReplaceByPosition<T1>(IEnumerable<string> positionPath,
         IGenericExpression<T1> newExpressionToReplace) => ReplaceByPosition(positionPath, newExpressionToReplace);
 

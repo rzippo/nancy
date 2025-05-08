@@ -40,14 +40,14 @@ public class ExpressionPosition
     /// <summary>
     /// Adds to the path the step through the operand of a unary expression node
     /// </summary>
-    public ExpressionPosition Operand() // For unary expressions
+    public ExpressionPosition InnerOperand() // For unary expressions
         => new(_positionPath.Append("Operand"));
 
     /// <summary>
     /// Adds to the path the step through the operand number <see cref="index"/> (starting from 0) of an n-ary
     /// expression node
     /// </summary>
-    public ExpressionPosition Operand(int index) // For n-ary expressions
+    public ExpressionPosition IndexedOperand(int index) // For n-ary expressions
         => new(_positionPath.Append(index.ToString()));
 
     /// <summary>
@@ -75,7 +75,7 @@ public class ExpressionPosition
     /// </summary>
     private static bool IsValidPosition(string input)
     {
-        return input == "Operand" || input == "LeftOperand" || input == "RightOperand" || IsNumber(input);
+        return input == Positions.InnerOperand || input == Positions.LeftOperand || input == Positions.RightOperand || IsNumber(input);
     }
 
     /// <summary>
@@ -90,4 +90,12 @@ public class ExpressionPosition
     /// Return the path inside an expression as a list of direction strings
     /// </summary>
     public IEnumerable<string> GetPositionPath() => _positionPath;
+}
+
+public static class Positions
+{
+    public const string LeftOperand = "LeftOperand";
+    public const string RightOperand = "RightOperand";
+    public const string InnerOperand = "Operand";
+    public static string IndexedOperand(int i) => $"{i}";
 }
