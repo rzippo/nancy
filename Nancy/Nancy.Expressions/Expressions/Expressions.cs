@@ -459,6 +459,13 @@ public static class Expressions
         string expressionName = "", ExpressionSettings? settings = null)
         => new ConvolutionExpression(curves, names, expressionName, settings);
 
+    /// <summary>
+    /// Creates a new expression composed of the convolution between the expressions passed as arguments.
+    /// </summary>
+    public static CurveExpression Convolution(IReadOnlyCollection<CurveExpression> curveExpressions,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new ConvolutionExpression(curveExpressions, expressionName, settings);
+
     #endregion Convolution
 
     #region Deconvolution
