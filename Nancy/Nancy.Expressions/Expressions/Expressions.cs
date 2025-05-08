@@ -282,6 +282,13 @@ public static class Expressions
         string expressionName = "", ExpressionSettings? settings = null)
         => new AdditionExpression(curves, names, expressionName, settings);
 
+    /// <summary>
+    /// Creates a new expression composed of the addition between the expressions passed as arguments.
+    /// </summary>
+    public static CurveExpression Addition(IReadOnlyCollection<CurveExpression> curveExpressions,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new AdditionExpression(curveExpressions, expressionName, settings);
+
     #endregion Addition
 
     #region Subtraction
