@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text;
+using System.Text.Json.Serialization;
 using NLog;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
@@ -7,7 +8,7 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.NetworkCalculus;
 
 /// <summary>
-/// A (sigma, rho) traffic model, also know as token-bucket or leaky-bucket.
+/// A (sigma, rho) traffic model, also known as leaky-bucket.
 /// Sub-additive
 /// </summary>
 [JsonConverter(typeof(SigmaRhoArrivalCurveSystemJsonConverter))]
@@ -68,6 +69,30 @@ public class SigmaRhoArrivalCurve : ConcaveCurve
 
     //These parameters have no meaning model-wise, they only influence efficiency of Extend()
     private static readonly Rational DefaultPeriodLength = 1;
+
+    public override string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        var newline = formatted ? "\n" : "";
+        var space = formatted ? "\n" : " ";
+
+        var sb = new StringBuilder();
+        sb.Append($"{tabs(0)}new SigmaRhoArrivalCurve({newline}");
+        sb.Append($"{tabs(1)}{Sigma.ToCodeString()},{space}");
+        sb.Append($"{tabs(1)}{Rho.ToCodeString()}{newline}");
+        sb.Append($"{tabs(0)})");
+
+        return sb.ToString();
+        
+        string tabs(int n)
+        {
+            if (!formatted)
+                return "";
+            var sbt = new StringBuilder();
+            for (int i = 0; i < indentation + n; i++)
+                sbt.Append("\t");
+            return sbt.ToString();
+        }
+    }
 
     #region Optimized Overrides
 

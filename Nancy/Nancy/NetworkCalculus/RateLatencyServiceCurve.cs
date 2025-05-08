@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.Json.Serialization;
 using NLog;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -99,6 +100,30 @@ public class RateLatencyServiceCurve : ConvexCurve
     }
 
     private static readonly Rational DefaultPeriodLength = 1;
+
+    public override string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        var newline = formatted ? "\n" : "";
+        var space = formatted ? "\n" : " ";
+
+        var sb = new StringBuilder();
+        sb.Append($"{tabs(0)}new RateLatencyServiceCurve({newline}");
+        sb.Append($"{tabs(1)}{Rate.ToCodeString()},{space}");
+        sb.Append($"{tabs(1)}{Latency.ToCodeString()}{newline}");
+        sb.Append($"{tabs(0)})");
+
+        return sb.ToString();
+        
+        string tabs(int n)
+        {
+            if (!formatted)
+                return "";
+            var sbt = new StringBuilder();
+            for (int i = 0; i < indentation + n; i++)
+                sbt.Append("\t");
+            return sbt.ToString();
+        }
+    }
 
     #region Optimized Overrides
 
