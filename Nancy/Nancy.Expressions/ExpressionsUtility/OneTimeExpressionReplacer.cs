@@ -611,14 +611,18 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         {
             case IGenericExpression<Curve> e:
                 if (ReplaceByPosition(positionPath.GetEnumerator(), e) == 1)
+                    // replacement was at root, so the replacing expression is returned as it is
                     return (IGenericExpression<TExpressionResult>)NewExpressionToReplace;
                 if (_tempCurveExpression != null)
+                    // replacement was deeper than root
                     return (IGenericExpression<TExpressionResult>)_tempCurveExpression;
                 break;
             case IGenericExpression<Rational> e:
                 if (ReplaceByPosition(positionPath.GetEnumerator(), e) == 1)
+                    // replacement was at root, so the replacing expression is returned as it is
                     return (IGenericExpression<TExpressionResult>)NewExpressionToReplace;
                 if (_tempRationalExpression != null)
+                    // replacement was deeper than root
                     return (IGenericExpression<TExpressionResult>)_tempRationalExpression;
                 break;
         }
@@ -657,14 +661,14 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         var current = positionPath.Current;
         switch (current)
         {
-            case "Operand":
+            case Positions.InnerOperand:
                 return expression switch
                 {
                     IGenericUnaryExpression<Curve, T> c => ReplaceByPositionUnaryExpression(positionPath, c),
                     IGenericUnaryExpression<Rational, T> c => ReplaceByPositionUnaryExpression(positionPath, c),
                     _ => throw new ArgumentException("Wrong position path!", nameof(positionPath))
                 };
-            case "LeftOperand":
+            case Positions.LeftOperand:
                 return expression switch
                 {
                     IGenericBinaryExpression<Curve, Curve, T> c => ReplaceByPositionLeftExpression(positionPath, c),
@@ -674,7 +678,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                         c),
                     _ => throw new ArgumentException("Wrong position path!", nameof(positionPath))
                 };
-            case "RightOperand":
+            case Positions.RightOperand:
                 return expression switch
                 {
                     IGenericBinaryExpression<Curve, Curve, T> c => ReplaceByPositionRightExpression(positionPath, c),
@@ -754,7 +758,8 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         }
     }
 
-    private int ReplaceByPositionUnaryExpression<TArg, T>(IEnumerator<string> positionPath,
+    private int ReplaceByPositionUnaryExpression<TArg, T>(
+        IEnumerator<string> positionPath,
         IGenericUnaryExpression<TArg, T> unaryExpression)
     {
         var result = ReplaceByPosition(positionPath, unaryExpression.Expression);
