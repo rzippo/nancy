@@ -374,6 +374,13 @@ public static class Expressions
         string expressionName = "", ExpressionSettings? settings = null)
         => new MinimumExpression(curves, names, expressionName, settings);
 
+    /// <summary>
+    /// Creates a new expression composed of the minimum between the expressions passed as arguments.
+    /// </summary>
+    public static CurveExpression Minimum(IReadOnlyCollection<CurveExpression> curveExpressions,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MinimumExpression(curveExpressions, expressionName, settings);
+
     #endregion Minimum
 
     #region Maximum
@@ -420,6 +427,13 @@ public static class Expressions
         string expressionName = "", ExpressionSettings? settings = null)
         => new MaximumExpression(curves, names, expressionName, settings);
 
+    /// <summary>
+    /// Creates a new expression composed of the maximum between the expressions passed as arguments.
+    /// </summary>
+    public static CurveExpression Maximum(IReadOnlyCollection<CurveExpression> curveExpressions,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MaximumExpression(curveExpressions, expressionName, settings);
+    
     #endregion Maximum
 
     #region Convolution
@@ -557,6 +571,13 @@ public static class Expressions
     public static CurveExpression MaxPlusConvolution(IReadOnlyCollection<Curve> curves,
         IReadOnlyCollection<string> names, string expressionName = "", ExpressionSettings? settings = null)
         => new MaxPlusConvolutionExpression(curves, names, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the max-plus convolution between the expressions passed as arguments.
+    /// </summary>
+    public static CurveExpression MaxPlusConvolution(IReadOnlyCollection<CurveExpression> curveExpressions,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MaxPlusConvolutionExpression(curveExpressions, expressionName, settings);
 
     #endregion MaxPlusConvolution
 
