@@ -606,16 +606,31 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region DelayBy
     
     /// <summary>
-    /// Creates a new expression composed of the operation to delay the curve corresponding to the current expression
-    /// by the rational number described by the argument <see cref="expression"/> of type
-    /// <see cref="RationalExpression"/>. </summary>
+    /// Creates a new expression that delays the current expression by the rational <see cref="expression"/>,
+    /// i.e., computing $f(t - T)$, with $T \ge 0$.
+    /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.DelayBy"/>
+    /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public CurveExpression DelayBy(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new DelayByExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the operation to delay the curve corresponding to the current expression
-    /// by the rational number <see cref="delay"/>.</summary>
+    /// Creates a new expression that delays the current expression by the rational <see cref="delay"/>,
+    /// i.e., computing $f(t - T)$, with $T \ge 0$.
+    /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.DelayBy"/>
+    /// <seealso cref="ForwardBy(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <seealso cref="HorizontalShift(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public CurveExpression DelayBy(Rational delay, string expressionName = "", ExpressionSettings? settings = null)
         => DelayBy(new RationalNumberExpression(delay), expressionName, settings);
 
@@ -624,17 +639,31 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region ForwardBy
 
     /// <summary>
-    /// Creates a new expression that forwards the current
-    /// expression by the rational <see cref="expression"/>, i.e., computing $f(t + T)$. 
+    /// Creates a new expression that forwards the current expression by the rational <see cref="expression"/>,
+    /// i.e., computing $f(t + T)$, with $T \ge 0$. 
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.ForwardBy"/>
+    /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public CurveExpression ForwardBy(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new DelayByExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that forwards the current curve
-    /// expression by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
+    /// Creates a new expression that forwards the current expression by the rational <see cref="time"/>,
+    /// i.e., computing $f(t + T)$, with $T \ge 0$. 
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.ForwardBy"/>
+    /// <seealso cref="DelayBy(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <seealso cref="HorizontalShift(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public CurveExpression ForwardBy(Rational time, string expressionName = "", ExpressionSettings? settings = null)
         => ForwardBy(new RationalNumberExpression(time), expressionName, settings);
 
@@ -643,23 +672,31 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region HorizontalShift
 
     /// <summary>
-    /// Creates a new expression that shifts the current
-    /// expression by the rational <see cref="expression"/>, i.e., computing $f(t) + K$. 
+    /// Creates a new expression that shifts the current expression by the rational <see cref="expression"/>,
+    /// i.e., computing $f(t - T)$. 
     /// </summary>
     /// <remarks>
-    /// The shift always moves the entire curve, including the point at the origin.
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the shift argument turns out to be infinite.
     /// </remarks>
+    /// <seealso cref="Curve.HorizontalShift"/>
+    /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public CurveExpression HorizontalShift(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new HorizontalShiftExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that shifts the current curve
-    /// expression by the rational <see cref="value"/>, i.e., computing $f(t) + K$.
+    /// Creates a new expression that shifts the current expression by the rational <see cref="value"/>,
+    /// i.e., computing $f(t - T)$. 
     /// </summary>
     /// <remarks>
-    /// The shift always moves the entire curve, including the point at the origin.
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the shift argument turns out to be infinite.
     /// </remarks>
+    /// <seealso cref="Curve.HorizontalShift"/>
+    /// <seealso cref="DelayBy(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <seealso cref="ForwardBy(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public CurveExpression HorizontalShift(Rational value, string expressionName = "", ExpressionSettings? settings = null)
         => HorizontalShift(new RationalNumberExpression(value), expressionName, settings);
 
