@@ -105,7 +105,7 @@ public class IsSubAdditiveVisitor : ICurveExpressionVisitor
     public virtual void Visit(ForwardByExpression expression) 
         => expression.LeftExpression.Accept(this);
 
-    public void Visit(ShiftExpression expression)
+    public void Visit(VerticalShiftExpression expression)
         => _throughCurveComputation(expression);
 
     public virtual void Visit(CurvePlaceholderExpression expression)

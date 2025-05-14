@@ -134,7 +134,7 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
         throw new NotImplementedException();
     }
 
-    public void Visit(ShiftExpression expression)
+    public void Visit(VerticalShiftExpression expression)
     {
         throw new NotImplementedException();
     }

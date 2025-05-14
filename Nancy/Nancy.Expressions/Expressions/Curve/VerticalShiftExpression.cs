@@ -11,12 +11,12 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// <remarks>
 /// The shift always moves the entire curve, including the point at the origin.
 /// </remarks>
-public record ShiftExpression : CurveBinaryExpression<Curve, Rational>
+public record VerticalShiftExpression : CurveBinaryExpression<Curve, Rational>
 {
     /// <summary>
     /// Creates the $g(t) = f(t) + K$ expression.
     /// </summary>
-    public ShiftExpression(
+    public VerticalShiftExpression(
         Curve curveL, 
         string nameL, 
         Rational value, 
@@ -29,7 +29,7 @@ public record ShiftExpression : CurveBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the $g(t) = f(t) + K$ expression.
     /// </summary>
-    public ShiftExpression(
+    public VerticalShiftExpression(
         Curve curveL, 
         string nameL, 
         RationalExpression rightExpression,
@@ -46,7 +46,7 @@ public record ShiftExpression : CurveBinaryExpression<Curve, Rational>
     /// <param name="rationalExpression">The amount of the shift.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
-    public ShiftExpression(
+    public VerticalShiftExpression(
         CurveExpression curveExpression,
         RationalExpression rationalExpression,
         string expressionName = "", 

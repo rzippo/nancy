@@ -37,7 +37,7 @@ public class CurveShifts
     {
         var aExp = a.ToExpression();
         var bExp = b.ToExpression();
-        var shiftExp = Expressions.Shift(aExp, bExp);
+        var shiftExp = Expressions.VerticalShift(aExp, bExp);
         _testOutputHelper.WriteLine(shiftExp.ToUnicodeString());
         var subCurve = a.VerticalShift(b, false);
         var shiftExpResult = shiftExp.Compute();

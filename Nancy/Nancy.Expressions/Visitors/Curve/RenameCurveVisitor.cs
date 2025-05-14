@@ -111,7 +111,7 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
     public virtual void Visit(ForwardByExpression expression)
         => Result = expression with { Name = NewName };
 
-    public void Visit(ShiftExpression expression)
+    public void Visit(VerticalShiftExpression expression)
         => Result = expression with { Name = NewName };
 
     public virtual void Visit(CurvePlaceholderExpression expression)

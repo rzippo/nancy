@@ -128,9 +128,9 @@ public interface ICurveExpressionVisitor : IExpressionVisitor<Curve>
     public void Visit(ForwardByExpression expression);
 
     /// <summary>
-    /// Visit method for the type <see cref="ShiftExpression"/>
+    /// Visit method for the type <see cref="VerticalShiftExpression"/>
     /// </summary>
-    public void Visit(ShiftExpression expression);
+    public void Visit(VerticalShiftExpression expression);
 
     /// <summary>
     /// Visit method for the type <see cref="CurvePlaceholderExpression"/>
@@ -270,9 +270,9 @@ public interface ICurveExpressionVisitor<out TResult> : IExpressionVisitor<Curve
     public TResult Visit(ForwardByExpression expression);
 
     /// <summary>
-    /// Visit method for the type <see cref="ShiftExpression"/>
+    /// Visit method for the type <see cref="VerticalShiftExpression"/>
     /// </summary>
-    public TResult Visit(ShiftExpression expression);
+    public TResult Visit(VerticalShiftExpression expression);
 
     /// <summary>
     /// Visit method for the type <see cref="CurvePlaceholderExpression"/>

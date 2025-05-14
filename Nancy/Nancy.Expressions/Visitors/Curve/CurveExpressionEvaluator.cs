@@ -105,7 +105,7 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
     public virtual void Visit(ForwardByExpression expression)
         => _result = expression.LeftExpression.Value.ForwardBy(expression.RightExpression.Value);
 
-    public void Visit(ShiftExpression expression)
+    public void Visit(VerticalShiftExpression expression)
         => _result = expression.LeftExpression.Value.VerticalShift(expression.RightExpression.Value, false);
 
     public virtual void Visit(CurvePlaceholderExpression expression)

@@ -697,14 +697,14 @@ public partial class LatexFormatterVisitor :
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ForwardByExpression expression)
         => VisitBinaryPrefix(expression, " forwardBy");
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ShiftExpression expression)
+    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(VerticalShiftExpression expression)
     {
         switch (expression.RightExpression)
         {
             case NegateRationalExpression negate:
             {
                 var inner = negate.Expression;
-                var substitute = new ShiftExpression(
+                var substitute = new VerticalShiftExpression(
                     (CurveExpression) expression.LeftExpression, 
                     (RationalExpression) inner);
                 return VisitBinaryInfix(substitute, " - ");
@@ -712,7 +712,7 @@ public partial class LatexFormatterVisitor :
 
             case RationalNumberExpression rex when rex.Value.IsNegative:
             {
-                var substitute = new ShiftExpression(
+                var substitute = new VerticalShiftExpression(
                     (CurveExpression) expression.LeftExpression, 
                     new RationalNumberExpression(-rex.Value));
                 return VisitBinaryInfix(substitute, " - ");

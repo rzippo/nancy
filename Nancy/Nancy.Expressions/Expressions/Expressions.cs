@@ -863,43 +863,43 @@ public static class Expressions
 
     #endregion ForwardBy
     
-    #region Shift
+    #region VerticalShift
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
     /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$.
     /// </summary>
-    public static CurveExpression Shift(CurveExpression expressionL, RationalExpression expressionR,
+    public static CurveExpression VerticalShift(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expressionL.Shift(expressionR, expressionName, settings);
+        => expressionL.VerticalShift(expressionR, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
     /// <see cref="expression"/> by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
     /// </summary>
-    public static CurveExpression Shift(CurveExpression expression, Rational time,
+    public static CurveExpression VerticalShift(CurveExpression expression, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Shift(time, expressionName, settings);
+        => expression.VerticalShift(time, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that shifts the curve <see cref="curveL"/>
     /// by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
     /// </summary>
-    public static CurveExpression Shift(Curve curveL, Rational time,
+    public static CurveExpression VerticalShift(Curve curveL, Rational time,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new ShiftExpression(curveL, nameL, time, expressionName, settings);
+        => new VerticalShiftExpression(curveL, nameL, time, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that shifts the curve <see cref="curveL"/>
     /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$.
     /// </summary>
-    public static CurveExpression Shift(Curve curveL, RationalExpression expressionR,
+    public static CurveExpression VerticalShift(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new ShiftExpression(curveL, nameL, expressionR, expressionName, settings);
+        => new VerticalShiftExpression(curveL, nameL, expressionR, expressionName, settings);
 
-    #endregion Shift
+    #endregion VerticalShift
 
     #region Scale
 
