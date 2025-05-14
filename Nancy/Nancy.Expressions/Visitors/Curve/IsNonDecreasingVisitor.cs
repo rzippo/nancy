@@ -156,6 +156,9 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     public virtual void Visit(ForwardByExpression expression) 
         => expression.LeftExpression.Accept(this);
     
+    public void Visit(HorizontalShiftExpression expression)
+        => _throughCurveComputation(expression);
+
     public virtual void Visit(VerticalShiftExpression expression) 
         => expression.LeftExpression.Accept(this);
 

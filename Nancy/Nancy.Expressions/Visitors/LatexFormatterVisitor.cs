@@ -696,6 +696,9 @@ public partial class LatexFormatterVisitor :
 
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ForwardByExpression expression)
         => VisitBinaryPrefix(expression, " forwardBy");
+    
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(HorizontalShiftExpression expression)
+        => VisitBinaryPrefix(expression, " hShift");
 
     public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(VerticalShiftExpression expression)
     {

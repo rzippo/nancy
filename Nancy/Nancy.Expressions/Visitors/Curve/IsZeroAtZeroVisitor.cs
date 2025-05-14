@@ -132,6 +132,9 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
     public virtual void Visit(ForwardByExpression expression) 
         => _throughCurveComputation(expression);
     
+    public void Visit(HorizontalShiftExpression expression)
+        => _throughCurveComputation(expression);
+
     public void Visit(VerticalShiftExpression expression)
         => _throughCurveComputation(expression);
 

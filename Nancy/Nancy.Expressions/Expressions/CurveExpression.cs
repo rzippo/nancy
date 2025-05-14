@@ -640,6 +640,31 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     #endregion ForwardBy
     
+    #region HorizontalShift
+
+    /// <summary>
+    /// Creates a new expression that shifts the current
+    /// expression by the rational <see cref="expression"/>, i.e., computing $f(t) + K$. 
+    /// </summary>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public CurveExpression HorizontalShift(RationalExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new HorizontalShiftExpression(this, expression, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that shifts the current curve
+    /// expression by the rational <see cref="value"/>, i.e., computing $f(t) + K$.
+    /// </summary>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public CurveExpression HorizontalShift(Rational value, string expressionName = "", ExpressionSettings? settings = null)
+        => HorizontalShift(new RationalNumberExpression(value), expressionName, settings);
+
+    #endregion HorizontalShift
+    
     #region VerticalShift
 
     /// <summary>

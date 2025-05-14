@@ -128,6 +128,11 @@ public interface ICurveExpressionVisitor : IExpressionVisitor<Curve>
     public void Visit(ForwardByExpression expression);
 
     /// <summary>
+    /// Visit method for the type <see cref="HorizontalShiftExpression"/>
+    /// </summary>
+    public void Visit(HorizontalShiftExpression expression);
+
+    /// <summary>
     /// Visit method for the type <see cref="VerticalShiftExpression"/>
     /// </summary>
     public void Visit(VerticalShiftExpression expression);
