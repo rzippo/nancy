@@ -5,14 +5,23 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// Class representing an expression whose root operation is to delay a curve by a certain time,
-/// i.e. computing $f(t - T)$.
+/// Class representing an expression whose root operation is to delay a curve, adding a 0-valued padding at the start.
+/// Computes $f(t - T)$, with $T \ge 0$.
 /// </summary>
+/// <remarks>
+/// Computing the expression will throw an <see cref="ArgumentException"/> 
+/// if the delay argument turns out to be either negative or infinite.
+/// </remarks>
 public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
 {
-/// <summary>
-    /// Creates the $f(t - T)$ expression.
+    /// <summary>
+    /// Constructs an expression which delays a curve, adding a 0-valued padding at the start.
+    /// Computes $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
     public DelayByExpression(
         Curve curveL,
         string nameL,
@@ -23,9 +32,14 @@ public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
     {
     }
 
-/// <summary>
-    /// Creates the $f(t - T)$ expression.
+    /// <summary>
+    /// Constructs an expression which delays a curve, adding a 0-valued padding at the start.
+    /// Computes $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
     public DelayByExpression(
         Curve curveL,
         string nameL,
@@ -36,9 +50,14 @@ public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
     {
     }
 
-/// <summary>
-    /// Creates the $f(t - T)$ expression.
+    /// <summary>
+    /// Constructs an expression which delays a curve, adding a 0-valued padding at the start.
+    /// Computes $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
     public DelayByExpression(
         CurveExpression leftExpression,
         RationalExpression rightExpression,

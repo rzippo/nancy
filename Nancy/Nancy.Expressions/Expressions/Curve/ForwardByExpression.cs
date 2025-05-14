@@ -5,14 +5,23 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// Class representing an expression whose root operation is to forward a curve by a certain time,
-/// i.e. computing $f(t + T)$.
+/// Class representing an expression whose root operation is to forward a curve by a certain time.
+/// Computes $f(t + T)$, with $T \ge 0$.
 /// </summary>
+/// <remarks>
+/// Computing the expression will throw an <see cref="ArgumentException"/> 
+/// if the time argument turns out to be either negative or infinite.
+/// </remarks>
 public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
 {
     /// <summary>
-    /// Creates the $f(t + T)$ expression.
+    /// Constructs an expression which forwards a curve by a certain time.
+    /// Computes $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
     public ForwardByExpression(
         Curve curveL, 
         string nameL, 
@@ -24,8 +33,13 @@ public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
     }
 
     /// <summary>
-    /// Creates the $f(t + T)$ expression.
+    /// Constructs an expression which forwards a curve by a certain time.
+    /// Computes $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
     public ForwardByExpression(
         Curve curveL, 
         string nameL, 
@@ -37,8 +51,13 @@ public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
     }
 
     /// <summary>
-    /// Creates the $f(t + T)$ expression.
+    /// Constructs an expression which forwards a curve by a certain time.
+    /// Computes $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
     public ForwardByExpression(
         CurveExpression leftExpression,
         RationalExpression rightExpression,

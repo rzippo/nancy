@@ -743,24 +743,42 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that delays the curve expression
-    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t - T)$.
+    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.DelayBy"/>
+    /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public static CurveExpression DelayBy(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.DelayBy(expressionR, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that delays the curve expression
-    /// <see cref="expression"/> by the rational <see cref="delay"/>, i.e., computing $f(t - T)$.
+    /// <see cref="expression"/> by the rational <see cref="delay"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.DelayBy"/>
+    /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public static CurveExpression DelayBy(CurveExpression expression, Rational delay,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.DelayBy(delay, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that delays the curve <see cref="curveL"/>
-    /// by the rational <see cref="delay"/>, i.e., computing $f(t - T)$.
+    /// by the rational <see cref="delay"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.DelayBy"/>
+    /// <seealso cref="ForwardBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Numerics.Rational,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public static CurveExpression DelayBy(Curve curveL, Rational delay,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -768,8 +786,14 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that delays the curve <see cref="curveL"/>
-    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t - T)$.
+    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the delay argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.DelayBy"/>
+    /// <seealso cref="ForwardBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Expressions.RationalExpression,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public static CurveExpression DelayBy(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -781,24 +805,42 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that forwards the curve expression
-    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$.
+    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.ForwardBy"/>
+    /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public static CurveExpression ForwardBy(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.ForwardBy(expressionR, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that forwards the curve expression
-    /// <see cref="expression"/> by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
+    /// <see cref="expression"/> by the rational <see cref="time"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.ForwardBy"/>
+    /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public static CurveExpression ForwardBy(CurveExpression expression, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.ForwardBy(time, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that forwards the curve <see cref="curveL"/>
-    /// by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
+    /// by the rational <see cref="time"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.ForwardBy"/>
+    /// <seealso cref="DelayBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Numerics.Rational,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public static CurveExpression ForwardBy(Curve curveL, Rational time,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -806,8 +848,14 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that forwards the curve <see cref="curveL"/>
-    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$.
+    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computing the expression will throw an <see cref="ArgumentException"/> 
+    /// if the time argument turns out to be either negative or infinite.
+    /// </remarks>
+    /// <seealso cref="Curve.ForwardBy"/>
+    /// <seealso cref="DelayBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Expressions.RationalExpression,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public static CurveExpression ForwardBy(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
