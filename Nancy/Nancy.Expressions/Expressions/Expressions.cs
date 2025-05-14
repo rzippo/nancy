@@ -945,7 +945,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
-    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$.
+    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -953,7 +953,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
-    /// <see cref="expression"/> by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
+    /// <see cref="expression"/> by the rational <see cref="time"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(CurveExpression expression, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -961,7 +961,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve <see cref="curveL"/>
-    /// by the rational <see cref="time"/>, i.e., computing $f(t + T)$.
+    /// by the rational <see cref="time"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(Curve curveL, Rational time,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -970,7 +970,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve <see cref="curveL"/>
-    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$.
+    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
