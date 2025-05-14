@@ -6,6 +6,10 @@ namespace Unipi.Nancy.Expressions.Visitors;
 /// <summary>
 /// Visitor interface of the Visitor design pattern for curve expressions. 
 /// </summary>
+/// <remarks>
+/// The <c>Visit</c> methods are <c>void</c>, meaning that the visitor only updates an internal state.
+/// The semantics to retrieve the result depend on the visitor.
+/// </remarks>
 public interface IRationalExpressionVisitor : IExpressionVisitor<Rational>
 {
     /// <summary>
@@ -81,7 +85,12 @@ public interface IRationalExpressionVisitor : IExpressionVisitor<Rational>
 /// <summary>
 /// Visitor interface of the Visitor design pattern for curve expressions. 
 /// </summary>
-/// <typeparam name="TResult">Type of the value produce by the visit.</typeparam>
+/// <typeparam name="TResult">
+/// Type of the value produce by the visit.
+/// </typeparam>
+/// <remarks>
+/// All <c>Visit</c> methods compute and return a result of type <typeparamref name="TResult"/>.
+/// </remarks>
 public interface IRationalExpressionVisitor<out TResult> : IExpressionVisitor<Rational, TResult>
 {
     /// <summary>
