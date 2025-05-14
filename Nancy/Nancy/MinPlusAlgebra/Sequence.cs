@@ -1314,15 +1314,15 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     }
 
     /// <summary>
-    /// Delays the support by the given time quantity, i.e. $f(t - T)$.
+    /// Delays the support by the given time quantity, i.e. $f(t - T)$, with $T \ge 0$.
     /// </summary>
     public Sequence Delay(Rational delay, bool prependWithZero = true)
     {
-        if (delay < 0)
-            throw new ArgumentException("Delay must be >= 0");
-
         if (delay == 0)
             return this;
+
+        if (delay < 0)
+            throw new ArgumentException("Delay must be >= 0");
 
         if (delay.IsInfinite)
             throw new ArgumentException("Delay must be finite.");
@@ -1349,15 +1349,15 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     }
 
     /// <summary>
-    /// Brings forward the support by the given time quantity, i.e. $f(t + T)$.
+    /// Brings forward the support by the given time quantity, i.e. $f(t + T)$, with $T \ge 0$.
     /// </summary>
     public Sequence Forward(Rational time)
     {
-        if (time < 0)
-            throw new ArgumentException("Time must be >= 0");
-
         if (time == 0)
             return this;
+
+        if (time < 0)
+            throw new ArgumentException("Time must be >= 0");
 
         if (time.IsInfinite)
             throw new ArgumentException("Time to forward by must be finite.");
@@ -1394,6 +1394,21 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
         }
 
         return new Sequence(elements);
+    }
+
+    /// <summary>
+    /// Shifts the sequence horizontally to the right, i.e. $g(t) = f(t - T)$.
+    /// If $T \ge 0$, it behaves like <see cref="Delay(Rational, bool)"/> (with prependWithZeros set to false).
+    /// If $T &lt; 0$, it behaves like <see cref="Forward(Rational)"/>.
+    /// </summary>
+    public Sequence HorizontalShift(Rational shift)
+    {
+        if (shift == 0)
+            return this;
+        else if (shift >= 0)
+            return Delay(shift);
+        else
+            return Forward(-shift);
     }
 
     /// <summary>

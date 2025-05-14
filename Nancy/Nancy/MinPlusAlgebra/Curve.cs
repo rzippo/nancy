@@ -2012,11 +2012,11 @@ public class Curve : IToCodeString, IStableHashCode
     /// <seealso cref="HorizontalShift(Rational)"/>
     public virtual Curve DelayBy(Rational delay)
     {
-        if (delay < 0)
-            throw new ArgumentException("Delay must be >= 0");
-
         if (delay == 0)
             return this;
+
+        if (delay < 0)
+            throw new ArgumentException("Delay must be >= 0");
 
         if (delay.IsInfinite)
             throw new ArgumentException("Delay must be finite.");
@@ -2037,11 +2037,11 @@ public class Curve : IToCodeString, IStableHashCode
     /// <seealso cref="ForwardBy(Rational)"/>
     public virtual Curve ForwardBy(Rational time)
     {
-        if (time < 0)
-            throw new ArgumentException("Time must be >= 0");
-
         if (time == 0)
             return this;
+
+        if (time < 0)
+            throw new ArgumentException("Time must be >= 0");
 
         if (time.IsInfinite)
             throw new ArgumentException("Time to forward by must be finite.");
@@ -2075,10 +2075,10 @@ public class Curve : IToCodeString, IStableHashCode
     {
         if (shift == 0)
             return this;
-        else if (shift > 0)
-            return ForwardBy(shift);
+        else if (shift >= 0)
+            return DelayBy(shift);
         else
-            return DelayBy(-shift);
+            return ForwardBy(-shift);
     }
 
     /// <summary>

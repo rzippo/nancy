@@ -222,7 +222,7 @@ public class SequencePairMerge
         };
 
         elementsA = elementsA
-            .Select(e => e.Delay(-5))
+            .Select(e => e.HorizontalShift(-5))
             .ToArray();
 
         Sequence sequenceA = new Sequence(elementsA);
@@ -237,7 +237,7 @@ public class SequencePairMerge
         };
 
         elementsB = elementsB
-            .Select(e => e.Delay(-5))
+            .Select(e => e.HorizontalShift(-5))
             .ToArray();
 
         Sequence sequenceB = new Sequence(elementsB);
@@ -270,7 +270,7 @@ public class SequencePairMerge
         };
 
         elementsA = elementsA
-            .Select(e => e.Delay(-6))
+            .Select(e => e.HorizontalShift(-6))
             .ToArray();
 
         Sequence sequenceA = new Sequence(elementsA);
@@ -285,7 +285,7 @@ public class SequencePairMerge
         };
 
         elementsB = elementsB
-            .Select(e => e.Delay(-6))
+            .Select(e => e.HorizontalShift(-6))
             .ToArray();
 
         Sequence sequenceB = new Sequence(elementsB);
@@ -318,7 +318,7 @@ public class SequencePairMerge
         };
 
         elementsA = elementsA
-            .Select(e => e.Delay(-5))
+            .Select(e => e.HorizontalShift(-5))
             .ToArray();
 
         Sequence sequenceA = new Sequence(elementsA);
@@ -333,7 +333,7 @@ public class SequencePairMerge
         };
 
         elementsB = elementsB
-            .Select(e => e.Delay(-5))
+            .Select(e => e.HorizontalShift(-5))
             .ToArray();
 
         Sequence sequenceB = new Sequence(elementsB);
@@ -375,7 +375,7 @@ public class SequencePairMerge
         };
 
         elementsA = elementsA
-            .Select(e => e.Delay(-9))
+            .Select(e => e.HorizontalShift(-9))
             .ToArray();
 
         Sequence sequenceA = new Sequence(elementsA);
@@ -393,7 +393,7 @@ public class SequencePairMerge
         };
 
         elementsB = elementsB
-            .Select(e => e.Delay(-9))
+            .Select(e => e.HorizontalShift(-9))
             .ToArray();
 
         Sequence sequenceB = new Sequence(elementsB);

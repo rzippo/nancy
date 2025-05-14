@@ -534,6 +534,9 @@ public sealed class Segment : Element, IEquatable<Segment>
         if(delay == 0)
             return this;
 
+        if (delay < 0)
+            throw new ArgumentException("Delay must be >= 0");
+
         if (delay.IsInfinite)
             throw new ArgumentException("Delay must be finite.");
 
@@ -550,6 +553,9 @@ public sealed class Segment : Element, IEquatable<Segment>
     {
         if(time == 0)
             return this;
+
+        if (time < 0)
+            throw new ArgumentException("Time must be >= 0");
 
         if (time.IsInfinite)
             throw new ArgumentException("Time to forward by must be finite.");

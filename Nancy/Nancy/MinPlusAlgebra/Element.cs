@@ -166,15 +166,30 @@ public abstract class Element : IToCodeString, IStableHashCode
         => element.Scale(scaling);
 
     /// <summary>
-    /// Delays the support by the given time quantity, i.e. $f(t - T)$.
+    /// Delays the support by the given time quantity, i.e. $f(t - T)$, with $T \ge 0$.
     /// </summary>
     public abstract Element Delay(Rational delay);
 
     /// <summary>
-    /// Brings forward the support by the given time quantity, i.e. $f(t + T)$.
+    /// Brings forward the support by the given time quantity, i.e. $f(t + T)$, with $T \ge 0$.
     /// </summary>
     public abstract Element Forward(Rational time);
 
+    /// <summary>
+    /// Shifts the sequence horizontally to the right, i.e. $g(t) = f(t - T)$.
+    /// If $T \ge 0$, it behaves like <see cref="Delay(Rational)"/>.
+    /// If $T &lt; 0$, it behaves like <see cref="Forward(Rational)"/>.
+    /// </summary>
+    public Element HorizontalShift(Rational shift)
+    {
+        if (shift == 0)
+            return this;
+        else if (shift >= 0)
+            return Delay(shift);
+        else
+            return Forward(-shift);
+    }
+    
     /// <summary>
     /// Shifts the element vertically by an additive factor.
     /// </summary>

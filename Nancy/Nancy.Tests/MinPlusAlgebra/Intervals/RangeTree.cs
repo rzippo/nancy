@@ -223,7 +223,7 @@ public class RangeTree
 
         //Make the test on negative times by shifting all back
         elements = elements.
-            Select(e => e.Delay(-20))
+            Select(e => e.HorizontalShift(-20))
             .ToArray();
 
         var intervals = Interval.ComputeIntervals(elements);
@@ -257,7 +257,7 @@ public class RangeTree
 
         //Make the test on negative times by shifting all back
         elements = elements.
-            Select(e => e.Delay(-200))
+            Select(e => e.HorizontalShift(-200))
             .ToArray();
 
         var intervals = Interval.ComputeIntervals(elements);
@@ -292,7 +292,7 @@ public class RangeTree
 
         //Make the test on negative times by shifting all back
         elements = elements.
-            Select(e => e.Delay(-20))
+            Select(e => e.HorizontalShift(-20))
             .ToArray();
 
         var intervals = Interval.ComputeIntervals(elements);
@@ -327,7 +327,7 @@ public class RangeTree
 
         //Make the test on negative times by shifting all back
         elements = elements.
-            Select(e => e.Delay(-20))
+            Select(e => e.HorizontalShift(-20))
             .ToArray();
 
         var intervals = Interval.ComputeIntervals(elements);
