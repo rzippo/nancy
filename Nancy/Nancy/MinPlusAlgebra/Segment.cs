@@ -531,6 +531,12 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <inheritdoc />
     public override Element Delay(Rational delay)
     {
+        if(delay == 0)
+            return this;
+
+        if (delay.IsInfinite)
+            throw new ArgumentException("Delay must be finite.");
+
         return new Segment(
             startTime: StartTime + delay,
             endTime: EndTime + delay,
@@ -542,6 +548,12 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <inheritdoc />
     public override Element Forward(Rational time)
     {
+        if(time == 0)
+            return this;
+
+        if (time.IsInfinite)
+            throw new ArgumentException("Time to forward by must be finite.");
+
         return new Segment(
             startTime: StartTime - time,
             endTime: EndTime - time,
@@ -555,6 +567,9 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     public override Element VerticalShift(Rational shift)
     {
+        if(shift == 0)
+            return this;
+
         return new Segment(
             startTime: StartTime,
             endTime: EndTime,

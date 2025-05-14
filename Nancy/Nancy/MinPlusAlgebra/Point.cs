@@ -239,6 +239,12 @@ public sealed class Point : Element, IEquatable<Point>
     /// <inheritdoc />
     public override Element Delay(Rational delay)
     {
+        if(delay == 0)
+            return this;
+
+        if (delay.IsInfinite)
+            throw new ArgumentException("Delay must be finite.");
+
         return new Point(
             time: Time + delay,
             value: Value
@@ -248,6 +254,12 @@ public sealed class Point : Element, IEquatable<Point>
     /// <inheritdoc />
     public override Element Forward(Rational time)
     {
+        if(time == 0)
+            return this;
+
+        if (time.IsInfinite)
+            throw new ArgumentException("Time to forward by must be finite.");
+
         return new Point(
             time: Time - time,
             value: Value
@@ -259,6 +271,9 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     public override Element VerticalShift(Rational shift)
     {
+        if(shift == 0)
+            return this;
+
         return new Point(
             time: Time,
             value: Value + shift

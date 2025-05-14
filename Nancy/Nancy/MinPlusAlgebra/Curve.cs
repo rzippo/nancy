@@ -2018,6 +2018,9 @@ public class Curve : IToCodeString, IStableHashCode
         if (delay == 0)
             return this;
 
+        if (delay.IsInfinite)
+            throw new ArgumentException("Delay must be finite.");
+
         return new Curve(
             baseSequence: BaseSequence.Delay(delay),
             pseudoPeriodStart: PseudoPeriodStart + delay,
@@ -2039,6 +2042,9 @@ public class Curve : IToCodeString, IStableHashCode
 
         if (time == 0)
             return this;
+
+        if (time.IsInfinite)
+            throw new ArgumentException("Time to forward by must be finite.");
 
         if (time <= PseudoPeriodStart)
         {

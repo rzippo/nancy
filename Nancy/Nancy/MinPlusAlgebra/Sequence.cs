@@ -1324,6 +1324,9 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
         if (delay == 0)
             return this;
 
+        if (delay.IsInfinite)
+            throw new ArgumentException("Delay must be finite.");
+
         var delayedElements = new List<Element>();
 
         if (prependWithZero)
@@ -1355,6 +1358,9 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
 
         if (time == 0)
             return this;
+
+        if (time.IsInfinite)
+            throw new ArgumentException("Time to forward by must be finite.");
 
         var elements = new List<Element>();
         foreach (var element in Elements)
