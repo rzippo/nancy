@@ -2006,8 +2006,10 @@ public class Curve : IToCodeString, IStableHashCode
 
     /// <summary>
     /// Delays the curve, adding a 0-valued padding at the start.
-    /// Computes $f(t - T)$.
+    /// Computes $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <seealso cref="ForwardBy(Rational)"/>
+    /// <seealso cref="HorizontalShift(Rational)"/>
     public virtual Curve DelayBy(Rational delay)
     {
         if (delay < 0)
@@ -2026,8 +2028,10 @@ public class Curve : IToCodeString, IStableHashCode
 
     /// <summary>
     /// Brings forward the curve, removing the parts from 0 to the given time.
-    /// Computes $f(t + T)$.
+    /// Computes $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <seealso cref="DelayBy(Rational)"/>
+    /// <seealso cref="ForwardBy(Rational)"/>
     public virtual Curve ForwardBy(Rational time)
     {
         if (time < 0)
@@ -2054,6 +2058,21 @@ public class Curve : IToCodeString, IStableHashCode
                 pseudoPeriodHeight: PseudoPeriodHeight
             );
         }
+    }
+
+    /// <summary>
+    /// Shifts the curve horizontally to the right, i.e. $g(t) = f(t - T)$.
+    /// If $T \ge 0$, it behaves like <see cref="DelayBy(Rational)"/>.
+    /// If $T &lt; 0$, it behaves like <see cref="ForwardBy(Rational)"/>.
+    /// </summary>
+    public virtual Curve HorizontalShift(Rational shift)
+    {
+        if (shift == 0)
+            return this;
+        else if (shift > 0)
+            return ForwardBy(shift);
+        else
+            return DelayBy(-shift);
     }
 
     /// <summary>
