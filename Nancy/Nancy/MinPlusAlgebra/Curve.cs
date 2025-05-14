@@ -2008,6 +2008,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// Delays the curve, adding a 0-valued padding at the start.
     /// Computes $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="delay"/> is either negative or infinite.</exception>
     /// <seealso cref="ForwardBy(Rational)"/>
     /// <seealso cref="HorizontalShift(Rational)"/>
     public virtual Curve DelayBy(Rational delay)
@@ -2033,8 +2034,9 @@ public class Curve : IToCodeString, IStableHashCode
     /// Brings forward the curve, removing the parts from 0 to the given time.
     /// Computes $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="time"/> is either negative or infinite.</exception>
     /// <seealso cref="DelayBy(Rational)"/>
-    /// <seealso cref="ForwardBy(Rational)"/>
+    /// <seealso cref="HorizontalShift(Rational)"/>
     public virtual Curve ForwardBy(Rational time)
     {
         if (time == 0)
@@ -2071,6 +2073,9 @@ public class Curve : IToCodeString, IStableHashCode
     /// If $T \ge 0$, it behaves like <see cref="DelayBy(Rational)"/>.
     /// If $T &lt; 0$, it behaves like <see cref="ForwardBy(Rational)"/>.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="shift"/> is infinite.</exception>
+    /// <seealso cref="DelayBy(Rational)"/>
+    /// <seealso cref="ForwardBy(Rational)"/>
     public virtual Curve HorizontalShift(Rational shift)
     {
         if (shift == 0)

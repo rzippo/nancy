@@ -1316,6 +1316,9 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <summary>
     /// Delays the support by the given time quantity, i.e. $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="delay"/> is either negative or infinite.</exception>
+    /// <seealso cref="Forward"/>
+    /// <seealso cref="HorizontalShift"/>
     public Sequence Delay(Rational delay, bool prependWithZero = true)
     {
         if (delay == 0)
@@ -1351,6 +1354,9 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <summary>
     /// Brings forward the support by the given time quantity, i.e. $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="time"/> is either negative or infinite.</exception>
+    /// <seealso cref="Delay"/>
+    /// <seealso cref="HorizontalShift"/>
     public Sequence Forward(Rational time)
     {
         if (time == 0)
@@ -1401,6 +1407,9 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// If $T \ge 0$, it behaves like <see cref="Delay(Rational, bool)"/> (with prependWithZeros set to false).
     /// If $T &lt; 0$, it behaves like <see cref="Forward(Rational)"/>.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="shift"/> is infinite.</exception>
+    /// <seealso cref="Delay"/>
+    /// <seealso cref="Forward"/>
     public Sequence HorizontalShift(Rational shift)
     {
         if (shift == 0)

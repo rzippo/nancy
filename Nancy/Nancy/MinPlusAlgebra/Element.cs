@@ -168,11 +168,17 @@ public abstract class Element : IToCodeString, IStableHashCode
     /// <summary>
     /// Delays the support by the given time quantity, i.e. $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="delay"/> is either negative or infinite.</exception>
+    /// <seealso cref="Forward"/>
+    /// <seealso cref="HorizontalShift"/>
     public abstract Element Delay(Rational delay);
 
     /// <summary>
     /// Brings forward the support by the given time quantity, i.e. $f(t + T)$, with $T \ge 0$.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="time"/> is either negative or infinite.</exception>
+    /// <seealso cref="Delay"/>
+    /// <seealso cref="HorizontalShift"/>
     public abstract Element Forward(Rational time);
 
     /// <summary>
@@ -180,6 +186,9 @@ public abstract class Element : IToCodeString, IStableHashCode
     /// If $T \ge 0$, it behaves like <see cref="Delay(Rational)"/>.
     /// If $T &lt; 0$, it behaves like <see cref="Forward(Rational)"/>.
     /// </summary>
+    /// <exception cref="ArgumentException">If <paramref name="shift"/> is infinite.</exception>
+    /// <seealso cref="Delay"/>
+    /// <seealso cref="Forward"/>
     public Element HorizontalShift(Rational shift)
     {
         if (shift == 0)
