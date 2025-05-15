@@ -10,12 +10,12 @@
 public interface IGenericBinaryExpression<out T1, out T2, out TResult> : IGenericExpression<TResult>
 {
     /// <summary>
-    /// Left operand expression
+    /// Left operand of the operator.
     /// </summary>
     public IGenericExpression<T1> LeftExpression { get; }
 
     /// <summary>
-    /// Right operand expression
+    /// Right operand of the operator.
     /// </summary>
     public IGenericExpression<T2> RightExpression { get; }
 }

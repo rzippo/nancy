@@ -32,9 +32,11 @@ public record ToUpperNonDecreasingExpression : CurveUnaryExpression<Curve>
     {
     }
 
+    /// <inheritdoc />
     public override void Accept(ICurveExpressionVisitor visitor)
         => visitor.Visit(this);
-    
+
+    /// <inheritdoc />
     public override TResult Accept<TResult>(ICurveExpressionVisitor<TResult> visitor)
         => visitor.Visit(this);
 }

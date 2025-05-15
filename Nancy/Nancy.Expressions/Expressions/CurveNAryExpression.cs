@@ -10,6 +10,7 @@ namespace Unipi.Nancy.Expressions;
 public abstract record
     CurveNAryExpression : CurveExpression, IGenericNAryExpression<Curve, Curve> // For operators on curves that are commutative and associative
 {
+    /// <inheritdoc />
     public IReadOnlyCollection<IGenericExpression<Curve>> Expressions { get; }
 
     /// <summary>

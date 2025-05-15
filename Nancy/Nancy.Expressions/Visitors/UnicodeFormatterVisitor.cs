@@ -28,6 +28,9 @@ public partial class UnicodeFormatterVisitor :
     /// </remarks>
     public int MaxDepth { get; init; }
 
+    /// <summary>
+    /// If true, rational numbers are not shown using their value, but using their name.
+    /// </summary>
     public bool ShowRationalsAsName { get; init; }
 
     /// <summary>
@@ -295,6 +298,7 @@ public partial class UnicodeFormatterVisitor :
 
     #endregion Default formatters
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConcreteCurveExpression expression)
     {
         var formattedName = FormatName(expression.Name).ToString();
@@ -302,30 +306,39 @@ public partial class UnicodeFormatterVisitor :
         return (new StringBuilder(formattedName), needsParentheses);
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalAdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalSubtractionExpression expression)
         => VisitBinaryInfix(expression, " - ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalProductExpression expression)
         => VisitNAryInfix(expression, " * ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalDivisionExpression expression)
         => VisitBinaryInfix(expression, "/");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalLeastCommonMultipleExpression expression)
         => VisitNAryPrefix(expression, "lcm");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalGreatestCommonDivisorExpression expression)
         => VisitNAryPrefix(expression, "gcd");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalMinimumExpression expression)
         => VisitNAryPrefix(expression, "min");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalMaximumExpression expression)
         => VisitNAryPrefix(expression, "max");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalNumberExpression numberExpression)
     {
         if (!numberExpression.Name.Equals("") && (ShowRationalsAsName || CurrentDepth >= MaxDepth))
@@ -336,9 +349,11 @@ public partial class UnicodeFormatterVisitor :
             );
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(NegateExpression expression)
         => VisitUnaryPrefix(expression, "-");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToNonNegativeExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -358,12 +373,15 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubAdditiveClosureExpression expression)
         => VisitUnaryPrefix(expression, "subadditiveClosure");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SuperAdditiveClosureExpression expression)
         => VisitUnaryPrefix(expression, "superadditiveClosure");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToUpperNonDecreasingExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -386,6 +404,7 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLowerNonDecreasingExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -408,12 +427,15 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLeftContinuousExpression expression)
         => VisitUnaryPrefix(expression, "toLeftContinuous");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToRightContinuousExpression expression)
         => VisitUnaryPrefix(expression, "toRightContinuous");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(WithZeroOriginExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -439,6 +461,7 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -475,6 +498,7 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(UpperPseudoInverseExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -511,9 +535,11 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(AdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubtractionExpression expression)
     {
         if (expression.NonNegative)
@@ -528,36 +554,47 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MinimumExpression expression)
         => VisitNAryInfix(expression, " \u2227 ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaximumExpression expression)
         => VisitNAryInfix(expression, " \u2228 ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConvolutionExpression expression)
         => VisitNAryInfix(expression, " \u2297 ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(DeconvolutionExpression expression)
         => VisitBinaryInfix(expression, " \u2298 ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxPlusConvolutionExpression expression)
         => VisitNAryInfix(expression, " \u0305⊗ ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxPlusDeconvolutionExpression expression)
         => VisitBinaryInfix(expression, " \u0305⊘ ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CompositionExpression expression)
         => VisitBinaryInfix(expression, " \u2218 ");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(DelayByExpression expression)
         => VisitBinaryPrefix(expression, "delayBy");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ForwardByExpression expression)
         => VisitBinaryPrefix(expression, "forwardBy");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(HorizontalShiftExpression expression)
         => VisitBinaryPrefix(expression, "hShift");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(VerticalShiftExpression expression)
     {
         switch (expression.RightExpression)
@@ -586,19 +623,24 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(NegateRationalExpression expression)
         => VisitUnaryPrefix(expression, "-");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
         => VisitUnaryPostfix(expression, "\u207B" + "\u00B9", expression.Expression is RationalNumberExpression);
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(HorizontalDeviationExpression expression)
         => VisitBinaryPrefix(expression, "hdev");
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(VerticalDeviationExpression expression)
         => VisitBinaryPrefix(expression, "vdev");
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -624,7 +666,8 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -658,7 +701,8 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -692,12 +736,15 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)
         => (new StringBuilder(expression.Name), false);
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalPlaceholderExpression expression)
         => (new StringBuilder(expression.Name), false);
 
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ScaleExpression expression)
         => VisitBinaryInfix(expression, "·");
 

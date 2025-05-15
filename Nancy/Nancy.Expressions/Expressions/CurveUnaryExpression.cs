@@ -7,14 +7,13 @@ namespace Unipi.Nancy.Expressions;
 /// Class which describes unary expressions (root operation has only one operand) whose value is a <see cref="Curve"/>
 /// object. 
 /// </summary>
-/// <typeparam name="T">The type of the value of the operand expression</typeparam>
+/// <typeparam name="T">The type of the value of the operand expression.</typeparam>
 public abstract record CurveUnaryExpression<T> : CurveExpression, IGenericUnaryExpression<T, Curve>
 {
     /// <summary>
     /// Class which describes unary expressions (root operation has only one operand) whose value is a <see cref="Curve"/>
     /// object. 
     /// </summary>
-    /// <typeparam name="T">The type of the value of the operand expression</typeparam>
     protected CurveUnaryExpression(
         IGenericExpression<T> expression,
         string expressionName = "", 
@@ -24,5 +23,6 @@ public abstract record CurveUnaryExpression<T> : CurveExpression, IGenericUnaryE
         Expression = expression;
     }
 
+    /// <inheritdoc />
     public IGenericExpression<T> Expression { get; init; }
 }

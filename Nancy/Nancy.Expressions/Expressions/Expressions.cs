@@ -266,8 +266,8 @@ public static class Expressions
         => new AdditionExpression([curveL, curveR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the addition between the curve <see cref="curveL"/> (converted to
-    /// <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the addition between the curve <paramref name="curveL"/> (converted to
+    /// <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static CurveExpression Addition(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -276,7 +276,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the addition between the curves passed as argument in the collection
-    /// <see cref="curves"/>.
+    /// <paramref name="curves"/>.
     /// </summary>
     public static CurveExpression Addition(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -319,8 +319,8 @@ public static class Expressions
         => new SubtractionExpression(curveL, nameL, curveR, nameR, nonNegative, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the subtraction between the curve <see cref="curveL"/> (internally
-    /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as
+    /// Creates a new expression composed of the subtraction between the curve <paramref name="curveL"/> (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
     public static CurveExpression Subtraction(Curve curveL, CurveExpression expressionR, bool nonNegative = true,
@@ -358,8 +358,8 @@ public static class Expressions
         => new MinimumExpression([curveL, curveR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the minimum between the curve <see cref="curveL"/> (converted to
-    /// <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the minimum between the curve <paramref name="curveL"/> (converted to
+    /// <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static CurveExpression Minimum(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -368,7 +368,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the minimum between the curves passed as argument in the collection
-    /// <see cref="curves"/>.
+    /// <paramref name="curves"/>.
     /// </summary>
     public static CurveExpression Minimum(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -411,8 +411,8 @@ public static class Expressions
         => new MaximumExpression([curveL, curveR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the maximum between the curve <see cref="curveL"/> (converted to
-    /// <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the maximum between the curve <paramref name="curveL"/> (converted to
+    /// <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static CurveExpression Maximum(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -421,7 +421,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the maximum between the curves passed as argument in the collection
-    /// <see cref="curves"/>.
+    /// <paramref name="curves"/>.
     /// </summary>
     public static CurveExpression Maximum(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -464,8 +464,8 @@ public static class Expressions
         => new ConvolutionExpression([curveL, curveR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the convolution between the curve <see cref="curveL"/> (converted to
-    /// <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the convolution between the curve <paramref name="curveL"/> (converted to
+    /// <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static CurveExpression Convolution(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -474,7 +474,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the convolution between the curves passed as argument in the collection
-    /// <see cref="curves"/>.
+    /// <paramref name="curves"/>.
     /// </summary>
     public static CurveExpression Convolution(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -517,8 +517,8 @@ public static class Expressions
         => new DeconvolutionExpression(curveL, nameL, curveR, nameR, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the deconvolution between the curve <see cref="curveL"/> (internally
-    /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as
+    /// Creates a new expression composed of the deconvolution between the curve <paramref name="curveL"/> (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
     public static CurveExpression Deconvolution(Curve curveL, CurveExpression expressionR,
@@ -556,8 +556,8 @@ public static class Expressions
         => new MaxPlusConvolutionExpression([curveL, curveR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the max-plus convolution between the curve <see cref="curveL"/> (converted
-    /// to <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the max-plus convolution between the curve <paramref name="curveL"/> (converted
+    /// to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static CurveExpression MaxPlusConvolution(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -566,7 +566,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the curves passed as argument in the
-    /// collection <see cref="curves"/>.
+    /// collection <paramref name="curves"/>.
     /// </summary>
     public static CurveExpression MaxPlusConvolution(IReadOnlyCollection<Curve> curves,
         IReadOnlyCollection<string> names, string expressionName = "", ExpressionSettings? settings = null)
@@ -609,8 +609,8 @@ public static class Expressions
         => new MaxPlusDeconvolutionExpression(curveL, nameL, curveR, nameR, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the max-plus deconvolution between the curve <see cref="curveL"/>
-    /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/>
+    /// Creates a new expression composed of the max-plus deconvolution between the curve <paramref name="curveL"/>
+    /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/>
     /// passed as arguments.
     /// </summary>
     public static CurveExpression MaxPlusDeconvolution(Curve curveL, CurveExpression expressionR,
@@ -648,8 +648,8 @@ public static class Expressions
         => new CompositionExpression(curveL, nameL, curveR, nameR, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the composition between the curve <see cref="curveL"/> (internally
-    /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/> passed as
+    /// Creates a new expression composed of the composition between the curve <paramref name="curveL"/> (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
     public static CurveExpression Composition(Curve curveL, CurveExpression expressionR,
@@ -688,8 +688,8 @@ public static class Expressions
         => new HorizontalDeviationExpression(curveL, nameL, curveR, nameR, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the horizontal deviation operation between the curve <see cref="curveL"/>
-    /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/>
+    /// Creates a new expression composed of the horizontal deviation operation between the curve <paramref name="curveL"/>
+    /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/>
     /// passed as arguments.
     /// </summary>
     public static RationalExpression HorizontalDeviation(Curve curveL, CurveExpression expressionR,
@@ -728,8 +728,8 @@ public static class Expressions
         => new VerticalDeviationExpression(curveL, nameL, curveR, nameR, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the vertical deviation operation between the curve <see cref="curveL"/>
-    /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <see cref="expressionR"/>
+    /// Creates a new expression composed of the vertical deviation operation between the curve <paramref name="curveL"/>
+    /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/>
     /// passed as arguments.
     /// </summary>
     public static RationalExpression VerticalDeviation(Curve curveL, CurveExpression expressionR,
@@ -743,7 +743,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that delays the curve expression
-    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
+    /// <paramref name="expressionL"/> by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -758,7 +758,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that delays the curve expression
-    /// <see cref="expression"/> by the rational <see cref="delay"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
+    /// <paramref name="expression"/> by the rational <paramref name="delay"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -772,8 +772,8 @@ public static class Expressions
         => expression.DelayBy(delay, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that delays the curve <see cref="curveL"/>
-    /// by the rational <see cref="delay"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
+    /// Creates a new expression that delays the curve <paramref name="curveL"/>
+    /// by the rational <paramref name="delay"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -788,8 +788,8 @@ public static class Expressions
         => new DelayByExpression(curveL, nameL, delay, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that delays the curve <see cref="curveL"/>
-    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
+    /// Creates a new expression that delays the curve <paramref name="curveL"/>
+    /// by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -809,7 +809,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that forwards the curve expression
-    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
+    /// <paramref name="expressionL"/> by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -824,7 +824,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that forwards the curve expression
-    /// <see cref="expression"/> by the rational <see cref="time"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
+    /// <paramref name="expression"/> by the rational <paramref name="time"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -838,8 +838,8 @@ public static class Expressions
         => expression.ForwardBy(time, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that forwards the curve <see cref="curveL"/>
-    /// by the rational <see cref="time"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
+    /// Creates a new expression that forwards the curve <paramref name="curveL"/>
+    /// by the rational <paramref name="time"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -854,8 +854,8 @@ public static class Expressions
         => new ForwardByExpression(curveL, nameL, time, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that forwards the curve <see cref="curveL"/>
-    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
+    /// Creates a new expression that forwards the curve <paramref name="curveL"/>
+    /// by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -875,7 +875,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
-    /// <see cref="expressionL"/> horizontally to the right by the rational expression <see cref="expressionR"/>,
+    /// <paramref name="expressionL"/> horizontally to the right by the rational expression <paramref name="expressionR"/>,
     /// i.e., computing $f(t - T)$.
     /// </summary>
     /// <remarks>
@@ -891,7 +891,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
-    /// <see cref="expression"/> horizontally to the right by the rational <see cref="time"/>,
+    /// <paramref name="expression"/> horizontally to the right by the rational <paramref name="time"/>,
     /// i.e., computing $f(t - T)$.
     /// </summary>
     /// <remarks>
@@ -906,8 +906,8 @@ public static class Expressions
         => expression.HorizontalShift(time, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that shifts the curve <see cref="curveL"/> horizontally to the right
-    /// by the rational <see cref="time"/>,
+    /// Creates a new expression that shifts the curve <paramref name="curveL"/> horizontally to the right
+    /// by the rational <paramref name="time"/>,
     /// i.e., computing $f(t - T)$.
     /// </summary>
     /// <remarks>
@@ -923,8 +923,8 @@ public static class Expressions
         => new HorizontalShiftExpression(curveL, nameL, time, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that shifts the curve <see cref="curveL"/> horizontally to the right
-    /// by the rational expression <see cref="expressionR"/>,
+    /// Creates a new expression that shifts the curve <paramref name="curveL"/> horizontally to the right
+    /// by the rational expression <paramref name="expressionR"/>,
     /// i.e., computing $f(t - T)$.
     /// </summary>
     /// <remarks>
@@ -945,7 +945,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
-    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e., computing $f(t) + K$.
+    /// <paramref name="expressionL"/> by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -953,15 +953,15 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
-    /// <see cref="expression"/> by the rational <see cref="time"/>, i.e., computing $f(t) + K$.
+    /// <paramref name="expression"/> by the rational <paramref name="time"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(CurveExpression expression, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.VerticalShift(time, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that shifts the curve <see cref="curveL"/>
-    /// by the rational <see cref="time"/>, i.e., computing $f(t) + K$.
+    /// Creates a new expression that shifts the curve <paramref name="curveL"/>
+    /// by the rational <paramref name="time"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(Curve curveL, Rational time,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -969,8 +969,8 @@ public static class Expressions
         => new VerticalShiftExpression(curveL, nameL, time, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that shifts the curve <see cref="curveL"/>
-    /// by the rational expression <see cref="expressionR"/>, i.e., computing $f(t) + K$.
+    /// Creates a new expression that shifts the curve <paramref name="curveL"/>
+    /// by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -983,7 +983,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that scales the curve expression
-    /// <see cref="expressionL"/> by the rational expression <see cref="expressionR"/>, i.e. $k \cdot f(t)$. 
+    /// <paramref name="expressionL"/> by the rational expression <paramref name="expressionR"/>, i.e. $k \cdot f(t)$. 
     /// </summary>
     public static CurveExpression Scale(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -991,15 +991,15 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that scales the curve expression
-    /// <see cref="expression"/> by the rational <see cref="scaleFactor"/>, i.e. $k \cdot f(t)$.
+    /// <paramref name="expression"/> by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
     public static CurveExpression Scale(CurveExpression expression, Rational scaleFactor,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.Scale(scaleFactor, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that scales the curve <see cref="curveL"/>
-    /// by the rational <see cref="scaleFactor"/>, i.e. $k \cdot f(t)$.
+    /// Creates a new expression that scales the curve <paramref name="curveL"/>
+    /// by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
     public static CurveExpression Scale(Curve curveL, Rational scaleFactor,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -1007,8 +1007,8 @@ public static class Expressions
         => new ScaleExpression(curveL, nameL, scaleFactor, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that scales the curve <see cref="curveL"/>
-    /// by the rational expression <see cref="expressionR"/>, i.e. $k \cdot f(t)$.
+    /// Creates a new expression that scales the curve <paramref name="curveL"/>
+    /// by the rational expression <paramref name="expressionR"/>, i.e. $k \cdot f(t)$.
     /// </summary>
     public static CurveExpression Scale(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -1046,8 +1046,8 @@ public static class Expressions
         => new RationalAdditionExpression([rationalL, rationalR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the addition between the rational number <see cref="rationalL"/> and the
-    /// expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the addition between the rational number <paramref name="rationalL"/> and the
+    /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static RationalExpression RationalAddition(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
@@ -1057,7 +1057,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the addition between the rational numbers passed as
-    /// arguments using the collection <see cref="numbers"/>.
+    /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     public static RationalExpression RationalAddition(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
@@ -1094,8 +1094,8 @@ public static class Expressions
         => new RationalSubtractionExpression(FromRational(numberL,nameL),FromRational(numberR, nameR), expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the subtraction between the number <see cref="numberL"/> (internally
-    /// converted to <see cref="RationalNumberExpression"/>) and the expression <see cref="expressionR"/> passed as
+    /// Creates a new expression composed of the subtraction between the number <paramref name="numberL"/> (internally
+    /// converted to <see cref="RationalNumberExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
     public static RationalExpression RationalSubtraction(Rational numberL, RationalExpression expressionR,
@@ -1134,8 +1134,8 @@ public static class Expressions
         => new RationalProductExpression([rationalL, rationalR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the product between the rational number <see cref="rationalL"/> and the
-    /// expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the product between the rational number <paramref name="rationalL"/> and the
+    /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static RationalExpression Product(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
@@ -1145,7 +1145,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the product between the rational numbers passed as
-    /// arguments using the collection <see cref="numbers"/>.
+    /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     public static RationalExpression RationalProduct(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
@@ -1182,8 +1182,8 @@ public static class Expressions
         => new RationalDivisionExpression(FromRational(numberL,nameL),FromRational(numberR, nameR), expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the division between the number <see cref="numberL"/> (internally
-    /// converted to <see cref="RationalNumberExpression"/>) and the expression <see cref="expressionR"/> passed as
+    /// Creates a new expression composed of the division between the number <paramref name="numberL"/> (internally
+    /// converted to <see cref="RationalNumberExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
     public static RationalExpression Division(Rational numberL, RationalExpression expressionR,
@@ -1222,8 +1222,8 @@ public static class Expressions
         => new RationalLeastCommonMultipleExpression([rationalL, rationalR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the l.c.m. between the rational number <see cref="rationalL"/> and the
-    /// expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the l.c.m. between the rational number <paramref name="rationalL"/> and the
+    /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static RationalExpression LeastCommonMultiple(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
@@ -1233,7 +1233,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the l.c.m. between the rational numbers passed as
-    /// arguments using the collection <see cref="numbers"/>.
+    /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     public static RationalExpression LeastCommonMultiple(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
@@ -1271,8 +1271,8 @@ public static class Expressions
         => new RationalGreatestCommonDivisorExpression([rationalL, rationalR], [nameL, nameR], expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the g.c.d. between the rational number <see cref="rationalL"/> and the
-    /// expression <see cref="expressionR"/> passed as arguments.
+    /// Creates a new expression composed of the g.c.d. between the rational number <paramref name="rationalL"/> and the
+    /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
     public static RationalExpression GreatestCommonDivisor(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
@@ -1282,7 +1282,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression composed of the g.c.d. between the rational numbers passed as
-    /// arguments using the collection <see cref="numbers"/>.
+    /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     public static RationalExpression GreatestCommonDivisor(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
@@ -1348,7 +1348,7 @@ public static class Expressions
         => expression.Compute();
 
     /// <summary>
-    /// Verifies if two curve expressions (<see cref="e1"/> and <see cref="e2"/>) are equivalent, i.e., their
+    /// Verifies if two curve expressions (<paramref name="e1"/> and <paramref name="e2"/>) are equivalent, i.e., their
     /// values are equivalent.
     /// </summary>
     public static bool Equivalent(CurveExpression e1, CurveExpression e2)

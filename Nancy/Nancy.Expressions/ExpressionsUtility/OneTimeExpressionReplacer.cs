@@ -11,8 +11,8 @@ namespace Unipi.Nancy.Expressions.ExpressionsUtility.Internals;
 /// The features are also reused for applying equivalence by-value and by-position.
 /// </summary>
 /// <remarks>Each instance is safe to use only once.</remarks>
-/// <typeparam name="TExpressionResult">Value type of <paramref name="originalExpression"/> (Curve or Rational)</typeparam>
-/// <typeparam name="TReplacedOperand">Value type of <paramref name="newExpressionToReplace"/> (Curve or Rational)</typeparam>
+/// <typeparam name="TExpressionResult">Value type of <see cref="OriginalExpression"/> (Curve or Rational)</typeparam>
+/// <typeparam name="TReplacedOperand">Value type of <see cref="NewExpressionToReplace"/> (Curve or Rational)</typeparam>
 internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
 {
     private IGenericExpression<Curve>? _tempCurveExpression;
@@ -40,8 +40,6 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// </summary>
     /// <param name="originalExpression">The main DNC expression, a sub-expression of it needs to be replaced.</param>
     /// <param name="newExpressionToReplace">The new expression which must be "inserted" inside the main expression.</param>
-    /// <typeparam name="TExpressionResult">Value type of <paramref name="originalExpression"/> (Curve or Rational)</typeparam>
-    /// <typeparam name="TReplacedOperand">Value type of <paramref name="newExpressionToReplace"/> (Curve or Rational)</typeparam>
     public OneTimeExpressionReplacer(
         IGenericExpression<TExpressionResult> originalExpression,
         IGenericExpression<TReplacedOperand> newExpressionToReplace)
@@ -950,20 +948,53 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     }
 }
 
+
+/// <summary>
+/// to document 
+/// </summary>
 public record MatchPatternResult
 {
+    /// <summary>
+    /// True if the match was successful.
+    /// </summary>
     public bool IsMatch { get; set; } = false;
 }
 
+
+/// <summary>
+/// to document 
+/// </summary>
 public record MatchPatternNAryResult : MatchPatternResult
 {
+    /// <summary>
+    /// to document 
+    /// </summary>
     public List<IGenericExpression<Curve>> NotMatchedExpressionsCurve { get; set; } = [];
+
+    /// <summary>
+    /// to document 
+    /// </summary>
     public List<IGenericExpression<Rational>> NotMatchedExpressionsRational { get; set; } = [];
+
+    /// <summary>
+    /// to document 
+    /// </summary>
     public Type? NaryTypePartialMatch { get; set; } = null;
+
+    /// <summary>
+    /// to document 
+    /// </summary>
     public string? NaryNamePartialMatch { get; set; } = null;
+
+    /// <summary>
+    /// to document 
+    /// </summary>
     public ExpressionSettings? NarySettingsPartialMatch { get; set; } = null;
 }
 
+/// <summary>
+/// to document 
+/// </summary>
 public record ReplaceResult
 {
     /// <summary>
@@ -975,6 +1006,9 @@ public record ReplaceResult
     /// </list>
     /// </summary>
     public int Code { get; set; } = 0;
-    
+
+    /// <summary>
+    /// to document 
+    /// </summary>
     public MatchPatternResult MatchPatternResult { get; set; } = new MatchPatternResult();
 }

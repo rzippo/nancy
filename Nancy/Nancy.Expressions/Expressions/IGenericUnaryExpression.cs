@@ -9,7 +9,7 @@
 public interface IGenericUnaryExpression<out T, out TResult> : IGenericExpression<TResult> 
 {
     /// <summary>
-    /// Expression on which the unary operation is applied
+    /// The single operand of the operator.
     /// </summary>
     public IGenericExpression<T> Expression { get; }
 }

@@ -15,12 +15,15 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
     /// </summary>
     public RationalExpression Result = Expressions.FromRational(Rational.Zero);
 
+    /// <summary>
+    /// The new name of the expression.
+    /// </summary>
     public string NewName { get; init; }
 
     /// <summary>
     /// Visitor class used to change the name of a rational expression.
     /// </summary>
-    /// <param name="newName">The new name of the expression</param>
+    /// <param name="newName">The new name of the expression.</param>
     public RenameRationalVisitor(string newName)
     {
         NewName = newName;
@@ -37,54 +40,71 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
         };
     }
 
+    /// <inheritdoc />
     public virtual void Visit(HorizontalDeviationExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(VerticalDeviationExpression expression)
         => CommonVisit(expression);
 
-    public void Visit(ValueAtExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(ValueAtExpression expression)
         => CommonVisit(expression);
 
-    public void Visit(LeftLimitAtExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(LeftLimitAtExpression expression)
         => CommonVisit(expression);
 
-    public void Visit(RightLimitAtExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(RightLimitAtExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalAdditionExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalSubtractionExpression expression)
         => CommonVisit(expression);
     
+    /// <inheritdoc />
     public virtual void Visit(RationalProductExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalDivisionExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalLeastCommonMultipleExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalGreatestCommonDivisorExpression expression)
         => CommonVisit(expression);
 
-    public void Visit(RationalMinimumExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(RationalMinimumExpression expression)
         => CommonVisit(expression);
 
-    public void Visit(RationalMaximumExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(RationalMaximumExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalNumberExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(NegateRationalExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(InvertRationalExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalPlaceholderExpression expression)
         => CommonVisit(expression);
 }

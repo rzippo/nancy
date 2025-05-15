@@ -47,9 +47,11 @@ public record HorizontalDeviationExpression : RationalBinaryExpression<Curve, Cu
     {
     }
 
+    /// <inheritdoc />
     public override void Accept(IRationalExpressionVisitor visitor)
         => visitor.Visit(this);
 
+    /// <inheritdoc />
     public override TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor)
         => visitor.Visit(this);
 }

@@ -10,10 +10,13 @@ namespace Unipi.Nancy.Expressions;
 public abstract record
     RationalNAryExpression : RationalExpression, IGenericNAryExpression<Rational, Rational> // For operators on rationals that are commutative and associative
 {
+    /// <summary>
+    /// The operands of this operator.
+    /// </summary>
     public IReadOnlyCollection<IGenericExpression<Rational>> Expressions { get; }
 
     /// <summary>
-    /// Creates the n-ary operation starting from a collection of expression operands
+    /// Creates the n-ary operation starting from a collection of expression operands.
     /// </summary>
     public RationalNAryExpression(
         IReadOnlyCollection<IGenericExpression<Rational>> expressions,
@@ -24,7 +27,7 @@ public abstract record
 
     /// <summary>
     /// Creates the n-ary expression starting from a collection of operands of type <see cref="Rational"/> (converted to
-    /// <see cref="RationalNumberExpression"/> objects)
+    /// <see cref="RationalNumberExpression"/> objects).
     /// </summary>
     public RationalNAryExpression(
         IReadOnlyCollection<Rational> rationals,
@@ -38,7 +41,7 @@ public abstract record
     }
 
     /// <summary>
-    /// Adds another operand to the expression
+    /// Adds another operand to the expression.
     /// </summary>
     public RationalExpression Append(IGenericExpression<Rational> expression, string expressionName = "", ExpressionSettings? settings = null)
     {

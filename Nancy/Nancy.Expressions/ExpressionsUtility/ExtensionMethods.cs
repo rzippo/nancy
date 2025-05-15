@@ -9,7 +9,7 @@ namespace Unipi.Nancy.Expressions.ExpressionsUtility;
 public static class ExtensionMethods
 {
     /// <summary>
-    /// Extension method for the class <see cref="Curve"/>, which returns true if the curve is 0 in 0
+    /// Extension method for the class <see cref="Curve"/>, which returns true if the curve is 0 in 0.
     /// </summary>
     public static bool IsZeroAtZero(this Curve curve)
     {
@@ -17,7 +17,7 @@ public static class ExtensionMethods
     }
 
     /// <summary>
-    /// Returns all the different subsets of <see cref="length"/> elements from a list
+    /// Returns all the different subsets of <paramref name="length"/> elements from a list.
     /// </summary>
     public static IEnumerable<IEnumerable<T>> GetCombinations<T>(this IEnumerable<T> list, int length)
     {

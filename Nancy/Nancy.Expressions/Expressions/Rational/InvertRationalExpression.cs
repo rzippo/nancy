@@ -4,12 +4,12 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// Class representing an expression whose root operation is the inversion of a rational number
+/// Class representing an expression which computes the inversion of a rational number.
 /// </summary>
 public record InvertRationalExpression : RationalUnaryExpression<Rational>
 {
     /// <summary>
-    /// Creates a "rational inversion expression"
+    /// Creates a rational inversion expression.
     /// </summary>
     public InvertRationalExpression(
         Rational number,
@@ -20,7 +20,7 @@ public record InvertRationalExpression : RationalUnaryExpression<Rational>
     }
 
     /// <summary>
-    /// Class representing an expression whose root operation is the inversion of a rational number
+    /// Creates a rational inversion expression.
     /// </summary>
     public InvertRationalExpression(
         RationalExpression expression,
@@ -30,12 +30,11 @@ public record InvertRationalExpression : RationalUnaryExpression<Rational>
     {
     }
 
-    /// <summary>
-    /// Creates a "rational inversion expression"
-    /// </summary>
+    /// <inheritdoc />
     public override void Accept(IRationalExpressionVisitor visitor)
         => visitor.Visit(this);
 
+    /// <inheritdoc />
     public override TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor)
         => visitor.Visit(this);
 }

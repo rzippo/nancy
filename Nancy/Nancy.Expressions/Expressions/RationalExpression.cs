@@ -17,8 +17,10 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
 {
     #region Properties
 
+    /// <inheritdoc />
     public string Name { get; init; }
 
+    /// <inheritdoc />
     public ExpressionSettings? Settings { get; init; }
 
     /// <summary>
@@ -30,8 +32,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// The class aims at providing the main methods to build, manipulate and print expressions which evaluate to rational
     /// numbers and are based on NetCal curves.
     /// </summary>
-    /// <param name="ExpressionName">The name of the expression</param>
-    /// <param name="Settings"></param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings"></param>
     protected RationalExpression(
         string expressionName = "", 
         ExpressionSettings? settings = null
@@ -41,6 +43,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         Settings = settings;
     }
 
+    /// <inheritdoc />
     public Rational Value => _value ??= Compute();
     
     /// <inheritdoc cref="IExpression.IsComputed"/>
@@ -64,9 +67,10 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     #endregion Constructors
-    
+
     #region Methods
 
+    /// <inheritdoc />
     public Rational Compute() => _value ??= new RationalExpressionEvaluator().GetResult(this);
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
@@ -77,6 +81,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
 
     #region Accept
 
+    /// <inheritdoc />
     public void Accept(IExpressionVisitor<Rational> visitor)
         => Accept((IRationalExpressionVisitor)visitor);
 
@@ -86,13 +91,16 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <param name="visitor">The Visitor object</param>
     public abstract void Accept(IRationalExpressionVisitor visitor);
 
+    /// <inheritdoc />
     public TResult Accept<TResult>(IExpressionVisitor<Rational, TResult> visitor)
-        => Accept((IRationalExpressionVisitor<TResult>) visitor);
+        => Accept((IRationalExpressionVisitor<TResult>)visitor);
 
+    /// <inheritdoc />
     public abstract TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor);
 
     #endregion Accept
 
+    /// <inheritdoc />
     public string ToLatexString(int depth = 20, bool showRationalsAsName = false)
     {
         var latexFormatterVisitor = new LatexFormatterVisitor(depth, showRationalsAsName);
@@ -102,18 +110,21 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         return latexExpr;
     }
 
+    /// <inheritdoc />
     public string ToUnicodeString(int depth = 20, bool showRationalsAsName = false)
     {
         var unicodeFormatterVisitor = new UnicodeFormatterVisitor(depth, showRationalsAsName);
         var (sb, _) = Accept(unicodeFormatterVisitor);
         var unicodeExpr = sb.ToString();
-        
+
         return unicodeExpr;
     }
 
+    /// <inheritdoc />
     public sealed override string ToString()
         => ToUnicodeString();
 
+    /// <inheritdoc />
     public double Estimate()
     {
         throw new NotImplementedException();
@@ -214,6 +225,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
 
     #endregion Replace
 
+    /// <inheritdoc />
     public ExpressionPosition RootPosition() => new();
 
     /// <summary>
@@ -277,8 +289,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         };
 
     /// <summary>
-    /// Creates a new expression composed of the addition between the expression <see cref="left"/> and the expression
-    /// <see cref="right"/> passed as arguments.</summary>
+    /// Creates a new expression composed of the addition between the expression <paramref name="left"/> and the expression
+    /// <paramref name="right"/> passed as arguments.</summary>
     public static RationalExpression Addition(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
         => left.Addition(right, expressionName, settings:settings);
@@ -303,16 +315,16 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <summary>
-    /// Creates a new expression composed of the addition between the expression <see cref="left"/> and the rational
-    /// number <see cref="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
+    /// Creates a new expression composed of the addition between the expression <paramref name="left"/> and the rational
+    /// number <paramref name="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
     public static RationalExpression Addition(RationalExpression left, Rational right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Addition(right, expressionName:expressionName, settings:settings);
 
     /// <summary>
-    /// Implementation of the + operator as the addition between a rational expression (<see cref="left"/>) and a
-    /// rational number (<see cref="right"/>), which is internally converted to a <see cref="RationalNumberExpression"/>.
+    /// Implementation of the + operator as the addition between a rational expression (<paramref name="left"/>) and a
+    /// rational number (<paramref name="right"/>), which is internally converted to a <see cref="RationalNumberExpression"/>.
     /// </summary>
     public static RationalExpression operator +(RationalExpression left, Rational right)
         => Addition(left, right);
@@ -330,8 +342,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         => new RationalSubtractionExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the subtraction between the expression <see cref="left"/> and the
-    /// expression <see cref="right"/> passed as arguments.
+    /// Creates a new expression composed of the subtraction between the expression <paramref name="left"/> and the
+    /// expression <paramref name="right"/> passed as arguments.
     /// </summary>
     public static RationalExpression Subtraction(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -355,8 +367,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <summary>
-    /// Creates a new expression composed of the subtraction between the expression <see cref="left"/> and the rational
-    /// number <see cref="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
+    /// Creates a new expression composed of the subtraction between the expression <paramref name="left"/> and the rational
+    /// number <paramref name="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
     public static RationalExpression Subtraction(RationalExpression left, Rational right, string expressionName = "",
         ExpressionSettings? settings = null)
@@ -387,8 +399,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         };
 
     /// <summary>
-    /// Creates a new expression composed of the product between the expression <see cref="left"/> and the expression
-    /// <see cref="right"/> passed as arguments.</summary>
+    /// Creates a new expression composed of the product between the expression <paramref name="left"/> and the expression
+    /// <paramref name="right"/> passed as arguments.</summary>
     public static RationalExpression Product(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
         => left.Product(right, expressionName:expressionName, settings:settings);
@@ -413,16 +425,16 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <summary>
-    /// Creates a new expression composed of the product between the expression <see cref="left"/> and the rational
-    /// number <see cref="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
+    /// Creates a new expression composed of the product between the expression <paramref name="left"/> and the rational
+    /// number <paramref name="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
     public static RationalExpression Product(RationalExpression left, Rational right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Product(right, expressionName:expressionName, settings:settings);
 
     /// <summary>
-    /// Implementation of the * operator as the product between a rational expression (<see cref="left"/>) and a
-    /// rational number (<see cref="right"/>), which is internally converted to a <see cref="RationalNumberExpression"/>.
+    /// Implementation of the * operator as the product between a rational expression (<paramref name="left"/>) and a
+    /// rational number (<paramref name="right"/>), which is internally converted to a <see cref="RationalNumberExpression"/>.
     /// </summary>
     public static RationalExpression operator *(RationalExpression left, Rational right)
         => Product(left, right);
@@ -440,8 +452,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         => new RationalDivisionExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression composed of the division between the expression <see cref="left"/> and the expression
-    /// <see cref="right"/> passed as arguments.</summary>
+    /// Creates a new expression composed of the division between the expression <paramref name="left"/> and the expression
+    /// <paramref name="right"/> passed as arguments.</summary>
     public static RationalExpression Division(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
         => left.Division(right, expressionName:expressionName, settings:settings);
@@ -466,16 +478,16 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <summary>
-    /// Creates a new expression composed of the division between the expression <see cref="left"/> and the rational
-    /// number <see cref="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
+    /// Creates a new expression composed of the division between the expression <paramref name="left"/> and the rational
+    /// number <paramref name="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
     public static RationalExpression Division(RationalExpression left, Rational right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Division(right, expressionName:expressionName, settings:settings);
 
     /// <summary>
-    /// Implementation of the / operator as the division between a rational expression (<see cref="left"/>) and a
-    /// rational number (<see cref="right"/>), which is internally converted to a <see cref="RationalNumberExpression"/>.
+    /// Implementation of the / operator as the division between a rational expression (<paramref name="left"/>) and a
+    /// rational number (<paramref name="right"/>), which is internally converted to a <see cref="RationalNumberExpression"/>.
     /// </summary>
     public static RationalExpression operator /(RationalExpression left, Rational right)
         => Division(left, right);
@@ -498,8 +510,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         };
 
     /// <summary>
-    /// Creates a new expression composed of the l.c.m. between the expression <see cref="left"/> and the expression
-    /// <see cref="right"/> passed as arguments.</summary>
+    /// Creates a new expression composed of the l.c.m. between the expression <paramref name="left"/> and the expression
+    /// <paramref name="right"/> passed as arguments.</summary>
     public static RationalExpression LeastCommonMultiple(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
         => left.LeastCommonMultiple(right, expressionName:expressionName, settings:settings);
@@ -520,8 +532,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <summary>
-    /// Creates a new expression composed of the l.c.m. between the expression <see cref="left"/> and the rational
-    /// number <see cref="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
+    /// Creates a new expression composed of the l.c.m. between the expression <paramref name="left"/> and the rational
+    /// number <paramref name="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
     public static RationalExpression LeastCommonMultiple(RationalExpression left, Rational right,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -545,8 +557,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         };
 
     /// <summary>
-    /// Creates a new expression composed of the g.c.d. between the expression <see cref="left"/> and the expression
-    /// <see cref="right"/> passed as arguments.</summary>
+    /// Creates a new expression composed of the g.c.d. between the expression <paramref name="left"/> and the expression
+    /// <paramref name="right"/> passed as arguments.</summary>
     public static RationalExpression GreatestCommonDivisor(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
         => left.GreatestCommonDivisor(right);
@@ -567,8 +579,8 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <summary>
-    /// Creates a new expression composed of the g.c.d. between the expression <see cref="left"/> and the rational
-    /// number <see cref="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
+    /// Creates a new expression composed of the g.c.d. between the expression <paramref name="left"/> and the rational
+    /// number <paramref name="right"/> (internally converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
     public static RationalExpression GreatestCommonDivisor(RationalExpression left, Rational right,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -591,7 +603,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         };
 
     /// <summary>
-    /// Creates a new expression that computes the minimum between the expressions <see cref="left"/> and <see cref="right"/> passed as arguments.
+    /// Creates a new expression that computes the minimum between the expressions <paramref name="left"/> and <paramref name="right"/> passed as arguments.
     /// </summary>
     public static RationalExpression Min(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -610,7 +622,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <summary>
-    /// Creates a new expression that computes the minimum between the expression <see cref="left"/> and the rational number <see cref="right"/> passed as arguments.
+    /// Creates a new expression that computes the minimum between the expression <paramref name="left"/> and the rational number <paramref name="right"/> passed as arguments.
     /// </summary>
     public static RationalExpression Min(RationalExpression left, Rational right, string expressionName = "",
         ExpressionSettings? settings = null)
@@ -633,7 +645,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         };
 
     /// <summary>
-    /// Creates a new expression that computes the maximum between the expressions <see cref="left"/> and <see cref="right"/> passed as arguments.
+    /// Creates a new expression that computes the maximum between the expressions <paramref name="left"/> and <paramref name="right"/> passed as arguments.
     /// </summary>
     public static RationalExpression Max(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -652,7 +664,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <summary>
-    /// Creates a new expression that computes the maximum between the expression <see cref="left"/> and the rational number <see cref="right"/> passed as arguments.
+    /// Creates a new expression that computes the maximum between the expression <paramref name="left"/> and the rational number <paramref name="right"/> passed as arguments.
     /// </summary>
     public static RationalExpression Max(RationalExpression left, Rational right, string expressionName = "",
         ExpressionSettings? settings = null)
@@ -666,12 +678,12 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <param name="type">Type of the expression that needs to be created</param>
     /// <param name="e1">Left operand</param>
     /// <param name="e2">Right operand</param>
-    /// <returns>If <see cref="type"/> is equal to the type of <see cref="e1"/> the function returns 1, which means that
-    /// the new expression must be created by appending <see cref="e2"/> to <see cref="e1"/>.
-    /// The opposite holds if <see cref="type"/> is equal to the type of <see cref="e2"/>, in this case the function
+    /// <returns>If <paramref name="type"/> is equal to the type of <paramref name="e1"/> the function returns 1, which means that
+    /// the new expression must be created by appending <paramref name="e2"/> to <paramref name="e1"/>.
+    /// The opposite holds if <paramref name="type"/> is equal to the type of <paramref name="e2"/>, in this case the function
     /// returns 2.
-    /// The function returns 0 when the <see cref="type"/> is different by the type of <see cref="e1"/> and
-    /// <see cref="e2"/>.</returns>
+    /// The function returns 0 when the <paramref name="type"/> is different by the type of <paramref name="e1"/> and
+    /// <paramref name="e2"/>.</returns>
     private static int CheckNAryExpressionTypes(Type type, RationalExpression e1, RationalExpression e2)
     {
         if (e1.GetType() == type)

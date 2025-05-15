@@ -18,6 +18,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 {
     #region Properties
 
+    /// <inheritdoc />
     public string Name { get; init; }
 
     /// <summary>
@@ -25,6 +26,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </summary>
     public static readonly ConcurrentDictionary<Type, List<Equivalence>> Equivalences = new();
 
+    /// <inheritdoc />
     public ExpressionSettings? Settings { get; init; }
     
     /// <summary>
@@ -32,6 +34,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </summary>
     internal Curve? _value;
 
+    /// <inheritdoc />
     public Curve Value => _value ??= Compute();
 
     /// <inheritdoc cref="IExpression.IsComputed"/>
@@ -247,8 +250,8 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Class which describes NetCal expressions that evaluate to curves. The class aims at providing the main methods to
     /// build, manipulate and print network calculus expressions.
     /// </summary>
-    /// <param name="ExpressionName">The name of the expression</param>
-    /// <param name="Settings"></param>
+    /// <param name="expressionName">The name of the expression</param>
+    /// <param name="settings"></param>
     protected CurveExpression(string expressionName = "", ExpressionSettings? settings = null)
     {
         Name = expressionName;
@@ -391,8 +394,8 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     }
 
     /// <summary>
-    /// Creates a new expression composed of the addition between the expression <see cref="left"/> and the curve
-    /// <see cref="right"/> (internally converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
+    /// Creates a new expression composed of the addition between the expression <paramref name="left"/> and the curve
+    /// <paramref name="right"/> (internally converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
     public static CurveExpression Addition(CurveExpression left, Curve right, string expressionName = "",
         ExpressionSettings? settings = null)
@@ -606,7 +609,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region DelayBy
     
     /// <summary>
-    /// Creates a new expression that delays the current expression by the rational <see cref="expression"/>,
+    /// Creates a new expression that delays the current expression by the rational <paramref name="expression"/>,
     /// i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
@@ -621,7 +624,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new DelayByExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that delays the current expression by the rational <see cref="delay"/>,
+    /// Creates a new expression that delays the current expression by the rational <paramref name="delay"/>,
     /// i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
@@ -639,7 +642,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region ForwardBy
 
     /// <summary>
-    /// Creates a new expression that forwards the current expression by the rational <see cref="expression"/>,
+    /// Creates a new expression that forwards the current expression by the rational <paramref name="expression"/>,
     /// i.e., computing $f(t + T)$, with $T \ge 0$. 
     /// </summary>
     /// <remarks>
@@ -654,7 +657,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new DelayByExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that forwards the current expression by the rational <see cref="time"/>,
+    /// Creates a new expression that forwards the current expression by the rational <paramref name="time"/>,
     /// i.e., computing $f(t + T)$, with $T \ge 0$. 
     /// </summary>
     /// <remarks>
@@ -672,7 +675,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region HorizontalShift
 
     /// <summary>
-    /// Creates a new expression that shifts the current expression by the rational <see cref="expression"/>,
+    /// Creates a new expression that shifts the current expression by the rational <paramref name="expression"/>,
     /// i.e., computing $f(t - T)$. 
     /// </summary>
     /// <remarks>
@@ -687,7 +690,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new HorizontalShiftExpression(this, expression, expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that shifts the current expression by the rational <see cref="value"/>,
+    /// Creates a new expression that shifts the current expression by the rational <paramref name="value"/>,
     /// i.e., computing $f(t - T)$. 
     /// </summary>
     /// <remarks>
@@ -706,7 +709,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     /// <summary>
     /// Creates a new expression that shifts the current
-    /// expression by the rational <see cref="expression"/>, i.e., computing $f(t) + K$. 
+    /// expression by the rational <paramref name="expression"/>, i.e., computing $f(t) + K$. 
     /// </summary>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
@@ -717,7 +720,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     /// <summary>
     /// Creates a new expression that shifts the current curve
-    /// expression by the rational <see cref="value"/>, i.e., computing $f(t) + K$.
+    /// expression by the rational <paramref name="value"/>, i.e., computing $f(t) + K$.
     /// </summary>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
@@ -731,7 +734,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     
     /// <summary>
     /// Creates a new expression composed of the operation to scale the curve corresponding to the current expression
-    /// by the rational number described by the argument <see cref="expression"/> of type
+    /// by the rational number described by the argument <paramref name="expression"/> of type
     /// <see cref="RationalExpression"/>. </summary>
     public CurveExpression Scale(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
@@ -739,7 +742,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     /// <summary>
     /// Creates a new expression composed of the operation to scale the curve corresponding to the current expression
-    /// by the rational number <see cref="scaleFactor"/>.</summary>
+    /// by the rational number <paramref name="scaleFactor"/>.</summary>
     public CurveExpression Scale(Rational scaleFactor, string expressionName = "", ExpressionSettings? settings = null)
         => Scale(new RationalNumberExpression(scaleFactor), expressionName, settings);
 
@@ -748,7 +751,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region Sampling
 
     /// <summary>
-    /// Creates a new expression that computes the value of the curve expression at <see cref="time"/>.
+    /// Creates a new expression that computes the value of the curve expression at <paramref name="time"/>.
     /// </summary>
     /// <param name="time"></param>
     /// <param name="expressionName"></param>
@@ -761,7 +764,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new ValueAtExpression(this, new RationalNumberExpression(time), expressionName, settings);
     
     /// <summary>
-    /// Creates a new expression that computes the value of the curve expression at the time given by <see cref="timeExpression"/>.
+    /// Creates a new expression that computes the value of the curve expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
     /// <param name="timeExpression"></param>
     /// <param name="expressionName"></param>
@@ -774,7 +777,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new ValueAtExpression(this, timeExpression, expressionName, settings);
     
     /// <summary>
-    /// Creates a new expression that computes the left-limit value of the curve expression at <see cref="time"/>.
+    /// Creates a new expression that computes the left-limit value of the curve expression at <paramref name="time"/>.
     /// </summary>
     /// <param name="time"></param>
     /// <param name="expressionName"></param>
@@ -787,7 +790,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new LeftLimitAtExpression(this, new RationalNumberExpression(time), expressionName, settings);
     
     /// <summary>
-    /// Creates a new expression that computes the left-limit value of the curve expression at the time given by <see cref="timeExpression"/>.
+    /// Creates a new expression that computes the left-limit value of the curve expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
     /// <param name="timeExpression"></param>
     /// <param name="expressionName"></param>
@@ -800,7 +803,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new LeftLimitAtExpression(this, timeExpression, expressionName, settings);
     
     /// <summary>
-    /// Creates a new expression that computes the right-limit value of the curve expression at <see cref="time"/>.
+    /// Creates a new expression that computes the right-limit value of the curve expression at <paramref name="time"/>.
     /// </summary>
     /// <param name="time"></param>
     /// <param name="expressionName"></param>
@@ -813,7 +816,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new RightLimitAtExpression(this, new RationalNumberExpression(time), expressionName, settings);
     
     /// <summary>
-    /// Creates a new expression that computes the right-limit value of the curve expression at the time given by <see cref="timeExpression"/>.
+    /// Creates a new expression that computes the right-limit value of the curve expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
     /// <param name="timeExpression"></param>
     /// <param name="expressionName"></param>
@@ -827,6 +830,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         
     #endregion Sampling
 
+    /// <inheritdoc />
     public Curve Compute() => _value ??= new CurveExpressionEvaluator().GetResult(this);
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
@@ -983,6 +987,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         CheckType checkType = CheckType.CheckLeftOnly)
         => ApplyEquivalenceByPosition(expressionPosition.GetPositionPath(), equivalence, checkType);
 
+    /// <inheritdoc />
     IGenericExpression<Curve> IGenericExpression<Curve>.ApplyEquivalenceByPosition(
         ExpressionPosition expressionPosition, Equivalence equivalence,
         CheckType checkType)
@@ -1012,14 +1017,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     
     #region Accept
     
+    /// <inheritdoc />
     public void Accept(IExpressionVisitor<Curve> visitor)
         => Accept((ICurveExpressionVisitor) visitor);
 
+    /// <inheritdoc />
     public abstract void Accept(ICurveExpressionVisitor visitor);
     
+    /// <inheritdoc />
     public TResult Accept<TResult>(IExpressionVisitor<Curve, TResult> visitor)
         => Accept((ICurveExpressionVisitor<TResult>) visitor);
 
+    /// <inheritdoc />
     public abstract TResult Accept<TResult>(ICurveExpressionVisitor<TResult> visitor);
     
     #endregion Accept
@@ -1031,12 +1040,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <param name="type">Type of the expression that needs to be created</param>
     /// <param name="e1">Left operand</param>
     /// <param name="e2">Right operand</param>
-    /// <returns>If <see cref="type"/> is equal to the type of <see cref="e1"/> the function returns 1, which means that
-    /// the new expression must be created by appending <see cref="e2"/> to <see cref="e1"/>.
-    /// The opposite holds if <see cref="type"/> is equal to the type of <see cref="e2"/>, in this case the function
+    /// <returns>If <paramref name="type"/> is equal to the type of <paramref name="e1"/> the function returns 1, which means that
+    /// the new expression must be created by appending <paramref name="e2"/> to <paramref name="e1"/>.
+    /// The opposite holds if <paramref name="type"/> is equal to the type of <paramref name="e2"/>, in this case the function
     /// returns 2.
-    /// The function returns 0 when the <see cref="type"/> is different by the type of <see cref="e1"/> and
-    /// <see cref="e2"/>.</returns>
+    /// The function returns 0 when the <paramref name="type"/> is different by the type of <paramref name="e1"/> and
+    /// <paramref name="e2"/>.</returns>
     private static int CheckNAryExpressionTypes(Type type, CurveExpression e1, CurveExpression e2)
     {
         if (e1.GetType() == type)
@@ -1044,6 +1053,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         return e2.GetType() == type ? 2 : 0;
     }
 
+    /// <inheritdoc />
     public string ToLatexString(int depth = 20, bool showRationalsAsName = false)
     {
         var latexFormatterVisitor = new LatexFormatterVisitor(depth, showRationalsAsName);
@@ -1053,6 +1063,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         return latexExpr;
     }
 
+    /// <inheritdoc />
     public string ToUnicodeString(int depth = 20, bool showRationalsAsName = false)
     {
         var unicodeFormatterVisitor = new UnicodeFormatterVisitor(depth, showRationalsAsName);
@@ -1068,11 +1079,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public sealed override string ToString()
         => ToUnicodeString();
     
+    /// <inheritdoc />
     public double Estimate()
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public ExpressionPosition RootPosition() => new();
 
     /// <summary>
@@ -1094,6 +1107,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         return changeNameVisitor.Result;
     }
 
+    /// <inheritdoc />
     IGenericExpression<Curve> IGenericExpression<Curve>.WithName(string expressionName) => WithName(expressionName);
     
     /// <summary>
@@ -1110,7 +1124,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     /// <summary>
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
-    /// by <see cref="rationalExpression"/>, i.e., computing $f(t) + K$.
+    /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) + K$.
     /// </summary>
     /// <param name="curveExpression"></param>
     /// <param name="rationalExpression"></param>
@@ -1123,7 +1137,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     
     /// <summary>
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
-    /// by <see cref="rational"/>, i.e., computing $f(t) + K$.
+    /// by <paramref name="rational"/>, i.e., computing $f(t) + K$.
     /// </summary>
     /// <param name="curveExpression"></param>
     /// <param name="rational"></param>

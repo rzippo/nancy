@@ -8,6 +8,9 @@ namespace Unipi.Nancy.Expressions.Internals;
 /// </summary>
 public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
 {
+    /// <summary>
+    /// If set to true, the result is forced to be non-negative.
+    /// </summary>
     public bool NonNegative { get; init; }
     
     /// <summary>
@@ -53,9 +56,11 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
         NonNegative = nonNegative;
     }
 
+    /// <inheritdoc />
     public override void Accept(ICurveExpressionVisitor visitor)
         => visitor.Visit(this);
-    
+
+    /// <inheritdoc />
     public override TResult Accept<TResult>(ICurveExpressionVisitor<TResult> visitor)
         => visitor.Visit(this);
 }

@@ -14,13 +14,19 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     /// </summary>
     public bool IsWellDefined;
 
-    // A curve is always well-defined
+    /// <inheritdoc />
+    /// <remarks>
+    /// A <see cref="MinPlusAlgebra.Curve"/> is always well-defined.
+    /// </remarks>
     public virtual void Visit(ConcreteCurveExpression expression) => IsWellDefined = true;
 
+    /// <inheritdoc />
     public virtual void Visit(NegateExpression expression) => expression.Expression.Accept(this);
 
+    /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression) => expression.Expression.Accept(this);
 
+    /// <inheritdoc />
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
         if (expression.Expression.Value.IsFinite) IsWellDefined = true;
@@ -28,31 +34,40 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
                  expression.Expression.Value.InfValue() == Rational.MinusInfinity) IsWellDefined = false;
     }
 
+    /// <inheritdoc />
     public virtual void Visit(SuperAdditiveClosureExpression expression)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public virtual void Visit(ToUpperNonDecreasingExpression expression) => IsWellDefined = true;
 
+    /// <inheritdoc />
     public virtual void Visit(ToLowerNonDecreasingExpression expression) => expression.Expression.Accept(this);
 
+    /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression) => expression.Expression.Accept(this);
 
+    /// <inheritdoc />
     public virtual void Visit(ToRightContinuousExpression expression) => expression.Expression.Accept(this);
 
+    /// <inheritdoc />
     public virtual void Visit(WithZeroOriginExpression expression) => expression.Expression.Accept(this);
 
+    /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public virtual void Visit(UpperPseudoInverseExpression expression)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public virtual void Visit(AdditionExpression expression)
     {
         var plusInfinity = 0;
@@ -68,6 +83,7 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
         IsWellDefined = plusInfinity == 0 || minusInfinity == 0;
     }
 
+    /// <inheritdoc />
     public virtual void Visit(SubtractionExpression expression)
     {
         // If at least one of the operands is finite --> Subtraction is finite
@@ -80,10 +96,13 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
                  expression.LeftExpression.Value.SupValue() == Rational.PlusInfinity) IsWellDefined = false;
     }
 
+    /// <inheritdoc />
     public virtual void Visit(MinimumExpression expression) => IsWellDefined = true;
 
+    /// <inheritdoc />
     public virtual void Visit(MaximumExpression expression) => IsWellDefined = true;
 
+    /// <inheritdoc />
     public virtual void Visit(ConvolutionExpression expression)
     {
         var plusInfinity = 0;
@@ -99,6 +118,7 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
         IsWellDefined = plusInfinity == 0 || minusInfinity == 0;
     }
 
+    /// <inheritdoc />
     public virtual void Visit(DeconvolutionExpression expression)
     {
         // f deconv g is undefined if ∃ t1 ≤ t2, f (t2) = g(t1) = +∞ (or−∞)
@@ -109,44 +129,53 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
         }
     }
 
+    /// <inheritdoc />
     public virtual void Visit(MaxPlusConvolutionExpression expression)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public virtual void Visit(MaxPlusDeconvolutionExpression expression)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public virtual void Visit(CompositionExpression expression)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public virtual void Visit(DelayByExpression expression)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public virtual void Visit(ForwardByExpression expression)
     {
         throw new NotImplementedException();
     }
 
-    public void Visit(HorizontalShiftExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(HorizontalShiftExpression expression)
     {
         throw new NotImplementedException();
     }
 
-    public void Visit(VerticalShiftExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(VerticalShiftExpression expression)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");
 
+    /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
     {
         throw new NotImplementedException();

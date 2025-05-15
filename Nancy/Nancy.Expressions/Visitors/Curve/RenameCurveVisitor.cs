@@ -15,12 +15,15 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
     /// </summary>
     public CurveExpression Result = Expressions.FromCurve(Curve.Zero());
 
+    /// <summary>
+    /// The new name of the expression.
+    /// </summary>
     public string NewName { get; init; }
 
     /// <summary>
     /// Visitor class used to change the name of a curve expression.
     /// </summary>
-    /// <param name="newName">The new name of the expression</param>
+    /// <param name="newName">The new name of the expression.</param>
     public RenameCurveVisitor(string newName)
     {
         NewName = newName;
@@ -38,88 +41,115 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
         };
     }
 
+    /// <inheritdoc />
     public virtual void Visit(ConcreteCurveExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(NegateExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(SubAdditiveClosureExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(SuperAdditiveClosureExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(ToUpperNonDecreasingExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(ToLowerNonDecreasingExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(ToRightContinuousExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(WithZeroOriginExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(UpperPseudoInverseExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(AdditionExpression expression)
         => CommonVisit(expression);
 
 
+    /// <inheritdoc />
     public virtual void Visit(SubtractionExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(MinimumExpression expression)
         => CommonVisit(expression);
 
+    /// <inheritdoc />
     public virtual void Visit(MaximumExpression expression)
         => CommonVisit(expression);
 
 
+    /// <inheritdoc />
     public virtual void Visit(ConvolutionExpression expression)
         => CommonVisit(expression);
 
 
+    /// <inheritdoc />
     public virtual void Visit(DeconvolutionExpression expression)
         => Result = expression with { Name = NewName };
 
+    /// <inheritdoc />
     public virtual void Visit(MaxPlusConvolutionExpression expression)
         => Result = expression with { Name = NewName };
 
 
+    /// <inheritdoc />
     public virtual void Visit(MaxPlusDeconvolutionExpression expression)
         => Result = expression with { Name = NewName };
 
+    /// <inheritdoc />
     public virtual void Visit(CompositionExpression expression)
         => Result = expression with { Name = NewName };
 
+    /// <inheritdoc />
     public virtual void Visit(DelayByExpression expression)
         => Result = expression with { Name = NewName };
 
+    /// <inheritdoc />
     public virtual void Visit(ForwardByExpression expression)
         => Result = expression with { Name = NewName };
 
-    public void Visit(HorizontalShiftExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(HorizontalShiftExpression expression)
         => Result = expression with { Name = NewName };
 
-    public void Visit(VerticalShiftExpression expression)
+    /// <inheritdoc />
+    public virtual void Visit(VerticalShiftExpression expression)
         => Result = expression with { Name = NewName };
 
+    /// <inheritdoc />
     public virtual void Visit(CurvePlaceholderExpression expression)
         => Result = expression with { Name = NewName };
 
+    /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
         => Result = expression with { Name = NewName };
 }

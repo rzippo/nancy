@@ -14,6 +14,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
     /// </summary>
     private readonly List<string> _placeholders = [];
 
+    /// <inheritdoc /> 
     public override object VisitEquivalence(NetCalGParser.EquivalenceContext context)
     {
         // Parse the equivalence from text and set left and right expressions of the equivalence object
@@ -77,6 +78,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return equivalence;
     }
 
+    /// <inheritdoc /> 
     public override object VisitConvolutionExpression(NetCalGParser.ConvolutionExpressionContext context)
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
@@ -84,6 +86,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.Convolution(left, right);
     }
 
+    /// <inheritdoc /> 
     public override object VisitDeconvolutionExpression(NetCalGParser.DeconvolutionExpressionContext context)
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
@@ -91,6 +94,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.Deconvolution(left, right);
     }
 
+    /// <inheritdoc /> 
     public override object VisitMaxPlusConvolutionExpression(NetCalGParser.MaxPlusConvolutionExpressionContext context)
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
@@ -98,6 +102,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.MaxPlusConvolution(left, right);
     }
 
+    /// <inheritdoc /> 
     public override object VisitMaxPlusDeconvolutionExpression(
         NetCalGParser.MaxPlusDeconvolutionExpressionContext context)
     {
@@ -106,6 +111,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.MaxPlusDeconvolution(left, right);
     }
 
+    /// <inheritdoc /> 
     public override object VisitMinimumExpression(NetCalGParser.MinimumExpressionContext context)
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
@@ -113,6 +119,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.Minimum(left, right);
     }
 
+    /// <inheritdoc /> 
     public override object VisitMaximumExpression(NetCalGParser.MaximumExpressionContext context)
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
@@ -120,6 +127,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.Maximum(left, right);
     }
 
+    /// <inheritdoc /> 
     public override object VisitAdditionExpression(NetCalGParser.AdditionExpressionContext context)
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
@@ -127,6 +135,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.Addition(left, right);
     }
 
+    /// <inheritdoc /> 
     public override object VisitSubtractionExpression(NetCalGParser.SubtractionExpressionContext context)
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
@@ -134,6 +143,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.Subtraction(left, right, nonNegative: false);
     }
 
+    /// <inheritdoc /> 
     public override object VisitCompositionExpression(NetCalGParser.CompositionExpressionContext context)
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
@@ -141,16 +151,19 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         return Expressions.Composition(left, right);
     }
 
+    /// <inheritdoc /> 
     public override object VisitParenthesizedExpression(NetCalGParser.ParenthesizedExpressionContext context)
     {
         return context.curveExpression().Accept(this);
     }
 
+    /// <inheritdoc /> 
     public override object VisitConstantCurve(NetCalGParser.ConstantCurveContext context)
     {
         return Expressions.Placeholder(context.placeholder().GetText());
     }
 
+    /// <inheritdoc /> 
     public override object VisitNonDecreasingProperty(NetCalGParser.NonDecreasingPropertyContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -158,6 +171,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsNonDecreasing;
     }
 
+    /// <inheritdoc /> 
     public override object VisitNonNegativeProperty(NetCalGParser.NonNegativePropertyContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -165,6 +179,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsNonNegative;
     }
 
+    /// <inheritdoc /> 
     public override object VisitSubadditiveProperty(NetCalGParser.SubadditivePropertyContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -172,6 +187,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsSubAdditive;
     }
 
+    /// <inheritdoc /> 
     public override object VisitConvexProperty(NetCalGParser.ConvexPropertyContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -179,6 +195,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsConvex;
     }
 
+    /// <inheritdoc /> 
     public override object VisitConcaveProperty(NetCalGParser.ConcavePropertyContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -186,6 +203,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsConcave;
     }
 
+    /// <inheritdoc /> 
     public override object VisitLeftContinuousProperty(NetCalGParser.LeftContinuousPropertyContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -193,6 +211,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsLeftContinuous;
     }
 
+    /// <inheritdoc /> 
     public override object VisitRightContinuousProperty(NetCalGParser.RightContinuousPropertyContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -200,6 +219,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsRightContinuous;
     }
 
+    /// <inheritdoc /> 
     public override object VisitZeroAtZeroProperty(NetCalGParser.ZeroAtZeroPropertyContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -207,6 +227,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsZeroAtZero;
     }
 
+    /// <inheritdoc /> 
     public override object VisitUltimatelyConstant(NetCalGParser.UltimatelyConstantContext context)
     {
         return (Predicate<CurveExpression>)Property;
@@ -214,6 +235,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
         bool Property(CurveExpression expression) => expression.IsUltimatelyConstant();
     }
 
+    /// <inheritdoc /> 
     public override object VisitRelationalOperator(NetCalGParser.RelationalOperatorContext context)
     {
         if (context.GREATER_OR_EQUAL() != null)

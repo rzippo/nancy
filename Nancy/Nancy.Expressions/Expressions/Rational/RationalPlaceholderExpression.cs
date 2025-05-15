@@ -18,11 +18,16 @@ public record RationalPlaceholderExpression : RationalExpression
         RationalName = rationalName;
     }
 
+    /// <inheritdoc />
     public override void Accept(IRationalExpressionVisitor visitor)
         => visitor.Visit(this);
 
+    /// <inheritdoc />
     public override TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor)
         => visitor.Visit(this);
 
+    /// <summary>
+    /// Name of the rational placeholder.
+    /// </summary>
     public string RationalName { get; init; }
 }

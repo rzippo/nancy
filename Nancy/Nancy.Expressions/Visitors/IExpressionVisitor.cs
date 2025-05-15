@@ -36,7 +36,6 @@ public interface IExpressionVisitor<in TExpressionResult, out TResult>
     /// Visit method of a generic expression.
     /// Fallback method in case no more specific one is available, always raises a <exception cref="NotImplementedException"/>.
     /// </summary>
-    /// <typeparam name="TExpressionResult">Type of the value of the expression</typeparam>
     /// <exception cref="NotImplementedException">
     /// Always raised if the method is executed, it means that a more specific Visit method is missing.
     /// </exception>

@@ -1,4 +1,6 @@
-﻿namespace Unipi.Nancy.Expressions.ExpressionsUtility;
+﻿using Unipi.Nancy.Expressions.Internals;
+
+namespace Unipi.Nancy.Expressions.ExpressionsUtility;
 
 /// <summary>
 /// Class which models the position of a sub-expression inside a DNC expression. The position is obtained by
@@ -44,7 +46,7 @@ public class ExpressionPosition
         => new(_positionPath.Append("Operand"));
 
     /// <summary>
-    /// Adds to the path the step through the operand number <see cref="index"/> (starting from 0) of an n-ary
+    /// Adds to the path the step through the operand number <paramref name="index"/> (starting from 0) of an n-ary
     /// expression node
     /// </summary>
     public ExpressionPosition IndexedOperand(int index) // For n-ary expressions
@@ -92,10 +94,21 @@ public class ExpressionPosition
     public IEnumerable<string> GetPositionPath() => _positionPath;
 }
 
+/// <summary>
+/// Helper class to build expression paths.
+/// </summary>
 public static class Positions
 {
+    
+    /// In a <see cref="IGenericBinaryExpression{T1, T2, TResult}"/>, position of its left operand.
     public const string LeftOperand = "LeftOperand";
+    
+    /// In a <see cref="IGenericBinaryExpression{T1, T2, TResult}"/>, position of its right operand.
     public const string RightOperand = "RightOperand";
+    
+    /// In a <see cref="IGenericUnaryExpression{T,TResult}"/>, position of its single operand.
     public const string InnerOperand = "Operand";
+
+    /// In a <see cref="IGenericNAryExpression{T,TResult}"/>, position of its <paramref name="i"/>-th operand.
     public static string IndexedOperand(int i) => $"{i}";
 }

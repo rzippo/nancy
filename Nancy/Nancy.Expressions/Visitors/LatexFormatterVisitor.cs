@@ -12,8 +12,8 @@ namespace Unipi.Nancy.Expressions.Visitors;
 /// Used for visiting an expression and create its representation using Latex code.
 /// </summary>
 public partial class LatexFormatterVisitor : 
-    ICurveExpressionVisitor<(StringBuilder UnicodeBuilder, bool NeedsParentheses)>, 
-    IRationalExpressionVisitor<(StringBuilder UnicodeBuilder, bool NeedsParentheses)>
+    ICurveExpressionVisitor<(StringBuilder LatexBuilder, bool NeedsParentheses)>, 
+    IRationalExpressionVisitor<(StringBuilder LatexBuilder, bool NeedsParentheses)>
 {
     /// <summary>
     /// The current depth of visit.
@@ -30,6 +30,9 @@ public partial class LatexFormatterVisitor :
     /// </remarks>
     public int MaxDepth { get; init; }
 
+    /// <summary>
+    /// If true, rational numbers are not shown using their value, but using their name.
+    /// </summary>
     public bool ShowRationalsAsName { get; init; }
 
     /// <summary>
@@ -83,7 +86,7 @@ public partial class LatexFormatterVisitor :
 
     #region Default formatters
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) GeneralizedAccept<TExpressionResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) GeneralizedAccept<TExpressionResult>(
         IGenericExpression<TExpressionResult> expression
     )
     {
@@ -95,7 +98,7 @@ public partial class LatexFormatterVisitor :
             throw new NotImplementedException();
     }
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryCommand<T1, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitUnaryCommand<T1, TResult>(
         IGenericUnaryExpression<T1, TResult> expression,
         string latexCommand
     )
@@ -106,11 +109,11 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerUnicode, _) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
 
             sb.Append(latexCommand);
             sb.Append('{');
-            sb.Append(innerUnicode);
+            sb.Append(innerLatex);
             sb.Append('}');
 
             CurrentDepth--;
@@ -118,7 +121,7 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryPrefix<T1, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitUnaryPrefix<T1, TResult>(
         IGenericUnaryExpression<T1, TResult> expression,
         string operation
     )
@@ -129,11 +132,11 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerUnicode, _) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
 
             sb.Append(operation);
             sb.Append(@"\left( ");
-            sb.Append(innerUnicode);
+            sb.Append(innerLatex);
             sb.Append(@" \right)");
 
             CurrentDepth--;
@@ -141,7 +144,7 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryPostfix<T1, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitUnaryPostfix<T1, TResult>(
         IGenericUnaryExpression<T1, TResult> expression,
         string operation,
         bool forceParentheses = true
@@ -153,18 +156,18 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerUnicode, innerNeedsParentheses) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, innerNeedsParentheses) = GeneralizedAccept(expression.Expression);
             var needsParentheses = innerNeedsParentheses || forceParentheses; 
             if (needsParentheses)
             {
                 sb.Append(@"\left( ");
-                sb.Append(innerUnicode);
+                sb.Append(innerLatex);
                 sb.Append(@" \right)");
                 sb.Append(operation);
             }
             else
             {
-                sb.Append(innerUnicode);
+                sb.Append(innerLatex);
                 sb.Append(operation);
             }
             CurrentDepth--;
@@ -172,14 +175,14 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryPostfix<T1, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitUnaryPostfix<T1, TResult>(
         IGenericUnaryExpression<T1, TResult> expression,
         string operation,
         Func<IGenericExpression<T1>, bool> parenthesesDeterminator
     )
         => VisitUnaryPostfix(expression, operation, parenthesesDeterminator(expression.Expression));
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryCommand<T1, T2, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitBinaryCommand<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
         string latexCommand
     )
@@ -203,7 +206,7 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryInfix<T1, T2, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitBinaryInfix<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
         string latexOperation
     )
@@ -215,34 +218,34 @@ public partial class LatexFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder();
 
-            var (leftUnicodeBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftExpression);
+            var (leftLatexBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftExpression);
             if (leftNeedsParentheses)
             {
                 sb.Append(@"\left( ");
-                sb.Append(leftUnicodeBuilder);
+                sb.Append(leftLatexBuilder);
                 sb.Append(@" \right)");
             }
             else
-                sb.Append(leftUnicodeBuilder);
+                sb.Append(leftLatexBuilder);
 
             sb.Append(latexOperation);
 
-            var (rightUnicodeBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightExpression);
+            var (rightLatexBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightExpression);
             if (rightNeedsParentheses)
             {
                 sb.Append(@"\left( ");
-                sb.Append(rightUnicodeBuilder);
+                sb.Append(rightLatexBuilder);
                 sb.Append(@" \right)");
             }
             else
-                sb.Append(rightUnicodeBuilder);
+                sb.Append(rightLatexBuilder);
             CurrentDepth--;
 
             return (sb, true);
         }
     }
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryPrefix<T1, T2, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitBinaryPrefix<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
         string latexOperation
     )
@@ -255,18 +258,18 @@ public partial class LatexFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(latexOperation);
             sb.Append(@"\left( ");
-            var (leftUnicode, _) = GeneralizedAccept(expression.LeftExpression);
-            sb.Append(leftUnicode);
+            var (leftLatex, _) = GeneralizedAccept(expression.LeftExpression);
+            sb.Append(leftLatex);
             sb.Append(", ");
-            var (rightUnicode, _) = GeneralizedAccept(expression.RightExpression);
-            sb.Append(rightUnicode);
+            var (rightLatex, _) = GeneralizedAccept(expression.RightExpression);
+            sb.Append(rightLatex);
             sb.Append(@" \right)");
             CurrentDepth--;
             return (sb, false);
         }
     }
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitNAryInfix<T, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitNAryInfix<T, TResult>(
         IGenericNAryExpression<T, TResult> expression, 
         string latexOperation
     )
@@ -281,15 +284,15 @@ public partial class LatexFormatterVisitor :
             var c = expression.Expressions.Count;
             foreach (var e in expression.Expressions)
             {
-                var (unicode, needsParentheses) = GeneralizedAccept(e);
+                var (latex, needsParentheses) = GeneralizedAccept(e);
                 if (needsParentheses)
                 {
                     sb.Append(@"\left( ");
-                    sb.Append(unicode);
+                    sb.Append(latex);
                     sb.Append(@" \right)");
                 }
                 else
-                    sb.Append(unicode);
+                    sb.Append(latex);
                 c--;
                 if (c > 0)
                     sb.Append(latexOperation);
@@ -300,7 +303,7 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitNAryPrefix<T, TResult>(
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitNAryPrefix<T, TResult>(
         IGenericNAryExpression<T, TResult> expression, 
         string latexOperation
     )
@@ -316,8 +319,8 @@ public partial class LatexFormatterVisitor :
             var c = expression.Expressions.Count;
             foreach (var e in expression.Expressions)
             {
-                var (unicode, _) = GeneralizedAccept(e);
-                sb.Append(unicode);
+                var (latex, _) = GeneralizedAccept(e);
+                sb.Append(latex);
                 c--;
                 if (c > 0)
                     sb.Append(", ");
@@ -361,34 +364,44 @@ public partial class LatexFormatterVisitor :
 
     #endregion Default formatters
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConcreteCurveExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ConcreteCurveExpression expression)
         => (FormatName(expression.Name), false);
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalAdditionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalAdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalSubtractionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalSubtractionExpression expression)
         => VisitBinaryInfix(expression, " - ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalProductExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalProductExpression expression)
         => VisitNAryInfix(expression, " \\cdot ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalDivisionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalDivisionExpression expression)
         => VisitBinaryCommand(expression, "\\frac");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalLeastCommonMultipleExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalLeastCommonMultipleExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{lcm}");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalGreatestCommonDivisorExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalGreatestCommonDivisorExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{gcd}");
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalMinimumExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalMinimumExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{min}");
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalMaximumExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalMaximumExpression expression)
         => VisitNAryPrefix(expression, "\\operatorname{max}");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalNumberExpression numberExpression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalNumberExpression numberExpression)
     {
         if (!numberExpression.Name.Equals("") && (ShowRationalsAsName || CurrentDepth >= MaxDepth))
             return (FormatName(numberExpression.Name), false);
@@ -403,10 +416,12 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(NegateExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(NegateExpression expression)
         => VisitUnaryPrefix(expression, "-");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToNonNegativeExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ToNonNegativeExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -438,10 +453,12 @@ public partial class LatexFormatterVisitor :
     }
 
     // todo: review notation for subAdditive and superAdditive closures
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubAdditiveClosureExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SubAdditiveClosureExpression expression)
         => VisitUnaryCommand(expression, @"\overline");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(
         SuperAdditiveClosureExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -454,7 +471,8 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToUpperNonDecreasingExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ToUpperNonDecreasingExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -539,7 +557,8 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLowerNonDecreasingExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ToLowerNonDecreasingExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -627,7 +646,8 @@ public partial class LatexFormatterVisitor :
     /// <summary>
     /// Uses the notation from the PhD thesis of Damien Guidolin--Pina, where the operation is called "left projection".
     /// </summary>
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLeftContinuousExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ToLeftContinuousExpression expression)
         => VisitUnaryPostfix(expression, "_{l}",
             innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
         );
@@ -635,28 +655,34 @@ public partial class LatexFormatterVisitor :
     /// <summary>
     /// Uses the notation from the PhD thesis of Damien Guidolin--Pina, where the operation is called "right projection".
     /// </summary>
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToRightContinuousExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ToRightContinuousExpression expression)
         => VisitUnaryPostfix(expression, "_{r}",
             innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
         );
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(WithZeroOriginExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(WithZeroOriginExpression expression)
         => VisitUnaryPostfix(expression, @"^{\circ}", true);
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
         => VisitUnaryPostfix(expression, @"^{\underline{-1}}", 
             innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
         );
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(UpperPseudoInverseExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(UpperPseudoInverseExpression expression)
         => VisitUnaryPostfix(expression, @"^{\overline{-1}}", 
             innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
         );
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(AdditionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(AdditionExpression expression)
         => VisitNAryInfix(expression, " + ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubtractionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SubtractionExpression expression)
     {
         if (expression.NonNegative)
         {
@@ -670,37 +696,48 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MinimumExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MinimumExpression expression)
         => VisitNAryInfix(expression, @" \wedge ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaximumExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MaximumExpression expression)
         => VisitNAryInfix(expression, @" \vee ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ConvolutionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ConvolutionExpression expression)
         => VisitNAryInfix(expression, @" \otimes ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(DeconvolutionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(DeconvolutionExpression expression)
         => VisitBinaryInfix(expression, @" \oslash ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxPlusConvolutionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MaxPlusConvolutionExpression expression)
         => VisitNAryInfix(expression, @" \overline{\otimes} ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxPlusDeconvolutionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MaxPlusDeconvolutionExpression expression)
         => VisitBinaryInfix(expression, @" \overline{\oslash} ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CompositionExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(CompositionExpression expression)
         => VisitBinaryInfix(expression, @" \circ ");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(DelayByExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(DelayByExpression expression)
         => VisitBinaryPrefix(expression, " delayBy");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ForwardByExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ForwardByExpression expression)
         => VisitBinaryPrefix(expression, " forwardBy");
     
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(HorizontalShiftExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(HorizontalShiftExpression expression)
         => VisitBinaryPrefix(expression, " hShift");
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(VerticalShiftExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(VerticalShiftExpression expression)
     {
         switch (expression.RightExpression)
         {
@@ -728,19 +765,24 @@ public partial class LatexFormatterVisitor :
         }
     }
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(NegateRationalExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(NegateRationalExpression expression)
         => VisitUnaryPrefix(expression, "-");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
         => VisitUnaryPostfix(expression, "^{-1}", expression.Expression is RationalNumberExpression);
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(HorizontalDeviationExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(HorizontalDeviationExpression expression)
         => VisitBinaryPrefix(expression, "hdev");
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(VerticalDeviationExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(VerticalDeviationExpression expression)
         => VisitBinaryPrefix(expression, "vdev");
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -748,25 +790,26 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveLatex, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append(@"\left(");
-                sb.Append(curveUnicode);
+                sb.Append(curveLatex);
                 sb.Append(@"\right)");
             }
             else
-                sb.Append(curveUnicode);
-            var (timeUnicode, _) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+                sb.Append(curveLatex);
+            var (timeLatex, _) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
             sb.Append(@"\left(");
-            sb.Append(timeUnicode);
+            sb.Append(timeLatex);
             sb.Append(@"\right)");
             CurrentDepth--;
             return (sb, false);
         }
     }
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -774,33 +817,34 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveLatex, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append(@"\left(");
-                sb.Append(curveUnicode);
+                sb.Append(curveLatex);
                 sb.Append(@"\right)");
             }
             else
-                sb.Append(curveUnicode);
-            var (timeUnicode, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+                sb.Append(curveLatex);
+            var (timeLatex, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
             sb.Append(@"\left(");
             if (timeNeedsParentheses)
             {
                 sb.Append(@"\left(");
-                sb.Append(timeUnicode);
+                sb.Append(timeLatex);
                 sb.Append("^-");
                 sb.Append(@"\right)");
             }
             else
-                sb.Append(timeUnicode);
+                sb.Append(timeLatex);
             sb.Append(@"\right)");
             CurrentDepth--;
             return (sb, false);
         }
     }
 
-    public (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
             return (FormatName(expression.Name), false);
@@ -808,39 +852,42 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveLatex, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append(@"\left(");
-                sb.Append(curveUnicode);
+                sb.Append(curveLatex);
                 sb.Append(@"\right)");
             }
             else
-                sb.Append(curveUnicode);
-            var (timeUnicode, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+                sb.Append(curveLatex);
+            var (timeLatex, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
             sb.Append(@"\left(");
             if (timeNeedsParentheses)
             {
                 sb.Append(@"\left(");
-                sb.Append(timeUnicode);
+                sb.Append(timeLatex);
                 sb.Append("^+");
                 sb.Append(@"\right)");
             }
             else
-                sb.Append(timeUnicode);
+                sb.Append(timeLatex);
             sb.Append(@"\right)");
             CurrentDepth--;
             return (sb, false);
         }
     }
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)
         => (new StringBuilder(expression.Name), false);
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalPlaceholderExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalPlaceholderExpression expression)
         => (new StringBuilder(expression.Name), false);
 
-    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ScaleExpression expression)
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ScaleExpression expression)
         => VisitBinaryInfix(expression, @" \cdot ");
 
     /// <summary>
