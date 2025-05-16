@@ -101,6 +101,7 @@ public class RateLatencyServiceCurve : ConvexCurve
 
     private static readonly Rational DefaultPeriodLength = 1;
 
+    /// <inheritdoc cref="Curve.ToCodeString"/>
     public override string ToCodeString(bool formatted = false, int indentation = 0)
     {
         var newline = formatted ? "\n" : "";
