@@ -275,6 +275,11 @@ public interface ICurveExpressionVisitor<out TResult> : IExpressionVisitor<Curve
     public TResult Visit(ForwardByExpression expression);
 
     /// <summary>
+    /// Visit method for the type <see cref="HorizontalShiftExpression"/>
+    /// </summary>
+    public TResult Visit(HorizontalShiftExpression expression);
+
+    /// <summary>
     /// Visit method for the type <see cref="VerticalShiftExpression"/>
     /// </summary>
     public TResult Visit(VerticalShiftExpression expression);
