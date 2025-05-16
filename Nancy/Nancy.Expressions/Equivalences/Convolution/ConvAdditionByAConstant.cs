@@ -3,21 +3,20 @@
 public class ConvAdditionByAConstant : Equivalence
 {
     public ConvAdditionByAConstant() : base(
-        Expressions.Addition(
+        Expressions.VerticalShift(
             Expressions.Convolution(
                 Expressions.Placeholder("f"),
                 Expressions.Placeholder("g")),
-            Expressions.Placeholder("K")
+            Expressions.RationalPlaceholder("K")
         ),
         Expressions.Convolution(
             Expressions.Placeholder("f"),
-            Expressions.Addition(
+            Expressions.VerticalShift(
                 Expressions.Placeholder("g"),
-                Expressions.Placeholder("K")
+                Expressions.RationalPlaceholder("K")
             )
         )
     )
     {
-        AddHypothesis("K", curveExpression => curveExpression.IsUltimatelyConstant());
     }
 }

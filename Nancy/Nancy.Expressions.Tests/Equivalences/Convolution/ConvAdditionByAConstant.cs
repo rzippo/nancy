@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Unipi.Nancy.Expressions.Internals;
 using Xunit;
 using Unipi.Nancy.NetworkCalculus;
 
@@ -11,21 +12,21 @@ public class ConvAdditionByAConstant
     [Fact]
     public void ApplyEquivalence_ConvAdditionByAConstant()
     {
-        var k = new ConstantCurve(1);
+        var k = new RationalNumberExpression(1, "k");
         var f = new RateLatencyServiceCurve(1, 2);
         var g = new RateLatencyServiceCurve(3, 4);
 
-        var e = Expressions.Addition(
+        var e = Expressions.VerticalShift(
             Expressions.Convolution(f, g),
-            k);
+            k
+        );
 
         var eq = e.ApplyEquivalence(new Nancy.Expressions.Equivalences.ConvAdditionByAConstant());
         
-        Assert.True(k.IsUltimatelyConstant);
         Assert.True(e.Equivalent(eq));
         Assert.False(e == eq);
         var expected = "f \u2297 (g + k)";
         var regex = $"\\(?{Regex.Escape(expected)}\\)?";
-        Assert.Matches(regex, eq.ToUnicodeString());
+        Assert.Matches(regex, eq.ToUnicodeString(showRationalsAsName: true));
     }
 }
