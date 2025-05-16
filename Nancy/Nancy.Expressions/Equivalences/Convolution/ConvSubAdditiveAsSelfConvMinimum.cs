@@ -1,7 +1,14 @@
 ﻿namespace Unipi.Nancy.Expressions.Equivalences;
 
+/// <summary>
+/// If $f$ and $g$ are subadditive and 0 at 0, then $f \otimes g = (f \wedge g) \otimes (f \wedge g)$.
+/// </summary>
+/// <remarks>
+/// Theorem 3 in [ZS23].
+/// </remarks>
 public class ConvSubAdditiveAsSelfConvMinimum : Equivalence
 {
+    /// <inheritdoc cref="ConvSubAdditiveAsSelfConvMinimum"/>
     public ConvSubAdditiveAsSelfConvMinimum() : base(
         Expressions.Convolution(Expressions.Placeholder("f"), Expressions.Placeholder("g")),
         Expressions.Convolution(

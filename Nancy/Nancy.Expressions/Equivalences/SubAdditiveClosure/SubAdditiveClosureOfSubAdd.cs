@@ -8,9 +8,7 @@ namespace Unipi.Nancy.Expressions.Equivalences;
 /// </summary>
 public class SubAdditiveClosureOfSubAdd : Equivalence
 {
-    /// <summary>
-    /// If $f$ is subadditive and $f(0) = 0$, its subadditive closure is equal to $f$ itself, i.e. $\overline{f} = f$.
-    /// </summary>
+    /// <inheritdoc cref="SubAdditiveClosureOfSubAdd"/>
     public SubAdditiveClosureOfSubAdd() : base(
         Expressions.SubAdditiveClosure(Expressions.Placeholder("f")),
         new CurvePlaceholderExpression("f"))

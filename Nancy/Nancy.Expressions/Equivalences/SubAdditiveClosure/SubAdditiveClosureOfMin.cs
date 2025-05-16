@@ -6,9 +6,7 @@
 /// </summary>
 public class SubAdditiveClosureOfMin : Equivalence
 {
-    /// <summary>
-    /// The subadditive clusore of the minimum of two function is equal to the convolution between their subadditive closures, i.e., $\overline{f \wedge g} = \overline{f} \otimes \overline{g}$.
-    /// </summary>
+    /// <inheritdoc cref="SubAdditiveClosureOfMin"/>
     public SubAdditiveClosureOfMin() : base(Expressions.SubAdditiveClosure(
             Expressions.Minimum(
                 Expressions.Placeholder("f"),

@@ -6,6 +6,10 @@ using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Expressions.Equivalences;
 
+/// <summary>
+/// Class which allows to apply an equivalence to an expression.
+/// </summary>
+/// <remarks>Each instance is safe to use only once.</remarks>
 public class OneTimeEquivalenceApplier
 {
     /// <summary>
@@ -13,13 +17,13 @@ public class OneTimeEquivalenceApplier
     /// the expression under analysis (for the application of the equivalence)
     /// </summary>
     private Dictionary<string, CurveExpression> _curvePlaceholders = new();
-    
+
     /// <summary>
     /// Dictionary of placeholders found in the equivalence, along with the correspondent rational expression found
     /// inside the expression under analysis (for the application of the equivalence)
     /// </summary>
     private Dictionary<string, RationalExpression> _rationalPlaceholders = new();
-    
+
     /// <summary>
     /// <list type="bullet">
     /// <item>-1: no matched side</item> 
@@ -27,25 +31,40 @@ public class OneTimeEquivalenceApplier
     /// <item>1: right side matched</item>
     /// </list>
     /// </summary>
-    private int _matchedSide = -1; 
-    
+    private int _matchedSide = -1;
+
+    /// <summary>
+    /// The equivalence to apply.
+    /// </summary>
     public required Equivalence Equivalence { get; init; }
 
+    /// <summary>
+    /// If true, this object was already used to apply an equivalence and should not be re-used.
+    /// </summary>
     public bool AlreadyUsed { get; private set; } = false;
-    
+
+    /// <summary>
+    /// Check and apply the equivalence.
+    /// </summary>
+    /// <param name="expression">The expression on which the equivalence is to be applied.</param>
+    /// <param name="checkType"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if this equivalence applier was already used.
+    /// </exception>
     public EquivalenceApplyResult Apply(
         IGenericExpression<Curve> expression,
         CheckType checkType = CheckType.CheckLeftOnly
     )
     {
-        if(AlreadyUsed)
+        if (AlreadyUsed)
             throw new InvalidOperationException("This equivalence applier was already used.");
         AlreadyUsed = true;
-        
+
         _curvePlaceholders.Clear();
         _rationalPlaceholders.Clear();
         _matchedSide = -1;
-        
+
         IGenericExpression<Curve>? newExpression = null;
         var matchResult = MatchSideOfEquivalence(expression, checkType);
         if (matchResult.IsMatch && VerifyHypothesis())
@@ -72,71 +91,73 @@ public class OneTimeEquivalenceApplier
             MatchPatternResult = matchResult,
         };
     }
-    
+
     private MatchPatternResult MatchSideOfEquivalence(IGenericExpression<Curve> expression, CheckType checkType)
     {
         switch (checkType)
         {
             case CheckType.CheckLeftOnly:
-            {
-                var matchResult = MatchSideOfEquivalence(Equivalence.LeftSideExpression, expression, true);
-                if (matchResult.IsMatch)
                 {
-                    _matchedSide = 0;
-                    return matchResult;
+                    var matchResult = MatchSideOfEquivalence(Equivalence.LeftSideExpression, expression, true);
+                    if (matchResult.IsMatch)
+                    {
+                        _matchedSide = 0;
+                        return matchResult;
+                    }
+                    break;
                 }
-                break;
-            }
             case CheckType.CheckRightOnly:
-            {
-                var matchResult = MatchSideOfEquivalence(Equivalence.RightSideExpression, expression, true);
-                if (matchResult.IsMatch)
                 {
-                    _matchedSide = 1;
-                    return matchResult;
+                    var matchResult = MatchSideOfEquivalence(Equivalence.RightSideExpression, expression, true);
+                    if (matchResult.IsMatch)
+                    {
+                        _matchedSide = 1;
+                        return matchResult;
+                    }
+                    break;
                 }
-                break;
-            }
             case CheckType.CheckBothSides:
-            {
-                var leftMatchResult = MatchSideOfEquivalence(Equivalence.LeftSideExpression, expression, true);
-                if (leftMatchResult.IsMatch)
                 {
-                    _matchedSide = 0;
-                    return leftMatchResult;
-                }
+                    var leftMatchResult = MatchSideOfEquivalence(Equivalence.LeftSideExpression, expression, true);
+                    if (leftMatchResult.IsMatch)
+                    {
+                        _matchedSide = 0;
+                        return leftMatchResult;
+                    }
 
-                var rightMatchResult = MatchSideOfEquivalence(Equivalence.RightSideExpression, expression, true);
-                if (rightMatchResult.IsMatch)
-                {
-                    _matchedSide = 1;
-                    return rightMatchResult;
-                }
+                    var rightMatchResult = MatchSideOfEquivalence(Equivalence.RightSideExpression, expression, true);
+                    if (rightMatchResult.IsMatch)
+                    {
+                        _matchedSide = 1;
+                        return rightMatchResult;
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
 
         return new MatchPatternResult { IsMatch = false };
     }
 
     private MatchPatternResult MatchSideOfEquivalence<T>(
-        IGenericExpression<T> pattern, 
+        IGenericExpression<T> pattern,
         IGenericExpression<T> expression,
         bool patternRoot)
     {
         switch (pattern)
         {
             case CurvePlaceholderExpression placeholder:
-                return new MatchPatternResult { 
+                return new MatchPatternResult
+                {
                     IsMatch = expression is IGenericExpression<Curve> &&
                     SetValueForPlaceholder(placeholder.Name, (CurveExpression)expression)
-               };
+                };
             case RationalPlaceholderExpression rationalPlaceholder:
-                return new MatchPatternResult { 
+                return new MatchPatternResult
+                {
                     IsMatch = expression is IGenericExpression<Rational> &&
                     SetValueForPlaceholder(rationalPlaceholder.Name, (RationalExpression)expression)
-               };
+                };
         }
 
         if (pattern.GetType() != expression.GetType())
@@ -154,29 +175,29 @@ public class OneTimeEquivalenceApplier
             case (IGenericUnaryExpression<Rational, T> p, IGenericUnaryExpression<Rational, T> e):
                 return MatchSideOfEquivalence(p.Expression, e.Expression, false);
             case (IGenericBinaryExpression<Curve, Curve, T> p, IGenericBinaryExpression<Curve, Curve, T> e):
-            {
-                var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
-                var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false); 
-                return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
-            }
+                {
+                    var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
+                    var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false);
+                    return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
+                }
             case (IGenericBinaryExpression<Rational, Rational, T> p, IGenericBinaryExpression<Rational, Rational, T> e):
-            {
-                var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
-                var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false); 
-                return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
-            }
+                {
+                    var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
+                    var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false);
+                    return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
+                }
             case (IGenericBinaryExpression<Rational, Curve, T> p, IGenericBinaryExpression<Rational, Curve, T> e):
-            {
-                var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
-                var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false); 
-                return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
-            }
+                {
+                    var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
+                    var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false);
+                    return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
+                }
             case (IGenericBinaryExpression<Curve, Rational, T> p, IGenericBinaryExpression<Curve, Rational, T> e):
-            {
-                var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
-                var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false); 
-                return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
-            }
+                {
+                    var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
+                    var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false);
+                    return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
+                }
             case (CurveNAryExpression p, CurveNAryExpression e):
                 return MatchSideOfEquivalenceNAry(p, e, patternRoot);
             case (RationalNAryExpression p, RationalNAryExpression e):
@@ -190,17 +211,17 @@ public class OneTimeEquivalenceApplier
                 throw new InvalidOperationException("Missing type " + pattern.GetType());
         }
     }
-    
+
     private MatchPatternNAryResult MatchSideOfEquivalenceNAry<T, TResult>(
         IGenericNAryExpression<T, TResult> pattern,
-        IGenericNAryExpression<T, TResult> expression, 
+        IGenericNAryExpression<T, TResult> expression,
         bool patternRoot)
     {
         var result = new MatchPatternNAryResult();
-        
-        if (!patternRoot && pattern.Expressions.Count != expression.Expressions.Count) 
+
+        if (!patternRoot && pattern.Expressions.Count != expression.Expressions.Count)
             return result with { IsMatch = false };
-        if (patternRoot && pattern.Expressions.Count > expression.Expressions.Count) 
+        if (patternRoot && pattern.Expressions.Count > expression.Expressions.Count)
             return result with { IsMatch = false };
         var array = Enumerable.Range(0, expression.Expressions.Count);
         var indexesComb = array.GetCombinations(pattern.Expressions.Count);
@@ -232,7 +253,7 @@ public class OneTimeEquivalenceApplier
                 }
 
                 result.IsMatch &= temp;
-                if (!result.IsMatch) 
+                if (!result.IsMatch)
                     break;
             }
 
@@ -280,12 +301,12 @@ public class OneTimeEquivalenceApplier
         if (_curvePlaceholders.TryGetValue(curveName, out var curveExpression))
             return MatchSideOfEquivalence(curveExpression, expression, false).IsMatch;
         _curvePlaceholders[curveName] = expression;
-            
+
         // Verify every hypothesis involving curveName
-        if(Equivalence.Hypothesis.TryGetValue(curveName, out var hyp))
+        if (Equivalence.Hypothesis.TryGetValue(curveName, out var hyp))
             if (!hyp.All(value => value(expression)))
                 return false;
-            
+
         foreach (var (key, value) in Equivalence.HypothesisPair)
         {
             if (!key.Item1.Equals(curveName) && !key.Item2.Equals(curveName)) continue;
@@ -316,11 +337,12 @@ public class OneTimeEquivalenceApplier
         if (_rationalPlaceholders.TryGetValue(rationalName, out var rationalExpression))
             return MatchSideOfEquivalence(rationalExpression, expression, false).IsMatch;
         _rationalPlaceholders[rationalName] = expression;
-            
+
         // Verify every hypothesis involving rationalName
-        if (!Equivalence.RationalHypothesis[rationalName].All(value => value(expression)))
+        if (Equivalence.RationalHypothesis.TryGetValue(rationalName, out var hypotheses) && 
+            !hypotheses.All(value => value(expression)))
             return false;
-            
+
         foreach (var (key, value) in Equivalence.RationalHypothesisPair)
         {
             if (!key.Item1.Equals(rationalName) && !key.Item2.Equals(rationalName)) continue;

@@ -4,6 +4,9 @@ using Unipi.Nancy.Expressions.Internals;
 
 namespace Unipi.Nancy.Expressions.Interactive;
 
+/// <summary>
+/// Provides methods to display an expression using LaTeX in a dotnet interactive context.
+/// </summary>
 public static class Latex
 {
     /// <summary>
@@ -17,7 +20,7 @@ public static class Latex
         var html = expression.ToHtml();
         html.DisplayAs(HtmlFormatter.MimeType);
     }
-    
+
     /// <summary>
     /// Displays the expression in Latex syntax.
     /// </summary>

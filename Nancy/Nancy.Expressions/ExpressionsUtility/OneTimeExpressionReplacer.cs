@@ -950,7 +950,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
 
 
 /// <summary>
-/// to document 
+/// todo: document 
 /// </summary>
 public record MatchPatternResult
 {
@@ -962,38 +962,38 @@ public record MatchPatternResult
 
 
 /// <summary>
-/// to document 
+/// todo: document 
 /// </summary>
 public record MatchPatternNAryResult : MatchPatternResult
 {
     /// <summary>
-    /// to document 
+    /// todo: document 
     /// </summary>
     public List<IGenericExpression<Curve>> NotMatchedExpressionsCurve { get; set; } = [];
 
     /// <summary>
-    /// to document 
+    /// todo: document 
     /// </summary>
     public List<IGenericExpression<Rational>> NotMatchedExpressionsRational { get; set; } = [];
 
     /// <summary>
-    /// to document 
+    /// todo: document 
     /// </summary>
     public Type? NaryTypePartialMatch { get; set; } = null;
 
     /// <summary>
-    /// to document 
+    /// todo: document 
     /// </summary>
     public string? NaryNamePartialMatch { get; set; } = null;
 
     /// <summary>
-    /// to document 
+    /// todo: document 
     /// </summary>
     public ExpressionSettings? NarySettingsPartialMatch { get; set; } = null;
 }
 
 /// <summary>
-/// to document 
+/// todo: document 
 /// </summary>
 public record ReplaceResult
 {
@@ -1008,7 +1008,7 @@ public record ReplaceResult
     public int Code { get; set; } = 0;
 
     /// <summary>
-    /// to document 
+    /// todo: document 
     /// </summary>
     public MatchPatternResult MatchPatternResult { get; set; } = new MatchPatternResult();
 }
