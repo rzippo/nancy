@@ -17,3 +17,4 @@ Within the source we reference the following works.
  * [ZNS23a] - [Isospeed: Improving (min,+) Convolution by Exploiting (min,+)/(max,+) Isomorphism](https://doi.org/10.4230/LIPIcs.ECRTS.2023.12), Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2023
  * [ZNS23b] - [Extending the Network Calculus Algorithmic Toolbox for Ultimately Pseudo-Periodic Functions: Pseudo-Inverse and Composition](https://doi.org/10.1007/s10626-022-00373-5), Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2023
  * [Zippo23] - [Analysis of Algorithmic and Computational Aspects of Deterministic Network Calculus](https://flore.unifi.it/handle/2158/1320671), Raffaele Zippo, PhD Thesis, 2023
+ * [Gui24] - [Evaluation of worst-case performances of systems in Network Calculus](https://theses.fr/2024ESAE0041), Damien Guidolin--Pina, PhD Thesis, 2024
