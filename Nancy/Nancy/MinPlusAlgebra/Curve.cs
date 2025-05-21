@@ -2100,12 +2100,26 @@ public class Curve : IToCodeString, IStableHashCode
         if (exceptOrigin && IsZero)
             return new ConstantCurve(shift);
 
-        return new Curve(
-            baseSequence: BaseSequence.VerticalShift(shift, exceptOrigin),
-            pseudoPeriodStart: PseudoPeriodStart,
-            pseudoPeriodLength: PseudoPeriodLength,
-            pseudoPeriodHeight: PseudoPeriodHeight
-        );
+        if (exceptOrigin && PseudoPeriodStart == 0)
+        {
+            // must skip first period
+            return new Curve(
+                baseSequence: Cut(0, SecondPseudoPeriodEnd)
+                    .VerticalShift(shift, exceptOrigin),
+                pseudoPeriodStart: FirstPseudoPeriodEnd,
+                pseudoPeriodLength: PseudoPeriodLength,
+                pseudoPeriodHeight: PseudoPeriodHeight
+            );
+        }
+        else
+        {
+            return new Curve(
+                baseSequence: BaseSequence.VerticalShift(shift, exceptOrigin),
+                pseudoPeriodStart: PseudoPeriodStart,
+                pseudoPeriodLength: PseudoPeriodLength,
+                pseudoPeriodHeight: PseudoPeriodHeight
+            );
+        }
     }
 
     /// <summary>
