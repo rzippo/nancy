@@ -114,17 +114,106 @@ public static partial class Plots
         }
     }
 
+    // Instead of a params method, we use a set of overloads with 2, 3, ... curves.
+    // This allows to keep the argument name recogniction, which seems to be much more important.
+
     /// <summary>
     /// Plots a set of curves.
     /// The curves will be given default names f, g, h and so on.
     /// The x-axis right edge of the plot will be set to $max_{i}(T_i + 2 * d_i)$.
     /// </summary>
-    /// <param name="curves">The curves to plot.</param>
     public static void Plot(
-        params Curve[] curves
+        Curve f,
+        Curve g,
+        [CallerArgumentExpression("f")] string fName = "f",
+        [CallerArgumentExpression("g")] string gName = "g"
     )
     {
-        var plot = GetPlot(curves, null);
+        var plot = GetPlot([f, g], [fName, gName]);
+        plot.DisplayOnNotebook();
+    }
+
+    /// <summary>
+    /// Plots a set of curves.
+    /// The curves will be given default names f, g, h and so on.
+    /// The x-axis right edge of the plot will be set to $max_{i}(T_i + 2 * d_i)$.
+    /// </summary>
+    public static void Plot(
+        Curve f,
+        Curve g,
+        Curve h,
+        [CallerArgumentExpression("f")] string fName = "f",
+        [CallerArgumentExpression("g")] string gName = "g",
+        [CallerArgumentExpression("h")] string hName = "h"
+    )
+    {
+        var plot = GetPlot([f, g, h], [fName, gName, hName]);
+        plot.DisplayOnNotebook();
+    }
+
+    /// <summary>
+    /// Plots a set of curves.
+    /// The curves will be given default names f, g, h and so on.
+    /// The x-axis right edge of the plot will be set to $max_{i}(T_i + 2 * d_i)$.
+    /// </summary>
+    public static void Plot(
+        Curve f,
+        Curve g,
+        Curve h,
+        Curve i,
+        [CallerArgumentExpression("f")] string fName = "f",
+        [CallerArgumentExpression("g")] string gName = "g",
+        [CallerArgumentExpression("h")] string hName = "h",
+        [CallerArgumentExpression("i")] string iName = "i"
+    )
+    {
+        var plot = GetPlot([f, g, h, i], [fName, gName, hName, iName]);
+        plot.DisplayOnNotebook();
+    }
+
+    /// <summary>
+    /// Plots a set of curves.
+    /// The curves will be given default names f, g, h and so on.
+    /// The x-axis right edge of the plot will be set to $max_{i}(T_i + 2 * d_i)$.
+    /// </summary>
+    public static void Plot(
+        Curve f,
+        Curve g,
+        Curve h,
+        Curve i,
+        Curve j,
+        [CallerArgumentExpression("f")] string fName = "f",
+        [CallerArgumentExpression("g")] string gName = "g",
+        [CallerArgumentExpression("h")] string hName = "h",
+        [CallerArgumentExpression("i")] string iName = "i",
+        [CallerArgumentExpression("j")] string jName = "j"
+    )
+    {
+        var plot = GetPlot([f, g, h, i, j], [fName, gName, hName, iName, jName]);
+        plot.DisplayOnNotebook();
+    }
+
+    /// <summary>
+    /// Plots a set of curves.
+    /// The curves will be given default names f, g, h and so on.
+    /// The x-axis right edge of the plot will be set to $max_{i}(T_i + 2 * d_i)$.
+    /// </summary>
+    public static void Plot(
+        Curve f,
+        Curve g,
+        Curve h,
+        Curve i,
+        Curve j,
+        Curve k,
+        [CallerArgumentExpression("f")] string fName = "f",
+        [CallerArgumentExpression("g")] string gName = "g",
+        [CallerArgumentExpression("h")] string hName = "h",
+        [CallerArgumentExpression("i")] string iName = "i",
+        [CallerArgumentExpression("j")] string jName = "j",
+        [CallerArgumentExpression("k")] string kName = "k"
+    )
+    {
+        var plot = GetPlot([f, g, h, i, j, k], [fName, gName, hName, iName, jName, kName]);
         plot.DisplayOnNotebook();
     }
 
