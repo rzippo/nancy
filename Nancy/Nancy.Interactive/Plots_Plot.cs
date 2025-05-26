@@ -52,7 +52,7 @@ public static partial class Plots
     /// </param>
     public static void Plot(
         this Curve curve,
-        [CallerArgumentExpression("curve")] string name = "f",
+        [CallerArgumentExpression(nameof(curve))] string name = "f",
         Rational? upTo = null
     )
     {
@@ -78,7 +78,7 @@ public static partial class Plots
     /// </remarks>
     public static void Plot(
         this IReadOnlyCollection<Curve> curves,
-        [CallerArgumentExpression("curves")] string names = "",
+        [CallerArgumentExpression(nameof(curves))] string names = "",
         Rational? upTo = null
     )
     {
@@ -125,8 +125,8 @@ public static partial class Plots
     public static void Plot(
         Curve f,
         Curve g,
-        [CallerArgumentExpression("f")] string fName = "f",
-        [CallerArgumentExpression("g")] string gName = "g"
+        [CallerArgumentExpression(nameof(f))] string fName = "f",
+        [CallerArgumentExpression(nameof(g))] string gName = "g"
     )
     {
         var plot = GetPlot([f, g], [fName, gName]);
@@ -142,9 +142,9 @@ public static partial class Plots
         Curve f,
         Curve g,
         Curve h,
-        [CallerArgumentExpression("f")] string fName = "f",
-        [CallerArgumentExpression("g")] string gName = "g",
-        [CallerArgumentExpression("h")] string hName = "h"
+        [CallerArgumentExpression(nameof(f))] string fName = "f",
+        [CallerArgumentExpression(nameof(g))] string gName = "g",
+        [CallerArgumentExpression(nameof(h))] string hName = "h"
     )
     {
         var plot = GetPlot([f, g, h], [fName, gName, hName]);
@@ -161,10 +161,10 @@ public static partial class Plots
         Curve g,
         Curve h,
         Curve i,
-        [CallerArgumentExpression("f")] string fName = "f",
-        [CallerArgumentExpression("g")] string gName = "g",
-        [CallerArgumentExpression("h")] string hName = "h",
-        [CallerArgumentExpression("i")] string iName = "i"
+        [CallerArgumentExpression(nameof(f))] string fName = "f",
+        [CallerArgumentExpression(nameof(g))] string gName = "g",
+        [CallerArgumentExpression(nameof(h))] string hName = "h",
+        [CallerArgumentExpression(nameof(i))] string iName = "i"
     )
     {
         var plot = GetPlot([f, g, h, i], [fName, gName, hName, iName]);
@@ -182,11 +182,11 @@ public static partial class Plots
         Curve h,
         Curve i,
         Curve j,
-        [CallerArgumentExpression("f")] string fName = "f",
-        [CallerArgumentExpression("g")] string gName = "g",
-        [CallerArgumentExpression("h")] string hName = "h",
-        [CallerArgumentExpression("i")] string iName = "i",
-        [CallerArgumentExpression("j")] string jName = "j"
+        [CallerArgumentExpression(nameof(f))] string fName = "f",
+        [CallerArgumentExpression(nameof(g))] string gName = "g",
+        [CallerArgumentExpression(nameof(h))] string hName = "h",
+        [CallerArgumentExpression(nameof(i))] string iName = "i",
+        [CallerArgumentExpression(nameof(j))] string jName = "j"
     )
     {
         var plot = GetPlot([f, g, h, i, j], [fName, gName, hName, iName, jName]);
@@ -205,12 +205,12 @@ public static partial class Plots
         Curve i,
         Curve j,
         Curve k,
-        [CallerArgumentExpression("f")] string fName = "f",
-        [CallerArgumentExpression("g")] string gName = "g",
-        [CallerArgumentExpression("h")] string hName = "h",
-        [CallerArgumentExpression("i")] string iName = "i",
-        [CallerArgumentExpression("j")] string jName = "j",
-        [CallerArgumentExpression("k")] string kName = "k"
+        [CallerArgumentExpression(nameof(f))] string fName = "f",
+        [CallerArgumentExpression(nameof(g))] string gName = "g",
+        [CallerArgumentExpression(nameof(h))] string hName = "h",
+        [CallerArgumentExpression(nameof(i))] string iName = "i",
+        [CallerArgumentExpression(nameof(j))] string jName = "j",
+        [CallerArgumentExpression(nameof(k))] string kName = "k"
     )
     {
         var plot = GetPlot([f, g, h, i, j, k], [fName, gName, hName, iName, jName, kName]);
@@ -259,7 +259,7 @@ public static partial class Plots
     /// </param>
     public static void Plot(
         this Sequence sequence,
-        [CallerArgumentExpression("sequence")] string name = "f"
+        [CallerArgumentExpression(nameof(sequence))] string name = "f"
     )
     {
         var plot = GetPlot([sequence], [name]);
