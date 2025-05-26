@@ -67,7 +67,7 @@ The library also provides simplified constructors for common types of curves.
 
 var sc = new RateLatencyServiceCurve(rate: 3, latency: 3);
 var ac = new SigmaRhoArrivalCurve(sigma: 4, rho: 1);
-Plots.Plot([sc, ac], ["sc", "ac"], 10);
+Plots.Plot([sc, ac], upTo: 10);
 
 #!markdown
 
@@ -89,7 +89,7 @@ var sc = Curve.Minimum(
     new RateLatencyServiceCurve(3, 4) + 3
 );
 var ac = new SigmaRhoArrivalCurve(1, 1);
-Plots.Plot([sc, ac], ["sc", "ac"]);
+Plots.Plot(sc, ac);
 var delay = Curve.HorizontalDeviation(ac, sc);
 Console.WriteLine(delay);
 

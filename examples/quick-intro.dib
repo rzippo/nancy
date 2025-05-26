@@ -15,7 +15,7 @@ The following two cells are setup: they reference the necessary packages (Nancy 
 #!csharp
 
 // this package includes both Nancy and the extensions to plot in .NET Interactive
-#r "nuget: Unipi.Nancy.Interactive, 1.0.5"
+#r "nuget: Unipi.Nancy.Interactive, 1.0.9"
 
 #!csharp
 
@@ -54,7 +54,7 @@ The library also provides simplified constructors for common types of curves.
 
 var sc = new RateLatencyServiceCurve(rate: 3, latency: 3);
 var ac = new SigmaRhoArrivalCurve(sigma: 4, rho: 1);
-Plots.Plot([sc, ac], ["sc", "ac"], 10);
+Plots.Plot([sc, ac], upTo: 10);
 
 #!markdown
 
@@ -76,7 +76,7 @@ var sc = Curve.Minimum(
     new RateLatencyServiceCurve(3, 4) + 3
 );
 var ac = new SigmaRhoArrivalCurve(1, 1);
-Plots.Plot([sc, ac], ["sc", "ac"]);
+Plots.Plot(sc, ac);
 var delay = Curve.HorizontalDeviation(ac, sc);
 Console.WriteLine(delay);
 
