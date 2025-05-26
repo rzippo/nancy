@@ -95,7 +95,7 @@ public static partial class Plots
                 return DefaultNames();
 
             // matches collection expressions, like "[f, g, h]"
-            var bracketsNotationRegex = new Regex(@"\[(?:([\w\d_]+)(?:,\s+)?)+\]");
+            var bracketsNotationRegex = new Regex(@"\[(?:([\w\d_\s+*-]+)(?:,\s+)?)+\]");
             if (bracketsNotationRegex.IsMatch(expr))
             {
                 var match = bracketsNotationRegex.Match(expr);
