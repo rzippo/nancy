@@ -12,6 +12,14 @@ namespace Unipi.Nancy.TikzPlot;
 /// <summary>
 /// This class provides methods to generate plots with TikZ. 
 /// </summary>
+/// <remarks>
+/// To compile the TikZ code produced, you need in your .tex preamble:
+/// <code>
+/// \usepackage{tikz}
+/// \usepackage{pgfplots}
+/// \usetikzlibrary{arrows}
+/// </code>
+/// </remarks>
 public static class ToTikzPlotExtension
 {
     /// <summary>
@@ -150,6 +158,14 @@ public static class ToTikzPlotExtension
     /// A string with the TikZ code of the plot.
     /// Can be written to file and compiled with LaTeX.
     /// </returns>
+    /// <remarks>
+    /// To compile the TikZ code produced, you need in your .tex preamble:
+    /// <code>
+    /// \usepackage{tikz}
+    /// \usepackage{pgfplots}
+    /// \usetikzlibrary{arrows}
+    /// </code>
+    /// </remarks>
     public static string ToTikzPlot(
         this IReadOnlyList<Curve> curves, 
         IReadOnlyList<string>? names = null, 
@@ -230,6 +246,14 @@ public static class ToTikzPlotExtension
     /// A string with the TikZ code of the plot.
     /// Can be written to file and compiled with LaTeX.
     /// </returns>
+    /// <remarks>
+    /// To compile the TikZ code produced, you need in your .tex preamble:
+    /// <code>
+    /// \usepackage{tikz}
+    /// \usepackage{pgfplots}
+    /// \usetikzlibrary{arrows}
+    /// </code>
+    /// </remarks>
     public static string ToTikzPlot(
         this Curve curve,
         string? name = null,
@@ -254,6 +278,14 @@ public static class ToTikzPlotExtension
     /// A string with the TikZ code of the plot.
     /// Can be written to file and compiled with LaTeX.
     /// </returns>
+    /// <remarks>
+    /// To compile the TikZ code produced, you need in your .tex preamble:
+    /// <code>
+    /// \usepackage{tikz}
+    /// \usepackage{pgfplots}
+    /// \usetikzlibrary{arrows}
+    /// </code>
+    /// </remarks>
     public static string ToTikzPlot(params Curve[] curves)
     {
         var names = GetDefaultNames(curves.Length);
