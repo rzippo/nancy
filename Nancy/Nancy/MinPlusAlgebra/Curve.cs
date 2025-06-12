@@ -5976,6 +5976,7 @@ public class Curve : IToCodeString, IStableHashCode
         var T_f = g.LowerPseudoInverse()
             .ValueAt(f.PseudoPeriodStart);
         if (T_f.IsFinite && !g.IsRightContinuousAt(T_f))
+            // it suffices to use \lpi{g}(T_f) + epsilon, for any epsilon > 0
             T_f = g.GetSegmentAfter(T_f).EndTime;
 
         // initialized with non-optimal values
