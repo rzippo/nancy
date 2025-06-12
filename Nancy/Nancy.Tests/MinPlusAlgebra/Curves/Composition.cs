@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class Composition
 {
-    public static List<(Curve f, Curve g, Curve expected)> KnownTuples = 
+    public static List<(Curve f, Curve g, Curve expected)> KnownTuples =
     [
         (
             f: new Curve(
@@ -251,6 +252,137 @@ public class Composition
                 pseudoPeriodStart: 1,
                 pseudoPeriodHeight: 100,
                 pseudoPeriodLength: 1
+            )
+        ),
+        (
+            f: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 3, 200, 100)
+                ]),
+                pseudoPeriodStart: 2,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 100
+            ),
+            g: new StairCurve(1, 1),
+            expected: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 1, 300),
+                    new Point(1, 300),
+                    Segment.Constant(1, 2, 400),
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodHeight: 100,
+                pseudoPeriodLength: 1
+            )
+        ),
+        (
+            f: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 3, 200, 100)
+                ]),
+                pseudoPeriodStart: 2,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 100
+            ),
+            g: new StairCurve(2, 1),
+            expected: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 1, 400),
+                    new Point(1, 400),
+                    Segment.Constant(1, 2, 600),
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodHeight: 200,
+                pseudoPeriodLength: 1
+            )
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(200, 100),
+            g: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 1, 1, 1)
+                ]),
+                pseudoPeriodStart: 0,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 2
+            ),
+            expected: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 1, 300, 100),
+                    new Point(1, 400),
+                    new Segment(1, 2, 500, 100),
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 200
+            )
+        ),
+        (
+            f: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 3, 200, 100)
+                ]),
+                pseudoPeriodStart: 2,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 100
+            ).DelayBy(100),
+            g: new StairCurve(2, 1),
+            expected: new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, 0),
+                    new Segment(0, 50, 0, 0),
+                    new Point(50, 0),
+                    new Segment(50, 51, 400, 0),
+                    new Point(51, 400),
+                    new Segment(51, 52, 600, 0)
+                ]),
+                pseudoPeriodStart: 51,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 200
+            )
+        ),
+        (
+            f: new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, 0), 
+                    new Segment(0, 12, 3, new Rational(1, 3)),
+                    new Point(12, 7),
+                    new Segment(12, 13, new Rational(1, 0), 0),
+                    new Point(13, new Rational(1, 0)),
+                    new Segment(13, 14, new Rational(1, 0), 0)
+                ]),
+                pseudoPeriodStart: 13,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            ),
+            g: new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, 0),
+                    new Segment(0, 3, 0, 4),
+                    new Point(3, 12),
+                    new Segment(3, 4, 12, 0)
+                ]),
+                pseudoPeriodStart: 3,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            ),
+            expected: new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, 0),
+                    new Segment(0, 3, 3, new Rational(4, 3)),
+                    new Point(3, 7),
+                    new Segment(3, 4, 7, 0)
+                ]),
+                pseudoPeriodStart: 3,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
             )
         )
     ];
