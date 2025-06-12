@@ -1314,6 +1314,12 @@ public class Curve : IToCodeString, IStableHashCode
     /// <returns>The value of $f(t)$.</returns>
     public Rational ValueAt(Rational time, ComputationSettings? settings = null)
     {
+        if (time < 0)
+            throw new ArgumentException("A curve is not defined for t < 0");
+
+        if (time.IsPlusInfinite)
+            throw new ArgumentException("Cannot sample a curve at t = +infinity");
+
         Element element = GetElementAt(time, settings);
         return element.ValueAt(time);
     }
@@ -1325,6 +1331,12 @@ public class Curve : IToCodeString, IStableHashCode
     /// <returns>The value of $f(t^+)$.</returns>
     public Rational RightLimitAt(Rational time)
     {
+        if (time < 0)
+            throw new ArgumentException("A curve is not defined for t < 0");
+
+        if (time.IsPlusInfinite)
+            throw new ArgumentException("Cannot sample a curve at t = +infinity");
+
         var segment = GetSegmentAfter(time, false);
         return (segment.StartTime == time) ?
             segment.RightLimitAtStartTime
@@ -1341,6 +1353,9 @@ public class Curve : IToCodeString, IStableHashCode
     {
         if (time == 0)
             throw new ArgumentException("A curve is not defined for t < 0");
+
+        if (time.IsPlusInfinite)
+            throw new ArgumentException("Cannot sample a curve at t = +infinity");
 
         Segment segment = GetSegmentBefore(time);
         return (segment.EndTime == time) ?
@@ -1360,6 +1375,9 @@ public class Curve : IToCodeString, IStableHashCode
         if (time < 0)
             throw new ArgumentException("A curve is not defined for t < 0");
 
+        if (time.IsPlusInfinite)
+            throw new ArgumentException("Cannot sample a curve at t = +infinity");
+
         if (time < FirstPseudoPeriodEnd)
             return BaseSequence.GetElementAt(time);
 
@@ -1377,6 +1395,9 @@ public class Curve : IToCodeString, IStableHashCode
     {
         if (time == 0)
             throw new ArgumentException("A curve is not defined for t < 0");
+
+        if (time.IsPlusInfinite)
+            throw new ArgumentException("Cannot sample a curve at t = +infinity");
 
         if (time <= FirstPseudoPeriodEnd)
             return BaseSequence.GetSegmentBefore(time);
@@ -1396,6 +1417,9 @@ public class Curve : IToCodeString, IStableHashCode
     /// <returns>The <see cref="Segment"/> describing the curve after time t.</returns>
     public Segment GetSegmentAfter(Rational time, bool autoMerge = true)
     {
+        if (time.IsPlusInfinite)
+            throw new ArgumentException("Cannot sample a curve at t = +infinity");
+
         if (!autoMerge)
         {
             if (time < FirstPseudoPeriodEnd)
