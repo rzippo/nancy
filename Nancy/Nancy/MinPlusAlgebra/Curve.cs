@@ -5975,13 +5975,18 @@ public class Curve : IToCodeString, IStableHashCode
         var T_g = g.PseudoPeriodStart;
         var T_f = g.LowerPseudoInverse()
             .ValueAt(f.PseudoPeriodStart);
+        if (T_f.IsFinite && !g.IsRightContinuousAt(T_f))
+            T_f = g.GetSegmentAfter(T_f).EndTime;
 
         // initialized with non-optimal values
         var T = Rational.Max(T_g, T_f);
         var d = f.PseudoPeriodLength.Numerator * g.PseudoPeriodLength * g.PseudoPeriodHeight.Denominator;
         var c = f.PseudoPeriodLength.Denominator * g.PseudoPeriodHeight.Numerator * f.PseudoPeriodHeight;
 
-        if (settings.UseCompositionOptimizations)
+        if (
+            T_f.IsPlusInfinite // This indicates that the 'standard' logic cannot be applied
+            || settings.UseCompositionOptimizations
+        )
         {
             if (f.IsUltimatelyConstant || g.IsUltimatelyConstant)
             {
