@@ -187,21 +187,38 @@ public static partial class Plots
                 var breakpoints = sequence.EnumerateBreakpoints();
                 foreach (var (left, center, right) in breakpoints)
                 {
-                    points.Add((x: (decimal)center.Time, y: (decimal)center.Value));
+                    if (center.IsInfinite)
+                    {
+                        // todo: do something about infinite points 
+                    }
+                    else
+                        points.Add((x: (decimal)center.Time, y: (decimal)center.Value));
                     if (left is not null && left.LeftLimitAtEndTime != center.Value)
                     {
-                        discontinuities.Add((x: (decimal)center.Time, y: (decimal)left.LeftLimitAtEndTime));
+                        if(left.IsInfinite)
+                        {
+                            // todo: do something about infinite points 
+                        }
+                        else
+                            discontinuities.Add((x: (decimal)center.Time, y: (decimal)left.LeftLimitAtEndTime));
                     }
 
                     if (right is not null)
                     {
-                        segments.Add((
-                            a: (x: (decimal)right.StartTime, y: (decimal)right.RightLimitAtStartTime),
-                            b: (x: (decimal)right.EndTime, y: (decimal)right.LeftLimitAtEndTime)
-                        ));
-                        if (right.RightLimitAtStartTime != center.Value)
+                        if (right.IsInfinite)
                         {
-                            discontinuities.Add((x: (decimal)center.Time, y: (decimal)right.RightLimitAtStartTime));
+                            // todo: do something about infinite segments
+                        }
+                        else
+                        {
+                            segments.Add((
+                                a: (x: (decimal)right.StartTime, y: (decimal)right.RightLimitAtStartTime),
+                                b: (x: (decimal)right.EndTime, y: (decimal)right.LeftLimitAtEndTime)
+                            ));
+                            if (right.RightLimitAtStartTime != center.Value)
+                            {
+                                discontinuities.Add((x: (decimal)center.Time, y: (decimal)right.RightLimitAtStartTime));
+                            }
                         }
                     }
                 }
@@ -209,10 +226,17 @@ public static partial class Plots
                 if (sequence.IsRightOpen)
                 {
                     var tail = (Segment)sequence.Elements.Last();
-                    segments.Add((
-                        a: (x: (decimal)tail.StartTime, y: (decimal)tail.RightLimitAtStartTime),
-                        b: (x: (decimal)tail.EndTime, y: (decimal)tail.LeftLimitAtEndTime)
-                    ));
+                    if (tail.IsInfinite)
+                    {
+                        // todo: do something about infinite segments
+                    }
+                    else
+                    {
+                        segments.Add((
+                            a: (x: (decimal)tail.StartTime, y: (decimal)tail.RightLimitAtStartTime),
+                            b: (x: (decimal)tail.EndTime, y: (decimal)tail.LeftLimitAtEndTime)
+                        ));
+                    }
                 }
 
                 var segmentsLegend = segments.Any();
