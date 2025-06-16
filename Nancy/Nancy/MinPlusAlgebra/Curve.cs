@@ -3092,6 +3092,24 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
+    /// If the curve is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$,
+    /// returns the first time around which $f(t)$ gets close to $x$ (i.e., either it attains the value or has it as a limit).
+    /// Otherwise, returns $+\infty$.
+    /// </summary>
+    public Rational SupArg(ComputationSettings? settings = null)
+    {
+        if (PseudoPeriodSlope <= 0)
+        {
+            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            return cut.SupArg();
+        }
+        else
+        {
+            return Rational.PlusInfinity;
+        }
+    }
+
+    /// <summary>
     /// If the curve has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
@@ -3109,6 +3127,23 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
+    /// If the curve has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $t^*$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public Rational? MaxArg(ComputationSettings? settings = null)
+    {
+        if (PseudoPeriodSlope <= 0)
+        {
+            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            return cut.MaxArg();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// If the curve is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$, returns $\sup x$.
     /// Otherwise, returns $-\infty$.
     /// </summary>
@@ -3116,8 +3151,26 @@ public class Curve : IToCodeString, IStableHashCode
     {
         if (PseudoPeriodSlope >= 0)
         {
-            var cut = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
             return cut.InfValue();
+        }
+        else
+        {
+            return Rational.MinusInfinity;
+        }
+    }
+
+    /// <summary>
+    /// If the curve is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$,
+    /// returns the first time around which $f(t)$ gets close to $x$ (i.e., either it attains the value or has it as a limit).
+    /// Otherwise, returns $-\infty$.
+    /// </summary>
+    public Rational InfArg(ComputationSettings? settings = null)
+    {
+        if (PseudoPeriodSlope >= 0)
+        {
+            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            return cut.InfArg();
         }
         else
         {
@@ -3135,6 +3188,23 @@ public class Curve : IToCodeString, IStableHashCode
         {
             var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
             return cut.MinValue();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// If the curve has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $t^*$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public Rational? MinArg(ComputationSettings? settings = null)
+    {
+        if (PseudoPeriodSlope <= 0)
+        {
+            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+            return cut.MinArg();
         }
         else
         {

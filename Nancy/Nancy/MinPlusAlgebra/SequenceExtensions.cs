@@ -747,6 +747,29 @@ public static class SequenceExtensions
     }
 
     /// <summary>
+    /// Enumerates for each point its time and value, and for each segment 1) its start time and right-limit at start, 2) its end time and left-limit at end.
+    /// </summary>
+    /// <remarks>
+    /// The returned pairs are not points since, particularly for the pairs coming from segments,
+    /// it is not given that the value is attained at that time.
+    /// </remarks>
+    public static IEnumerable<(Rational time, Rational value)> GetElementsBoundaryPairs(this IEnumerable<Element> elements)
+    {
+        foreach (var element in elements)
+        {
+            if (element is Segment segment)
+            {
+                yield return (segment.StartTime, segment.RightLimitAtStartTime);
+                yield return (segment.EndTime, segment.LeftLimitAtEndTime);
+            }
+            else if (element is Point point)
+            {
+                yield return (point.Time, point.Value);
+            }
+        }
+    }
+
+    /// <summary>
     /// True if there is no discontinuity within the sequence.
     /// </summary>
     public static bool IsContinuous(this IEnumerable<Element> elements)
@@ -906,6 +929,19 @@ public static class SequenceExtensions
     }
 
     /// <summary>
+    /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$,
+    /// returns the first time around which $f(t)$ gets close to $x$ (i.e., either it attains the value or has it as a limit).
+    /// Otherwise, returns $+\infty$.
+    /// </summary>
+    public static Rational SupArg(this IEnumerable<Element> elements)
+    {
+        var supAndArg = elements
+            .GetElementsBoundaryPairs()
+            .MaxBy(pair => pair.value);
+        return supAndArg.time;
+    }
+
+    /// <summary>
     /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
@@ -929,6 +965,40 @@ public static class SequenceExtensions
             return null;
     }
 
+    /// <summary>
+    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $t^*$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public static Rational? MaxArg(this IEnumerable<Element> elements)
+    {
+        var list = elements.ToList();
+        var sup = list.SupValue();
+        var attainingElement = list
+            .FirstOrDefault(e => e.ContainsValue(sup));
+
+        return attainingElement switch
+        {
+            Point p => p.Time,
+            Segment s => s.TimeAt(sup),
+            _ => null
+        };
+    }
+
+    /// <inheritdoc cref="MaxArg(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
+    public static Rational? MaxArg(this IReadOnlyCollection<Element> elements)
+    {
+        var sup = elements.SupValue();
+        var attainingElement = elements
+            .FirstOrDefault(e => e.ContainsValue(sup));
+
+        return attainingElement switch
+        {
+            Point p => p.Time,
+            Segment s => s.TimeAt(sup),
+            _ => null
+        };
+    }
+
     /// If the sequence is upper-bounded around the breakpoint $t_c$, i.e., exists $x$ such that $f(t) \ge x$ for any $t \in [t_c - \varepsilon, t_c + \varepsilon]$, returns $\sup x$.
     /// Otherwise, returns $-\infty$.
     public static Rational BreakpointInfValue(this (Segment? left, Point center, Segment? right) breakpoint)
@@ -943,6 +1013,19 @@ public static class SequenceExtensions
     public static Rational InfValue(this IEnumerable<Element> elements)
     {
         return elements.GetElementsBoundaryValues().Min();
+    }
+
+    /// <summary>
+    /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$,
+    /// returns the first time around which $f(t)$ gets close to $x$ (i.e., either it attains the value or has it as a limit).
+    /// Otherwise, returns $-\infty$.
+    /// </summary>
+    public static Rational InfArg(this IEnumerable<Element> elements)
+    {
+        var supAndArg = elements
+            .GetElementsBoundaryPairs()
+            .MinBy(pair => pair.value);
+        return supAndArg.time;
     }
 
     /// <summary>
@@ -968,6 +1051,40 @@ public static class SequenceExtensions
             return inf;
         else
             return null;
+    }
+    
+    /// <summary>
+    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $t^*$.
+    /// Otherwise, returns null.
+    /// </summary>
+    public static Rational? MinArg(this IEnumerable<Element> elements)
+    {
+        var list = elements.ToList();
+        var inf = list.InfValue();
+        var attainingElement = list
+            .FirstOrDefault(e => e.ContainsValue(inf));
+
+        return attainingElement switch
+        {
+            Point p => p.Time,
+            Segment s => s.TimeAt(inf),
+            _ => null
+        };
+    }
+
+    /// <inheritdoc cref="MinArg(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
+    public static Rational? MinArg(this IReadOnlyCollection<Element> elements)
+    {
+        var inf = elements.InfValue();
+        var attainingElement = elements
+            .FirstOrDefault(e => e.ContainsValue(inf));
+
+        return attainingElement switch
+        {
+            Point p => p.Time,
+            Segment s => s.TimeAt(inf),
+            _ => null
+        };
     }
 
     /// <summary>
