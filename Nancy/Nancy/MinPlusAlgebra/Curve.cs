@@ -3010,19 +3010,19 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Computes the horizontal deviation between the two curves, $h(a, b)$.
-    /// If <paramref name="a"/> is an arrival curve and <paramref name="b"/> a service curve, the result will be the worst-case delay.
+    /// Computes the horizontal deviation between the two curves, $hDev(f, g)$.
+    /// If <paramref name="f"/> is an arrival curve and <paramref name="g"/> a service curve, the result will be the worst-case delay.
     /// </summary>
-    /// <param name="a">Must be non-decreasing.</param>
-    /// <param name="b">Must be non-decreasing.</param>
+    /// <param name="f">Must be non-decreasing.</param>
+    /// <param name="g">Must be non-decreasing.</param>
     /// <param name="settings"></param>
     /// <returns>A non-negative horizontal deviation.</returns>
-    public static Rational HorizontalDeviation(Curve a, Curve b, ComputationSettings? settings = null)
+    public static Rational HorizontalDeviation(Curve f, Curve g, ComputationSettings? settings = null)
     {
-        if (!a.IsNonDecreasing || !b.IsNonDecreasing)
+        if (!f.IsNonDecreasing || !g.IsNonDecreasing)
             throw new ArgumentException("The arguments must be non-decreasing.");
 
-        if (a is SigmaRhoArrivalCurve sr && b is RateLatencyServiceCurve rl)
+        if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve rl)
         {
             if(rl.Rate >= sr.Rho)
                 return rl.Latency + sr.Sigma / rl.Rate;
@@ -3042,8 +3042,8 @@ public class Curve : IToCodeString, IStableHashCode
                 .Deconvolution(new RateLatencyServiceCurve(1, 0), settings)
                 .ValueAt(0);
             #elif true
-            var hDev = b.LowerPseudoInverse()
-                .Composition(a, settings)
+            var hDev = g.LowerPseudoInverse()
+                .Composition(f, settings)
                 .Subtraction(new RateLatencyServiceCurve(1, 0))
                 .SupValue();
             #endif
@@ -3052,15 +3052,45 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Computes the vertical deviation between the two curves, $v(a, b)$.
-    /// If <paramref name="a"/> is an arrival curve and <paramref name="b"/> a service curve, the result will be the worst-case backlog.
+    /// Given $hDev(f, g, t) = \sup\{ d \ge 0 \mid f(t) > g(t+d) \},
+    /// computes the first time around which $hDev(f, g, t)$ the horizontal deviation between the two curves, $hDev(f, g)$
+    /// (i.e., either it attains the value or has it as a limit).
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <returns>A non-negative vertical deviation.</returns>
-    public static Rational VerticalDeviation(Curve a, Curve b)
+    /// <param name="f">Must be non-decreasing.</param>
+    /// <param name="g">Must be non-decreasing.</param>
+    /// <param name="settings"></param>
+    public static Rational HorizontalDeviationArg(Curve f, Curve g, ComputationSettings? settings = null)
     {
-        if (a is SigmaRhoArrivalCurve sr && b is RateLatencyServiceCurve dr)
+        if (!f.IsNonDecreasing || !g.IsNonDecreasing)
+            throw new ArgumentException("The arguments must be non-decreasing.");
+
+        if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve rl)
+        {
+            if(rl.Rate >= sr.Rho)
+                return 0;
+            else
+                return Rational.PlusInfinity;
+        }
+        else
+        {
+            var hDevArg = g.LowerPseudoInverse()
+                .Composition(f, settings)
+                .Subtraction(new RateLatencyServiceCurve(1, 0))
+                .SupArg();
+            return hDevArg;
+        }
+    }
+
+    /// <summary>
+    /// Computes the vertical deviation between the two curves, $vDev(f, g) = \sup_{u \ge 0}\{ f(u) - g(u) \}$.
+    /// If <paramref name="f"/> is an arrival curve and <paramref name="g"/> a service curve, the result will be the worst-case backlog.
+    /// </summary>
+    /// <param name="f"></param>
+    /// <param name="g"></param>
+    /// <returns>A non-negative vertical deviation.</returns>
+    public static Rational VerticalDeviation(Curve f, Curve g)
+    {
+        if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve dr)
         {
             if(dr.Rate >= sr.Rho)
                 return sr.Sigma + dr.Latency * sr.Rho;
@@ -3069,8 +3099,33 @@ public class Curve : IToCodeString, IStableHashCode
         }
         else
         {
-            var diff = a - b;
+            var diff = f - g;
             return diff.SupValue();
+        }
+    }
+
+    /// <summary>
+    /// Computes the first time around which the difference between the two curves $f(t) - g(t)$ gets close to their vertical deviation 
+    /// $vDev(f, g)$.
+    /// </summary>
+    /// <param name="f"></param>
+    /// <param name="g"></param>
+    public static Rational VerticalDeviationArg(Curve f, Curve g)
+    {
+        if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve dr)
+        {
+            if (dr.Rate >= sr.Rho)
+                if (sr.Rho > 0)
+                    return dr.Latency;
+                else
+                    return 0;
+            else
+                return Rational.PlusInfinity;
+        }
+        else
+        {
+            var diff = f - g;
+            return diff.SupArg();
         }
     }
 
