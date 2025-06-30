@@ -13,9 +13,9 @@ This tutorial shows examples of use of Nancy.Expressions.
 #!csharp
 
 // this package includes both Nancy and the extensions to plot in .NET Interactive
-#r "nuget: Unipi.Nancy.Interactive, 1.0.5"
+#r "nuget: Unipi.Nancy.Interactive, 1.0.13"
 // this package includes both Nancy.Expressions and the extensions to render Latex in .NET Interactive
-#r "nuget: Unipi.Nancy.Expressions.Interactive, 1.0.0-beta.6"
+#r "nuget: Unipi.Nancy.Expressions.Interactive, 1.0.0-beta.12"
 
 #!csharp
 
