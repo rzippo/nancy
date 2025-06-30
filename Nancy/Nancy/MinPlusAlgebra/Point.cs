@@ -307,6 +307,24 @@ public sealed class Point : Element, IEquatable<Point>
         );
     }
 
+    /// <inheritdoc />
+    public override IEnumerable<Element> Floor()
+    {
+        if (Value.IsInteger)
+            yield return this;
+        else
+            yield return new Point(Time, Value.Floor());
+    }
+
+    /// <inheritdoc />
+    public override IEnumerable<Element> Ceil()
+    {
+        if (Value.IsInteger)
+            yield return this;
+        else
+            yield return new Point(Time, Value.Ceil());
+    }
+
     #endregion Basic manipulations
 
     #region Equality methods

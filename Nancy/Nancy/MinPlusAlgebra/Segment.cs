@@ -458,22 +458,40 @@ public sealed class Segment : Element, IEquatable<Segment>
     }
 
     /// <summary>
-    /// Computes the first time the segment is at or above given <paramref name="value"/>.
+    /// If the slope is $\ge 0$, computes the first time the segment is at or above given <paramref name="value"/>.
+    /// Otherwise, computes the first time the segment is at or below given <paramref name="value"/>.
     /// </summary>
     /// <param name="value">The value to reach.</param>
     /// <returns>The first time t at which f(t) = value, or + infinity if it is never reached.</returns>
     public Rational TimeAt(Rational value)
     {
-        if (RightLimitAtStartTime >= value)
-            return StartTime;
+        if (Slope >= 0)
+        {
+            if (RightLimitAtStartTime >= value)
+                return StartTime;
+            else
+            {
+                if (LeftLimitAtEndTime == value)
+                    return EndTime;
+                if (LeftLimitAtEndTime > value)
+                    return StartTime + (value - RightLimitAtStartTime) / Slope;
+                else
+                    return Rational.PlusInfinity;
+            }    
+        }
         else
         {
-            if (LeftLimitAtEndTime == value)
-                return EndTime;
-            if (LeftLimitAtEndTime > value)
-                return StartTime + (value - RightLimitAtStartTime) / Slope;
+            if (RightLimitAtStartTime <= value)
+                return StartTime;
             else
-                return Rational.PlusInfinity;
+            {
+                if (LeftLimitAtEndTime == value)
+                    return EndTime;
+                if (LeftLimitAtEndTime < value)
+                    return StartTime + (value - RightLimitAtStartTime) / Slope;
+                else
+                    return Rational.PlusInfinity;
+            }
         }
     }
 
@@ -610,6 +628,94 @@ public sealed class Segment : Element, IEquatable<Segment>
                 rightLimitAtStartTime: StartTime,
                 slope: Rational.Invert(Slope)
             );
+    }
+
+    /// <inheritdoc />
+    public override IEnumerable<Element> Floor()
+    {
+        if (IsConstant && RightLimitAtStartTime.IsInteger)
+            yield return this;
+        else
+        {
+            if(IsConstant)
+                yield return Constant(StartTime, EndTime, RightLimitAtStartTime.Floor());
+            else if(Slope > 0)
+            {
+                var startValue = RightLimitAtStartTime.Floor();
+                var endValue = LeftLimitAtEndTime.IsInteger ?
+                    LeftLimitAtEndTime - 1 :
+                    LeftLimitAtEndTime.Floor();
+                var prevStartTime = StartTime;
+                for (var v = startValue; v < endValue; v++)
+                {
+                    var endTime = TimeAt(v + 1);
+                    yield return Segment.Constant(prevStartTime, endTime, v);
+                    yield return new Point(endTime, v + 1);
+                    prevStartTime = endTime;
+                }
+                yield return Segment.Constant(prevStartTime, EndTime, endValue);
+            }
+            else
+            {
+                var startValue = RightLimitAtStartTime.IsInteger ?
+                    RightLimitAtStartTime - 1 :
+                    RightLimitAtStartTime.Floor();
+                var endValue = LeftLimitAtEndTime.Floor();
+                var prevStartTime = StartTime;
+                for (var v = startValue; v > endValue; v--)
+                {
+                    var endTime = TimeAt(v);
+                    yield return Segment.Constant(prevStartTime, endTime, v);
+                    yield return new Point(endTime, v);
+                    prevStartTime = endTime;
+                }
+                yield return Segment.Constant(prevStartTime, EndTime, endValue);
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public override IEnumerable<Element> Ceil()
+    {
+        if (IsConstant && RightLimitAtStartTime.IsInteger)
+            yield return this;
+        else
+        {
+            if(IsConstant)
+                yield return Constant(StartTime, EndTime, RightLimitAtStartTime.Ceil());
+            else if(Slope > 0)
+            {
+                var startValue = RightLimitAtStartTime.IsInteger ?
+                    RightLimitAtStartTime + 1 :
+                    RightLimitAtStartTime.Ceil();
+                var endValue = LeftLimitAtEndTime.Ceil();
+                var prevStartTime = StartTime;
+                for (var v = startValue; v < endValue; v++)
+                {
+                    var endTime = TimeAt(v);
+                    yield return Segment.Constant(prevStartTime, endTime, v);
+                    yield return new Point(endTime, v);
+                    prevStartTime = endTime;
+                }
+                yield return Segment.Constant(prevStartTime, EndTime, endValue);
+            }
+            else
+            {
+                var startValue = RightLimitAtStartTime.Ceil();
+                var endValue = LeftLimitAtEndTime.IsInteger ? 
+                    LeftLimitAtEndTime + 1 :
+                    LeftLimitAtEndTime.Ceil();
+                var prevStartTime = StartTime;
+                for (var v = startValue; v > endValue; v--)
+                {
+                    var endTime = TimeAt(v - 1);
+                    yield return Segment.Constant(prevStartTime, endTime, v);
+                    yield return new Point(endTime, v - 1);
+                    prevStartTime = endTime;
+                }
+                yield return Segment.Constant(prevStartTime, EndTime, endValue);
+            }
+        }
     }
 
     #endregion Basic manipulations

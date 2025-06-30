@@ -319,7 +319,11 @@ namespace Unipi.Nancy.Numerics
         /// <summary>
         /// 
         /// </summary>
+        #if BIG_RATIONAL
         public readonly BigInteger Ceil()
+        #elif LONG_RATIONAL
+        public readonly long Ceil()
+        #endif
         {
             var wholePart = GetWholePart();
             var fractionPart = GetFractionPart();

@@ -235,6 +235,16 @@ public abstract class Element : IToCodeString, IStableHashCode
     /// </exception>
     public abstract Element Inverse();
 
+    /// <summary>
+    /// Computes the floor function, $\lfloor f(t) \rfloor$.
+    /// </summary>
+    public abstract IEnumerable<Element> Floor();
+    
+    /// <summary>
+    /// Computes the ceiling function, $\lceil f(t) \rceil$.
+    /// </summary>
+    public abstract IEnumerable<Element> Ceil();
+
     #endregion Basic manipulations
 
     #region Addition and Subtraction operators

@@ -3206,6 +3206,86 @@ public class Curve : IToCodeString, IStableHashCode
         return cut.MinValue();
     }
 
+    /// <summary>
+    /// Computes the floor function, $\lfloor f(t) \rfloor$.
+    /// </summary>
+    public Curve Floor()
+    {
+        if (PseudoPeriodHeight == 0)
+        {
+            return new Curve(
+                BaseSequence.Floor(),
+                PseudoPeriodStart,
+                PseudoPeriodLength,
+                PseudoPeriodHeight
+            ).Optimize();
+        }
+        else if (PseudoPeriodHeight > 0)
+        {
+            var d = PseudoPeriodLength * (1 / PseudoPeriodHeight);
+            var c = 1;
+            var T = PseudoPeriodStart + d;
+            return new Curve(
+                Cut(0, T + d).Floor(),
+                T,
+                d,
+                c
+            ).Optimize();
+        }
+        else
+        {
+            var d = PseudoPeriodLength * (1 / -PseudoPeriodHeight);
+            var c = -1;
+            var T = PseudoPeriodStart + d;
+            return new Curve(
+                Cut(0, T + d).Floor(),
+                T,
+                d,
+                c
+            ).Optimize();
+        }
+    }
+
+    /// <summary>
+    /// Computes the ceiling function, $\lceil f(t) \rceil$.
+    /// </summary>
+    public Curve Ceil()
+    {
+        if (PseudoPeriodHeight == 0)
+        {
+            return new Curve(
+                BaseSequence.Ceil(),
+                PseudoPeriodStart,
+                PseudoPeriodLength,
+                PseudoPeriodHeight
+            ).Optimize();
+        }
+        else if (PseudoPeriodHeight > 0)
+        {
+            var d = PseudoPeriodLength * (1 / PseudoPeriodHeight);
+            var c = 1;
+            var T = PseudoPeriodStart + d;
+            return new Curve(
+                Cut(0, T + d).Ceil(),
+                T,
+                d,
+                c
+            ).Optimize();
+        }
+        else
+        {
+            var d = PseudoPeriodLength * (1 / -PseudoPeriodHeight);
+            var c = -1;
+            var T = PseudoPeriodStart + d;
+            return new Curve(
+                Cut(0, T + d).Ceil(),
+                T,
+                d,
+                c
+            ).Optimize();
+        }
+    }
+
     #endregion
 
     #region Optimization

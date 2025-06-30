@@ -1625,6 +1625,28 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
             .ToSequence();
     }
 
+    /// <summary>
+    /// Computes the floor function, $\lfloor f(t) \rfloor$.
+    /// </summary>
+    public Sequence Floor()
+    {
+        var elements = Elements
+            .SelectMany(e => e.Floor())
+            .MergeAsEnumerable();
+        return elements.ToSequence();
+    }
+
+    /// <summary>
+    /// Computes the ceiling function, $\lceil f(t) \rceil$.
+    /// </summary>
+    public Sequence Ceil()
+    {
+        var elements = Elements
+            .SelectMany(e => e.Ceil())
+            .MergeAsEnumerable();
+        return elements.ToSequence();
+    }
+
     #endregion Basic manipulations
 
     #region Addition and Subtraction operators
