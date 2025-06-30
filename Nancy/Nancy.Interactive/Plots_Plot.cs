@@ -96,11 +96,11 @@ public static partial class Plots
                 return DefaultNames();
 
             // matches collection expressions, like "[f, g, h]"
-            var bracketsNotationRegex = new Regex(@"\[(?:([\w\d_\s+*-]+)(?:,\s+)?)+\]");
+            var bracketsNotationRegex = new Regex(@"\[(?:([\w\d_\s+*-]+)(?:,\s*)?)+\]");
             // matches array expressions, like "new []{f, g, h}"
-            var arrayNotationRegex = new Regex(@"new \w*?\[\]\{(?:([\w\d_\s+*-]+)(?:,\s+)?)+\}");
+            var arrayNotationRegex = new Regex(@"new \w*?\[\]\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
             // matches list expressions, like "new List<>{f, g, h}"
-            var listNotationRegex = new Regex(@"new List<.*>(?:\(\))?\{(?:([\w\d_\s+*-]+)(?:,\s+)?)+\}");
+            var listNotationRegex = new Regex(@"new List<.*>(?:\(\))?\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
 
             if (bracketsNotationRegex.IsMatch(expr))
             {
