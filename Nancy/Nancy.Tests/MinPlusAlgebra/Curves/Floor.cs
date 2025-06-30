@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -128,5 +129,28 @@ public class Floor
         _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()};");
         
         Assert.True(Curve.Equivalent(expected, floor));
+    }
+
+    public static IEnumerable<object[]> IsIntegerLowerBoundTestCases()
+        => KnownPairs.Select(p => p.Curve).ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(IsIntegerLowerBoundTestCases))]
+    public void IsIntegerLowerBound(Curve curve)
+    {
+        var floor = curve.Floor();
+        
+        Assert.True(floor <= curve);
+        foreach (var element in floor.CutAsEnumerable(0, floor.SecondPseudoPeriodEnd))
+        {
+            if(element is Point p)
+                Assert.True(p.Value.IsInteger);
+            else if (element is Segment s)
+                Assert.True(s is
+                {
+                    IsConstant: true, 
+                    RightLimitAtStartTime.IsInteger: true
+                });
+        }
     }
 }

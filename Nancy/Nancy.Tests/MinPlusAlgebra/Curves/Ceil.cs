@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -129,5 +130,28 @@ public class Ceil
         _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()};");
         
         Assert.True(Curve.Equivalent(expected, ceil));
+    }
+
+    public static IEnumerable<object[]> IsIntegerUpperBoundTestCases()
+        => KnownPairs.Select(p => p.Curve).ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(IsIntegerUpperBoundTestCases))]
+    public void IsIntegerUpperBound(Curve curve)
+    {
+        var ceil = curve.Ceil();
+        
+        Assert.True(ceil >= curve);
+        foreach (var element in ceil.CutAsEnumerable(0, ceil.SecondPseudoPeriodEnd))
+        {
+            if(element is Point p)
+                Assert.True(p.Value.IsInteger);
+            else if (element is Segment s)
+                Assert.True(s is
+                {
+                    IsConstant: true, 
+                    RightLimitAtStartTime.IsInteger: true
+                });
+        }
     }
 }
