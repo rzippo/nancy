@@ -3220,23 +3220,11 @@ public class Curve : IToCodeString, IStableHashCode
                 PseudoPeriodHeight
             ).Optimize();
         }
-        else if (PseudoPeriodHeight > 0)
-        {
-            var d = PseudoPeriodLength * (1 / PseudoPeriodHeight);
-            var c = 1;
-            var T = PseudoPeriodStart + d;
-            return new Curve(
-                Cut(0, T + d).Floor(),
-                T,
-                d,
-                c
-            ).Optimize();
-        }
         else
         {
-            var d = PseudoPeriodLength * (1 / -PseudoPeriodHeight);
-            var c = -1;
-            var T = PseudoPeriodStart + d;
+            var d = PseudoPeriodLength * PseudoPeriodHeight.Denominator;
+            var c = PseudoPeriodHeight.Numerator;
+            var T = PseudoPeriodStart;
             return new Curve(
                 Cut(0, T + d).Floor(),
                 T,
@@ -3260,23 +3248,11 @@ public class Curve : IToCodeString, IStableHashCode
                 PseudoPeriodHeight
             ).Optimize();
         }
-        else if (PseudoPeriodHeight > 0)
-        {
-            var d = PseudoPeriodLength * (1 / PseudoPeriodHeight);
-            var c = 1;
-            var T = PseudoPeriodStart + d;
-            return new Curve(
-                Cut(0, T + d).Ceil(),
-                T,
-                d,
-                c
-            ).Optimize();
-        }
         else
         {
-            var d = PseudoPeriodLength * (1 / -PseudoPeriodHeight);
-            var c = -1;
-            var T = PseudoPeriodStart + d;
+            var d = PseudoPeriodLength * PseudoPeriodHeight.Denominator;
+            var c = PseudoPeriodHeight.Numerator;
+            var T = PseudoPeriodStart;
             return new Curve(
                 Cut(0, T + d).Ceil(),
                 T,

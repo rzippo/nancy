@@ -112,9 +112,37 @@ public class Floor
                 4,
                 1
             )
+        ),
+        (
+            new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 1, 0.5m),
+                    new Point(1, 1),
+                    Segment.Constant(1, 2, 1)
+                ]),
+                1,
+                1,
+                new Rational(2, 3)
+            ),
+            new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 1, 0),
+                    new Point(1, 1),
+                    Segment.Constant(1, 2, 1),
+                    new Point(2, 1),
+                    Segment.Constant(2, 3, 1),
+                    new Point(3, 2),
+                    Segment.Constant(3, 4, 2)
+                ]),
+                1,
+                3,
+                2
+            )
         )
     ];
-    
+
     public static IEnumerable<object[]> FloorTestCases()
         => KnownPairs.ToXUnitTestCases();
 
@@ -123,11 +151,11 @@ public class Floor
     public void FloorTest(Curve curve, Curve expected)
     {
         var floor = curve.Floor();
-        
+
         _testOutputHelper.WriteLine($"var curve = {curve.ToCodeString()};");
         _testOutputHelper.WriteLine($"var floor = {floor.ToCodeString()};");
         _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()};");
-        
+
         Assert.True(Curve.Equivalent(expected, floor));
     }
 
@@ -152,5 +180,34 @@ public class Floor
                     RightLimitAtStartTime.IsInteger: true
                 });
         }
+    }
+
+    public static IEnumerable<object[]> IsCompositionWithStairCases()
+        => KnownPairs
+            .Select(p => p.Curve)
+            .Where(c => c.IsNonNegative && c.IsNonDecreasing)
+            .ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(IsCompositionWithStairCases))]
+    public void IsCompositionWithStair(Curve curve)
+    {
+        var stair = new Curve(
+            new Sequence([
+                Point.Origin(),
+                Segment.Constant(0, 1, 0)
+            ]), 
+            0,
+            1,
+            1
+        );
+        var composition = Curve.Composition(stair, curve);
+        var floor = curve.Floor();
+        
+        _testOutputHelper.WriteLine($"var curve = {curve.ToCodeString()};");
+        _testOutputHelper.WriteLine($"var floor = {floor.ToCodeString()};");
+        _testOutputHelper.WriteLine($"var composition = {composition.ToCodeString()};");
+
+        Assert.True(Curve.Equivalent(composition, floor));
     }
 }
