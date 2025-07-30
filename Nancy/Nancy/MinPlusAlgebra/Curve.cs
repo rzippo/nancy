@@ -3052,14 +3052,17 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Given $hDev(f, g, t) = \sup\{ d \ge 0 \mid f(t) > g(t+d) \},
-    /// computes the first time around which $hDev(f, g, t)$ the horizontal deviation between the two curves, $hDev(f, g)$
+    /// Given $hDev(f, g, t) = \inf\{ d \ge 0 \mid f(t) \le g(t+d) \}$,
+    /// computes the first time around which $hDev(f, g, t)$ gets close to the horizontal deviation between the two curves, $hDev(f, g)$
     /// (i.e., either it attains the value or has it as a limit).
     /// </summary>
     /// <param name="f">Must be non-decreasing.</param>
     /// <param name="g">Must be non-decreasing.</param>
     /// <param name="settings"></param>
-    public static Rational HorizontalDeviationArg(Curve f, Curve g, ComputationSettings? settings = null)
+    /// <remarks>
+    /// The definition of $hDev(f, g, t)$ is based on [DNC18] Lemma 5.1.
+    /// </remarks>
+    public static Rational HorizontalDeviationMeasuredAt(Curve f, Curve g, ComputationSettings? settings = null)
     {
         if (!f.IsNonDecreasing || !g.IsNonDecreasing)
             throw new ArgumentException("The arguments must be non-decreasing.");
@@ -3110,7 +3113,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     /// <param name="f"></param>
     /// <param name="g"></param>
-    public static Rational VerticalDeviationArg(Curve f, Curve g)
+    public static Rational VerticalDeviationMeasuredAt(Curve f, Curve g)
     {
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve dr)
         {

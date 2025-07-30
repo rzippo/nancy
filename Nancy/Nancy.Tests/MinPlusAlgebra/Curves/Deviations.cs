@@ -225,7 +225,7 @@ public class Deviations
     [MemberData(nameof(GetHorizontalDeviationArgTestCases))]
     public void HorizontalDeviationArgTest(Curve a, Curve b, Rational expected)
     {
-        var result = Curve.HorizontalDeviationArg(a, b);
+        var result = Curve.HorizontalDeviationMeasuredAt(a, b);
         Assert.Equal(expected, result);
     }
 
@@ -250,7 +250,7 @@ public class Deviations
     [MemberData(nameof(GetVerticalDeviationArgTestCases))]
     public void VerticalDeviationArgTest(Curve a, Curve b, Rational expected)
     {
-        var result = Curve.VerticalDeviationArg(a, b);
+        var result = Curve.VerticalDeviationMeasuredAt(a, b);
         Assert.Equal(expected, result);
     }
 
