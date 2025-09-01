@@ -6028,20 +6028,20 @@ public class Curve : IToCodeString, IStableHashCode
         if (!g.IsNonDecreasing)
             throw new ArgumentException("g must be non-decreasing");
 
-        var T_g = g.PseudoPeriodStart;
-        var T_f = g.LowerPseudoInverse()
+        var T_due_g = g.PseudoPeriodStart;
+        var T_due_f = g.LowerPseudoInverse()
             .ValueAt(f.PseudoPeriodStart);
-        if (T_f.IsFinite && !g.IsRightContinuousAt(T_f))
+        if (T_due_f.IsFinite && !g.IsRightContinuousAt(T_due_f))
             // it suffices to use \lpi{g}(T_f) + epsilon, for any epsilon > 0
-            T_f = g.GetSegmentAfter(T_f).EndTime;
+            T_due_f = g.GetSegmentAfter(T_due_f).EndTime;
 
         // initialized with non-optimal values
-        var T = Rational.Max(T_g, T_f);
+        var T = Rational.Max(T_due_g, T_due_f);
         var d = f.PseudoPeriodLength.Numerator * g.PseudoPeriodLength * g.PseudoPeriodHeight.Denominator;
         var c = f.PseudoPeriodLength.Denominator * g.PseudoPeriodHeight.Numerator * f.PseudoPeriodHeight;
 
         if (
-            T_f.IsPlusInfinite // This indicates that the 'standard' logic cannot be applied
+            T_due_f.IsPlusInfinite // This indicates that the 'standard' logic cannot be applied
             || settings.UseCompositionOptimizations
         )
         {
@@ -6050,8 +6050,8 @@ public class Curve : IToCodeString, IStableHashCode
                 // composition will also be U.C.
                 // the following expression for T summarise Proposition 19, 20 and 21 from [ZNS23b]
                 T = Rational.Min(
-                    g.IsUltimatelyConstant ? T_g : Rational.PlusInfinity,
-                    f.IsUltimatelyConstant ? T_f : Rational.PlusInfinity
+                    g.IsUltimatelyConstant ? T_due_g : Rational.PlusInfinity,
+                    f.IsUltimatelyConstant ? T_due_f : Rational.PlusInfinity
                 );
                 d = 1;
                 c = 0;
