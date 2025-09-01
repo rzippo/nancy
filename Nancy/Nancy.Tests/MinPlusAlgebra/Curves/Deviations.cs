@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -9,54 +10,76 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class Deviations
 {
-    public static IEnumerable<object[]> GetHorizontalTestCases()
+    public static List<(Curve f, Curve g, Rational hDev, Rational time)> HDevKnownCases =
+    [
+        (
+            f: new SigmaRhoArrivalCurve(4, 3),
+            g: new RateLatencyServiceCurve(4, 3),
+            hDev: 4,
+            0
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(4, 5),
+            g: new RateLatencyServiceCurve(4, 3),
+            hDev: Rational.PlusInfinity,
+            Rational.PlusInfinity
+        ),
+        (
+            // Example from [DNC18] Figure 5.7
+            f: new SigmaRhoArrivalCurve(1, 1),
+            g: Curve.Minimum(
+                new RateLatencyServiceCurve(3, 0),
+                new RateLatencyServiceCurve(3, 4) + 3
+            ),
+            2,
+            2
+        ),
+        (
+            // Variation on the example from [DNC18] Figure 5.7
+            f: new SigmaRhoArrivalCurve(1, 2),
+            g: Curve.Minimum(
+                new RateLatencyServiceCurve(3, 0),
+                new RateLatencyServiceCurve(3, 4) + 3
+            ),
+            3,
+            1
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(2, 0),
+            g: new RateLatencyServiceCurve(2, 2),
+            3,
+            0
+        ),
+        (
+            f: Curve.Minimum(
+                new RateLatencyServiceCurve(4, 0),
+                new ConstantCurve(12)
+            ),
+            g: Curve.Minimum(
+                new RateLatencyServiceCurve(3, 3),
+                new ConstantCurve(12)
+            ),
+            4,
+            3
+        ),
+        #if BIG_RATIONAL
+        (
+            f: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
+            g: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}"),
+            new Rational(115102801965691,149850048000)
+        ),
+        (
+            f: new Curve(Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}")),
+            g: new Curve(Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}")),
+            new Rational(115102801965691,149850048000)
+        )
+        #endif
+    ];
+    
+    public static IEnumerable<object[]> GetHorizontalDeviationTestCases()
     {
-        var testcases = new List<(Curve f, Curve g, Rational expected)>
+        var additionalTestcases = new List<(Curve f, Curve g, Rational expected)>
         {
-            (
-                f: new SigmaRhoArrivalCurve(4, 3),
-                g: new RateLatencyServiceCurve(4, 3),
-                expected: 4
-            ),
-            (
-                f: new SigmaRhoArrivalCurve(4, 5),
-                g: new RateLatencyServiceCurve(4, 3),
-                expected: Rational.PlusInfinity
-            ),
-            (
-                // Example from [2] Figure 5.7
-                f: new SigmaRhoArrivalCurve(1, 1),
-                g: Curve.Minimum(
-                    new RateLatencyServiceCurve(3, 0),
-                    new RateLatencyServiceCurve(3, 4) + 3
-                ),
-                2
-            ),
-            (
-                // Variation on the example from [2] Figure 5.7
-                f: new SigmaRhoArrivalCurve(1, 2),
-                g: Curve.Minimum(
-                    new RateLatencyServiceCurve(3, 0),
-                    new RateLatencyServiceCurve(3, 4) + 3
-                ),
-                3
-            ),
-            (
-                f: new SigmaRhoArrivalCurve(2, 0),
-                g: new RateLatencyServiceCurve(2, 2),
-                3
-            ),
-            (
-                f: Curve.Minimum(
-                    new RateLatencyServiceCurve(4, 0),
-                    new ConstantCurve(12)
-                ),
-                g: Curve.Minimum(
-                    new RateLatencyServiceCurve(3, 3),
-                    new ConstantCurve(12)
-                ),
-                4
-            ),
             #if BIG_RATIONAL
             (
                 f: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
@@ -71,6 +94,13 @@ public class Deviations
             #endif
         };
 
+        var testcases = HDevKnownCases.Select(tuple =>
+            {
+                var (f, g, hdev, _) = tuple;
+                return (f, g, hdev);
+            })
+            .Concat(additionalTestcases);
+        
         foreach (var (f, g, expected) in testcases)
         {
             yield return new object[] { f, g, expected };
@@ -79,52 +109,78 @@ public class Deviations
         }
     }
 
-    public static IEnumerable<object[]> GetVerticalTestCases()
+    public static IEnumerable<object[]> GetHorizontalDeviationArgTestCases()
     {
-        var testcases = new List<(Curve f, Curve g, Rational expected)>
+        foreach (var (f, g, _, expected) in HDevKnownCases)
         {
-            (
-                f: new SigmaRhoArrivalCurve(4, 3),
-                g: new RateLatencyServiceCurve(4, 3),
-                expected: 13
+            yield return new object[] { f, g, expected };
+            yield return new object[] { new Curve(f), new Curve(g), expected }; // repeat the test as generic Curves
+            yield return new object[] { new Curve(f).Optimize(), new Curve(g).Optimize(), expected }; // repeat the test as generic and minimized Curves
+        }
+    }
+    
+    public static List<(Curve f, Curve g, Rational vDev, Rational time)> VDevKnownCases =
+    [
+        (
+            f: new SigmaRhoArrivalCurve(4, 3),
+            g: new RateLatencyServiceCurve(4, 3),
+            vDev: 13,
+            time: 3
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(4, 5),
+            g: new RateLatencyServiceCurve(4, 3),
+            vDev: Rational.PlusInfinity,
+            time: Rational.PlusInfinity
+        ),
+        (
+            // Example from [DNC18] Figure 5.7
+            f: new SigmaRhoArrivalCurve(1, 1),
+            g: Curve.Minimum(
+                new RateLatencyServiceCurve(3, 0),
+                new RateLatencyServiceCurve(3, 4) + 3
             ),
-            (
-                f: new SigmaRhoArrivalCurve(4, 5),
-                g: new RateLatencyServiceCurve(4, 3),
-                expected: Rational.PlusInfinity
+            2,
+            4
+        ),
+        (
+            // Variation on the example from [DNC18] Figure 5.7
+            f: new SigmaRhoArrivalCurve(1, 2),
+            g: Curve.Minimum(
+                new RateLatencyServiceCurve(3, 0),
+                new RateLatencyServiceCurve(3, 4) + 3
             ),
-            (
-                // Example from [2] Figure 5.7
-                f: new SigmaRhoArrivalCurve(1, 1),
-                g: Curve.Minimum(
-                    new RateLatencyServiceCurve(3, 0),
-                    new RateLatencyServiceCurve(3, 4) + 3
-                ),
-                2
-            ),
-            (
-                // Variation on the example from [2] Figure 5.7
-                f: new SigmaRhoArrivalCurve(1, 2),
-                g: Curve.Minimum(
-                    new RateLatencyServiceCurve(3, 0),
-                    new RateLatencyServiceCurve(3, 4) + 3
-                ),
-                6
-            ),
-            (
-                f: new SigmaRhoArrivalCurve(2, 0),
-                g: new RateLatencyServiceCurve(2, 2),
-                2
-            ),
-            (
-                // sup is not attained
-                f: new SigmaRhoArrivalCurve(4, 2),
-                g: new RateLatencyServiceCurve(3, 0),
-                4
-            )
-        };
+            6,
+            4
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(2, 0),
+            g: new RateLatencyServiceCurve(2, 2),
+            2,
+            0
+        ),
+        (
+            // sup is not attained
+            f: new SigmaRhoArrivalCurve(4, 2),
+            g: new RateLatencyServiceCurve(3, 0),
+            4,
+            0
+        )
+    ];
+    
+    public static IEnumerable<object[]> GetVerticalDeviationTestCases()
+    {
+        foreach (var (f, g, expected, _) in VDevKnownCases)
+        {
+            yield return new object[] { f, g, expected };
+            yield return new object[] { new Curve(f), new Curve(g), expected }; // repeat the test as generic Curves
+            yield return new object[] { new Curve(f).Optimize(), new Curve(g).Optimize(), expected }; // repeat the test as generic and minimized Curves
+        }
+    }
 
-        foreach (var (f, g, expected) in testcases)
+    public static IEnumerable<object[]> GetVerticalDeviationArgTestCases()
+    {
+        foreach (var (f, g, _, expected) in VDevKnownCases)
         {
             yield return new object[] { f, g, expected };
             yield return new object[] { new Curve(f), new Curve(g), expected }; // repeat the test as generic Curves
@@ -133,7 +189,7 @@ public class Deviations
     }
 
     [Theory]
-    [MemberData(nameof(GetHorizontalTestCases))]
+    [MemberData(nameof(GetHorizontalDeviationTestCases))]
     public void HorizontalDeviationTest(Curve a, Curve b, Rational expected)
     {
         var result = Curve.HorizontalDeviation(a, b);
@@ -141,7 +197,7 @@ public class Deviations
     }
 
     [Theory]
-    [MemberData(nameof(GetHorizontalTestCases))]
+    [MemberData(nameof(GetHorizontalDeviationTestCases))]
     public void HorizontalDeviationAlternativesTest(Curve a, Curve b, Rational expected)
     {
         // the following are mathematically equivalent methods to compute hdev(a, b)
@@ -166,7 +222,15 @@ public class Deviations
     }
 
     [Theory]
-    [MemberData(nameof(GetVerticalTestCases))]
+    [MemberData(nameof(GetHorizontalDeviationArgTestCases))]
+    public void HorizontalDeviationArgTest(Curve a, Curve b, Rational expected)
+    {
+        var result = Curve.HorizontalDeviationMeasuredAt(a, b);
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetVerticalDeviationTestCases))]
     public void VerticalDeviationTest(Curve a, Curve b, Rational expected)
     {
         var result = Curve.VerticalDeviation(a, b);
@@ -174,11 +238,19 @@ public class Deviations
     }
 
     [Theory]
-    [MemberData(nameof(GetVerticalTestCases))]
+    [MemberData(nameof(GetVerticalDeviationTestCases))]
     public void VerticalDeviationTest_Deconvolution(Curve a, Curve b, Rational expected)
     {
         var deconvolution = Curve.Deconvolution(a, b);
         var result = deconvolution.ValueAt(0);
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetVerticalDeviationArgTestCases))]
+    public void VerticalDeviationArgTest(Curve a, Curve b, Rational expected)
+    {
+        var result = Curve.VerticalDeviationMeasuredAt(a, b);
         Assert.Equal(expected, result);
     }
 
