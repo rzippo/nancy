@@ -4,7 +4,7 @@
 
 #!markdown
 
-This tutorials shows the code used for the examples in the *Quick Intro*, although using the library **compiled locally** instead of the public version on Nuget.
+This tutorial shows the code used for the examples in the *Quick Intro*, using the library **compiled locally** instead of the public version on NuGet.
 
 This is useful to test changes as you work on them.
 
