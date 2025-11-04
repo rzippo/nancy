@@ -23,8 +23,8 @@ namespace Unipi.Nancy.Numerics
     /// using <see cref="BigInteger"/> for both numerator and denominator.
     /// </summary>
     /// <remarks>
-    /// This type is identical to <see cref="BigRational"/> based to compiler flag <code>BIG_RATIONAL</code>.
-    /// Replace this with <code>LONG_RATIONAL</code> to change implementation to <see cref="LongRational"/>.
+    /// This type is identical to <see cref="BigRational"/> based to compiler flag <c>BIG_RATIONAL</c>.
+    /// Replace this with <c>LONG_RATIONAL</c> to change implementation to <see cref="LongRational"/>.
     /// </remarks>
     #elif LONG_RATIONAL
     /// <summary>
@@ -34,8 +34,8 @@ namespace Unipi.Nancy.Numerics
     /// <remarks>
     /// Adapted from BigRational with the aim of reducing perfomance impact. 
     /// Profiling highlighted heavy use of Compare, which was measured to be up to 30x slower on a BigInteger implementation compared to long.
-    /// This type is identical to <see cref="LongRational"/> based to compiler flag <code>LONG_RATIONAL</code>.
-    /// Replace this with <code>BIG_RATIONAL</code> to change implementation to <see cref="BigRational"/>.
+    /// This type is identical to <see cref="LongRational"/> based to compiler flag <c>LONG_RATIONAL</c>.
+    /// Replace this with <c>BIG_RATIONAL</c> to change implementation to <see cref="BigRational"/>.
     /// </remarks>
     #endif
     [Serializable]

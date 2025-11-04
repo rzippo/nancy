@@ -189,7 +189,7 @@ internal class Interval
 
     /// <summary>
     /// Adds a collection of <see cref="Element"/>s to the interval.
-    /// Unless <paramref name="doChecks"/> is <code>true</code>, no validation check is done.  
+    /// Unless <paramref name="doChecks"/> is <c>true</c>, no validation check is done.  
     /// </summary>
     /// <param name="collection"></param>
     /// <param name="doChecks"></param>

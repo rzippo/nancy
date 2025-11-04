@@ -342,13 +342,13 @@ public sealed class Point : Element, IEquatable<Point>
         => other is not null && (Value, Time) == (other.Value, other.Time);
 
     /// <summary>
-    /// Returns <code>true</code> if its operands are equal, <code>false</code> otherwise
+    /// Returns <c>true</c> if its operands are equal, <c>false</c> otherwise
     /// </summary>
     public static bool operator ==(Point? a, Point? b) =>
         Equals(a, b);
 
     /// <summary>
-    /// Returns <code>false</code> if its operands are equal, <code>true</code> otherwise
+    /// Returns <c>false</c> if its operands are equal, <c>true</c> otherwise
     /// </summary>
     public static bool operator !=(Point? a, Point? b) =>
         !Equals(a, b);

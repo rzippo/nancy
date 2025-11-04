@@ -1044,13 +1044,13 @@ public class Curve : IToCodeString, IStableHashCode
         => (BaseSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight).GetStableHashCode();
 
     /// <summary>
-    /// Returns <code>true</code> if its operands are equal, <code>false</code> otherwise
+    /// Returns <c>true</c> if its operands are equal, <c>false</c> otherwise
     /// </summary>
     public static bool operator ==(Curve? a, Curve? b) =>
         Equals(a, b);
 
     /// <summary>
-    /// Returns <code>false</code> if its operands are equal, <code>true</code> otherwise
+    /// Returns <c>false</c> if its operands are equal, <c>true</c> otherwise
     /// </summary>
     public static bool operator !=(Curve? a, Curve? b) =>
         !Equals(a, b);

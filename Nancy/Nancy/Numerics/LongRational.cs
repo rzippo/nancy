@@ -441,7 +441,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </summary>
     /// <remarks>
     /// The Decimal type represents floating point numbers exactly, with no rounding error.
-    /// Values such as <code>0.1</code> in Decimal are actually representable, and convert cleanly to BigRational as <code>1/10</code>.
+    /// Values such as <c>0.1</c> in Decimal are actually representable, and convert cleanly to BigRational as <c>1/10</c>.
     /// </remarks>
     public LongRational(decimal value)
     {
