@@ -3136,6 +3136,22 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
+    /// Computes the deviation $z(f, g) = \inf\{t \ge 0 \mid f \otimes g (t) \ge 0 \}$.
+    /// </summary>
+    /// <param name="f"></param>
+    /// <param name="g"></param>
+    /// <returns>The z-deviation between the two curves.</returns>
+    /// <remarks>
+    /// Used in [HCS24] Theorem 19, generalizing the computation of delay bounds for negative service curves.
+    /// For that result, <paramref name="f"/> should be a minimal arrival curve and <paramref name="g"/> should be a (lower) non-decreasing service curve.
+    /// </remarks>
+    public static Rational ZDeviation(Curve f, Curve g, ComputationSettings? settings = null)
+    {
+        var conv = Curve.Convolution(f, g, settings);
+        return conv.FirstNonNegativeTime;
+    }
+
+    /// <summary>
     /// If the curve is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
     /// </summary>

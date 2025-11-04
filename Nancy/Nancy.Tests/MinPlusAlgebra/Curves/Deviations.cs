@@ -167,7 +167,7 @@ public class Deviations
             0
         )
     ];
-    
+
     public static IEnumerable<object[]> GetVerticalDeviationTestCases()
     {
         foreach (var (f, g, expected, _) in VDevKnownCases)
@@ -187,6 +187,19 @@ public class Deviations
             yield return new object[] { new Curve(f).Optimize(), new Curve(g).Optimize(), expected }; // repeat the test as generic and minimized Curves
         }
     }
+
+    public static List<(Curve f, Curve g, Rational zDev)> ZDeviationKnownCases = 
+    [
+        // Example following [HCS24] Figure 3 
+        (
+            f: new RateLatencyServiceCurve(0.4m, 1),
+            g: new RateLatencyServiceCurve(1, 2).VerticalShift(-2, false),
+            zDev: 8
+        )
+    ];
+
+    public static IEnumerable<object[]> GetZDeviationTestCases() 
+        => ZDeviationKnownCases.ToXUnitTestCases();
 
     [Theory]
     [MemberData(nameof(GetHorizontalDeviationTestCases))]
@@ -251,6 +264,14 @@ public class Deviations
     public void VerticalDeviationArgTest(Curve a, Curve b, Rational expected)
     {
         var result = Curve.VerticalDeviationMeasuredAt(a, b);
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetZDeviationTestCases))]
+    public void ZDeviationTest(Curve f, Curve g, Rational expected)
+    {
+        var result = Curve.ZDeviation(f, g);
         Assert.Equal(expected, result);
     }
 
