@@ -1,0 +1,42 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp"},{"name":"fsharp","languageName":"F#","aliases":["f#","fs"]},{"name":"html","languageName":"HTML"},{"name":"http","languageName":"HTTP"},{"name":"javascript","languageName":"JavaScript","aliases":["js"]},{"name":"mermaid","languageName":"Mermaid"},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"value"}]}}
+
+#!markdown
+
+This tutorial shows the code used for the examples in the *Quick Intro*, using the library **compiled locally** instead of the public version on NuGet.
+
+This is useful to test changes as you work on them.
+
+The following three cells are setup: they compile the library, reference its DLLs, import the namespaces.
+
+#!pwsh
+
+# Compile the library
+# Warning: if you modified the source, restart the notebook kernel before re-compiling! Use ctrl+shift+P to find this command in VS Code
+dotnet publish -c Release ../Nancy/Nancy/Nancy.csproj -f net9.0
+dotnet publish -c Release ../Nancy/Nancy.Interactive/Nancy.Interactive.Local.csproj -f net9.0
+
+#!csharp
+
+// Load Nancy library and its dependencies 
+#r "../Nancy/Nancy/bin/Release/net9.0/publish/Unipi.Nancy.dll"
+#r "../Nancy/Nancy/bin/Release/net9.0/publish/NLog.dll"
+#r "../Nancy/Nancy/bin/Release/net9.0/publish/JsonSubTypes.dll"
+#r "../Nancy/Nancy/bin/Release/net9.0/publish/Newtonsoft.Json.dll"
+
+// Load the plotting extension, Nancy.Interactive.Local, and its dependencies
+#r "../Nancy/Nancy.Interactive/bin/Release/net9.0/publish/Unipi.Nancy.Interactive.Local.dll"
+#r "../Nancy/Nancy.Interactive/bin/Release/net9.0/publish/XPlot.Plotly.dll"
+#r "../Nancy/Nancy.Interactive/bin/Release/net9.0/publish/XPlot.Plotly.Interactive.dll"
+
+#!csharp
+
+using Unipi.Nancy.Numerics;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Interactive;
+
+#!markdown
+
+Write your code below
