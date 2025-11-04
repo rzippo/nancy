@@ -6,46 +6,47 @@ namespace Unipi.Nancy.Tests.Numerics.RationalTests;
 
 public class FromDecimal
 {
-    public static IEnumerable<object[]> GetDecimals()
-    {
-        var decimalTuples = new []
-        {
-            (128.3m, 1283, 10),
-            (0.5m, 1, 2)
-        };
+    public static List<(decimal d, long numerator, long denominator)> KnownDecimals =
+    [
+        (128.3m, 1283, 10),
+        (0.5m, 1, 2),
+        (27m/150, 9, 50),
+        (144m/400, 9, 25),
+        (0.733333333333333m, 733_333_333_333_333, 1_000_000_000_000_000),
+        (0.7333333333333333m, 7_333_333_333_333_333, 10_000_000_000_000_000),
+    ];
 
-        foreach (var tuple in decimalTuples)
-            yield return new object[] { tuple.Item1, tuple.Item2, tuple.Item3 };
-    }
-
+    public static IEnumerable<object[]> GetKnownDecimalsTestCases()
+        => KnownDecimals.ToXUnitTestCases();
+    
+    public static List<(decimal d, long numerator, long denominator)> ImpreciseDecimals =
+    [
+        (28m/150, 14, 75),
+        (98m/600, 49, 300),
+    ];
+    
+    public static IEnumerable<object[]> GetImpreciseDecimalsTestCases()
+        => ImpreciseDecimals.ToXUnitTestCases();
+    
     [Theory]
-    [MemberData(nameof(GetDecimals))]
-    public void DecimalCtorEquivalence(decimal d, int num, int den)
+    [MemberData(nameof(GetKnownDecimalsTestCases))]
+    public void DecimalCtorEquivalence(decimal d, long num, long den)
     {
         var r = new Rational(d);
 
         Assert.Equal(num, r.Numerator);
         Assert.Equal(den, r.Denominator);
     }
-
-    public static IEnumerable<object[]> GetHighDecimals()
-    {
-        var values = new List<decimal>
-        {
-            0.733333333333333m,
-            0.7333333333333333m
-        };
-
-        foreach (var value in values)
-        {
-            yield return new object[] { value };
-        }
-    }
     
     [Theory]
-    [MemberData(nameof(GetHighDecimals))]
-    public void DecimalCtorNoException(decimal d)
+    [MemberData(nameof(GetKnownDecimalsTestCases))]
+    [MemberData(nameof(GetImpreciseDecimalsTestCases))]
+    public void DecimalCtorApproximateEquivalence(decimal d, long num, long den)
     {
         var r = new Rational(d);
+        var r_cast = (decimal)r;
+
+        Assert.Equal(d, r_cast);
     }
+
 }
