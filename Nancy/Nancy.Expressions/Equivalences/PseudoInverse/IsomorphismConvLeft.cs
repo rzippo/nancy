@@ -3,7 +3,7 @@
 /// <summary>
 /// The upper pseudoinverse of a (min,+) convolution of two non-decreasing left-continuous function is equal
 /// to the (max,+) convolution of their upper pseudoinverses.
-/// I.e., $(f \otimes g)^{\overline{-1}} = f^\overline{-1} \overline{\otimes} g^\overline{-1}$. 
+/// I.e., $(f \otimes g)^{\overline{-1}} = f^{\overline{-1}} \overline{\otimes} g^{\overline{-1}}$. 
 /// </summary>
 /// <remarks>
 /// Theorem 4.16 in [Zippo23].

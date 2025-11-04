@@ -3,7 +3,7 @@
 /// <summary>
 /// The lower pseudoinverse of a (max,+) convolution of two non-decreasing right-continuous function is equal
 /// to the (min,+) convolution of their lower pseudoinverses.
-/// I.e., $(f \overline{\otimes} g)^{\underline{-1}} = f^\underline{-1} \otimes g^\underline{-1}$. 
+/// I.e., $(f \overline{\otimes} g)^{\underline{-1}} = f{^\underline{-1}} \otimes g{^\underline{-1}}$. 
 /// </summary>
 /// <remarks>
 /// Theorem 4.18 in [Zippo23].
