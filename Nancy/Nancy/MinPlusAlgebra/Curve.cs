@@ -349,9 +349,12 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// The first instant around which the curve is non-negative.
-    /// Does not specify whether it's inclusive or not, i.e. if $f(\overline{t}) >= 0$.
+    /// The first instant $t^*$ around which the curve is non-negative.
+    /// Does not specify whether it's inclusive or not, i.e. if $f(t^*) \ge 0$.
     /// </summary>
+    /// <remarks>
+    /// Computes $t^* = \inf\{ t \ge 0 \mid f(t) \ge 0 \}$.
+    /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstNonNegativeTime
     {
