@@ -343,6 +343,40 @@ public class ToLowerNonDecreasing
                 pseudoPeriodLength: 3,
                 pseudoPeriodHeight: 1
             ).VerticalShift(-3, false)
+        ),
+        (
+            operand: new Curve(
+                baseSequence: new Sequence(new Element[]
+                {
+                    Point.Origin(),
+                    new Segment(0, 2, 0, 1),
+                    new Point(2, 2),
+                    new Segment(2, 3, 2, -1),
+                    new Point(3, 1),
+                    new Segment(3, 5, 1, 1),
+                    new Point(5, 3),
+                    new Segment(5, 6, 3, -1),
+                    new Point(6, 2),
+                    new Segment(6, 8, 2, 1)
+                }),
+                pseudoPeriodStart: 5,
+                pseudoPeriodLength: 3,
+                pseudoPeriodHeight: 1
+            ).VerticalShift(3, false),
+            expected: new Curve(
+                baseSequence: new Sequence(new Element[]
+                {
+                    Point.Origin(),
+                    new Segment(0, 1, 0, 1),
+                    new Point(1, 1),
+                    Segment.Constant(1, 3, 1),
+                    new Point(3, 1),
+                    new Segment(3, 4, 1, 1)
+                }),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 3,
+                pseudoPeriodHeight: 1
+            ).VerticalShift(3, false)
         )
     ];
 
