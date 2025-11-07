@@ -2476,11 +2476,13 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Enforces $f(0) = 0$, i.e. it returns $f^\circ = \min \left( f, \delta_0 \right)$.
+    /// Computes $f^\circ = \min \left( f, \delta_0 \right)$.
+    /// If $f(0) > 0$, this enforces $f(0) = 0$.
+    /// If $f(0) \le 0$, this does nothing.
     /// </summary>
     public Curve WithZeroOrigin()
     {
-        if (IsPassingThroughOrigin)
+        if (ValueAt(0) <= 0)
         {
             return this;
         }
@@ -2488,6 +2490,43 @@ public class Curve : IToCodeString, IStableHashCode
         {
             return Minimum(this, new DelayServiceCurve(0));
         }
+    }
+
+    /// <summary>
+    /// Enforces $f(0) = v$.
+    /// </summary>
+    /// <param name="value">The value $v$ to be enforced.</param>
+    public Curve WithOriginAt(Rational value)
+    {
+        if (ValueAt(0) == value)
+            return this;
+        else
+        {
+            if (PseudoPeriodStart == 0)
+            {
+                var newSequence = CutAsEnumerable(0, SecondPseudoPeriodEnd)
+                    .Skip(1)
+                    .Prepend(new Point(0, value))
+                    .ToSequence();
+                return new Curve(newSequence, FirstPseudoPeriodEnd, PseudoPeriodLength, PseudoPeriodHeight);
+            }
+            else
+            {
+                var newSequence = BaseSequence.Elements
+                    .Skip(1)
+                    .Prepend(new Point(0, value))
+                    .ToSequence();
+                return new Curve(newSequence, PseudoPeriodStart, PseudoPeriodLength, PseudoPeriodHeight);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Enforces $f(0) = f(0^+)$, i.e. right-continuity at $0$.
+    /// </summary>
+    public Curve WithOriginRightContinuous()
+    {
+        return WithOriginAt(RightLimitAt(0));
     }
 
     /// <summary>
