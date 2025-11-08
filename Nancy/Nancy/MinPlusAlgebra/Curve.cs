@@ -3955,10 +3955,38 @@ public class Curve : IToCodeString, IStableHashCode
     /// Implements subtraction operation between two curves.
     /// </summary>
     /// <param name="b">Second operand.</param>
+    /// <param name="settings"></param>
+    /// <returns>The curve resulting from the subtraction.</returns>
+    /// <remarks>
+    /// The result may contain negative values. 
+    /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
+    /// </remarks>
+    public virtual Curve Subtraction(Curve b, ComputationSettings? settings = null)
+        => Addition(-b, settings);
+
+    /// <summary>
+    /// Implements subtraction operation between two curves.
+    /// </summary>
+    /// <param name="a">First operand.</param>
+    /// <param name="b">Second operand.</param>
+    /// <param name="settings"></param>
+    /// <returns>The curve resulting from the subtraction.</returns>
+    /// <remarks>
+    /// The result may contain negative values. 
+    /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
+    /// </remarks>
+    public static Curve Subtraction(Curve a, Curve b, ComputationSettings? settings = null)
+        => a.Subtraction(b, settings);
+
+    /// <summary>
+    /// Implements subtraction operation between two curves.
+    /// </summary>
+    /// <param name="b">Second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the subtraction.</returns>
-    public virtual Curve Subtraction(Curve b, bool nonNegative = true, ComputationSettings? settings = null)
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public virtual Curve Subtraction(Curve b, bool nonNegative, ComputationSettings? settings = null)
         => nonNegative ?
             Addition(-b, settings).ToNonNegative() :
             Addition(-b, settings);
@@ -3971,7 +3999,8 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the subtraction.</returns>
-    public static Curve Subtraction(Curve a, Curve b, bool nonNegative = true, ComputationSettings? settings = null)
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public static Curve Subtraction(Curve a, Curve b, bool nonNegative, ComputationSettings? settings = null)
         => a.Subtraction(b, nonNegative, settings);
 
     /// <summary>
@@ -3981,11 +4010,11 @@ public class Curve : IToCodeString, IStableHashCode
     /// <param name="b">Second operand.</param>
     /// <returns>The non-negative curve resulting from the subtraction.</returns>
     /// <remarks>
-    /// The result is forced to be non-negative.
-    /// Use <see cref="Subtraction(Unipi.Nancy.MinPlusAlgebra.Curve, Unipi.Nancy.MinPlusAlgebra.Curve, bool, ComputationSettings)"/> to have results with negative values.
+    /// The result may contain negative values. 
+    /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
     /// </remarks>
     public static Curve operator -(Curve a, Curve b)
-        => a.Subtraction(b, true);
+        => a.Subtraction(b);
 
     #endregion Addition and Subtraction operators
 
