@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
@@ -19,14 +21,17 @@ public class FromDecimal
     public static IEnumerable<object[]> GetKnownDecimalsTestCases()
         => KnownDecimals.ToXUnitTestCases();
     
-    public static List<(decimal d, long numerator, long denominator)> ImpreciseDecimals =
+    public static readonly List<(decimal d, long numerator, long denominator)> ImpreciseDecimals =
     [
         (28m/150, 14, 75),
         (98m/600, 49, 300),
     ];
     
     public static IEnumerable<object[]> GetImpreciseDecimalsTestCases()
-        => ImpreciseDecimals.ToXUnitTestCases();
+        =>  ImpreciseDecimals
+            .Concat(KnownDecimals)
+            .Select(p => p.d)
+            .ToXUnitTestCases();
     
     [Theory]
     [MemberData(nameof(GetKnownDecimalsTestCases))]
@@ -39,14 +44,17 @@ public class FromDecimal
     }
     
     [Theory]
-    [MemberData(nameof(GetKnownDecimalsTestCases))]
     [MemberData(nameof(GetImpreciseDecimalsTestCases))]
-    public void DecimalCtorApproximateEquivalence(decimal d, long num, long den)
+    public void DecimalCtorApproximateEquivalence(decimal d)
     {
         var r = new Rational(d);
-        var r_cast = (decimal)r;
+        var rCast = (decimal)r;
 
-        Assert.Equal(d, r_cast);
+        #if LONG_RATIONAL
+        Assert.Equal(Decimal.Round(d, 18), rCast);
+        #else
+        Assert.Equal(d, rCast);
+        #endif
     }
 
 }

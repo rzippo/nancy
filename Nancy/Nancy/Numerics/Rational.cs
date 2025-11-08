@@ -654,24 +654,26 @@ namespace Unipi.Nancy.Numerics
             //This is an intuitive and surely inefficient implementation.
             //Wrote fast to just work
 
-            string representation = value.ToString("0.00", CultureInfo.InvariantCulture);
+            // uses 18 digits as its the maximum for a long number
+            string representation = value.ToString("f18", CultureInfo.InvariantCulture);
             var parts = representation.Split('.');
             Rational integerPart = new Rational(long.Parse(parts[0]));
-            Rational decimalPart = (parts.Length > 1) ? new Rational(GetNineDigits(parts[1]), 1_000_000_000) : 0;
+            Rational decimalPart = (parts.Length > 1) ? new Rational(GetEighteenDigits(parts[1]), 1_000_000_000_000_000_000) : 0;
             Rational sum = integerPart + decimalPart;
 
             Numerator = sum.Numerator;
             Denominator = sum.Denominator;
 
-            long GetNineDigits(string decimals)
+            long GetEighteenDigits(string decimals)
             {
-                if (decimals.Length > 9)
-                    decimals = decimals.Substring(0, 9);
+                const int nDigits = 18;
+                if (decimals.Length > nDigits)
+                    decimals = decimals.Substring(0, nDigits);
 
-                if (decimals.Length < 9)
+                if (decimals.Length < nDigits)
                 {
                     StringBuilder sb = new StringBuilder(decimals);
-                    for (int i = 0; i < 9 - decimals.Length; i++)
+                    for (int i = 0; i < nDigits - decimals.Length; i++)
                         sb.Append('0');
                     decimals = sb.ToString();
                 }
