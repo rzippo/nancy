@@ -14,7 +14,7 @@ on:
       - 'Nancy/Nancy.Analyzers/Nancy.Analyzers/Nancy.Analyzers.csproj'
 
 jobs:
-  Nancy.Analyzers-pack-release:
+  Nancy-Analyzers-pack-release:
     runs-on: ubuntu-latest
     
     env:
