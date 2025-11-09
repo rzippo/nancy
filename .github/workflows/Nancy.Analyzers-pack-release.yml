@@ -1,0 +1,42 @@
+name: Nancy.Analyzers-pack-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers/Nancy.Analyzers.csproj'
+  pull_request:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers/Nancy.Analyzers.csproj'
+
+jobs:
+  Nancy.Analyzers-pack-release:
+    runs-on: ubuntu-latest
+    
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_ANALYZERS: "Nancy/Nancy.Analyzers/Nancy.Analyzers/Nancy.Analyzers.csproj"
+      NANCY_ANALYZERS_PACKS: "Nancy/Nancy.Analyzers/Nancy.Analyzers/bin/Release/**/*.nupkg"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+
+      - name: Build Nancy.Analyzers
+        run: dotnet build $NANCY_ANALYZERS --configuration $BUILD_CONFIG
+
+      - name: Pack
+        run: dotnet pack $NANCY_ANALYZERS --configuration $BUILD_CONFIG --no-restore
+
+      - name: Publish
+        run: dotnet nuget push $NANCY_PACKS --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET_API_KEY}}
