@@ -3075,18 +3075,24 @@ public class Curve : IToCodeString, IStableHashCode
         {
             // the following are mathematically equivalent methods
             #if false
+            // todo: document source for this result
             var a_upi = a.UpperPseudoInverse();
             var b_upi = b.UpperPseudoInverse();
-            var hDev = -MaxPlusDeconvolution(a_upi, b_upi, settings).ValueAt(0);
+            var hDev = MaxPlusDeconvolution(a_upi, b_upi, settings)
+                .Negate()
+                .ToNonNegative()
+                .ValueAt(0);
             #elif false
+            // [DNC18] Proposition 5.14
             var hDev = b.LowerPseudoInverse()
                 .Composition(a, settings)
                 .Deconvolution(new RateLatencyServiceCurve(1, 0), settings)
                 .ValueAt(0);
             #elif true
+            // Derived from [DNC18] Lemma 5.2 and similar, in principle, to [DNC18] Proposition 5.14
             var hDev = g.LowerPseudoInverse()
                 .Composition(f, settings)
-                .Subtraction(new RateLatencyServiceCurve(1, 0))
+                .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
                 .SupValue();
             #endif
             return hDev;
@@ -3120,7 +3126,7 @@ public class Curve : IToCodeString, IStableHashCode
         {
             var hDevArg = g.LowerPseudoInverse()
                 .Composition(f, settings)
-                .Subtraction(new RateLatencyServiceCurve(1, 0))
+                .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
                 .SupArg();
             return hDevArg;
         }
@@ -3132,7 +3138,10 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     /// <param name="f"></param>
     /// <param name="g"></param>
-    /// <returns>A non-negative vertical deviation.</returns>
+    /// <returns>A vertical deviation.</returns>
+    /// <remarks>
+    /// Following from the definition in [DNC18] p.100, the result may be negative.
+    /// </remarks>
     public static Rational VerticalDeviation(Curve f, Curve g)
     {
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve dr)

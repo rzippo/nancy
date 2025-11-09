@@ -62,6 +62,27 @@ public class Deviations
             4,
             3
         ),
+        (
+            // under-dimensioned server => unbounded delay
+            f: new SigmaRhoArrivalCurve(4, 3),
+            g: new RateLatencyServiceCurve(2, 3),
+            hDev: Rational.PlusInfinity,
+            Rational.PlusInfinity
+        ),
+        (
+            // constant server and no burst => no delay
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(2, 0),
+            hDev: 0,
+            0
+        ),
+        (
+            // edge case: strictly positive service curve, always strictly greater than arrival curve
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(2, 0).VerticalShift(1, false),
+            hDev: 0,
+            0
+        ),
         #if BIG_RATIONAL
         (
             f: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
@@ -165,7 +186,42 @@ public class Deviations
             g: new RateLatencyServiceCurve(3, 0),
             4,
             0
-        )
+        ),
+        (
+            // under-dimensioned server => unbounded backlog
+            f: new SigmaRhoArrivalCurve(4, 3),
+            g: new RateLatencyServiceCurve(2, 3),
+            Rational.PlusInfinity,
+            Rational.PlusInfinity
+        ),
+        (
+            // constant server and no burst => no backlog
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(2, 0),
+            0,
+            0
+        ),
+        (
+            // constant server and no burst => no backlog
+            f: new SigmaRhoArrivalCurve(0, 0.5m),
+            g: new RateLatencyServiceCurve(2, 0),
+            0,
+            0
+        ),
+        (
+            // edge case: strictly positive service curve, always strictly greater than arrival curve => backlog allowance
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(2, 0).VerticalShift(1, false),
+            -1,
+            0
+        ),
+        (
+            // edge case: strictly positive service curve, always strictly greater than arrival curve => backlog allowance
+            f: new SigmaRhoArrivalCurve(0, 0.5m),
+            g: new RateLatencyServiceCurve(2, 0).VerticalShift(1, false),
+            -1,
+            0
+        ),
     ];
 
     public static IEnumerable<object[]> GetVerticalDeviationTestCases()
@@ -214,16 +270,23 @@ public class Deviations
     public void HorizontalDeviationAlternativesTest(Curve a, Curve b, Rational expected)
     {
         // the following are mathematically equivalent methods to compute hdev(a, b)
+        
         var a_upi = a.UpperPseudoInverse();
         var b_upi = b.UpperPseudoInverse();
-        var hDev_1 = -Curve.MaxPlusDeconvolution(a_upi, b_upi).ValueAt(0);
+        // todo: document source for this result
+        var hDev_1 = Curve.MaxPlusDeconvolution(a_upi, b_upi)
+            .Negate()
+            .ToNonNegative()
+            .ValueAt(0);
 
         var b_lpi = b.LowerPseudoInverse();
+        // [DNC18] Proposition 5.14
         var hDev_2 = b_lpi
             .Composition(a)
             .Deconvolution(new RateLatencyServiceCurve(1, 0))
             .ValueAt(0);
 
+        // Derived from [DNC18] Lemma 5.2 and similar, in principle, to Proposition 5.14
         var hDev_3 = b_lpi
             .Composition(a)
             .Subtraction(new RateLatencyServiceCurve(1, 0))
