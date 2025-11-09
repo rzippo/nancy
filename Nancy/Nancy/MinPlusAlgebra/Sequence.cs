@@ -1701,9 +1701,34 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <returns>The sequence resulting from the sum.</returns>
     /// <param name="a"></param>
     /// <param name="b"></param>
+    /// <remarks>
+    /// The result may contain negative values. 
+    /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
+    /// </remarks>
+    public static Sequence Subtraction(Sequence a, Sequence b)
+        => Addition(a, -b);
+
+    /// <summary>
+    /// Subtracts two sequences, over their overlapping parts.
+    /// </summary>
+    /// <param name="b"></param>
+    /// <returns>The sequence resulting from the sum.</returns>
+    /// <remarks>
+    /// The result may contain negative values. 
+    /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
+    /// </remarks>
+    public Sequence Subtraction(Sequence b)
+        => Subtraction(this, b);
+
+    /// <summary>
+    /// Subtracts two sequences, over their overlapping parts.
+    /// </summary>
+    /// <returns>The sequence resulting from the sum.</returns>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
-    /// <remarks>The operation does not enforce non-negative values.</remarks>
-    public static Sequence Subtraction(Sequence a, Sequence b, bool nonNegative = true)
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public static Sequence Subtraction(Sequence a, Sequence b, bool nonNegative)
         => nonNegative ?
             Addition(a, -b).ToNonNegative() :
             Addition(a, -b);
@@ -1714,7 +1739,8 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <param name="b"></param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     /// <returns>The sequence resulting from the sum.</returns>
-    public Sequence Subtraction(Sequence b, bool nonNegative = true)
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public Sequence Subtraction(Sequence b, bool nonNegative)
         => Subtraction(this, b, nonNegative);
 
     /// <summary>
@@ -1723,8 +1749,8 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <remarks>
-    /// The result is forced to be non-negative.
-    /// Use <see cref="Subtraction(Unipi.Nancy.MinPlusAlgebra.Sequence, Unipi.Nancy.MinPlusAlgebra.Sequence,bool)"/> to have results with negative values.
+    /// The result may contain negative values. 
+    /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
     /// </remarks>
     public static Sequence operator -(Sequence a, Sequence b)
         => Subtraction(a, b);
