@@ -3188,6 +3188,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// </summary>
     /// <param name="f"></param>
     /// <param name="g"></param>
+    /// <param name="settings"></param>
     /// <returns>The z-deviation between the two curves.</returns>
     /// <remarks>
     /// Used in [HCS24] Theorem 19, generalizing the computation of delay bounds for negative service curves.
