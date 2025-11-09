@@ -3465,7 +3465,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// Optimizes Curve representation by anticipating periodic start and reducing period length.
     /// </summary>
     /// <returns>An equivalent minimal representation for the same curve.</returns>
-    /// <remarks>This method implements representation minimization, as discussed in [ZS23].</remarks>
+    /// <remarks>This method implements representation minimization, which is discussed in [ZS23].</remarks>
     public Curve Optimize()
     {
         //Attempts all optimizations methods in sequence
@@ -3846,12 +3846,12 @@ public class Curve : IToCodeString, IStableHashCode
     #region Addition and Subtraction operators
 
     /// <summary>
-    /// Implements (min, +)-algebra addition operation.
+    /// Computes the sum of the two curves.
     /// </summary>
     /// <param name="b">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the sum.</returns>
-    /// <remarks> Defined in [BT08] Section 4.2 </remarks>
+    /// <remarks> Algorithm defined in [BT08] Section 4.2 </remarks>
     public virtual Curve Addition(Curve b, ComputationSettings? settings = null)
     {
         settings ??= new ComputationSettings();
@@ -3875,15 +3875,15 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (min, +)-algebra addition operation.
+    /// Computes the sum of the two curves.
     /// </summary>
     /// <returns>The curve resulting from the sum.</returns>
-    /// <remarks> Defined in [BT08] Section 4.2 </remarks>
+    /// <remarks> Algorithm defined in [BT08] Section 4.2 </remarks>
     public static Curve Addition(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Addition(b);
 
     /// <summary>
-    /// Implements (min, +)-algebra addition operation over a set of curves.
+    /// Computes the sum of a set of curves.
     /// </summary>
     /// <param name="curves"></param>
     /// <param name="settings"></param>
@@ -3909,7 +3909,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (min, +)-algebra addition operation over a set of curves.
+    /// es the sum of a set of curves.
     /// </summary>
     /// <param name="curves"></param>
     /// <param name="settings"></param>
@@ -3953,15 +3953,15 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (min, +)-algebra addition operation.
+    /// Computes the sum of the two curves.
     /// </summary>
     /// <returns>The curve resulting from the sum.</returns>
-    /// <remarks> Defined in [BT08] Section 4.2 </remarks>
+    /// <remarks> Algorithm defined in [BT08] Section 4.2 </remarks>
     public static Curve operator +(Curve a, Curve b)
         => a.Addition(b);
 
     /// <summary>
-    /// Implements subtraction operation between two curves.
+    /// Computes the subtraction between two curves.
     /// </summary>
     /// <param name="b">Second operand.</param>
     /// <param name="settings"></param>
@@ -3974,7 +3974,7 @@ public class Curve : IToCodeString, IStableHashCode
         => Addition(-b, settings);
 
     /// <summary>
-    /// Implements subtraction operation between two curves.
+    /// Computes the subtraction between two curves.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -3988,7 +3988,7 @@ public class Curve : IToCodeString, IStableHashCode
         => a.Subtraction(b, settings);
 
     /// <summary>
-    /// Implements subtraction operation between two curves.
+    /// Computes the subtraction between two curves.
     /// </summary>
     /// <param name="b">Second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
@@ -4001,7 +4001,7 @@ public class Curve : IToCodeString, IStableHashCode
             Addition(-b, settings);
 
     /// <summary>
-    /// Implements subtraction operation between two curves.
+    /// Computes the subtraction between two curves.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -4013,7 +4013,7 @@ public class Curve : IToCodeString, IStableHashCode
         => a.Subtraction(b, nonNegative, settings);
 
     /// <summary>
-    /// Implements subtraction operation between two curves.
+    /// Computes the subtraction between two curves.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -4034,7 +4034,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// Tests the sufficient (but not necessary) conditions from [BT08].
     /// </summary>
     /// <remarks>
-    /// If false, the result <see cref="Minimum(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> may be invalid.
+    /// If false, the result <see cref="Minimum(Curve, ComputationSettings?)"/> may be invalid.
     /// </remarks>
     public static bool IsMinimumUltimatelyPseudoPeriodic(Curve f, Curve g)
     {
@@ -4042,17 +4042,17 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (min, +)-algebra minimum operation over two curves.
+    /// Computes the minimum of two curves.
     /// </summary>
     /// <param name="curve">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the minimum.</returns>
     /// <remarks>
-    /// Defined in [BT08] Section 4.3
+    /// Algorithm defined in [BT08] Section 4.3
     /// </remarks>
     public virtual Curve Minimum(Curve curve, ComputationSettings? settings = null)
     {
-        // Renaming for simmetry
+        // Renaming for symmetry
         var a = this;
         var b = curve;
 
@@ -4211,14 +4211,14 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (min, +)-algebra minimum operation over two curves.
+    /// Computes the minimum of two curves.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the minimum.</returns>
     /// <remarks>
-    /// Defined in [BT08] Section 4.3
+    /// Algorithm defined in [BT08] Section 4.3
     /// </remarks>
     public static Curve Minimum(Curve? a, Curve? b, ComputationSettings? settings = null)
     {
@@ -4228,7 +4228,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (min, +)-algebra minimum operation over a set of curves.
+    /// Computes the minimum of a set of curves.
     /// </summary>
     /// <param name="curves"></param>
     /// <param name="settings"></param>
@@ -4283,7 +4283,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (min, +)-algebra minimum operation over a set of curves.
+    /// Computes the minimum of a set of curves.
     /// </summary>
     /// <param name="curves"></param>
     /// <param name="settings"></param>
@@ -4321,7 +4321,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (max, +)-algebra maximum operation over two curves.
+    /// Computes the maximum of two curves.
     /// </summary>
     /// <param name="curve">Second operand.</param>
     /// <param name="settings"></param>
@@ -4445,7 +4445,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (max, +)-algebra maximum operation over two curves.
+    /// Computes the maximum of two curves.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -4459,7 +4459,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (max, +)-algebra maximum operation over a set of curves.
+    /// Computes the maximum of a set of curves.
     /// </summary>
     /// <param name="curves"></param>
     /// <param name="settings"></param>
@@ -4514,7 +4514,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Implements (max, +)-algebra maximum operation over a set of curves.
+    /// Computes the maximum of a set of curves.
     /// </summary>
     /// <param name="curves"></param>
     /// <param name="settings"></param>
@@ -4642,12 +4642,14 @@ public class Curve : IToCodeString, IStableHashCode
     #region Convolution operator
 
     /// <summary>
-    /// Computes the convolution of the two curves, $f \otimes g$.
+    /// Computes the convolution of two curves, $f \otimes g$.
     /// </summary>
     /// <param name="curve"></param>
     /// <param name="settings"></param>
     /// <returns>The curve resulting from the convolution.</returns>
-    /// <remarks>Described in [BT08] Section 4.4</remarks>
+    /// <remarks>
+    /// Base algorithm derived from [BT08] Section 4.4, with isospeed optimizations described in [ZNS23a] and [TBP]
+    /// </remarks>
     public virtual Curve Convolution(Curve curve, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -5009,7 +5011,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Computes the convolution of the two curves, $a \otimes b$.
+    /// Computes the convolution of two curves, $a \otimes b$.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -5539,7 +5541,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Computes the deconvolution of the two curves, $a \oslash b$.
+    /// Computes the deconvolution of two curves, $a \oslash b$.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -5609,7 +5611,7 @@ public class Curve : IToCodeString, IStableHashCode
     #region Max-plus operators
 
     /// <summary>
-    /// Computes the max-plus convolution of the two curves, $f \overline{\otimes} g$.
+    /// Computes the max-plus convolution of two curves, $f \overline{\otimes} g$.
     /// </summary>
     /// <param name="curve"></param>
     /// <param name="settings"></param>
@@ -6054,7 +6056,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Computes the max-plus convolution of the two curves, $f \overline{\otimes} g$.
+    /// Computes the max-plus convolution of two curves, $f \overline{\otimes} g$.
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
@@ -6193,7 +6195,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// Computes the max-plus deconvolution of the two curves
+    /// Computes the max-plus deconvolution of two curves
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
