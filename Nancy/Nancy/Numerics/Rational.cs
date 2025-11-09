@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.UncheckedInternals;
 using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.Numerics
@@ -623,38 +624,18 @@ namespace Unipi.Nancy.Numerics
         public Rational(Decimal value)
         {
             #if BIG_RATIONAL
-            int[] bits = Decimal.GetBits(value);
-            if (bits == null || bits.Length != 4 || (bits[3] & ~(DecimalSignMask | DecimalScaleMask)) != 0 || (bits[3] & DecimalScaleMask) > (28 << 16))
-            {
-                throw new ArgumentException("invalid Decimal", nameof(value));
-            }
-
-            if (value == Decimal.Zero)
-            {
+            if (value == Decimal.Zero) {
                 this = Rational.Zero;
-                return;
             }
-
-            // build up the numerator
-            ulong ul = (((ulong)(uint)bits[2]) << 32) | ((ulong)(uint)bits[1]);   // (hi    << 32) | (mid)
-            Numerator = (new BigInteger(ul) << 32) | unchecked((uint)bits[0]);             // (hiMid << 32) | (low)
-
-            bool isNegative = (bits[3] & DecimalSignMask) != 0;
-            if (isNegative)
             {
-                Numerator = -Numerator;
+                (Numerator, Denominator) = value.GetRationalParts();
+                Simplify();
             }
-
-            // build up the denominator
-            int scale = (bits[3] & DecimalScaleMask) >> 16;     // 0-28, power of 10 to divide numerator by
-            Denominator = BigInteger.Pow(10, scale);
-
-            Simplify();
             #elif LONG_RATIONAL
             //This is an intuitive and surely inefficient implementation.
             //Wrote fast to just work
 
-            // uses 18 digits as its the maximum for a long number
+            // uses 18 digits as it is the maximum for a long decimal number
             string representation = value.ToString("f18", CultureInfo.InvariantCulture);
             var parts = representation.Split('.');
             Rational integerPart = new Rational(long.Parse(parts[0]));
@@ -663,7 +644,7 @@ namespace Unipi.Nancy.Numerics
 
             Numerator = sum.Numerator;
             Denominator = sum.Denominator;
-
+            Simplify();
             long GetEighteenDigits(string decimals)
             {
                 const int nDigits = 18;

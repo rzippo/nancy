@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+        <LangVersion>12</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+
+        <RootNamespace>Unipi.Nancy.UncheckedInternals</RootNamespace>
+        <AssemblyName>Unipi.Nancy.UncheckedInternals</AssemblyName>
+        <Title>Nancy.UncheckedInternals</Title>
+        <Authors>Raffaele Zippo</Authors>
+        <Description>Internal library for operations to be run in unchecked environment.</Description>
+
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+</Project>

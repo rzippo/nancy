@@ -2,14 +2,15 @@
   "solution": {
     "path": "Nancy.sln",
     "projects": [
-      "Nancy.Analyzers\\Nancy.Analyzers\\Nancy.Analyzers.csproj",
       "Nancy.Analyzers\\Nancy.Analyzers.Sample\\Nancy.Analyzers.Sample.csproj",
+      "Nancy.Analyzers\\Nancy.Analyzers\\Nancy.Analyzers.csproj",
       "Nancy.Expressions.Interactive\\Nancy.Expressions.Interactive.Local.csproj",
       "Nancy.Expressions.Tests\\Nancy.Expressions.Tests.Local.csproj",
       "Nancy.Expressions\\Nancy.Expressions.Local.csproj",
       "Nancy.Interactive\\Nancy.Interactive.Local.csproj",
       "Nancy.Tests\\Nancy.Tests.csproj",
       "Nancy.Tests\\Nancy.Tests.LongRational.csproj",
+      "Nancy.UncheckedInternals\\Nancy.UncheckedInternals.csproj",
       "Nancy\\Nancy.csproj",
       "Nancy\\Nancy.LongRational.csproj"
     ]
