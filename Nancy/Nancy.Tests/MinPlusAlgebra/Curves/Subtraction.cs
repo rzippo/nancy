@@ -53,9 +53,30 @@ public class Subtraction
 
     [Theory]
     [MemberData(nameof(GetSigmaRhoRateLatencyNegativeTests))]
-    public void SigmaRhoRateLatency_Negative(Curve a, Curve b, Curve expected)
+    public void SigmaRhoRateLatency(Curve a, Curve b, Curve expected)
     {
-        Curve diff = Curve.Subtraction(a,b, false);
+        var diff = Curve.Subtraction(a,b);
         Assert.True(Curve.Equivalent(expected, diff));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSigmaRhoRateLatencyNegativeTests))]
+    public void SigmaRhoRateLatency_Obsolete_Negative(Curve a, Curve b, Curve expected)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        var diff = Curve.Subtraction(a,b, false);
+        Assert.True(Curve.Equivalent(expected, diff));
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSigmaRhoRateLatencyNegativeTests))]
+    public void SigmaRhoRateLatency_Obsolete_NonNegative(Curve a, Curve b, Curve expected)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        var diff = Curve.Subtraction(a,b, true);
+        var actualExpected = expected.ToNonNegative();
+        Assert.True(Curve.Equivalent(actualExpected, diff));
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }
