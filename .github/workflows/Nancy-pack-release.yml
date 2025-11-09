@@ -49,7 +49,7 @@ jobs:
         run: dotnet test $NANCY_TESTS /p:Configuration=$BUILD_CONFIG
 
       - name: Pack
-        run: dotnet pack $NANCY --configuration $BUILD_CONFIG --no-restore --no-build
+        run: dotnet pack $NANCY --configuration $BUILD_CONFIG --no-restore
 
       - name: Publish
         run: dotnet nuget push $NANCY_PACKS --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET_API_KEY}}
