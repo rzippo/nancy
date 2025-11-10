@@ -7,4 +7,12 @@ Rule ID | Category | Severity | Notes
 NANCY0001 | Usage    | Warning  | Breaking change on Curve.Subtraction() methods. 
 NANCY0002 | Usage    | Warning  | Breaking change on operator - between Curves.   
 NANCY0003 | Usage    | Warning  | Breaking change on Sequence.Subtraction() methods. 
-NANCY0004 | Usage    | Warning  | Breaking change on operator - between Sequences.   
+NANCY0004 | Usage    | Warning  | Breaking change on operator - between Sequences.
+
+## Release 1.1
+
+### New Rules
+
+Rule ID | Category | Severity | Notes 
+--------|----------|----------|-------
+NANCY0005 | Usage    | Warning  | Division between decimal and/or integer types may lose precision.   
