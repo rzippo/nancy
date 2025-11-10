@@ -1,0 +1,42 @@
+name: Nancy.Analyzers.CodeFixers-pack-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers.CodeFixers/Nancy.Analyzers.CodeFixers.csproj'
+  pull_request:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers.CodeFixers/Nancy.Analyzers.CodeFixers.csproj'
+
+jobs:
+  Nancy-Analyzers-pack-release:
+    runs-on: ubuntu-latest
+    
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_FIXERS: "Nancy/Nancy.Analyzers/Nancy.Analyzers.CodeFixers/Nancy.Analyzers.CodeFixers.csproj"
+      NANCY_FIXERS_PACKS: "Nancy/Nancy.Analyzers/Nancy.Analyzers.CodeFixers/bin/Release/**/*.nupkg"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+
+      - name: Build Nancy.Analyzers.CodeFixers
+        run: dotnet build $NANCY_FIXERS --configuration $BUILD_CONFIG
+
+      - name: Pack
+        run: dotnet pack $NANCY_FIXERS --configuration $BUILD_CONFIG --no-restore
+
+      - name: Publish
+        run: dotnet nuget push $NANCY_FIXERS_PACKS --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET_API_KEY}}
