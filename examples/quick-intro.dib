@@ -15,7 +15,7 @@ The following two cells are setup: they reference the necessary packages (Nancy 
 #!csharp
 
 // this package includes both Nancy and the extensions to plot in .NET Interactive
-#r "nuget: Unipi.Nancy.Interactive, 1.0.16"
+#r "nuget: Unipi.Nancy.Interactive, 1.0.18"
 
 #!csharp
 
@@ -92,7 +92,7 @@ var theta = 4;
 var delta_theta = new DelayServiceCurve(theta);
 
 var alpha_theta = Curve.Convolution(alpha, delta_theta);
-var diff = Curve.Subtraction(beta, alpha_theta, nonNegative: true);
+var diff = Curve.Subtraction(beta, alpha_theta).ToNonNegative();
 var residual = Curve.Minimum(diff, delta_theta);
 Plots.Plot(residual, "residual sc", 10);
 
