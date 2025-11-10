@@ -1,6 +1,6 @@
-# Nancy.Analyzers
+# Nancy.Analyzers.CodeFixers
 
-This package provides analyzers for [Nancy](https://www.nuget.org/packages/Unipi.Nancy/), which are used to show suggestions, warnings and errors for your code. 
+This package provides code fixers for [Nancy](https://www.nuget.org/packages/Unipi.Nancy/), which are used to suggest automated code fixes for suggestions, warnings and errors given by `Nancy.Analyzers`. 
 
 Checkout the [webpage](https://rzippo.github.io/nancy/) for tutorials and the full documentation.
 
