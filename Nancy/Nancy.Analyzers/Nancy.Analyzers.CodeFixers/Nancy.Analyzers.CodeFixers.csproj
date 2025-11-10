@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>12</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <IsRoslynComponent>true</IsRoslynComponent>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        
+        <RootNamespace>Unipi.Nancy.Analyzers.CodeFixers</RootNamespace>
+        <AssemblyName>Unipi.Nancy.Analyzers.CodeFixers</AssemblyName>
+        <Title>Nancy.Analyzers.CodeFixers</Title>
+        <Authors>Raffaele Zippo</Authors>
+        <Description>A Roslyn Code Fixer for Nancy</Description>
+        <Copyright>Raffaele Zippo, University of Pisa</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageIcon>nancy.png</PackageIcon>
+        <PackageReadmeFile>nuget.md</PackageReadmeFile>
+        <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
+        <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
+        <PackageVersion>1.1.0</PackageVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Update="Resources.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="Resources.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Resources.resx</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath=" " />
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="nancy.png">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+        <None Include="nuget.md">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Nancy.Analyzers\Nancy.Analyzers.csproj" />
+    </ItemGroup>
+
+</Project>

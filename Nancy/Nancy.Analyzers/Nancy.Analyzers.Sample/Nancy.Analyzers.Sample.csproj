@@ -10,6 +10,9 @@
       <ProjectReference Include="..\..\Nancy\Nancy.csproj" />
       <ProjectReference Include="..\Nancy.Analyzers\Nancy.Analyzers.csproj"
                         OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+      <ProjectReference Include="..\Nancy.Analyzers.CodeFixers\Nancy.Analyzers.CodeFixers.csproj"
+                        OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+
     </ItemGroup>
 
 </Project>
