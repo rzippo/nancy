@@ -140,7 +140,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
     {
         var left = (CurveExpression)context.curveExpression()[0].Accept(this);
         var right = (CurveExpression)context.curveExpression()[1].Accept(this);
-        return Expressions.Subtraction(left, right, nonNegative: false);
+        return Expressions.Subtraction(left, right);
     }
 
     /// <inheritdoc /> 

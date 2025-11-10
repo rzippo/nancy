@@ -296,7 +296,43 @@ public static class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two expressions passed as arguments.
     /// </summary>
-    public static CurveExpression Subtraction(CurveExpression expressionL, CurveExpression expressionR, bool nonNegative = true,
+    public static CurveExpression Subtraction(CurveExpression expressionL, CurveExpression expressionR,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => expressionL.Subtraction(expressionR, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the subtraction between the expression and the curve (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
+    /// </summary>
+    public static CurveExpression Subtraction(CurveExpression expression, Curve curve,
+        [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => expression.Subtraction(curve, name, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the subtraction between the two curves (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
+    /// </summary>
+    public static CurveExpression Subtraction(Curve curveL, Curve curveR,
+        [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SubtractionExpression(curveL, nameL, curveR, nameR, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the subtraction between the curve <paramref name="curveL"/> (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
+    /// arguments.
+    /// </summary>
+    public static CurveExpression Subtraction(Curve curveL, CurveExpression expressionR,
+        [CallerArgumentExpression("curveL")] string nameL = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SubtractionExpression(curveL, nameL, expressionR, expressionName, settings);
+    
+    /// <summary>
+    /// Creates a new expression composed of the subtraction between the two expressions passed as arguments.
+    /// </summary>
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public static CurveExpression Subtraction(CurveExpression expressionL, CurveExpression expressionR, bool nonNegative,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Subtraction(expressionR, nonNegative, expressionName, settings);
 
@@ -304,7 +340,8 @@ public static class Expressions
     /// Creates a new expression composed of the subtraction between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Subtraction(CurveExpression expression, Curve curve, bool nonNegative = true,
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public static CurveExpression Subtraction(CurveExpression expression, Curve curve, bool nonNegative,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.Subtraction(curve, nonNegative, name, expressionName, settings);
@@ -313,7 +350,8 @@ public static class Expressions
     /// Creates a new expression composed of the subtraction between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Subtraction(Curve curveL, Curve curveR, bool nonNegative = true,
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public static CurveExpression Subtraction(Curve curveL, Curve curveR, bool nonNegative,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SubtractionExpression(curveL, nameL, curveR, nameR, nonNegative, expressionName, settings);
@@ -323,7 +361,8 @@ public static class Expressions
     /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
-    public static CurveExpression Subtraction(Curve curveL, CurveExpression expressionR, bool nonNegative = true,
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public static CurveExpression Subtraction(Curve curveL, CurveExpression expressionR, bool nonNegative,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SubtractionExpression(curveL, nameL, expressionR, nonNegative, expressionName, settings);

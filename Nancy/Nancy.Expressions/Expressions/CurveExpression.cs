@@ -415,7 +415,24 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the subtraction between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Subtraction(CurveExpression expression, bool nonNegative = true, string expressionName = "",
+    public CurveExpression Subtraction(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SubtractionExpression(this, expression, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the subtraction between the current expression and the curve (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
+    /// </summary>
+    public CurveExpression Subtraction(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => Subtraction(new ConcreteCurveExpression(curve, name), expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the subtraction between the current expression and the one passed as
+    /// argument.
+    /// </summary>
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public CurveExpression Subtraction(CurveExpression expression, bool nonNegative, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SubtractionExpression(this, expression, nonNegative, expressionName, settings);
 
@@ -423,7 +440,8 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the subtraction between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
-    public CurveExpression Subtraction(Curve curve, bool nonNegative = true, [CallerArgumentExpression("curve")] string name = "",
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public CurveExpression Subtraction(Curve curve, bool nonNegative, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => Subtraction(new ConcreteCurveExpression(curve, name), nonNegative, expressionName, settings);
 

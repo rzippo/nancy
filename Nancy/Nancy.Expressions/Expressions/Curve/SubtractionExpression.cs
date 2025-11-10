@@ -20,11 +20,10 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
         Curve curveL, 
         string nameL, 
         Curve curveR, 
-        string nameR, 
-        bool nonNegative = false,
+        string nameR,
         string expressionName = "", 
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), new ConcreteCurveExpression(curveR, nameR), nonNegative, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), new ConcreteCurveExpression(curveR, nameR), expressionName, settings)
     {
     }
 
@@ -34,11 +33,10 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     public SubtractionExpression(
         Curve curveL, 
         string nameL, 
-        CurveExpression rightExpression, 
-        bool nonNegative = false,
+        CurveExpression rightExpression,
         string expressionName = "", 
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, nonNegative, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
     {
     }
 
@@ -48,7 +46,52 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     public SubtractionExpression(
         CurveExpression leftExpression,
         CurveExpression rightExpression,
-        bool nonNegative = false,
+        string expressionName = "",
+        ExpressionSettings? settings = null) 
+        : base(leftExpression, rightExpression, expressionName, settings)
+    {
+        NonNegative = false;
+    }
+    
+    /// <summary>
+    /// Creates a subtraction expression
+    /// </summary>
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public SubtractionExpression(
+        Curve curveL, 
+        string nameL, 
+        Curve curveR, 
+        string nameR, 
+        bool nonNegative,
+        string expressionName = "", 
+        ExpressionSettings? settings = null) 
+        : this(new ConcreteCurveExpression(curveL, nameL), new ConcreteCurveExpression(curveR, nameR), nonNegative, expressionName, settings)
+    {
+    }
+
+    /// <summary>
+    /// Creates a subtraction expression
+    /// </summary>
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public SubtractionExpression(
+        Curve curveL, 
+        string nameL, 
+        CurveExpression rightExpression, 
+        bool nonNegative,
+        string expressionName = "", 
+        ExpressionSettings? settings = null) 
+        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, nonNegative, expressionName, settings)
+    {
+    }
+
+    /// <summary>
+    /// Creates a subtraction expression
+    /// </summary>
+    [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
+    public SubtractionExpression(
+        CurveExpression leftExpression,
+        CurveExpression rightExpression,
+        bool nonNegative,
         string expressionName = "",
         ExpressionSettings? settings = null) 
         : base(leftExpression, rightExpression, expressionName, settings)

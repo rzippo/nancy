@@ -31,7 +31,9 @@
 
     <ItemGroup>
       <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
-      <PackageReference Include="Unipi.Nancy" Version="1.2.14" />
+      <PackageReference Include="Unipi.Nancy" Version="1.2.16" />
+      <PackageReference Include="Unipi.Nancy.Analyzers" Version="1.1.0" />
+      <PackageReference Include="Unipi.Nancy.Analyzers.CodeFixers" Version="1.1.0" />
     </ItemGroup>
 
     <ItemGroup>
