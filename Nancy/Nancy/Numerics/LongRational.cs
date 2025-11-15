@@ -1073,7 +1073,10 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     {
         if (value.IsInfinite)
         {
-            return value.Sign > 0 ? Decimal.MaxValue : Decimal.MinValue;
+            if (value.IsPositive)
+                throw new InvalidConversionException("Attempt to convert +infinity to decimal");
+            else
+                throw new InvalidConversionException("Attempt to convert -infinity to decimal");
         }
 
         // The Decimal value type represents decimal numbers ranging

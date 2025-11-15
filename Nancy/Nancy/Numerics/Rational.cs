@@ -1327,6 +1327,14 @@ namespace Unipi.Nancy.Numerics
         /// <param name="value"></param>
         public static explicit operator Decimal(Rational value)
         {
+            if (value.IsInfinite)
+            {
+                if (value.IsPositive)
+                    throw new InvalidConversionException("Attempt to convert +infinity to decimal");
+                else
+                    throw new InvalidConversionException("Attempt to convert -infinity to decimal");
+            }
+
             // The Decimal value type represents decimal numbers ranging
             // from +79,228,162,514,264,337,593,543,950,335 to -79,228,162,514,264,337,593,543,950,335
             // the binary representation of a Decimal value is of the form, ((-2^96 to 2^96) / 10^(0 to 28))
