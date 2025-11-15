@@ -36,8 +36,8 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
             Name = NewName,
             // Since we know renaming does not change the result,
             // it is safe to explicitly copy over the cache fields
-            _value = expression.Value,
-            _isSubAdditive = expression.IsSubAdditive,
+            _value = expression._value,
+            _isSubAdditive = expression._isSubAdditive,
         };
     }
 

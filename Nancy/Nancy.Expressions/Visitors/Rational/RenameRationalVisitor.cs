@@ -36,7 +36,7 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
             Name = NewName,
             // Since we know renaming does not change the result,
             // it is safe to explicitly copy over the cache fields
-            _value = expression.Value,
+            _value = expression._value,
         };
     }
 
