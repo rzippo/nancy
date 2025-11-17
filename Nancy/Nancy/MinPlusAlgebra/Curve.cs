@@ -4759,7 +4759,9 @@ public class Curve : IToCodeString, IStableHashCode
             bool useIsomorphism = settings.UseConvolutionIsospeedOptimization &&
                                   f.IsLeftContinuous && g.IsLeftContinuous &&
                                   f.IsNonDecreasing && g.IsNonDecreasing &&
-                                  !f.IsUltimatelyConstant && !g.IsUltimatelyConstant;
+                                  !f.IsUltimatelyConstant && !g.IsUltimatelyConstant &&
+                                  // compared to the normal path, we don't check this before entering SinglePassConvolution()
+                                  !f.IsUltimatelyInfinite && !g.IsUltimatelyInfinite;
             Rational cutCeiling;
             if (useIsomorphism)
             {

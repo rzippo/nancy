@@ -54,4 +54,57 @@ public class Delay
             return new Rational(randomInt, denominator);
         }
     }
+
+    public static List<(DelayServiceCurve a, DelayServiceCurve b)> DelayCompositions =
+    [
+        (
+            a: new DelayServiceCurve(0),
+            b: new DelayServiceCurve(0)
+        ),
+        (
+            a: new DelayServiceCurve(0),
+            b: new DelayServiceCurve(10)
+        ),
+        (
+            a: new DelayServiceCurve(10),
+            b: new DelayServiceCurve(0)
+        ),
+        (
+            a: new DelayServiceCurve(5),
+            b: new DelayServiceCurve(7)
+        ),
+        (
+            a: new DelayServiceCurve(new Rational(296, 625)),
+            b: new DelayServiceCurve(new Rational(16, 125))
+        )
+    ];
+
+    public static IEnumerable<object[]> DelayCompositionTestCases
+        => DelayCompositions.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(DelayCompositionTestCases))]
+    public void DelayCompositionTest(DelayServiceCurve a, DelayServiceCurve b)
+    {
+        var sum = a.Delay + b.Delay;
+        var conv = Curve.Convolution(a, b);
+        Assert.True(conv is DelayServiceCurve ds && ds.Delay == sum);
+    }
+
+    [Theory]
+    [MemberData(nameof(DelayCompositionTestCases))]
+    public void DelayCompositionAsGenericTest(DelayServiceCurve a, DelayServiceCurve b)
+    {
+        var sum = a.Delay + b.Delay;
+        var aGeneric = new Curve(a);
+        var bGeneric = new Curve(b);
+        var conv = Curve.Convolution(aGeneric, bGeneric);
+        
+        Assert.True(conv.IsUltimatelyPlusInfinite);
+        var tl = conv.PseudoPeriodStartInfimum;
+        Assert.Equal(sum, tl);
+        var cut = conv.Cut(0, tl, isStartIncluded: true, isEndIncluded: true);
+        var expectedSeq = Sequence.Zero(0, tl, isStartIncluded: true, isEndIncluded: true);
+        Assert.True(Sequence.Equivalent(expectedSeq, cut));
+    }
 }
