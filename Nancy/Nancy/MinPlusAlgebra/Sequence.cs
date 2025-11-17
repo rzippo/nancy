@@ -441,14 +441,29 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <returns></returns>
     public static Sequence Zero(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
-        var elements = new List<Element> { };
-        if(isStartIncluded)
-            elements.Add(Point.Zero(from));
-        elements.Add(Segment.Zero(from, to));
-        if(isEndIncluded)
-            elements.Add(Point.Zero(to));
+        if (from > to)
+            throw new ArgumentException("Sequence start cannot be after end.");
 
-        return new Sequence(elements);
+        if (from == to)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Sequence endpoints, if equal, must be both inclusive.");
+
+            var elements = new List<Element> { };
+            elements.Add(Point.Zero(from));
+            return new Sequence(elements);
+        }
+        else
+        {
+            var elements = new List<Element> { };
+            if(isStartIncluded)
+                elements.Add(Point.Zero(from));
+            elements.Add(Segment.Zero(from, to));
+            if(isEndIncluded)
+                elements.Add(Point.Zero(to));
+
+            return new Sequence(elements);
+        }
     }
 
     /// <summary>
@@ -460,14 +475,29 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <param name="isEndIncluded"></param>
     public static Sequence PlusInfinite(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
-        var elements = new List<Element> { };
-        if(isStartIncluded)
-            elements.Add(Point.PlusInfinite(from));
-        elements.Add(Segment.PlusInfinite(from, to));
-        if(isEndIncluded)
-            elements.Add(Point.PlusInfinite(to));
+        if (from > to)
+            throw new ArgumentException("Sequence start cannot be after end.");
 
-        return new Sequence(elements);
+        if (from == to)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Sequence endpoints, if equal, must be both inclusive.");
+
+            var elements = new List<Element> { };
+            elements.Add(Point.PlusInfinite(from));
+            return new Sequence(elements);
+        }
+        else
+        {
+            var elements = new List<Element> { };
+            if (isStartIncluded)
+                elements.Add(Point.PlusInfinite(from));
+            elements.Add(Segment.PlusInfinite(from, to));
+            if (isEndIncluded)
+                elements.Add(Point.PlusInfinite(to));
+
+            return new Sequence(elements);
+        }
     }
 
     /// <summary>
@@ -479,14 +509,29 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <param name="isEndIncluded"></param>
     public static Sequence MinusInfinite(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
-        var elements = new List<Element> { };
-        if(isStartIncluded)
-            elements.Add(Point.MinusInfinite(from));
-        elements.Add(Segment.MinusInfinite(from, to));
-        if(isEndIncluded)
-            elements.Add(Point.MinusInfinite(to));
+        if (from > to)
+            throw new ArgumentException("Sequence start cannot be after end.");
 
-        return new Sequence(elements);
+        if (from == to)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Sequence endpoints, if equal, must be both inclusive.");
+
+            var elements = new List<Element> { };
+            elements.Add(Point.MinusInfinite(from));
+            return new Sequence(elements);
+        }
+        else
+        {
+            var elements = new List<Element> { };
+            if (isStartIncluded)
+                elements.Add(Point.MinusInfinite(from));
+            elements.Add(Segment.MinusInfinite(from, to));
+            if (isEndIncluded)
+                elements.Add(Point.MinusInfinite(to));
+
+            return new Sequence(elements);
+        }
     }
 
     /// <summary>
@@ -500,14 +545,29 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <returns></returns>
     public static Sequence Constant(Rational value, Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
-        var elements = new List<Element> { };
-        if(isStartIncluded)
-            elements.Add(new Point(from, value));
-        elements.Add(Segment.Constant(from, to, value));
-        if(isEndIncluded)
-            elements.Add(new Point(to, value));
+        if (from > to)
+            throw new ArgumentException("Sequence start cannot be after end.");
 
-        return new Sequence(elements);
+        if (from == to)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Sequence endpoints, if equal, must be both inclusive.");
+
+            var elements = new List<Element> { };
+            elements.Add(new Point(from, value));
+            return new Sequence(elements);
+        }
+        else
+        {
+            var elements = new List<Element> { };
+            if (isStartIncluded)
+                elements.Add(new Point(from, value));
+            elements.Add(Segment.Constant(from, to, value));
+            if (isEndIncluded)
+                elements.Add(new Point(to, value));
+
+            return new Sequence(elements);
+        }
     }
 
     #endregion
@@ -778,15 +838,11 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
     public Segment GetSegmentBefore(Rational time)
     {
-        try
-        {
-            var targetIndex = FindFirstIndex(element => element.EndTime >= time);
-            return (Segment) Elements[targetIndex];
-        }
-        catch (InvalidCastException)
-        {
+        var targetIndex = FindFirstIndex(element => element.EndTime >= time);
+        if (targetIndex == -1 || targetIndex >= Count || Elements[targetIndex] is Point)
             throw new ArgumentException("Sequence is not defined before given time");
-        }
+
+        return (Segment) Elements[targetIndex];
     }
 
     /// <summary>
@@ -798,15 +854,12 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
     public Segment GetSegmentAfter(Rational time)
     {
-        try
-        {
-            var targetIndex = FindLastIndex(element => element.StartTime <= time);
-            return (Segment) Elements[targetIndex];
-        }
-        catch (InvalidOperationException)
-        {
+        
+        var targetIndex = FindLastIndex(element => element.StartTime <= time);
+        if (targetIndex == -1 || targetIndex >= Count || Elements[targetIndex] is Point)
             throw new ArgumentException("Sequence is not defined after given time");
-        }
+        
+        return (Segment) Elements[targetIndex];
     }
 
     /// <summary>
