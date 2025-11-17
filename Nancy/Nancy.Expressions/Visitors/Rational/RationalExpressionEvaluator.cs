@@ -29,7 +29,7 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(VerticalDeviationExpression expression)
-        => _result = Curve.HorizontalDeviation(expression.LeftExpression.Value, expression.RightExpression.Value);
+        => _result = Curve.VerticalDeviation(expression.LeftExpression.Value, expression.RightExpression.Value);
 
     /// <inheritdoc />
     public virtual void Visit(ValueAtExpression expression)
