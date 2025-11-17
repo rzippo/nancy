@@ -925,7 +925,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     public static LongRational operator %(LongRational r1, LongRational r2)
     {
         if (r1.IsInfinite || r2.IsInfinite)
-            throw new NotImplementedException();
+            throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
 
         // a/b % c/d  == (ad % bc)/bd
         return new LongRational((r1.Numerator * r2.Denominator) % (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));

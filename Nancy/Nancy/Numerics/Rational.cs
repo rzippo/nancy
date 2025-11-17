@@ -1172,7 +1172,7 @@ namespace Unipi.Nancy.Numerics
         public static Rational operator %(Rational r1, Rational r2)
         {
             if (r1.IsInfinite || r2.IsInfinite)
-                throw new NotImplementedException();
+                throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
 
             // a/b % c/d  == (ad % bc)/bd
             return new Rational((r1.Numerator * r2.Denominator) % (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));

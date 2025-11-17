@@ -972,7 +972,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     public static BigRational operator %(BigRational r1, BigRational r2)
     {
         if (r1.IsInfinite || r2.IsInfinite)
-            throw new NotImplementedException();
+            throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
 
         // a/b % c/d  == (ad % bc)/bd
         return new BigRational((r1.Numerator * r2.Denominator) % (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));
