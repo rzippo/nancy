@@ -83,6 +83,20 @@ public class Deviations
             hDev: 0,
             0
         ),
+        (
+            // same rate, token-bucket
+            f: new SigmaRhoArrivalCurve(20, 5),
+            g: new SigmaRhoArrivalCurve(10, 5),
+            hDev: 2,
+            0
+        ),
+        (
+            // same rate, rate-latency
+            f: new RateLatencyServiceCurve(5, 10),
+            g: new RateLatencyServiceCurve(5, 20),
+            hDev: 10,
+            10
+        ),
         #if BIG_RATIONAL
         (
             f: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
@@ -221,6 +235,27 @@ public class Deviations
             g: new RateLatencyServiceCurve(2, 0).VerticalShift(1, false),
             -1,
             0
+        ),
+        (
+            // same rate, token-bucket
+            f: new SigmaRhoArrivalCurve(20, 5),
+            g: new SigmaRhoArrivalCurve(10, 5),
+            vDev: 10,
+            0
+        ),
+        (
+            // same rate, rate-latency
+            f: new RateLatencyServiceCurve(5, 10),
+            g: new RateLatencyServiceCurve(5, 20),
+            vDev: 50,
+            20
+        ),
+        (
+            // same rate, rate-latency
+            f: new RateLatencyServiceCurve(new Rational(275, 7), new Rational(249, 44)),
+            g: new RateLatencyServiceCurve(new Rational(275, 7), new Rational(35, 4)),
+            vDev: new Rational(850,7),
+            new Rational(35, 4)
         ),
     ];
 
