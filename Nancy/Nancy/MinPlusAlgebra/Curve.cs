@@ -3910,7 +3910,7 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
-    /// es the sum of a set of curves.
+    /// Computes the sum of a set of curves.
     /// </summary>
     /// <param name="curves"></param>
     /// <param name="settings"></param>
