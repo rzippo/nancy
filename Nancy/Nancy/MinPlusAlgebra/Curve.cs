@@ -2174,6 +2174,14 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
+    /// Shifts the curve vertically by a subtractive factor, i.e. $g(t) = f(t) - k$.
+    /// </summary>
+    public static Curve operator -(Curve curve, Rational shift)
+    {
+        return curve.VerticalShift(-shift);
+    }
+
+    /// <summary>
     /// Computes a non-negative version of this curve,
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
     /// </summary>

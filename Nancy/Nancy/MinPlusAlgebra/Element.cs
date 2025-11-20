@@ -236,6 +236,12 @@ public abstract class Element : IToCodeString, IStableHashCode
         => e.Negate();
 
     /// <summary>
+    /// Shifts the element vertically by a subtractive factor.
+    /// </summary>
+    public static Element operator -(Element element, Rational shift)
+        => element.VerticalShift(-shift);
+
+    /// <summary>
     /// Compute the inverse function, $f^{-1}(x) = inf { t : f(t) = x }$
     /// </summary>
     /// <exception cref="InvalidOperationException">

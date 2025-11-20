@@ -1522,6 +1522,14 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     }
 
     /// <summary>
+    /// Shifts the sequence vertically by a subtractive factor.
+    /// </summary>
+    public static Sequence operator -(Sequence sequence, Rational shift)
+    {
+        return sequence.VerticalShift(-shift);
+    }
+
+    /// <summary>
     /// Concatenates two sequences.
     /// </summary>
     /// <param name="a">The first sequence of the concatenation. It must be finite in its right end.</param>
