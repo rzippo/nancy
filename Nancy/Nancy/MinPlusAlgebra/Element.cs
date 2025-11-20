@@ -149,21 +149,29 @@ public abstract class Element : IToCodeString, IStableHashCode
     #region Basic manipulations
 
     /// <summary>
-    /// Scales the element by a multiplicative factor.
+    /// Scales the element by a multiplicative factor, i.e. $g(t) = k \cdot f(t)$.
     /// </summary>
     public abstract Element Scale(Rational scaling);
 
     /// <summary>
-    /// Scales the element by a multiplicative factor.
+    /// Scales the element by a multiplicative factor, i.e. $g(t) = k \cdot f(t)$.
     /// </summary>
     public static Element operator *(Element element, Rational scaling)
         => element.Scale(scaling);
 
     /// <summary>
-    /// Scales the element by a multiplicative factor.
+    /// Scales the element by a multiplicative factor, i.e. $g(t) = k \cdot f(t)$.
     /// </summary>
     public static Element operator *(Rational scaling, Element element)
         => element.Scale(scaling);
+
+    /// <summary>
+    /// Scales down the element by a multiplicative factor, i.e. $g(t) = f(t) / k$.
+    /// </summary>
+    public static Element operator /(Element element, Rational scaling)
+    {
+        return element.Scale(1 / scaling);
+    }
 
     /// <summary>
     /// Delays the support by the given time quantity, i.e. $f(t - T)$, with $T \ge 0$.

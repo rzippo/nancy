@@ -2032,6 +2032,14 @@ public class Curve : IToCodeString, IStableHashCode
     }
 
     /// <summary>
+    /// Scales down the curve by a multiplicative factor, i.e. $g(t) = f(t) / k$.
+    /// </summary>
+    public static Curve operator /(Curve curve, Rational scaling)
+    {
+        return curve.Scale(1 / scaling);
+    }
+
+    /// <summary>
     /// Delays the curve, adding a 0-valued padding at the start.
     /// Computes $f(t - T)$, with $T \ge 0$.
     /// </summary>

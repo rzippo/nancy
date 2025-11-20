@@ -53,4 +53,56 @@ public class Scaling
             return new Rational(randomInt, denominator);
         }
     }
+
+    [Theory]
+    [MemberData(nameof(GetCurvesAndScalings))]
+    public void ScalingOperatorValues(Curve curve, decimal scaling)
+    {
+        var scaled = curve * scaling;
+
+        Assert.Equal(curve.IsZero, scaled.IsZero);
+
+        var random = new Random();
+        for (int i = 0; i < 10; i++)
+        {
+            var time = RandomTime();
+            Assert.Equal(curve.ValueAt(time) * scaling, scaled.ValueAt(time));
+        }
+
+        Rational RandomTime()
+        {
+            Rational maxTime = curve.BaseSequence.DefinedUntil + curve.PseudoPeriodLength;
+            int denominator = (int) maxTime.Denominator;
+            int numerator = (int) maxTime.Numerator;
+
+            int randomInt = random.Next(0, numerator);
+            return new Rational(randomInt, denominator);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(GetCurvesAndScalings))]
+    public void ScalingOperatorDivisionValues(Curve curve, decimal scaling)
+    {
+        var scaled = curve / scaling;
+
+        Assert.Equal(curve.IsZero, scaled.IsZero);
+
+        var random = new Random();
+        for (int i = 0; i < 10; i++)
+        {
+            var time = RandomTime();
+            Assert.Equal(curve.ValueAt(time) / scaling, scaled.ValueAt(time));
+        }
+
+        Rational RandomTime()
+        {
+            Rational maxTime = curve.BaseSequence.DefinedUntil + curve.PseudoPeriodLength;
+            int denominator = (int) maxTime.Denominator;
+            int numerator = (int) maxTime.Numerator;
+
+            int randomInt = random.Next(0, numerator);
+            return new Rational(randomInt, denominator);
+        }
+    }
 }

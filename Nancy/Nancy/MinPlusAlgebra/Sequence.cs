@@ -1351,7 +1351,7 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     }
 
     /// <summary>
-    /// Scales the sequence by a multiplicative factor.
+    /// Scales the sequence by a multiplicative factor, i.e. $g(t) = k \cdot f(t)$.
     /// </summary>
     public static Sequence operator *(Sequence sequence, Rational scaling)
     {
@@ -1359,11 +1359,19 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
     }
 
     /// <summary>
-    /// Scales the sequence by a multiplicative factor.
+    /// Scales the sequence by a multiplicative factor, i.e. $g(t) = k \cdot f(t)$.
     /// </summary>
     public static Sequence operator *(Rational scaling, Sequence sequence)
     {
         return sequence.Scale(scaling);
+    }
+
+    /// <summary>
+    /// Scales down the sequence by a multiplicative factor, i.e. $g(t) = f(t) / k$.
+    /// </summary>
+    public static Sequence operator /(Sequence sequence, Rational scaling)
+    {
+        return sequence.Scale(1 / scaling);
     }
 
     /// <summary>
