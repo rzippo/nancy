@@ -126,6 +126,11 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     public readonly bool IsZero => this == Zero;
 
     /// <summary>
+    /// True if the number is 1.
+    /// </summary>
+    public readonly bool IsOne => Denominator == 1 && Numerator == 1;
+
+    /// <summary>
     /// True if the number is $> 0$.
     /// </summary>
     public readonly bool IsPositive => this.Sign > 0;
@@ -1229,22 +1234,38 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     #endregion implicit conversions to Rational
 
     #region instance helper methods
+
+    /// <summary>
+    /// Simplifies the rational, making it irreducible.
+    /// This should be called during construction, existing Rational are assumed to be irreducible.
+    /// </summary>
     private void Simplify()
     {
         // * if the numerator is {0, +1, -1} then the fraction is already reduced
         // * if the denominator is {+1} then the fraction is already reduced
         if (Numerator == 0)
+            Denominator = 1;
+        else if (Numerator is 1 or -1)
+            return;
+        else if (Denominator == 1)
+            return;
+        // early exit for identical parts
+        else if (Math.Abs(Numerator) == Denominator)
         {
+            Numerator = Numerator > 0 ? 1 : -1;
             Denominator = 1;
         }
-
-        long gcd = GreatestCommonDivisor(Numerator, Denominator);
-        if (gcd > 1)
+        else
         {
-            Numerator = Numerator / gcd;
-            Denominator = Denominator / gcd;
+            var gcd = GreatestCommonDivisor(Numerator, Denominator);
+            if (gcd > BigInteger.One)
+            {
+                Numerator /= gcd;
+                Denominator /= gcd;
+            }
         }
     }
+
     #endregion instance helper methods
 
     #region static helper methods

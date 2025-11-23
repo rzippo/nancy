@@ -103,27 +103,32 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// True if the number is finite.
     /// </summary>
-    public readonly bool IsFinite => Denominator != 0;
+    public readonly bool IsFinite => !Denominator.IsZero;
 
     /// <summary>
     /// True if the number is infinite.
     /// </summary>
-    public readonly bool IsInfinite => Denominator == 0;
+    public readonly bool IsInfinite => Denominator.IsZero;
 
     /// <summary>
     /// True if the number is $+\infty$.
     /// </summary>
-    public readonly bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
+    public readonly bool IsPlusInfinite => Denominator.IsZero && Numerator.IsOne;
 
     /// <summary>
     /// True if the number is $-\infty$.
     /// </summary>
-    public readonly bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
+    public readonly bool IsMinusInfinite => Denominator.IsZero && Numerator == -1;
 
     /// <summary>
     /// True if the number is 0.
     /// </summary>
-    public readonly bool IsZero => this == Zero;
+    public readonly bool IsZero => Numerator.IsZero;
+
+    /// <summary>
+    /// True if the number is 1.
+    /// </summary>
+    public readonly bool IsOne => Denominator.IsOne && Numerator.IsOne;
 
     /// <summary>
     /// True if the number is $> 0$.
@@ -502,6 +507,53 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         Simplify();
     }
 
+    /// <summary>
+    /// Internal constructor.
+    /// </summary>
+    /// <param name="skipSimplify">
+    /// If true, the fraction is assumed to be already irreducible, and no simplification is attempted. 
+    /// </param>
+    internal BigRational(BigInteger numerator, BigInteger denominator, bool skipSimplify)
+    {
+        if (skipSimplify)
+        {
+            Numerator = numerator;
+            Denominator = denominator;
+        }
+        else
+        {
+            if (denominator.Sign == 0)
+            {
+                if (numerator < 0)
+                    Numerator = BigInteger.MinusOne;
+                else if (numerator > 0)
+                    Numerator = BigInteger.One;
+                else
+                    throw new UndeterminedResultException("Zero over zero");
+
+                Denominator = BigInteger.Zero;
+            }
+            else if (numerator.Sign == 0)
+            {
+                // 0/m -> 0/1
+                Numerator = BigInteger.Zero;
+                Denominator = BigInteger.One;
+            }
+            else if (denominator.Sign < 0)
+            {
+                Numerator = -numerator;
+                Denominator = -denominator;
+            }
+            else
+            {
+                Numerator = numerator;
+                Denominator = denominator;
+            }
+            
+            Simplify();
+        }
+    }
+    
     /// <summary>
     /// Constructor.
     /// </summary>
@@ -1277,22 +1329,38 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     #endregion implicit conversions to BigRational
 
     #region instance helper methods
+
+    /// <summary>
+    /// Simplifies the rational, making it irreducible.
+    /// This should be called during construction, existing Rational are assumed to be irreducible.
+    /// </summary>
     private void Simplify()
     {
         // * if the numerator is {0, +1, -1} then the fraction is already reduced
         // * if the denominator is {+1} then the fraction is already reduced
-        if (Numerator == BigInteger.Zero)
+        if (Numerator.IsZero)
+            Denominator = BigInteger.One;
+        else if (Numerator.IsOne || Numerator == -1)
+            return;
+        else if (Denominator.IsOne)
+            return;
+        // early exit for identical parts
+        else if (BigInteger.Abs(Numerator) == Denominator)
         {
+            Numerator = Numerator.Sign;
             Denominator = BigInteger.One;
         }
-
-        BigInteger gcd = BigInteger.GreatestCommonDivisor(Numerator, Denominator);
-        if (gcd > BigInteger.One)
+        else
         {
-            Numerator = Numerator / gcd;
-            Denominator = Denominator / gcd;
+            var gcd = BigInteger.GreatestCommonDivisor(Numerator, Denominator);
+            if (gcd > BigInteger.One)
+            {
+                Numerator /= gcd;
+                Denominator /= gcd;
+            }
         }
     }
+
     #endregion instance helper methods
 
     #region static helper methods

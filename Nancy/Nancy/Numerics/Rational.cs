@@ -156,7 +156,12 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsFinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public readonly bool IsFinite => Denominator != 0;
+        public readonly bool IsFinite
+        #if BIG_RATIONAL
+            => !Denominator.IsZero;
+        #elif LONG_RATIONAL
+            => Denominator != 0;
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsInfinite"/>
@@ -164,7 +169,12 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsInfinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public readonly bool IsInfinite => Denominator == 0;
+        public readonly bool IsInfinite 
+        #if BIG_RATIONAL
+            => Denominator.IsZero;
+        #elif LONG_RATIONAL
+            => Denominator == 0;
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsPlusInfinite"/>
@@ -172,7 +182,12 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsPlusInfinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public readonly bool IsPlusInfinite => Denominator == 0 && Numerator == 1;
+        public readonly bool IsPlusInfinite
+        #if BIG_RATIONAL
+            => Denominator.IsZero && Numerator.IsOne;
+        #elif LONG_RATIONAL
+            => Denominator == 0 && Numerator == 1;
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsMinusInfinite"/>
@@ -180,7 +195,12 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsMinusInfinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public readonly bool IsMinusInfinite => Denominator == 0 && Numerator == -1;
+        public readonly bool IsMinusInfinite
+        #if BIG_RATIONAL
+            => Denominator.IsZero && Numerator == -1;
+        #elif LONG_RATIONAL
+            => Denominator == 0 && Numerator == -1;
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsZero"/>
@@ -188,7 +208,24 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsZero"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public readonly bool IsZero => this == Zero;
+        public readonly bool IsZero
+        #if BIG_RATIONAL
+            => Numerator.IsZero;
+        #elif LONG_RATIONAL
+            => Numerator == 0;
+        #endif
+
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.IsOne"/>
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational.IsOne"/>
+        #endif
+        public readonly bool IsOne
+        #if BIG_RATIONAL
+            => Denominator.IsOne && Numerator.IsOne;
+        #elif LONG_RATIONAL
+            => Denominator == 1 && Numerator == 1;
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsPositive"/>
@@ -701,6 +738,50 @@ namespace Unipi.Nancy.Numerics
         #endif
 
         #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational(BigInteger, BigInteger, bool)"/>
+        internal Rational(BigInteger numerator, BigInteger denominator, bool skipSimplify)
+        {
+            if (skipSimplify)
+            {
+                Numerator = numerator;
+                Denominator = denominator;
+            }
+            else
+            {
+                if (denominator.Sign == 0)
+                {
+                    if (numerator < 0)
+                        Numerator = BigInteger.MinusOne;
+                    else if (numerator > 0)
+                        Numerator = BigInteger.One;
+                    else
+                        throw new UndeterminedResultException("Zero over zero");
+
+                    Denominator = BigInteger.Zero;
+                }
+                else if (numerator.Sign == 0)
+                {
+                    // 0/m -> 0/1
+                    Numerator = BigInteger.Zero;
+                    Denominator = BigInteger.One;
+                }
+                else if (denominator.Sign < 0)
+                {
+                    Numerator = -numerator;
+                    Denominator = -denominator;
+                }
+                else
+                {
+                    Numerator = numerator;
+                    Denominator = denominator;
+                }
+            
+                Simplify();
+            }
+        }
+        #endif
+
+        #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational(BigInteger, BigInteger, BigInteger)"/>
         public Rational(BigInteger whole, BigInteger numerator, BigInteger denominator)
         {
@@ -1012,13 +1093,13 @@ namespace Unipi.Nancy.Numerics
             if (y.IsMinusInfinite)
                 return x.IsMinusInfinite;
 
-            return Compare(x, y) == 0;
+            return x.Numerator == y.Numerator && x.Denominator == y.Denominator;
         }
 
         /// <inheritdoc />
         public static bool operator !=(Rational x, Rational y)
         {
-            return Compare(x, y) != 0;
+            return x.Numerator != y.Numerator || x.Denominator != y.Denominator;
         }
 
         /// <inheritdoc />
@@ -1111,21 +1192,96 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <inheritdoc />
-        public static Rational operator *(Rational r1, Rational r2)
+        public static Rational operator *(Rational x, Rational y)
         {
-            if (r1.IsZero || r2.IsZero)
+            #if BIG_RATIONAL
+            if (x.IsZero || y.IsZero)
+                return Rational.Zero;
+            if (x.IsInfinite || y.IsInfinite)
+                return x.Sign == y.Sign ? Rational.PlusInfinity : Rational.MinusInfinity;
+
+            var isXDenOne = x.Denominator.IsOne;
+            var isYDenOne = y.Denominator.IsOne;
+            // product between integers
+            if (isXDenOne && isYDenOne)
+                return new Rational(x.Numerator * y.Numerator);
+
+            var isXNumOne = x.Numerator.IsOne;
+            if (isXDenOne && isXNumOne)
+                return y;
+
+            var isYNumOne = y.Numerator.IsOne;
+            if (isYDenOne && isYNumOne)
+                return x;
+
+            // cross pattern, e.g. 3/1 * 1/2 = 3/2
+            if (isXNumOne && isYDenOne)
+                return new Rational(y.Numerator, x.Denominator);
+            if (isXDenOne && isYNumOne)
+                return new Rational(x.Numerator, y.Denominator);
+
+            // (a/b) * (c/d)  ->  ((a/g1)*(c/g2)) / ((b/g2)*(d/g1))
+            // where g1 = gcd(a, d), g2 = gcd(c, b)
+            // We cross-cancel before multiplication to avoid BigInteger expansion => two GCDs instead of one.
+            // If there is nothing to simplify, this will be worse. We bet on most products being simplifiable.
+            BigInteger a, b, c, d;
+            if (!isYDenOne && !isXNumOne && !(x.Numerator == -1))
+            {
+                var g1 = BigInteger.GreatestCommonDivisor(x.Numerator, y.Denominator);
+                if (!g1.IsOne)
+                {
+                    a = x.Numerator / g1;
+                    d = y.Denominator / g1;
+                }
+                else
+                {
+                    a = x.Numerator;
+                    d = y.Denominator;
+                }
+            }
+            else
+            {
+                a = x.Numerator;
+                d = y.Denominator;
+            }
+
+            if (!isXDenOne && !isYNumOne && !(y.Numerator == -1))
+            {
+                var g2 = BigInteger.GreatestCommonDivisor(y.Numerator, x.Denominator);
+                if (!g2.IsOne)
+                {
+                    c = y.Numerator / g2;
+                    b = x.Denominator / g2;
+                }
+                else
+                {
+                    c = y.Numerator;
+                    b = x.Denominator;
+                }
+            }
+            else
+            {
+                c = y.Numerator;
+                b = x.Denominator;
+            }
+
+            // construct the result, skip simplify
+            return new Rational(a * c, b * d, true);
+            #elif LONG_RATIONAL
+            if (x.IsZero || y.IsZero)
             {
                 return Zero;
             }
-            else if (r1.IsInfinite || r2.IsInfinite)
+            else if (x.IsInfinite || y.IsInfinite)
             {
-                return r1.Sign == r2.Sign ? PlusInfinity : MinusInfinity;
+                return x.Sign == y.Sign ? PlusInfinity : MinusInfinity;
             }
             else
             {
                 // a/b * c/d  == (ac)/(bd)
-                return new Rational((r1.Numerator * r2.Numerator), (r1.Denominator * r2.Denominator));
+                return new Rational((x.Numerator * y.Numerator), (x.Denominator * y.Denominator));
             }
+            #endif
         }
 
         /// <inheritdoc />
@@ -1527,30 +1683,62 @@ namespace Unipi.Nancy.Numerics
         #endregion implicit conversions to Rational
 
         #region instance helper methods
-        
+
+        /// <summary>
+        /// Simplifies the rational, making it irreducible.
+        /// This should be called during construction, existing Rational are assumed to be irreducible.
+        /// </summary>
         private void Simplify()
         {
+            #if BIG_RATIONAL
             // * if the numerator is {0, +1, -1} then the fraction is already reduced
             // * if the denominator is {+1} then the fraction is already reduced
-            if (Numerator == BigInteger.Zero)
-            {
-                #if BIG_RATIONAL
+            if (Numerator.IsZero)
                 Denominator = BigInteger.One;
-                #elif LONG_RATIONAL
-                Denominator = 1;
-                #endif
-            }
-
-            #if BIG_RATIONAL
-            BigInteger gcd = BigInteger.GreatestCommonDivisor(Numerator, Denominator);
-            #elif LONG_RATIONAL
-            long gcd = GreatestCommonDivisor(Numerator, Denominator);
-            #endif
-            if (gcd > BigInteger.One)
+            else if (Numerator.IsOne || Numerator == -1)
+                return;
+            else if (Denominator.IsOne)
+                return;
+            // early exit for identical parts
+            else if (BigInteger.Abs(Numerator) == Denominator)
             {
-                Numerator = Numerator / gcd;
-                Denominator = Denominator / gcd;
+                Numerator = Numerator.Sign;
+                Denominator = BigInteger.One;
             }
+            else
+            {
+                var gcd = BigInteger.GreatestCommonDivisor(Numerator, Denominator);
+                if (gcd > BigInteger.One)
+                {
+                    Numerator /= gcd;
+                    Denominator /= gcd;
+                }
+            }
+            #elif LONG_RATIONAL
+            // * if the numerator is {0, +1, -1} then the fraction is already reduced
+            // * if the denominator is {+1} then the fraction is already reduced
+            if (Numerator == 0)
+                Denominator = 1;
+            else if (Numerator is 1 or -1)
+                return;
+            else if (Denominator == 1)
+                return;
+            // early exit for identical parts
+            else if (Math.Abs(Numerator) == Denominator)
+            {
+                Numerator = Numerator > 0 ? 1 : -1;
+                Denominator = 1;
+            }
+            else
+            {
+                var gcd = GreatestCommonDivisor(Numerator, Denominator);
+                if (gcd > BigInteger.One)
+                {
+                    Numerator /= gcd;
+                    Denominator /= gcd;
+                }
+            }
+            #endif
         }
 
         #endregion instance helper methods
