@@ -105,6 +105,147 @@ public class Deviations
             hDev: 10,
             10
         ),
+        (
+            // hdev corresponds to a jump
+            f: new Curve(new Sequence([
+                    new Point(time: 0, value: 2),
+                    new Segment
+                    (
+                        startTime: 0,
+                        rightLimitAtStartTime: 2,
+                        slope: new Rational(1, 4),
+                        endTime: 4
+                    ),
+                    new Point(time: 4, value: 4),
+                    new Segment
+                    (
+                        startTime: 4,
+                        rightLimitAtStartTime: 4,
+                        slope: new Rational(1, 2),
+                        endTime: 6
+                    )
+                ]),
+                4, 2, 1
+            ),
+            g: new Curve(new Sequence([
+                    Point.Origin(),
+                    Segment.Zero(0, 8),
+                    Point.Zero(8),
+                    new Segment
+                    (
+                        startTime: 8,
+                        rightLimitAtStartTime: 0,
+                        slope: new Rational(1, 3),
+                        endTime: 11
+                    ),
+                    new Point(time: 11, value: 7),
+                    new Segment
+                    (
+                        startTime: 11,
+                        rightLimitAtStartTime: 7,
+                        slope: new Rational(1),
+                        endTime: 12
+                    )
+                ]),
+                11, 1, 1
+            ),
+            11,
+            0
+        ),
+        (
+            // hdev corresponds to a jump, order of curves inverted
+            f: new Curve(new Sequence([
+                    Point.Origin(),
+                    Segment.Zero(0, 8),
+                    Point.Zero(8),
+                    new Segment
+                    (
+                        startTime: 8,
+                        rightLimitAtStartTime: 0,
+                        slope: new Rational(1, 3),
+                        endTime: 11
+                    ),
+                    new Point(time: 11, value: 7),
+                    new Segment
+                    (
+                        startTime: 11,
+                        rightLimitAtStartTime: 7,
+                        slope: new Rational(1),
+                        endTime: 12
+                    )
+                ]),
+                11, 1, 1
+            ),
+            g: new Curve(new Sequence([
+                    new Point(time: 0, value: 2),
+                    new Segment
+                    (
+                        startTime: 0,
+                        rightLimitAtStartTime: 2,
+                        slope: new Rational(1, 4),
+                        endTime: 4
+                    ),
+                    new Point(time: 4, value: 4),
+                    new Segment
+                    (
+                        startTime: 4,
+                        rightLimitAtStartTime: 4,
+                        slope: new Rational(1, 2),
+                        endTime: 6
+                    )
+                ]),
+                4, 2, 1
+            ),
+            Rational.PlusInfinity,
+            Rational.PlusInfinity
+        ),
+        (
+            // hdev corresponds to a jump, order of curves inverted
+            f: new Curve(new Sequence([
+                    Point.Origin(),
+                    Segment.Zero(0, 8),
+                    Point.Zero(8),
+                    new Segment
+                    (
+                        startTime: 8,
+                        rightLimitAtStartTime: 0,
+                        slope: new Rational(1, 3),
+                        endTime: 11
+                    ),
+                    new Point(time: 11, value: 7),
+                    new Segment
+                    (
+                        startTime: 11,
+                        rightLimitAtStartTime: 7,
+                        slope: new Rational(1, 2),
+                        endTime: 13
+                    )
+                ]),
+                11, 2, 1
+            ),
+            g: new Curve(new Sequence([
+                    new Point(time: 0, value: 2),
+                    new Segment
+                    (
+                        startTime: 0,
+                        rightLimitAtStartTime: 2,
+                        slope: new Rational(1, 4),
+                        endTime: 4
+                    ),
+                    new Point(time: 4, value: 4),
+                    new Segment
+                    (
+                        startTime: 4,
+                        rightLimitAtStartTime: 4,
+                        slope: new Rational(1, 2),
+                        endTime: 6
+                    )
+                ]),
+                4, 2, 1
+            ),
+            0,
+            0
+        ),
         #if BIG_RATIONAL
         (
             f: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
