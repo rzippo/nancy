@@ -1323,16 +1323,129 @@ namespace Unipi.Nancy.Numerics
             #endif
         }
 
-        /// <inheritdoc />
-        public static Rational operator /(Rational r1, Rational r2)
+        /// <inheritdoc cref="Divide(Rational, Rational)" />
+        public static Rational operator /(Rational x, Rational y)
         {
-            if (r1.IsZero || r2.IsZero)
+            #if BIG_RATIONAL
+            if (x.IsZero)
             {
-                if (r1.IsZero && r2.IsZero)
+                if (y.IsZero)
+                    throw new UndeterminedResultException();
+                else
+                    return Rational.Zero;
+            }
+
+            if (y.IsZero)
+            {
+                throw new DivideByZeroException();
+            }
+
+            if (x.IsInfinite)
+            {
+                if (y.IsInfinite)
+                    throw new UndeterminedResultException();
+                else
+                    return y.Numerator.Sign > 0 ? x : -x;
+            }
+
+            if (y.IsInfinite)
+                return Rational.Zero;
+
+            int sign = (x.Numerator.Sign == y.Numerator.Sign) ? 1 : -1;
+
+            BigInteger xNumAbs = BigInteger.Abs(x.Numerator);
+            BigInteger yNumAbs = BigInteger.Abs(y.Numerator);
+
+            // cross pattern, e.g. 3/1 / 2/1 = 3/2; but also 3/31 / 2/31 = 3/2 and viceversa
+            if (xNumAbs == yNumAbs)
+            {
+                BigInteger num, den;
+                var g = BigInteger.GreatestCommonDivisor(y.Denominator, x.Denominator);
+                if (!g.IsOne)
+                {
+                    num = sign > 0 ? (y.Denominator / g) : -(y.Denominator / g);
+                    den = x.Denominator / g;
+                }
+                else
+                {
+                    num = sign > 0 ? y.Denominator : -y.Denominator;
+                    den = x.Denominator;
+                }
+                return new Rational(num, den, true);
+            }
+
+            if (x.Denominator == y.Denominator)
+            {
+                BigInteger num, den;
+                var g = BigInteger.GreatestCommonDivisor(xNumAbs, yNumAbs);
+                if (!g.IsOne)
+                {
+                    num = sign > 0 ? (xNumAbs / g) : -(xNumAbs / g);
+                    den = yNumAbs / g;
+                }
+                else
+                {
+                    num = sign > 0 ? xNumAbs : -xNumAbs;
+                    den = yNumAbs;
+                }
+                return new Rational(num, den, true);
+            }
+
+            // (a/b) / (c/d)  ->  ((a/g1)*(d/g2)) / ((b/g2)*(c/g1))
+            // where g1 = gcd(a, c), g2 = gcd(b, d)
+            // We cross-cancel before multiplication to avoid BigInteger expansion => two GCDs instead of one.
+            // If there is nothing to simplify, this will be worse. We bet on most products being simplifiable.
+            BigInteger a, b, c, d;
+            if (!xNumAbs.IsOne && !yNumAbs.IsOne)
+            {
+                var g1 = BigInteger.GreatestCommonDivisor(xNumAbs, yNumAbs);
+                if (!g1.IsOne)
+                {
+                    a = xNumAbs / g1;
+                    c = yNumAbs / g1;
+                }
+                else
+                {
+                    a = xNumAbs;
+                    c = yNumAbs;
+                }
+            }
+            else
+            {
+                a = xNumAbs;
+                c = yNumAbs;
+            }
+
+            if (!x.Denominator.IsOne && !y.Denominator.IsOne)
+            {
+                var g2 = BigInteger.GreatestCommonDivisor(x.Denominator, y.Denominator);
+                if (!g2.IsOne)
+                {
+                    b = x.Denominator / g2;
+                    d = y.Denominator / g2;
+                }
+                else
+                {
+                    b = x.Denominator;
+                    d = y.Denominator;
+                }
+            }
+            else
+            {
+                b = x.Denominator;
+                d = y.Denominator;
+            }
+
+            // construct the result, skip simplify
+            return new Rational(sign > 0 ? (a * d) : -(a * d), b * c, true);
+            #elif LONG_RATIONAL
+            if (x.IsZero || y.IsZero)
+            {
+                if (x.IsZero && y.IsZero)
                 {
                     throw new UndeterminedResultException();
                 }
-                else if (r1.IsZero)
+                else if (x.IsZero)
                 {
                     return Zero;
                 }
@@ -1341,15 +1454,15 @@ namespace Unipi.Nancy.Numerics
                     throw new DivideByZeroException();
                 }
             }
-            else if (r1.IsInfinite || r2.IsInfinite)
+            else if (x.IsInfinite || y.IsInfinite)
             {
-                if (r1.IsInfinite && r2.IsInfinite)
+                if (x.IsInfinite && y.IsInfinite)
                 {
                     throw new UndeterminedResultException();
                 }
-                else if (r1.IsInfinite)
+                else if (x.IsInfinite)
                 {
-                    return r1 * r2.Sign;
+                    return x * y.Sign;
                 }
                 else
                 {
@@ -1359,8 +1472,9 @@ namespace Unipi.Nancy.Numerics
             else
             {
                 // a/b / c/d  == (ad)/(bc)
-                return new Rational((r1.Numerator * r2.Denominator), (r1.Denominator * r2.Numerator));
+                return new Rational((x.Numerator * y.Denominator), (x.Denominator * y.Numerator));
             }
+            #endif
         }
 
         /// <inheritdoc />

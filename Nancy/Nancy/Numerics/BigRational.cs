@@ -643,6 +643,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// The division of the two numbers.
     /// </summary>
+    /// <remarks>
+    /// Tries to optimize the computation, using cross-canceling. 
+    /// </remarks>
     public static BigRational Divide(BigRational dividend, BigRational divisor)
     {
         return dividend / divisor;
@@ -1054,43 +1057,119 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <inheritdoc cref="Divide(BigRational, BigRational)"/>
-    public static BigRational operator /(BigRational r1, BigRational r2)
+    public static BigRational operator /(BigRational x, BigRational y)
     {
-        if (r1.IsZero || r2.IsZero)
+        if (x.IsZero)
         {
-            if (r1.IsZero && r2.IsZero)
-            {
+            if (y.IsZero)
                 throw new UndeterminedResultException();
-            }
-            else if (r1.IsZero)
-            {
-                return Zero;
-            }
             else
-            {
-                throw new DivideByZeroException();
-            }
+                return BigRational.Zero;
         }
-        else if (r1.IsInfinite || r2.IsInfinite)
+
+        if (y.IsZero)
         {
-            if (r1.IsInfinite && r2.IsInfinite)
-            {
+            throw new DivideByZeroException();
+        }
+
+        if (x.IsInfinite)
+        {
+            if (y.IsInfinite)
                 throw new UndeterminedResultException();
-            }
-            else if (r1.IsInfinite)
+            else
+                return y.Numerator.Sign > 0 ? x : -x;
+        }
+
+        if (y.IsInfinite)
+            return BigRational.Zero;
+
+        int sign = (x.Numerator.Sign == y.Numerator.Sign) ? 1 : -1;
+
+        BigInteger xNumAbs = BigInteger.Abs(x.Numerator);
+        BigInteger yNumAbs = BigInteger.Abs(y.Numerator);
+
+        // cross pattern, e.g. 3/1 / 2/1 = 3/2; but also 3/31 / 2/31 = 3/2 and viceversa
+        if (xNumAbs == yNumAbs)
+        {
+            BigInteger num, den;
+            var g = BigInteger.GreatestCommonDivisor(y.Denominator, x.Denominator);
+            if (!g.IsOne)
             {
-                return r1 * r2.Sign;
+                num = sign > 0 ? (y.Denominator / g) : -(y.Denominator / g);
+                den = x.Denominator / g;
             }
             else
             {
-                return Zero;
+                num = sign > 0 ? y.Denominator : -y.Denominator;
+                den = x.Denominator;
+            }
+            return new BigRational(num, den, true);
+        }
+
+        if (x.Denominator == y.Denominator)
+        {
+            BigInteger num, den;
+            var g = BigInteger.GreatestCommonDivisor(xNumAbs, yNumAbs);
+            if (!g.IsOne)
+            {
+                num = sign > 0 ? (xNumAbs / g) : -(xNumAbs / g);
+                den = yNumAbs / g;
+            }
+            else
+            {
+                num = sign > 0 ? xNumAbs : -xNumAbs;
+                den = yNumAbs;
+            }
+            return new BigRational(num, den, true);
+        }
+
+        // (a/b) / (c/d)  ->  ((a/g1)*(d/g2)) / ((b/g2)*(c/g1))
+        // where g1 = gcd(a, c), g2 = gcd(b, d)
+        // We cross-cancel before multiplication to avoid BigInteger expansion => two GCDs instead of one.
+        // If there is nothing to simplify, this will be worse. We bet on most products being simplifiable.
+        BigInteger a, b, c, d;
+        if (!xNumAbs.IsOne && !yNumAbs.IsOne)
+        {
+            var g1 = BigInteger.GreatestCommonDivisor(xNumAbs, yNumAbs);
+            if (!g1.IsOne)
+            {
+                a = xNumAbs / g1;
+                c = yNumAbs / g1;
+            }
+            else
+            {
+                a = xNumAbs;
+                c = yNumAbs;
             }
         }
         else
         {
-            // a/b / c/d  == (ad)/(bc)
-            return new BigRational((r1.Numerator * r2.Denominator), (r1.Denominator * r2.Numerator));
+            a = xNumAbs;
+            c = yNumAbs;
         }
+
+        if (!x.Denominator.IsOne && !y.Denominator.IsOne)
+        {
+            var g2 = BigInteger.GreatestCommonDivisor(x.Denominator, y.Denominator);
+            if (!g2.IsOne)
+            {
+                b = x.Denominator / g2;
+                d = y.Denominator / g2;
+            }
+            else
+            {
+                b = x.Denominator;
+                d = y.Denominator;
+            }
+        }
+        else
+        {
+            b = x.Denominator;
+            d = y.Denominator;
+        }
+
+        // construct the result, skip simplify
+        return new BigRational(sign > 0 ? (a * d) : -(a * d), b * c, true);
     }
 
     /// <inheritdoc cref="Remainder(BigRational, BigRational)"/>
