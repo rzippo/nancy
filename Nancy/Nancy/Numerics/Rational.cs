@@ -1007,29 +1007,29 @@ namespace Unipi.Nancy.Numerics
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.Compare"/>
         #endif
-        public static int Compare(Rational r1, Rational r2)
+        public static int Compare(Rational left, Rational right)
         {
-            if (r1.IsInfinite || r2.IsInfinite)
+            if (left.IsInfinite || right.IsInfinite)
             {
-                if (r1.IsInfinite && r2.IsInfinite)
-                    return intCompare(r1.Sign, r2.Sign);
+                if (left.IsInfinite && right.IsInfinite)
+                    return intCompare(left.Sign, right.Sign);
                 else
                 {
                     //An infinite value is always bigger in absolute value
-                    if (r1.IsInfinite)
+                    if (left.IsInfinite)
                     {
-                        return intCompare(2*r1.Sign, r2.Sign);
+                        return intCompare(2*left.Sign, right.Sign);
                     }
                     else
                     {
-                        return intCompare(r1.Sign, 2*r2.Sign);
+                        return intCompare(left.Sign, 2*right.Sign);
                     }
                 }
             }
             else
             {
                 // a/b >= c/d, iff ad >= bc
-                return BigInteger.Compare(r1.Numerator * r2.Denominator, r2.Numerator * r1.Denominator);
+                return BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator);
             }
 
             int intCompare(int left, int right)

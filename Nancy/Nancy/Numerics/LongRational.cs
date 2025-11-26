@@ -672,10 +672,10 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// Compares two values and returns an integer that indicates
     /// whether the first value is less than, equal to, or greater than the second value.
     /// </summary>
-    /// <param name="r1">The first value to compare.</param>
-    /// <param name="r2">The second value to compare.</param>
+    /// <param name="left">The first value to compare.</param>
+    /// <param name="right">The second value to compare.</param>
     /// <returns>
-    /// A signed integer that indicates the relative values of <paramref name="r1"/> and <paramref name="r2"/>, 
+    /// A signed integer that indicates the relative values of <paramref name="left"/> and <paramref name="right"/>, 
     /// as shown in the following table.
     /// <list type="table">
     /// <listheader>
@@ -684,42 +684,42 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </listheader>
     /// <item>
     ///     <term>Less than zero</term>
-    ///     <description><paramref name="r1"/> is less than <paramref name="r2"/>.</description>
+    ///     <description><paramref name="left"/> is less than <paramref name="right"/>.</description>
     /// </item>
     /// <item>
     ///     <term>Zero</term>
-    ///     <description><paramref name="r1"/> equals <paramref name="r2"/>.</description>
+    ///     <description><paramref name="left"/> equals <paramref name="right"/>.</description>
     /// </item>
     /// <item>
     ///     <term>Greater than zero</term>
-    ///     <description><paramref name="r1"/> is greater than <paramref name="r2"/>.</description>
+    ///     <description><paramref name="left"/> is greater than <paramref name="right"/>.</description>
     /// </item>
     /// </list>
     /// </returns>
-    public static int Compare(LongRational r1, LongRational r2)
+    public static int Compare(LongRational left, LongRational right)
     {
-        if (r1.IsInfinite || r2.IsInfinite)
+        if (left.IsInfinite || right.IsInfinite)
         {
             //I will call int.CompareTo with adapted parameters to delegate knowledge about return values
-            if (r1.IsInfinite && r2.IsInfinite)
-                return r1.Sign.CompareTo(r2.Sign);
+            if (left.IsInfinite && right.IsInfinite)
+                return left.Sign.CompareTo(right.Sign);
             else
             {
                 //An infinite value is always bigger in absolute value
-                if (r1.IsInfinite)
+                if (left.IsInfinite)
                 {
-                    return r1.Sign;                        
+                    return left.Sign;                        
                 }
                 else
                 {
-                    return -r2.Sign;
+                    return -right.Sign;
                 }
             }
         }
         else
         {
             // a/b = c/d, iff ad = bc
-            return (r1.Numerator * r2.Denominator).CompareTo(r2.Numerator * r1.Denominator);
+            return (left.Numerator * right.Denominator).CompareTo(right.Numerator * left.Denominator);
         }
     }
 
