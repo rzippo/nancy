@@ -739,9 +739,9 @@ namespace Unipi.Nancy.Numerics
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational(BigInteger, BigInteger, bool)"/>
-        internal Rational(BigInteger numerator, BigInteger denominator, bool skipSimplify)
+        internal Rational(BigInteger numerator, BigInteger denominator, bool skipNormalize)
         {
-            if (skipSimplify)
+            if (skipNormalize)
             {
                 Numerator = numerator;
                 Denominator = denominator;
@@ -775,7 +775,6 @@ namespace Unipi.Nancy.Numerics
                     Numerator = numerator;
                     Denominator = denominator;
                 }
-            
                 Simplify();
             }
         }
@@ -1231,7 +1230,7 @@ namespace Unipi.Nancy.Numerics
             return r1 + (-r2);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="Multiply(Rational, Rational)"/>
         public static Rational operator *(Rational x, Rational y)
         {
             #if BIG_RATIONAL
