@@ -783,33 +783,43 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </returns>
     public static int Compare(BigRational left, BigRational right)
     {
-        if (left.IsInfinite || right.IsInfinite)
+        if (left.IsInfinite)
         {
-            if (left.IsInfinite && right.IsInfinite)
-                return intCompare(left.Sign, right.Sign);
+            if (right.IsInfinite)
+                return left.Sign.CompareTo(right.Sign);
             else
-            {
-                //An infinite value is always bigger in absolute value
-                if (left.IsInfinite)
-                {
-                    return intCompare(2*left.Sign, right.Sign);
-                }
-                else
-                {
-                    return intCompare(left.Sign, 2*right.Sign);
-                }
-            }
+                return left.Sign;
         }
-        else
-        {
-            // a/b = c/d, iff ad = bc
-            return BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator);
-        }
+        
+        if(right.IsInfinite)
+            return -right.Sign;
 
-        int intCompare(int left, int right)
-        {
-            return left - right;
-        }
+        // Fast sign path
+        int signLeft = left.Numerator.Sign;
+        int signRight = right.Numerator.Sign;
+        if (signLeft != signRight) return signLeft.CompareTo(signRight);
+        if (signLeft == 0) return 0; // both zero if signs equal and s1==0
+
+        // Fast same-denominator path
+        if (left.Denominator == right.Denominator)
+            return left.Numerator.CompareTo(right.Numerator);
+
+        // Need to compare fractions with the same sign.
+        
+        // Fast log2 comparison
+        // log2(left) is in ] log2(left_num) - log2(right_num) -1, log2(left_num) - log2(right_num) +1 [
+        // log2(right) is in ] log2(right_num) - log2(right_num) -1, log2(right_num) - log2(right_num) +1 [
+        // Therefore, if the above intervals do not overlap we can conclude the comparison  
+        var leftLen = left.Numerator.GetBitLength() - left.Denominator.GetBitLength();
+        var rightLen = right.Numerator.GetBitLength() - right.Denominator.GetBitLength();
+        if (leftLen >= rightLen + 2)
+            return signLeft;
+        if (rightLen >= leftLen + 2)
+            return -signLeft;
+
+        // Fast comparison failed, fall back to multiplication comparison
+        // We do not do any simplification because the cost of the GCDs and divisions would be larger than what we can save in the multiplication 
+        return BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator);
     }
 
     /// <summary>
