@@ -366,7 +366,7 @@ public static class SequenceExtensions
         if (!enumerator.MoveNext())
             throw new ArgumentException("Elements is an empty collection");
 
-        // skip first point, if any
+        // pass on first point, if any
         if (enumerator.Current is Point)
         {
             yield return enumerator.Current;
