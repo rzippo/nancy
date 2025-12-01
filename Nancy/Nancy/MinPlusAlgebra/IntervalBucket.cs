@@ -16,7 +16,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// Groups segments which are fully defined over a given interval of time.
 /// Used in sequence operators to group elements by overlap, so that element operators can be applied straightforwardly.
 /// </summary>
-internal class Interval
+internal class IntervalBucket
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -102,7 +102,7 @@ internal class Interval
     /// <summary>
     /// Constructs a segment interval, open endend
     /// </summary>
-    public Interval(Rational start, Rational end)
+    public IntervalBucket(Rational start, Rational end)
     {
         Start = start;
         End = end;
@@ -113,7 +113,7 @@ internal class Interval
     /// <summary>
     /// Constructs a point interval
     /// </summary>
-    public Interval(Rational time)
+    public IntervalBucket(Rational time)
     {
         Start = time;
         End = time;
@@ -290,59 +290,59 @@ internal class Interval
     /// Splits the interval to maintain the invariant of segments fully contained in open intervals,
     /// interleaved with point intervals containing points and samples
     /// </summary>
-    public List<Interval> SplitOver(Segment segment)
+    public List<IntervalBucket> SplitOver(Segment segment)
     {
         switch (Classify(segment))
         {
             case OverlapTypes.SegmentStartContained:
             {
-                Interval beforeSegmentStart = new Interval(Start, segment.StartTime);
+                IntervalBucket beforeSegmentStart = new IntervalBucket(Start, segment.StartTime);
                 beforeSegmentStart.AddRange(Elements);
 
-                Interval atSegmentStart = new Interval(segment.StartTime);
+                IntervalBucket atSegmentStart = new IntervalBucket(segment.StartTime);
                 atSegmentStart.AddRange(Elements);
 
-                Interval afterSegmentStart = new Interval(segment.StartTime, End);
+                IntervalBucket afterSegmentStart = new IntervalBucket(segment.StartTime, End);
                 afterSegmentStart.AddRange(Elements);
                 afterSegmentStart.Add(segment);
 
-                return new List<Interval> {beforeSegmentStart, atSegmentStart, afterSegmentStart};
+                return new List<IntervalBucket> {beforeSegmentStart, atSegmentStart, afterSegmentStart};
             }
 
             case OverlapTypes.SegmentEndContained:
             {
-                Interval beforeSegmentEnd = new Interval(Start, segment.EndTime);
+                IntervalBucket beforeSegmentEnd = new IntervalBucket(Start, segment.EndTime);
                 beforeSegmentEnd.AddRange(Elements);
                 beforeSegmentEnd.Add(segment);
 
-                Interval atSegmentEnd = new Interval(segment.EndTime);
+                IntervalBucket atSegmentEnd = new IntervalBucket(segment.EndTime);
                 atSegmentEnd.AddRange(Elements);
 
-                Interval afterSegmentEnd = new Interval(segment.EndTime, End);
+                IntervalBucket afterSegmentEnd = new IntervalBucket(segment.EndTime, End);
                 afterSegmentEnd.AddRange(Elements);
 
-                return new List<Interval> {beforeSegmentEnd, atSegmentEnd, afterSegmentEnd};
+                return new List<IntervalBucket> {beforeSegmentEnd, atSegmentEnd, afterSegmentEnd};
             }
 
             case OverlapTypes.SegmentFullyContained:
             {
-                Interval beforeSegmentStart = new Interval(Start, segment.StartTime);
+                IntervalBucket beforeSegmentStart = new IntervalBucket(Start, segment.StartTime);
                 beforeSegmentStart.AddRange(Elements);
 
-                Interval atSegmentStart = new Interval(segment.StartTime);
+                IntervalBucket atSegmentStart = new IntervalBucket(segment.StartTime);
                 atSegmentStart.AddRange(Elements);
 
-                Interval whileSegmentExists = new Interval(segment.StartTime, segment.EndTime);
+                IntervalBucket whileSegmentExists = new IntervalBucket(segment.StartTime, segment.EndTime);
                 whileSegmentExists.AddRange(Elements);
                 whileSegmentExists.Add(segment);
 
-                Interval atSegmentEnd = new Interval(segment.EndTime);
+                IntervalBucket atSegmentEnd = new IntervalBucket(segment.EndTime);
                 atSegmentEnd.AddRange(Elements);
 
-                Interval afterSegmentEnd = new Interval(segment.EndTime, End);
+                IntervalBucket afterSegmentEnd = new IntervalBucket(segment.EndTime, End);
                 afterSegmentEnd.AddRange(Elements);
 
-                return new List<Interval>
+                return new List<IntervalBucket>
                 {
                     beforeSegmentStart,
                     atSegmentStart,
@@ -366,24 +366,24 @@ internal class Interval
     /// Splits the interval so that one piece has the given segment in its set,
     /// while maintaining the invariant that each piece is fully contained in its segments' supports.
     /// </summary>
-    public List<Interval> SplitOver(Point point)
+    public List<IntervalBucket> SplitOver(Point point)
     {
         switch (Classify(point))
         {
             case OverlapTypes.SegmentFullyContained:
             case OverlapTypes.PointInside:
             {
-                Interval beforePoint = new Interval(Start, point.Time);
+                IntervalBucket beforePoint = new IntervalBucket(Start, point.Time);
                 beforePoint.AddRange(Elements);
 
-                Interval atPoint = new Interval(point.Time);
+                IntervalBucket atPoint = new IntervalBucket(point.Time);
                 atPoint.AddRange(Elements);
                 atPoint.Add(point);
 
-                Interval afterPoint = new Interval(point.Time, End);
+                IntervalBucket afterPoint = new IntervalBucket(point.Time, End);
                 afterPoint.AddRange(Elements);
 
-                return new List<Interval> {beforePoint, atPoint, afterPoint};
+                return new List<IntervalBucket> {beforePoint, atPoint, afterPoint};
             }
 
             case OverlapTypes.NoOverlap:
@@ -407,7 +407,7 @@ internal class Interval
     /// <param name="elements">The set of elements to group by overlaps</param>
     /// <param name="settings">Computation settings, to fine-tune algorithm performance</param>
     /// <returns>A set of intervals grouping up the elements by their overlaps</returns>
-    public static List<Interval> ComputeIntervals(
+    public static List<IntervalBucket> ComputeIntervals(
         IReadOnlyList<Element> elements,
         ComputationSettings? settings = null)
     {
@@ -419,7 +419,7 @@ internal class Interval
         #if DO_LOG
         var prebuildStopwatch = Stopwatch.StartNew();
         #endif
-        var intervalTree = new IntervalTree(GetPrebuiltIntervals(), settings);
+        var intervalTree = new IntervalBucketTree(GetPrebuiltIntervals(), settings);
         #if DO_LOG
         prebuildStopwatch.Stop();
         logger.Trace(
@@ -466,7 +466,7 @@ internal class Interval
 
         //Local functions
 
-        List<Interval> GetPrebuiltIntervals()
+        List<IntervalBucket> GetPrebuiltIntervals()
         {
             var doParallel = settings.UseParallelComputeIntervals &&
                              elements.Count > settings.ParallelComputeIntervalsThreshold;
@@ -492,10 +492,10 @@ internal class Interval
                     .AsParallel()
                     .SelectMany(pair => new[]
                     {
-                        new Interval(pair.a),
-                        new Interval(pair.a, pair.b)
+                        new IntervalBucket(pair.a),
+                        new IntervalBucket(pair.a, pair.b)
                     })
-                    .Append(new Interval(orderedTimes.Last())) //tail interval
+                    .Append(new IntervalBucket(orderedTimes.Last())) //tail interval
                     .ToList();
 
                 return prebuiltIntervals;
@@ -519,10 +519,10 @@ internal class Interval
                 var prebuiltIntervals = timePairs
                     .SelectMany(pair => new[]
                     {
-                        new Interval(pair.a),
-                        new Interval(pair.a, pair.b)
+                        new IntervalBucket(pair.a),
+                        new IntervalBucket(pair.a, pair.b)
                     })
-                    .Append(new Interval(orderedTimes.Last())) //tail interval
+                    .Append(new IntervalBucket(orderedTimes.Last())) //tail interval
                     .ToList();
 
                 return prebuiltIntervals;
@@ -633,7 +633,7 @@ internal class Interval
     /// <param name="a">First sequence</param>
     /// <param name="b">Second sequence</param>
     /// <returns>A set of intervals grouping up the elements of the sequences by their overlaps</returns>
-    public static List<Interval> ComputeIntervals(Sequence a, Sequence b)
+    public static List<IntervalBucket> ComputeIntervals(Sequence a, Sequence b)
     {
         #if DO_LOG
         logger.Trace($"Start: linear compute intervals, sequences of lengths {a.Count} and {b.Count}");
@@ -650,9 +650,9 @@ internal class Interval
 
         return intervals;
 
-        IEnumerable<Interval> IntervalsIterator()
+        IEnumerable<IntervalBucket> IntervalsIterator()
         {
-            Interval? currentInterval = null;
+            IntervalBucket? currentInterval = null;
 
             foreach (var element in ElementsIterator(a, b))
             {
@@ -660,7 +660,7 @@ internal class Interval
                 {
                     case Point p:
                     {
-                        currentInterval ??= new Interval(p.Time);
+                        currentInterval ??= new IntervalBucket(p.Time);
 
                         if (currentInterval.IsPointInterval && currentInterval.Start == p.Time)
                         {
@@ -670,7 +670,7 @@ internal class Interval
                         else
                         {
                             yield return currentInterval;
-                            currentInterval = new Interval(p.Time);
+                            currentInterval = new IntervalBucket(p.Time);
                             currentInterval.Add(p);
                             continue;
                         }
@@ -678,7 +678,7 @@ internal class Interval
 
                     case Segment s:
                     {
-                        currentInterval ??= new Interval(s.StartTime, s.EndTime);
+                        currentInterval ??= new IntervalBucket(s.StartTime, s.EndTime);
 
                         if (currentInterval.IsSegmentInterval &&
                             currentInterval.Start == s.StartTime &&
@@ -690,7 +690,7 @@ internal class Interval
                         else
                         {
                             yield return currentInterval;
-                            currentInterval = new Interval(s.StartTime, s.EndTime);
+                            currentInterval = new IntervalBucket(s.StartTime, s.EndTime);
                             currentInterval.Add(s);
                             continue;
                         }
@@ -1542,7 +1542,7 @@ internal class Interval
 }
 
 /// <summary>
-/// Provides LINQ extensions methods for <see cref="Interval"/>.
+/// Provides LINQ extensions methods for <see cref="IntervalBucket"/>.
 /// </summary>
 internal static class IntervalExtensions
 {
@@ -1553,7 +1553,7 @@ internal static class IntervalExtensions
     /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end
     /// </summary>
-    internal static bool AreInTimeOrder(this IEnumerable<Interval> intervals)
+    internal static bool AreInTimeOrder(this IEnumerable<IntervalBucket> intervals)
     {
         var lastStartTime = Rational.MinusInfinity;
         var lastEndTime = Rational.MinusInfinity;
@@ -1593,9 +1593,9 @@ internal static class IntervalExtensions
 
     /// <summary>
     /// Checks if the intervals form a sequence.
-    /// In addition to <see cref="AreInTimeOrder(IEnumerable{Interval})"/> it requires non-overlapping, but it allows gaps.
+    /// In addition to <see cref="AreInTimeOrder(IEnumerable{IntervalBucket})"/> it requires non-overlapping, but it allows gaps.
     /// </summary>
-    internal static bool AreInTimeSequence(this IEnumerable<Interval> intervals)
+    internal static bool AreInTimeSequence(this IEnumerable<IntervalBucket> intervals)
     {
         var nextExpectedTime = Rational.MinusInfinity;
         foreach (var interval in intervals)
@@ -1617,7 +1617,7 @@ internal static class IntervalExtensions
     /// <summary>
     /// Sorts the intervals in time order
     /// </summary>
-    internal static IReadOnlyList<Interval> SortIntervals(this IReadOnlyList<Interval> intervals, ComputationSettings? settings = null)
+    internal static IReadOnlyList<IntervalBucket> SortIntervals(this IReadOnlyList<IntervalBucket> intervals, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         const int ParallelizationThreshold = 10_000;
@@ -1637,7 +1637,7 @@ internal static class IntervalExtensions
         else
         {
             var doParallel = settings.UseParallelComputeIntervals && intervals.Count >= ParallelizationThreshold;
-            List<Interval> sorted;
+            List<IntervalBucket> sorted;
             if (doParallel)
             {
                 sorted = intervals

@@ -1747,7 +1747,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         var aCut = a.Cut(start, end, isLeftClosed, isRightClosed);
         var bCut = b.Cut(start, end, isLeftClosed, isRightClosed);
 
-        var intervals = Interval.ComputeIntervals(aCut, bCut);
+        var intervals = IntervalBucket.ComputeIntervals(aCut, bCut);
         var sumElements = intervals
             .Select(interval => Element.Addition(interval.Elements))
             .ToList();
@@ -1892,7 +1892,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     public static List<Element> LowerEnvelope(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        var intervals = Interval.ComputeIntervals(a, b);
+        var intervals = IntervalBucket.ComputeIntervals(a, b);
         List<Element> lowerElements;
         if (settings.UseParallelLowerEnvelope)
         {
@@ -1974,7 +1974,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     public static List<Element> UpperEnvelope(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        var intervals = Interval.ComputeIntervals(a, b);
+        var intervals = IntervalBucket.ComputeIntervals(a, b);
 
         List<Element> upperElements;
         if (settings.UseParallelUpperEnvelope)

@@ -52,7 +52,7 @@ public class JsonComputeIntervals
             UseParallelComputeIntervals = true,
             ParallelComputeIntervalsThreshold = 1_000
         };
-        var intervals = Interval.ComputeIntervals(elements, settings);
+        var intervals = IntervalBucket.ComputeIntervals(elements, settings);
 
         //Check that the intervals contain the proper elements
         foreach (var interval in intervals)

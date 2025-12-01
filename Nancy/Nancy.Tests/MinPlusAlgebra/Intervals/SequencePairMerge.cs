@@ -31,7 +31,7 @@ public class SequencePairMerge
         Sequence sequenceB = new Sequence(elementsB);
 
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(8, intervals.Count);
@@ -69,7 +69,7 @@ public class SequencePairMerge
         Sequence sequenceB = new Sequence(elementsB);
 
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(10, intervals.Count);
@@ -107,7 +107,7 @@ public class SequencePairMerge
         Sequence sequenceB = new Sequence(elementsB);
 
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(4, intervals.Count);
@@ -157,7 +157,7 @@ public class SequencePairMerge
         Sequence sequenceB = new Sequence(elementsB);
 
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(16, intervals.Count);
@@ -195,7 +195,7 @@ public class SequencePairMerge
         };
         Sequence sequenceB = new Sequence(elementsB);
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(10, intervals.Count);
@@ -243,7 +243,7 @@ public class SequencePairMerge
         Sequence sequenceB = new Sequence(elementsB);
 
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(8, intervals.Count);
@@ -291,7 +291,7 @@ public class SequencePairMerge
         Sequence sequenceB = new Sequence(elementsB);
 
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(10, intervals.Count);
@@ -339,7 +339,7 @@ public class SequencePairMerge
         Sequence sequenceB = new Sequence(elementsB);
 
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(4, intervals.Count);
@@ -399,7 +399,7 @@ public class SequencePairMerge
         Sequence sequenceB = new Sequence(elementsB);
 
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(16, intervals.Count);
@@ -436,7 +436,7 @@ public class SequencePairMerge
         };
         Sequence sequenceB = new Sequence(elementsB);
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(8, intervals.Count);
@@ -472,7 +472,7 @@ public class SequencePairMerge
         };
         Sequence sequenceB = new Sequence(elementsB);
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(7, intervals.Count);
@@ -511,7 +511,7 @@ public class SequencePairMerge
         };
         Sequence sequenceB = new Sequence(elementsB);
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(9, intervals.Count);
@@ -549,7 +549,7 @@ public class SequencePairMerge
         };
         Sequence sequenceB = new Sequence(elementsB);
 
-        var intervals = Interval.ComputeIntervals(sequenceA, sequenceB);
+        var intervals = IntervalBucket.ComputeIntervals(sequenceA, sequenceB);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(8, intervals.Count);
@@ -806,7 +806,7 @@ public class SequencePairMerge
     [MemberData(nameof(ElementsEnumerationCases))]
     public void ElementsEnumeration(Sequence a, Sequence b, List<Element> expected)
     {
-        var result = Interval.ElementsIterator(a, b).ToList();
+        var result = IntervalBucket.ElementsIterator(a, b).ToList();
         Assert.Equal(expected, result);
     }
 }

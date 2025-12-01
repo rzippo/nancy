@@ -46,7 +46,7 @@ public class LowerEnvelopes
     public void PointInterval(Point[] points, Point expected)
     {
         var time = points.First().Time;
-        var interval = new Interval(time);
+        var interval = new IntervalBucket(time);
         interval.AddRange(points);
 
         var result = interval.LowerEnvelope();
@@ -276,7 +276,7 @@ public class LowerEnvelopes
     {
         var start = segments.First().StartTime;
         var end = segments.First().EndTime;
-        var interval = new Interval(start, end);
+        var interval = new IntervalBucket(start, end);
         interval.AddRange(segments);
 
         var result = interval.LowerEnvelope();
@@ -598,7 +598,7 @@ public class LowerEnvelopes
     public void ConquerPhase(List<Element> le_a, List<Element> le_b, List<Element> expected)
     {
         var envelopes = new List<List<Element>> { le_a, le_b };
-        var result = Interval.LowerEnvelope(envelopes);
+        var result = IntervalBucket.LowerEnvelope(envelopes);
 
         Assert.Equal(expected, result);
     }

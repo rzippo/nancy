@@ -8,17 +8,17 @@ using NLog;
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
-internal class IntervalTree
+internal class IntervalBucketTree
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
     #endif
 
-    public IReadOnlyList<Interval> Intervals { get; }
+    public IReadOnlyList<IntervalBucket> Intervals { get; }
 
     public int Count => Intervals.Count;
 
-    public IntervalTree(IReadOnlyList<Interval> intervals, ComputationSettings? settings = null)
+    public IntervalBucketTree(IReadOnlyList<IntervalBucket> intervals, ComputationSettings? settings = null)
     {
         Intervals = intervals
             .SortIntervals(settings);
@@ -29,7 +29,7 @@ internal class IntervalTree
 #endif
     }
 
-    public Interval? Query(Rational time)
+    public IntervalBucket? Query(Rational time)
     {
         int a = 0;
         int b = Count - 1;
@@ -54,7 +54,7 @@ internal class IntervalTree
         return (interval.IsPointInterval && interval.Start == time) ? interval : null;
     }
 
-    public IEnumerable<Interval> Query(Rational start, Rational end)
+    public IEnumerable<IntervalBucket> Query(Rational start, Rational end)
     {
         int startIndex = findStart();
         int endIndex = findEnd();

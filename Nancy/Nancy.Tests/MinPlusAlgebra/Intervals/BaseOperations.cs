@@ -9,71 +9,71 @@ public class BaseOperations
     [Fact]
     public void Classification()
     {
-        Interval interval = new Interval(1, 10);
+        IntervalBucket intervalBucket = new IntervalBucket(1, 10);
 
         Assert.Equal(
-            Interval.OverlapTypes.NoOverlap,
-            interval.Classify(Segment.Zero(11, 20)));
+            IntervalBucket.OverlapTypes.NoOverlap,
+            intervalBucket.Classify(Segment.Zero(11, 20)));
 
         Assert.Equal(
-            Interval.OverlapTypes.SegmentSupportContainsInterval,
-            interval.Classify(Segment.Zero(1, 10)));
+            IntervalBucket.OverlapTypes.SegmentSupportContainsInterval,
+            intervalBucket.Classify(Segment.Zero(1, 10)));
 
         Assert.Equal(
-            Interval.OverlapTypes.SegmentSupportContainsInterval,
-            interval.Classify(Segment.Zero(0, 12)));
+            IntervalBucket.OverlapTypes.SegmentSupportContainsInterval,
+            intervalBucket.Classify(Segment.Zero(0, 12)));
 
         Assert.Equal(
-            Interval.OverlapTypes.SegmentFullyContained,
-            interval.Classify(Segment.Zero(2, 8)));
+            IntervalBucket.OverlapTypes.SegmentFullyContained,
+            intervalBucket.Classify(Segment.Zero(2, 8)));
 
         Assert.Equal(
-            Interval.OverlapTypes.SegmentStartContained,
-            interval.Classify(Segment.Zero(4, 12)));
+            IntervalBucket.OverlapTypes.SegmentStartContained,
+            intervalBucket.Classify(Segment.Zero(4, 12)));
 
         Assert.Equal(
-            Interval.OverlapTypes.SegmentEndContained,
-            interval.Classify(Segment.Zero(0, 9)));
+            IntervalBucket.OverlapTypes.SegmentEndContained,
+            intervalBucket.Classify(Segment.Zero(0, 9)));
 
         Assert.Equal(
-            Interval.OverlapTypes.PointInside,
-            interval.Classify(Point.Zero(2)));
+            IntervalBucket.OverlapTypes.PointInside,
+            intervalBucket.Classify(Point.Zero(2)));
 
         Assert.Equal(
-            Interval.OverlapTypes.NoOverlap,
-            interval.Classify(Point.Zero(1)));
+            IntervalBucket.OverlapTypes.NoOverlap,
+            intervalBucket.Classify(Point.Zero(1)));
     }
 
     [Fact]
     public void PointIntervalClassification()
     {
-        Interval interval = new Interval(10);
+        IntervalBucket intervalBucket = new IntervalBucket(10);
 
         Assert.Equal(
-            Interval.OverlapTypes.NoOverlap,
-            interval.Classify(Segment.Zero(11, 20)));
+            IntervalBucket.OverlapTypes.NoOverlap,
+            intervalBucket.Classify(Segment.Zero(11, 20)));
 
         Assert.Equal(
-            Interval.OverlapTypes.NoOverlap,
-            interval.Classify(Segment.Zero(10, 20)));
+            IntervalBucket.OverlapTypes.NoOverlap,
+            intervalBucket.Classify(Segment.Zero(10, 20)));
 
         Assert.Equal(
-            Interval.OverlapTypes.NoOverlap,
-            interval.Classify(Segment.Zero(0, 10)));
+            IntervalBucket.OverlapTypes.NoOverlap,
+            intervalBucket.Classify(Segment.Zero(0, 10)));
 
         Assert.Equal(
-            Interval.OverlapTypes.PointInside,
-            interval.Classify(Point.Zero(10)));
+            IntervalBucket.OverlapTypes.PointInside,
+            intervalBucket.Classify(Point.Zero(10)));
     }
 
     [Fact]
     public void SplitMiddle()
     {
-        Interval interval = new Interval(1, 10);
-        interval.Add(Segment.Zero(1, 10));
-        interval.Add(Segment.Zero(0, 12));
+        IntervalBucket intervalBucket = new IntervalBucket(1, 10);
+        intervalBucket.Add(Segment.Zero(1, 10));
+        intervalBucket.Add(Segment.Zero(0, 12));
 
-        Interval[] split = interval.SplitOver(Point.Zero(5)).ToArray();
+        IntervalBucket[] split = intervalBucket.SplitOver(Point.Zero(5)).ToArray();
 
         Assert.Equal(3, split.Length);
         Assert.Equal(2, split[0].Count);
@@ -84,11 +84,11 @@ public class BaseOperations
     [Fact]
     public void SplitLeftHalf()
     {
-        Interval interval = new Interval(1, 10);
-        interval.Add(Segment.Zero(1, 10));
-        interval.Add(Segment.Zero(0, 12));
+        IntervalBucket intervalBucket = new IntervalBucket(1, 10);
+        intervalBucket.Add(Segment.Zero(1, 10));
+        intervalBucket.Add(Segment.Zero(0, 12));
 
-        Interval[] split = interval.SplitOver(Segment.Zero(0, 5)).ToArray();
+        IntervalBucket[] split = intervalBucket.SplitOver(Segment.Zero(0, 5)).ToArray();
 
         Assert.Equal(3, split.Length);
 
@@ -105,11 +105,11 @@ public class BaseOperations
     [Fact]
     public void SplitRightHalf()
     {
-        Interval interval = new Interval(1, 10);
-        interval.Add(Segment.Zero(1, 10));
-        interval.Add(Segment.Zero(0, 12));
+        IntervalBucket intervalBucket = new IntervalBucket(1, 10);
+        intervalBucket.Add(Segment.Zero(1, 10));
+        intervalBucket.Add(Segment.Zero(0, 12));
 
-        Interval[] split = interval.SplitOver(Segment.Zero(5, 13)).ToArray();
+        IntervalBucket[] split = intervalBucket.SplitOver(Segment.Zero(5, 13)).ToArray();
 
         Assert.Equal(3, split.Length);
 
@@ -126,11 +126,11 @@ public class BaseOperations
     [Fact]
     public void SplitStartToMiddle()
     {
-        Interval interval = new Interval(1, 10);
-        interval.Add(Segment.Zero(1, 10));
-        interval.Add(Segment.Zero(0, 12));
+        IntervalBucket intervalBucket = new IntervalBucket(1, 10);
+        intervalBucket.Add(Segment.Zero(1, 10));
+        intervalBucket.Add(Segment.Zero(0, 12));
 
-        Interval[] split = interval.SplitOver(Segment.Zero(1, 5)).ToArray();
+        IntervalBucket[] split = intervalBucket.SplitOver(Segment.Zero(1, 5)).ToArray();
 
         Assert.Equal(3, split.Length);
 
@@ -147,11 +147,11 @@ public class BaseOperations
     [Fact]
     public void SplitMiddleToEnd()
     {
-        Interval interval = new Interval(1, 10);
-        interval.Add(Segment.Zero(1, 10));
-        interval.Add(Segment.Zero(0, 12));
+        IntervalBucket intervalBucket = new IntervalBucket(1, 10);
+        intervalBucket.Add(Segment.Zero(1, 10));
+        intervalBucket.Add(Segment.Zero(0, 12));
 
-        Interval[] split = interval.SplitOver(Segment.Zero(5, 10)).ToArray();
+        IntervalBucket[] split = intervalBucket.SplitOver(Segment.Zero(5, 10)).ToArray();
 
         Assert.Equal(3, split.Length);
 
@@ -168,10 +168,10 @@ public class BaseOperations
     [Fact]
     public void SplitPointAtStart()
     {
-        Interval interval = new Interval(1, 10);
-        interval.Add(Segment.Zero(1, 10));
-        interval.Add(Segment.Zero(0, 12));
+        IntervalBucket intervalBucket = new IntervalBucket(1, 10);
+        intervalBucket.Add(Segment.Zero(1, 10));
+        intervalBucket.Add(Segment.Zero(0, 12));
 
-        Assert.ThrowsAny<Exception>(() => interval.SplitOver(Point.Zero(1)));
+        Assert.ThrowsAny<Exception>(() => intervalBucket.SplitOver(Point.Zero(1)));
     }
 }

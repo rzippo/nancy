@@ -22,7 +22,7 @@ public class RangeTree
             Segment.Zero(9, 15)
         };
 
-        var intervals = Interval.ComputeIntervals(elements);
+        var intervals = IntervalBucket.ComputeIntervals(elements);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(15, intervals.Count);
@@ -61,7 +61,7 @@ public class RangeTree
             ParallelComputeIntervalsThreshold = 100
         };
 
-        var intervals = Interval.ComputeIntervals(elements, settings);
+        var intervals = IntervalBucket.ComputeIntervals(elements, settings);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(15, intervals.Count);
@@ -93,7 +93,7 @@ public class RangeTree
             Segment.Zero(60, 100)
         };
 
-        var intervals = Interval.ComputeIntervals(elements);
+        var intervals = IntervalBucket.ComputeIntervals(elements);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(6, intervals.Count);
@@ -123,7 +123,7 @@ public class RangeTree
             Segment.Zero(10, 15),
         };
 
-        var intervals = Interval.ComputeIntervals(elements);
+        var intervals = IntervalBucket.ComputeIntervals(elements);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(4, intervals.Count);
@@ -153,7 +153,7 @@ public class RangeTree
             Segment.Zero(10, 15),
         };
 
-        var intervals = Interval.ComputeIntervals(elements);
+        var intervals = IntervalBucket.ComputeIntervals(elements);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(4, intervals.Count);
@@ -192,7 +192,7 @@ public class RangeTree
         Sequence sequenceB = new Sequence(elementsB);
 
         var elements = sequenceA.Elements.Concat(sequenceB.Elements);
-        var intervals = Interval.ComputeIntervals(elements.ToList());
+        var intervals = IntervalBucket.ComputeIntervals(elements.ToList());
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(10, intervals.Count);
@@ -226,7 +226,7 @@ public class RangeTree
             Select(e => e.HorizontalShift(-20))
             .ToArray();
 
-        var intervals = Interval.ComputeIntervals(elements);
+        var intervals = IntervalBucket.ComputeIntervals(elements);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(15, intervals.Count);
@@ -260,7 +260,7 @@ public class RangeTree
             Select(e => e.HorizontalShift(-200))
             .ToArray();
 
-        var intervals = Interval.ComputeIntervals(elements);
+        var intervals = IntervalBucket.ComputeIntervals(elements);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(6, intervals.Count);
@@ -295,7 +295,7 @@ public class RangeTree
             Select(e => e.HorizontalShift(-20))
             .ToArray();
 
-        var intervals = Interval.ComputeIntervals(elements);
+        var intervals = IntervalBucket.ComputeIntervals(elements);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(4, intervals.Count);
@@ -330,7 +330,7 @@ public class RangeTree
             Select(e => e.HorizontalShift(-20))
             .ToArray();
 
-        var intervals = Interval.ComputeIntervals(elements);
+        var intervals = IntervalBucket.ComputeIntervals(elements);
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(4, intervals.Count);
@@ -367,7 +367,7 @@ public class RangeTree
         Sequence sequenceB = new Sequence(elementsB);
 
         var elements = sequenceA.Elements.Concat(sequenceB.Elements);
-        var intervals = Interval.ComputeIntervals(elements.ToList());
+        var intervals = IntervalBucket.ComputeIntervals(elements.ToList());
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(8, intervals.Count);
@@ -404,7 +404,7 @@ public class RangeTree
         Sequence sequenceB = new Sequence(elementsB);
 
         var elements = sequenceA.Elements.Concat(sequenceB.Elements);
-        var intervals = Interval.ComputeIntervals(elements.ToList());
+        var intervals = IntervalBucket.ComputeIntervals(elements.ToList());
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(7, intervals.Count);
@@ -444,7 +444,7 @@ public class RangeTree
         Sequence sequenceB = new Sequence(elementsB);
 
         var elements = sequenceA.Elements.Concat(sequenceB.Elements);
-        var intervals = Interval.ComputeIntervals(elements.ToList());
+        var intervals = IntervalBucket.ComputeIntervals(elements.ToList());
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(9, intervals.Count);
@@ -483,7 +483,7 @@ public class RangeTree
         Sequence sequenceB = new Sequence(elementsB);
 
         var elements = sequenceA.Elements.Concat(sequenceB.Elements);
-        var intervals = Interval.ComputeIntervals(elements.ToList());
+        var intervals = IntervalBucket.ComputeIntervals(elements.ToList());
 
         Assert.True(intervals.AreInTimeOrder());
         Assert.Equal(8, intervals.Count);

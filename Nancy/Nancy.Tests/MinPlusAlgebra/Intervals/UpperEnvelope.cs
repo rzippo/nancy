@@ -46,7 +46,7 @@ public class UpperEnvelopes
     public void PointInterval(Point[] points, Point expected)
     {
         var time = points.First().Time;
-        var interval = new Interval(time);
+        var interval = new IntervalBucket(time);
         interval.AddRange(points);
 
         var result = interval.UpperEnvelope();
@@ -345,7 +345,7 @@ public class UpperEnvelopes
     {
         var start = segments.First().StartTime;
         var end = segments.First().EndTime;
-        var interval = new Interval(start, end);
+        var interval = new IntervalBucket(start, end);
         interval.AddRange(segments);
 
         var result = interval.UpperEnvelope();
@@ -389,7 +389,7 @@ public class UpperEnvelopes
     [MemberData(nameof(SegmentIntervalsTestCases))]
     public void SegmentInterval(List<Segment> segments, Rational start, Rational end)
     {
-        var interval = new Interval(start, end);
+        var interval = new IntervalBucket(start, end);
         interval.AddRange(segments);
 
         var result = interval.UpperEnvelope();

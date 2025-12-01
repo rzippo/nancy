@@ -1607,7 +1607,7 @@ public static class SequenceExtensions
         #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
         #endif
-        var intervals = Interval.ComputeIntervals(elements, settings);
+        var intervals = IntervalBucket.ComputeIntervals(elements, settings);
         #if DO_LOG
         intervalsStopwatch.Stop();
         logger.Debug($"Intervals computed: {elements.Count} elements, {intervalsStopwatch.ElapsedMilliseconds} milliseconds ");
@@ -1698,7 +1698,7 @@ public static class SequenceExtensions
         #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
         #endif
-        var intervals = Interval.ComputeIntervals(elements, settings);
+        var intervals = IntervalBucket.ComputeIntervals(elements, settings);
         #if DO_LOG
         intervalsStopwatch.Stop();
         logger.Debug($"Intervals computed: {elements.Count} elements, {intervalsStopwatch.ElapsedMilliseconds} milliseconds ");
