@@ -134,9 +134,9 @@ public readonly record struct Interval : IToCodeString
     public bool IsSubsetOf(Interval other)
     {
         if (this.IsEmpty) 
-            throw new InvalidOperationException($"Set {this.ToString()} is empty.");
+            throw new EmptyIntervalException(this.ToString());
         if (other.IsEmpty) 
-            throw new InvalidOperationException($"Set {other.ToString()} is empty.");
+            throw new EmptyIntervalException(other.ToString());
 
         // Left side: other.Lower <= this.Lower
         int cmpL = Lower.CompareTo(other.Lower);
@@ -164,13 +164,13 @@ public readonly record struct Interval : IToCodeString
     /// Interior of this interval (largest open subset interval).
     /// For any non-empty interval, this is always (Lower, Upper).
     /// </summary>
-    /// <exception cref="InvalidOperationException">
+    /// <exception cref="EmptyIntervalException">
     /// If the interval is empty.
     /// </exception>
     public Interval Interior()
     {
         if (IsEmpty) 
-            throw new InvalidOperationException($"Interval {this.ToString()} is empty.");        
+            throw new EmptyIntervalException(this.ToString());        
         return new Interval(Lower, Upper, false, false);
     }
 
@@ -178,13 +178,13 @@ public readonly record struct Interval : IToCodeString
     /// Closure of this interval (smallest closed superset interval).
     /// For any non-empty interval, this is always [Lower, Upper].
     /// </summary>
-    /// <exception cref="InvalidOperationException">
+    /// <exception cref="EmptyIntervalException">
     /// If the interval is empty.
     /// </exception>
     public Interval Closure()
     {
         if (IsEmpty) 
-            throw new InvalidOperationException($"Interval {this.ToString()} is empty.");
+            throw new EmptyIntervalException(this.ToString());
         return new Interval(Lower, Upper, true, true);
     }
 

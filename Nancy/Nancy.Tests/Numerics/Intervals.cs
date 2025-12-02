@@ -236,7 +236,7 @@ public class IntervalTests
     public void Interior_OfAlreadyEmpty_Throws()
     {
         var empty = Interval.Open(3, 3);            // (3,3) empty
-        Assert.Throws<InvalidOperationException>(() => empty.Interior());
+        Assert.Throws<EmptyIntervalException>(() => empty.Interior());
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class IntervalTests
     public void Closure_OfEmptyInterval_Throws()
     {
         var empty = Interval.Open(2, 2);            // (2,2) empty
-        Assert.Throws<InvalidOperationException>(() => empty.Closure());
+        Assert.Throws<EmptyIntervalException>(() => empty.Closure());
     }
 
     [Fact]
