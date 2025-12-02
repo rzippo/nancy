@@ -110,7 +110,7 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// True if, for some $t$ in the element's definition bounds, $e(t) = value$.
     /// </summary>
-    public abstract bool ContainsValue(Rational value);
+    public abstract bool AttainsValue(Rational value);
 
     #endregion Methods
 

@@ -779,6 +779,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         time >= DefinedFrom && time < DefinedUntil;
 
     /// <summary>
+    /// True if, for some $t$ in the sequence's definition bounds, $s(t) = value$.
+    /// </summary>
+    public bool AttainsValue(Rational value) =>
+        Elements.Any(e => e.AttainsValue(value));
+
+    /// <summary>
     /// Computes the value of the sequence at the given <paramref name="time"/>.
     /// </summary>
     /// <param name="time">The time of sampling.</param>

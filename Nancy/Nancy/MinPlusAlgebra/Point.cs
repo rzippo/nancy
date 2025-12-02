@@ -184,7 +184,7 @@ public sealed class Point : Element, IEquatable<Point>
     }
 
     /// <inheritdoc />
-    public override bool ContainsValue(Rational value)
+    public override bool AttainsValue(Rational value)
     {
         return Value == value;
     }

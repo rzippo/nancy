@@ -287,7 +287,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     }
 
     /// <inheritdoc />
-    public override bool ContainsValue(Rational value)
+    public override bool AttainsValue(Rational value)
     {
         if(IsConstant)
             return RightLimitAtStartTime == value;

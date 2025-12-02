@@ -949,7 +949,7 @@ public static class SequenceExtensions
     {
         var list = elements.ToList();
         var sup = list.SupValue();
-        if (list.Any(e => e.ContainsValue(sup)))
+        if (list.Any(e => e.AttainsValue(sup)))
             return sup;
         else
             return null;
@@ -959,7 +959,7 @@ public static class SequenceExtensions
     public static Rational? MaxValue(this IReadOnlyCollection<Element> elements)
     {
         var sup = elements.SupValue();
-        if (elements.Any(e => e.ContainsValue(sup)))
+        if (elements.Any(e => e.AttainsValue(sup)))
             return sup;
         else
             return null;
@@ -974,7 +974,7 @@ public static class SequenceExtensions
         var list = elements.ToList();
         var sup = list.SupValue();
         var attainingElement = list
-            .FirstOrDefault(e => e.ContainsValue(sup));
+            .FirstOrDefault(e => e.AttainsValue(sup));
 
         return attainingElement switch
         {
@@ -989,7 +989,7 @@ public static class SequenceExtensions
     {
         var sup = elements.SupValue();
         var attainingElement = elements
-            .FirstOrDefault(e => e.ContainsValue(sup));
+            .FirstOrDefault(e => e.AttainsValue(sup));
 
         return attainingElement switch
         {
@@ -1036,7 +1036,7 @@ public static class SequenceExtensions
     {
         var list = elements.ToList();
         var inf = list.InfValue();
-        if (list.Any(e => e.ContainsValue(inf)))
+        if (list.Any(e => e.AttainsValue(inf)))
             return inf;
         else
             return null;
@@ -1047,7 +1047,7 @@ public static class SequenceExtensions
     {
         var list = elements.ToList();
         var inf = list.InfValue();
-        if (list.Any(e => e.ContainsValue(inf)))
+        if (list.Any(e => e.AttainsValue(inf)))
             return inf;
         else
             return null;
@@ -1062,7 +1062,7 @@ public static class SequenceExtensions
         var list = elements.ToList();
         var inf = list.InfValue();
         var attainingElement = list
-            .FirstOrDefault(e => e.ContainsValue(inf));
+            .FirstOrDefault(e => e.AttainsValue(inf));
 
         return attainingElement switch
         {
@@ -1077,7 +1077,7 @@ public static class SequenceExtensions
     {
         var inf = elements.InfValue();
         var attainingElement = elements
-            .FirstOrDefault(e => e.ContainsValue(inf));
+            .FirstOrDefault(e => e.AttainsValue(inf));
 
         return attainingElement switch
         {
