@@ -1144,17 +1144,18 @@ public static class SequenceExtensions
 
     /// <summary>
     /// Computes the lower pseudo-inverse function,
-    /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
+    /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
     /// <param name="elements"></param>
-    /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\downarrow(x)$ be defined from $x = 0$.</param>
-    /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
+    /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\downarrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.</param>
+    /// <exception cref="ArgumentException">If the elements are not non-decreasing.</exception>
     /// <exception cref="ArgumentException">If the collection is empty.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous.
-    /// See [DNC18] § 3.2.1 
+    /// See [DNC18] § 3.2.1
+    /// If there are jumps or plateaus at the endpoints, those may also be lost during pseudoinversion. 
     /// </remarks>
-    public static IEnumerable<Element> LowerPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = true)
+    public static IEnumerable<Element> LowerPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = false)
     {
         var merged = startFromZero ?
             elements.MergeAsEnumerable().SkipUntilValue(0):
@@ -1254,17 +1255,20 @@ public static class SequenceExtensions
                     {
                         if (s.RightLimitAtStartTime > previousValue)
                         {
-                            // right-discontinuity, becomes constant segment
-                            yield return new Segment(
-                                startTime: previousValue,
-                                endTime: s.RightLimitAtStartTime,
-                                rightLimitAtStartTime: s.StartTime,
-                                slope: 0
-                            );
-                            yield return new Point(
-                                time: s.RightLimitAtStartTime,
-                                value: s.StartTime
-                            );
+                            if (previousValue != Rational.MinusInfinity)
+                            {
+                                // right-discontinuity, becomes constant segment
+                                yield return new Segment(
+                                    startTime: previousValue,
+                                    endTime: s.RightLimitAtStartTime,
+                                    rightLimitAtStartTime: s.StartTime,
+                                    slope: 0
+                                );
+                                yield return new Point(
+                                    time: s.RightLimitAtStartTime,
+                                    value: s.StartTime
+                                );
+                            }
                             // then the segment inverse
                             yield return s.Inverse();
                             previousValue = s.LeftLimitAtEndTime;
@@ -1295,17 +1299,19 @@ public static class SequenceExtensions
     }
 
     /// <summary>
-    /// Computes the upper pseudo-inverse function, $f^{-1}_\uparrow(x) = \inf \left\{ t : f(t) > x \right\} = \sup \left\{ t : f(t) &lt;= x \right\}$.
+    /// Computes the upper pseudo-inverse function,
+    /// $f^{-1}_\uparrow(x) = \inf \left\{ t : f(t) > x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
     /// <param name="elements"></param>
-    /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\uparrow(x)$ be defined from $x = 0$.</param>
-    /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
+    /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\uparrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.</param>
+    /// <exception cref="ArgumentException">If the elements are not non-decreasing.</exception>
     /// <exception cref="ArgumentException">If the collection is empty.</exception>
     /// <remarks>
     /// The result of this operation is right-continuous, thus is revertible, i.e. $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous.
-    /// See [DNC18] § 3.2.1 
+    /// See [DNC18] § 3.2.1
+    /// If there are jumps or plateaus at the endpoints, those may also be lost during pseudoinversion. 
     /// </remarks>
-    public static IEnumerable<Element> UpperPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = true)
+    public static IEnumerable<Element> UpperPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = false)
     {
         var merged = startFromZero ?
             elements.MergeAsEnumerable().SkipUntilValue(0):
@@ -1421,17 +1427,20 @@ public static class SequenceExtensions
 
                         if (s.RightLimitAtStartTime > previousValue)
                         {
-                            // right-discontinuity, becomes constant segment
-                            yield return new Segment(
-                                startTime: previousValue,
-                                endTime: s.RightLimitAtStartTime,
-                                rightLimitAtStartTime: s.StartTime,
-                                slope: 0
-                            );
-                            yield return new Point(
-                                time: s.RightLimitAtStartTime,
-                                value: s.StartTime
-                            );
+                            if (previousValue != Rational.MinusInfinity)
+                            {
+                                // right-discontinuity, becomes constant segment
+                                yield return new Segment(
+                                    startTime: previousValue,
+                                    endTime: s.RightLimitAtStartTime,
+                                    rightLimitAtStartTime: s.StartTime,
+                                    slope: 0
+                                );
+                                yield return new Point(
+                                    time: s.RightLimitAtStartTime,
+                                    value: s.StartTime
+                                );
+                            }
                             // then the segment inverse
                             yield return s.Inverse();
                             previousValue = s.LeftLimitAtEndTime;

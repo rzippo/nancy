@@ -2623,7 +2623,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
-            var transient_lpi = CutAsEnumerable(0, constant_start, isEndIncluded: true).LowerPseudoInverse();
+            var transient_lpi = CutAsEnumerable(0, constant_start, isEndIncluded: true).LowerPseudoInverse(startFromZero: true);
             var lpi = IsRightContinuousAt(constant_start)
                 ? transient_lpi
                     .Append(Segment.PlusInfinite(constant_value, constant_value + 2))
@@ -2648,7 +2648,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
                 lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
             var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
-            var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).LowerPseudoInverse();
+            var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).LowerPseudoInverse(startFromZero: true);
             var lpi = isLastFiniteConstant
                 ? transient_lpi
                     .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 2, lastFiniteTime))
@@ -2669,7 +2669,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (ValueAt(T) < 0)
                 T += PseudoPeriodLength;
             var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndIncluded: true)
-                .LowerPseudoInverse()
+                .LowerPseudoInverse(startFromZero: true)
                 .SkipLast(1)
                 .ToSequence();
 
@@ -2685,7 +2685,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
             // the pseudo-inverse of said point is then removed from the result
             var sequence = CutAsEnumerable(0, SecondPseudoPeriodEnd, isEndIncluded: true)
-                .LowerPseudoInverse()
+                .LowerPseudoInverse(startFromZero: true)
                 .SkipLast(1)
                 .ToSequence();
 
@@ -2720,7 +2720,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
             var transient_upi = constant_start > 0
-                ? CutAsEnumerable(0, constant_start).UpperPseudoInverse()
+                ? CutAsEnumerable(0, constant_start).UpperPseudoInverse(startFromZero: true)
                 : Enumerable.Empty<Element>();
             var upi = IsRightContinuousAt(constant_start)
                 ? transient_upi
@@ -2755,7 +2755,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
                 lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
             var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
-            var transient_upi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse();
+            var transient_upi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse(startFromZero: true);
             var upi = isLastFiniteConstant
                 ? transient_upi
                     .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime))
@@ -2788,7 +2788,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (ValueAt(T) < 0)
                 T += PseudoPeriodLength;
             var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndIncluded: true)
-                .UpperPseudoInverse()
+                .UpperPseudoInverse(startFromZero: true)
                 .SkipLast(1)
                 .ToSequence();
 
@@ -2804,7 +2804,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
             // the pseudo-inverse of said point is then removed from the result
             var upi = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
-                .UpperPseudoInverse()
+                .UpperPseudoInverse(startFromZero: true)
                 .SkipLast(1);
 
             var valueAtZero = ValueAt(0);
