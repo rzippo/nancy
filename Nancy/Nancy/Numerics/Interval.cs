@@ -9,7 +9,7 @@ using System;
 /// <summary>
 /// Represents an interval of Rational numbers, endpoints may or may not be included.
 /// </summary>
-public readonly record struct Interval : IToCodeString
+public readonly struct Interval : IToCodeString
 {
     /// <summary>
     /// Lower (or left) endpoint of the interval.
@@ -82,6 +82,96 @@ public readonly record struct Interval : IToCodeString
     /// </summary>
     public static Interval ClosedOpen(Rational a, Rational b) =>
         new Interval(a, b, isLowerIncluded: true, isUpperIncluded: false);
+
+    /// <summary>
+    /// Returns a new interval with the specified lower bound.
+    /// </summary>
+    /// <param name="lower">The new lower bound.</param>
+    /// <returns>
+    /// A new <see cref="Interval"/> with the updated lower bound, or
+    /// <c>this</c> if the value is unchanged.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="lower"/> is greater than the current upper bound.
+    /// </exception>
+    public Interval WithLower(Rational lower)
+    {
+        if (lower == Lower)
+            return this;
+        if(lower > Upper)
+            throw new ArgumentException("Lower bound must be <= upper bound.");
+        return new Interval(
+            lower,
+            Upper,
+            IsLowerIncluded,
+            IsUpperIncluded
+        );
+    }
+
+    /// <summary>
+    /// Returns a new interval with the specified upper bound.
+    /// </summary>
+    /// <param name="upper">The new upper bound.</param>
+    /// <returns>
+    /// A new <see cref="Interval"/> with the updated upper bound, or
+    /// <c>this</c> if the value is unchanged.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="upper"/> is less than the current lower bound.
+    /// </exception>
+    public Interval WithUpper(Rational upper)
+    {
+        if (upper == Upper)
+            return this;
+        if(Lower > upper)
+            throw new ArgumentException("Lower bound must be <= upper bound.");
+        return new Interval(
+            Lower,
+            upper,
+            IsLowerIncluded,
+            IsUpperIncluded
+        );
+    }
+
+    /// <summary>
+    /// Returns a new interval with the specified lower-bound inclusivity.
+    /// </summary>
+    /// <param name="isLowerIncluded">Whether the lower bound is included.</param>
+    /// <returns>
+    /// A new <see cref="Interval"/> with the updated lower-bound inclusion flag, or
+    /// <c>this</c> if the value is unchanged.
+    /// </returns>
+    public Interval WithIsLowerIncluded(bool isLowerIncluded)
+    {
+        if (isLowerIncluded == IsLowerIncluded)
+            return this;
+        return new Interval(
+            Lower,
+            Upper,
+            isLowerIncluded,
+            IsUpperIncluded
+        );
+    }
+
+    /// <summary>
+    /// Returns a new interval with the specified upper-bound inclusivity.
+    /// </summary>
+    /// <param name="isUpperIncluded">Whether the upper bound is included.</param>
+    /// <returns>
+    /// A new <see cref="Interval"/> with the updated upper-bound inclusion flag, or
+    /// <c>this</c> if the value is unchanged.
+    /// </returns>
+    public Interval WithIsUpperIncluded(bool isUpperIncluded)
+    {
+        if (isUpperIncluded == IsUpperIncluded)
+            return this;
+        return new Interval(
+            Lower,
+            Upper,
+            IsLowerIncluded,
+            isUpperIncluded
+        );
+    }
 
     #endregion
 
