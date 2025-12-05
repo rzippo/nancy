@@ -161,4 +161,55 @@ public class SubAdditiveClosure
         }
     }
 
+    public static List<(Curve operand, Curve expected)> KnownSubadditiveClosures =
+    [
+        (
+            operand: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Zero(0, 1),
+                ]),
+                0,
+                1,
+                1
+            ),
+            expected: Curve.Zero()
+        ),
+        (
+            operand: new Curve(
+                new Sequence([
+                    new Point(0, 1),
+                    new Segment(0, 1, 1, 1),
+                ]),
+                0,
+                1,
+                1
+            ),
+            expected: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 1, 1, 1),
+                    new Point(1, 2),
+                    new Segment(1, 2, 2, 1)
+                ]),
+                1,
+                1,
+                1
+            )
+        )
+    ];
+
+    public static IEnumerable<object[]> KnownSubadditiveClosureTestCases()
+        => KnownSubadditiveClosures.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(KnownSubadditiveClosureTestCases))]
+    public void KnownSubadditiveClosureEquivalence(Curve operand, Curve expected)
+    {
+        output.WriteLine($"var operand = {operand.ToCodeString()};");
+        output.WriteLine($"var expected = {expected.ToCodeString()};");
+        var result = operand.SubAdditiveClosure();
+        output.WriteLine($"var result = {result.ToCodeString()};");
+        Assert.True(Curve.Equivalent(expected, result));
+    }
 }
