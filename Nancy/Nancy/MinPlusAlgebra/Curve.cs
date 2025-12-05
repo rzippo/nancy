@@ -2140,7 +2140,7 @@ public class Curve : IToCodeString, IStableHashCode
     /// <summary>
     /// Shifts the curve vertically by an additive factor, i.e. $g(t) = k + f(t)$.
     /// </summary>
-    public virtual Curve VerticalShift(Rational shift, bool exceptOrigin = true)
+    public virtual Curve VerticalShift(Rational shift, bool exceptOrigin = false)
     {
         if (shift == 0)
             return this;

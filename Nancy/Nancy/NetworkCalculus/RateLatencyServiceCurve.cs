@@ -160,7 +160,7 @@ public class RateLatencyServiceCurve : ConvexCurve
     }
 
     /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>
-    public override Curve VerticalShift(Rational shift, bool exceptOrigin = true)
+    public override Curve VerticalShift(Rational shift, bool exceptOrigin = false)
     {
         if (exceptOrigin)
         {
