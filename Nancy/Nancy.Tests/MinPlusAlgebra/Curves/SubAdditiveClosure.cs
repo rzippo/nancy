@@ -196,7 +196,109 @@ public class SubAdditiveClosure
                 1,
                 1
             )
-        )
+        ),
+        (
+            operand: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 2, 2),
+                    new Point(2, 2),
+                    new Segment(2, 3, 2, 1)
+                ]),
+                2,
+                1,
+                1
+            ),
+            expected: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 2, 2),
+                    new Point(2, 2),
+                    new Segment(2, 3, 2, 1)
+                ]),
+                2,
+                1,
+                1
+            )
+        ),
+        (
+            operand: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 2, 2),
+                    new Point(2, 2),
+                    new Segment(2, 3, 2, 2)
+                ]),
+                2,
+                1,
+                2
+            ),
+            expected: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 2, 2),
+                    new Point(2, 2),
+                    new Segment(2, 3, 2, 2),
+                    new Point(3, 4),
+                    Segment.Constant(3, 4, 4)
+                ]),
+                2,
+                2,
+                2
+            )
+        ),
+        (
+            operand: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 2, 1),
+                    new Point(2, 1),
+                    new Segment(2, 3, 1, 2)
+                ]),
+                2,
+                1,
+                2
+            ),
+            expected: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 2, 1),
+                    new Point(2, 1),
+                    new Segment(2, 2.5m, 1, 2),
+                    new Point(2.5m, 2),
+                    Segment.Constant(2.5m, 4, 2),
+                ]),
+                2,
+                2,
+                1
+            )
+        ),
+        (
+            operand: new Curve(
+                new Sequence([
+                    new Point(0, 1),
+                    Segment.Constant(0, 2, 1),
+                    new Point(2, 1),
+                    new Segment(2, 3, 1, 2)
+                ]),
+                2,
+                1,
+                2
+            ),
+            expected: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 2, 1),
+                    new Point(2, 1),
+                    new Segment(2, 2.5m, 1, 2),
+                    new Point(2.5m, 2),
+                    Segment.Constant(2.5m, 4, 2),
+                ]),
+                2,
+                2,
+                1
+            )
+        ),
     ];
 
     public static IEnumerable<object[]> KnownSubadditiveClosureTestCases()
@@ -209,6 +311,24 @@ public class SubAdditiveClosure
         output.WriteLine($"var operand = {operand.ToCodeString()};");
         output.WriteLine($"var expected = {expected.ToCodeString()};");
         var result = operand.SubAdditiveClosure();
+        output.WriteLine($"var result = {result.ToCodeString()};");
+        Assert.True(Curve.Equivalent(expected, result));
+    }
+
+    [Theory]
+    [MemberData(nameof(KnownSubadditiveClosureTestCases))]
+    public void KnownSubadditiveClosureEquivalenceWithForcedTransient(Curve operand, Curve expected)
+    {
+        output.WriteLine($"var operand = {operand.ToCodeString()};");
+        var forcedTransient = new Curve(
+            operand.Cut(0, operand.FirstPseudoPeriodEnd * 2 + operand.PseudoPeriodLength),
+            operand.FirstPseudoPeriodEnd * 2,
+            operand.PseudoPeriodLength,
+            operand.PseudoPeriodHeight
+        );
+        output.WriteLine($"var forcedTransient = {forcedTransient.ToCodeString()};");
+        output.WriteLine($"var expected = {expected.ToCodeString()};");
+        var result = forcedTransient.SubAdditiveClosure();
         output.WriteLine($"var result = {result.ToCodeString()};");
         Assert.True(Curve.Equivalent(expected, result));
     }

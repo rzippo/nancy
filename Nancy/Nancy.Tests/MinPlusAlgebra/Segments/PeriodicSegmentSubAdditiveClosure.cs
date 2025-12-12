@@ -1,11 +1,20 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+﻿using System.Collections.Generic;
+using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Segments;
 
-public class PeriodicSegmentClosure
+public class PeriodicSegmentSubAdditiveClosure
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public PeriodicSegmentSubAdditiveClosure(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void TypeA_1()
     {
@@ -350,4 +359,96 @@ public class PeriodicSegmentClosure
     }
 
     //todo: add test for infinite segment
+
+    // todo: fill in more cases from notes
+    
+    public static
+        List<(Segment segment, Rational periodLength, Rational periodHeight, Curve closure)>
+        KnownPeriodicSegmentSubAdditiveClosures =
+            [
+                // Type A1 (say more...)
+                (
+                    segment: new Segment(1, 2, 1, 2),
+                    periodLength: 4,
+                    periodHeight: 6,
+                    closure: new Curve(
+                        new Sequence([
+                            Point.Origin(),
+                            Segment.PlusInfinite(0, 1),
+                            Point.PlusInfinite(1),
+                            new Segment(1, 2, 1, 2),
+                            Point.PlusInfinite(2),
+                            new Segment(2, 3, 2, 2),
+                            new Point(3, 4),
+                            new Segment(3, 4, 3, 2),
+                        ]),
+                        3,
+                        1,
+                        1
+                    )
+                ),
+                // Type A2 (say more...)
+                (
+                    segment: new Segment(5, 6, 5, 2),
+                    periodLength: 4,
+                    periodHeight: 6,
+                    closure: new Curve(
+                        new Sequence([
+                            Point.Origin(),
+                            Segment.PlusInfinite(0, 5),
+                            Point.PlusInfinite(5),
+                            new Segment(5, 6, 5, 2),
+                            Point.PlusInfinite(6),
+                            Segment.PlusInfinite(6, 9),
+                            Point.PlusInfinite(9),
+                            new Segment(9, 10, 11, 2),
+                            Point.PlusInfinite(10),
+                            new Segment(10, 12, 10, 2),
+                            Point.PlusInfinite(12),
+                            Segment.PlusInfinite(12, 13),
+                            Point.PlusInfinite(13),
+                            new Segment(13, 14, 17, 2),
+                            Point.PlusInfinite(14),
+                            new Segment(14, 15, 16, 2),
+                            new Point(15, 18),
+                            new Segment(15, 18, 15, 2),
+                            Point.PlusInfinite(18),
+                            new Segment(18, 19, 22, 2),
+                            new Point(19, 24),
+                            new Segment(19, 20, 21, 2),
+                            new Point(20, 23),
+                            new Segment(20, 24, 20, 2),
+                            new Point(24, 29),
+                            new Segment(24, 25, 26, 2),
+                            new Point(25, 28),
+                            new Segment(25, 29, 25, 2),
+                            new Point(29, 33),
+                            new Segment(29, 30, 31, 2),
+                            new Point(30, 33),
+                            new Segment(30, 34, 30, 2)
+                        ]),
+                        29,
+                        5,
+                        5
+                    )
+                ),
+            ];
+    
+    public static IEnumerable<object[]> KnownPeriodicSegmentSubAdditiveClosuresTestCases
+        => KnownPeriodicSegmentSubAdditiveClosures.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(KnownPeriodicSegmentSubAdditiveClosuresTestCases))]
+    public void KnownSegmentSubAdditiveClosuresEquivalenceTest(
+        Segment segment, Rational periodLength, Rational periodHeight, Curve closure
+    )
+    {
+        _testOutputHelper.WriteLine($"var segment = {segment.ToCodeString()};");
+        _testOutputHelper.WriteLine($"var periodLength = {periodLength.ToCodeString()};");
+        _testOutputHelper.WriteLine($"var periodHeight = {periodHeight.ToCodeString()};");
+        _testOutputHelper.WriteLine($"var closure = {closure.ToCodeString()};");
+        var result = segment.SubAdditiveClosure(periodLength, periodHeight);
+        _testOutputHelper.WriteLine($"var result = {result.ToCodeString()};");
+        Assert.True(Curve.Equivalent(closure, result));
+    }
 }

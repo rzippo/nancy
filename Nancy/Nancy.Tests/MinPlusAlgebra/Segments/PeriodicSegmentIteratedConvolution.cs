@@ -1,11 +1,20 @@
+using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Segments;
 
-public class PeriodicSegmentConvolution
+public class PeriodicSegmentIteratedConvolution
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public PeriodicSegmentIteratedConvolution(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void DisjointSegments_AbovePeriod()
     {
@@ -18,7 +27,7 @@ public class PeriodicSegmentConvolution
             slope: 5
         );
 
-        Curve curve = segment.PeriodicSegmentConvolution(
+        Curve curve = segment.PeriodicSegmentIteratedConvolution(
             pseudoPeriodHeight: 6,
             pseudoPeriodLength: 12,
             k: 4
@@ -58,7 +67,7 @@ public class PeriodicSegmentConvolution
             slope: 1
         );
 
-        Curve curve = segment.PeriodicSegmentConvolution(
+        Curve curve = segment.PeriodicSegmentIteratedConvolution(
             pseudoPeriodHeight: 6,
             pseudoPeriodLength: 12,
             k: 4
@@ -98,7 +107,7 @@ public class PeriodicSegmentConvolution
             slope: 5
         );
 
-        Curve curve = segment.PeriodicSegmentConvolution(
+        Curve curve = segment.PeriodicSegmentIteratedConvolution(
             pseudoPeriodHeight: 6,
             pseudoPeriodLength: 12,
             k: 8
@@ -138,7 +147,7 @@ public class PeriodicSegmentConvolution
             slope: 1
         );
 
-        Curve curve = segment.PeriodicSegmentConvolution(
+        Curve curve = segment.PeriodicSegmentIteratedConvolution(
             pseudoPeriodHeight: 16,
             pseudoPeriodLength: 12,
             k: 8
@@ -169,4 +178,55 @@ public class PeriodicSegmentConvolution
         Assert.Equal(92, curve.RightLimitAt(72));
         Assert.Equal(104, curve.LeftLimitAt(84));
     }
+
+    public static
+        List<(Segment segment, Rational periodLength, Rational periodHeight, uint k, Curve iteratedConvolution)>
+        KnownPeriodicSegmentIteratedConvolutions =
+        [
+            (
+                segment: new Segment(4, 6, 5, 5),
+                periodLength: 12,
+                periodHeight: 6,
+                k: 0,
+                iteratedConvolution: Curve.PlusInfinite().WithZeroOrigin()
+            ),
+            (
+                segment: new Segment(4, 6, 5, 5),
+                periodLength: 12,
+                periodHeight: 6,
+                k: 4,
+                iteratedConvolution: new Curve(new Sequence([
+                        Point.PlusInfinite(0),
+                        Segment.PlusInfinite(0, 16),
+                        Point.PlusInfinite(16),
+                        new Segment(16, 24, 20, 5),
+                        Point.PlusInfinite(24),
+                        Segment.PlusInfinite(24, 28),
+                    ]),
+                    16,
+                    12,
+                    6
+                )
+            )
+        ];
+    
+    public static IEnumerable<object[]> KnownPeriodicSegmentIteratedConvolutionsTestCases
+        => KnownPeriodicSegmentIteratedConvolutions.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(KnownPeriodicSegmentIteratedConvolutionsTestCases))]
+    public void KnownPeriodicSegmentIteratedConvolutionsEquivalenceTest(
+        Segment segment, Rational periodLength, Rational periodHeight, uint k, Curve iteratedConvolution
+    )
+    {
+        _testOutputHelper.WriteLine($"var segment = {segment.ToCodeString()};");
+        _testOutputHelper.WriteLine($"var periodLength = {periodLength.ToCodeString()};");
+        _testOutputHelper.WriteLine($"var periodHeight = {periodHeight.ToCodeString()};");
+        _testOutputHelper.WriteLine($"var k = {k};");
+        _testOutputHelper.WriteLine($"var iteratedConvolution = {iteratedConvolution.ToCodeString()};");
+        var result = segment.PeriodicSegmentIteratedConvolution(periodLength, periodHeight, k);
+        _testOutputHelper.WriteLine($"var result = {result.ToCodeString()};");
+        Assert.True(Curve.Equivalent(iteratedConvolution, result));
+    }
+
 }

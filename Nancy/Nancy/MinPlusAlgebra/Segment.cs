@@ -1757,120 +1757,220 @@ public sealed class Segment : Element, IEquatable<Segment>
     {
         settings ??= ComputationSettings.Default();
 
-        //Checked separately as infinite segments fail the normal check
-        if(StartTime == 0 && RightLimitAtStartTime > 0)
-            return SegmentClosureTypeB();
+        // Start slope is not defined (or generally unreliable)
+        if (StartTime == 0)
+        {
+            var sign = RightLimitAtStartTime.Sign;
+            if(sign < 0)
+                // the closure is minus infinite everywhere except origin 
+                return new SubAdditiveCurve(Curve.MinusInfinite().WithOriginAt(0));
+            else if(sign == 0)
+                // the closure is just a half line
+                return new SigmaRhoArrivalCurve(0, Slope);
+            else // sign > 0
+                 // this includes +infty segments
+                return SegmentClosureTypeB();
+        }
 
         SubAdditiveCurve closure;
-        if (StartSlope <= EndSlope)
+        var cmp = Rational.Compare(StartSlope, EndSlope);
+        if(cmp == -1)
             closure = SegmentClosureTypeA();
-        else
+        else if (cmp == 1)
             closure = SegmentClosureTypeB();
-
-        if (settings.UseRepresentationMinimization)
-            return new SubAdditiveCurve(closure.Optimize(), false);
         else
-            return closure;
+            closure = SegmentClosureTypeC();
+
+        return closure;
 
         //Local functions
 
-        // Branch with slope at start less or equal slope at end.
-        // From [BT07], first case of algorithm 10.
+        // Branch with slope at start less than slope at end, i.e. s(a+)/a < s(b-)/b; a > 0.
+        // Inspired from [BT07], first case of algorithm 10. The lower envelope was optimized away.
+        // The aligned case was moved to Type C to optimize the affine tail.
         SubAdditiveCurve SegmentClosureTypeA()
         {
-            List<Element> elements = new List<Element> { Point.Origin() };
+            List<Element> elements = [Point.Origin()];
 
-            int k = (int)Math.Floor((decimal)(StartTime / (EndTime - StartTime)));
+            // First power where its end overlaps with the start of the next one.
+            // Its start is not a valid T, because there is no overlap there.
+            // We will need the next segment for the periodic behavior.
+            // Note: this code casts to int because, if it did not suffice, the runtime would be too high anyway.
+            var n0 = (StartTime / (EndTime - StartTime)).FastFloor() + 1;
 
-            for (int i = 1; i <= k; i++)
+            // Add the powers that are entirely contained in the result,
+            // i.e. before the first overlap occurs.
+            for (int i = 1; i < n0; i++)
             {
-                elements.Add(new Segment(
-                    startTime: i * StartTime,
-                    endTime: i * EndTime,
-                    slope: Slope,
-                    rightLimitAtStartTime: i * RightLimitAtStartTime
-                ));
+                if(i == 1)
+                    elements.Add(this);
+                else
+                {
+                    elements.Add(new Segment(
+                        startTime: i * StartTime,
+                        endTime: i * EndTime,
+                        slope: Slope,
+                        rightLimitAtStartTime: i * RightLimitAtStartTime
+                    ));
+                }
             }
 
-            Rational periodStartTime = (k + 1) * StartTime;
-            Rational periodEndTime = (k + 2) * StartTime;
-            Rational periodLength = StartTime;
-            Rational periodHeight = RightLimitAtStartTime;
-            Rational periodStartValue = (k + 1) * RightLimitAtStartTime;
+            var periodStartTime = (n0 + 1) * StartTime;
+            var periodEndTime = (n0 + 2) * StartTime;
+            
+            // First segment that overlaps, not part of the period because its starting point is not included
+            elements.Add(
+                new Segment(
+                    n0  * StartTime,
+                    periodStartTime,
+                    n0 * RightLimitAtStartTime,
+                    Slope
+                )
+            );
+            // Periodic part: point from first overlapped segment, then second periodic segment
+            elements.Add(
+                new Point(
+                    periodStartTime,
+                    n0 * RightLimitAtStartTime + Slope * StartTime
+                )    
+            );
+            elements.Add(
+                new Segment(
+                    periodStartTime,
+                    periodEndTime,
+                    (n0 + 1) * RightLimitAtStartTime,
+                    Slope
+                )
+            );
 
-            elements.Add(new Point(
-                time: periodStartTime,
-                value: periodStartValue
-            ));
-            elements.Add(new Segment(
-                startTime: periodStartTime,
-                endTime: periodEndTime,
-                slope: Slope,
-                rightLimitAtStartTime: periodStartValue
-            ));                
-
-            IEnumerable<Element> lowerEnvelope = elements.LowerEnvelope(settings);
-            Sequence baseSequence = new Sequence(
-                    lowerEnvelope,
-                    fillFrom: 0,
-                    fillTo: periodEndTime)
-                .Cut(cutStart: 0, cutEnd: periodEndTime);
-
+            var sequence = elements
+                .Fill(0, periodEndTime, fillWith: Rational.PlusInfinity)
+                .ToSequence();
+            
             return new SubAdditiveCurve(
-                baseSequence: baseSequence,
+                baseSequence: sequence,
                 pseudoPeriodStart: periodStartTime,
-                pseudoPeriodLength: periodLength,
-                pseudoPeriodHeight: periodHeight
+                pseudoPeriodLength: StartTime,
+                pseudoPeriodHeight: RightLimitAtStartTime
             );
         }
 
-        // Branch with slope at start greater than slope at end.
-        // From [BT07], second case of algorithm 10.
+        // Branch with slope at start greater than slope at end, i.e. s(a+)/a > s(b-)/b if a > 0, or s(a+) > 0 if a = 0.
+        // Inspired from [BT07], second case of algorithm 10.
+        // The lower envelope was optimized away.
         SubAdditiveCurve SegmentClosureTypeB()
         {
-            List<Element> elements = new List<Element> { Point.Origin() };
+            List<Element> elements = [Point.Origin()];
 
-            int k = (int)Math.Floor((decimal)(StartTime / (EndTime - StartTime)));
+            // First power where its end overlaps with the start of the next one.
+            // Its start is not a valid T, because there is no overlap there.
+            // We will need the next segment for the periodic behavior.
+            // Note: this code casts to int because, if it did not suffice, the runtime would be too high anyway.
+            var n0 = (StartTime / (EndTime - StartTime)).FastFloor() + 1;
 
-            for (int i = 1; i <= k + 1; i++)
+            // Add the powers that are entirely contained in the result,
+            // i.e. up until the first overlap occurs.
+            for (int i = 1; i <= n0; i++)
             {
-                elements.Add(new Segment(
-                    startTime: i * StartTime,
-                    endTime: i * EndTime,
-                    slope: Slope,
-                    rightLimitAtStartTime: i * RightLimitAtStartTime
-                ));
+                if(i == 1)
+                    elements.Add(this);
+                else
+                {
+                    elements.Add(new Segment(
+                        startTime: i * StartTime,
+                        endTime: i * EndTime,
+                        slope: Slope,
+                        rightLimitAtStartTime: i * RightLimitAtStartTime
+                    ));
+                }
             }
 
-            Rational periodStartTime = (k + 1) * EndTime;
-            Rational periodEndTime = (k + 2) * EndTime;
-            Rational periodLength = EndTime;
-            Rational periodHeight = LeftLimitAtEndTime;
-            Rational periodStartValue = (k + 2) * LeftLimitAtEndTime - Slope * EndTime;
+            var periodStartTime = n0 * EndTime;
+            var periodEndTime = (n0 + 1) * EndTime;
+            var periodStartValue = (n0 + 1) * LeftLimitAtEndTime - Slope * EndTime;
 
-            elements.Add(new Point(
-                time: periodStartTime,
-                value: periodStartValue
-            ));
-            elements.Add(new Segment(
-                startTime: periodStartTime,
-                endTime: periodEndTime,
-                slope: Slope,
-                rightLimitAtStartTime: periodStartValue
-            ));
+            // Periodic part: point from first overlapped segment, then second periodic segment
+            elements.Add(
+                new Point(
+                    periodStartTime,
+                    periodStartValue
+                )
+            );
+            elements.Add(
+                new Segment(
+                    periodStartTime,
+                    periodEndTime,
+                    periodStartValue,
+                    Slope
+                )
+            );
 
-            IEnumerable<Element> lowerEnvelope = elements.LowerEnvelope(settings);
-            Sequence baseSequence = new Sequence(
-                    lowerEnvelope,
-                    fillFrom: 0,
-                    fillTo: periodEndTime)
-                .Cut(cutStart: 0, cutEnd: periodEndTime);
+            var sequence = elements
+                .Fill(0, periodEndTime, fillWith: Rational.PlusInfinity)
+                .ToSequence();
 
             return new SubAdditiveCurve(
-                baseSequence: baseSequence,
+                baseSequence: sequence,
                 pseudoPeriodStart: periodStartTime,
-                pseudoPeriodLength: periodLength,
-                pseudoPeriodHeight: periodHeight
+                pseudoPeriodLength: EndTime,
+                pseudoPeriodHeight: LeftLimitAtEndTime
+            );
+        }
+        
+        // Branch with slope at start equal to slope at end, i.e. s(a+)/a == s(b-)/b; a > 0.
+        // Optimizes the affine tail.
+        SubAdditiveCurve SegmentClosureTypeC()
+        {
+            List<Element> elements = [Point.Origin()];
+
+            // First power where its end overlaps with the start of the next one.
+            // Its start is not a valid T, because there is no overlap there.
+            // We will need the next segment for the periodic behavior.
+            // Note: this code casts to int because, if it did not suffice, the runtime would be too high anyway.
+            var n0 = (StartTime / (EndTime - StartTime)).FastFloor() + 1;
+
+            // Add the powers that are entirely contained in the result,
+            // i.e. before the first overlap occurs.
+            for (int i = 1; i < n0; i++)
+            {
+                if (i == 1)
+                    elements.Add(this);
+                else
+                {
+                    elements.Add(new Segment(
+                        startTime: i * StartTime,
+                        endTime: i * EndTime,
+                        slope: Slope,
+                        rightLimitAtStartTime: i * RightLimitAtStartTime
+                    ));
+                }
+            }
+
+            // Since the tail is affine, we can take any period start and length from the first power that overlaps
+            // Pick what seems more convenient.
+            var Ti = n0 * StartTime;
+            var periodStartTime = Ti.Floor() + 1; // first natural > T_i
+            var periodEndTime = periodStartTime + 1;
+            
+            // just one segment, let the Curve constructor enforce the point
+            elements.Add(
+                new Segment(
+                    Ti,
+                    periodEndTime,
+                    n0 * RightLimitAtStartTime,
+                    Slope
+                )
+            );
+
+            var sequence = elements
+                .Fill(0, periodEndTime, fillWith: Rational.PlusInfinity)
+                .ToSequence();
+
+            return new SubAdditiveCurve(
+                baseSequence: sequence,
+                pseudoPeriodStart: periodStartTime,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: Slope
             );
         }
     }
@@ -1930,9 +2030,9 @@ public sealed class Segment : Element, IEquatable<Segment>
             #endif
 
             List<Curve> fks = new List<Curve>();
-            for (uint k = 1; k < k0; k++)
+            for (uint k = 0; k < k0; k++)
             {
-                Curve fk = PeriodicSegmentConvolution(
+                Curve fk = PeriodicSegmentIteratedConvolution(
                     pseudoPeriodLength: pseudoPeriodLength,
                     pseudoPeriodHeight: pseudoPeriodHeight,
                     k: k
@@ -1986,9 +2086,9 @@ public sealed class Segment : Element, IEquatable<Segment>
             #endif
 
             List<Curve> fks = new List<Curve>();
-            for (uint k = 1; k < k1; k++)
+            for (uint k = 0; k < k1; k++)
             {
-                Curve fk = PeriodicSegmentConvolution(
+                Curve fk = PeriodicSegmentIteratedConvolution(
                     pseudoPeriodLength: pseudoPeriodLength,
                     pseudoPeriodHeight: pseudoPeriodHeight,
                     k: k
@@ -2032,9 +2132,9 @@ public sealed class Segment : Element, IEquatable<Segment>
             #endif
 
             List<Curve> fks = new List<Curve>();
-            for (uint k = 1; k < k0; k++)
+            for (uint k = 0; k < k0; k++)
             {
-                Curve fk = PeriodicSegmentConvolution(
+                Curve fk = PeriodicSegmentIteratedConvolution(
                     pseudoPeriodLength: pseudoPeriodLength,
                     pseudoPeriodHeight: pseudoPeriodHeight,
                     k: k
@@ -2103,9 +2203,9 @@ public sealed class Segment : Element, IEquatable<Segment>
             #endif
 
             List<Curve> fks = new List<Curve>();
-            for (uint k = 1; k < k1; k++)
+            for (uint k = 0; k < k1; k++)
             {
-                Curve fk = PeriodicSegmentConvolution(
+                Curve fk = PeriodicSegmentIteratedConvolution(
                     pseudoPeriodLength: pseudoPeriodLength,
                     pseudoPeriodHeight: pseudoPeriodHeight,
                     k: k
@@ -2135,13 +2235,13 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// Iterated convolutions of a periodic segment.
     /// </summary>
     /// <remarks>Described in [BT07] Section 4.6 as algorithm 12</remarks>
-    internal Curve PeriodicSegmentConvolution(
+    internal Curve PeriodicSegmentIteratedConvolution(
         Rational pseudoPeriodLength,
         Rational pseudoPeriodHeight,
         uint k)
     {
         if (k == 0)
-            throw new ArgumentException("k must be greater than 0");   
+            return Curve.PlusInfinite().WithZeroOrigin();   
 
         Rational pseudoPeriodSlope = pseudoPeriodHeight / pseudoPeriodLength;
 
@@ -2167,15 +2267,13 @@ public sealed class Segment : Element, IEquatable<Segment>
         {
             return new Curve(
                 baseSequence: new Sequence(
-                    elements: new Element[]
-                    {
-                        Point.Origin(),
+                    elements: [
                         new Segment(
                             startTime: k * StartTime,
                             endTime: k * EndTime,
                             rightLimitAtStartTime: k * RightLimitAtStartTime,
                             slope: Slope)
-                    },
+                    ],
                     fillFrom: 0,
                     fillTo: k * StartTime + pseudoPeriodLength
                 ),
@@ -2203,9 +2301,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             return new Curve(
                 baseSequence: new Sequence(
-                    elements: new Element[]
-                    {
-                        Point.Origin(),
+                    elements: [
                         new Segment(
                             startTime: startTime,
                             endTime: midTime,
@@ -2222,7 +2318,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                             rightLimitAtStartTime: midRightLimit,
                             slope: Slope
                         )
-                    },
+                    ],
                     fillFrom: 0,
                     fillTo: endTime
                 ),
@@ -2244,9 +2340,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             return new Curve(
                 baseSequence: new Sequence(
-                    elements: new Element[]
-                    {
-                        Point.Origin(),
+                    elements: [
                         new Segment(
                             startTime: startTime,
                             endTime: midTime,
@@ -2260,7 +2354,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                             rightLimitAtStartTime: midValue,
                             slope: Slope
                         )
-                    },
+                    ],
                     fillFrom: 0,
                     fillTo: endTime
                 ),
@@ -2340,9 +2434,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             return new Curve(
                 baseSequence: new Sequence(
-                    elements: new Element[]
-                    {
-                        Point.Origin(),
+                    elements: [
                         new Segment(
                             startTime: baseTime,
                             endTime: baseTime + pseudoPeriodLength,
@@ -2353,7 +2445,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                             time: baseTime + pseudoPeriodLength,
                             value: baseValue + pseudoPeriodLength * Slope
                         )
-                    },
+                    ],
                     fillFrom: 0,
                     fillTo: baseTime + StartTime
                 ),
@@ -2377,9 +2469,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             return new Curve(
                 baseSequence: new Sequence(
-                    elements: new Element[]
-                    {
-                        Point.Origin(),
+                    elements: [
                         new Segment(
                             startTime: baseTime,
                             endTime: baseTime + StartTime,
@@ -2396,7 +2486,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                             rightLimitAtStartTime: midRightLimit,
                             slope: Slope
                         )
-                    },
+                    ],
                     fillFrom: 0,
                     fillTo: midTime + StartTime
                 ),
@@ -2412,7 +2502,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 Math.Floor((decimal) (StartTime / Length)) + 1,
                 k0);
 
-            List<Element> elements = new List<Element>() { Point.Origin() };
+            List<Element> elements = [];
 
             for (Rational k = k0; k <= bigK0; k++)
             {
@@ -2430,7 +2520,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             Rational closingEnd = (bigK0 + 1) * EndTime;
             Rational closingStartValue = (bigK0 + 1) * LeftLimitAtEndTime - Slope * EndTime;
 
-            elements.AddRange( new Element[] {
+            elements.AddRange([
                 new Point(
                     time: closingStart,
                     value: closingStartValue
@@ -2441,7 +2531,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                     rightLimitAtStartTime: closingStartValue,
                     slope: Slope
                 )
-            });
+            ]);
 
             return new Curve(
                 baseSequence: new Sequence(elements, fillFrom: 0, fillTo: EndTime),
@@ -2457,7 +2547,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 Math.Floor((decimal)(StartTime / Length)) + 1,
                 k0);
 
-            List<Element> elements = new List<Element>() { Point.Origin() };
+            List<Element> elements = [];
 
             for (Rational k = k0; k < bigK0; k++)
             {
@@ -2480,7 +2570,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             Rational closingEndTime = (bigK0 + 2) * StartTime;
 
-            elements.AddRange(new Element[] {
+            elements.AddRange([
                 new Segment(
                     startTime: closingStartTime,
                     endTime: closingMidTime,
@@ -2496,8 +2586,8 @@ public sealed class Segment : Element, IEquatable<Segment>
                     endTime: closingEndTime,
                     rightLimitAtStartTime: closingMidRightValue,
                     slope: Slope
-                ),
-            });
+                )
+            ]);
 
             return new Curve(
                 baseSequence: new Sequence(elements, fillFrom: 0, fillTo: closingEndTime),
@@ -2516,9 +2606,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             Rational periodEndTime = baseTime + EndTime;
 
             Sequence baseSequence = new Sequence(
-                elements: new Element[]
-                {
-                    Point.Origin(),
+                elements: [
                     new Point(
                         time: baseTime,
                         value: baseValue
@@ -2529,7 +2617,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                         rightLimitAtStartTime: baseValue,
                         slope: Slope
                     )
-                },
+                ],
                 fillFrom: 0,
                 fillTo: periodEndTime
             );
@@ -2550,9 +2638,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             Rational periodEndTime = baseTime + EndTime;
 
             Sequence baseSequence = new Sequence(
-                elements: new Element[]
-                {
-                    Point.Origin(),
+                elements: [
                     new Point(
                         time: baseTime,
                         value: baseValue
@@ -2563,7 +2649,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                         rightLimitAtStartTime: baseValue,
                         slope: Slope
                     )
-                },
+                ],
                 fillFrom: 0,
                 fillTo: periodEndTime
             );
@@ -2591,9 +2677,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             Rational periodEndTime = midTime + EndTime;
 
             Sequence baseSequence = new Sequence(
-                elements: new Element[]
-                {
-                    Point.Origin(),
+                elements: [
                     new Point(
                         time: startTime,
                         value: startValue
@@ -2614,7 +2698,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                         rightLimitAtStartTime: midValue,
                         slope: Slope
                     )
-                },
+                ],
                 fillFrom: 0,
                 fillTo: periodEndTime
             );

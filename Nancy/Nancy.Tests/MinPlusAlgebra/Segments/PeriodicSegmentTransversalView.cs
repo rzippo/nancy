@@ -22,7 +22,7 @@ public class PeriodicSegmentTransversalView
             i: 0
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(25, transversalView.FirstFiniteTimeExceptOrigin);
         Assert.False(transversalView.IsContinuous);
 
@@ -53,7 +53,7 @@ public class PeriodicSegmentTransversalView
             i: 1
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(29, transversalView.FirstFiniteTimeExceptOrigin);
         Assert.False(transversalView.IsContinuous);
 
@@ -84,7 +84,7 @@ public class PeriodicSegmentTransversalView
             i: 0
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(5, transversalView.FirstFiniteTimeExceptOrigin);
 
         Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(5));
@@ -112,7 +112,7 @@ public class PeriodicSegmentTransversalView
             i: 1
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(9, transversalView.FirstFiniteTimeExceptOrigin);
 
         Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(9));
@@ -140,7 +140,7 @@ public class PeriodicSegmentTransversalView
             i: 0
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(3, transversalView.FirstFiniteTimeExceptOrigin);
         Assert.False(transversalView.IsContinuous);
 
@@ -175,7 +175,7 @@ public class PeriodicSegmentTransversalView
             i: 0
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(10, transversalView.FirstFiniteTimeExceptOrigin);
         Assert.False(transversalView.IsContinuous);
 
@@ -214,7 +214,7 @@ public class PeriodicSegmentTransversalView
             i: 1
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(9, transversalView.FirstFiniteTimeExceptOrigin);
         Assert.False(transversalView.IsContinuous);
 
@@ -259,7 +259,7 @@ public class PeriodicSegmentTransversalView
             i: 1
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(15, transversalView.FirstFiniteTimeExceptOrigin);
         Assert.False(transversalView.IsContinuous);
 
@@ -293,7 +293,7 @@ public class PeriodicSegmentTransversalView
             i: 1
         );
 
-        Assert.Equal(0, transversalView.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, transversalView.ValueAt(0));
         Assert.Equal(9, transversalView.FirstFiniteTimeExceptOrigin);
         Assert.False(transversalView.IsContinuous);
 

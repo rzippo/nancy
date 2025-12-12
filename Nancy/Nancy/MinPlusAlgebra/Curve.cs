@@ -657,10 +657,10 @@ public class Curve : IToCodeString, IStableHashCode
         IsUltimatelyAffine && PseudoPeriodSlope == 0;
 
     /// <summary>
-    /// True if the curve is sub-additive, i.e. $f(t+s) \le f(t) + f(s)$.
+    /// True if the curve is subadditive, i.e. $f(t+s) \le f(t) + f(s)$.
     /// </summary>
     /// <remarks>
-    /// Based on [Zippo23] Lemma 9.3: $f(0) \ge 0, f$ is sub-additive $\iff f^\circ = f^\circ \otimes f^\circ$,
+    /// Based on [Zippo23] Lemma 9.3: $f(0) \ge 0, f$ is subadditive $\iff f^\circ = f^\circ \otimes f^\circ$,
     /// where $f^\circ$ is defined in <see cref="Curve.WithZeroOrigin"/>.
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
@@ -694,7 +694,7 @@ public class Curve : IToCodeString, IStableHashCode
     internal bool? _IsSubAdditive;
 
     /// <summary>
-    /// True if the curve is sub-additive with $f(0) = 0$.
+    /// True if the curve is subadditive with $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularSubAdditive
@@ -5575,29 +5575,51 @@ public class Curve : IToCodeString, IStableHashCode
 
     #endregion Deconvolution operator
 
-    #region Sub-additive closure
+    #region Subadditive closure
 
     /// <summary>
-    /// Computes the sub-additive closure of the curve.
+    /// Computes the subadditive closure of the curve.
+    /// Requires $f(0) \ge 0$, throws otherwise.
     /// </summary>
     /// <param name="curve"></param>
     /// <param name="settings"></param>
-    /// <returns>The result of the sub-additive closure.</returns>
-    /// <remarks>Described in [BT08] Section 4.6 as algorithm 5</remarks>
+    /// <returns>The result of the subadditive closure.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if $f(0) &lt; 0$, which means the subadditive closure is $-\infty$ for any $t$.
+    /// </exception>
+    /// <remarks>
+    /// This method assumes $f(0) \ge 0$ since it implies $f^*(0) = 0$,
+    /// which allows many optimizations via the <see cref="SubAdditiveCurve"/> class.
+    /// For a more general implementation, see <see cref="GeneralSubAdditiveClosure"/>. 
+    /// Described in [BT08] Section 4.6 as algorithm 5.
+    /// </remarks>
     public static SubAdditiveCurve SubAdditiveClosure(Curve curve, ComputationSettings? settings = null)
         => curve.SubAdditiveClosure(settings);
 
     /// <summary>
-    /// Computes the sub-additive closure of the curve.
+    /// Computes the subadditive closure of the curve.
+    /// Requires $f(0) \ge 0$, throws otherwise.
     /// </summary>
     /// <param name="settings"></param>
-    /// <returns>The result of the sub-additive closure.</returns>
-    /// <remarks>Described in [BT08] Section 4.6 as algorithm 5</remarks>
+    /// <returns>The result of the subadditive closure.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if $f(0) &lt; 0$, which means the subadditive closure is $-\infty$ for any $t$.
+    /// </exception>
+    /// <remarks>
+    /// This method assumes $f(0) \ge 0$ since it implies $f^*(0) = 0$,
+    /// which allows many optimizations via the <see cref="SubAdditiveCurve"/> class.
+    /// For a more general implementation, see <see cref="GeneralSubAdditiveClosure"/>. 
+    /// Described in [BT08] Section 4.6 as algorithm 5.
+    /// </remarks>
     public virtual SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
         #if DO_LOG
         logger.Debug($"Computing closure of {TransientElements.Count()} transient and {PseudoPeriodicElements.Count()} pseudo-periodic elements.");
         #endif
+        if (ValueAt(0) < 0)
+            throw new InvalidOperationException(
+                "This method cannot compute the subadditive closure of curves with f(0) < 0. See GeneralSubAdditiveClosure instead.");
+
         settings ??= ComputationSettings.Default();
 
         var transientClosures = TransientElements
@@ -5625,7 +5647,25 @@ public class Curve : IToCodeString, IStableHashCode
             return new SubAdditiveCurve(Curve.Convolution(elementClosures, settings), false);
     }
 
-    #endregion Sub-additive closure
+    /// <summary>
+    /// Computes the subadditive closure of the curve.
+    /// </summary>
+    /// <param name="settings"></param>
+    /// <returns>The result of the subadditive closure.</returns>
+    /// <remarks>
+    /// This version does not assume $f^*(0) = 0$, making the result more general but at the cost of optimizations,
+    /// since the result is not statically guaranteed to be a <see cref="SubAdditiveCurve"/>.
+    /// Described in [BT08] Section 4.6 as algorithm 5.
+    /// </remarks>
+    public Curve GeneralSubAdditiveClosure(ComputationSettings? settings = null)
+    {
+        if (ValueAt(0) < 0)
+            return MinusInfinite();
+        else
+            return SubAdditiveClosure(settings);
+    }
+
+    #endregion Subadditive closure
 
     #region Max-plus operators
 
