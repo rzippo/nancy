@@ -163,16 +163,32 @@ public class Curve : IToCodeString, IStableHashCode
             var opt = this.Optimize();
             if (!opt.HasTransient)
                 return 0;
-            if (!opt.IsLeftContinuousAt(opt.PseudoPeriodStart))
-                return opt.PseudoPeriodStart;
-
+            
             var lastTransientSegment = (Segment) opt.TransientElements.Last();
             var lastPeriodSegment = (Segment) opt.PseudoPeriodicElements.Last();
-            if (lastTransientSegment.Slope == lastPeriodSegment.Slope)
-                // since it is already a minimal curve, we can infer right-discontinuity in $T_L$
+
+            // since it is already a minimal curve, if the last transient segment matches
+            // we can infer right-discontinuity in $T_L$, and stop here
+            
+            if (IsUltimatelyFinite && lastTransientSegment.IsFinite)
+            {
+                var gapBeforePeriodStart = ValueAt(PseudoPeriodStart) - lastTransientSegment.LeftLimitAtEndTime;
+                var gapBeforeFirstPeriodEnd = ValueAt(FirstPseudoPeriodEnd) - lastPeriodSegment.LeftLimitAtEndTime;    
+                
+                if (lastTransientSegment.Slope == lastPeriodSegment.Slope &&
+                    gapBeforePeriodStart == gapBeforeFirstPeriodEnd
+                   )
+                    
+                    return lastTransientSegment.StartTime;    
+            }
+            // infinities must be compared without gap computations, which are undefined
+            else if (IsUltimatelyPlusInfinite && lastTransientSegment.IsPlusInfinite)
                 return lastTransientSegment.StartTime;
-            else
-                return opt.PseudoPeriodStart;
+            else if (IsUltimatelyMinusInfinite && lastTransientSegment.IsMinusInfinite)
+                return lastTransientSegment.StartTime;
+            
+            // if all else fails, T = T_L
+            return opt.PseudoPeriodStart;
         }
     }
 
