@@ -10,6 +10,11 @@ public class WithOriginAt
 {
     public static List<Curve> Curves = ToLowerNonDecreasing.KnownPairs
         .SelectMany(p => new List<Curve>{p.operand, p.expected})
+        .Concat([
+            Curve.Zero(),
+            Curve.PlusInfinite(),
+            Curve.MinusInfinite()
+        ])
         .ToList();
 
     public static List<Rational> Values = Enumerable.Range(-3, 6)
@@ -33,6 +38,7 @@ public class WithOriginAt
     {
         var result = curve.WithZeroOrigin();
         Assert.True(result.ValueAt(0) <= 0);
+        Assert.True(Curve.EquivalentExceptOrigin(result, curve));
     }
     
     [Theory]
@@ -41,6 +47,7 @@ public class WithOriginAt
     {
         var result = curve.WithOriginAt(value);
         Assert.Equal(value, result.ValueAt(0));
+        Assert.True(Curve.EquivalentExceptOrigin(result, curve));
     }
     
     [Theory]
@@ -49,5 +56,6 @@ public class WithOriginAt
     {
         var result = curve.WithOriginRightContinuous();
         Assert.Equal(result.RightLimitAt(0), result.ValueAt(0));
+        Assert.True(Curve.EquivalentExceptOrigin(result, curve));
     }
 }
