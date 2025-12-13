@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Utility;
 /// Set of extension methods, providing <see cref="IStableHashCode.GetStableHashCode"/> through system classes.
 /// By "stable" we mean that the same object, constructed with the same values, will produce the same hash code
 /// across different processes or executions.
-/// By constrast, <see cref="object.GetHashCode"/> is not stable.
+/// By contrast, <see cref="object.GetHashCode"/> is not stable.
 /// </summary>
 public static class StableHashCodeExtensions
 {
