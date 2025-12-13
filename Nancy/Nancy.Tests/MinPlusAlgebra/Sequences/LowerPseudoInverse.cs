@@ -258,16 +258,16 @@ public class LowerPseudoInverse
     public void PseudoInverseIntervals(Sequence sequence)
     {
         var lpi = sequence.LowerPseudoInverse();
-        var expectedLpiSupport = sequence.Image();
+        var expectedLpiSupport = sequence.Image;
         var expectedLpiImage = sequence.EndsWithPlateau
-            ? sequence.Support()
+            ? sequence.Support
                 .WithUpper(sequence.LastPlateauStart)
                 .WithIsUpperIncluded(true)
-            : sequence.Support();
+            : sequence.Support;
         if (sequence.StartsWithPlateau)
             expectedLpiImage = expectedLpiImage
                 .WithIsLowerIncluded(true);
-        Assert.Equal(expectedLpiSupport, lpi.Support());
-        Assert.Equal(expectedLpiImage, lpi.Image());
+        Assert.Equal(expectedLpiSupport, lpi.Support);
+        Assert.Equal(expectedLpiImage, lpi.Image);
     }
 }

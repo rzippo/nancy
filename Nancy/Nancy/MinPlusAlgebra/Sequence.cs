@@ -384,32 +384,33 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Returns the support interval of this sequence.
     /// </summary>
-    public Interval Support()
-    {
-        return new Interval(
+    public Interval Support =>
+        new(
             DefinedFrom,
             DefinedUntil,
             IsLeftClosed,
             IsRightClosed
         );
-    }
 
     /// <summary>
     /// Returns the image interval of this sequence.
     /// </summary>
-    public Interval Image()
+    public Interval Image
     {
-        var inf = InfValue();
-        var sup = SupValue();
-        var isInfAttained = AttainsValue(inf);
-        var isSupAttained = AttainsValue(sup);
+        get
+        {
+            var inf = InfValue();
+            var sup = SupValue();
+            var isInfAttained = AttainsValue(inf);
+            var isSupAttained = AttainsValue(sup);
 
-        return new Interval(
-            inf,
-            sup,
-            isInfAttained,
-            isSupAttained
-        );
+            return new Interval(
+                inf,
+                sup,
+                isInfAttained,
+                isSupAttained
+            );
+        }
     }
 
     #endregion

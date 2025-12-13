@@ -246,16 +246,16 @@ public class UpperPseudoInverse
     public void PseudoInverseIntervals(Sequence sequence)
     {
         var upi = sequence.UpperPseudoInverse();
-        var expectedUpiSupport = sequence.Image();
+        var expectedUpiSupport = sequence.Image;
         var expectedUpiImage = sequence.StartsWithPlateau
-            ? sequence.Support()
+            ? sequence.Support
                 .WithLower(sequence.FirstPlateauEnd)
                 .WithIsLowerIncluded(true)
-            : sequence.Support();
+            : sequence.Support;
         if (sequence.EndsWithPlateau)
             expectedUpiImage = expectedUpiImage
                 .WithIsUpperIncluded(true);
-        Assert.Equal(expectedUpiSupport, upi.Support());
-        Assert.Equal(expectedUpiImage, upi.Image());
+        Assert.Equal(expectedUpiSupport, upi.Support);
+        Assert.Equal(expectedUpiImage, upi.Image);
     }
 }
