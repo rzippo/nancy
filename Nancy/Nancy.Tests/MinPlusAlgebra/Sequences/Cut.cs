@@ -189,6 +189,21 @@ public class Cut
         Assert.Equal(isStartIncluded, cut.IsLeftClosed);
         Assert.Equal(isEndIncluded, cut.IsRightClosed);
     }
+    
+    [Theory]
+    [MemberData(nameof(GetSuccessTestCases))]
+    [MemberData(nameof(FromOtherTests))]
+    public void EquivalenceToExpected_AsEnumerable(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    {
+        Sequence cut = sequence
+            .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+            .ToSequence();
+
+        Assert.Equal(cutStart, cut.DefinedFrom);
+        Assert.Equal(cutEnd, cut.DefinedUntil);
+        Assert.Equal(isStartIncluded, cut.IsLeftClosed);
+        Assert.Equal(isEndIncluded, cut.IsRightClosed);
+    }
 
     public static IEnumerable<object[]> GetThrowingTestCases()
     {
@@ -231,5 +246,15 @@ public class Cut
     public void Checks(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
     {
         Assert.Throws<ArgumentException>(() => sequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded));
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetThrowingTestCases))]
+    public void Checks_AsEnumerable(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    {
+        Assert.Throws<ArgumentException>(() => sequence
+            .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+            .ToSequence()
+        );
     }
 }

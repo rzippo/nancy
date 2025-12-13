@@ -122,7 +122,8 @@ public static class SequenceExtensions
                 if (s.StartTime < cutStart)
                 {
                     var (_, p, r) = s.Split(cutStart);
-                    yield return p;
+                    if(isStartIncluded)
+                        yield return p;
                     left = r;
                 }
                 else
