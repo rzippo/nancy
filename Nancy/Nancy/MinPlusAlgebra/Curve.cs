@@ -29,7 +29,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// <docs position="1"/>
 [JsonObject(MemberSerialization.OptIn)]
 [System.Text.Json.Serialization.JsonConverter(typeof(GenericCurveSystemJsonConverter))]
-public class Curve : IToCodeString, IStableHashCode
+public class Curve : IStableHashCode, IToCodeString, IToMppgString
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -2003,6 +2003,25 @@ public class Curve : IToCodeString, IStableHashCode
             for (int i = 0; i < indentation + n; i++)
                 sbt.Append("\t");
             return sbt.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Return a string containing code to create an equivalent of this Curve in a (min,+) playground.
+    /// </summary>
+    public virtual string ToMppgString()
+    {
+        if (IsUltimatelyAffine)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            var sb = new StringBuilder("upp(");
+            if (HasTransient)
+                sb.Append($"{TransientSequence!.ToMppgString()}, ");
+            sb.Append($"period({PseudoPeriodicSequence.ToMppgString()}), {PseudoPeriodHeight}, {PseudoPeriodLength})");
+            return sb.ToString();
         }
     }
 

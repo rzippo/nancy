@@ -21,7 +21,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(Point), Point.TypeCode)]
 [JsonDerivedType(typeof(Segment), Segment.TypeCode)]
-public abstract class Element : IToCodeString, IStableHashCode
+public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
 {
     #region Serialization
 
@@ -141,6 +141,11 @@ public abstract class Element : IToCodeString, IStableHashCode
     /// </summary>
     public abstract string ToCodeString(bool formatted = false, int indentation = 0);
 
+    /// <summary>
+    /// Return a string containing code to create an equivalent of this Element in a (min,+) playground.
+    /// </summary>
+    public abstract string ToMppgString();
+    
     /// A stable hashcode.
     public abstract int GetStableHashCode();
     

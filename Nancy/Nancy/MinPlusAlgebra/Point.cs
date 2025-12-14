@@ -215,6 +215,14 @@ public sealed class Point : Element, IEquatable<Point>
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Return a string containing code to create an equivalent of this Point in a (min,+) playground.
+    /// </summary>
+    public override string ToMppgString()
+    {
+        return $"[({Time}, {Value})]";
+    }
+
     /// <inheritdoc cref="Element.GetStableHashCode"/>
     public override int GetStableHashCode()
     {

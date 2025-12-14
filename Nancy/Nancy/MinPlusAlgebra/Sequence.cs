@@ -22,7 +22,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </summary>
 /// <docs position="2"/>
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashCode
+public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeString, IToMppgString
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -1332,6 +1332,16 @@ public sealed class Sequence : IEquatable<Sequence>, IToCodeString, IStableHashC
                 sbt.Append("\t");
             return sbt.ToString();
         }
+    }
+
+    /// <summary>
+    /// Return a string containing code to create an equivalent of this Sequence in a (min,+) playground.
+    /// </summary>
+    public string ToMppgString()
+    {
+        var elementsMppg = Elements
+            .Select(e => e.ToMppgString());
+        return string.Join(' ', elementsMppg);
     }
 
     #endregion Json Methods

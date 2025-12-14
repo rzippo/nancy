@@ -523,6 +523,14 @@ public sealed class Segment : Element, IEquatable<Segment>
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Return a string containing code to create an equivalent of this Segment in a (min,+) playground.
+    /// </summary>
+    public override string ToMppgString()
+    {
+        return $"]({StartTime}, {RightLimitAtStartTime}) {Slope} ({EndTime}, {LeftLimitAtEndTime})[";
+    }
+
     /// <inheritdoc cref="Element.GetStableHashCode"/>
     public override int GetStableHashCode()
     {

@@ -43,7 +43,7 @@ namespace Unipi.Nancy.Numerics
     [ComVisible(false)]
     [JsonObject(MemberSerialization.OptIn)]
     [System.Text.Json.Serialization.JsonConverter(typeof(RationalSystemJsonConverter))]
-    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString, IStableHashCode
+    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IStableHashCode, IToCodeString, IToMppgString
     {
         #region Static public values
 
@@ -467,6 +467,21 @@ namespace Unipi.Nancy.Numerics
             sb.Append(")");
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Return a string containing code to create an equivalent of this Rational in a (min,+) playground.
+        /// </summary>
+        public readonly string ToMppgString()
+        {
+            if (IsPlusInfinite)
+                return "+inf";
+            else if (IsMinusInfinite)
+                return "-inf";
+            else if (IsInteger)
+                return Numerator.ToString();
+            else
+                return $"{Numerator.ToString()}/{Denominator.ToString()}";
         }
 
         // IEquatable<Rational>
