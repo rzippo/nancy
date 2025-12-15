@@ -2013,7 +2013,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         if (IsUltimatelyAffine)
         {
-            return string.Empty;
+            var sb = new StringBuilder("uaf(");
+            foreach (var element in BaseSequence.Elements.SkipLast(1))
+            {
+                sb.Append(element.ToMppgString());
+                sb.Append(' '); 
+            }
+
+            var lastSegment = (Segment) BaseSequence.Elements.Last();
+            var infLastSegment = new Segment(lastSegment.StartTime, Rational.PlusInfinity,
+                lastSegment.RightLimitAtStartTime, lastSegment.Slope);
+            sb.Append(infLastSegment.ToMppgString());
+            sb.Append(')');
+
+            return sb.ToString();
         }
         else
         {

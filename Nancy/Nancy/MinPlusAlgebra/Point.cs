@@ -220,7 +220,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     public override string ToMppgString()
     {
-        return $"[({Time}, {Value})]";
+        return $"[({Time.ToMppgString()}, {Value.ToMppgString()})]";
     }
 
     /// <inheritdoc cref="Element.GetStableHashCode"/>

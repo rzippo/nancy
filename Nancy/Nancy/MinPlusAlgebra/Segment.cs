@@ -528,7 +528,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     public override string ToMppgString()
     {
-        return $"]({StartTime}, {RightLimitAtStartTime}) {Slope} ({EndTime}, {LeftLimitAtEndTime})[";
+        return $"]({StartTime.ToMppgString()}, {RightLimitAtStartTime.ToMppgString()}) {Slope.ToMppgString()} ({EndTime.ToMppgString()}, {LeftLimitAtEndTime.ToMppgString()})[";
     }
 
     /// <inheritdoc cref="Element.GetStableHashCode"/>
