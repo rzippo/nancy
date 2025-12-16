@@ -54,4 +54,10 @@ public class StepCurve : Curve
     }
 
     private static readonly Rational DefaultPeriodLength = 1;
+
+    /// <inheritdoc cref="Curve.ToMppgString"/>
+    public override string ToMppgString()
+    {
+        return $"step({StepTime.ToMppgString()}, {Value.ToMppgString()})";
+    }
 }

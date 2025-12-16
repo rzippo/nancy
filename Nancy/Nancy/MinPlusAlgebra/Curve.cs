@@ -2011,7 +2011,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public virtual string ToMppgString()
     {
-        if (IsUltimatelyAffine)
+        if (IsZero)
+            return "zero";
+        else if (IsPlusInfinite)
+            return "epsilon";
+        else if (IsUltimatelyAffine)
         {
             var sb = new StringBuilder("uaf(");
             foreach (var element in BaseSequence.Elements.SkipLast(1))

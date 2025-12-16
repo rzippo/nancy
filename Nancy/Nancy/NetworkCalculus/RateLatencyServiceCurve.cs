@@ -126,6 +126,12 @@ public class RateLatencyServiceCurve : ConvexCurve
         }
     }
 
+    /// <inheritdoc cref="Curve.ToMppgString"/>
+    public override string ToMppgString()
+    {
+        return $"ratency({Rate.ToMppgString()}, {Latency.ToMppgString()})";
+    }
+
     #region Optimized Overrides
 
     /// <inheritdoc cref="Curve.Scale(Rational)"/>

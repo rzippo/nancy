@@ -95,6 +95,12 @@ public class SigmaRhoArrivalCurve : ConcaveCurve
         }
     }
 
+    /// <inheritdoc cref="Curve.ToMppgString"/>
+    public override string ToMppgString()
+    {
+        return $"bucket({Rho.ToMppgString()}, {Sigma.ToMppgString()})";
+    }
+
     #region Optimized Overrides
 
     /// <inheritdoc cref="Curve.Scale(Rational)"/>

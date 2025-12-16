@@ -96,6 +96,12 @@ public class DelayServiceCurve : SuperAdditiveCurve
 
     private static readonly Rational DefaultPeriodLength = 1;
 
+    /// <inheritdoc cref="Curve.ToMppgString"/>
+    public override string ToMppgString()
+    {
+        return $"delay({Delay.ToMppgString()})";
+    }
+
     /// <inheritdoc cref="Curve.Convolution(Curve, ComputationSettings?)"/>
     public override Curve Convolution(Curve curve, ComputationSettings? settings = null)
     {

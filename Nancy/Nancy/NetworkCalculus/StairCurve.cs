@@ -61,4 +61,10 @@ public class StairCurve : Curve
             });
         }
     }
+
+    /// <inheritdoc cref="Curve.ToMppgString"/>
+    public override string ToMppgString()
+    {
+        return $"stair(0, {B.ToMppgString()}, {A.ToMppgString()})";
+    }
 }
