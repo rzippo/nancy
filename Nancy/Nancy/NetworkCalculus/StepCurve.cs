@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text;
+using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
@@ -8,6 +9,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// <summary>
 /// A curve that is 0 for any t less or equal to T,
 /// and of constant value for t > T.
+/// It is left-continuous.
 /// </summary>
 [JsonConverter(typeof(StepCurveSystemJsonConverter))]
 public class StepCurve : Curve
@@ -54,6 +56,31 @@ public class StepCurve : Curve
     }
 
     private static readonly Rational DefaultPeriodLength = 1;
+
+    /// <inheritdoc cref="Curve.ToCodeString"/>
+    public override string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        var newline = formatted ? "\n" : "";
+        var space = formatted ? "\n" : " ";
+
+        var sb = new StringBuilder();
+        sb.Append($"{tabs(0)}new StepCurve({newline}");
+        sb.Append($"{tabs(1)}{Value.ToCodeString()},{space}");
+        sb.Append($"{tabs(1)}{StepTime.ToCodeString()}{newline}");
+        sb.Append($"{tabs(0)})");
+
+        return sb.ToString();
+        
+        string tabs(int n)
+        {
+            if (!formatted)
+                return "";
+            var sbt = new StringBuilder();
+            for (int i = 0; i < indentation + n; i++)
+                sbt.Append("\t");
+            return sbt.ToString();
+        }
+    }
 
     /// <inheritdoc cref="Curve.ToMppgString"/>
     public override string ToMppgString()

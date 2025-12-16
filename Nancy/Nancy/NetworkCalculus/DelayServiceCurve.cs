@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
@@ -95,6 +96,30 @@ public class DelayServiceCurve : SuperAdditiveCurve
     }
 
     private static readonly Rational DefaultPeriodLength = 1;
+
+    /// <inheritdoc cref="Curve.ToCodeString"/>
+    public override string ToCodeString(bool formatted = false, int indentation = 0)
+    {
+        var newline = formatted ? "\n" : "";
+        var space = formatted ? "\n" : " ";
+
+        var sb = new StringBuilder();
+        sb.Append($"{tabs(0)}new DelayServiceCurve({newline}");
+        sb.Append($"{tabs(1)}{Delay.ToCodeString()}{newline}");
+        sb.Append($"{tabs(0)})");
+
+        return sb.ToString();
+        
+        string tabs(int n)
+        {
+            if (!formatted)
+                return "";
+            var sbt = new StringBuilder();
+            for (int i = 0; i < indentation + n; i++)
+                sbt.Append("\t");
+            return sbt.ToString();
+        }
+    }
 
     /// <inheritdoc cref="Curve.ToMppgString"/>
     public override string ToMppgString()

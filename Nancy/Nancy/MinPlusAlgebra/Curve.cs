@@ -1982,18 +1982,27 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public virtual string ToCodeString(bool formatted = false, int indentation = 0)
     {
-        var newline = formatted ? "\n" : "";
-        var space = formatted ? "\n" : " ";
+        if (IsZero)
+            return "Curve.Zero()";
+        else if (IsPlusInfinite)
+            return "Curve.PlusInfinite()";
+        else if (IsMinusInfinite)
+            return "Curve.MinusInfinite()";
+        else
+        {
+            var newline = formatted ? "\n" : "";
+            var space = formatted ? "\n" : " ";
 
-        var sb = new StringBuilder();
-        sb.Append($"{tabs(0)}new Curve({newline}");
-        sb.Append($"{tabs(1)}baseSequence: {BaseSequence.ToCodeString(formatted, 1)},{space}");
-        sb.Append($"{tabs(1)}pseudoPeriodStart: {PseudoPeriodStart.ToCodeString()},{space}");
-        sb.Append($"{tabs(1)}pseudoPeriodLength: {PseudoPeriodLength.ToCodeString()},{space}");
-        sb.Append($"{tabs(1)}pseudoPeriodHeight: {PseudoPeriodHeight.ToCodeString()}{newline}");
-        sb.Append($"{tabs(0)})");
+            var sb = new StringBuilder();
+            sb.Append($"{tabs(0)}new Curve({newline}");
+            sb.Append($"{tabs(1)}baseSequence: {BaseSequence.ToCodeString(formatted, 1)},{space}");
+            sb.Append($"{tabs(1)}pseudoPeriodStart: {PseudoPeriodStart.ToCodeString()},{space}");
+            sb.Append($"{tabs(1)}pseudoPeriodLength: {PseudoPeriodLength.ToCodeString()},{space}");
+            sb.Append($"{tabs(1)}pseudoPeriodHeight: {PseudoPeriodHeight.ToCodeString()}{newline}");
+            sb.Append($"{tabs(0)})");
 
-        return sb.ToString();
+            return sb.ToString();
+        }
 
         string tabs(int n)
         {
