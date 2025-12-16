@@ -1,5 +1,6 @@
 ﻿using System;
 using Unipi.Nancy.Expressions.ExpressionsUtility;
+using Unipi.Nancy.Expressions.Internals;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -107,6 +108,38 @@ public class ExpressionReplacer
         _testOutputHelper.WriteLine(e2.ToString());
         _testOutputHelper.WriteLine(v2.ToString());
         
+        Assert.Equal(12, v1);
+        Assert.Equal(8, v2);
+    }
+
+    /// <summary>
+    /// This is the same as <see cref="ReplaceByPositionTest_2"/>, using the with operator.
+    /// It verifies that using records does NOT imply that private cache fields are copied over unsafely.
+    /// </summary>
+    [Fact]
+    public void ReplaceByWith()
+    {
+        var e1 = Expressions.HorizontalDeviation(
+            new SigmaRhoArrivalCurve(6, 2),
+            new RateLatencyServiceCurve( 3, 10)
+        );
+
+        // expected value = 10 + 6 / 3 = 12 
+        var v1 = e1.Compute();
+
+        var e2 = (HorizontalDeviationExpression)e1 with
+        {
+            RightExpression = Expressions.FromCurve(new RateLatencyServiceCurve( 2, 5)) 
+        };
+
+        // expected value = 5 + 6 / 2 = 8
+        var v2 = e2.Compute();
+
+        _testOutputHelper.WriteLine(e1.ToString());
+        _testOutputHelper.WriteLine(v1.ToString());
+        _testOutputHelper.WriteLine(e2.ToString());
+        _testOutputHelper.WriteLine(v2.ToString());
+
         Assert.Equal(12, v1);
         Assert.Equal(8, v2);
     }
