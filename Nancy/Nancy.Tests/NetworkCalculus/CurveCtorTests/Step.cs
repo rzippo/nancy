@@ -8,6 +8,7 @@ public class Step
     [Theory]
     [InlineData(5, 4)]
     [InlineData(3, 7)]
+    [InlineData(2, 0)]
     public void StepCtor(decimal value, decimal stepTime)
     {
         StepCurve curve = new StepCurve(value: value, stepTime: stepTime);
@@ -15,14 +16,18 @@ public class Step
         Assert.True(curve.IsFinite);
         Assert.False(curve.IsZero);
         Assert.False(curve.IsContinuous);
-        Assert.False(curve.IsContinuousExceptOrigin);
+        Assert.Equal(stepTime == 0, curve.IsContinuousExceptOrigin);
         Assert.True(curve.IsUltimatelyPlain);
         Assert.Equal(stepTime, curve.FirstNonZeroTime);
 
         Assert.Equal(0, curve.ValueAt(0));
 
-        Assert.Equal(0, curve.LeftLimitAt(stepTime));
-        Assert.Equal(0, curve.ValueAt(stepTime));
+        if (stepTime > 0)
+        {
+            Assert.Equal(0, curve.LeftLimitAt(stepTime));
+            Assert.Equal(0, curve.ValueAt(stepTime));
+        }
+
         Assert.Equal(value, curve.RightLimitAt(stepTime));
 
         Assert.Equal(value, curve.RightLimitAt(stepTime));

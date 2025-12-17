@@ -35,17 +35,7 @@ public class StepCurve : Curve
     /// </summary>
     public StepCurve(Rational value, Rational stepTime)
         : base(
-            baseSequence: new Sequence(new Element[]
-            {
-                Point.Origin(),
-                Segment.Zero(0, stepTime),
-                Point.Zero(stepTime),
-                Segment.Constant(stepTime,
-                    stepTime + DefaultPeriodLength, value),
-                new Point(stepTime + DefaultPeriodLength, value),
-                Segment.Constant(stepTime + DefaultPeriodLength,
-                    stepTime + 2 * DefaultPeriodLength, value),
-            }),
+            baseSequence: BuildSequence(value, stepTime),
             pseudoPeriodStart: stepTime + DefaultPeriodLength,
             pseudoPeriodLength: DefaultPeriodLength,
             pseudoPeriodHeight: 0
@@ -55,6 +45,33 @@ public class StepCurve : Curve
         StepTime = stepTime;
     }
 
+    /// <summary>
+    /// Builds the sequence for the base class constructor
+    /// </summary>
+    private static Sequence BuildSequence(Rational value, Rational stepTime)
+    {
+        if (stepTime == 0)
+        {
+            return new Sequence([
+                Point.Origin(),
+                Segment.Constant(0, DefaultPeriodLength, value),
+                new Point(DefaultPeriodLength, value),
+                Segment.Constant(DefaultPeriodLength, 2 * DefaultPeriodLength, value)
+            ]);
+        }
+        else
+        {
+            return new Sequence([
+                Point.Origin(),
+                Segment.Zero(0, stepTime),
+                Point.Zero(stepTime),
+                Segment.Constant(stepTime, stepTime + DefaultPeriodLength, value),
+                new Point(stepTime + DefaultPeriodLength, value),
+                Segment.Constant(stepTime + DefaultPeriodLength, stepTime + 2 * DefaultPeriodLength, value)
+            ]);
+        }
+    }
+    
     private static readonly Rational DefaultPeriodLength = 1;
 
     /// <inheritdoc cref="Curve.ToCodeString"/>
