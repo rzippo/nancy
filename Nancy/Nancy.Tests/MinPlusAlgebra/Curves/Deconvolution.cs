@@ -1,14 +1,23 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class Deconvolution
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public Deconvolution(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void SigmaRho_RateLatency_0()
     {
@@ -75,7 +84,7 @@ public class Deconvolution
     [Fact]
     public void Generic()
     {
-        // values for this test are form RTaW playground
+        // values for this test are from RTaW playground
         var arrivalParts = new[]
         {
             new SigmaRhoArrivalCurve(sigma: 2, rho: new Rational(7, 4)),
@@ -90,6 +99,51 @@ public class Deconvolution
         Assert.True(Curve.Equivalent(expected, deconv));
     }
 
+    public static List<(Curve f, Curve g, Curve expected)> KnownDeconvolutions =
+    [
+        // edge case: two UI curves, one from 1, the other from 5
+        (
+            f: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Zero(0, 1),
+                    Point.Zero(1),
+                    Segment.PlusInfinite(1, 3)
+                ]),
+                2,
+                1,
+                0
+            ),
+            g: new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Zero(0, 5),
+                    Point.Zero(5),
+                    Segment.PlusInfinite(5, 7)
+                ]),
+                6,
+                1,
+                0
+            ),
+            expected: Curve.PlusInfinite()
+        )
+    ];
+
+    public static IEnumerable<object[]> KnownDeconvolutionsTestCases()
+        => KnownDeconvolutions.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(KnownDeconvolutionsTestCases))]
+    public void KnownDeconvolutionsEquivalence(Curve f, Curve g, Curve expected)
+    {
+        _testOutputHelper.WriteLine($"var f = {f.ToCodeString()}");
+        _testOutputHelper.WriteLine($"var g = {g.ToCodeString()}");
+        _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()}");
+        var deconvolution = Curve.Deconvolution(f, g);
+        _testOutputHelper.WriteLine($"var deconvolution = {deconvolution.ToCodeString()}");
+        Assert.True(Curve.Equivalent(expected, deconvolution));
+    }
+    
     public static IEnumerable<object[]> GetConvolutionInverseTestCases()
     {
         var testcases = new (Curve arrival, Curve service)[]

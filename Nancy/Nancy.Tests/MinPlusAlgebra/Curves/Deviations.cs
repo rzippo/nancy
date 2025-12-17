@@ -5,11 +5,19 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class Deviations
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public Deviations(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     public static List<(Curve f, Curve g, Rational hDev, Rational time)> HDevKnownCases =
     [
         (
@@ -305,14 +313,25 @@ public class Deviations
     public void HorizontalDeviationAlternativesTest(Curve a, Curve b, Rational expected)
     {
         // the following are mathematically equivalent methods to compute hdev(a, b)
-        
-        var a_upi = a.UpperPseudoInverse();
-        var b_upi = b.UpperPseudoInverse();
+        _testOutputHelper.WriteLine($"var a = {a.ToCodeString()}");
+        _testOutputHelper.WriteLine($"var b = {b.ToCodeString()}");
+        _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()}");
+
         // todo: document source for this result
-        var hDev_1 = Curve.MaxPlusDeconvolution(a_upi, b_upi)
-            .Negate()
-            .ToNonNegative()
-            .ValueAt(0);
+        // if a or b are UC, their UPIs are UltimatelyPlusInfinite.
+        // Computing the (max,+) deconvolution hits +infty - (+infty)
+        var doHDev1 = !a.IsUltimatelyConstant && !b.IsUltimatelyConstant;
+        Rational hDev_1 = 0;
+        if (doHDev1)
+        {
+            var a_upi = a.UpperPseudoInverse();
+            var b_upi = b.UpperPseudoInverse();
+            hDev_1 = Curve.MaxPlusDeconvolution(a_upi, b_upi)
+                .Negate()
+                .ToNonNegative()
+                .ValueAt(0);
+            _testOutputHelper.WriteLine($"var hDev_1 = {hDev_1.ToCodeString()}");
+        }
 
         var b_lpi = b.LowerPseudoInverse();
         // [DNC18] Proposition 5.14
@@ -320,14 +339,17 @@ public class Deviations
             .Composition(a)
             .Deconvolution(new RateLatencyServiceCurve(1, 0))
             .ValueAt(0);
+        _testOutputHelper.WriteLine($"var hDev_2 = {hDev_2.ToCodeString()}");
 
         // Derived from [DNC18] Lemma 5.2 and similar, in principle, to Proposition 5.14
         var hDev_3 = b_lpi
             .Composition(a)
             .Subtraction(new RateLatencyServiceCurve(1, 0))
             .SupValue();
+        _testOutputHelper.WriteLine($"var hDev_3 = {hDev_3.ToCodeString()}");
 
-        Assert.Equal(hDev_1, hDev_2);
+        if (doHDev1)
+            Assert.Equal(hDev_1, hDev_2);
         Assert.Equal(hDev_2, hDev_3);
         Assert.Equal(expected, hDev_3);
     }

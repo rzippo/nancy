@@ -5592,17 +5592,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         var g = curve;
 
         // Checks for deconvolution with infinite operands or result
-        if (f.PseudoPeriodSlope > g.PseudoPeriodSlope)
-        {
+
+        // Based on [DNC18] Prop. 2.1, in (min,+) it is +infty - (+infty) = +infty
+        if (f.IsUltimatelyPlusInfinite || g.IsUltimatelyMinusInfinite)
             return PlusInfinite();
-        }
-        if(f.IsFinite)
-        {
-            if(g.IsPlusInfinite)
-                return MinusInfinite();
-            if(g.IsMinusInfinite)
-                return PlusInfinite();
-        }
+        else if (f.IsMinusInfinite || g.IsPlusInfinite)
+            return MinusInfinite();
+
+        if (f.PseudoPeriodSlope > g.PseudoPeriodSlope)
+            return PlusInfinite();
 
         Rational T = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart) + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
 
