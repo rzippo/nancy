@@ -3,7 +3,7 @@ using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Xunit;
 
-namespace Unipi.Nancy.Tests.MinPlusAlgebra.Intervals;
+namespace Unipi.Nancy.Tests.MinPlusAlgebra.IntervalBuckets;
 
 public class SequencePairMerge
 {

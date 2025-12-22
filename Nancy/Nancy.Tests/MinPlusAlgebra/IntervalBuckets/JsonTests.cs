@@ -8,25 +8,25 @@ using Unipi.Nancy.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Unipi.Nancy.Tests.MinPlusAlgebra.Intervals;
+namespace Unipi.Nancy.Tests.MinPlusAlgebra.IntervalBuckets;
 
-public class JsonComputeIntervals
+public class JsonComputeIntervalBuckets
 {
     private readonly ITestOutputHelper output;
 
-    public JsonComputeIntervals(ITestOutputHelper output)
+    public JsonComputeIntervalBuckets(ITestOutputHelper output)
     {
         this.output = output;
     }
 
     public static string[] CurveNames =
     {
-        "Unipi.Nancy.Tests/MinPlusAlgebra/Intervals/JsonComputeIntervals/convolution_1.json",
+        "Unipi.Nancy.Tests/MinPlusAlgebra/IntervalBuckets/JsonComputeIntervals/convolution_1.json",
         #if !SKIP_LONG_TESTS
-        "Unipi.Nancy.Tests/MinPlusAlgebra/Intervals/JsonComputeIntervals/convolution_2.json",
+        "Unipi.Nancy.Tests/MinPlusAlgebra/IntervalBuckets/JsonComputeIntervals/convolution_2.json",
         #endif
-        "Unipi.Nancy.Tests/MinPlusAlgebra/Intervals/JsonComputeIntervals/deconvolution_1.json",
-        "Unipi.Nancy.Tests/MinPlusAlgebra/Intervals/JsonComputeIntervals/deconvolution_2.json"
+        "Unipi.Nancy.Tests/MinPlusAlgebra/IntervalBuckets/JsonComputeIntervals/deconvolution_1.json",
+        "Unipi.Nancy.Tests/MinPlusAlgebra/IntervalBuckets/JsonComputeIntervals/deconvolution_2.json"
     };
 
     public static IEnumerable<object[]> GetJsonTestCases()

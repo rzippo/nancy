@@ -43,10 +43,10 @@
     <EmbeddedResource Include="NetworkCalculus\CurveExamples\8.json" />
     <EmbeddedResource Include="NetworkCalculus\CurveExamples\9.json" />
 
-    <EmbeddedResource Include="MinPlusAlgebra\Intervals\JsonComputeIntervals\convolution_1.json" />
-    <EmbeddedResource Include="MinPlusAlgebra\Intervals\JsonComputeIntervals\convolution_2.json" />
-    <EmbeddedResource Include="MinPlusAlgebra\Intervals\JsonComputeIntervals\deconvolution_1.json" />
-    <EmbeddedResource Include="MinPlusAlgebra\Intervals\JsonComputeIntervals\deconvolution_2.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\IntervalBuckets\JsonComputeIntervals\convolution_1.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\IntervalBuckets\JsonComputeIntervals\convolution_2.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\IntervalBuckets\JsonComputeIntervals\deconvolution_1.json" />
+    <EmbeddedResource Include="MinPlusAlgebra\IntervalBuckets\JsonComputeIntervals\deconvolution_2.json" />
 
     <EmbeddedResource Include="MinPlusAlgebra\CurvesOptimization\JsonTestCases\1.json" />
     <EmbeddedResource Include="MinPlusAlgebra\CurvesOptimization\JsonTestCases\2.json" />
