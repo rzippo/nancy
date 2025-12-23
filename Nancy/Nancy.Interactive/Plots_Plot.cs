@@ -133,7 +133,7 @@ public static partial class Plots
     }
 
     // Instead of a params method, we use a set of overloads with 2, 3, ... curves.
-    // This allows to keep the argument name recogniction, which seems to be much more important.
+    // This allows to keep the argument name recognition, which seems to be much more important.
 
     /// <summary>
     /// Plots a set of curves.
