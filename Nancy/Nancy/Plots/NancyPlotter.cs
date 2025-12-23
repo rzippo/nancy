@@ -26,7 +26,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
     /// Plot settings.
     /// </summary>
     public TSettings PlotSettings { get; init; } = new();
-    
+
     /// <summary>
     /// Plots a set of sequences.
     /// </summary>
@@ -43,7 +43,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
     /// </summary>
     /// <param name="plot"></param>
     public abstract TOutput PlotToOutput(TPlot plot);
-    
+
     #region GetPlot()
 
     #region Curves
@@ -128,7 +128,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
 
         var plot = GetPlot(curves, parsedNames, upTo);
         return plot;
-        
+
         IEnumerable<string> ParseNames(string expr)
         {
             if (string.IsNullOrEmpty(expr))
@@ -273,7 +273,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
         var plot = GetPlot([f, g, h, i, j, k], [fName, gName, hName, iName, jName, kName]);
         return plot;
     }
-    
+
     #endregion
 
     #region Sequences
@@ -293,7 +293,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
     {
         return GetPlot([sequence], [name]);
     }
-    
+
     /// <summary>
     /// Plots a set of sequences.
     /// It attempts to parse the names for the sequences from the optional parameter <paramref name="names"/> or
@@ -318,7 +318,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
 
         var plot = GetPlot(sequences, parsedNames);
         return plot;
-        
+
         IEnumerable<string> ParseNames(string expr)
         {
             if (string.IsNullOrEmpty(expr))
@@ -460,9 +460,9 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
     }
 
     #endregion
-    
+
     #endregion
-    
+
     #region Plot()
 
     #region Curves
@@ -537,7 +537,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
 
         var plot = Plot(curves, parsedNames, upTo);
         return plot;
-        
+
         IEnumerable<string> ParseNames(string expr)
         {
             if (string.IsNullOrEmpty(expr))
@@ -742,7 +742,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
 
         var plot = Plot(sequences, parsedNames);
         return plot;
-        
+
         IEnumerable<string> ParseNames(string expr)
         {
             if (string.IsNullOrEmpty(expr))
@@ -882,7 +882,7 @@ public abstract class NancyPlotter<TSettings, TPlot, TOutput>
         var plot = Plot([f, g, h, i, j, k], [fName, gName, hName, iName, jName, kName]);
         return plot;
     }
-    
+
     #endregion
 
     #endregion
