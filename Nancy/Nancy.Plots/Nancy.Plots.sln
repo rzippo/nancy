@@ -17,6 +17,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Plots.ScottPlot.Local
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Plots.Tikz.Local", "Nancy.Plots.Tikz\Nancy.Plots.Tikz.Local.csproj", "{EE0E9F1E-DF90-4BAC-B8E2-9BFC78C68D28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Plots.XPlot.Plotly", "Nancy.Plots.XPlot.Plotly\Nancy.Plots.XPlot.Plotly.csproj", "{7669B2FB-9C09-4835-85C6-E0FB1F0CD9C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Plots.XPlot.Plotly.Local", "Nancy.Plots.XPlot.Plotly\Nancy.Plots.XPlot.Plotly.Local.csproj", "{5B6A98FD-615A-4DFC-B510-5E10FEF2353E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Plots.XPlot.Plotly.Tests", "Nancy.Plots.XPlot.Plotly.Tests\Nancy.Plots.XPlot.Plotly.Tests.csproj", "{99F97A24-3724-48A6-A05E-CEF11C7842DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,5 +60,17 @@ Global
 		{EE0E9F1E-DF90-4BAC-B8E2-9BFC78C68D28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE0E9F1E-DF90-4BAC-B8E2-9BFC78C68D28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE0E9F1E-DF90-4BAC-B8E2-9BFC78C68D28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7669B2FB-9C09-4835-85C6-E0FB1F0CD9C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7669B2FB-9C09-4835-85C6-E0FB1F0CD9C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7669B2FB-9C09-4835-85C6-E0FB1F0CD9C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7669B2FB-9C09-4835-85C6-E0FB1F0CD9C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B6A98FD-615A-4DFC-B510-5E10FEF2353E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B6A98FD-615A-4DFC-B510-5E10FEF2353E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B6A98FD-615A-4DFC-B510-5E10FEF2353E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B6A98FD-615A-4DFC-B510-5E10FEF2353E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99F97A24-3724-48A6-A05E-CEF11C7842DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99F97A24-3724-48A6-A05E-CEF11C7842DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99F97A24-3724-48A6-A05E-CEF11C7842DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99F97A24-3724-48A6-A05E-CEF11C7842DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
