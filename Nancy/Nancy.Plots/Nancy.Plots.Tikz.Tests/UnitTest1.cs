@@ -17,7 +17,7 @@ public class UnitTest1
     public void Test1()
     {
         var rl = new RateLatencyServiceCurve(1, 1);
-        var tikzPlotter = new TikzNancyPlotter()
+        var tikzPlotter = new TikzNancyPlotRenderer()
         {
             PlotSettings =
             {
@@ -35,7 +35,7 @@ public class UnitTest1
     {
         var sc = new RateLatencyServiceCurve(2, 1);
         var ac = new SigmaRhoArrivalCurve(2, 1);
-        var tikzPlotter = new TikzNancyPlotter()
+        var tikzPlotter = new TikzNancyPlotRenderer()
         {
             PlotSettings =
             {

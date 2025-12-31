@@ -4,9 +4,9 @@ using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Plots.ScottPlot;
 
-public class ScottNancyPlotter : NancyPlotter<ScottPlotSettings, Plot, byte[]>
+public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
 {
-    static ScottNancyPlotter()
+    static ScottNancyPlotModeler()
     {
         // register custom font
         var fontPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Fonts", "Lato-Regular.ttf");
@@ -100,13 +100,6 @@ public class ScottNancyPlotter : NancyPlotter<ScottPlotSettings, Plot, byte[]>
         return plot;
     }
 
-    public override byte[] PlotToOutput(Plot plot)
-    {
-        // todo: make format configurable?
-        plot.ScaleFactor = PlotSettings.ScaleFactor;
-        return plot.GetImageBytes(PlotSettings.Width, PlotSettings.Height, ImageFormat.Png);
-    }
-    
     private class SequenceTraces
     {
         public List<List<(double x, double y)>> ContinuousLines { get; } = [];

@@ -2,7 +2,7 @@
 
 namespace Unipi.Nancy.Plots.Tikz;
 
-public class TikzNancyPlotter : NancyPlotter<TikzPlotSettings, TikzPlot, string>
+public class TikzNancyPlotModeler : NancyPlotModeler<TikzPlotSettings, TikzPlot>
 {
     public override TikzPlot GetPlot(
         IEnumerable<Sequence> sequences,
@@ -14,10 +14,5 @@ public class TikzNancyPlotter : NancyPlotter<TikzPlotSettings, TikzPlot, string>
             PlotSettings
         );
         return tikzPlot;
-    }
-
-    public override string PlotToOutput(TikzPlot plot)
-    {
-        return plot.ToTikzCode();
     }
 }
