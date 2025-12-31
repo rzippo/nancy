@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Unipi.Nancy.Utility;
@@ -27,7 +28,13 @@ public static class StableHashCodeExtensions
             
             case IStableHashCode shc:
                 return shc.GetStableHashCode();
-            
+
+            case System.Collections.IEnumerable ie:
+                var hashes = ie
+                    .OfType<object>()
+                    .Select(GetStableHashCode);
+                return HashStableCombine(hashes);
+
             // either known stable, or not explicitly implemented
             default:
                 return o.GetHashCode();
