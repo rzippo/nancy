@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy", "..\Nancy\Nancy.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Plots.Tikz.Tests", "Nancy.Plots.Tikz.Tests\Nancy.Plots.Tikz.Tests.csproj", "{7E80465C-513F-4CF9-BD29-85E374226D1C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Plots.ScottPlot", "Nancy.Plots.ScottPlot\Nancy.Plots.ScottPlot.csproj", "{273E6FB3-D8AE-4CB0-854A-374D2DC2BE0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Plots.ScottPlot.Tests", "Nancy.Plots.ScottPlot.Tests\Nancy.Plots.ScottPlot.Tests.csproj", "{B7BED378-AB3E-4320-90F4-CE05F77FC619}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{7E80465C-513F-4CF9-BD29-85E374226D1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E80465C-513F-4CF9-BD29-85E374226D1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E80465C-513F-4CF9-BD29-85E374226D1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{273E6FB3-D8AE-4CB0-854A-374D2DC2BE0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{273E6FB3-D8AE-4CB0-854A-374D2DC2BE0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{273E6FB3-D8AE-4CB0-854A-374D2DC2BE0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{273E6FB3-D8AE-4CB0-854A-374D2DC2BE0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7BED378-AB3E-4320-90F4-CE05F77FC619}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7BED378-AB3E-4320-90F4-CE05F77FC619}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7BED378-AB3E-4320-90F4-CE05F77FC619}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7BED378-AB3E-4320-90F4-CE05F77FC619}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
