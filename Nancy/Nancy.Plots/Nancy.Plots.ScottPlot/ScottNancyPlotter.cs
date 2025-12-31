@@ -1,10 +1,20 @@
 ﻿using ScottPlot;
+using SkiaSharp;
 using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Plots.ScottPlot;
 
 public class ScottNancyPlotter : NancyPlotter<ScottPlotSettings, Plot, byte[]>
 {
+    static ScottNancyPlotter()
+    {
+        // register custom font
+        var fontPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Fonts", "Lato-Regular.ttf");
+        if (!File.Exists(fontPath))
+            throw new FileNotFoundException("Font file not found", fontPath);
+        Fonts.AddFontFile("Lato", fontPath);
+    }
+
     public override Plot GetPlot(
         IEnumerable<Sequence> sequences,
         IEnumerable<string> names)
@@ -27,6 +37,7 @@ public class ScottNancyPlotter : NancyPlotter<ScottPlotSettings, Plot, byte[]>
         };
 
         var plot = new Plot();
+        plot.Font.Set("Lato");
 
         foreach (var (sequence, idx) in sequences.WithIndex())
         {
@@ -191,5 +202,35 @@ public class ScottNancyPlotter : NancyPlotter<ScottPlotSettings, Plot, byte[]>
     private static (double x, double y) Coord(Point point)
     {
         return ((double)point.Time, (double)point.Value);
+    }
+
+    /// <summary>
+    /// Checks if the environment has a usable default system font.
+    /// </summary>
+    /// <param name="familyName">The family name of that font, if exists.</param>
+    private static bool HasUsableSystemFont(out string? familyName)
+    {
+        familyName = null;
+        try
+        {
+            using var typeface = SKTypeface.Default;
+
+            if (typeface == null)
+                return false;
+
+            // Some broken environments return a typeface with no family name
+            familyName = typeface.FamilyName;
+
+            if (string.IsNullOrWhiteSpace(familyName))
+                return false;
+
+            // Optional sanity check: attempt to create a font
+            using var font = new SKFont(typeface);
+            return font.Size > 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

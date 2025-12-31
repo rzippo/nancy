@@ -16,5 +16,11 @@
     <ItemGroup>
         <PackageReference Include="ScottPlot" Version="5.1.57" />
     </ItemGroup>
-    
+
+    <ItemGroup>
+      <Content Include="Assets\**\*" >
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>
