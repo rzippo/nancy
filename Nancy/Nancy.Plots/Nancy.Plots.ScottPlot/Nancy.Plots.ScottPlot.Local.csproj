@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>13</LangVersion>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+        <AssemblyName>Unipi.Nancy.Plots.ScottPlot</AssemblyName>
+        <RootNamespace>Unipi.Nancy.Plots.ScottPlot</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Nancy\Nancy.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ScottPlot" Version="5.1.57" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Assets\**\*" >
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+</Project>

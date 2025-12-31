@@ -20,7 +20,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Nancy\Nancy.csproj" />
-      <ProjectReference Include="..\Nancy.Plots.Tikz\Nancy.Plots.Tikz.csproj" />
+      <ProjectReference Include="..\Nancy.Plots.Tikz\Nancy.Plots.Tikz.Local.csproj" />
     </ItemGroup>
 
 </Project>
