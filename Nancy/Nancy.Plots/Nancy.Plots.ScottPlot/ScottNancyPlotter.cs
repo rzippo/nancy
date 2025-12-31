@@ -39,6 +39,17 @@ public class ScottNancyPlotter : NancyPlotter<ScottPlotSettings, Plot, byte[]>
         var plot = new Plot();
         plot.Font.Set("Lato");
 
+        var xlabel = string.IsNullOrWhiteSpace(PlotSettings.XLabel) ? PlotSettings.XLabel : "time";
+        var ylabel = string.IsNullOrWhiteSpace(PlotSettings.YLabel) ? PlotSettings.YLabel : "data";
+        plot.XLabel(xlabel);
+        plot.YLabel(ylabel);
+
+        if(!string.IsNullOrEmpty(PlotSettings.Title))
+            plot.Title(PlotSettings.Title);
+
+        if(PlotSettings.SameScaleAxes)
+            plot.Axes.SquareUnits();
+        
         foreach (var (sequence, idx) in sequences.WithIndex())
         {
             var color = Color.FromHex(colors[idx % colors.Count]);
@@ -91,8 +102,9 @@ public class ScottNancyPlotter : NancyPlotter<ScottPlotSettings, Plot, byte[]>
 
     public override byte[] PlotToOutput(Plot plot)
     {
-        // todo: make format and size configurable?
-        return plot.GetImageBytes(1200, 800, ImageFormat.Png);
+        // todo: make format configurable?
+        plot.ScaleFactor = PlotSettings.ScaleFactor;
+        return plot.GetImageBytes(PlotSettings.Width, PlotSettings.Height, ImageFormat.Png);
     }
     
     private class SequenceTraces
