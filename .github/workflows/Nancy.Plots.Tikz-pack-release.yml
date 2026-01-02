@@ -1,0 +1,51 @@
+name: Nancy.Plots.Tikz-pack-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Tikz/Nancy.Plots.Tikz.csproj'
+  pull_request:
+    branches:
+      - master
+    paths: 
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Tikz/Nancy.Plots.Tikz.csproj'
+
+jobs:
+  Nancy-Plots-Tikz-pack-release:
+    runs-on: ubuntu-latest
+    
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.Plots/Nancy.Plots.sln"
+      NANCY_PLOTS_TIKZ: "Nancy/Nancy.Plots/Nancy.Plots.Tikz/Nancy.Plots.Tikz.csproj"
+      NANCY_PLOTS_TIKZ_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.Tikz.Tests/Nancy.Plots.Tikz.csproj"
+      NANCY_PLOTS_TIKZ_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.Tikz/bin/Release/**/*.nupkg"
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Build Nancy.Plots.Tikz
+        run: dotnet build $NANCY_PLOTS_TIKZ --configuration $BUILD_CONFIG
+
+      - name: Build Nancy.Plots.Tikz.Tests
+        run: dotnet build $NANCY_PLOTS_TIKZ_TESTS --configuration $BUILD_CONFIG
+
+      - name: Test Nancy.Plots.Tikz
+        run: dotnet test $NANCY_PLOTS_TIKZ_TESTS /p:Configuration=$BUILD_CONFIG
+
+      - name: Pack
+        run: dotnet pack $NANCY_PLOTS_TIKZ --configuration $BUILD_CONFIG --no-restore --no-build
+
+      - name: Publish
+        run: dotnet nuget push $NANCY_PLOTS_TIKZ_PACKS --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET_API_KEY}}
