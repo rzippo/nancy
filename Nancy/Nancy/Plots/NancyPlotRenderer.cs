@@ -3,7 +3,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Unipi.Nancy.MinPlusAlgebra;
-using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Plots;
 
@@ -47,17 +46,12 @@ public abstract class NancyPlotRenderer<TSettings, TPlot, TOutput>
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names of the curves.</param>
-    /// <param name="upTo">
-    /// The x-axis right edge of the plot.
-    /// If null, it is set by default as $max_{i}(T_i + 2 * d_i)$.
-    /// </param>
     public TOutput Plot(
         IReadOnlyCollection<Curve> curves,
-        IEnumerable<string> names,
-        Rational? upTo = null
+        IEnumerable<string> names
     )
     {
-        var plot = GetDefaultModeler().GetPlot(curves, names, upTo);
+        var plot = GetDefaultModeler().GetPlot(curves, names);
         return PlotToOutput(plot);
     }
 
@@ -69,17 +63,12 @@ public abstract class NancyPlotRenderer<TSettings, TPlot, TOutput>
     /// The name of the curve.
     /// By default, it captures the expression used for <paramref name="curve"/>.
     /// </param>
-    /// <param name="upTo">
-    /// The x-axis right edge of the plot.
-    /// If null, it is set by default as $T + 2 * d$.
-    /// </param>
     public TOutput Plot(
         Curve curve,
-        [CallerArgumentExpression("curve")] string name = "f",
-        Rational? upTo = null
+        [CallerArgumentExpression("curve")] string name = "f"
     )
     {
-        var plot = GetDefaultModeler().GetPlot([curve], [name], upTo);
+        var plot = GetDefaultModeler().GetPlot([curve], [name]);
         return PlotToOutput(plot);
     }
 
@@ -91,26 +80,21 @@ public abstract class NancyPlotRenderer<TSettings, TPlot, TOutput>
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names for the curves to plot. If manually specified, the recommended format is "[name1, name2, ...]".</param>
-    /// <param name="upTo">
-    /// The x-axis right edge of the plot.
-    /// If null, it is set by default as $max_{i}(T_i + 2 * d_i)$.
-    /// </param>
     /// <remarks>
-    /// The names of the curves can be automatically captured if one uses a syntax like <c>Plots.Plot([b1, b2, b3], upTo: 10);</c>
+    /// The names of the curves can be automatically captured if one uses a syntax like <c>Plots.Plot([b1, b2, b3]: 10);</c>
     /// Note that this works if each curve has its own variable name, rather than being the result of an expression.
     /// </remarks>
     public TOutput Plot(
         IReadOnlyCollection<Curve> curves,
         [CallerArgumentExpression(nameof(curves))]
-        string names = "",
-        Rational? upTo = null
+        string names = ""
     )
     {
         // this code tries to recognize patterns for variable names
         // if it fails, the default [f, g, h, ...] names will be used
         var parsedNames = ParseNames(names);
 
-        var plot = Plot(curves, parsedNames, upTo);
+        var plot = Plot(curves, parsedNames);
         return plot;
 
         IEnumerable<string> ParseNames(string expr)

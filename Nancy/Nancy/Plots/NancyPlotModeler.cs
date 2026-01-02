@@ -43,25 +43,26 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names of the curves.</param>
-    /// <param name="upTo">
-    /// The x-axis right edge of the plot.
-    /// If null, it is set by default as $max_{i}(T_i + 2 * d_i)$.
-    /// </param>
     public TPlot GetPlot(
         IReadOnlyCollection<Curve> curves,
-        IEnumerable<string> names,
-        Rational? upTo = null
+        IEnumerable<string> names
     )
     {
-        Rational t;
-        if (upTo is not null)
-            t = (Rational)upTo;
+        Interval xi;
+        if (PlotSettings.XLimit is not null)
+        {
+            // todo: may need to check for edge cases
+            xi = PlotSettings.XLimit.Value;
+        }
         else
-            t = curves.Max(c => c.SecondPseudoPeriodEnd);
-        t = t == 0 ? 10 : t;
+        {
+            // todo: implement different strategies here
+            var rightEdge = curves.Max(c => c.SecondPseudoPeriodEnd);
+            xi = new Interval(0, rightEdge, true, true);
+        }
 
         var cuts = curves
-            .Select(c => c.Cut(0, t, isEndIncluded: true))
+            .Select(c => c.Cut(xi))
             .ToList();
 
         return GetPlot(cuts, names);
@@ -75,18 +76,13 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     /// The name of the curve.
     /// By default, it captures the expression used for <paramref name="curve"/>.
     /// </param>
-    /// <param name="upTo">
-    /// The x-axis right edge of the plot.
-    /// If null, it is set by default as $T + 2 * d$.
-    /// </param>
     /// <returns>A <see cref="TPlot"/> object.</returns>
     public TPlot GetPlot(
         Curve curve,
-        [CallerArgumentExpression("curve")] string name = "f",
-        Rational? upTo = null
+        [CallerArgumentExpression("curve")] string name = "f"
     )
     {
-        return GetPlot([curve], [name], upTo);
+        return GetPlot([curve], [name]);
     }
 
     /// <summary>
@@ -97,26 +93,21 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names for the curves to plot. If manually specified, the recommended format is "[name1, name2, ...]".</param>
-    /// <param name="upTo">
-    /// The x-axis right edge of the plot.
-    /// If null, it is set by default as $max_{i}(T_i + 2 * d_i)$.
-    /// </param>
     /// <remarks>
-    /// The names of the curves can be automatically captured if one uses a syntax like <c>Plots.Plot([b1, b2, b3], upTo: 10);</c>
+    /// The names of the curves can be automatically captured if one uses a syntax like <c>Plots.Plot([b1, b2, b3]: 10);</c>
     /// Note that this works if each curve has its own variable name, rather than being the result of an expression.
     /// </remarks>
     public TPlot GetPlot(
         IReadOnlyCollection<Curve> curves,
         [CallerArgumentExpression(nameof(curves))]
-        string names = "",
-        Rational? upTo = null
+        string names = ""
     )
     {
         // this code tries to recognize patterns for variable names
         // if it fails, the default [f, g, h, ...] names will be used
         var parsedNames = ParseNames(names);
 
-        var plot = GetPlot(curves, parsedNames, upTo);
+        var plot = GetPlot(curves, parsedNames);
         return plot;
 
         IEnumerable<string> ParseNames(string expr)
