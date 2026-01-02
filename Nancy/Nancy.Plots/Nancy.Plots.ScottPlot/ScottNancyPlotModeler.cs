@@ -1,6 +1,7 @@
 ﻿using ScottPlot;
 using SkiaSharp;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Plots.ScottPlot;
 
@@ -19,8 +20,9 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         IEnumerable<Sequence> sequences,
         IEnumerable<string> names)
     {
+        var sequencesList = sequences.ToList();
         var namesList = names.ToList();
-        
+
         // todo: move colors to settings
         var colors = new List<string>
         {
@@ -39,10 +41,10 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         var plot = new Plot();
         plot.Font.Set("Lato");
 
-        var xlabel = string.IsNullOrWhiteSpace(PlotSettings.XLabel) ? PlotSettings.XLabel : "time";
-        var ylabel = string.IsNullOrWhiteSpace(PlotSettings.YLabel) ? PlotSettings.YLabel : "data";
-        plot.XLabel(xlabel);
-        plot.YLabel(ylabel);
+        if(!string.IsNullOrWhiteSpace(PlotSettings.XLabel))
+            plot.XLabel(PlotSettings.XLabel);
+        if(!string.IsNullOrWhiteSpace(PlotSettings.YLabel))
+            plot.YLabel(PlotSettings.YLabel);
 
         if(!string.IsNullOrEmpty(PlotSettings.Title))
             plot.Title(PlotSettings.Title);
@@ -50,7 +52,62 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         if(PlotSettings.SameScaleAxes)
             plot.Axes.SquareUnits();
         
-        foreach (var (sequence, idx) in sequences.WithIndex())
+        // compute plot bounds, based on explicit settings or current values
+        double xLower, xUpper, yLower, yUpper;
+        if (PlotSettings.XLimit.HasValue)
+        {
+            xLower = (double)PlotSettings.XLimit.Value.Lower;
+            xUpper = (double)PlotSettings.XLimit.Value.Upper;
+        }
+        else
+        {
+            xLower = (double) sequencesList
+                .Select(s => s.DefinedFrom)
+                .Aggregate(Rational.Min);
+            xUpper = (double) sequencesList
+                .Select(s => s.DefinedUntil)
+                .Aggregate(Rational.Max);
+        }
+        
+        if (PlotSettings.YLimit.HasValue)
+        {
+            yLower = (double)PlotSettings.YLimit.Value.Lower;
+            yUpper = (double)PlotSettings.YLimit.Value.Upper;
+        }
+        else
+        {
+            yLower = (double) sequencesList
+                .Select(s => s.InfValue())
+                .Where(v => v.IsFinite)
+                .Aggregate(Rational.Min);
+            yUpper = (double) sequencesList
+                .Select(s => s.SupValue())
+                .Where(v => v.IsFinite)
+                .Aggregate(Rational.Max);
+        }
+
+        // adjust limits for clarity
+        if (PlotSettings.RelativeXAxisMargin != 0)
+        {
+            var xLength = xUpper - xLower;
+            var xAdjustment = xLength > 0 ? xLength * PlotSettings.RelativeXAxisMargin : 1;
+            xLower -= xAdjustment;
+            xUpper += xAdjustment;
+        }
+
+        if (PlotSettings.RelativeYAxisMargin != 0)
+        {
+            var yLength = yUpper - yLower;
+            var yAdjustment = yLength > 0 ? yLength * PlotSettings.RelativeYAxisMargin : 1;
+            yLower -= yAdjustment;
+            yUpper += yAdjustment;
+        }
+
+        // set the axes limits
+        plot.Axes.SetLimitsX(xLower, xUpper);
+        plot.Axes.SetLimitsY(yLower, yUpper);
+
+        foreach (var (sequence, idx) in sequencesList.WithIndex())
         {
             var color = Color.FromHex(colors[idx % colors.Count]);
             var sequenceTrace = new SequenceTraces(sequence);
