@@ -1908,7 +1908,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The first time t at which $f(t)$ = value, or $+\infty$ if it is never reached.</returns>
     /// <remarks>
     /// The current implementation uses <see cref="ToUpperNonDecreasing"/> and <see cref="LowerPseudoInverse"/>.
-    /// Thus it is useful as a shortcut but not to optimize computation of $f^{-1}_\downarrow(x)$ for a single point.
+    /// Thus, it is useful as a shortcut but not to optimize computation of $f^{-1}_\downarrow(x)$ for a single point.
     /// </remarks>
     public Rational TimeAt(Rational value)
     {

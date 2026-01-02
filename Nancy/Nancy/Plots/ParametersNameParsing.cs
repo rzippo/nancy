@@ -14,7 +14,8 @@ public static class ParametersNameParsing
     /// <param name="n">Expected number of names.</param>
     /// <returns>A list of <c>n</c> names.</returns>
     /// <remarks>
-    /// The expression should be a valid constructor of a collection, which references the elements, e.g. <c>[f, g, h]</c>, <c>new []{f, g, h}</c> etc.
+    /// The expression should be a valid constructor of a collection, which references the elements,
+    /// e.g. <c>[f, g, h]</c>, <c>new []{f, g, h}</c> etc.
     /// </remarks>
     public static List<string> ParseNames(this string expr, int n)
     {
