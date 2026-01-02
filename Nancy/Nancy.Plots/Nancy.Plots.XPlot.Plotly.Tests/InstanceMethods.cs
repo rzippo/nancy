@@ -18,7 +18,7 @@ public class InstanceMethods
     public void Test1()
     {
         var rl = new RateLatencyServiceCurve(1, 1);
-        var xplotPlotter = new XPlotPlotlyNancyPlotHtmlRenderer()
+        var xplotPlotter = new XPlotNancyPlotHtmlRenderer()
         {
             PlotSettings =
             {
@@ -41,7 +41,7 @@ public class InstanceMethods
     {
         var sc = new RateLatencyServiceCurve(2, 1);
         var ac = new SigmaRhoArrivalCurve(2, 1);
-        var xplotPlotter = new XPlotPlotlyNancyPlotHtmlRenderer()
+        var xplotPlotter = new XPlotNancyPlotHtmlRenderer()
         {
             PlotSettings =
             {

@@ -1,6 +1,6 @@
 ﻿namespace Unipi.Nancy.Plots.XPlot.Plotly;
 
-public record XPlotPlotlyPlotSettings : PlotSettings
+public record XPlotPlotSettings : PlotSettings
 {
     /// If true, the plot is forced to have the x and y axes to have the same scale.
     /// If false, they are adapted to the render size.

@@ -3,7 +3,7 @@ using XPlot.Plotly;
 
 namespace Unipi.Nancy.Plots.XPlot.Plotly;
 
-public class XPlotPlotlyNancyPlotModeler : NancyPlotModeler<XPlotPlotlyPlotSettings, PlotlyChart>
+public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyChart>
 {
     public override PlotlyChart GetPlot(
         IEnumerable<Sequence> sequences,
