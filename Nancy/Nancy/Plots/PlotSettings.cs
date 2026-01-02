@@ -29,12 +29,12 @@ public record PlotSettings
     /// <summary>
     /// Label for the x-axis.
     /// </summary>
-    public string XLabel { get; set; } = string.Empty;
+    public string XLabel { get; set; } = "time";
 
     /// <summary>
     /// Label for the y-axis.
     /// </summary>
-    public string YLabel { get; set; } = string.Empty;
+    public string YLabel { get; set; } = "data";
     
     /// Controls whether the legend is included or not in the plot.
     public LegendStrategy LegendStrategy { get; set; } = LegendStrategy.Auto;
