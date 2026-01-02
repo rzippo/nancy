@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="XPlot.Plotly.Interactive" Version="4.1.0" />
+        <PackageReference Include="XPlot.Plotly" Version="4.1.0" />
     </ItemGroup>
 
 </Project>
