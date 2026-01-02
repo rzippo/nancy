@@ -1143,6 +1143,23 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         return Elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
     }
 
+    /// <summary>
+    /// Returns a cut of the sequence for a smaller support.
+    /// </summary>
+    /// <param name="interval">The new support.</param>
+    /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
+    public Sequence Cut(Interval interval)
+        => Cut(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded);
+
+    /// <summary>
+    /// Returns a cut of the sequence for a smaller support.
+    /// </summary>
+    /// <param name="interval">The new support.</param>
+    /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
+    /// <remarks>Optimized for minimal allocations.</remarks>
+    public IEnumerable<Element> CutAsEnumerable(Interval interval)
+        => CutAsEnumerable(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded);
+
     //todo: write tests for FindFirstIndex, FindLastIndex
 
     /// <summary>

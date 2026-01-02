@@ -189,6 +189,20 @@ public class Cut
         Assert.Equal(isStartIncluded, cut.IsLeftClosed);
         Assert.Equal(isEndIncluded, cut.IsRightClosed);
     }
+
+    [Theory]
+    [MemberData(nameof(GetSuccessTestCases))]
+    [MemberData(nameof(FromOtherTests))]
+    public void EquivalenceToExpectedInterval(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    {
+        var interval = new Interval(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+        var cut = sequence.Cut(interval);
+
+        Assert.Equal(cutStart, cut.DefinedFrom);
+        Assert.Equal(cutEnd, cut.DefinedUntil);
+        Assert.Equal(isStartIncluded, cut.IsLeftClosed);
+        Assert.Equal(isEndIncluded, cut.IsRightClosed);
+    }
     
     [Theory]
     [MemberData(nameof(GetSuccessTestCases))]
@@ -197,6 +211,22 @@ public class Cut
     {
         Sequence cut = sequence
             .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+            .ToSequence();
+
+        Assert.Equal(cutStart, cut.DefinedFrom);
+        Assert.Equal(cutEnd, cut.DefinedUntil);
+        Assert.Equal(isStartIncluded, cut.IsLeftClosed);
+        Assert.Equal(isEndIncluded, cut.IsRightClosed);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSuccessTestCases))]
+    [MemberData(nameof(FromOtherTests))]
+    public void EquivalenceToExpected_AsEnumerableInterval(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    {
+        var interval = new Interval(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+        var cut = sequence
+            .CutAsEnumerable(interval)
             .ToSequence();
 
         Assert.Equal(cutStart, cut.DefinedFrom);

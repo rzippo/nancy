@@ -1534,74 +1534,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
     /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
     /// <param name="settings"></param>
-    /// <returns>A list of elements equivalently defined within the given interval.</returns>
-    /// <remarks>Optimized for minimal allocations.</remarks>
-    public IEnumerable<Element> CutAsEnumerable(
-        Rational cutStart,
-        Rational cutEnd,
-        bool isStartIncluded = true,
-        bool isEndIncluded = false,
-        ComputationSettings? settings = null
-    )
-    {
-        settings ??= ComputationSettings.Default();
-
-        if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
-        {
-            if (cutStart > BaseSequence.DefinedUntil)
-            {
-                var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                if (isEndIncluded)
-                    endingPseudoPeriodIndex++;
-
-                var indexes = settings.UseParallelExtend
-                    ? Enumerable.Range(startingPseudoPeriodIndex,
-                            (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1))
-                        .AsParallel()
-                    : Enumerable.Range(startingPseudoPeriodIndex,
-                        (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
-
-                var elements = indexes
-                    .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
-                    .SelectMany(en => en);
-
-                return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
-            }
-            else
-            {
-                var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                if (isEndIncluded)
-                    endingPseudoPeriodIndex++;
-
-                var indexes = settings.UseParallelExtend
-                    ? Enumerable.Range(1, endingPseudoPeriodIndex).AsParallel()
-                    : Enumerable.Range(1, endingPseudoPeriodIndex);
-
-                var extensionElements = indexes
-                    .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
-                    .SelectMany(en => en);
-
-                var elements = BaseSequence.Elements.Concat(extensionElements);
-
-                return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
-            }
-        }
-        else
-        {
-            return BaseSequence
-                .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded);
-        }
-    }
-
-    /// <summary>
-    /// Returns a cut of the curve limited to the given interval.
-    /// </summary>
-    /// <param name="cutStart">Left endpoint of the interval.</param>
-    /// <param name="cutEnd">Right endpoint of the interval.</param>
-    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
-    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
-    /// <param name="settings"></param>
     /// <returns>A sequence equivalently defined within the given interval.</returns>
     public Sequence Cut(
         Rational cutStart,
@@ -1751,6 +1683,97 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Returns a cut of the curve limited to the given interval.
+    /// </summary>
+    /// <param name="cutStart">Left endpoint of the interval.</param>
+    /// <param name="cutEnd">Right endpoint of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <param name="settings"></param>
+    /// <returns>A list of elements equivalently defined within the given interval.</returns>
+    /// <remarks>Optimized for minimal allocations.</remarks>
+    public IEnumerable<Element> CutAsEnumerable(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        settings ??= ComputationSettings.Default();
+
+        if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
+        {
+            if (cutStart > BaseSequence.DefinedUntil)
+            {
+                var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                if (isEndIncluded)
+                    endingPseudoPeriodIndex++;
+
+                var indexes = settings.UseParallelExtend
+                    ? Enumerable.Range(startingPseudoPeriodIndex,
+                            (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1))
+                        .AsParallel()
+                    : Enumerable.Range(startingPseudoPeriodIndex,
+                        (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
+
+                var elements = indexes
+                    .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
+                    .SelectMany(en => en);
+
+                return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+            }
+            else
+            {
+                var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                if (isEndIncluded)
+                    endingPseudoPeriodIndex++;
+
+                var indexes = settings.UseParallelExtend
+                    ? Enumerable.Range(1, endingPseudoPeriodIndex).AsParallel()
+                    : Enumerable.Range(1, endingPseudoPeriodIndex);
+
+                var extensionElements = indexes
+                    .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
+                    .SelectMany(en => en);
+
+                var elements = BaseSequence.Elements.Concat(extensionElements);
+
+                return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+            }
+        }
+        else
+        {
+            return BaseSequence
+                .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+        }
+    }
+
+    /// <summary>
+    /// Returns a cut of the curve limited to the given interval.
+    /// </summary>
+    /// <param name="interval"></param>
+    /// <param name="settings"></param>
+    /// <returns>A sequence equivalently defined within the given interval.</returns>
+    public Sequence Cut(
+        Interval interval,
+        ComputationSettings? settings = null
+    ) => Cut(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded, settings);
+
+    /// <summary>
+    /// Returns a cut of the curve limited to the given interval.
+    /// </summary>
+    /// <param name="interval"></param>
+    /// <param name="settings"></param>
+    /// <returns>A sequence equivalently defined within the given interval.</returns>
+    /// <remarks>Optimized for minimal allocations.</remarks>
+    public IEnumerable<Element> CutAsEnumerable(
+        Interval interval,
+        ComputationSettings? settings = null
+    ) => CutAsEnumerable(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded, settings);
+
+    /// <summary>
     /// Generates an extended view on the curve, describing it in $[0, t_{end}[$.
     /// </summary>
     /// <param name="targetEnd">
@@ -1868,6 +1891,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         return CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded).Count();
     }
+
+    /// <summary>
+    /// Returns the number of elements of a cut of the curve limited to the given interval.
+    /// </summary>
+    /// <param name="interval"></param>
+    /// <returns>The number of elements of the sequence equivalently defined within the given interval.</returns>
+    public int Count(Interval interval)
+        => Count(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded);
 
     /// <summary>
     /// Computes the first time the curve is at or above given <paramref name="value"/>,
