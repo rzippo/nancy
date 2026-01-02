@@ -1,0 +1,8 @@
+<Project>
+  <ItemGroup>
+    <!-- Include all fonts from the package as content in the consuming project -->
+    <Content Include="$(MSBuildThisFileDirectory)..\contentFiles\any\any\Assets\Fonts\**\*.ttf"
+            Link="Assets\Fonts\%(RecursiveDir)%(Filename)%(Extension)"
+            CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
