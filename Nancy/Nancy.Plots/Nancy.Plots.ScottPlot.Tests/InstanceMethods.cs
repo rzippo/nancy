@@ -5,11 +5,11 @@ using Xunit.Abstractions;
 
 namespace Nancy.Plots.ScottPlot.Tests;
 
-public class UnitTest1
+public class InstanceMethods
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
-    public UnitTest1(ITestOutputHelper testOutputHelper)
+    public InstanceMethods(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }
