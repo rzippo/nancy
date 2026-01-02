@@ -1,20 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>13</LangVersion>
-        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+
         <AssemblyName>Unipi.Nancy.Plots.ScottPlot</AssemblyName>
         <RootNamespace>Unipi.Nancy.Plots.ScottPlot</RootNamespace>
+        <Title>Nancy.Plots.ScottPlot</Title>
+        <Authors>Raffaele Zippo</Authors>
+        <Description>Nancy extension to produce plots using ScottPlot</Description>
+        <Copyright>Raffaele Zippo, University of Pisa</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageIcon>nancy.png</PackageIcon>
+        <PackageReadmeFile>nuget.md</PackageReadmeFile>
+        <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
+        <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
+        <PackageVersion>1.0.0</PackageVersion>
+
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Nancy\Nancy.csproj" />
+        <PackageReference Include="Unipi.Nancy" Version="1.2.27" />
+        <PackageReference Include="ScottPlot" Version="5.1.57" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="ScottPlot" Version="5.1.57" />
+        <None Include="nancy.png">
+            <Pack>True</Pack>
+        <PackagePath></PackagePath>
+        </None>
+        <None Include="nuget.md">
+            <Pack>True</Pack>
+        <PackagePath></PackagePath>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
