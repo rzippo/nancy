@@ -21,7 +21,7 @@ jobs:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.Plots/Nancy.Plots.sln"
       NANCY_PLOTS_SCOTTPLOT: "Nancy/Nancy.Plots/Nancy.Plots.ScottPlot/Nancy.Plots.ScottPlot.csproj"
-      NANCY_PLOTS_SCOTTPLOT_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.ScottPlot.Tests/Nancy.Plots.ScottPlot.csproj"
+      NANCY_PLOTS_SCOTTPLOT_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.ScottPlot.Tests/Nancy.Plots.ScottPlot.Tests.csproj"
       NANCY_PLOTS_SCOTTPLOT_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.ScottPlot/bin/Release/**/*.nupkg"
 
     steps:

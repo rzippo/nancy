@@ -21,7 +21,7 @@ jobs:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.Plots/Nancy.Plots.sln"
       NANCY_PLOTS_XPLOT_PLOTLY: "Nancy/Nancy.Plots/Nancy.Plots.XPlot.Plotly/Nancy.Plots.XPlot.Plotly.csproj"
-      NANCY_PLOTS_XPLOT_PLOTLY_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.XPlot.Plotly.Tests/Nancy.Plots.XPlot.Plotly.csproj"
+      NANCY_PLOTS_XPLOT_PLOTLY_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.XPlot.Plotly.Tests/Nancy.Plots.XPlot.Plotly.Tests.csproj"
       NANCY_PLOTS_XPLOT_PLOTLY_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.XPlot.Plotly/bin/Release/**/*.nupkg"
 
     steps:
