@@ -81,50 +81,10 @@ public static class ScottPlots
         settings ??= new ScottPlotSettings();
         // this code tries to recognize patterns for variable names
         // if it fails, the default [f, g, h, ...] names will be used
-        var parsedNames = ParseNames(names);
+        var parsedNames = ParametersNameParsing.ParseNames(names, curves.Count);
 
         var renderer = new ScottNancyPlotRenderer() { PlotSettings = settings };
         return renderer.Plot(curves, parsedNames);
-        IEnumerable<string> ParseNames(string expr)
-        {
-            if (string.IsNullOrEmpty(expr))
-                return DefaultNames();
-
-            // matches collection expressions, like "[f, g, h]"
-            var bracketsNotationRegex = new Regex(@"\[(?:([\w\d_\s+*-]+)(?:,\s*)?)+\]");
-            // matches array expressions, like "new []{f, g, h}"
-            var arrayNotationRegex = new Regex(@"new \w*?\[\]\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
-            // matches list expressions, like "new List<>{f, g, h}"
-            var listNotationRegex = new Regex(@"new List<.*>(?:\(\))?\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
-
-            if (bracketsNotationRegex.IsMatch(expr))
-            {
-                var match = bracketsNotationRegex.Match(expr);
-                var pNames = match.Groups[1].Captures
-                    .Select(c => c.Value);
-                return pNames;
-            }
-            else if (arrayNotationRegex.IsMatch(expr))
-            {
-                var match = arrayNotationRegex.Match(expr);
-                var pNames = match.Groups[1].Captures
-                    .Select(c => c.Value);
-                return pNames;
-            }
-            else if (listNotationRegex.IsMatch(expr))
-            {
-                var match = listNotationRegex.Match(expr);
-                var pNames = match.Groups[1].Captures
-                    .Select(c => c.Value);
-                return pNames;
-            }
-
-            // if all else failed
-            return DefaultNames();
-
-            IEnumerable<string> DefaultNames()
-                => curves.Select((_, i) => $"{(char)('f' + i)}");
-        }
     }
 
     // Instead of a params method, we use a set of overloads with 2, 3, ... curves.
@@ -321,49 +281,9 @@ public static class ScottPlots
         
         // this code tries to recognize patterns for variable names
         // if it fails, the default [f, g, h, ...] names will be used
-        var parsedNames = ParseNames(names);
+        var parsedNames = ParametersNameParsing.ParseNames(names, sequences.Count);
 
         return renderer.Plot(sequences, parsedNames);
-        IEnumerable<string> ParseNames(string expr)
-        {
-            if (string.IsNullOrEmpty(expr))
-                return DefaultNames();
-
-            // matches collection expressions, like "[f, g, h]"
-            var bracketsNotationRegex = new Regex(@"\[(?:([\w\d_\s+*-]+)(?:,\s*)?)+\]");
-            // matches array expressions, like "new []{f, g, h}"
-            var arrayNotationRegex = new Regex(@"new \w*?\[\]\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
-            // matches list expressions, like "new List<>{f, g, h}"
-            var listNotationRegex = new Regex(@"new List<.*>(?:\(\))?\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
-
-            if (bracketsNotationRegex.IsMatch(expr))
-            {
-                var match = bracketsNotationRegex.Match(expr);
-                var pNames = match.Groups[1].Captures
-                    .Select(c => c.Value);
-                return pNames;
-            }
-            else if (arrayNotationRegex.IsMatch(expr))
-            {
-                var match = arrayNotationRegex.Match(expr);
-                var pNames = match.Groups[1].Captures
-                    .Select(c => c.Value);
-                return pNames;
-            }
-            else if (listNotationRegex.IsMatch(expr))
-            {
-                var match = listNotationRegex.Match(expr);
-                var pNames = match.Groups[1].Captures
-                    .Select(c => c.Value);
-                return pNames;
-            }
-
-            // if all else failed
-            return DefaultNames();
-
-            IEnumerable<string> DefaultNames()
-                => sequences.Select((_, i) => $"{(char)('f' + i)}");
-        }
     }
 
     // Instead of a params method, we use a set of overloads with 2, 3, ... curves.
