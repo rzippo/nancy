@@ -9,7 +9,7 @@ using Unipi.Nancy.Plots.ScottPlot;
 
 var sc = new RateLatencyServiceCurve(3, 1);
 var ac = new SigmaRhoArrivalCurve(2, 2);
-var bytes = TikzPlots.ToScottPlotImage([sc, ac]);
+var bytes = ScottPlots.ToScottPlotImage([sc, ac]);
 File.WriteAllBytes("plot.png", bytes);
 ```
 

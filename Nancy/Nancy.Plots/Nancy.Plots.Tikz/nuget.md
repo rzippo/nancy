@@ -10,6 +10,7 @@ using Unipi.Nancy.Plots.Tikz;
 var sc = new RateLatencyServiceCurve(3, 1);
 var ac = new SigmaRhoArrivalCurve(2, 2);
 var tikzCode = TikzPlots.ToTikzPlotCode([sc, ac]);
+File.WriteAllText("plot.tikz", tikzCode);
 ```
 
 The `TikZ` code will need to be compiled using LaTeX.
