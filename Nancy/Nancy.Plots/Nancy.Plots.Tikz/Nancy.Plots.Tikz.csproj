@@ -18,14 +18,14 @@
         <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
         <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
         <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
-        <PackageVersion>1.0.2</PackageVersion>
+        <PackageVersion>1.0.3</PackageVersion>
 
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Unipi.Nancy" Version="1.2.27" />
+        <PackageReference Include="Unipi.Nancy" Version="1.2.28" />
     </ItemGroup>
 
     <ItemGroup>
