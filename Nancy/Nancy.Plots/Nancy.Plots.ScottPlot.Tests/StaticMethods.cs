@@ -1,4 +1,5 @@
 using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.ScottPlot;
 using Unipi.Nancy.Utility;
 using Xunit.Abstractions;
@@ -65,6 +66,24 @@ public class StaticMethods
         var bytes = ScottPlots.ToScottPlotImage([sc, ac], settings: new ScottPlotSettings
         {
             Title = "test static plotting"
+        });
+        
+        var hash = bytes.GetStableHashCode();
+        var hashHex = hash.ToString("X");
+        var path = Path.GetFullPath($"{hashHex}.png");
+        File.WriteAllBytes(path, bytes);
+        _testOutputHelper.WriteLine(path);
+    }
+    
+    [Fact]
+    public void Test3()
+    {
+        var sc = new RateLatencyServiceCurve(3, 1);
+        var ac = new SigmaRhoArrivalCurve(2, 2);
+        var bytes = ScottPlots.ToScottPlotImage([sc, ac], settings: new ScottPlotSettings
+        {
+            Title = "static negative xlim",
+            XLimit = new Interval(-1, 10)
         });
         
         var hash = bytes.GetStableHashCode();

@@ -1,4 +1,5 @@
 ﻿using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.XPlot.Plotly;
 using Unipi.Nancy.Utility;
 using Xunit.Abstractions;
@@ -48,6 +49,27 @@ public class InstanceMethods
                 Title = "test plot",
                 XLabel = "time",
                 YLabel = "data",
+            }
+        };
+        var html = xplotPlotter.Plot([sc, ac]);
+        var hash = html.GetStableHashCode();
+        var hashHex = hash.ToString("X");
+        var path = Path.GetFullPath($"{hashHex}.html");
+        File.WriteAllText(path, html);
+        _testOutputHelper.WriteLine(path);
+    }
+
+    [Fact]
+    public void Test3()
+    {
+        var sc = new RateLatencyServiceCurve(2, 1);
+        var ac = new SigmaRhoArrivalCurve(2, 1);
+        var xplotPlotter = new XPlotNancyPlotHtmlRenderer()
+        {
+            PlotSettings =
+            {
+                Title = "negative xlim",
+                XLimit = new Interval(-1, 10)
             }
         };
         var html = xplotPlotter.Plot([sc, ac]);

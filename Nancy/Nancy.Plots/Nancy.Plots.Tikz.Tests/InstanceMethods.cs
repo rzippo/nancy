@@ -1,4 +1,5 @@
 ﻿using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.Tikz;
 using Xunit.Abstractions;
 
@@ -42,6 +43,23 @@ public class InstanceMethods
                 Title = "test plot",
                 XLabel = "time",
                 YLabel = "data",
+            }
+        };
+        var tikzCode = tikzPlotter.Plot([sc, ac]);
+        _testOutputHelper.WriteLine(tikzCode);
+    }
+
+    [Fact]
+    public void Test3()
+    {
+        var sc = new RateLatencyServiceCurve(2, 1);
+        var ac = new SigmaRhoArrivalCurve(2, 1);
+        var tikzPlotter = new TikzNancyPlotRenderer()
+        {
+            PlotSettings =
+            {
+                Title = "negative xlim",
+                XLimit = new Interval(-1, 10)
             }
         };
         var tikzCode = tikzPlotter.Plot([sc, ac]);

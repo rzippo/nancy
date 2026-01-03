@@ -1,4 +1,5 @@
 using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.Tikz;
 using Unipi.Nancy.Utility;
 using Xunit.Abstractions;
@@ -53,6 +54,20 @@ public class StaticMethods
         var tikzCode = TikzPlots.ToTikzPlotCode([sc, ac], settings: new TikzPlotSettings
         {
             Title = "test static plotting"
+        });
+        
+        _testOutputHelper.WriteLine(tikzCode);
+    }
+
+    [Fact]
+    public void Test3()
+    {
+        var sc = new RateLatencyServiceCurve(3, 1);
+        var ac = new SigmaRhoArrivalCurve(2, 2);
+        var tikzCode = TikzPlots.ToTikzPlotCode([sc, ac], settings: new TikzPlotSettings
+        {
+            Title = "static negative xlim",
+            XLimit = new Interval(-1, 10)
         });
         
         _testOutputHelper.WriteLine(tikzCode);

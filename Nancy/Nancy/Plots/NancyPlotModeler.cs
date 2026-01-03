@@ -49,10 +49,9 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     )
     {
         Interval xi;
-        if (PlotSettings.XLimit is not null)
+        if (PlotSettings.XLimit is { } xLimit && xLimit.Upper >= 0 && xLimit.Upper.IsFinite)
         {
-            // todo: may need to check for edge cases
-            xi = PlotSettings.XLimit.Value;
+            xi = xLimit.Lower >= 0 ? xLimit : xLimit.WithLower(0);
         }
         else
         {
