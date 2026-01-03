@@ -1,0 +1,10 @@
+﻿{
+  "solution": {
+    "path": "Nancy.Plots.sln",
+    "projects": [
+      "Nancy.Plots.ScottPlot\\Nancy.Plots.ScottPlot.csproj",
+      "Nancy.Plots.Tikz\\Nancy.Plots.Tikz.csproj",
+      "Nancy.Plots.XPlot.Plotly\\Nancy.Plots.XPlot.Plotly.csproj"
+    ]
+  }
+}

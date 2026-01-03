@@ -1,0 +1,15 @@
+﻿{
+  "solution": {
+    "path": "Nancy.Plots.sln",
+    "projects": [
+      "..\\Nancy.UncheckedInternals\\Nancy.UncheckedInternals.csproj",
+      "..\\Nancy\\Nancy.csproj",
+      "Nancy.Plots.ScottPlot.Tests\\Nancy.Plots.ScottPlot.Tests.csproj",
+      "Nancy.Plots.ScottPlot\\Nancy.Plots.ScottPlot.Local.csproj",
+      "Nancy.Plots.Tikz.Tests\\Nancy.Plots.Tikz.Tests.csproj",
+      "Nancy.Plots.Tikz\\Nancy.Plots.Tikz.Local.csproj",
+      "Nancy.Plots.XPlot.Plotly.Tests\\Nancy.Plots.XPlot.Plotly.Tests.csproj",
+      "Nancy.Plots.XPlot.Plotly\\Nancy.Plots.XPlot.Plotly.Local.csproj"
+    ]
+  }
+}
