@@ -394,12 +394,25 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     }
 
     /// <summary>
+    /// Creates a new expression composed of the addition between the two expressions.
+    /// </summary>
+    public static CurveExpression Addition(CurveExpression left, CurveExpression right, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => left.Addition(right, expressionName:expressionName, settings: settings);
+
+    /// <summary>
     /// Creates a new expression composed of the addition between the expression <paramref name="left"/> and the curve
     /// <paramref name="right"/> (internally converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
     public static CurveExpression Addition(CurveExpression left, Curve right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Addition(right, expressionName:expressionName, settings: settings);
+
+    /// <summary>
+    /// Implementation of the + operator as the addition between <see cref="CurveExpression"/> objects.
+    /// </summary>
+    public static CurveExpression operator +(CurveExpression left, CurveExpression right)
+        => Addition(left, right);
 
     /// <summary>
     /// Implementation of the + operator as the addition between <see cref="CurveExpression"/> objects.
@@ -444,6 +457,33 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression Subtraction(Curve curve, bool nonNegative, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => Subtraction(new ConcreteCurveExpression(curve, name), nonNegative, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the subtraction between the two expressions.
+    /// </summary>
+    public static CurveExpression Subtraction(CurveExpression left, CurveExpression right, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => left.Subtraction(right, expressionName:expressionName, settings: settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the subtraction between the expression <paramref name="left"/> and the curve
+    /// <paramref name="right"/> (internally converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
+    /// </summary>
+    public static CurveExpression Subtraction(CurveExpression left, Curve right, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => left.Subtraction(right, expressionName:expressionName, settings: settings);
+
+    /// <summary>
+    /// Implementation of the - operator as the subtraction between <see cref="CurveExpression"/> objects.
+    /// </summary>
+    public static CurveExpression operator -(CurveExpression left, CurveExpression right)
+        => Subtraction(left, right);
+
+    /// <summary>
+    /// Implementation of the - operator as the subtraction between <see cref="CurveExpression"/> objects.
+    /// </summary>
+    public static CurveExpression operator -(CurveExpression left, Curve right)
+        => Subtraction(left, right);
 
     #endregion Subtraction
     
