@@ -1165,7 +1165,59 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </remarks>
     public static CurveExpression operator +(CurveExpression curveExpression, Rational rational)
         => curveExpression.VerticalShift(rational);
+
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="CurveExpression"/>
+    /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) + K$.
+    /// </summary>
+    /// <param name="curveExpression"></param>
+    /// <param name="rationalExpression"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public static CurveExpression operator +(RationalExpression rationalExpression, CurveExpression curveExpression)
+        => curveExpression.VerticalShift(rationalExpression);
     
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="CurveExpression"/>
+    /// by <paramref name="rational"/>, i.e., computing $f(t) + K$.
+    /// </summary>
+    /// <param name="curveExpression"></param>
+    /// <param name="rational"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public static CurveExpression operator +(Rational rational, CurveExpression curveExpression)
+        => curveExpression.VerticalShift(rational);
+    
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="CurveExpression"/>
+    /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) - K$.
+    /// </summary>
+    /// <param name="curveExpression"></param>
+    /// <param name="rationalExpression"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public static CurveExpression operator -(CurveExpression curveExpression, RationalExpression rationalExpression)
+        => curveExpression.VerticalShift(rationalExpression);
+    
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="CurveExpression"/>
+    /// by <paramref name="rational"/>, i.e., computing $f(t) - K$.
+    /// </summary>
+    /// <param name="curveExpression"></param>
+    /// <param name="rational"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// The shift always moves the entire curve, including the point at the origin.
+    /// </remarks>
+    public static CurveExpression operator -(CurveExpression curveExpression, Rational rational)
+        => curveExpression.VerticalShift(rational);
+
     /// <summary>
     /// Returns true if for $t \ge$ <see cref="Curve.PseudoPeriodStart"/> the curve expression is constant.
     /// Implemented by computing the value of the expression.
