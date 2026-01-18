@@ -8,7 +8,7 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Plots;
 
 /// <summary>
-/// Abstract class to plot Nancy curves via another library that produces <see cref="TPlot"/> objects.
+/// Abstract class to plot Nancy curves via another library that produces <typeparamref name="TPlot"/> objects.
 /// Used to abstract over different methods for plotting, e.g. TikZ, Plotly, ScottPlot.
 /// </summary>
 /// <typeparam name="TSettings">Settings for this plotter, extends <see cref="PlotSettings"/>.</typeparam>
@@ -30,7 +30,7 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     /// </summary>
     /// <param name="sequences">The sequences to plot.</param>
     /// <param name="names">The names of the sequences.</param>
-    /// <returns>A <see cref="TPlot"/> object.</returns>
+    /// <returns>A <typeparamref name="TPlot"/> object.</returns>
     public abstract TPlot GetPlot(
         IEnumerable<Sequence> sequences,
         IEnumerable<string> names
@@ -75,7 +75,7 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     /// The name of the curve.
     /// By default, it captures the expression used for <paramref name="curve"/>.
     /// </param>
-    /// <returns>A <see cref="TPlot"/> object.</returns>
+    /// <returns>A <typeparamref name="TPlot"/> object.</returns>
     public TPlot GetPlot(
         Curve curve,
         [CallerArgumentExpression("curve")] string name = "f"

@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Plots;
 
 /// <summary>
 /// Abstract class that can plot Nancy curves via another library.
-/// It takes a <see cref="TPlot"/> model object, to produce a <see cref="TOutput"/> output.
+/// It takes a <typeparamref name="TPlot"/> model object, to produce a <typeparamref name="TOutput"/> output.
 /// Examples: an HTML string from a Plotly plot object, a LaTeX string from TikZ plot object.  
 /// </summary>
 /// <typeparam name="TSettings">Settings for this plotter, extends <see cref="PlotSettings"/>.</typeparam>
@@ -34,7 +34,7 @@ public abstract class NancyPlotRenderer<TSettings, TPlot, TOutput>
     public abstract NancyPlotModeler<TSettings, TPlot> GetDefaultModeler();
     
     /// <summary>
-    /// Renders the plot model <see cref="TPlot"/> to the output type <see cref="TOutput"/>.
+    /// Renders the plot model <typeparamref name="TPlot"/> to the output type <typeparamref name="TOutput"/>.
     /// </summary>
     /// <param name="plot"></param>
     public abstract TOutput PlotToOutput(TPlot plot);
