@@ -1144,6 +1144,118 @@ public static class Expressions
 
     #endregion RationalSubtraction
     
+    #region RationalMinimum
+
+    /// <summary>
+    /// Creates a new expression composed of the minimum between the expression passed as first argument and the
+    /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
+    /// </summary>
+    public static RationalExpression RationalMinimum(RationalExpression expression, Rational number,
+        [CallerArgumentExpression("number")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => expression.Min(number, name, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the minimum between the expressions passed as arguments.
+    /// </summary>
+    public static RationalExpression RationalMinimum(RationalExpression expressionL, RationalExpression expressionR,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => expressionL.Min(expressionR, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the minimum between the two rational numbers passed as arguments
+    /// (converted to <see cref="RationalNumberExpression"/>).
+    /// </summary>
+    public static RationalExpression RationalMinimum(Rational rationalL, Rational rationalR,
+        [CallerArgumentExpression("rationalL")]
+        string nameL = "", [CallerArgumentExpression("rationalR")] string nameR = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalMinimumExpression([rationalL, rationalR], [nameL, nameR], expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the minimum between the rational number <paramref name="rationalL"/> and the
+    /// expression <paramref name="expressionR"/> passed as arguments.
+    /// </summary>
+    public static RationalExpression RationalMinimum(Rational rationalL, RationalExpression expressionR,
+        [CallerArgumentExpression("rationalL")]
+        string nameL = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => FromRational(rationalL, nameL).Min(expressionR, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the minimum between the rational numbers passed as
+    /// arguments using the collection <paramref name="numbers"/>.
+    /// </summary>
+    public static RationalExpression RationalMinimum(IReadOnlyCollection<Rational> numbers,
+        IReadOnlyCollection<string> names,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalMinimumExpression(numbers, names, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the minimum between the rational expressions passed as arguments.
+    /// </summary>
+    public static RationalExpression RationalMinimum(IReadOnlyCollection<RationalExpression> rationalExpressions,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalMinimumExpression(rationalExpressions, expressionName, settings);
+
+    #endregion RationalMinimum
+
+    #region RationalMaximum
+
+    /// <summary>
+    /// Creates a new expression composed of the maximum between the expression passed as first argument and the
+    /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
+    /// </summary>
+    public static RationalExpression RationalMaximum(RationalExpression expression, Rational number,
+        [CallerArgumentExpression("number")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => expression.Max(number, name, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the maximum between the expressions passed as arguments.
+    /// </summary>
+    public static RationalExpression RationalMaximum(RationalExpression expressionL, RationalExpression expressionR,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => expressionL.Max(expressionR, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the maximum between the two rational numbers passed as arguments
+    /// (converted to <see cref="RationalNumberExpression"/>).
+    /// </summary>
+    public static RationalExpression RationalMaximum(Rational rationalL, Rational rationalR,
+        [CallerArgumentExpression("rationalL")]
+        string nameL = "", [CallerArgumentExpression("rationalR")] string nameR = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalMaximumExpression([rationalL, rationalR], [nameL, nameR], expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the maximum between the rational number <paramref name="rationalL"/> and the
+    /// expression <paramref name="expressionR"/> passed as arguments.
+    /// </summary>
+    public static RationalExpression RationalMaximum(Rational rationalL, RationalExpression expressionR,
+        [CallerArgumentExpression("rationalL")]
+        string nameL = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => FromRational(rationalL, nameL).Max(expressionR, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the maximum between the rational numbers passed as
+    /// arguments using the collection <paramref name="numbers"/>.
+    /// </summary>
+    public static RationalExpression RationalMaximum(IReadOnlyCollection<Rational> numbers,
+        IReadOnlyCollection<string> names,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalMaximumExpression(numbers, names, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the maximum between the rational expressions passed as arguments.
+    /// </summary>
+    public static RationalExpression RationalMaximum(IReadOnlyCollection<RationalExpression> rationalExpressions,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalMaximumExpression(rationalExpressions, expressionName, settings);
+
+    #endregion RationalMaximum
+
     #region Product
     
     /// <summary>
