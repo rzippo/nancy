@@ -4,7 +4,7 @@
         <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <LangVersion>13</LangVersion>
+        <LangVersion>14</LangVersion>
 
         <AssemblyName>Unipi.Nancy.Plots.Tikz</AssemblyName>
         <RootNamespace>Unipi.Nancy.Plots.Tikz</RootNamespace>
@@ -18,14 +18,14 @@
         <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
         <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
         <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
-        <PackageVersion>1.0.3</PackageVersion>
+        <PackageVersion>1.0.4</PackageVersion>
 
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Unipi.Nancy" Version="1.2.28" />
+        <PackageReference Include="Unipi.Nancy" Version="1.3.0" />
     </ItemGroup>
 
     <ItemGroup>
