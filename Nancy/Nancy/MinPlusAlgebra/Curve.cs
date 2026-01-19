@@ -1783,7 +1783,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings"></param>
     /// <returns>A sequence equivalently defined from 0 to $t_{end}$.</returns>
     /// <remarks>
-    /// This is a shorthand for <see cref="Cut"/>
+    /// This is a shorthand for <see cref="Cut(Rational, Rational, bool, bool, ComputationSettings)"/>
     /// which follows, minus the restrictions, the definition in [BT08] Section 4.1
     /// </remarks>
     public Sequence Extend(Rational targetEnd, ComputationSettings? settings = null)

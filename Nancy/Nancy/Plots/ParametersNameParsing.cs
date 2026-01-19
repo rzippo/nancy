@@ -4,6 +4,9 @@ using System.Text.RegularExpressions;
 
 namespace Unipi.Nancy.Plots;
 
+/// <summary>
+/// Methods to parse parameter names from expression strings.
+/// </summary>
 public static class ParametersNameParsing
 {
     /// <summary>
