@@ -804,6 +804,48 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression Scale(Rational scaleFactor, string expressionName = "", ExpressionSettings? settings = null)
         => Scale(new RationalNumberExpression(scaleFactor), expressionName, settings);
 
+    /// <summary>
+    /// Implementation of the * operator to scale a curve expression by a rational number.
+    /// Computes $g(t) = k \cdot f(t)$.
+    /// </summary>
+    public static CurveExpression operator *(CurveExpression curve, Rational scaleFactor)
+        => curve.Scale(scaleFactor);
+
+    /// <summary>
+    /// Implementation of the * operator to scale a curve expression by a rational number.
+    /// Computes $g(t) = k \cdot f(t)$.
+    /// </summary>
+    public static CurveExpression operator *(Rational scaleFactor, CurveExpression curve)
+        => curve.Scale(scaleFactor);
+
+    /// <summary>
+    /// Implementation of the * operator to scale a curve expression by a rational expression.
+    /// Computes $g(t) = k \cdot f(t)$.
+    /// </summary>
+    public static CurveExpression operator *(CurveExpression curve, RationalExpression scaleFactor)
+        => curve.Scale(scaleFactor);
+
+    /// <summary>
+    /// Implementation of the * operator to scale a curve expression by a rational expression.
+    /// Computes $g(t) = k \cdot f(t)$.
+    /// </summary>
+    public static CurveExpression operator *(RationalExpression scaleFactor, CurveExpression curve)
+        => curve.Scale(scaleFactor);
+
+    /// <summary>
+    /// Implementation of the / operator to scale down a curve expression by a rational number.
+    /// Computes $g(t) = f(t) / k$.
+    /// </summary>
+    public static CurveExpression operator /(CurveExpression curve, Rational scaleFactor)
+        => curve.Scale(1 / scaleFactor);
+
+    /// <summary>
+    /// Implementation of the / operator to scale down a curve expression by a rational expression.
+    /// Computes $g(t) = f(t) / k$.
+    /// </summary>
+    public static CurveExpression operator /(CurveExpression curve, RationalExpression scaleFactor)
+        => curve.Scale(scaleFactor.Invert());
+
     #endregion Scale
     
     #region Sampling
