@@ -1,9 +1,8 @@
-{
+﻿{
   "solution": {
     "path": "Nancy.sln",
     "projects": [
       "Nancy.Analyzers\\Nancy.Analyzers.CodeFixers\\Nancy.Analyzers.CodeFixers.csproj",
-      "Nancy.Analyzers\\Nancy.Analyzers.Sample\\Nancy.Analyzers.Sample.csproj",
       "Nancy.Analyzers\\Nancy.Analyzers\\Nancy.Analyzers.csproj",
       "Nancy.Expressions.Interactive\\Nancy.Expressions.Interactive.Local.csproj",
       "Nancy.Expressions.Tests\\Nancy.Expressions.Tests.Local.csproj",
