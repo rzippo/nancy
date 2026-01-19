@@ -36,6 +36,7 @@ public class CurveSubtractions
     [MemberData(nameof(SubtractionTestCases))]
     public void SubtractionTests(Curve a, Curve b, bool nonNegative)
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         var aExp = Expressions.FromCurve(a);
         var bExp = Expressions.FromCurve(b);
         var subExp = Expressions.Subtraction(aExp, bExp, nonNegative);
@@ -45,5 +46,6 @@ public class CurveSubtractions
         _testOutputHelper.WriteLine(subCurve.ToCodeString());
         _testOutputHelper.WriteLine(subExpResult.ToCodeString());
         Assert.True(Curve.Equivalent(subCurve, subExpResult));
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

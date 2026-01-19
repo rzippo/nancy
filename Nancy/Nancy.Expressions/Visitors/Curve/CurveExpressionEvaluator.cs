@@ -90,7 +90,9 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(SubtractionExpression expression)
+#pragma warning disable CS0618 // Type or member is obsolete
         => VisitBinary(expression, (leftCurve, rightCurve) => Curve.Subtraction(leftCurve, rightCurve, expression.NonNegative));
+#pragma warning restore CS0618 // Type or member is obsolete
 
     /// <inheritdoc />
     public virtual void Visit(MinimumExpression expression)

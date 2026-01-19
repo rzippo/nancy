@@ -32,8 +32,7 @@ public class FifoResidualSc
         var b_theta_0 = Expressions.Subtraction(
                 beta, 
                 Expressions.Addition(contendingFlows)
-                .Convolution(delta_theta_0),
-                nonNegative: false
+                .Convolution(delta_theta_0)
             )
             .ToNonNegative()
             .Minimum(delta_theta_0);

@@ -25,6 +25,7 @@ public class Renaming
             ),
             "conv"
         ),
+#pragma warning disable CS0618 // Type or member is obsolete
         (
             Expressions.Subtraction(
                 Expressions.FromCurve(new SigmaRhoArrivalCurve(2, 3), "a"),
@@ -41,6 +42,7 @@ public class Renaming
             ),
             "diff_nn"
         )
+#pragma warning restore CS0618 // Type or member is obsolete
     ];
 
     public static IEnumerable<object[]> CurveRenamingTestCases
