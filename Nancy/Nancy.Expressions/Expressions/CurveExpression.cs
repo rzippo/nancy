@@ -1243,7 +1243,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
     public static CurveExpression operator -(CurveExpression curveExpression, RationalExpression rationalExpression)
-        => curveExpression.VerticalShift(rationalExpression);
+        => curveExpression.VerticalShift(rationalExpression.Negate());
     
     /// <summary>
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
@@ -1256,7 +1256,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
     public static CurveExpression operator -(CurveExpression curveExpression, Rational rational)
-        => curveExpression.VerticalShift(rational);
+        => curveExpression.VerticalShift(-rational);
 
     /// <summary>
     /// Returns true if for $t \ge$ <see cref="Curve.PseudoPeriodStart"/> the curve expression is constant.
