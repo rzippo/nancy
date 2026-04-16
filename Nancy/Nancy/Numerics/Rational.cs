@@ -684,35 +684,18 @@ namespace Unipi.Nancy.Numerics
                 Simplify();
             }
             #elif LONG_RATIONAL
-            //This is an intuitive and surely inefficient implementation.
-            //Wrote fast to just work
-
-            // uses 18 digits as it is the maximum for a long decimal number
-            string representation = value.ToString("f18", CultureInfo.InvariantCulture);
-            var parts = representation.Split('.');
-            Rational integerPart = new Rational(long.Parse(parts[0]));
-            Rational decimalPart = (parts.Length > 1) ? new Rational(GetEighteenDigits(parts[1]), 1_000_000_000_000_000_000) : 0;
-            Rational sum = integerPart + decimalPart;
-
-            Numerator = sum.Numerator;
-            Denominator = sum.Denominator;
-            Simplify();
-            long GetEighteenDigits(string decimals)
-            {
-                const int nDigits = 18;
-                if (decimals.Length > nDigits)
-                    decimals = decimals.Substring(0, nDigits);
-
-                if (decimals.Length < nDigits)
-                {
-                    StringBuilder sb = new StringBuilder(decimals);
-                    for (int i = 0; i < nDigits - decimals.Length; i++)
-                        sb.Append('0');
-                    decimals = sb.ToString();
-                }
-
-                return long.Parse(decimals);
+            var (numerator, denominator) = value.GetRationalParts();
+            var gcd = BigInteger.GreatestCommonDivisor(numerator, denominator);
+            if (gcd > 1) {
+                numerator /= gcd;
+                denominator /= gcd;
             }
+            
+            if(numerator.GetByteCount() > sizeof(long) ||  denominator.GetByteCount() > sizeof(long))
+                throw new OverflowException($"Decimal {value} cannot be represented exactly as LongRational.");
+            
+            Numerator = (long) numerator;
+            Denominator = (long) denominator;
             #endif
         }
 

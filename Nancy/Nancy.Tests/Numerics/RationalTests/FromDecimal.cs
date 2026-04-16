@@ -21,15 +21,14 @@ public class FromDecimal
     public static IEnumerable<object[]> GetKnownDecimalsTestCases()
         => KnownDecimals.ToXUnitTestCases();
     
-    public static readonly List<(decimal d, long numerator, long denominator)> ImpreciseDecimals =
+    public static readonly List<(decimal d, long numerator, long denominator)> LongOverflowDecimals =
     [
         (28m/150, 14, 75),
         (98m/600, 49, 300),
     ];
     
-    public static IEnumerable<object[]> GetImpreciseDecimalsTestCases()
-        =>  ImpreciseDecimals
-            .Concat(KnownDecimals)
+    public static IEnumerable<object[]> GetLongOverflowTestCases()
+        =>  LongOverflowDecimals
             .Select(p => p.d)
             .ToXUnitTestCases();
     
@@ -44,16 +43,15 @@ public class FromDecimal
     }
     
     [Theory]
-    [MemberData(nameof(GetImpreciseDecimalsTestCases))]
-    public void DecimalCtorApproximateEquivalence(decimal d)
+    [MemberData(nameof(GetLongOverflowTestCases))]
+    public void LongOverflowDecimalCtor(decimal d)
     {
+        #if BIG_RATIONAL
         var r = new Rational(d);
         var rCast = (decimal)r;
-
-        #if LONG_RATIONAL
-        Assert.Equal(Decimal.Round(d, 18), rCast);
-        #else
         Assert.Equal(d, rCast);
+        #elif LONG_RATIONAL
+        Assert.Throws<OverflowException>(() => new LongRational(d));        
         #endif
     }
 

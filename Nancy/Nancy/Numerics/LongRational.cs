@@ -8,6 +8,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Utility;
+using Unipi.Nancy.UncheckedInternals;
 
 namespace Unipi.Nancy.Numerics;
 
@@ -450,33 +451,18 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </remarks>
     public LongRational(decimal value)
     {
-        //This is an intuitive and surely inefficient implementation.
-        //Wrote fast to just work
-
-        string representation = value.ToString("0.00", CultureInfo.InvariantCulture);
-        var parts = representation.Split('.');
-        LongRational integerPart = new LongRational(long.Parse(parts[0]));
-        LongRational decimalPart = (parts.Length > 1) ? new LongRational(GetNineDigits(parts[1]), 1_000_000_000) : 0;
-        LongRational sum = integerPart + decimalPart;
-
-        Numerator = sum.Numerator;
-        Denominator = sum.Denominator;
-
-        long GetNineDigits(string decimals)
-        {
-            if (decimals.Length > 9)
-                decimals = decimals.Substring(0, 9);
-
-            if (decimals.Length < 9)
-            {
-                StringBuilder sb = new StringBuilder(decimals);
-                for (int i = 0; i < 9 - decimals.Length; i++)
-                    sb.Append('0');
-                decimals = sb.ToString();
-            }
-
-            return long.Parse(decimals);
+        var (numerator, denominator) = value.GetRationalParts();
+        var gcd = BigInteger.GreatestCommonDivisor(numerator, denominator);
+        if (gcd > 1) {
+            numerator /= gcd;
+            denominator /= gcd;
         }
+        
+        if(numerator.GetByteCount() > sizeof(long) ||  denominator.GetByteCount() > sizeof(long))
+            throw new OverflowException($"Decimal {value} cannot be represented exactly as LongRational.");
+        
+        Numerator = (long) numerator;
+        Denominator = (long) denominator;
     }
 
     #endregion Constructors
