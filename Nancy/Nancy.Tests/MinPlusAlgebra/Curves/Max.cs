@@ -138,26 +138,40 @@ public class Max
         Assert.True(Curve.Equivalent(max, c));
     }
 
-    //[Fact]
-    //public void UltimatelyInfinite()
-    //{
-    //    Curve f1 = new DelayServiceCurve(6);
-    //    Curve f2 = new RateLatencyServiceCurve(4, 4);
+    [Fact]
+    public void DifferentSlopesOneUltimatelyInfinite()
+    {
+        Curve f1 = new DelayServiceCurve(6);
+        Curve f2 = new RateLatencyServiceCurve(rate: 0, latency: 10);
 
-    //    Assert.False(f1.IsFinite);
-    //    Assert.False(f1.IsContinuous);
-    //    Assert.True(f1.IsUltimatelyPlain);
+        Assert.True(f1.IsUltimatelyInfinite);
+        Assert.False(f2.IsUltimatelyInfinite);
+        Assert.NotEqual(f1.PseudoPeriodSlope, f2.PseudoPeriodSlope);
 
-    //    Assert.True(f2.IsFinite);
-    //    Assert.True(f2.IsContinuous);
-    //    Assert.True(f2.IsRightContinuous);
-    //    Assert.True(f2.IsUltimatelyPlain);
+        Curve max = Curve.Maximum(f1, f2);
+        Assert.False(max.IsFinite);
+        Assert.True(max.IsUltimatelyInfinite);
+    }
 
-    //    Curve min = Curve.Minimum(f1, f2);
-    //    Assert.True(min.IsFinite);
-    //    Assert.False(min.IsContinuous);
-    //    Assert.True(min.IsUltimatelyPlain);
-    //}
+    [Fact]
+    public void DifferentSlopesBothUltimatelyInfinite()
+    {
+        Curve f1 = new DelayServiceCurve(6);
+        Curve f2 = new DelayServiceCurve(4);
+
+        Assert.True(f1.IsUltimatelyInfinite);
+        Assert.True(f2.IsUltimatelyInfinite);
+        Assert.Equal(f1.PseudoPeriodSlope, f2.PseudoPeriodSlope);
+
+        Curve max = Curve.Maximum(f1, f2);
+        Assert.True(max.IsUltimatelyInfinite);
+        Assert.False(max.IsFinite);
+
+        for (Rational t = 0; t <= 20; t += 1)
+        {
+            Assert.Equal(Rational.Max(f1.ValueAt(t), f2.ValueAt(t)), max.ValueAt(t));
+        }
+    }
 
     public static IEnumerable<object[]> GetSetTestCases()
     {

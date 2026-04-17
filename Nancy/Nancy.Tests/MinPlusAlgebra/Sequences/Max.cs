@@ -138,4 +138,16 @@ public class Max
         }
     }
 
+    [Fact]
+    public void ChainingMax()
+    {
+        Sequence f1 = TestFunctions.SequenceA;
+        Sequence f2 = TestFunctions.SequenceB.Delay(3);
+
+        Sequence max = Sequence.Maximum(f1, f2, false);
+
+        Assert.Equal(f1.DefinedFrom, max.DefinedFrom);
+        Assert.Equal(f2.DefinedUntil, max.DefinedUntil);
+        Assert.True(max.IsFinite);
+    }
 }

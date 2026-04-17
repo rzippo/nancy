@@ -201,6 +201,45 @@ public class Min
         Assert.True(min.IsPlain);
     }
 
+    [Fact]
+    public void DifferentSlopesOneUltimatelyInfinite()
+    {
+        Curve f1 = new DelayServiceCurve(6);
+        Curve f2 = new RateLatencyServiceCurve(rate: 0, latency: 10);
+
+        Assert.True(f1.IsUltimatelyInfinite);
+        Assert.False(f2.IsUltimatelyInfinite);
+        Assert.NotEqual(f1.PseudoPeriodSlope, f2.PseudoPeriodSlope);
+
+        Curve min = Curve.Minimum(f1, f2);
+        Assert.True(min.IsFinite);
+        Assert.True(min.IsUltimatelyPlain);
+
+        for (Rational t = 0; t <= 20; t += 1)
+        {
+            Assert.Equal(Rational.Min(f1.ValueAt(t), f2.ValueAt(t)), min.ValueAt(t));
+        }
+    }
+
+    [Fact]
+    public void DifferentSlopesBothUltimatelyInfinite()
+    {
+        Curve f1 = new DelayServiceCurve(6);
+        Curve f2 = new DelayServiceCurve(4);
+
+        Assert.True(f1.IsUltimatelyInfinite);
+        Assert.True(f2.IsUltimatelyInfinite);
+        Assert.Equal(f1.PseudoPeriodSlope, f2.PseudoPeriodSlope);
+
+        Curve min = Curve.Minimum(f1, f2);
+        Assert.True(min.IsUltimatelyInfinite);
+
+        for (Rational t = 0; t <= 20; t += 1)
+        {
+            Assert.Equal(Rational.Min(f1.ValueAt(t), f2.ValueAt(t)), min.ValueAt(t));
+        }
+    }
+
     public static IEnumerable<object[]> MinimumSamplingTestCases()
     {
         var testCases = new (Curve a, Curve b, Rational[] times)[]

@@ -263,4 +263,26 @@ public class Deconvolution
 
         Assert.True(Curve.Equivalent(left, right));
     }
+
+    [Fact]
+    public void Deconvolution_WithMinusInfiniteCurve_ReturnsMinusInfinite()
+    {
+        var f = Curve.MinusInfinite();
+        var g = new RateLatencyServiceCurve(rate: 1, latency: 0);
+
+        var result = f.Deconvolution(g);
+
+        Assert.True(result.IsMinusInfinite);
+    }
+
+    [Fact]
+    public void Deconvolution_WithPlusInfiniteService_ReturnsMinusInfinite()
+    {
+        var f = new RateLatencyServiceCurve(rate: 1, latency: 0);
+        var g = Curve.PlusInfinite();
+
+        var result = f.Deconvolution(g);
+
+        Assert.True(result.IsMinusInfinite);
+    }
 }

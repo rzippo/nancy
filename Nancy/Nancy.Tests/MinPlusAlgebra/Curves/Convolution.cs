@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -369,4 +370,131 @@ public class Convolution
         Assert.True(conv.IsLeftContinuous);
     }
     #endif
+
+    public static List<Curve> ConvolutionCurves = [
+        new StairCurve(2, 3),
+        new FlowControlCurve(5, 4, 10),
+        new FlowControlCurve(3, 3, 2),
+        new TwoRatesServiceCurve(5, 3, 10, 1),
+        new SigmaRhoArrivalCurve(10, 2),
+        new RateLatencyServiceCurve(2, 5),
+        new DelayServiceCurve(5),
+        Curve.Minimum(new StairCurve(2, 3), new DelayServiceCurve(5)),
+        Curve.Minimum(new RateLatencyServiceCurve(2, 5), new DelayServiceCurve(10)),
+    ];
+
+    public static IEnumerable<object[]> GetCurvesForConvolutionTests()
+        => ConvolutionCurves.ToXUnitTestCases();
+    
+    public static IEnumerable<object[]> GetFiniteCurvesForConvolutionTests()
+        => ConvolutionCurves
+            .Where(c => c.IsFinite)
+            .ToXUnitTestCases();
+    
+    public static IEnumerable<object[]> GetUltimitelyInfiniteCurvesForConvolutionTests()
+        => ConvolutionCurves
+            .Where(c => c.IsUltimatelyInfinite)
+            .ToXUnitTestCases();
+
+    public static IEnumerable<object[]> GetNoTransientFiniteCurvesForConvolutionTests()
+        => ConvolutionCurves
+            .Where(c => c.IsFinite && !c.HasTransient)
+            .ToXUnitTestCases();
+
+    public static IEnumerable<object[]> GetFiniteNonNegativeCurvesForConvolutionTests()
+        => ConvolutionCurves
+            .Where(c => c.IsFinite)
+            .Where(c => c.IsNonNegative)
+            .ToXUnitTestCases();
+
+    public static IEnumerable<object[]> GetCurvePairsForConvolutionTests()
+        => ConvolutionCurves
+            .SelectMany(c1 => ConvolutionCurves.Select(c2 => (c1, c2)))
+            .ToXUnitTestCases();
+    
+    [Theory]
+    [MemberData(nameof(GetFiniteNonNegativeCurvesForConvolutionTests))]
+    public void ConvolutionWithZeroCurveNonNegative(Curve curve)
+    {
+        Curve zero = Curve.Zero();
+        
+        Assert.True(zero.IsZero);
+        Assert.True(curve.IsNonNegative);
+
+        Curve convolution = curve.Convolution(zero, settings);
+        Assert.True(convolution.IsZero);
+        
+        Curve reversed = zero.Convolution(curve, settings);
+        Assert.True(reversed.IsZero);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetFiniteCurvesForConvolutionTests))]
+    public void ConvolutionWithFullyInfiniteCurve(Curve curve)
+    {
+        Curve fullyInfinite = Curve.PlusInfinite();
+
+        Assert.Equal(Rational.PlusInfinity, fullyInfinite.FirstFiniteTimeExceptOrigin);
+
+        Curve convolution = curve.Convolution(fullyInfinite, settings);
+        Assert.True(Curve.Equivalent(Curve.PlusInfinite(), convolution));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetCurvesForConvolutionTests))]
+    public void CollectionConvolution_SingleElement(Curve curve)
+    {
+        var collection = new List<Curve> { curve };
+        Curve result = Curve.Convolution(collection, settings);
+        Assert.Equal(curve, result);
+    }
+
+    [Fact]
+    public void CollectionConvolution_Empty()
+    {
+        var emptyCollection = new List<Curve>();
+        Assert.Throws<InvalidOperationException>(() => Curve.Convolution(emptyCollection, settings));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetCurvePairsForConvolutionTests))]
+    public void CollectionConvolution_TwoElements(Curve a, Curve b)
+    {
+        var collection = new List<Curve> { a, b };
+        Curve result = Curve.Convolution(collection, settings);
+        Curve expected = a.Convolution(b, settings);
+
+        Assert.True(Curve.Equivalent(result, expected));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetFiniteCurvesForConvolutionTests))]
+    public void SelfConvolution_FiniteCurve(Curve curve)
+    {
+        Curve singlePassConv = Curve.Convolution(curve, curve, settings with { SinglePassConvolution = true });
+        Curve nonSinglePassConv = Curve.Convolution(curve, curve, settings with { SinglePassConvolution = false });
+
+        Assert.True(Curve.Equivalent(singlePassConv, nonSinglePassConv));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetUltimitelyInfiniteCurvesForConvolutionTests))]
+    public void SelfConvolution_UltimatelyInfiniteCurve(Curve curve)
+    {
+        Curve singlePassConv = Curve.Convolution(curve, curve, settings with { SinglePassConvolution = true });
+        Curve nonSinglePassConv = Curve.Convolution(curve, curve, settings with { SinglePassConvolution = false });
+
+        Assert.True(Curve.Equivalent(singlePassConv, nonSinglePassConv));
+        Assert.Equal(curve.PseudoPeriodStartInfimum * 2, singlePassConv.PseudoPeriodStartInfimum);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetNoTransientFiniteCurvesForConvolutionTests))]
+    public void SelfConvolution_OnlyPeriodicPart(Curve curve)
+    {
+        Curve singlePassConv = Curve.Convolution(curve, curve, settings with { SinglePassConvolution = true });
+        Curve nonSinglePassConv = Curve.Convolution(curve, curve, settings with { SinglePassConvolution = false });
+
+        Assert.True(Curve.Equivalent(singlePassConv, nonSinglePassConv));
+    }
 }
