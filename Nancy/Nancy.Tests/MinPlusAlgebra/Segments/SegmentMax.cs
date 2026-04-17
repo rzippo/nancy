@@ -50,8 +50,37 @@ public class SegmentMax
             endTime: 5
         );
 
-        IEnumerable<Element> MaxEnumerable = first.Maximum(second);
-        Segment max = (Segment) MaxEnumerable.Single();
+        IEnumerable<Element> maxEnumerable = first.Maximum(second);
+        Segment max = (Segment) maxEnumerable.Single();
+
+        Assert.Equal(2, max.StartTime);
+        Assert.Equal(5, max.EndTime);
+
+        Assert.Equal(Rational.Max(first.RightLimitAtStartTime, second.RightLimitAtStartTime), max.RightLimitAtStartTime);
+        Assert.Equal(Rational.Max(first.Slope, second.Slope), max.Slope);
+    }
+
+    [Fact]
+    public void SingleMaxFullOverlapAsList()
+    {
+        Segment first = new Segment
+        (
+            rightLimitAtStartTime: 10,
+            slope: 5,
+            startTime: 2,
+            endTime: 5
+        );
+
+        Segment second = new Segment
+        (
+            rightLimitAtStartTime: 7,
+            slope: 1,
+            startTime: 2,
+            endTime: 5
+        );
+
+        IEnumerable<Element> maxEnumerable = Element.Maximum([first, second]);
+        Segment max = (Segment) maxEnumerable.Single();
 
         Assert.Equal(2, max.StartTime);
         Assert.Equal(5, max.EndTime);
@@ -80,8 +109,8 @@ public class SegmentMax
             endTime: 6
         );
 
-        IEnumerable<Element> MaxEnumerable = first.Maximum(second);
-        Segment max = (Segment) MaxEnumerable.Single();
+        IEnumerable<Element> maxEnumerable = first.Maximum(second);
+        Segment max = (Segment) maxEnumerable.Single();
 
         Assert.Equal(3, max.StartTime);
         Assert.Equal(5, max.EndTime);
@@ -110,8 +139,8 @@ public class SegmentMax
             endTime: 6
         );
 
-        IEnumerable<Element> MaxEnumerable = second.Maximum(first);
-        Segment max = (Segment) MaxEnumerable.Single();
+        IEnumerable<Element> maxEnumerable = second.Maximum(first);
+        Segment max = (Segment) maxEnumerable.Single();
 
         Assert.Equal(3, max.StartTime);
         Assert.Equal(5, max.EndTime);
@@ -141,8 +170,8 @@ public class SegmentMax
             endTime: 15
         );
 
-        IEnumerable<Element> MaxEnumerable = first.Maximum(second);
-        Segment max = (Segment) MaxEnumerable.Single();
+        IEnumerable<Element> maxEnumerable = first.Maximum(second);
+        Segment max = (Segment) maxEnumerable.Single();
 
         Assert.Equal(10, max.StartTime);
         Assert.Equal(15, max.EndTime);
@@ -215,8 +244,8 @@ public class SegmentMax
             endTime: 9
         );
 
-        IEnumerable<Element> MaxEnumerable = first.Maximum(second);
-        Segment max = (Segment) MaxEnumerable.Single();
+        IEnumerable<Element> maxEnumerable = first.Maximum(second);
+        Segment max = (Segment) maxEnumerable.Single();
 
         Assert.Equal(6, max.StartTime);
         Assert.Equal(9, max.EndTime);
@@ -246,8 +275,8 @@ public class SegmentMax
             endTime: 9
         );
 
-        IEnumerable<Element> MaxEnumerable = second.Maximum(first);
-        Segment max = (Segment) MaxEnumerable.Single();
+        IEnumerable<Element> maxEnumerable = second.Maximum(first);
+        Segment max = (Segment) maxEnumerable.Single();
 
         Assert.Equal(6, max.StartTime);
         Assert.Equal(9, max.EndTime);

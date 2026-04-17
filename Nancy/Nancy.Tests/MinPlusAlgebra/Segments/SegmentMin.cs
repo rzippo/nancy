@@ -63,6 +63,39 @@ public class SegmentMin
         Assert.Equal(Rational.Min(first.RightLimitAtStartTime, second.RightLimitAtStartTime), min.RightLimitAtStartTime);
         Assert.Equal(Rational.Min(first.Slope, second.Slope), min.Slope);
     }
+    
+    [Fact]
+    public void SingleMinFullOverlapAsList()
+    {
+        Segment first = new Segment
+        (
+            rightLimitAtStartTime: 10,
+            slope: 5,
+            startTime: 2,
+            endTime: 5
+        );
+
+        Segment second = new Segment
+        (
+            rightLimitAtStartTime: 7,
+            slope: 1,
+            startTime: 2,
+            endTime: 5
+        );
+
+        var minEnumerable = Element.Minimum([first, second]);
+        Assert.Single(minEnumerable);
+
+        var minElement = minEnumerable.Single();
+        Assert.IsType<Segment>(minElement);
+        var min = (Segment) minElement;
+
+        Assert.Equal(2, min.StartTime);
+        Assert.Equal(5, min.EndTime);
+
+        Assert.Equal(Rational.Min(first.RightLimitAtStartTime, second.RightLimitAtStartTime), min.RightLimitAtStartTime);
+        Assert.Equal(Rational.Min(first.Slope, second.Slope), min.Slope);
+    }
 
     [Fact]
     public void SingleMinPartialOverlap()

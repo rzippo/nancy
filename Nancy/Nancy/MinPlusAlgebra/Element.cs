@@ -495,7 +495,7 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
         if (elements.Count() == 1)
             return elements.ToList();
         if (elements.Count() == 2)
-            return elements.ElementAt(0).Minimum(elements.ElementAt(1));
+            return elements.ElementAt(0).Maximum(elements.ElementAt(1));
 
         var reference = elements.MinBy(e => e.Length);
 
