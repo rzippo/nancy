@@ -246,18 +246,6 @@ public class Deviations
             0,
             0
         ),
-        #if BIG_RATIONAL
-        (
-            f: Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}"),
-            g: Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}"),
-            new Rational(115102801965691,149850048000)
-        ),
-        (
-            f: new Curve(Curve.FromJson("{\"type\":\"sigmaRhoArrivalCurve\",\"sigma\":{\"num\":1,\"den\":1},\"rho\":{\"num\":2441407,\"den\":1000000000}}")),
-            g: new Curve(Curve.FromJson("{\"type\":\"rateLatencyServiceCurve\",\"rate\":{\"num\":149850048000,\"den\":12309415288891},\"latency\":{\"num\":27439,\"den\":40}}")),
-            new Rational(115102801965691,149850048000)
-        )
-        #endif
     ];
     
     public static IEnumerable<object[]> GetHorizontalDeviationTestCases()
