@@ -28,7 +28,7 @@ public static class ParametersNameParsing
         // matches collection expressions, like "[f, g, h]"
         var bracketsNotationRegex = new Regex(@"\[(?:([\w\d_\s+*-]+)(?:,\s*)?)+\]");
         // matches array expressions, like "new []{f, g, h}"
-        var arrayNotationRegex = new Regex(@"new \w*?\[\]\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
+        var arrayNotationRegex = new Regex(@"new(?:\s*|\s\w+)\[\]\s*\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
         // matches list expressions, like "new List<>{f, g, h}"
         var listNotationRegex = new Regex(@"new List<.*>(?:\(\))?\{(?:([\w\d_\s+*-]+)(?:,\s*)?)+\}");
 
@@ -37,21 +37,21 @@ public static class ParametersNameParsing
         {
             var match = bracketsNotationRegex.Match(expr);
             parsedNames = match.Groups[1].Captures
-                .Select(c => c.Value)
+                .Select(c => c.Value.Trim())
                 .ToList();
         }
         else if (arrayNotationRegex.IsMatch(expr))
         {
             var match = arrayNotationRegex.Match(expr);
             parsedNames = match.Groups[1].Captures
-                .Select(c => c.Value)
+                .Select(c => c.Value.Trim())
                 .ToList();
         }
         else if (listNotationRegex.IsMatch(expr))
         {
             var match = listNotationRegex.Match(expr);
             parsedNames = match.Groups[1].Captures
-                .Select(c => c.Value)
+                .Select(c => c.Value.Trim())
                 .ToList();
         }
         else
