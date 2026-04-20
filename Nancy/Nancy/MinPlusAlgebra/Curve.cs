@@ -1082,8 +1082,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public static bool Equivalent(Curve a, Curve b, ComputationSettings? settings = null)
     {
-        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
-                            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        if (a.IsUltimatelyAffine != b.IsUltimatelyAffine)
+            return false;
+
+        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart) 
+            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
 
         var seqA = a.CutAsEnumerable(0, cutEnd, true, true, settings);
         var seqB = b.CutAsEnumerable(0, cutEnd, true, true, settings);
@@ -1704,43 +1707,90 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
         {
-            if (cutStart > BaseSequence.DefinedUntil)
+            if (IsUltimatelyAffine)
             {
-                var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                if (isEndIncluded)
-                    endingPseudoPeriodIndex++;
+                if (cutStart >= PseudoPeriodStart)
+                {
+                    var bsLastSegment = (Segment) BaseSequence.Elements.Last();
+                    var pseudoPeriodStartValue = bsLastSegment.RightLimitAtStartTime;
+                    var valueAtStart = pseudoPeriodStartValue +
+                                       (cutStart - bsLastSegment.StartTime) * bsLastSegment.Slope;
+                    var elements = new List<Element>();
+                    if(isStartIncluded)
+                        elements.Add(new Point(cutStart, valueAtStart));
+                    elements.Add(new Segment(cutStart, cutEnd, valueAtStart, bsLastSegment.Slope));
+                    if (isEndIncluded)
+                    {
+                        var valueAtEnd = pseudoPeriodStartValue +
+                                       (cutEnd - bsLastSegment.StartTime) * bsLastSegment.Slope;
+                        elements.Add(new Point(cutEnd, valueAtEnd));
+                    }
 
-                var indexes = settings.UseParallelExtend
-                    ? Enumerable.Range(startingPseudoPeriodIndex,
-                            (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1))
-                        .AsParallel()
-                    : Enumerable.Range(startingPseudoPeriodIndex,
-                        (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
+                    return elements;
+                }
+                else
+                {
+                    var bsLastSegment = (Segment) BaseSequence.Elements.Last();
+                    var lastSegment = new Segment(
+                        startTime: PseudoPeriodStart,
+                        endTime: cutEnd,
+                        rightLimitAtStartTime: bsLastSegment.RightLimitAtStartTime,
+                        slope: bsLastSegment.Slope
+                    );
+                    var elements = BaseSequence.Elements
+                        .SkipLast(1)
+                        .Append(lastSegment);
 
-                var elements = indexes
-                    .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
-                    .SelectMany(en => en);
+                    if (isEndIncluded)
+                    {
+                        var lastPoint = new Point(cutEnd, lastSegment.LeftLimitAtEndTime);
+                        elements = elements.Append(lastPoint);
+                    }
 
-                return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                    return elements
+                        .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                }
             }
             else
             {
-                var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                if (isEndIncluded)
-                    endingPseudoPeriodIndex++;
+                if (cutStart > BaseSequence.DefinedUntil)
+                {
+                    var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                    var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                    if (isEndIncluded)
+                        endingPseudoPeriodIndex++;
 
-                var indexes = settings.UseParallelExtend
-                    ? Enumerable.Range(1, endingPseudoPeriodIndex).AsParallel()
-                    : Enumerable.Range(1, endingPseudoPeriodIndex);
+                    var indexes = settings.UseParallelExtend
+                        ? Enumerable.Range(startingPseudoPeriodIndex,
+                                (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1))
+                            .AsParallel()
+                        : Enumerable.Range(startingPseudoPeriodIndex,
+                            (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
 
-                var extensionElements = indexes
-                    .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
-                    .SelectMany(en => en);
+                    var elements = indexes
+                        .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
+                        .SelectMany(en => en);
 
-                var elements = BaseSequence.Elements.Concat(extensionElements);
+                    return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                }
+                else
+                {
+                    var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                    if (isEndIncluded)
+                        endingPseudoPeriodIndex++;
 
-                return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                    var indexes = settings.UseParallelExtend
+                        ? Enumerable.Range(1, endingPseudoPeriodIndex).AsParallel()
+                        : Enumerable.Range(1, endingPseudoPeriodIndex);
+
+                    var extensionElements = indexes
+                        .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
+                        .SelectMany(en => en);
+
+                    var elements = BaseSequence.Elements.Concat(extensionElements);
+
+                    return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                }
             }
         }
         else
