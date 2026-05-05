@@ -443,6 +443,34 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     }
 
     /// <summary>
+    /// Constructs a rational from the shortest round-trippable decimal representation of the given double.
+    /// </summary>
+    public LongRational(Double value)
+    {
+        var (numerator, denominator) = value.GetRationalParts();
+        AssignRationalParts(
+            numerator,
+            denominator,
+            nameof(Double),
+            value.ToString("G", CultureInfo.InvariantCulture)
+        );
+    }
+
+    /// <summary>
+    /// Constructs a rational from the shortest round-trippable decimal representation of the given float.
+    /// </summary>
+    public LongRational(Single value)
+    {
+        var (numerator, denominator) = value.GetRationalParts();
+        AssignRationalParts(
+            numerator,
+            denominator,
+            nameof(Single),
+            value.ToString("G", CultureInfo.InvariantCulture)
+        );
+    }
+
+    /// <summary>
     /// Constructor.
     /// </summary>
     /// <remarks>
@@ -1185,28 +1213,23 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         return new LongRational((long)value);
     }
 
-    /*
-     * This operators are commented out as they're unreliable
-     * due to the Rational(double) constructor
-     * 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="value"></param>
-    public static implicit operator Rational(Single value)
+    public static implicit operator LongRational(Single value)
     {
-        return new Rational((Double)value);
+        return new LongRational((Double)value);
     }
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="value"></param>
-    public static implicit operator Rational(Double value)
+    public static implicit operator LongRational(Double value)
     {
-        return new Rational(value);
+        return new LongRational(value);
     }
-    */
 
     /// <summary>
     /// 
@@ -1252,6 +1275,16 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         }
     }
 
+    private void AssignRationalParts(BigInteger numerator, BigInteger denominator, string valueType, string valueText)
+    {
+        if (!SafeCastToInt64(numerator) || !SafeCastToInt64(denominator))
+            throw new OverflowException($"{valueType} {valueText} cannot be represented exactly as LongRational.");
+
+        Numerator = (long) numerator;
+        Denominator = (long) denominator;
+        Simplify();
+    }
+
     #endregion instance helper methods
 
     #region static helper methods
@@ -1263,6 +1296,11 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     private static bool SafeCastToDecimal(BigInteger value)
     {
         return s_bnDecimalMinValue <= value && value <= s_bnDecimalMaxValue;
+    }
+
+    private static bool SafeCastToInt64(BigInteger value)
+    {
+        return long.MinValue <= value && value <= long.MaxValue;
     }
 
     private static void SplitDoubleIntoParts(double dbl, out int sign, out int exp, out ulong man, out bool isFinite)

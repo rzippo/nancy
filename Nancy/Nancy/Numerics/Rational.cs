@@ -622,52 +622,34 @@ namespace Unipi.Nancy.Numerics
         }
         #endif
 
-        #if BIG_RATIONAL
         /// <summary>
-        /// This constructor is unreliable, as proved by the related test, and should not be used in its current state.
+        /// Constructs a rational from the shortest round-trippable decimal representation of the given double.
         /// </summary>
-        internal Rational(Double value)
+        public Rational(Double value)
         {
-            if (Double.IsNaN(value))
-            {
-                throw new ArgumentException("Argument is not a number", nameof(value));
-            }
-            else if (Double.IsInfinity(value))
-            {
-                throw new ArgumentException("Argument is infinity", nameof(value));
-            }
-
-            bool isFinite;
-            int sign;
-            int exponent;
-            ulong significand;
-            SplitDoubleIntoParts(value, out sign, out exponent, out significand, out isFinite);
-
-            if (significand == 0)
-            {
-                this = Rational.Zero;
-                return;
-            }
-
-            Numerator = significand;
-            Denominator = 1 << 52;
-
-            if (exponent > 0)
-            {
-                Numerator = BigInteger.Pow(Numerator, exponent);
-            }
-            else if (exponent < 0)
-            {
-                Denominator = BigInteger.Pow(Denominator, -exponent);
-            }
-            if (sign < 0)
-            {
-                Numerator = -Numerator;
-            }
-            Simplify();
+            var (numerator, denominator) = value.GetRationalParts();
+            AssignRationalParts(
+                numerator,
+                denominator,
+                nameof(Double),
+                value.ToString("G", CultureInfo.InvariantCulture)
+            );
         }
-        #endif
 
+        /// <summary>
+        /// Constructs a rational from the shortest round-trippable decimal representation of the given float.
+        /// </summary>
+        public Rational(Single value)
+        {
+            var (numerator, denominator) = value.GetRationalParts();
+            AssignRationalParts(
+                numerator,
+                denominator,
+                nameof(Single),
+                value.ToString("G", CultureInfo.InvariantCulture)
+            );
+        }
+        
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational(decimal)"/>
         #elif LONG_RATIONAL
@@ -1799,28 +1781,23 @@ namespace Unipi.Nancy.Numerics
         }
         #endif
 
-        /*
-         * This operators are commented out as they're unreliable
-         * due to the BigRational(double) constructor
-         * 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>
-        public static implicit operator BigRational(Single value)
+        public static implicit operator Rational(Single value)
         {
-            return new BigRational((Double)value);
+            return new Rational((Double)value);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>
-        public static implicit operator BigRational(Double value)
+        public static implicit operator Rational(Double value)
         {
-            return new BigRational(value);
+            return new Rational(value);
         }
-        */
 
         /// <summary>
         /// 
@@ -1892,6 +1869,22 @@ namespace Unipi.Nancy.Numerics
             #endif
         }
 
+        private void AssignRationalParts(BigInteger numerator, BigInteger denominator, string valueType, string valueText)
+        {
+            #if BIG_RATIONAL
+            Numerator = numerator;
+            Denominator = denominator;
+            #elif LONG_RATIONAL
+            if (!SafeCastToInt64(numerator) || !SafeCastToInt64(denominator))
+                throw new OverflowException($"{valueType} {valueText} cannot be represented exactly as LongRational.");
+
+            Numerator = (long) numerator;
+            Denominator = (long) denominator;
+            #endif
+
+            Simplify();
+        }
+
         #endregion instance helper methods
 
         #region static helper methods
@@ -1903,6 +1896,11 @@ namespace Unipi.Nancy.Numerics
         private static bool SafeCastToDecimal(BigInteger value)
         {
             return s_bnDecimalMinValue <= value && value <= s_bnDecimalMaxValue;
+        }
+
+        private static bool SafeCastToInt64(BigInteger value)
+        {
+            return long.MinValue <= value && value <= long.MaxValue;
         }
 
         private static void SplitDoubleIntoParts(double dbl, out int sign, out int exp, out ulong man, out bool isFinite)

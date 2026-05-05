@@ -7,6 +7,7 @@ using System.Text;
 
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.UncheckedInternals;
 using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.Numerics;
@@ -387,46 +388,20 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// This constructor is unreliable, as proved by the related test, and should not be used in its current state.
+    /// Constructs a rational from the shortest round-trippable decimal representation of the given double.
     /// </summary>
-    internal BigRational(Double value)
+    public BigRational(Double value)
     {
-        if (Double.IsNaN(value))
-        {
-            throw new ArgumentException("Argument is not a number", nameof(value));
-        }
-        else if (Double.IsInfinity(value))
-        {
-            throw new ArgumentException("Argument is infinity", nameof(value));
-        }
+        (Numerator, Denominator) = value.GetRationalParts();
+        Simplify();
+    }
 
-        bool isFinite;
-        int sign;
-        int exponent;
-        ulong significand;
-        SplitDoubleIntoParts(value, out sign, out exponent, out significand, out isFinite);
-
-        if (significand == 0)
-        {
-            this = BigRational.Zero;
-            return;
-        }
-
-        Numerator = significand;
-        Denominator = 1 << 52;
-
-        if (exponent > 0)
-        {
-            Numerator = BigInteger.Pow(Numerator, exponent);
-        }
-        else if (exponent < 0)
-        {
-            Denominator = BigInteger.Pow(Denominator, -exponent);
-        }
-        if (sign < 0)
-        {
-            Numerator = BigInteger.Negate(Numerator);
-        }
+    /// <summary>
+    /// Constructs a rational from the shortest round-trippable decimal representation of the given float.
+    /// </summary>
+    public BigRational(Single value)
+    {
+        (Numerator, Denominator) = value.GetRationalParts();
         Simplify();
     }
 
@@ -1454,10 +1429,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         return new BigRational(value);
     }
 
-    /*
-     * This operators are commented out as they're unreliable
-     * due to the BigRational(double) constructor
-     * 
     public static implicit operator BigRational(Single value)
     {
         return new BigRational((Double)value);
@@ -1467,8 +1438,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     {
         return new BigRational(value);
     }
-    */
-
+    
     /// <summary>
     /// 
     /// </summary>

@@ -47,14 +47,13 @@ public class OperatorsTests
     [Fact]
     public void CompareFinite()
     {
-        //this test proves that BigRational(double) is unreliable
-
         BigRational a = new BigRational(12, 5);
         BigRational b_double = new BigRational(2.5);
         BigRational b_decimal = new BigRational(2.5M);
 
         Assert.True(b_decimal > a);
-        Assert.False(b_double > a);
+        Assert.True(b_double > a);
+        Assert.Equal(b_decimal, b_double);
     }
 
     [Fact]
