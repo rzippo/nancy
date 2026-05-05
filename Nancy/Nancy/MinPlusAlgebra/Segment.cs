@@ -292,7 +292,11 @@ public sealed class Segment : Element, IEquatable<Segment>
         if(IsConstant)
             return RightLimitAtStartTime == value;
         else
-            return (RightLimitAtStartTime < value && value < LeftLimitAtEndTime);
+        {
+            var min = Rational.Min(RightLimitAtStartTime, LeftLimitAtEndTime);
+            var max = Rational.Max(RightLimitAtStartTime, LeftLimitAtEndTime);
+            return min < value && value < max;
+        }
     }
 
     /// <summary>
