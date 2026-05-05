@@ -1347,6 +1347,72 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// True if, for some $t \ge 0$, $f(t) = value$.
+    /// </summary>
+    public bool AttainsValue(Rational value)
+    {
+        // First check if value is attained in [0, T + d]
+        if (BaseSequence.AttainsValue(value))
+            return true;
+
+        // Handle edge cases in periodic part: UC and UI, including irregular curves with infinite-sized jumps
+        if (PseudoPeriodHeight == 0)
+            return false;
+        if (value.IsInfinite)
+            return value == PseudoPeriodHeight && PseudoPeriodicElements.Any(e => e.IsFinite);
+        if (PseudoPeriodHeight.IsInfinite)
+            return false;
+
+        // Check if the value is attained by some periodic element
+        foreach(var element in PseudoPeriodicElements)
+        {
+            if(element.IsInfinite)
+                continue;
+
+            switch(element)
+            {
+                case Point p:
+                {
+                    var periodIndex = (value - p.Value) / PseudoPeriodHeight;
+                    if(periodIndex.IsInteger && periodIndex >= 0)
+                        return true;
+                    break;
+                }
+
+                case Segment { IsConstant: true } cs:
+                {
+                    var periodIndex = (value - cs.RightLimitAtStartTime) / PseudoPeriodHeight;
+                    if(periodIndex.IsInteger && periodIndex >= 0)
+                        return true;
+                    break;
+                }
+
+                case Segment s:
+                {
+                    var firstIndexBound = (value - s.RightLimitAtStartTime) / PseudoPeriodHeight;
+                    var secondIndexBound = (value - s.LeftLimitAtEndTime) / PseudoPeriodHeight;
+                    var lowerIndexBound = Rational.Min(firstIndexBound, secondIndexBound);
+                    var upperIndexBound = Rational.Max(firstIndexBound, secondIndexBound);
+                    // for a positive result, there must be a positive integer k strictly included between these bounds
+                    if(lowerIndexBound.IsInteger)
+                        break;
+                    var k = lowerIndexBound.Ceil();
+                    if(k > 0 && k < upperIndexBound)
+                        return true;
+                    else
+                        break;
+                }
+
+                default:
+                    throw new InvalidCastException();
+            }
+        }
+        
+        // if all else failed, the value is not attained
+        return false;
+    }
+
+    /// <summary>
     /// Computes the right limit of the curve at given time $t$.
     /// </summary>
     /// <param name="time">The target time of the limit.</param>
