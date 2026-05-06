@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -758,6 +759,11 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     public static LongRational Max(params LongRational[] values) => values.Aggregate(Max);
 
     /// <summary>
+    /// Max of a set of numbers.
+    /// </summary>
+    public static LongRational Max(IEnumerable<LongRational> values) => values.Aggregate(Max);
+
+    /// <summary>
     /// Min of the two numbers.
     /// </summary>
     /// <param name="a"></param>
@@ -776,6 +782,11 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// Min of a set of numbers.
     /// </summary>
     public static LongRational Min(params LongRational[] values) => values.Aggregate(Min);
+
+    /// <summary>
+    /// Min of a set of numbers.
+    /// </summary>
+    public static LongRational Min(IEnumerable<LongRational> values) => values.Aggregate(Min);
 
     #endregion Public Static Methods
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -825,6 +826,11 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     public static BigRational Max(params BigRational[] values) => values.Aggregate(Max);
 
     /// <summary>
+    /// Max of a set of numbers.
+    /// </summary>
+    public static BigRational Max(IEnumerable<BigRational> values) => values.Aggregate(Max);
+
+    /// <summary>
     /// Min of the two numbers.
     /// </summary>
     /// <param name="a"></param>
@@ -843,6 +849,11 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// Min of a set of numbers.
     /// </summary>
     public static BigRational Min(params BigRational[] values) => values.Aggregate(Min);
+
+    /// <summary>
+    /// Min of a set of numbers.
+    /// </summary>
+    public static BigRational Min(IEnumerable<BigRational> values) => values.Aggregate(Min);
 
     #endregion Public Static Methods
 

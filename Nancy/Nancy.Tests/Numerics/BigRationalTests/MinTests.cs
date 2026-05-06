@@ -1,4 +1,5 @@
-﻿using Unipi.Nancy.Numerics;
+﻿using System.Collections.Generic;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.Numerics.BigRationalTests;
@@ -12,6 +13,20 @@ public class MinTests
     public void FiniteMin()
     {
         Assert.Equal(b, BigRational.Min(a, b));
+    }
+
+    [Fact]
+    public void CollectionMin()
+    {
+        var values = new List<BigRational>
+        {
+            a,
+            BigRational.PlusInfinity,
+            b,
+            new BigRational(5, 6)
+        };
+
+        Assert.Equal(b, BigRational.Min(values));
     }
 
     [Fact]

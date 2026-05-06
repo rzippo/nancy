@@ -5,6 +5,7 @@
 //Probably not the best solution
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -1079,6 +1080,13 @@ namespace Unipi.Nancy.Numerics
         public static Rational Max(params Rational[] values) => values.Aggregate(Max);
 
         #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.Max(IEnumerable{BigRational})"/>
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational.Max(IEnumerable{LongRational})"/>
+        #endif
+        public static Rational Max(IEnumerable<Rational> values) => values.Aggregate(Max);
+
+        #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.Min(BigRational, BigRational)"/>
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.Min(LongRational, LongRational)"/>
@@ -1098,6 +1106,13 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.Min(LongRational[])"/>
         #endif
         public static Rational Min(params Rational[] values) => values.Aggregate(Min);
+
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.Min(IEnumerable{BigRational})"/>
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational.Min(IEnumerable{LongRational})"/>
+        #endif
+        public static Rational Min(IEnumerable<Rational> values) => values.Aggregate(Min);
 
         #endregion Public Static Methods
 

@@ -1,4 +1,5 @@
-﻿using Unipi.Nancy.Numerics;
+﻿using System.Collections.Generic;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.Numerics.LongRationalTests;
@@ -12,6 +13,20 @@ public class MaxTests
     public void FiniteMax()
     {
         Assert.Equal(a, LongRational.Max(a, b));
+    }
+
+    [Fact]
+    public void CollectionMax()
+    {
+        var values = new List<LongRational>
+        {
+            b,
+            LongRational.MinusInfinity,
+            a,
+            new LongRational(7, 10)
+        };
+
+        Assert.Equal(a, LongRational.Max(values));
     }
 
     [Fact]

@@ -1,4 +1,5 @@
-﻿using Unipi.Nancy.Numerics;
+﻿using System.Collections.Generic;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.Numerics.LongRationalTests;
@@ -12,6 +13,20 @@ public class MinTests
     public void FiniteMin()
     {
         Assert.Equal(b, LongRational.Min(a, b));
+    }
+
+    [Fact]
+    public void CollectionMin()
+    {
+        var values = new List<LongRational>
+        {
+            a,
+            LongRational.PlusInfinity,
+            b,
+            new LongRational(5, 6)
+        };
+
+        Assert.Equal(b, LongRational.Min(values));
     }
 
     [Fact]
