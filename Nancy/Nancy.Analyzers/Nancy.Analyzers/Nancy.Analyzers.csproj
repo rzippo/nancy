@@ -22,7 +22,7 @@
         <PackageProjectUrl>https://rzippo.github.io/nancy</PackageProjectUrl>
         <RepositoryUrl>https://github.com/rzippo/nancy</RepositoryUrl>
         <PackageTags>deterministic-network-calculus,network-calculus</PackageTags>
-        <PackageVersion>1.1.0</PackageVersion>
+        <PackageVersion>1.2.0</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>

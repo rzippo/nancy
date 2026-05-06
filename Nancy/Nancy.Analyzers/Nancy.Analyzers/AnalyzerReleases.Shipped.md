@@ -16,3 +16,11 @@ NANCY0004 | Usage    | Warning  | Breaking change on operator - between Sequence
 Rule ID | Category | Severity | Notes 
 --------|----------|----------|-------
 NANCY0005 | Usage    | Warning  | Division between decimal and/or integer types may lose precision.   
+
+## Release 1.2
+
+### New Rules
+
+Rule ID | Category | Severity | Notes 
+--------|----------|----------|-------
+NANCY0006 | Usage    | Warning  | Floating-point values should not be converted to rational types. Prefer decimal values or direct rational construction.
