@@ -651,7 +651,7 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the sub-additive closure of the element.
     /// </summary>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     public abstract SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null);
 
     /// <summary>
@@ -659,7 +659,7 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="pseudoPeriodLength">Lenght of the pseudo-period</param>
     /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <exception cref="ArgumentException">Thrown if the period is not greater than 0</exception>
     public abstract SubAdditiveCurve SubAdditiveClosure(
         Rational pseudoPeriodLength,

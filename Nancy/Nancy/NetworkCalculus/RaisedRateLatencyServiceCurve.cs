@@ -135,7 +135,7 @@ public class RaisedRateLatencyServiceCurve : Curve
     /// <summary>
     /// Computes the sub-additive closure of the curve.
     /// </summary>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the sub-additive closure.</returns>
     /// <remarks>Optimized via known closed-form expression.</remarks>
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)

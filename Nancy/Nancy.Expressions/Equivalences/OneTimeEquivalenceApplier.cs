@@ -47,8 +47,8 @@ public class OneTimeEquivalenceApplier
     /// Check and apply the equivalence.
     /// </summary>
     /// <param name="expression">The expression on which the equivalence is to be applied.</param>
-    /// <param name="checkType"></param>
-    /// <returns></returns>
+    /// <param name="checkType">The type-checking mode to use.</param>
+    /// <returns>The result.</returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown if this equivalence applier was already used.
     /// </exception>

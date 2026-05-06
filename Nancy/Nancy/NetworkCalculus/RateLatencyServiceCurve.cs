@@ -193,8 +193,8 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// <summary>
     /// Computes the convolution of the two curves.
     /// </summary>
-    /// <param name="dr"></param>
-    /// <param name="settings"></param>
+    /// <param name="dr">The rate-latency service curve to convolve with.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// Optimized as another <see cref="RateLatencyServiceCurve"/> with the sum of the delays and the minimum of the rates.
     /// </remarks>
@@ -215,8 +215,8 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// <summary>
     /// Computes the convolution of the set of curves.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// Optimized as a <see cref="RateLatencyServiceCurve"/> with the sum of the delays and the minimum of the rates.
     /// </remarks>

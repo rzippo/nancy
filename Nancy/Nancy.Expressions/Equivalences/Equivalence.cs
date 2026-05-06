@@ -158,8 +158,8 @@ public partial class Equivalence
     /// Check and apply the equivalence.
     /// </summary>
     /// <param name="expression">The expression on which the equivalence is to be applied.</param>
-    /// <param name="checkType"></param>
-    /// <returns></returns>
+    /// <param name="checkType">The type-checking mode to use.</param>
+    /// <returns>The result.</returns>
     public EquivalenceApplyResult Apply(
         IGenericExpression<Curve> expression,
         CheckType checkType = CheckType.CheckLeftOnly

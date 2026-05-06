@@ -1062,7 +1062,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// Computes the sub-additive closure of the point.
     /// </summary>
     /// <returns>The result of the sub-additive closure.</returns>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>Described in [BT07] Section 4.6 as algorithm 8.</remarks>
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
@@ -1096,7 +1096,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     /// <param name="pseudoPeriodLength">Lenght of the pseudo-period</param>
     /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the sub-additive closure</returns>
     /// <exception cref="ArgumentException">Thrown if the period is not greater than 0</exception>
     /// <remarks>Described in [BT07] Section 4.6 as algorithm 9</remarks>
@@ -1164,7 +1164,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     /// <param name="pseudoPeriodLength">Lenght of the pseudo-period</param>
     /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>From [BT07], first case of algorithm 9</remarks>
     private SubAdditiveCurve PeriodicPointClosureTypeA(
         Rational pseudoPeriodLength,
@@ -1210,7 +1210,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     /// <param name="pseudoPeriodLength">Lenght of the pseudo-period</param>
     /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>From [BT07], second case of algorithm 9</remarks>
     private SubAdditiveCurve PeriodicPointClosureTypeB(
         Rational pseudoPeriodLength,

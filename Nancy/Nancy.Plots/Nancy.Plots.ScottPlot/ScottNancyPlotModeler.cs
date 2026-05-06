@@ -5,6 +5,9 @@ using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Plots.ScottPlot;
 
+/// <summary>
+/// Builds ScottPlot plot models from Nancy sequences.
+/// </summary>
 public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
 {
     static ScottNancyPlotModeler()
@@ -16,6 +19,7 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         Fonts.AddFontFile("Lato", fontPath);
     }
 
+    /// <inheritdoc />
     public override Plot GetPlot(
         IEnumerable<Sequence> sequences,
         IEnumerable<string> names)

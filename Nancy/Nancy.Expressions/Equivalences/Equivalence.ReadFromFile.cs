@@ -9,7 +9,7 @@ public partial class Equivalence
     /// Reads a set of equivalences from a text file.
     /// </summary>
     /// <param name="fileName">Path to text file.</param>
-    /// <returns></returns>
+    /// <returns>The result.</returns>
     public static List<Equivalence> ReadEquivalencesFromFile(string fileName)
     {
         var equivalenceCatalog = File.ReadAllText(fileName);
@@ -20,7 +20,7 @@ public partial class Equivalence
     /// Reads a set of equivalences from a string.
     /// </summary>
     /// <param name="equivalenceCatalog">The string containing the equivalences.</param>
-    /// <returns></returns>
+    /// <returns>The result.</returns>
     public static List<Equivalence> ReadEquivalences(string equivalenceCatalog)
     {
         List<Equivalence> equivalenceList = [];

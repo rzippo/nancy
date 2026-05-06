@@ -122,7 +122,7 @@ public static class CurveLowerBounds
     /// <summary>
     /// Lower bounds the curve with a rate-latency curve.
     /// </summary>
-    /// <param name="curve"></param>
+    /// <param name="curve">The curve to process.</param>
     /// <param name="alpha">Controls the type of bounding. If 0, the bounding optimizes for low delay. If 1, optimizes for high rate.</param>
     /// <remarks>
     /// There may be infinite valid lower-bounds, varying on the trade-off between delay and long-term service.
@@ -201,7 +201,7 @@ public static class CurveLowerBounds
     /// <summary>
     /// Lower bounds the given set of points with a rate-latency curve.
     /// </summary>
-    /// <param name="points"></param>
+    /// <param name="points">The points to process.</param>
     /// <param name="alpha">Controls the type of bounding. If 0, the bounding optimizes for low delay. If 1, optimizes for high rate.</param>
     /// <remarks>
     /// There may be infinite valid lower-bounds, varying on the trade-off between delay and long-term service.

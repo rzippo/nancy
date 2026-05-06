@@ -142,8 +142,8 @@ internal class IntervalBucket
     /// <summary>
     /// Adds an element to the interval, doing all validations checks.
     /// </summary>
-    /// <param name="item"></param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="item">The item to add.</param>
+    /// <exception cref="ArgumentException">Thrown when the operation cannot be completed.</exception>
     internal void Add(Element item)
     {
         if (IsPointInterval)
@@ -191,8 +191,8 @@ internal class IntervalBucket
     /// Adds a collection of <see cref="Element"/>s to the interval.
     /// Unless <paramref name="doChecks"/> is <c>true</c>, no validation check is done.  
     /// </summary>
-    /// <param name="collection"></param>
-    /// <param name="doChecks"></param>
+    /// <param name="collection">The collection to add.</param>
+    /// <param name="doChecks">Whether validation checks should be performed.</param>
     internal void AddRange(IEnumerable<Element> collection, bool doChecks = false)
     {
         if (doChecks)

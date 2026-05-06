@@ -13,7 +13,7 @@ public static class NancyExpressionKernelExtension
     /// <summary>
     /// Entry point to register the formatters for Nancy.Expressions objects.
     /// </summary>
-    /// <param name="kernel"></param>
+    /// <param name="kernel">The kernel to extend.</param>
     public static void Load(Kernel kernel)
     {
         Formatter.Register<CurveExpression>(

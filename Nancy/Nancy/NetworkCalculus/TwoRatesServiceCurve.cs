@@ -42,10 +42,10 @@ public class TwoRatesServiceCurve : Curve
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="delay"></param>
-    /// <param name="transientRate"></param>
-    /// <param name="transientEnd"></param>
-    /// <param name="steadyRate"></param>
+    /// <param name="delay">The delay.</param>
+    /// <param name="transientRate">The transient rate.</param>
+    /// <param name="transientEnd">The transient end time.</param>
+    /// <param name="steadyRate">The steady-state rate.</param>
     public TwoRatesServiceCurve(Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate)
         : base(
             baseSequence: BuildSequence(delay, transientRate, transientEnd, steadyRate),

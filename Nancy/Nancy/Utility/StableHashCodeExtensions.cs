@@ -203,8 +203,8 @@ public static class StableHashCodeExtensions
     /// <summary>
     /// Combines a set of hashes into a single stable hash.
     /// </summary>
-    /// <param name="hashes"></param>
-    /// <returns></returns>
+    /// <param name="hashes">The hash values to combine.</param>
+    /// <returns>The result.</returns>
     public static int HashStableCombine(params int[] hashes)
     {
         unchecked
@@ -222,8 +222,8 @@ public static class StableHashCodeExtensions
     /// <summary>
     /// Combines a set of hashes into a single stable hash.
     /// </summary>
-    /// <param name="hashes"></param>
-    /// <returns></returns>
+    /// <param name="hashes">The hash values to combine.</param>
+    /// <returns>The result.</returns>
     public static int HashStableCombine(IEnumerable<int> hashes)
     {
         unchecked

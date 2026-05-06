@@ -24,7 +24,7 @@ public static class LinqExtensions
     /// <summary>
     /// Retrieves a range of items from the list, via zero-based indexing
     /// </summary>
-    /// <param name="list"></param>
+    /// <param name="list">The list to process.</param>
     /// <param name="start">Zero-based index at which the range starts</param>
     /// <param name="end">Non-inclusive zero-based index at which the range ends</param>
     /// <returns>The range of items</returns>

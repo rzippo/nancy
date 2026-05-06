@@ -11,7 +11,7 @@ public static class ParametersNameParsing
 {
     /// <summary>
     /// Given an expression string, tries to parse the name of the variables and return it as a list.
-    /// If the parsing fails, or if less then <c>n</c> names are parsed, it fills the gaps with default names. 
+    /// If the parsing fails, or if less than <c>n</c> names are parsed, it fills the gaps with default names.
     /// </summary>
     /// <param name="expr">The expression to parse.</param>
     /// <param name="n">Expected number of names.</param>

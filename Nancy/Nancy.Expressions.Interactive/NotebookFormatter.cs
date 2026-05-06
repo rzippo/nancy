@@ -14,9 +14,9 @@ public static class NotebookFormatter
     /// Displays the expression using Latex and HTML.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="expression"></param>
-    /// <param name="depth"></param>
-    /// <param name="showRationalsAsName"></param>
+    /// <param name="expression">The expression to process.</param>
+    /// <param name="depth">The rendering depth.</param>
+    /// <param name="showRationalsAsName">Whether rational expressions should be rendered as names.</param>
     public static void ShowInNotebook<T>(
         this IGenericExpression<T> expression,
         int depth = 20,
@@ -31,9 +31,9 @@ public static class NotebookFormatter
     /// Displays the set of expressions using Latex and HTML.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="expressions"></param>
-    /// <param name="depth"></param>
-    /// <param name="showRationalsAsName"></param>
+    /// <param name="expressions">The expressions to process.</param>
+    /// <param name="depth">The rendering depth.</param>
+    /// <param name="showRationalsAsName">Whether rational expressions should be rendered as names.</param>
     public static void ShowInNotebook<T>(
         this IEnumerable<IGenericExpression<T>> expressions,
         int depth = 20,

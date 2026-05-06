@@ -16,7 +16,7 @@ public static class ScottPlots
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names of the curves.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The bytes of a png image of the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="ScottNancyPlotRenderer"/>.
@@ -40,7 +40,7 @@ public static class ScottPlots
     /// The name of the curve.
     /// By default, it captures the expression used for <paramref name="curve"/>.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The bytes of a png image of the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="ScottNancyPlotRenderer"/>.
@@ -64,7 +64,7 @@ public static class ScottPlots
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names for the curves to plot. If manually specified, the recommended format is "[name1, name2, ...]".</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The bytes of a png image of the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="ScottNancyPlotRenderer"/>.
@@ -214,7 +214,7 @@ public static class ScottPlots
     /// </summary>
     /// <param name="sequences">The sequences to plot.</param>
     /// <param name="names">The names of the sequences.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The bytes of a png image of the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="ScottNancyPlotRenderer"/>.
@@ -238,7 +238,7 @@ public static class ScottPlots
     /// The name of the sequence.
     /// By default, it captures the expression used for <paramref name="sequence"/>.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The bytes of a png image of the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="ScottNancyPlotRenderer"/>.
@@ -262,7 +262,7 @@ public static class ScottPlots
     /// </summary>
     /// <param name="sequences">The sequences to plot.</param>
     /// <param name="names">The names for the sequences to plot. If manually specified, the recommended format is "[name1, name2, ...]".</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The bytes of a png image of the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="ScottNancyPlotRenderer"/>.

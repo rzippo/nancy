@@ -141,8 +141,8 @@ public class DelayServiceCurve : SuperAdditiveCurve
     /// <summary>
     /// Computes the convolution of the two curves.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="settings"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// Optimized as another <see cref="DelayServiceCurve"/> with the sum of the delays.
     /// </remarks>
@@ -165,8 +165,8 @@ public class DelayServiceCurve : SuperAdditiveCurve
     /// <summary>
     /// Computes the convolution of the set of curves.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// Optimized as a <see cref="DelayServiceCurve"/> with the sum of the delays.
     /// </remarks>

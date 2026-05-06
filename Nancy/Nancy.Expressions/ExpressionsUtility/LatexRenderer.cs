@@ -15,8 +15,8 @@ public static class LatexRenderer
     /// Returns HTML content that shows the expression formatted using LaTeX.
     /// </summary>
     /// <param name="expression">The expression.</param>
-    /// <param name="depth"></param>
-    /// <param name="showRationalsAsName"></param>
+    /// <param name="depth">The rendering depth.</param>
+    /// <param name="showRationalsAsName">Whether rational expressions should be rendered as names.</param>
     /// <remarks>Uses MathJax to render LaTeX in HTML.</remarks>
     public static string ToHtml<T>(
         this IGenericExpression<T> expression,
@@ -33,8 +33,8 @@ public static class LatexRenderer
     /// Returns HTML content that shows the expression formatted using LaTeX.
     /// </summary>
     /// <param name="expressions">The expressions.</param>
-    /// <param name="depth"></param>
-    /// <param name="showRationalsAsName"></param>
+    /// <param name="depth">The rendering depth.</param>
+    /// <param name="showRationalsAsName">Whether rational expressions should be rendered as names.</param>
     /// <remarks>Uses MathJax to render LaTeX in HTML.</remarks>
     public static string ToHtml<T>(
         this IEnumerable<IGenericExpression<T>> expressions,
@@ -114,9 +114,9 @@ public static class LatexRenderer
     /// <summary>
     /// Returns HTML content that shows the expression formatted using LaTeX.
     /// </summary>
-    /// <param name="expression"></param>
-    /// <param name="depth"></param>
-    /// <param name="showRationalsAsName"></param>
+    /// <param name="expression">The expression to process.</param>
+    /// <param name="depth">The rendering depth.</param>
+    /// <param name="showRationalsAsName">Whether rational expressions should be rendered as names.</param>
     public static string ToHtml(
         IGenericExpression<Curve> expression,
         int depth = 20, 
@@ -127,9 +127,9 @@ public static class LatexRenderer
     /// <summary>
     /// Returns HTML content that shows the expression formatted using LaTeX.
     /// </summary>
-    /// <param name="expression"></param>
-    /// <param name="depth"></param>
-    /// <param name="showRationalsAsName"></param>
+    /// <param name="expression">The expression to process.</param>
+    /// <param name="depth">The rendering depth.</param>
+    /// <param name="showRationalsAsName">Whether rational expressions should be rendered as names.</param>
     public static string ToHtml(
         IGenericExpression<Rational> expression,
         int depth = 20, 

@@ -2,7 +2,7 @@
 
 // todo: add reference
 /// <summary>
-/// The subadditive clusore of the minimum of two function is equal to the convolution between their subadditive closures, i.e., $\overline{f \wedge g} = \overline{f} \otimes \overline{g}$.
+/// The subadditive closure of the minimum of two functions is equal to the convolution between their subadditive closures, i.e., $\overline{f \wedge g} = \overline{f} \otimes \overline{g}$.
 /// </summary>
 public class SubAdditiveClosureOfMin : Equivalence
 {

@@ -47,7 +47,7 @@ public interface IGenericExpression<out TExpressionResult> : IExpression
     /// </summary>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced</param>
     /// <param name="newExpressionToReplace">The new sub-expression</param>
-    /// <param name="ignoreNotMatchedExpressions"></param>
+    /// <param name="ignoreNotMatchedExpressions">Whether unmatched expressions should be ignored.</param>
     /// <returns>New expression object with replaced sub-expressions</returns>
     public IGenericExpression<TExpressionResult> ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,

@@ -3,6 +3,9 @@ using System.Text;
 
 namespace Unipi.Nancy.UncheckedInternals;
 
+/// <summary>
+/// Extension methods for decimal bit and rational-part extraction.
+/// </summary>
 public static class DecimalExtensions
 {
     private const int DecimalScaleMask = 0x00FF0000;

@@ -7,12 +7,27 @@ using Unipi.Nancy.TikzPlot;
 
 namespace Unipi.Nancy.Plots.Tikz;
 
+/// <summary>
+/// Represents a TikZ plot built from one or more sequences.
+/// </summary>
 public class TikzPlot
 {
+    /// <summary>
+    /// Sequences included in the plot.
+    /// </summary>
     public List<SequenceToPlot> SequencesToPlot { get; set; }
 
+    /// <summary>
+    /// Plot rendering settings.
+    /// </summary>
     public TikzPlotSettings Settings { get; set; } = new();
 
+    /// <summary>
+    /// Builds a TikZ plot from the given sequences.
+    /// </summary>
+    /// <param name="sequences">The sequences to plot.</param>
+    /// <param name="names">The names to use for the sequences.</param>
+    /// <param name="settings">Optional settings for the plot.</param>
     public TikzPlot(
         List<Sequence> sequences,
         List<string>? names,
@@ -197,11 +212,11 @@ public class TikzPlot
     /// <summary>
     /// Computes the header for the plot.
     /// </summary>
-    /// <param name="xmax"></param>
-    /// <param name="ymax"></param>
-    /// <param name="xmarks"></param>
-    /// <param name="ymarks"></param>
-    /// <param name="settings"></param>
+    /// <param name="xmax">The maximum x value.</param>
+    /// <param name="ymax">The maximum y value.</param>
+    /// <param name="xmarks">The tick marks for the x axis.</param>
+    /// <param name="ymarks">The tick marks for the y axis.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     private static IEnumerable<string> GetTikzHeader(
         Rational xmax, 
         Rational ymax,
@@ -349,8 +364,8 @@ public class TikzPlot
     /// <summary>
     /// Computes the marks to denote the periodic behavior of the curve.
     /// </summary>
-    /// <param name="f"></param>
-    /// <param name="name"></param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="name">The name to use.</param>
     // ReSharper disable once MemberCanBePrivate.Global
     public static IEnumerable<string> GetUppMarks(Curve f, string name)
     {
@@ -409,12 +424,12 @@ public class TikzPlot
     /// <summary>
     /// Get the TikZ lines that plot the sequences using TikZ.
     /// </summary>
-    /// <param name="sequences"></param>
-    /// <param name="names"></param>
-    /// <param name="colors"></param>
-    /// <param name="lineStyles"></param>
-    /// <param name="settings"></param>
-    /// <param name="includeLegend"></param>
+    /// <param name="sequences">The sequences to process.</param>
+    /// <param name="names">The names to use.</param>
+    /// <param name="colors">The colors to use.</param>
+    /// <param name="lineStyles">The line styles to use.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <param name="includeLegend">Whether to include the legend.</param>
     // ReSharper disable once MemberCanBePrivate.Global
     private static IEnumerable<string> GetTikzContent(
         IReadOnlyList<Sequence> sequences, 
@@ -483,10 +498,24 @@ public class TikzPlot
     }
 }
 
+/// <summary>
+/// Sequence and style information used by a TikZ plot.
+/// </summary>
 public record SequenceToPlot
 {
+    /// <summary>
+    /// Sequence to plot.
+    /// </summary>
     public required Sequence Sequence { get; init; }
+
+    /// <summary>
+    /// Color used to render the sequence.
+    /// </summary>
     public required string Color { get; init; }
+
+    /// <summary>
+    /// Name used in the plot legend.
+    /// </summary>
     public string Name { get; init; } = string.Empty;
 }
 
@@ -495,11 +524,11 @@ static class ToTikzExtensions
     /// <summary>
     /// Computes the lines that plot the sequence.
     /// </summary>
-    /// <param name="sequence"></param>
-    /// <param name="color"></param>
-    /// <param name="lineStyle"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="sequence">The sequence to process.</param>
+    /// <param name="color">The color to use.</param>
+    /// <param name="lineStyle">The line style to use.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     public static IEnumerable<string> ToTikzLines(
         this Sequence sequence, 
         string color, 

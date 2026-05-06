@@ -36,7 +36,7 @@ public static class SequenceExtensions
     /// <summary>
     /// Returns a cut of the sequence for a smaller support.
     /// </summary>
-    /// <param name="elements"></param>
+    /// <param name="elements">The elements to process.</param>
     /// <param name="cutStart">Left endpoint of the new support.</param>
     /// <param name="cutEnd">Right endpoint of the new support.</param>
     /// <param name="isStartIncluded">If true, the support is left-closed.</param>
@@ -201,7 +201,7 @@ public static class SequenceExtensions
     /// <param name="isFromIncluded">If true, left endpoint is inclusive.</param>
     /// <param name="isToIncluded">If true, right endpoint is inclusive.</param>
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
-    /// <returns></returns>
+    /// <returns>The result.</returns>
     public static IEnumerable<Element> Fill(
         this IEnumerable<Element> elements,
         Rational fillFrom,
@@ -425,7 +425,7 @@ public static class SequenceExtensions
     /// <summary>
     /// Returns the <see cref="Element"/> that describes the sequence in <paramref name="time"/>.
     /// </summary>
-    /// <param name="elements"></param>
+    /// <param name="elements">The elements to process.</param>
     /// <param name="time">Time of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
@@ -446,7 +446,7 @@ public static class SequenceExtensions
     /// <summary>
     /// Returns the <see cref="Segment"/> that describes the sequence before <paramref name="time"/>.
     /// </summary>
-    /// <param name="elements"></param>
+    /// <param name="elements">The elements to process.</param>
     /// <param name="time">Time of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
@@ -467,7 +467,7 @@ public static class SequenceExtensions
     /// <summary>
     /// Returns the <see cref="Segment"/> that describes the sequence after <paramref name="time"/>.
     /// </summary>
-    /// <param name="elements"></param>
+    /// <param name="elements">The elements to process.</param>
     /// <param name="time">Time of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after <paramref name="time"/>.</returns>
@@ -632,7 +632,7 @@ public static class SequenceExtensions
     /// <summary>
     /// Enumerates a <see cref="Sequence"/> as a series of breakpoints.
     /// </summary>
-    /// <param name="sequence"></param>
+    /// <param name="sequence">The sequence to process.</param>
     /// <remarks>Does not attempt merging.</remarks>
     public static IEnumerable<(Segment? left, Point center, Segment? right)> EnumerateBreakpoints(this Sequence sequence)
         => sequence.Elements.EnumerateBreakpoints();
@@ -883,8 +883,8 @@ public static class SequenceExtensions
     /// <summary>
     /// True if for any $t$, $\left|f(t)\right| &lt; +\infty$.
     /// </summary>
-    /// <param name="elements"></param>
-    /// <returns></returns>
+    /// <param name="elements">The elements to process.</param>
+    /// <returns>The result.</returns>
     public static bool IsFinite(this IEnumerable<Element> elements)
     {
         return elements.All(e => e.IsFinite);
@@ -893,8 +893,8 @@ public static class SequenceExtensions
     /// <summary>
     /// True if for any $t$, $f(t) = -\infty$.
     /// </summary>
-    /// <param name="elements"></param>
-    /// <returns></returns>
+    /// <param name="elements">The elements to process.</param>
+    /// <returns>The result.</returns>
     public static bool IsMinusInfinite(this IEnumerable<Element> elements)
     {
         return elements.All(e => e.IsMinusInfinite);
@@ -903,8 +903,8 @@ public static class SequenceExtensions
     /// <summary>
     /// True if for any $t$, $f(t) = +\infty$.
     /// </summary>
-    /// <param name="elements"></param>
-    /// <returns></returns>
+    /// <param name="elements">The elements to process.</param>
+    /// <returns>The result.</returns>
     public static bool IsPlusInfinite(this IEnumerable<Element> elements)
     {
         return elements.All(e => e.IsPlusInfinite);
@@ -1147,7 +1147,7 @@ public static class SequenceExtensions
     /// Computes the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
-    /// <param name="elements"></param>
+    /// <param name="elements">The elements to process.</param>
     /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\downarrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.</param>
     /// <exception cref="ArgumentException">If the elements are not non-decreasing.</exception>
     /// <exception cref="ArgumentException">If the collection is empty.</exception>
@@ -1303,7 +1303,7 @@ public static class SequenceExtensions
     /// Computes the upper pseudo-inverse function,
     /// $f^{-1}_\uparrow(x) = \inf \left\{ t : f(t) > x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
-    /// <param name="elements"></param>
+    /// <param name="elements">The elements to process.</param>
     /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\uparrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.</param>
     /// <exception cref="ArgumentException">If the elements are not non-decreasing.</exception>
     /// <exception cref="ArgumentException">If the collection is empty.</exception>
@@ -1696,8 +1696,8 @@ public static class SequenceExtensions
     /// Computes the upper envelope of the set of elements given.
     /// $O(n \cdot \log(n))$ complexity.
     /// </summary>
-    /// <param name="elements"></param>
-    /// <param name="settings"></param>W
+    /// <param name="elements">The elements to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>Used for deconvolution</remarks>
     public static List<Element> UpperEnvelope(this IReadOnlyList<Element> elements, ComputationSettings? settings = null)
     {

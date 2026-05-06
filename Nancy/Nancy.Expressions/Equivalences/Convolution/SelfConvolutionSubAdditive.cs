@@ -4,7 +4,7 @@ namespace Unipi.Nancy.Expressions.Equivalences;
 
 // todo: add reference
 /// <summary>
-/// If $f$ is subadditive and $f(0) = 0$, its self-deconvolution is equal to $f$ itself, i.e. $f \oslash f = f$.
+/// If $f$ is subadditive and $f(0) = 0$, its self-convolution is equal to $f$ itself, i.e. $f \otimes f = f$.
 /// </summary>
 public class SelfConvolutionSubAdditive : Equivalence
 {

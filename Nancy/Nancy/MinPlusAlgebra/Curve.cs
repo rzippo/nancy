@@ -1097,10 +1097,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// True if all the curves in the set represent the same function.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <exception cref="ArgumentException">Thrown when the set of curves is empty.</exception>
     public static bool Equivalent(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         using var enumerator = curves.GetEnumerator();
@@ -1121,11 +1121,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// True if, starting from <paramref name="time"/>, the curves represent the same function.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <param name="time"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="time">The time value.</param>
     /// <param name="isStartIncluded">If true, <paramref name="time"/> is included in the comparison.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     public static bool EquivalentAfter(Curve a, Curve b, Rational time, bool isStartIncluded = true, ComputationSettings? settings = null)
     {
         var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
@@ -1143,10 +1143,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Returns null if the two curves represent the same function.
     /// Mostly useful to debug curves that *should* be equivalent.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static Rational? FindFirstInequivalence(Curve a, Curve b, ComputationSettings? settings = null)
         => FindFirstInequivalenceAfter(a, b, 0, true, settings);
@@ -1157,12 +1157,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Returns null if the two curves represent the same function.
     /// Mostly useful to debug curves that *should* be equivalent.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <param name="time"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="time">The time value.</param>
     /// <param name="isStartIncluded">If true, <paramref name="time"/> is included in the comparison.</param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static Rational? FindFirstInequivalenceAfter(Curve a, Curve b, Rational time, bool isStartIncluded = true, ComputationSettings? settings = null)
     {
@@ -1332,7 +1332,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the value of the curve at given time $t$.
     /// </summary>
     /// <param name="time">The time of sampling.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The value of $f(t)$.</returns>
     public Rational ValueAt(Rational time, ComputationSettings? settings = null)
     {
@@ -1455,7 +1455,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Returns the <see cref="Element"/> that describes the curve in time t.
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <exception cref="ArgumentException">Thrown if t is less than 0.</exception>
     /// <returns>The element describing the curve at time t.</returns>
     public Element GetElementAt(Rational time, ComputationSettings? settings = null)
@@ -1602,7 +1602,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="cutEnd">Right endpoint of the interval.</param>
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
     /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A sequence equivalently defined within the given interval.</returns>
     public Sequence Cut(
         Rational cutStart,
@@ -1758,7 +1758,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="cutEnd">Right endpoint of the interval.</param>
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
     /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A list of elements equivalently defined within the given interval.</returns>
     /// <remarks>Optimized for minimal allocations.</remarks>
     public IEnumerable<Element> CutAsEnumerable(
@@ -1869,8 +1869,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Returns a cut of the curve limited to the given interval.
     /// </summary>
-    /// <param name="interval"></param>
-    /// <param name="settings"></param>
+    /// <param name="interval">The interval to use.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A sequence equivalently defined within the given interval.</returns>
     public Sequence Cut(
         Interval interval,
@@ -1880,8 +1880,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Returns a cut of the curve limited to the given interval.
     /// </summary>
-    /// <param name="interval"></param>
-    /// <param name="settings"></param>
+    /// <param name="interval">The interval to use.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A sequence equivalently defined within the given interval.</returns>
     /// <remarks>Optimized for minimal allocations.</remarks>
     public IEnumerable<Element> CutAsEnumerable(
@@ -1896,7 +1896,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Exclusive end $t_{end}$ of the resulting <see cref="Sequence"/>.
     /// It is _not_ required to be greater than <see cref="FirstPseudoPeriodEnd"/>.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A sequence equivalently defined from 0 to $t_{end}$.</returns>
     /// <remarks>
     /// This is a shorthand for <see cref="Cut(Rational, Rational, bool, bool, ComputationSettings)"/>
@@ -2011,7 +2011,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Returns the number of elements of a cut of the curve limited to the given interval.
     /// </summary>
-    /// <param name="interval"></param>
+    /// <param name="interval">The interval to use.</param>
     /// <returns>The number of elements of the sequence equivalently defined within the given interval.</returns>
     public int Count(Interval interval)
         => Count(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded);
@@ -3281,7 +3281,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="f">Must be non-decreasing.</param>
     /// <param name="g">Must be non-decreasing.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A non-negative horizontal deviation.</returns>
     public static Rational HorizontalDeviation(Curve f, Curve g, ComputationSettings? settings = null)
     {
@@ -3330,7 +3330,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="f">Must be non-decreasing.</param>
     /// <param name="g">Must be non-decreasing.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// The definition of $hDev(f, g, t)$ is based on [DNC18] Lemma 5.1.
     /// </remarks>
@@ -3360,8 +3360,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the vertical deviation between the two curves, $vDev(f, g) = \sup_{u \ge 0}\{ f(u) - g(u) \}$.
     /// If <paramref name="f"/> is an arrival curve and <paramref name="g"/> a service curve, the result will be the worst-case backlog.
     /// </summary>
-    /// <param name="f"></param>
-    /// <param name="g"></param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="g">The second operand.</param>
     /// <returns>A vertical deviation.</returns>
     /// <remarks>
     /// Following from the definition in [DNC18] p.100, the result may be negative.
@@ -3386,8 +3386,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the first time around which the difference between the two curves $f(t) - g(t)$ gets close to their vertical deviation 
     /// $vDev(f, g)$.
     /// </summary>
-    /// <param name="f"></param>
-    /// <param name="g"></param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="g">The second operand.</param>
     public static Rational VerticalDeviationMeasuredAt(Curve f, Curve g)
     {
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve dr)
@@ -3410,9 +3410,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the deviation $z(f, g) = \inf\{t \ge 0 \mid f \otimes g (t) \ge 0 \}$.
     /// </summary>
-    /// <param name="f"></param>
-    /// <param name="g"></param>
-    /// <param name="settings"></param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="g">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The z-deviation between the two curves.</returns>
     /// <remarks>
     /// Used in [HCS24] Theorem 19, generalizing the computation of delay bounds for negative service curves.
@@ -4074,7 +4074,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the sum of the two curves.
     /// </summary>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the sum.</returns>
     /// <remarks> Algorithm defined in [BT08] Section 4.2 </remarks>
     public virtual Curve Addition(Curve b, ComputationSettings? settings = null)
@@ -4110,8 +4110,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the sum of a set of curves.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall addition.</returns>
     public static Curve Addition(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
@@ -4136,8 +4136,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the sum of a set of curves.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall addition.</returns>
     public static Curve Addition(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
@@ -4189,7 +4189,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the subtraction between two curves.
     /// </summary>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the subtraction.</returns>
     /// <remarks>
     /// The result may contain negative values. 
@@ -4203,7 +4203,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the subtraction.</returns>
     /// <remarks>
     /// The result may contain negative values. 
@@ -4217,7 +4217,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="b">Second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the subtraction.</returns>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public virtual Curve Subtraction(Curve b, bool nonNegative, ComputationSettings? settings = null)
@@ -4231,7 +4231,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the subtraction.</returns>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static Curve Subtraction(Curve a, Curve b, bool nonNegative, ComputationSettings? settings = null)
@@ -4270,7 +4270,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the minimum of two curves.
     /// </summary>
     /// <param name="curve">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the minimum.</returns>
     /// <remarks>
     /// Algorithm defined in [BT08] Section 4.3
@@ -4440,7 +4440,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the minimum.</returns>
     /// <remarks>
     /// Algorithm defined in [BT08] Section 4.3
@@ -4455,8 +4455,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the minimum of a set of curves.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall minimum.</returns>
     public static Curve Minimum(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
@@ -4510,8 +4510,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the minimum of a set of curves.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall minimum.</returns>
     public static Curve Minimum(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
@@ -4549,7 +4549,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the maximum of two curves.
     /// </summary>
     /// <param name="curve">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the maximum.</returns>
     public virtual Curve Maximum(Curve curve, ComputationSettings? settings = null)
     {
@@ -4674,7 +4674,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the maximum.</returns>
     public static Curve Maximum(Curve? a, Curve? b, ComputationSettings? settings = null)
     {
@@ -4686,8 +4686,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the maximum of a set of curves.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall maximum.</returns>
     public static Curve Maximum(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
@@ -4741,8 +4741,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the maximum of a set of curves.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall maximum.</returns>
     public static Curve Maximum(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
@@ -4869,8 +4869,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the convolution of two curves, $f \otimes g$.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="settings"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the convolution.</returns>
     /// <remarks>
     /// Base algorithm derived from [BT08] Section 4.4, with isospeed optimizations described in [ZNS23a] and [TBP]
@@ -5242,7 +5242,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the convolution.</returns>
     /// <remarks>Described in [BT08] Section 4.4</remarks>
     public static Curve Convolution(Curve a, Curve b, ComputationSettings? settings = null)
@@ -5252,7 +5252,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the convolution of a set of curves, $\bigotimes{f_i}$.
     /// </summary>
     /// <param name="curves">The set of curves to be convolved.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall convolution.</returns>
     public static Curve Convolution(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
@@ -5280,7 +5280,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the convolution of a set of curves, $\bigotimes{f_i}$.
     /// </summary>
     /// <param name="curves">The set of curves to be convolved.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall convolution.</returns>
     /// <remarks>Optimized for minimal allocations.</remarks>
     public static Curve Convolution(IEnumerable<Curve> curves, ComputationSettings? settings = null)
@@ -5312,7 +5312,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="f">First operand of the (min,+) convolution.</param>
     /// <param name="g">Second operand of the (min,+) convolution.</param>
     /// <param name="time">The time of sampling of $f \otimes g$.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// The convolution is computed using the given <paramref name="settings"/>, and may exploit any specialized algorithm provided.
     /// The element pairs, however, are searched using all elements of $f$ and $g$ between 0 and time, i.e., the search does not use smart cuts.
@@ -5320,7 +5320,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// If the result of the convolution is mathematically wrong, this method will provide the pairs that are considered for that result and,
     /// more importantly, will not include the pairs that should have instead been considered for the correct result.
     /// </remarks>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentException">Thrown when the operation cannot be completed.</exception>
     public static IEnumerable<(Element, Element)> TraceConvolution(Curve f, Curve g, Rational time, ComputationSettings? settings = null)
     {
         if (time < 0 || time.IsPlusInfinite)
@@ -5369,11 +5369,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the number of elementary convolutions involved in computing the (min,+) convolution of the two curves,
     /// avoiding allocations as much as possible.
     /// </summary>
-    /// <param name="curve"></param>
+    /// <param name="curve">The curve to process.</param>
     /// <param name="countElements">
     /// If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>
     /// The number of elementary convolutions involved in computing the result of the (min,+) convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
@@ -5668,7 +5668,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="countElements">
     /// If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>
     /// The number of elementary convolutions involved in computing the result of the (min,+) convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
@@ -5686,7 +5686,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="countElements">
     /// If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>
     /// The number of elementary convolutions involved in computing the result of the (max,+) convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
@@ -5707,7 +5707,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="countElements">
     /// If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>
     /// The number of elementary convolutions involved in computing the result of the (max,+) convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true.
@@ -5722,8 +5722,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the deconvolution of two curves, $f \oslash g$.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="settings"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>
     /// The result is not forced to have $f(0) = 0$, see <see cref="WithZeroOrigin"/> to have this property.
@@ -5770,7 +5770,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the deconvolution</returns>
     /// <remarks>
     /// The result is not forced to have $f(0) = 0$, see <see cref="WithZeroOrigin"/> to have this property.
@@ -5787,8 +5787,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the subadditive closure of the curve.
     /// Requires $f(0) \ge 0$, throws otherwise.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="settings"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the subadditive closure.</returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown if $f(0) &lt; 0$, which means the subadditive closure is $-\infty$ for any $t$.
@@ -5806,7 +5806,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the subadditive closure of the curve.
     /// Requires $f(0) \ge 0$, throws otherwise.
     /// </summary>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the subadditive closure.</returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown if $f(0) &lt; 0$, which means the subadditive closure is $-\infty$ for any $t$.
@@ -5856,7 +5856,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the subadditive closure of the curve.
     /// </summary>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the subadditive closure.</returns>
     /// <remarks>
     /// This version does not assume $f^*(0) = 0$, making the result more general but at the cost of optimizations,
@@ -5878,8 +5878,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the max-plus convolution of two curves, $f \overline{\otimes} g$.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="settings"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the max-plus convolution.</returns>
     /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 4.4</remarks>
     public virtual Curve MaxPlusConvolution(Curve curve, ComputationSettings? settings = null)
@@ -6325,7 +6325,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus convolution</returns>
     /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 4.4</remarks>
     public static Curve MaxPlusConvolution(Curve a, Curve b, ComputationSettings? settings = null)
@@ -6335,7 +6335,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the max-plus convolution of a set of curves.
     /// </summary>
     /// <param name="curves">The set of curves to be convolved.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall max-plus convolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public static Curve MaxPlusConvolution(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
@@ -6364,7 +6364,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the max-plus convolution of a set of curves, $f \overline{\otimes} g$.
     /// </summary>
     /// <param name="curves">The set of curves to be convolved.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall max-plus convolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     /// <remarks>Optimized for minimal allocations</remarks>
@@ -6397,7 +6397,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="f">First operand of the (max,+) convolution.</param>
     /// <param name="g">Second operand of the (max,+) convolution.</param>
     /// <param name="time">The time of sampling of $f \overline{\otimes} g$.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// The convolution is computed using the given <paramref name="settings"/>, and may exploit any specialized algorithm provided.
     /// The element pairs, however, are searched using all elements of $f$ and $g$ between 0 and time, i.e., the search does not use smart cuts.
@@ -6405,7 +6405,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// If the result of the convolution is mathematically wrong, this method will provide the pairs that are considered for that result and,
     /// more importantly, will not include the pairs that should have instead been considered for the correct result.
     /// </remarks>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentException">Thrown when the operation cannot be completed.</exception>
     public static IEnumerable<(Element, Element)> TraceMaxPlusConvolution(Curve f, Curve g, Rational time, ComputationSettings? settings = null)
     {
         if (time < 0 || time.IsPlusInfinite)
@@ -6447,8 +6447,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the max-plus deconvolution of two curves.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="settings"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus deconvolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public virtual Curve MaxPlusDeconvolution(Curve curve, ComputationSettings? settings = null)
@@ -6464,7 +6464,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus deconvolution</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public static Curve MaxPlusDeconvolution(Curve a, Curve b, ComputationSettings? settings = null)
@@ -6473,8 +6473,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the super-additive closure of the curve.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="settings"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the super-additive closure.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public static SuperAdditiveCurve SuperAdditiveClosure(Curve curve, ComputationSettings? settings = null)
@@ -6483,7 +6483,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the super-additive closure of the curve.
     /// </summary>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the super-additive closure.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public virtual SuperAdditiveCurve SuperAdditiveClosure(ComputationSettings? settings = null)
@@ -6503,7 +6503,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Compute the composition of this curve, $f$, and $g$, i.e. $f(g(t))$.
     /// </summary>
     /// <param name="g">Inner function, must be non-negative and non-decreasing.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
     /// <remarks>
@@ -6595,7 +6595,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="f">Outer function.</param>
     /// <param name="g">Inner function, must be non-negative and non-decreasing.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
     /// <remarks>

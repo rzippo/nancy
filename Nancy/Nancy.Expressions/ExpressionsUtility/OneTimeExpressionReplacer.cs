@@ -642,8 +642,8 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="positionPath"></param>
-    /// <param name="expression"></param>
+    /// <param name="positionPath">The expression position path.</param>
+    /// <param name="expression">The expression to process.</param>
     /// <typeparam name="T"></typeparam>
     /// <returns>
     /// Returns
@@ -809,8 +809,8 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="positionPath"></param>
-    /// <param name="binaryExpression"></param>
+    /// <param name="positionPath">The expression position path.</param>
+    /// <param name="binaryExpression">The binary expression.</param>
     /// <typeparam name="TLeft">Type of the left operand</typeparam>
     /// <typeparam name="TRight">Type of the right operand</typeparam>
     /// <typeparam name="TResult">Type of the result, and therefore of the expression</typeparam>
@@ -880,8 +880,8 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="positionPath"></param>
-    /// <param name="binaryExpression"></param>
+    /// <param name="positionPath">The expression position path.</param>
+    /// <param name="binaryExpression">The binary expression.</param>
     /// <typeparam name="TLeft">Type of the left operand</typeparam>
     /// <typeparam name="TRight">Type of the right operand</typeparam>
     /// <typeparam name="TResult">Type of the result, and therefore of the expression</typeparam>

@@ -16,7 +16,7 @@ public static class XPlotPlots
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names of the curves.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The HTML code for the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="XPlotNancyPlotHtmlRenderer"/>.
@@ -40,7 +40,7 @@ public static class XPlotPlots
     /// The name of the curve.
     /// By default, it captures the expression used for <paramref name="curve"/>.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The HTML code for the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="XPlotNancyPlotHtmlRenderer"/>.
@@ -64,11 +64,11 @@ public static class XPlotPlots
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names for the curves to plot. If manually specified, the recommended format is "[name1, name2, ...]".</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The HTML code for the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="XPlotNancyPlotHtmlRenderer"/>.
-    /// The names of the curves can be automatically captured if one uses a syntax like <c>TikzPlots.ToXPlotHtml([b1, b2, b3]);</c>
+    /// The names of the curves can be automatically captured if one uses a syntax like <c>XPlotPlots.ToXPlotHtml([b1, b2, b3]);</c>
     /// Note that this works if each curve has its own variable name, rather than being the result of an expression.
     /// </remarks>
     public static string ToXPlotHtml(
@@ -214,7 +214,7 @@ public static class XPlotPlots
     /// </summary>
     /// <param name="sequences">The sequences to plot.</param>
     /// <param name="names">The names of the sequences.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The HTML code for the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="XPlotNancyPlotHtmlRenderer"/>.
@@ -238,7 +238,7 @@ public static class XPlotPlots
     /// The name of the sequence.
     /// By default, it captures the expression used for <paramref name="sequence"/>.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The HTML code for the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="XPlotNancyPlotHtmlRenderer"/>.
@@ -262,11 +262,11 @@ public static class XPlotPlots
     /// </summary>
     /// <param name="sequences">The sequences to plot.</param>
     /// <param name="names">The names for the sequences to plot. If manually specified, the recommended format is "[name1, name2, ...]".</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The HTML code for the plot.</returns>
     /// <remarks>
     /// This is a shortcut method, that uses <see cref="XPlotNancyPlotHtmlRenderer"/>.
-    /// The names of the sequences can be automatically captured if one uses a syntax like <c>TikzPlots.ToXPlotHtml([b1, b2, b3]);</c>
+    /// The names of the sequences can be automatically captured if one uses a syntax like <c>XPlotPlots.ToXPlotHtml([b1, b2, b3]);</c>
     /// Note that this works if each sequence has its own variable name, rather than being the result of an expression.
     /// </remarks>
     public static string ToXPlotHtml(

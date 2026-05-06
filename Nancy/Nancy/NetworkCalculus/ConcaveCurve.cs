@@ -92,8 +92,8 @@ public class ConcaveCurve : SubAdditiveCurve
     /// <summary>
     /// Computes the convolution of the two curves.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="settings"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the convolution.</returns>
     /// <remarks>Optimized as the minimum of the two convex curves.</remarks>
     public ConcaveCurve Convolution(ConcaveCurve curve, ComputationSettings? settings = null)

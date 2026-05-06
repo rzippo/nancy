@@ -4,6 +4,9 @@ using System.Numerics;
 
 namespace Unipi.Nancy.UncheckedInternals;
 
+/// <summary>
+/// Extension methods for floating-point rational-part extraction.
+/// </summary>
 public static class FloatingPointExtensions
 {
     /// <summary>

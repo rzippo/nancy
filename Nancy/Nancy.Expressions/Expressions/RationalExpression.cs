@@ -33,7 +33,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// numbers and are based on NetCal curves.
     /// </summary>
     /// <param name="expressionName">The name of the expression.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     protected RationalExpression(
         string expressionName = "", 
         ExpressionSettings? settings = null
@@ -57,7 +57,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <summary>
     /// Copy constructor.
     /// </summary>
-    /// <param name="other"></param>
+    /// <param name="other">The other value.</param>
     /// <remarks>
     /// This constructor was made explicit to *not* copy the private cache fields when using the with operator.
     /// </remarks>
@@ -137,7 +137,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </summary>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
-    /// <param name="ignoreNotMatchedExpressions"></param>
+    /// <param name="ignoreNotMatchedExpressions">Whether unmatched expressions should be ignored.</param>
     /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expressions.</returns>
     public RationalExpression ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,

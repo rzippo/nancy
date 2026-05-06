@@ -13,8 +13,8 @@ public interface IToCodeString
     /// Returns a string containing C# code to create this object.
     /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
     /// </summary>
-    /// <param name="formatted"></param>
-    /// <param name="indentation"></param>
+    /// <param name="formatted">Whether to format the generated code.</param>
+    /// <param name="indentation">The indentation level.</param>
     public string ToCodeString(bool formatted = false, int indentation = 0);
 }
 
@@ -27,9 +27,9 @@ public static class ToCodeStringExtensions
     /// Returns a string containing C# code to create this set as a List.
     /// Useful to copy and paste from a debugger into another test or notebook for further investigation.
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="formatted"></param>
-    /// <param name="indentation"></param>
+    /// <param name="source">The source sequence.</param>
+    /// <param name="formatted">Whether to format the generated code.</param>
+    /// <param name="indentation">The indentation level.</param>
     /// <typeparam name="T"></typeparam>
     public static string ToCodeString<T>(this IReadOnlyList<T> source, bool formatted = false, int indentation = 0) where T : IToCodeString
     {

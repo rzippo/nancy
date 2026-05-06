@@ -13,7 +13,7 @@ public static class CurveUpperBounds
     /// <summary>
     /// Upper-bounds the given curve with a <see cref="SigmaRhoArrivalCurve"/>
     /// </summary>
-    /// <param name="curve"></param>
+    /// <param name="curve">The curve to process.</param>
     /// <returns>The upper-bound</returns>
     public static SigmaRhoArrivalCurve SigmaRhoUpperBound(this Curve curve)
     {

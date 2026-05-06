@@ -1,5 +1,8 @@
 ﻿namespace Unipi.Nancy.Plots.Tikz;
 
+/// <summary>
+/// Settings controlling TikZ plot rendering.
+/// </summary>
 public record TikzPlotSettings : PlotSettings
 {
     /// Controls the fontsize used for the plot.

@@ -147,13 +147,13 @@ public static class ToTikzPlotExtension
     /// <summary>
     /// Plots the curves using TikZ.
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="names"></param>
-    /// <param name="colors"></param>
-    /// <param name="lineStyles"></param>
-    /// <param name="settings"></param>
-    /// <param name="plotEndStrategy"></param>
-    /// <param name="upTo"></param>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="names">The names to use.</param>
+    /// <param name="colors">The colors to use.</param>
+    /// <param name="lineStyles">The line styles to use.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <param name="plotEndStrategy">The strategy used to end the plot.</param>
+    /// <param name="upTo">The upper plotting bound.</param>
     /// <returns>
     /// A string with the TikZ code of the plot.
     /// Can be written to file and compiled with LaTeX.
@@ -235,13 +235,13 @@ public static class ToTikzPlotExtension
     /// <summary>
     /// Plots the curve using TikZ.
     /// </summary>
-    /// <param name="curve"></param>
-    /// <param name="name"></param>
-    /// <param name="color"></param>
-    /// <param name="lineStyle"></param>
-    /// <param name="settings"></param>
-    /// <param name="plotEndStrategy"></param>
-    /// <param name="upTo"></param>
+    /// <param name="curve">The curve to process.</param>
+    /// <param name="name">The name to use.</param>
+    /// <param name="color">The color to use.</param>
+    /// <param name="lineStyle">The line style to use.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <param name="plotEndStrategy">The strategy used to end the plot.</param>
+    /// <param name="upTo">The upper plotting bound.</param>
     /// <returns>
     /// A string with the TikZ code of the plot.
     /// Can be written to file and compiled with LaTeX.
@@ -273,7 +273,7 @@ public static class ToTikzPlotExtension
     /// <summary>
     /// Plots the curves using TikZ, using default settings.
     /// </summary>
-    /// <param name="curves"></param>
+    /// <param name="curves">The curves to process.</param>
     /// <returns>
     /// A string with the TikZ code of the plot.
     /// Can be written to file and compiled with LaTeX.
@@ -308,11 +308,11 @@ public static class ToTikzPlotExtension
     /// <summary>
     /// Computes the header for the plot.
     /// </summary>
-    /// <param name="xmax"></param>
-    /// <param name="ymax"></param>
-    /// <param name="xmarks"></param>
-    /// <param name="ymarks"></param>
-    /// <param name="settings"></param>
+    /// <param name="xmax">The maximum x value.</param>
+    /// <param name="ymax">The maximum y value.</param>
+    /// <param name="xmarks">The tick marks for the x axis.</param>
+    /// <param name="ymarks">The tick marks for the y axis.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     private static IEnumerable<string> GetTikzHeader(
         Rational xmax, 
         Rational ymax,
@@ -460,8 +460,8 @@ public static class ToTikzPlotExtension
     /// <summary>
     /// Computes the marks to denote the periodic behavior of the curve.
     /// </summary>
-    /// <param name="f"></param>
-    /// <param name="name"></param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="name">The name to use.</param>
     // ReSharper disable once MemberCanBePrivate.Global
     public static IEnumerable<string> GetUppMarks(Curve f, string name)
     {
@@ -520,12 +520,12 @@ public static class ToTikzPlotExtension
     /// <summary>
     /// Get the TikZ lines that plot the sequences using TikZ.
     /// </summary>
-    /// <param name="sequences"></param>
-    /// <param name="names"></param>
-    /// <param name="colors"></param>
-    /// <param name="lineStyles"></param>
-    /// <param name="settings"></param>
-    /// <param name="includeLegend"></param>
+    /// <param name="sequences">The sequences to process.</param>
+    /// <param name="names">The names to use.</param>
+    /// <param name="colors">The colors to use.</param>
+    /// <param name="lineStyles">The line styles to use.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <param name="includeLegend">Whether to include the legend.</param>
     // ReSharper disable once MemberCanBePrivate.Global
     private static IEnumerable<string> GetTikzContent(
         this IReadOnlyList<Sequence> sequences, 
@@ -597,11 +597,11 @@ public static class ToTikzPlotExtension
     /// <summary>
     /// Computes the lines that plot the sequence.
     /// </summary>
-    /// <param name="sequence"></param>
-    /// <param name="color"></param>
-    /// <param name="lineStyle"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="sequence">The sequence to process.</param>
+    /// <param name="color">The color to use.</param>
+    /// <param name="lineStyle">The line style to use.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     private static IEnumerable<string> ToTikzLines(
         this Sequence sequence, 
         string color, 

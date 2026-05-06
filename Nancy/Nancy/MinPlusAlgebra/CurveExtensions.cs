@@ -12,10 +12,10 @@ public static class CurveExtensions
     /// <summary>
     /// True if all the curves in the set represent the same function. 
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="curves">The curves to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <exception cref="ArgumentException">Thrown when the set of curves is empty.</exception>
     public static bool Equivalent(this IEnumerable<Curve> curves, ComputationSettings? settings = null)
         => Curve.Equivalent(curves, settings);
 

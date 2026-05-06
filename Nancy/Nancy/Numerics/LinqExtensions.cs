@@ -12,8 +12,8 @@ public static class LinqExtensions
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="source"></param>
-    /// <returns></returns>
+    /// <param name="source">The source sequence.</param>
+    /// <returns>The result.</returns>
     public static LongRational Sum(this IEnumerable<LongRational> source)
     {
         return source
@@ -23,10 +23,10 @@ public static class LinqExtensions
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="selector"></param>
+    /// <param name="source">The source sequence.</param>
+    /// <param name="selector">The selector function.</param>
     /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
+    /// <returns>The result.</returns>
     public static LongRational Sum<T>(this IEnumerable<T> source, Func<T, LongRational> selector)
     {
         return source
@@ -37,8 +37,8 @@ public static class LinqExtensions
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="source"></param>
-    /// <returns></returns>
+    /// <param name="source">The source sequence.</param>
+    /// <returns>The result.</returns>
     public static BigRational Sum(this IEnumerable<BigRational> source)
     {
         return source
@@ -48,10 +48,10 @@ public static class LinqExtensions
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="selector"></param>
+    /// <param name="source">The source sequence.</param>
+    /// <param name="selector">The selector function.</param>
     /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
+    /// <returns>The result.</returns>
     public static BigRational Sum<T>(this IEnumerable<T> source, Func<T, BigRational> selector)
     {
         return source
@@ -63,8 +63,8 @@ public static class LinqExtensions
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="source"></param>
-    /// <returns></returns>
+    /// <param name="source">The source sequence.</param>
+    /// <returns>The result.</returns>
     public static Rational Sum(this IEnumerable<Rational> source)
     {
         return source
@@ -74,10 +74,10 @@ public static class LinqExtensions
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="selector"></param>
+    /// <param name="source">The source sequence.</param>
+    /// <param name="selector">The selector function.</param>
     /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
+    /// <returns>The result.</returns>
     public static Rational Sum<T>(this IEnumerable<T> source, Func<T, Rational> selector)
     {
         return source

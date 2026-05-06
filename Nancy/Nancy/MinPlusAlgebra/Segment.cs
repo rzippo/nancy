@@ -150,7 +150,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <param name="endTime">Right endpoint of the support of the segment.</param>
     /// <param name="rightLimitAtStartTime">Right limit of the segment at startTime, f(a+).</param>
     /// <param name="slope">Slope of the segment.</param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentException">Thrown when the operation cannot be completed.</exception>
     [System.Text.Json.Serialization.JsonConstructor]
     public Segment(
         Rational startTime,
@@ -1992,7 +1992,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     /// <param name="pseudoPeriodLength">Length of the pseudo-period.</param>
     /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>Described in [BT07] Section 4.6 as algorithm 11</remarks>
     public override SubAdditiveCurve SubAdditiveClosure(
         Rational pseudoPeriodLength,

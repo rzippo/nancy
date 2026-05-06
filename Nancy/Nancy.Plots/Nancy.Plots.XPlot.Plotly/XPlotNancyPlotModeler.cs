@@ -3,8 +3,12 @@ using XPlot.Plotly;
 
 namespace Unipi.Nancy.Plots.XPlot.Plotly;
 
+/// <summary>
+/// Builds XPlot.Plotly chart models from Nancy sequences.
+/// </summary>
 public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyChart>
 {
+    /// <inheritdoc />
     public override PlotlyChart GetPlot(
         IEnumerable<Sequence> sequences,
         IEnumerable<string> names)

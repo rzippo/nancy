@@ -486,7 +486,7 @@ public class SubAdditiveCurve : Curve
     /// Order of operations is optimized to exploit theorems in [ZS23]
     /// </summary>
     /// <param name="curves">The set of sub-additive curves to be convolved.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall convolution.</returns>
     public static SubAdditiveCurve Convolution(IEnumerable<SubAdditiveCurve> curves, ComputationSettings? settings = null)
     {
@@ -551,9 +551,9 @@ public class SubAdditiveCurve : Curve
     /// Computes the number of elementary convolutions involved in computing the convolution of the two curves,
     /// avoiding allocations as much as possible.
     /// </summary>
-    /// <param name="curve"></param>
+    /// <param name="curve">The curve to process.</param>
     /// <param name="countElements">If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>
     /// The number of elementary convolutions involved in computing the result of the convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is true

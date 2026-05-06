@@ -34,11 +34,11 @@ public readonly struct Interval : IToCodeString
     /// <summary>
     /// Constructs a new interval with the given endpoints.
     /// </summary>
-    /// <param name="lower"></param>
-    /// <param name="upper"></param>
-    /// <param name="isLowerIncluded"></param>
-    /// <param name="isUpperIncluded"></param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="lower">The lower bound.</param>
+    /// <param name="upper">The upper bound.</param>
+    /// <param name="isLowerIncluded">Whether the lower bound is included.</param>
+    /// <param name="isUpperIncluded">Whether the upper bound is included.</param>
+    /// <exception cref="ArgumentException">Thrown when the operation cannot be completed.</exception>
     public Interval(
         Rational lower, 
         Rational upper,

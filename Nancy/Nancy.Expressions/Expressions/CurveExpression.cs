@@ -251,7 +251,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// build, manipulate and print network calculus expressions.
     /// </summary>
     /// <param name="expressionName">The name of the expression</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     protected CurveExpression(string expressionName = "", ExpressionSettings? settings = null)
     {
         Name = expressionName;
@@ -285,7 +285,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Copy constructor.
     /// </summary>
-    /// <param name="other"></param>
+    /// <param name="other">The other value.</param>
     /// <remarks>
     /// This constructor was made explicit to *not* copy the private cache fields when using the with operator.
     /// </remarks>
@@ -853,10 +853,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the value of the curve expression at <paramref name="time"/>.
     /// </summary>
-    /// <param name="time"></param>
-    /// <param name="expressionName"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="time">The time value.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     public RationalExpression ValueAt(
         Rational time,
         string expressionName = "",
@@ -866,10 +866,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the value of the curve expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
-    /// <param name="timeExpression"></param>
-    /// <param name="expressionName"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="timeExpression">The expression that provides the time value.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     public RationalExpression ValueAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -879,10 +879,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the curve expression at <paramref name="time"/>.
     /// </summary>
-    /// <param name="time"></param>
-    /// <param name="expressionName"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="time">The time value.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     public RationalExpression LeftLimitAt(
         Rational time,
         string expressionName = "",
@@ -892,10 +892,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the curve expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
-    /// <param name="timeExpression"></param>
-    /// <param name="expressionName"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="timeExpression">The expression that provides the time value.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     public RationalExpression LeftLimitAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -905,10 +905,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the curve expression at <paramref name="time"/>.
     /// </summary>
-    /// <param name="time"></param>
-    /// <param name="expressionName"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="time">The time value.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     public RationalExpression RightLimitAt(
         Rational time,
         string expressionName = "",
@@ -918,10 +918,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the curve expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
-    /// <param name="timeExpression"></param>
-    /// <param name="expressionName"></param>
-    /// <param name="settings"></param>
-    /// <returns></returns>
+    /// <param name="timeExpression">The expression that provides the time value.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
     public RationalExpression RightLimitAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -946,7 +946,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </summary>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
-    /// <param name="ignoreNotMatchedExpressions"></param>
+    /// <param name="ignoreNotMatchedExpressions">Whether unmatched expressions should be ignored.</param>
     /// <returns>New expression object (of type <see cref="CurveExpression"/>) with replaced sub-expressions.</returns>
     public CurveExpression ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
@@ -1226,9 +1226,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
     /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) + K$.
     /// </summary>
-    /// <param name="curveExpression"></param>
-    /// <param name="rationalExpression"></param>
-    /// <returns></returns>
+    /// <param name="curveExpression">The curve expression.</param>
+    /// <param name="rationalExpression">The rational expression.</param>
+    /// <returns>The result.</returns>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
@@ -1239,9 +1239,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
     /// by <paramref name="rational"/>, i.e., computing $f(t) + K$.
     /// </summary>
-    /// <param name="curveExpression"></param>
-    /// <param name="rational"></param>
-    /// <returns></returns>
+    /// <param name="curveExpression">The curve expression.</param>
+    /// <param name="rational">The rational value.</param>
+    /// <returns>The result.</returns>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
@@ -1252,9 +1252,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
     /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) + K$.
     /// </summary>
-    /// <param name="curveExpression"></param>
-    /// <param name="rationalExpression"></param>
-    /// <returns></returns>
+    /// <param name="curveExpression">The curve expression.</param>
+    /// <param name="rationalExpression">The rational expression.</param>
+    /// <returns>The result.</returns>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
@@ -1265,9 +1265,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
     /// by <paramref name="rational"/>, i.e., computing $f(t) + K$.
     /// </summary>
-    /// <param name="curveExpression"></param>
-    /// <param name="rational"></param>
-    /// <returns></returns>
+    /// <param name="curveExpression">The curve expression.</param>
+    /// <param name="rational">The rational value.</param>
+    /// <returns>The result.</returns>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
@@ -1278,9 +1278,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
     /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) - K$.
     /// </summary>
-    /// <param name="curveExpression"></param>
-    /// <param name="rationalExpression"></param>
-    /// <returns></returns>
+    /// <param name="curveExpression">The curve expression.</param>
+    /// <param name="rationalExpression">The rational expression.</param>
+    /// <returns>The result.</returns>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
@@ -1291,9 +1291,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
     /// by <paramref name="rational"/>, i.e., computing $f(t) - K$.
     /// </summary>
-    /// <param name="curveExpression"></param>
-    /// <param name="rational"></param>
-    /// <returns></returns>
+    /// <param name="curveExpression">The curve expression.</param>
+    /// <param name="rational">The rational value.</param>
+    /// <returns>The result.</returns>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>

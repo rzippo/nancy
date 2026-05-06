@@ -194,7 +194,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     // -3/2        ==    -1, -1/2
     //  3/2        ==     1,  1/2
     /// <summary>
-    /// 
+    /// Returns the whole (integer) part of the rational number.
     /// </summary>
     public readonly BigInteger GetWholePart()
     {
@@ -202,11 +202,53 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// 
+    /// Returns the fractional part of the rational number.
     /// </summary>
     public readonly BigRational GetFractionPart()
     {
         return new BigRational(BigInteger.Remainder(Numerator, Denominator), Denominator);
+    }
+
+    /// <summary>
+    /// Returns the largest integer less than or equal to the current rational.
+    /// </summary>
+    public readonly BigInteger Floor()
+    {
+        var wholePart = GetWholePart();
+        var fractionPart = GetFractionPart();
+
+        if (wholePart > 0 || wholePart == 0 && fractionPart >= 0)
+        {
+            return wholePart;
+        }
+        else
+        {
+            if (fractionPart < 0)
+                return wholePart - 1;
+            else
+                return wholePart;
+        }
+    }
+
+    /// <summary>
+    /// Returns the smallest integer greater than or equal to the current rational.
+    /// </summary>
+    public readonly BigInteger Ceil()
+    {
+        var wholePart = GetWholePart();
+        var fractionPart = GetFractionPart();
+
+        if (wholePart > 0 || wholePart == 0 && fractionPart >= 0)
+        {
+            if (fractionPart > 0)
+                return wholePart + 1;
+            else
+                return wholePart;
+        }
+        else
+        {
+            return wholePart;
+        }
     }
 
     /// <inheritdoc />
@@ -303,9 +345,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="numerator"></param>
-    /// <param name="denominator"></param>
-    /// <exception cref="UndeterminedResultException"></exception>
+    /// <param name="numerator">The numerator.</param>
+    /// <param name="denominator">The denominator.</param>
+    /// <exception cref="UndeterminedResultException">Thrown when the operation cannot be completed.</exception>
     public BigRational(int numerator, int denominator = 1)
     {
         if (denominator == 0)
@@ -342,9 +384,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="numerator"></param>
-    /// <param name="denominator"></param>
-    /// <exception cref="UndeterminedResultException"></exception>
+    /// <param name="numerator">The numerator.</param>
+    /// <param name="denominator">The denominator.</param>
+    /// <exception cref="UndeterminedResultException">Thrown when the operation cannot be completed.</exception>
     public BigRational(long numerator, long denominator = 1)
     {
         if (denominator == 0)
@@ -381,7 +423,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="numerator"></param>
+    /// <param name="numerator">The numerator.</param>
     public BigRational(BigInteger numerator)
     {
         Numerator = numerator;
@@ -447,9 +489,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="numerator"></param>
-    /// <param name="denominator"></param>
-    /// <exception cref="UndeterminedResultException"></exception>
+    /// <param name="numerator">The numerator.</param>
+    /// <param name="denominator">The denominator.</param>
+    /// <exception cref="UndeterminedResultException">Thrown when the operation cannot be completed.</exception>
     public BigRational(BigInteger numerator, BigInteger denominator)
     {
         if (denominator.Sign == 0)
@@ -486,8 +528,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Internal constructor.
     /// </summary>
-    /// <param name="numerator"></param>
-    /// <param name="denominator"></param>
+    /// <param name="numerator">The numerator.</param>
+    /// <param name="denominator">The denominator.</param>
     /// <param name="skipNormalize">
     /// If true, the fraction is assumed to be already normalized (positive denominator and irreducible), and no normalization will be attempted. 
     /// </param>
@@ -534,10 +576,10 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Constructor.
     /// </summary>
-    /// <param name="whole"></param>
-    /// <param name="numerator"></param>
-    /// <param name="denominator"></param>
-    /// <exception cref="DivideByZeroException"></exception>
+    /// <param name="whole">The whole part.</param>
+    /// <param name="numerator">The numerator.</param>
+    /// <param name="denominator">The denominator.</param>
+    /// <exception cref="DivideByZeroException">Thrown when the operation cannot be completed.</exception>
     public BigRational(BigInteger whole, BigInteger numerator, BigInteger denominator)
     {
         if (denominator.Sign == 0)
@@ -636,11 +678,11 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// Performs a division with reminder.
+    /// Performs a division with remainder.
     /// </summary>
-    /// <param name="dividend"></param>
-    /// <param name="divisor"></param>
-    /// <param name="remainder">The reminder resulting from the division.</param>
+    /// <param name="dividend">The dividend.</param>
+    /// <param name="divisor">The divisor.</param>
+    /// <param name="remainder">The remainder resulting from the division.</param>
     /// <returns>The integer result of the division.</returns>
     public static BigRational DivRem(BigRational dividend, BigRational divisor, out BigRational remainder)
     {
@@ -659,9 +701,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Computes the power <paramref name="baseValue"/>^<paramref name="exponent"/>
     /// </summary>
-    /// <param name="baseValue"></param>
-    /// <param name="exponent"></param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="baseValue">The base value.</param>
+    /// <param name="exponent">The exponent.</param>
+    /// <exception cref="ArgumentException">Thrown when the operation cannot be completed.</exception>
     public static BigRational Pow(BigRational baseValue, BigInteger exponent)
     {
         if (exponent.Sign == 0)
@@ -713,8 +755,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Greatest Common Divisor of the two numbers.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     public static BigRational GreatestCommonDivisor(BigRational a, BigRational b)
     {
         while (b != 0)
@@ -729,8 +771,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Least Common Multiple of the two numbers.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     public static BigRational LeastCommonMultiple(BigRational a, BigRational b)
     {
         return (a / BigRational.GreatestCommonDivisor(a, b)) * b;
@@ -808,16 +850,16 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Max of the two numbers.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     public static BigRational Max(BigRational a, BigRational b) => a > b ? a : b;
 
     /// <summary>
     /// Max of the three numbers.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <param name="c"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="c">The third operand.</param>
     public static BigRational Max(BigRational a, BigRational b, BigRational c) => Max(a, Max(b, c));    //good enough
 
     /// <summary>
@@ -833,16 +875,16 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// Min of the two numbers.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     public static BigRational Min(BigRational a, BigRational b) => a > b ? b : a;
 
     /// <summary>
     /// Min of the three numbers.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <param name="c"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="c">The third operand.</param>
     public static BigRational Min(BigRational a, BigRational b, BigRational c) => Min(a, Min(b, c));
 
     /// <summary>
@@ -1171,90 +1213,90 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
 
     #region explicit conversions from BigRational
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="SByte"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator SByte(BigRational value)
     {
         return (SByte)(BigInteger.Divide(value.Numerator, value.Denominator));
     }
 
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="UInt16"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator UInt16(BigRational value)
     {
         return (UInt16)(BigInteger.Divide(value.Numerator, value.Denominator));
     }
 
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="UInt32"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator UInt32(BigRational value)
     {
         return (UInt32)(BigInteger.Divide(value.Numerator, value.Denominator));
     }
 
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="UInt64"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator UInt64(BigRational value)
     {
         return (UInt64)(BigInteger.Divide(value.Numerator, value.Denominator));
     }
 
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="Byte"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator Byte(BigRational value)
     {
         return (Byte)(BigInteger.Divide(value.Numerator, value.Denominator));
     }
 
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="Int16"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator Int16(BigRational value)
     {
         return (Int16)(BigInteger.Divide(value.Numerator, value.Denominator));
     }
 
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="Int32"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator Int32(BigRational value)
     {
         return (Int32)(BigInteger.Divide(value.Numerator, value.Denominator));
     }
 
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="Int64"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator Int64(BigRational value)
     {
         return (Int64)(BigInteger.Divide(value.Numerator, value.Denominator));
     }
 
     /// <summary>
-    /// 
+    /// Truncates the rational to a <see cref="BigInteger"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator BigInteger(BigRational value)
     {
         return BigInteger.Divide(value.Numerator, value.Denominator);
     }
 
     /// <summary>
-    /// 
+    /// Converts the rational to a <see cref="Single"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator Single(BigRational value)
     {
         // The Single value type represents a single-precision 32-bit number with
@@ -1264,9 +1306,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// 
+    /// Converts the rational to a <see cref="Double"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The rational to convert.</param>
     public static explicit operator Double(BigRational value)
     {
         // The Double value type represents a double-precision 64-bit number with
@@ -1311,10 +1353,11 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// 
+    /// Converts the rational to a <see cref="Decimal"/>.
     /// </summary>
-    /// <param name="value"></param>
-    /// <exception cref="OverflowException"></exception>
+    /// <param name="value">The rational to convert.</param>
+    /// <exception cref="InvalidConversionException">Thrown when converting infinity to decimal.</exception>
+    /// <exception cref="OverflowException">Thrown when the value is too large or too small for a decimal.</exception>
     public static explicit operator Decimal(BigRational value)
     {
         if (value.IsInfinite)
@@ -1360,100 +1403,108 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     #region implicit conversions to BigRational
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="SByte"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(SByte value)
     {
         return new BigRational((BigInteger)value);
     }
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="UInt16"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(UInt16 value)
     {
         return new BigRational((BigInteger)value);
     }
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="UInt32"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(UInt32 value)
     {
         return new BigRational((BigInteger)value);
     }
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="UInt64"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(UInt64 value)
     {
         return new BigRational((BigInteger)value);
     }
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="Byte"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(Byte value)
     {
         return new BigRational((BigInteger)value);
     }
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="Int16"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(Int16 value)
     {
         return new BigRational((BigInteger)value);
     }
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="Int32"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(Int32 value)
     {
         return new BigRational((BigInteger)value);
     }
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="Int64"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(Int64 value)
     {
         return new BigRational((BigInteger)value);
     }
 
     /// <summary>
-    /// 
+    /// Converts a <see cref="BigInteger"/> to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static implicit operator BigRational(BigInteger value)
     {
         return new BigRational(value);
     }
 
+    /// <summary>
+    /// Converts a single-precision floating-point number to a <see cref="BigRational"/>.
+    /// </summary>
+    /// <param name="value">The floating-point value to convert.</param>
     public static implicit operator BigRational(Single value)
     {
         return new BigRational((Double)value);
     }
 
+    /// <summary>
+    /// Converts a double-precision floating-point number to a <see cref="BigRational"/>.
+    /// </summary>
+    /// <param name="value">The floating-point value to convert.</param>
     public static implicit operator BigRational(Double value)
     {
         return new BigRational(value);
     }
     
     /// <summary>
-    /// 
+    /// Converts a decimal number to a <see cref="BigRational"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The decimal value to convert.</param>
     public static implicit operator BigRational(Decimal value)
     {
         return new BigRational(value);

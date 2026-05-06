@@ -303,24 +303,25 @@ namespace Unipi.Nancy.Numerics
         // -1/1        ==    -1,  0/1
         // -3/2        ==    -1, -1/2
         //  3/2        ==     1,  1/2
-        /// <summary>
-        /// 
-        /// </summary>
         #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.GetWholePart" />
         public readonly BigInteger GetWholePart()
         {
             return BigInteger.Divide(Numerator, Denominator);
         }
         #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational.GetWholePart" />
         public readonly long GetWholePart()
         {
             return Numerator / Denominator;
         }
         #endif
 
-        /// <summary>
-        /// 
-        /// </summary>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.GetFractionPart" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational.GetFractionPart" />
+        #endif
         public readonly Rational GetFractionPart()
         {
             #if BIG_RATIONAL
@@ -330,12 +331,11 @@ namespace Unipi.Nancy.Numerics
             #endif
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.Floor" />
         public readonly BigInteger Floor()
         #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational.Floor" />
         public readonly long Floor()
         #endif
         {
@@ -355,12 +355,11 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.Ceil" />
         public readonly BigInteger Ceil()
         #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational.Ceil" />
         public readonly long Ceil()
         #endif
         {
@@ -382,7 +381,7 @@ namespace Unipi.Nancy.Numerics
 
         // todo: benchmarks to verify it's faster
         /// <summary>
-        /// 
+        /// Returns the largest integer less than or equal to the current rational.
         /// </summary>
         public readonly int FastFloor()
         {
@@ -391,7 +390,7 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <summary>
-        /// 
+        /// Returns the smallest integer greater than or equal to the current rational.
         /// </summary>
         public readonly int FastCeil()
         {
@@ -1485,91 +1484,101 @@ namespace Unipi.Nancy.Numerics
 
         #region explicit conversions from Rational
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.SByte" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.SByte" />
+        #endif
         public static explicit operator SByte(Rational value)
         {
             return (SByte)(BigInteger.Divide(value.Numerator, value.Denominator));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.UInt16" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.UInt16" />
+        #endif
         public static explicit operator UInt16(Rational value)
         {
             return (UInt16)(BigInteger.Divide(value.Numerator, value.Denominator));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.UInt32" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.UInt32" />
+        #endif
         public static explicit operator UInt32(Rational value)
         {
             return (UInt32)(BigInteger.Divide(value.Numerator, value.Denominator));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.UInt64" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.UInt64" />
+        #endif
         public static explicit operator UInt64(Rational value)
         {
             return (UInt64)(BigInteger.Divide(value.Numerator, value.Denominator));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Byte" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.Byte" />
+        #endif
         public static explicit operator Byte(Rational value)
         {
             return (Byte)(BigInteger.Divide(value.Numerator, value.Denominator));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Int16" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.Int16" />
+        #endif
         public static explicit operator Int16(Rational value)
         {
             return (Int16)(BigInteger.Divide(value.Numerator, value.Denominator));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Int32" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.Int32" />
+        #endif
         public static explicit operator Int32(Rational value)
         {
             return (Int32)(BigInteger.Divide(value.Numerator, value.Denominator));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Int64" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.Int64" />
+        #endif
         public static explicit operator Int64(Rational value)
         {
             return (Int64)(BigInteger.Divide(value.Numerator, value.Denominator));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Numerics.BigInteger" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.Numerics.BigInteger" />
+        #endif
         public static explicit operator BigInteger(Rational value)
         {
             return BigInteger.Divide(value.Numerator, value.Denominator);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Single" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.Single" />
+        #endif
         public static explicit operator Single(Rational value)
         {
             // The Single value type represents a single-precision 32-bit number with
@@ -1578,10 +1587,11 @@ namespace Unipi.Nancy.Numerics
             return (Single)((Double)value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Double" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.Double" />
+        #endif
         public static explicit operator Double(Rational value)
         {
             // The Double value type represents a double-precision 64-bit number with
@@ -1625,10 +1635,11 @@ namespace Unipi.Nancy.Numerics
                 return result;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Decimal" />
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="M:Unipi.Nancy.Numerics.LongRational.op_Explicit(Unipi.Nancy.Numerics.LongRational)~System.Decimal" />
+        #endif
         public static explicit operator Decimal(Rational value)
         {
             if (value.IsInfinite)
@@ -1674,9 +1685,9 @@ namespace Unipi.Nancy.Numerics
         #region implicit conversions to Rational
 
         /// <summary>
-        /// 
+        /// Converts a <see cref="SByte"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(SByte value)
         {
             #if BIG_RATIONAL
@@ -1688,9 +1699,9 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <summary>
-        /// 
+        /// Converts a <see cref="UInt16"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(UInt16 value)
         {
             #if BIG_RATIONAL
@@ -1702,9 +1713,9 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <summary>
-        /// 
+        /// Converts a <see cref="UInt32"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(UInt32 value)
         {
             #if BIG_RATIONAL
@@ -1716,9 +1727,9 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <summary>
-        /// 
+        /// Converts a <see cref="UInt64"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(UInt64 value)
         {
             #if BIG_RATIONAL
@@ -1730,9 +1741,9 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <summary>
-        /// 
+        /// Converts a <see cref="Byte"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(Byte value)
         {
             #if BIG_RATIONAL
@@ -1744,9 +1755,9 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <summary>
-        /// 
+        /// Converts a <see cref="Int16"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(Int16 value)
         {
             #if BIG_RATIONAL
@@ -1758,9 +1769,9 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <summary>
-        /// 
+        /// Converts a <see cref="Int32"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(Int32 value)
         {
             #if BIG_RATIONAL
@@ -1772,9 +1783,9 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <summary>
-        /// 
+        /// Converts a <see cref="Int64"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(Int64 value)
         {
             #if BIG_RATIONAL
@@ -1787,9 +1798,9 @@ namespace Unipi.Nancy.Numerics
 
         #if BIG_RATIONAL
         /// <summary>
-        /// 
+        /// Converts a <see cref="BigInteger"/> to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The integer value to convert.</param>
         public static implicit operator Rational(BigInteger value)
         {
             return new Rational(value);
@@ -1797,27 +1808,27 @@ namespace Unipi.Nancy.Numerics
         #endif
 
         /// <summary>
-        /// 
+        /// Converts a single-precision floating-point number to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The floating-point value to convert.</param>
         public static implicit operator Rational(Single value)
         {
             return new Rational((Double)value);
         }
 
         /// <summary>
-        /// 
+        /// Converts a double-precision floating-point number to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The floating-point value to convert.</param>
         public static implicit operator Rational(Double value)
         {
             return new Rational(value);
         }
 
         /// <summary>
-        /// 
+        /// Converts a decimal number to a <see cref="Rational"/>.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">The decimal value to convert.</param>
         public static implicit operator Rational(Decimal value)
         {
             return new Rational(value);

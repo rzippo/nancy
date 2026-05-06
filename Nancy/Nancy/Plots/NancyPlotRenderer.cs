@@ -36,7 +36,7 @@ public abstract class NancyPlotRenderer<TSettings, TPlot, TOutput>
     /// <summary>
     /// Renders the plot model <typeparamref name="TPlot"/> to the output type <typeparamref name="TOutput"/>.
     /// </summary>
-    /// <param name="plot"></param>
+    /// <param name="plot">The plot to render.</param>
     public abstract TOutput PlotToOutput(TPlot plot);
 
     #region Curves

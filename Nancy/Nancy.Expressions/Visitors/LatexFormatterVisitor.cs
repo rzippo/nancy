@@ -65,8 +65,8 @@ public partial class LatexFormatterVisitor :
     /// Used, e.g., to force parentheses in post-fix unary operators that add their own subscript or superscript.
     /// </summary>
     /// <typeparam name="TResult"></typeparam>
-    /// <param name="expression"></param>
-    /// <returns></returns>
+    /// <param name="expression">The expression to process.</param>
+    /// <returns>The result.</returns>
     public static bool ContainsSubscriptOrSuperscript<TResult>(IGenericExpression<TResult> expression)
     {
         // todo: improve with other cases

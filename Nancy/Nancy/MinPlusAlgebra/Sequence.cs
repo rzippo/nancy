@@ -468,9 +468,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="from">Left endpoint of the sequence</param>
     /// <param name="to">Right endpoint of the sequence</param>
-    /// <param name="isStartIncluded"></param>
-    /// <param name="isEndIncluded"></param>
-    /// <returns></returns>
+    /// <param name="isStartIncluded">Whether the start point is included.</param>
+    /// <param name="isEndIncluded">Whether the end point is included.</param>
+    /// <returns>The result.</returns>
     public static Sequence Zero(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
         if (from > to)
@@ -503,8 +503,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="from">Left endpoint of the sequence</param>
     /// <param name="to">Right endpoint of the sequence</param>
-    /// <param name="isStartIncluded"></param>
-    /// <param name="isEndIncluded"></param>
+    /// <param name="isStartIncluded">Whether the start point is included.</param>
+    /// <param name="isEndIncluded">Whether the end point is included.</param>
     public static Sequence PlusInfinite(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
         if (from > to)
@@ -537,8 +537,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="from">Left endpoint of the sequence</param>
     /// <param name="to">Right endpoint of the sequence</param>
-    /// <param name="isStartIncluded"></param>
-    /// <param name="isEndIncluded"></param>
+    /// <param name="isStartIncluded">Whether the start point is included.</param>
+    /// <param name="isEndIncluded">Whether the end point is included.</param>
     public static Sequence MinusInfinite(Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
         if (from > to)
@@ -572,9 +572,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="value">Constant value of the sequence</param>
     /// <param name="from">Left endpoint of the sequence</param>
     /// <param name="to">Right endpoint of the sequence</param>
-    /// <param name="isStartIncluded"></param>
-    /// <param name="isEndIncluded"></param>
-    /// <returns></returns>
+    /// <param name="isStartIncluded">Whether the start point is included.</param>
+    /// <param name="isEndIncluded">Whether the end point is included.</param>
+    /// <returns>The result.</returns>
     public static Sequence Constant(Rational value, Rational from, Rational to, bool isStartIncluded = true, bool isEndIncluded = false)
     {
         if (from > to)
@@ -691,9 +691,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Returns null if the two sequences represent the same function.
     /// Mostly useful to debug sequences that *should* be equivalent.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <returns></returns>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <returns>The result.</returns>
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static Rational? FindFirstInequivalence(Sequence a, Sequence b)
     {
@@ -1329,7 +1329,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="isFromIncluded">If true, left endpoint is inclusive.</param>
     /// <param name="isToIncluded">If true, right endpoint is inclusive.</param>
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
-    /// <returns></returns>
+    /// <returns>The result.</returns>
     public static IEnumerable<Element> Fill(
         IEnumerable<Element> elements,
         Rational fillFrom,
@@ -1792,8 +1792,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     /// <returns>The sequence resulting from the sum.</returns>
     public static Sequence Addition(Sequence a, Sequence b)
     {
@@ -1819,7 +1819,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
     /// </summary>
-    /// <param name="b"></param>
+    /// <param name="b">The second operand.</param>
     /// <returns>The sequence resulting from the sum.</returns>
     public Sequence Addition(Sequence b)
         => Addition(this, b);
@@ -1827,8 +1827,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     /// <returns>The sequence resulting from the sum.</returns>
     public static Sequence operator +(Sequence a, Sequence b)
         => Addition(a, b);
@@ -1837,8 +1837,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
     /// <returns>The sequence resulting from the sum.</returns>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     /// <remarks>
     /// The result may contain negative values. 
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
@@ -1849,7 +1849,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
-    /// <param name="b"></param>
+    /// <param name="b">The second operand.</param>
     /// <returns>The sequence resulting from the sum.</returns>
     /// <remarks>
     /// The result may contain negative values. 
@@ -1862,8 +1862,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
     /// <returns>The sequence resulting from the sum.</returns>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static Sequence Subtraction(Sequence a, Sequence b, bool nonNegative)
@@ -1874,7 +1874,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
-    /// <param name="b"></param>
+    /// <param name="b">The second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     /// <returns>The sequence resulting from the sum.</returns>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
@@ -1884,8 +1884,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     /// <remarks>
     /// The result may contain negative values. 
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
@@ -1903,7 +1903,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
     /// <param name="cutToOverlap">If set, the minimum is performed over the overlapping part.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The sequence resulting from the minimum.</returns>
     public static Sequence Minimum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
     {
@@ -1938,7 +1938,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="b">Second operand.</param>
     /// <param name="cutToOverlap">If set, the minimum is performed over the overlapping part.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The sequence resulting from the minimum.</returns>
     public Sequence Minimum(Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
         => Minimum(this, b, cutToOverlap, settings);
@@ -1982,7 +1982,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
     /// <param name="cutToOverlap">If set, the maximum is performed over the overlapping part.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The sequence resulting from the maximum.</returns>
     public static Sequence Maximum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
     {
@@ -2017,7 +2017,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="b">Second operand.</param>
     /// <param name="cutToOverlap">If set, the maximum is performed over the overlapping part.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The sequence resulting from the maximum.</returns>
     public Sequence Maximum(Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
         => Maximum(a: this, b, cutToOverlap, settings);
@@ -2026,9 +2026,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes the lower envelope of the pair of sequences given.
     /// $O(n)$ complexity.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <param name="settings"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>Used for maximum.</remarks>
     public static List<Element> UpperEnvelope(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
@@ -2062,14 +2062,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the convolution of two sequences, $a \otimes b$.
     /// </summary>
-    /// <param name="f"></param>
-    /// <param name="g"></param>
-    /// <param name="settings"></param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="g">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
-    /// <param name="isEndIncluded"></param>
-    /// <param name="isCeilingIncluded"></param>
-    /// <param name="useIsomorphism"></param>
+    /// <param name="isEndIncluded">Whether the end point is included.</param>
+    /// <param name="isCeilingIncluded">Whether the ceiling value is included.</param>
+    /// <param name="useIsomorphism">Whether to use the convolution isomorphism.</param>
     /// <returns>The result of the convolution.</returns>
     /// <remarks>Described in [BT08], Section 4.4 point 3</remarks>
     public static Sequence Convolution(
@@ -2432,8 +2432,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the convolution of two sequences, $f \otimes g$.
     /// </summary>
-    /// <param name="sequence"></param>
-    /// <param name="settings"></param>
+    /// <param name="sequence">The sequence to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The result of the convolution.</returns>
     /// <remarks>Described in [BT08], Section 4.4 point 3</remarks>
@@ -2448,12 +2448,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes the number of elementary convolutions involved in computing the convolution of the two sequences,
     /// avoiding allocations as much as possible.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     /// <param name="countElements">
     /// If true, instead of counting only how many convolutions are done, it counts how many convolution elements are produced.
     /// </param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>
@@ -2563,11 +2563,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the deconvolution of two sequences, $a \oslash b$.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
     /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
     /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, endpoint excluded.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT08], Section 4.5</remarks>
     public static Sequence Deconvolution(
@@ -2641,10 +2641,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the deconvolution of two sequences, $f \oslash g$.
     /// </summary>
-    /// <param name="sequence"></param>
+    /// <param name="sequence">The sequence to process.</param>
     /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
     /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, endpoint excluded.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT08], Section 4.5</remarks>
     public Sequence Deconvolution(Sequence sequence, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
@@ -2657,14 +2657,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the max-plus convolution of two sequences.
     /// </summary>
-    /// <param name="f"></param>
-    /// <param name="g"></param>
-    /// <param name="settings"></param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="g">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
-    /// <param name="isEndIncluded"></param>
-    /// <param name="isCeilingIncluded"></param>
-    /// <param name="useIsomorphism"></param>
+    /// <param name="isEndIncluded">Whether the end point is included.</param>
+    /// <param name="isCeilingIncluded">Whether the ceiling value is included.</param>
+    /// <param name="useIsomorphism">Whether to use the convolution isomorphism.</param>
     /// <returns>The result of the convolution.</returns>
     /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08], Section 4.4 point 3</remarks>
     public static Sequence MaxPlusConvolution(
@@ -3074,8 +3074,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the max-plus convolution of two sequences.
     /// </summary>
-    /// <param name="sequence"></param>
-    /// <param name="settings"></param>
+    /// <param name="sequence">The sequence to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <returns>The result of the convolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
@@ -3085,9 +3085,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the max-plus convolution of two sequences.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <param name="settings"></param>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus deconvolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public static Sequence MaxPlusDeconvolution(Sequence a, Sequence b, ComputationSettings? settings = null)
@@ -3101,8 +3101,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the max-plus convolution of two sequences.
     /// </summary>
-    /// <param name="sequence"></param>
-    /// <param name="settings"></param>
+    /// <param name="sequence">The sequence to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus deconvolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
     public Sequence MaxPlusDeconvolution(Sequence sequence, ComputationSettings? settings = null)
