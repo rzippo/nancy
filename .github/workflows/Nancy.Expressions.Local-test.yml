@@ -30,10 +30,10 @@ jobs:
       NANCY_EXPRESSIONS_TESTS: "Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Tests.Local.csproj"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
             8.0.x
