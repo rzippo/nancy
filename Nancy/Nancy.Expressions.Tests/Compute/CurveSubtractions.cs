@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Unipi.Nancy.MinPlusAlgebra;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Expressions.Tests.Compute;
 

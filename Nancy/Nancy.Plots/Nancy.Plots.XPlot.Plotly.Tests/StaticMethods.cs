@@ -2,7 +2,7 @@ using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.XPlot.Plotly;
 using Unipi.Nancy.Utility;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Nancy.Plots.XPlot.Plotly.Tests;
 
@@ -83,9 +83,13 @@ public class StaticMethods
         var html = XPlotPlots.ToXPlotHtml([sc, ac], settings: new XPlotPlotSettings
         {
             Title = "static negative xlim",
-            XLimit = new Interval(-1, 10)
+            XLimit = new Interval(-1, 10),
+            YLimit = new Interval(-2, 30)
         });
         
+        Assert.Contains("\"title\":\"static negative xlim\"", html);
+        Assert.Contains("\"xaxis\":{\"title\":\"time\",\"range\":[-1.0,10.0]", html);
+        Assert.Contains("\"yaxis\":{\"title\":\"data\",\"range\":[-2.0,30.0]", html);
         var hash = html.GetStableHashCode();
         var hashHex = hash.ToString("X");
         var path = Path.GetFullPath($"{hashHex}.html");

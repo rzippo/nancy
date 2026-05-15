@@ -2,7 +2,7 @@ using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.Tikz;
 using Unipi.Nancy.Utility;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Nancy.Plots.Tikz.Tests;
 
@@ -21,6 +21,10 @@ public class StaticMethods
         var rl = new RateLatencyServiceCurve(1, 3);
         var tikzCode = TikzPlots.ToTikzPlotCode(rl);
         
+        Assert.Contains("xmin = 0,", tikzCode);
+        Assert.Contains("ymin = 0,", tikzCode);
+        Assert.Contains("xmax = 6,", tikzCode);
+        Assert.Contains("ymax = 3,", tikzCode);
         _testOutputHelper.WriteLine(tikzCode);
     }
     
@@ -67,11 +71,14 @@ public class StaticMethods
         var tikzCode = TikzPlots.ToTikzPlotCode([sc, ac], settings: new TikzPlotSettings
         {
             Title = "static negative xlim",
-            XLimit = new Interval(-1, 10)
+            XLimit = new Interval(-1, 10),
+            YLimit = new Interval(-2, 30)
         });
         
         Assert.Contains("xmin = -1,", tikzCode);
         Assert.Contains("xmax = 10,", tikzCode);
+        Assert.Contains("ymin = -2,", tikzCode);
+        Assert.Contains("ymax = 30,", tikzCode);
         _testOutputHelper.WriteLine(tikzCode);
     }
 }

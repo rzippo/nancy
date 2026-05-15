@@ -2,7 +2,6 @@
 using System.Linq;
 using Unipi.Nancy.Numerics;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Expressions.Tests.Compute;
 

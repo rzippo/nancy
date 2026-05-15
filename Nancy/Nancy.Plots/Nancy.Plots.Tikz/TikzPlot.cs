@@ -223,6 +223,7 @@ public class TikzPlot
         TikzPlotSettings? settings = null)
     {
         settings ??= new ();
+        var displayLimits = GetDisplayLimits(axisLimits, settings);
 
         yield return $"\\begin{{tikzpicture}}";
         yield return $"{Tabs(1)}\\begin{{axis}}[";
@@ -257,15 +258,15 @@ public class TikzPlot
         };
         yield return $"{Tabs(2)}x label style = {{at={{(axis description cs:1,0)}},anchor={xLabelAnchor}}},";
         yield return $"{Tabs(2)}y label style = {{at={{(axis description cs:0,1)}},rotate=-90,anchor=south}},";
-        yield return $"{Tabs(2)}xmin = {ToInvariantDecimal(axisLimits.XLimit.Lower)},";
-        yield return $"{Tabs(2)}ymin = {ToInvariantDecimal(axisLimits.YLimit.Lower)},";
+        yield return $"{Tabs(2)}xmin = {ToInvariantDecimal(displayLimits.XLimit.Lower)},";
+        yield return $"{Tabs(2)}ymin = {ToInvariantDecimal(displayLimits.YLimit.Lower)},";
 
         switch (settings.GridTickLayout)
         {
             case GridTickLayout.Auto:
             {
-                yield return $"{Tabs(2)}xmax = {ToInvariantDecimal(axisLimits.XLimit.Upper)},";
-                yield return $"{Tabs(2)}ymax = {ToInvariantDecimal(axisLimits.YLimit.Upper)},";
+                yield return $"{Tabs(2)}xmax = {ToInvariantDecimal(displayLimits.XLimit.Upper)},";
+                yield return $"{Tabs(2)}ymax = {ToInvariantDecimal(displayLimits.YLimit.Upper)},";
                 yield return $"{Tabs(2)}xticklabels = \\empty,";
                 yield return $"{Tabs(2)}yticklabels = \\empty,";
 
@@ -302,10 +303,10 @@ public class TikzPlot
             case GridTickLayout.SquareGrid:
             case GridTickLayout.SquareGridNoLabels:
             {
-                var xfloor = (int) Math.Floor((decimal) axisLimits.XLimit.Lower);
-                var yfloor = (int) Math.Floor((decimal) axisLimits.YLimit.Lower);
-                var xceil = (int) Math.Ceiling((decimal) axisLimits.XLimit.Upper);
-                var yceil = (int) Math.Ceiling((decimal) axisLimits.YLimit.Upper);
+                var xfloor = (int) Math.Floor((decimal) displayLimits.XLimit.Lower);
+                var yfloor = (int) Math.Floor((decimal) displayLimits.YLimit.Lower);
+                var xceil = (int) Math.Ceiling((decimal) displayLimits.XLimit.Upper);
+                var yceil = (int) Math.Ceiling((decimal) displayLimits.YLimit.Upper);
                 yield return FormattableString.Invariant($"{Tabs(2)}xmax = {xceil},");
                 yield return FormattableString.Invariant($"{Tabs(2)}ymax = {yceil},");
 
@@ -350,6 +351,30 @@ public class TikzPlot
 
         yield return $"{Tabs(2)}legend pos = {settings.LegendPosition.ToLatex()}";
         yield return $"{Tabs(1)}]";
+    }
+
+    private static PlotAxisLimits GetDisplayLimits(PlotAxisLimits axisLimits, TikzPlotSettings settings)
+    {
+        var xLimit = settings.XLimit.HasValue || settings.RelativeXAxisMargin != 0
+            ? axisLimits.XLimit
+            : GetLegacyTikzLimit(axisLimits.XLimit);
+        var yLimit = settings.YLimit.HasValue || settings.RelativeYAxisMargin != 0
+            ? axisLimits.YLimit
+            : GetLegacyTikzLimit(axisLimits.YLimit);
+
+        return new PlotAxisLimits(xLimit, yLimit);
+    }
+
+    private static Interval GetLegacyTikzLimit(Interval limit)
+    {
+        var upper = limit.Upper + 1;
+        var lower = Rational.Min(0, upper);
+
+        return new Interval(
+            lower,
+            upper,
+            isLowerIncluded: true,
+            isUpperIncluded: true);
     }
 
     private static string ToInvariantDecimal(Rational value)

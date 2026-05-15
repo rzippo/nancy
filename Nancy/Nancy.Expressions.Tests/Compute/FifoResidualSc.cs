@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unipi.Nancy.NetworkCalculus;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Expressions.Tests.Compute;
 

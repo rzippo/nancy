@@ -5,7 +5,6 @@ using System.Text;
 using JetBrains.Annotations;
 using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
 

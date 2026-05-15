@@ -5,7 +5,6 @@ using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 

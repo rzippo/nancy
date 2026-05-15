@@ -5,6 +5,15 @@
 /// </summary>
 public record TikzPlotSettings : PlotSettings
 {
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public TikzPlotSettings()
+    {
+        RelativeXAxisMargin = 0;
+        RelativeYAxisMargin = 0;
+    }
+
     /// Controls the fontsize used for the plot.
     public FontSize FontSize { get; set; } = FontSize.small;
 

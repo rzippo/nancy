@@ -2,7 +2,7 @@
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.XPlot.Plotly;
 using Unipi.Nancy.Utility;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Nancy.Plots.XPlot.Plotly.Tests;
 

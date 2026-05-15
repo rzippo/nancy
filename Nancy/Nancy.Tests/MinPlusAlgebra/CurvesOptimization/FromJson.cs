@@ -6,7 +6,6 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.CurvesOptimization;
 

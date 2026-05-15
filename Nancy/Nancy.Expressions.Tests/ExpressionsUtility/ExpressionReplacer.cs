@@ -5,7 +5,6 @@ using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
 

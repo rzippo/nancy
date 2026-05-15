@@ -4,7 +4,6 @@ using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Tests.NetworkCalculus;
 

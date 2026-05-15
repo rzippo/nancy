@@ -2,7 +2,7 @@ using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.ScottPlot;
 using Unipi.Nancy.Utility;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Nancy.Plots.ScottPlot.Tests;
 
@@ -83,9 +83,13 @@ public class StaticMethods
         var bytes = ScottPlots.ToScottPlotImage([sc, ac], settings: new ScottPlotSettings
         {
             Title = "static negative xlim",
-            XLimit = new Interval(-1, 10)
+            XLimit = new Interval(-1, 10),
+            YLimit = new Interval(-2, 30),
+            RelativeXAxisMargin = 0,
+            RelativeYAxisMargin = 0
         });
         
+        Assert.NotEmpty(bytes);
         var hash = bytes.GetStableHashCode();
         var hashHex = hash.ToString("X");
         var path = Path.GetFullPath($"{hashHex}.png");

@@ -4,7 +4,6 @@ using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Expressions.Tests.Equivalences;
 

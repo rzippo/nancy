@@ -1,7 +1,7 @@
 ﻿using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.Tikz;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Nancy.Plots.Tikz.Tests;
 

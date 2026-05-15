@@ -7,7 +7,6 @@ using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.MinPlusAlgebra;
 using Xunit;
 using Unipi.Nancy.NetworkCalculus;
-using Xunit.Abstractions;
 
 namespace Unipi.Nancy.Expressions.Tests.Equivalences.Convolution;
 
