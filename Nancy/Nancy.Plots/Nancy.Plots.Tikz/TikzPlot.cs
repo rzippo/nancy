@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Plots;
 using Unipi.Nancy.TikzPlot;
 
 namespace Unipi.Nancy.Plots.Tikz;
@@ -86,16 +87,14 @@ public class TikzPlot
         // todo: expose this setting?
         var lineStyles = GetDefaultLineStyles(sequences.Count);
 
-        // todo: use XLim and YLim, if specified
-
-        var xmax = sequences.Max(s => s.DefinedUntil);
-        var ymax = sequences.Max(s => s.IsRightClosed ? s.ValueAt(s.DefinedUntil) : s.LeftLimitAt(s.DefinedUntil));
+        var axisLimits = PlotAxisLimitAlgorithms.GetSequenceAxisLimits(sequences, Settings);
 
         var xmarks = sequences
             .SelectMany(s => s
                 .EnumerateBreakpoints()
                 .Select(bp => bp.center.Time))
             .Where(x => x.IsFinite)
+            .Where(axisLimits.XLimit.Contains)
             .OrderBy(x => x)
             .Distinct()
             .ToList();
@@ -105,12 +104,13 @@ public class TikzPlot
                 .EnumerateBreakpoints()
                 .GetBreakpointsBoundaryValues())
             .Where(y => y.IsFinite)
+            .Where(axisLimits.YLimit.Contains)
             .OrderBy(y => y)
             .Distinct()
             .ToList();
 
         var sb = new StringBuilder();
-        sb.AppendLines(GetTikzHeader(xmax, ymax, xmarks, ymarks, Settings));
+        sb.AppendLines(GetTikzHeader(axisLimits, xmarks, ymarks, Settings));
 
         var includeLegend = Settings.LegendStrategy switch
         {
@@ -212,14 +212,12 @@ public class TikzPlot
     /// <summary>
     /// Computes the header for the plot.
     /// </summary>
-    /// <param name="xmax">The maximum x value.</param>
-    /// <param name="ymax">The maximum y value.</param>
+    /// <param name="axisLimits">The plot axis limits.</param>
     /// <param name="xmarks">The tick marks for the x axis.</param>
     /// <param name="ymarks">The tick marks for the y axis.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     private static IEnumerable<string> GetTikzHeader(
-        Rational xmax, 
-        Rational ymax,
+        PlotAxisLimits axisLimits,
         List<Rational>? xmarks = null,
         List<Rational>? ymarks = null,
         TikzPlotSettings? settings = null)
@@ -259,25 +257,25 @@ public class TikzPlot
         };
         yield return $"{Tabs(2)}x label style = {{at={{(axis description cs:1,0)}},anchor={xLabelAnchor}}},";
         yield return $"{Tabs(2)}y label style = {{at={{(axis description cs:0,1)}},rotate=-90,anchor=south}},";
-        yield return $"{Tabs(2)}xmin = 0,";
-        yield return $"{Tabs(2)}ymin = 0,";
+        yield return $"{Tabs(2)}xmin = {ToInvariantDecimal(axisLimits.XLimit.Lower)},";
+        yield return $"{Tabs(2)}ymin = {ToInvariantDecimal(axisLimits.YLimit.Lower)},";
 
         switch (settings.GridTickLayout)
         {
             case GridTickLayout.Auto:
             {
-                yield return FormattableString.Invariant($"{Tabs(2)}xmax = {(decimal) xmax + 1},");
-                yield return FormattableString.Invariant($"{Tabs(2)}ymax = {(decimal) ymax + 1},");
+                yield return $"{Tabs(2)}xmax = {ToInvariantDecimal(axisLimits.XLimit.Upper)},";
+                yield return $"{Tabs(2)}ymax = {ToInvariantDecimal(axisLimits.YLimit.Upper)},";
                 yield return $"{Tabs(2)}xticklabels = \\empty,";
                 yield return $"{Tabs(2)}yticklabels = \\empty,";
 
-                if (xmarks != null)
+                if (xmarks is { Count: > 0 })
                 {   
                     var sb = new StringBuilder();
                     sb.Append($"{Tabs(2)}extra x ticks = {{ ");
                     foreach (var xmark in xmarks)
                     {
-                        sb.Append(((decimal) xmark).ToString(CultureInfo.InvariantCulture));
+                        sb.Append(ToInvariantDecimal(xmark));
                         sb.Append(", ");
                     }
                     sb.Remove(sb.Length - 2, 2);
@@ -285,13 +283,13 @@ public class TikzPlot
                     yield return sb.ToString();
                 }
 
-                if (ymarks != null)
+                if (ymarks is { Count: > 0 })
                 {
                     var sb = new StringBuilder();
                     sb.Append($"{Tabs(2)}extra y ticks = {{ ");
                     foreach (var ymark in ymarks)
                     {
-                        sb.Append(((decimal) ymark).ToString(CultureInfo.InvariantCulture));
+                        sb.Append(ToInvariantDecimal(ymark));
                         sb.Append(", ");
                     }
                     sb.Remove(sb.Length - 2, 2);
@@ -304,8 +302,10 @@ public class TikzPlot
             case GridTickLayout.SquareGrid:
             case GridTickLayout.SquareGridNoLabels:
             {
-                var xceil = (int) Math.Ceiling((decimal) xmax + 1);
-                var yceil = (int) Math.Ceiling((decimal) ymax + 1);
+                var xfloor = (int) Math.Floor((decimal) axisLimits.XLimit.Lower);
+                var yfloor = (int) Math.Floor((decimal) axisLimits.YLimit.Lower);
+                var xceil = (int) Math.Ceiling((decimal) axisLimits.XLimit.Upper);
+                var yceil = (int) Math.Ceiling((decimal) axisLimits.YLimit.Upper);
                 yield return FormattableString.Invariant($"{Tabs(2)}xmax = {xceil},");
                 yield return FormattableString.Invariant($"{Tabs(2)}ymax = {yceil},");
 
@@ -313,7 +313,7 @@ public class TikzPlot
                 {
                     var sb = new StringBuilder();
                     sb.Append($"{Tabs(2)}xtick = {{ ");
-                    for (int i = 1; i <= xceil; i++)
+                    for (int i = xfloor; i <= xceil; i++)
                     {
                         sb.Append(i.ToString(CultureInfo.InvariantCulture));
                         sb.Append(", ");
@@ -327,7 +327,7 @@ public class TikzPlot
                 {
                     var sb = new StringBuilder();
                     sb.Append($"{Tabs(2)}ytick = {{ ");
-                    for (int i = 1; i <= yceil; i++)
+                    for (int i = yfloor; i <= yceil; i++)
                     {
                         sb.Append(i.ToString(CultureInfo.InvariantCulture));
                         sb.Append(", ");
@@ -350,6 +350,11 @@ public class TikzPlot
 
         yield return $"{Tabs(2)}legend pos = {settings.LegendPosition.ToLatex()}";
         yield return $"{Tabs(1)}]";
+    }
+
+    private static string ToInvariantDecimal(Rational value)
+    {
+        return ((decimal) value).ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>

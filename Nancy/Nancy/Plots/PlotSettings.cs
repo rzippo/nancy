@@ -25,6 +25,18 @@ public record PlotSettings
     /// Range for the y-axis.
     /// </summary>
     public Interval? YLimit { get; set; } = null;
+
+    /// <summary>
+    /// If non-zero, adds margins left and right to automatically computed x-axis limits.
+    /// To be read as a ratio over the initial x-axis interval length.
+    /// </summary>
+    public double RelativeXAxisMargin { get; set; } = 0.05;
+
+    /// <summary>
+    /// If non-zero, adds margins top and bottom to automatically computed y-axis limits.
+    /// To be read as a ratio over the initial y-axis interval length.
+    /// </summary>
+    public double RelativeYAxisMargin { get; set; } = 0.05;
     
     /// <summary>
     /// Label for the x-axis.

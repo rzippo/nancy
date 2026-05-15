@@ -70,6 +70,8 @@ public class StaticMethods
             XLimit = new Interval(-1, 10)
         });
         
+        Assert.Contains("xmin = -1,", tikzCode);
+        Assert.Contains("xmax = 10,", tikzCode);
         _testOutputHelper.WriteLine(tikzCode);
     }
 }

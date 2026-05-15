@@ -48,17 +48,7 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
         IEnumerable<string> names
     )
     {
-        Interval xi;
-        if (PlotSettings.XLimit is { } xLimit && xLimit.Upper >= 0 && xLimit.Upper.IsFinite)
-        {
-            xi = xLimit.Lower >= 0 ? xLimit : xLimit.WithLower(0);
-        }
-        else
-        {
-            // todo: implement different strategies here
-            var rightEdge = curves.Max(c => c.SecondPseudoPeriodEnd);
-            xi = new Interval(0, rightEdge, true, true);
-        }
+        var xi = PlotAxisLimitAlgorithms.GetCurveSamplingXLimit(curves, PlotSettings);
 
         var cuts = curves
             .Select(c => c.Cut(xi))

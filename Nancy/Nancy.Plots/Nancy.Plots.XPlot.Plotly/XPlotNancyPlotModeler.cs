@@ -1,4 +1,6 @@
 ﻿using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Plots;
 using XPlot.Plotly;
 
 namespace Unipi.Nancy.Plots.XPlot.Plotly;
@@ -13,6 +15,10 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
         IEnumerable<Sequence> sequences,
         IEnumerable<string> names)
     {
+        var sequencesList = sequences.ToList();
+        var namesList = names.ToList();
+        var axisLimits = PlotAxisLimitAlgorithms.GetSequenceAxisLimits(sequencesList, PlotSettings);
+
         // todo: move colors to settings
         var colors = new List<string>
         {
@@ -28,7 +34,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
             "#FECB52"
         };
 
-        var traces = Enumerable.Zip(sequences, names)
+        var traces = Enumerable.Zip(sequencesList, namesList)
             .SelectMany((ns, i) => GetTrace(ns.First, ns.Second, i));
 
         var chart = Chart.Plot(traces);
@@ -36,10 +42,25 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
         chart.WithLayout(
             new Layout.Layout
             {
-                xaxis = new Xaxis { zeroline = true, showgrid = true, title = "time" },
-                yaxis = new Yaxis { zeroline = true, showgrid = true, title = "data" },
+                xaxis = new Xaxis
+                {
+                    zeroline = true,
+                    showgrid = true,
+                    title = PlotSettings.XLabel,
+                    range = ToPlotlyRange(axisLimits.XLimit)
+                },
+                yaxis = new Yaxis
+                {
+                    zeroline = true,
+                    showgrid = true,
+                    title = PlotSettings.YLabel,
+                    range = ToPlotlyRange(axisLimits.YLimit)
+                },
                 showlegend = true,
-                hovermode = "closest"
+                hovermode = "closest",
+                title = PlotSettings.Title,
+                width = PlotSettings.Width,
+                height = PlotSettings.Height
             }
         );
 
@@ -211,6 +232,14 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                 };
                 yield return discontinuitiesTrace;
             }
+        }
+
+        static object[] ToPlotlyRange(Interval limit)
+        {
+            return [
+                (decimal)limit.Lower,
+                (decimal)limit.Upper
+            ];
         }
     }
 }

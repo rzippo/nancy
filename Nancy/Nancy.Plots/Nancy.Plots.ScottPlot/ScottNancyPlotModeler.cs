@@ -2,6 +2,8 @@
 using SkiaSharp;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Plots;
+using PlotAxisLimitAlgorithms = global::Unipi.Nancy.Plots.PlotAxisLimitAlgorithms;
 
 namespace Unipi.Nancy.Plots.ScottPlot;
 
@@ -56,60 +58,15 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         if(PlotSettings.SameScaleAxes)
             plot.Axes.SquareUnits();
         
-        // compute plot bounds, based on explicit settings or current values
-        double xLower, xUpper, yLower, yUpper;
-        if (PlotSettings.XLimit.HasValue)
-        {
-            xLower = (double)PlotSettings.XLimit.Value.Lower;
-            xUpper = (double)PlotSettings.XLimit.Value.Upper;
-        }
-        else
-        {
-            xLower = (double) sequencesList
-                .Select(s => s.DefinedFrom)
-                .Aggregate(Rational.Min);
-            xUpper = (double) sequencesList
-                .Select(s => s.DefinedUntil)
-                .Aggregate(Rational.Max);
-        }
-        
-        if (PlotSettings.YLimit.HasValue)
-        {
-            yLower = (double)PlotSettings.YLimit.Value.Lower;
-            yUpper = (double)PlotSettings.YLimit.Value.Upper;
-        }
-        else
-        {
-            yLower = (double) sequencesList
-                .Select(s => s.InfValue())
-                .Where(v => v.IsFinite)
-                .Aggregate(Rational.Min);
-            yUpper = (double) sequencesList
-                .Select(s => s.SupValue())
-                .Where(v => v.IsFinite)
-                .Aggregate(Rational.Max);
-        }
-
-        // adjust limits for clarity
-        if (PlotSettings.RelativeXAxisMargin != 0)
-        {
-            var xLength = xUpper - xLower;
-            var xAdjustment = xLength > 0 ? xLength * PlotSettings.RelativeXAxisMargin : 1;
-            xLower -= xAdjustment;
-            xUpper += xAdjustment;
-        }
-
-        if (PlotSettings.RelativeYAxisMargin != 0)
-        {
-            var yLength = yUpper - yLower;
-            var yAdjustment = yLength > 0 ? yLength * PlotSettings.RelativeYAxisMargin : 1;
-            yLower -= yAdjustment;
-            yUpper += yAdjustment;
-        }
+        var axisLimits = PlotAxisLimitAlgorithms.GetSequenceAxisLimits(sequencesList, PlotSettings);
 
         // set the axes limits
-        plot.Axes.SetLimitsX(xLower, xUpper);
-        plot.Axes.SetLimitsY(yLower, yUpper);
+        plot.Axes.SetLimitsX(
+            (double)axisLimits.XLimit.Lower,
+            (double)axisLimits.XLimit.Upper);
+        plot.Axes.SetLimitsY(
+            (double)axisLimits.YLimit.Lower,
+            (double)axisLimits.YLimit.Upper);
 
         foreach (var (sequence, idx) in sequencesList.WithIndex())
         {
