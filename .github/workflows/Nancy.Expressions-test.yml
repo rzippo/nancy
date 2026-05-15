@@ -18,6 +18,10 @@ on:
 jobs:
   Nancy-Expressions-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target-framework: [ "net8.0", "net9.0", "net10.0" ]
     
     env:
       BUILD_CONFIG: "Release"
@@ -34,12 +38,13 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
+            10.0.x
 
       - name: Build Nancy.Expressions
-        run: dotnet build $NANCY_EXPRESSIONS --configuration $BUILD_CONFIG
+        run: dotnet build $NANCY_EXPRESSIONS --configuration $BUILD_CONFIG --framework ${{ matrix.target-framework }}
 
       - name: Build Nancy.Expressions.Tests
-        run: dotnet build $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG
+        run: dotnet build $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG --framework ${{ matrix.target-framework }}
 
-      - name: Test Nancy.Expressions
-        run: dotnet test $NANCY_EXPRESSIONS_TESTS /p:Configuration=$BUILD_CONFIG
+      - name: Test Nancy.Expressions on ${{ matrix.target-framework }}
+        run: dotnet test --project $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG --framework ${{ matrix.target-framework }}

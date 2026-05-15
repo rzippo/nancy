@@ -33,6 +33,7 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
+            10.0.x
 
       - name: Build Nancy.Expressions
         run: dotnet build $NANCY_EXPRESSIONS --configuration $BUILD_CONFIG
@@ -40,8 +41,11 @@ jobs:
       - name: Build Nancy.Expressions.Tests
         run: dotnet build $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG
 
-      - name: Test Nancy.Expressions
-        run: dotnet test $NANCY_EXPRESSIONS_TESTS /p:Configuration=$BUILD_CONFIG
+      - name: Test Nancy.Expressions on all target frameworks
+        run: |
+          dotnet test --project $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG --framework net8.0
+          dotnet test --project $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG --framework net9.0
+          dotnet test --project $NANCY_EXPRESSIONS_TESTS --configuration $BUILD_CONFIG --framework net10.0
 
       - name: Pack
         run: dotnet pack $NANCY_EXPRESSIONS --configuration $BUILD_CONFIG --no-restore --no-build

@@ -42,7 +42,7 @@ jobs:
         run: dotnet build $NANCY_PLOTS_XPLOT_PLOTLY_TESTS --configuration $BUILD_CONFIG
 
       - name: Test Nancy.Plots.XPlot.Plotly
-        run: dotnet test $NANCY_PLOTS_XPLOT_PLOTLY_TESTS /p:Configuration=$BUILD_CONFIG
+        run: dotnet test --project $NANCY_PLOTS_XPLOT_PLOTLY_TESTS --configuration $BUILD_CONFIG --framework net10.0
 
       - name: Pack
         run: dotnet pack $NANCY_PLOTS_XPLOT_PLOTLY --configuration $BUILD_CONFIG --no-restore --no-build
