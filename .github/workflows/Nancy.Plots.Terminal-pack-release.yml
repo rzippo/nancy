@@ -1,0 +1,66 @@
+name: Nancy.Plots.Terminal-pack-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal/**'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal.Tests/**'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal.Sample/**'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.sln'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Local.slnf'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Nuget.slnf'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal/**'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal.Tests/**'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal.Sample/**'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.sln'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Local.slnf'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Nuget.slnf'
+
+jobs:
+  Nancy-Plots-Terminal-pack-release:
+    runs-on: ubuntu-latest
+
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.Plots/Nancy.Plots.sln"
+      NANCY_PLOTS_TERMINAL: "Nancy/Nancy.Plots/Nancy.Plots.Terminal/Nancy.Plots.Terminal.csproj"
+      NANCY_PLOTS_TERMINAL_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.Terminal.Tests/Nancy.Plots.Terminal.Tests.csproj"
+      NANCY_PLOTS_TERMINAL_SAMPLE: "Nancy/Nancy.Plots/Nancy.Plots.Terminal.Sample/Nancy.Plots.Terminal.Sample.csproj"
+      NANCY_PLOTS_TERMINAL_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.Terminal/bin/Release/**/*.nupkg"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Build Nancy.Plots.Terminal
+        run: dotnet build $NANCY_PLOTS_TERMINAL --configuration $BUILD_CONFIG
+
+      - name: Pack
+        run: dotnet pack $NANCY_PLOTS_TERMINAL --configuration $BUILD_CONFIG --no-restore --no-build -p:BuildInParallel=false
+
+      - name: Build Nancy.Plots.Terminal.Tests
+        run: dotnet build $NANCY_PLOTS_TERMINAL_TESTS --configuration $BUILD_CONFIG
+
+      - name: Test Nancy.Plots.Terminal
+        run: dotnet test --project $NANCY_PLOTS_TERMINAL_TESTS --configuration $BUILD_CONFIG --framework net10.0
+
+      - name: Build Nancy.Plots.Terminal.Sample
+        run: dotnet build $NANCY_PLOTS_TERMINAL_SAMPLE --configuration $BUILD_CONFIG
+
+      - name: Publish
+        if: github.event_name != 'pull_request'
+        run: dotnet nuget push $NANCY_PLOTS_TERMINAL_PACKS --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET_API_KEY}}
