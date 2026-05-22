@@ -6,13 +6,34 @@ $PSNativeCommandUseErrorActionPreference = $true
 Set-Location $PSScriptRoot
 
 $testProjects = @(
-    "./Nancy/Nancy.Tests/Nancy.Tests.csproj",
-    "./Nancy/Nancy.Tests/Nancy.Tests.LongRational.csproj",
-    "./Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Tests.csproj",
-    "./Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Tests.Local.csproj",
-    "./Nancy/Nancy.Plots/Nancy.Plots.Tikz.Tests/Nancy.Plots.Tikz.Tests.csproj",
-    "./Nancy/Nancy.Plots/Nancy.Plots.ScottPlot.Tests/Nancy.Plots.ScottPlot.Tests.csproj",
-    "./Nancy/Nancy.Plots/Nancy.Plots.XPlot.Plotly.Tests/Nancy.Plots.XPlot.Plotly.Tests.csproj"
+    @{
+        Path = "./Nancy/Nancy.Tests/Nancy.Tests.csproj"
+        CoverletIncludes = @("[Unipi.Nancy]*", "[Unipi.Nancy.UncheckedInternals]*")
+    },
+    @{
+        Path = "./Nancy/Nancy.Tests/Nancy.Tests.LongRational.csproj"
+        CoverletIncludes = @("[Unipi.Nancy.LongRational]*", "[Unipi.Nancy.UncheckedInternals]*")
+    },
+    @{
+        Path = "./Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Tests.csproj"
+        CoverletIncludes = @("[Unipi.Nancy.Expressions]*")
+    },
+    @{
+        Path = "./Nancy/Nancy.Expressions.Tests/Nancy.Expressions.Tests.Local.csproj"
+        CoverletIncludes = @("[Unipi.Nancy.Expressions.Local]*")
+    },
+    @{
+        Path = "./Nancy/Nancy.Plots/Nancy.Plots.Tikz.Tests/Nancy.Plots.Tikz.Tests.csproj"
+        CoverletIncludes = @("[Unipi.Nancy.Plots.Tikz]*")
+    },
+    @{
+        Path = "./Nancy/Nancy.Plots/Nancy.Plots.ScottPlot.Tests/Nancy.Plots.ScottPlot.Tests.csproj"
+        CoverletIncludes = @("[Unipi.Nancy.Plots.ScottPlot]*")
+    },
+    @{
+        Path = "./Nancy/Nancy.Plots/Nancy.Plots.XPlot.Plotly.Tests/Nancy.Plots.XPlot.Plotly.Tests.csproj"
+        CoverletIncludes = @("[Unipi.Nancy.Plots.XPlot.Plotly]*")
+    }
 )
 
 function Invoke-Checked {
@@ -21,9 +42,18 @@ function Invoke-Checked {
         [string[]] $Arguments
     )
 
-    & $Command @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "Command failed with exit code ${LASTEXITCODE}: $Command $($Arguments -join ' ')"
+    $processStartInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $processStartInfo.FileName = $Command
+
+    foreach ($argument in $Arguments) {
+        [void] $processStartInfo.ArgumentList.Add($argument)
+    }
+
+    $process = [System.Diagnostics.Process]::Start($processStartInfo)
+    $process.WaitForExit()
+
+    if ($process.ExitCode -ne 0) {
+        throw "Command failed with exit code $($process.ExitCode): $Command $($Arguments -join ' ')"
     }
 }
 
@@ -61,11 +91,12 @@ if (Test-Path "coveragereport") {
 
 Write-Host "Running tests with coverage collection..." -ForegroundColor Yellow
 foreach ($testProject in $testProjects) {
-    Write-Host "Testing $testProject" -ForegroundColor Cyan
-    Invoke-Checked "dotnet" @(
+    Write-Host "Testing $($testProject.Path)" -ForegroundColor Cyan
+
+    $testArguments = @(
         "test",
         "--project",
-        $testProject,
+        $testProject.Path,
         "--configuration",
         "Release",
         "--framework",
@@ -74,6 +105,12 @@ foreach ($testProject in $testProjects) {
         "--coverlet-output-format",
         "cobertura"
     )
+
+    foreach ($coverletInclude in $testProject.CoverletIncludes) {
+        $testArguments += @("--coverlet-include", $coverletInclude)
+    }
+
+    Invoke-Checked "dotnet" $testArguments
 }
 
 Write-Host "Generating coverage report..." -ForegroundColor Yellow
