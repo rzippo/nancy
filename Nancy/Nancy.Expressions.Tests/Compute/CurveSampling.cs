@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -47,7 +48,25 @@ public class CurveSampling
         var valueAtExpResult = valueAtExp.Compute();
         _testOutputHelper.WriteLine(valueAtValue.ToCodeString());
         _testOutputHelper.WriteLine(valueAtExpResult.ToCodeString());
+        Assert.IsType<ValueAtExpression>(valueAtExp);
         Assert.Equivalent(valueAtValue, valueAtExpResult);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValueAtTestCases))]
+    public void ValueAtConcreteOverloads(Curve a, Rational b)
+    {
+        var expressionWithRational = new ValueAtExpression(a, "a", b);
+        var expressionWithRationalExpression = new ValueAtExpression(a, "a", b.ToExpression());
+        var instanceExpressionWithRational = a.ToExpression().ValueAt(b);
+        var expected = a.ValueAt(b);
+
+        Assert.IsType<ValueAtExpression>(expressionWithRational);
+        Assert.IsType<ValueAtExpression>(expressionWithRationalExpression);
+        Assert.IsType<ValueAtExpression>(instanceExpressionWithRational);
+        Assert.Equal(expected, expressionWithRational.Compute());
+        Assert.Equal(expected, expressionWithRationalExpression.Compute());
+        Assert.Equal(expected, instanceExpressionWithRational.Compute());
     }
     
     public static IEnumerable<object[]> LeftLimitAtTestCases
@@ -67,7 +86,25 @@ public class CurveSampling
         var leftLimitAtExpResult = leftLimitAtExp.Compute();
         _testOutputHelper.WriteLine(leftLimitAtValue.ToCodeString());
         _testOutputHelper.WriteLine(leftLimitAtExpResult.ToCodeString());
+        Assert.IsType<LeftLimitAtExpression>(leftLimitAtExp);
         Assert.Equivalent(leftLimitAtValue, leftLimitAtExpResult);
+    }
+
+    [Theory]
+    [MemberData(nameof(LeftLimitAtTestCases))]
+    public void LeftLimitAtConcreteOverloads(Curve a, Rational b)
+    {
+        var expressionWithRational = new LeftLimitAtExpression(a, "a", b);
+        var expressionWithRationalExpression = new LeftLimitAtExpression(a, "a", b.ToExpression());
+        var instanceExpressionWithRational = a.ToExpression().LeftLimitAt(b);
+        var expected = a.LeftLimitAt(b);
+
+        Assert.IsType<LeftLimitAtExpression>(expressionWithRational);
+        Assert.IsType<LeftLimitAtExpression>(expressionWithRationalExpression);
+        Assert.IsType<LeftLimitAtExpression>(instanceExpressionWithRational);
+        Assert.Equal(expected, expressionWithRational.Compute());
+        Assert.Equal(expected, expressionWithRationalExpression.Compute());
+        Assert.Equal(expected, instanceExpressionWithRational.Compute());
     }
     
     public static IEnumerable<object[]> RightLimitAtTestCases
@@ -85,7 +122,25 @@ public class CurveSampling
         var rightLimitAtExpResult = rightLimitAtExp.Compute();
         _testOutputHelper.WriteLine(rightLimitAtValue.ToCodeString());
         _testOutputHelper.WriteLine(rightLimitAtExpResult.ToCodeString());
+        Assert.IsType<RightLimitAtExpression>(rightLimitAtExp);
         Assert.Equivalent(rightLimitAtValue, rightLimitAtExpResult);
+    }
+
+    [Theory]
+    [MemberData(nameof(RightLimitAtTestCases))]
+    public void RightLimitAtConcreteOverloads(Curve a, Rational b)
+    {
+        var expressionWithRational = new RightLimitAtExpression(a, "a", b);
+        var expressionWithRationalExpression = new RightLimitAtExpression(a, "a", b.ToExpression());
+        var instanceExpressionWithRational = a.ToExpression().RightLimitAt(b);
+        var expected = a.RightLimitAt(b);
+
+        Assert.IsType<RightLimitAtExpression>(expressionWithRational);
+        Assert.IsType<RightLimitAtExpression>(expressionWithRationalExpression);
+        Assert.IsType<RightLimitAtExpression>(instanceExpressionWithRational);
+        Assert.Equal(expected, expressionWithRational.Compute());
+        Assert.Equal(expected, expressionWithRationalExpression.Compute());
+        Assert.Equal(expected, instanceExpressionWithRational.Compute());
     }
 
 }

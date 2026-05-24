@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Xunit;
@@ -92,5 +93,19 @@ public class CurveToUpperNonDecreasing
         // Verify result is non-decreasing
         Assert.True(nancyResult.IsNonDecreasing,
             $"Result is not non-decreasing: {nancyResult.ToCodeString()}");
+    }
+
+    [Theory]
+    [MemberData(nameof(ToUpperNonDecreasingTestCases))]
+    public void ToUpperNonDecreasingConcreteAndInstanceOverloadsComputeProjection(Curve operand)
+    {
+        var expected = operand.ToUpperNonDecreasing();
+        var concreteExpression = Expressions.ToUpperNonDecreasing(operand);
+        var instanceExpression = operand.ToExpression().ToUpperNonDecreasing();
+
+        Assert.IsType<ToUpperNonDecreasingExpression>(concreteExpression);
+        Assert.IsType<ToUpperNonDecreasingExpression>(instanceExpression);
+        Assert.True(Curve.Equivalent(expected, concreteExpression.Compute()));
+        Assert.True(Curve.Equivalent(expected, instanceExpression.Compute()));
     }
 }

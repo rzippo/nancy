@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Xunit;
@@ -88,5 +89,19 @@ public class CurveToNonNegative
         // Verify result is non-negative everywhere
         Assert.True(nancyResult.IsNonNegative,
             $"Result is not non-negative: {nancyResult.ToCodeString()}");
+    }
+
+    [Theory]
+    [MemberData(nameof(ToNonNegativeTestCases))]
+    public void ToNonNegativeConcreteAndInstanceOverloadsComputeProjection(Curve operand)
+    {
+        var expected = operand.ToNonNegative();
+        var concreteExpression = Expressions.ToNonNegative(operand);
+        var instanceExpression = operand.ToExpression().ToNonNegative();
+
+        Assert.IsType<ToNonNegativeExpression>(concreteExpression);
+        Assert.IsType<ToNonNegativeExpression>(instanceExpression);
+        Assert.True(Curve.Equivalent(expected, concreteExpression.Compute()));
+        Assert.True(Curve.Equivalent(expected, instanceExpression.Compute()));
     }
 }
