@@ -7,25 +7,20 @@ namespace Unipi.Nancy.Tests.NetworkCalculus.CurveCtorTests;
 
 public class RaisedRateLatency
 {
-    public static IEnumerable<object[]> GetTestCases()
-    {
-        var testCases = new (Rational latency, Rational rate, Rational bufferShift)[]
-        {
-            (0, 5, 0),
-            (0, 5, 5),
-            (5, 10, 0),
-            (5, 10, 8),
-            (14.5m, new Rational(20, 3), 4)
-        };
+    public static List<(Rational latency, Rational rate, Rational bufferShift)> RaisedRateLatencyCtorCases =
+    [
+        (0, 5, 0),
+        (0, 5, 5),
+        (5, 10, 0),
+        (5, 10, 8),
+        (14.5m, new Rational(20, 3), 4)
+    ];
 
-        foreach (var testCase in testCases)
-        {
-            yield return new object[] { testCase.latency, testCase.rate, testCase.bufferShift };
-        }
-    }
+    public static IEnumerable<object[]> GetRaisedRateLatencyCtorCases()
+        => RaisedRateLatencyCtorCases.ToXUnitTestCases();
 
     [Theory]
-    [MemberData(nameof(GetTestCases))]
+    [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
     public void RaisedRateLatencyCtor(Rational latency, Rational rate, Rational bufferShift)
     {
         RaisedRateLatencyServiceCurve curve = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift);
@@ -54,7 +49,7 @@ public class RaisedRateLatency
     }
 
     [Theory]
-    [MemberData(nameof(GetTestCases))]
+    [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
     public void RaisedRateLatencyCtor_WithZeroOrigin(Rational latency, Rational rate, Rational bufferShift)
     {
         var curve = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift).WithZeroOrigin();
@@ -91,7 +86,7 @@ public class RaisedRateLatency
     }
 
     [Theory]
-    [MemberData(nameof(GetTestCases))]
+    [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
     public void FromSum_ConstantCurve_Closure(Rational delay, Rational rate, Rational bufferShift)
     {
         var rateLatency = new RateLatencyServiceCurve(rate, delay);
@@ -149,7 +144,7 @@ public class RaisedRateLatency
     }
 
     [Theory]
-    [MemberData(nameof(GetTestCases))]
+    [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
     public void FromSum_Constant_Closure(Rational delay, Rational rate, Rational bufferShift)
     {
         var rateLatency = new RateLatencyServiceCurve(rate, delay);

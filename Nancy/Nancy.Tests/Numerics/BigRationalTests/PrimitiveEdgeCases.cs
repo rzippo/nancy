@@ -295,4 +295,125 @@ public class PrimitiveEdgeCases
     {
         Assert.Throws<ArgumentException>(() => ((IComparable)BigRational.One).CompareTo(other));
     }
+
+    public static List<(BigRational value, bool isOne, bool isPositive, bool isNegative, bool isInteger)> PropertyCases =
+    [
+        (BigRational.One, true, true, false, true),
+        (new BigRational(-3, 2), false, false, true, false),
+        (BigRational.Zero, false, false, false, true)
+    ];
+
+    public static IEnumerable<object[]> PropertyTestCases()
+        => PropertyCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(PropertyTestCases))]
+    public void PropertiesReflectNormalizedState(
+        BigRational value,
+        bool isOne,
+        bool isPositive,
+        bool isNegative,
+        bool isInteger)
+    {
+        Assert.Equal(isOne, value.IsOne);
+        Assert.Equal(isPositive, value.IsPositive);
+        Assert.Equal(isNegative, value.IsNegative);
+        Assert.Equal(isInteger, value.IsInteger);
+    }
+
+    public static List<(BigRational value, BigInteger floor, BigInteger ceil)> RoundingBoundaryCases =
+    [
+        (new BigRational(7, 3), 2, 3),
+        (new BigRational(-7, 3), -3, -2),
+        (new BigRational(2), 2, 2)
+    ];
+
+    public static IEnumerable<object[]> RoundingBoundaryTestCases()
+        => RoundingBoundaryCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(RoundingBoundaryTestCases))]
+    public void FloorAndCeilReturnExpectedBounds(BigRational value, BigInteger floor, BigInteger ceil)
+    {
+        Assert.Equal(floor, value.Floor());
+        Assert.Equal(ceil, value.Ceil());
+    }
+
+    public static List<(BigRational left, BigRational right, BigRational sum, BigRational difference, BigRational product, BigRational quotient)> StaticArithmeticCases =
+    [
+        (
+            new BigRational(3, 4),
+            new BigRational(2, 5),
+            new BigRational(23, 20),
+            new BigRational(7, 20),
+            new BigRational(3, 10),
+            new BigRational(15, 8)
+        )
+    ];
+
+    public static IEnumerable<object[]> StaticArithmeticTestCases()
+        => StaticArithmeticCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(StaticArithmeticTestCases))]
+    public void StaticArithmeticMethodsMatchOperators(
+        BigRational left,
+        BigRational right,
+        BigRational sum,
+        BigRational difference,
+        BigRational product,
+        BigRational quotient)
+    {
+        Assert.Equal(sum, BigRational.Add(left, right));
+        Assert.Equal(difference, BigRational.Subtract(left, right));
+        Assert.Equal(product, BigRational.Multiply(left, right));
+        Assert.Equal(quotient, BigRational.Divide(left, right));
+        Assert.Equal(+left, left);
+    }
+
+    public static List<(BigRational left, BigRational middle, BigRational right, BigRational minimum, BigRational maximum)> MinMaxOverloadCases =
+    [
+        (new BigRational(3, 4), BigRational.MinusOne, new BigRational(5), BigRational.MinusOne, new BigRational(5))
+    ];
+
+    public static IEnumerable<object[]> MinMaxOverloadTestCases()
+        => MinMaxOverloadCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(MinMaxOverloadTestCases))]
+    public void MinMaxOverloadsUseAllOperands(
+        BigRational left,
+        BigRational middle,
+        BigRational right,
+        BigRational minimum,
+        BigRational maximum)
+    {
+        Assert.Equal(maximum, BigRational.Max(left, middle, right));
+        Assert.Equal(maximum, BigRational.Max([left, middle, right]));
+        Assert.Equal(minimum, BigRational.Min(left, middle, right));
+        Assert.Equal(minimum, BigRational.Min([left, middle, right]));
+    }
+
+    public static List<(BigRational value, BigRational equalValue, object other)> EqualityAndHashCases =
+    [
+        (new BigRational(2, 3), new BigRational(4, 6), "not a rational")
+    ];
+
+    public static IEnumerable<object[]> EqualityAndHashTestCases()
+        => EqualityAndHashCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(EqualityAndHashTestCases))]
+    public void EqualityHashAndTypedCompareHandleEquivalentValues(
+        BigRational value,
+        BigRational equalValue,
+        object other)
+    {
+        Assert.True(value.Equals(equalValue));
+        Assert.False(value.Equals(null));
+        Assert.False(value.Equals(other));
+        Assert.Equal(0, value.CompareTo(equalValue));
+        Assert.Equal(value.GetStableHashCode(), equalValue.GetStableHashCode());
+        Assert.Equal(value.GetHashCode(), equalValue.GetHashCode());
+    }
 }

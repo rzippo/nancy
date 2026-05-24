@@ -7,25 +7,20 @@ namespace Unipi.Nancy.Tests.NetworkCalculus.CurveCtorTests;
 
 public class FlowControl
 {
-    public static IEnumerable<object[]> GetTestCases()
-    {
-        var testCases = new (Rational delay, Rational rate, Rational height)[]
-        {
-            (0, 5, 0),
-            (0, 5, 5),
-            (5, 10, 0),
-            (5, 10, 8),
-            (14.5m, new Rational(20, 3), 4)
-        };
+    public static List<(Rational delay, Rational rate, Rational height)> FlowControlCtorCases =
+    [
+        (0, 5, 0),
+        (0, 5, 5),
+        (5, 10, 0),
+        (5, 10, 8),
+        (14.5m, new Rational(20, 3), 4)
+    ];
 
-        foreach (var testCase in testCases)
-        {
-            yield return new object[] { testCase.delay, testCase.rate, testCase.height };
-        }
-    }
+    public static IEnumerable<object[]> GetFlowControlCtorCases()
+        => FlowControlCtorCases.ToXUnitTestCases();
 
     [Theory]
-    [MemberData(nameof(GetTestCases))]
+    [MemberData(nameof(GetFlowControlCtorCases))]
     public void FlowControlCtor(Rational delay, Rational rate, Rational height)
     {
         var curve = new FlowControlCurve(delay, rate, height);

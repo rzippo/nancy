@@ -7,28 +7,18 @@ namespace Unipi.Nancy.Tests.NetworkCalculus.CurveCtorTests;
 
 public class TwoRates
 {
-    public static IEnumerable<object[]> GetTestCases()
-    {
-        var testCases = new (Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate)[]
-        {
-            (0, 5, 7, 9),
-            (5, 5, 7, 10),
-            (14.5m, 6.33m, new Rational(44, 3), new Rational(20, 3))
-        };
+    public static List<(Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate)> TwoRatesCtorCases =
+    [
+        (0, 5, 7, 9),
+        (5, 5, 7, 10),
+        (14.5m, 6.33m, new Rational(44, 3), new Rational(20, 3))
+    ];
 
-        foreach (var testCase in testCases)
-        {
-            yield return new object[] {
-                testCase.delay,
-                testCase.transientRate,
-                testCase.transientEnd,
-                testCase.steadyRate
-            };
-        }
-    }
+    public static IEnumerable<object[]> GetTwoRatesCtorCases()
+        => TwoRatesCtorCases.ToXUnitTestCases();
 
     [Theory]
-    [MemberData(nameof(GetTestCases))]
+    [MemberData(nameof(GetTwoRatesCtorCases))]
     public void TwoRatesCtor(Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate)
     {
         TwoRatesServiceCurve curve = new TwoRatesServiceCurve(delay, transientRate, transientEnd, steadyRate);

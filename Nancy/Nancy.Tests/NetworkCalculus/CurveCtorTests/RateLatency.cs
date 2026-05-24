@@ -7,24 +7,19 @@ namespace Unipi.Nancy.Tests.NetworkCalculus.CurveCtorTests;
 
 public class RateLatency
 {
-    public static IEnumerable<object[]> GetTestCases()
-    {
-        var testCases = new (Rational latency, Rational rate)[]
-        {
-            (0, 5),
-            (5, 10),
-            (14.5m, new Rational(20, 3))
-        };
+    public static List<(Rational latency, Rational rate)> RateLatencyCtorCases =
+    [
+        (0, 5),
+        (5, 10),
+        (14.5m, new Rational(20, 3))
+    ];
 
-        foreach (var testCase in testCases)
-        {
-            yield return new object[] { testCase.rate, testCase.latency };
-        }
-    }
+    public static IEnumerable<object[]> GetRateLatencyCtorCases()
+        => RateLatencyCtorCases.ToXUnitTestCases();
 
     [Theory]
-    [MemberData(nameof(GetTestCases))]
-    public void RateLatencyCtor(Rational rate, Rational latency)
+    [MemberData(nameof(GetRateLatencyCtorCases))]
+    public void RateLatencyCtor(Rational latency, Rational rate)
     {
         RateLatencyServiceCurve curve = new RateLatencyServiceCurve(rate, latency);
 

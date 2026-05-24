@@ -70,6 +70,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nancy\Nancy.csproj" />
+    <ProjectReference Include="..\Nancy.UncheckedInternals\Nancy.UncheckedInternals.csproj" />
   </ItemGroup>
 
 </Project>
