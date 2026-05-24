@@ -712,7 +712,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     public CurveExpression ForwardBy(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new DelayByExpression(this, expression, expressionName, settings);
+        => new ForwardByExpression(this, expression, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that forwards the current expression by the rational <paramref name="time"/>,
