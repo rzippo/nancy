@@ -5,6 +5,13 @@ $PSNativeCommandUseErrorActionPreference = $true
 
 Set-Location $PSScriptRoot
 
+# Release/net10.0 currently produces zero-hit Coverlet data for some instrumented assemblies.
+$coverageConfiguration = if ($env:NANCY_COVERAGE_CONFIGURATION) {
+    $env:NANCY_COVERAGE_CONFIGURATION
+} else {
+    "Debug"
+}
+
 $testProjects = @(
     @{
         Path = "./Nancy/Nancy.Tests/Nancy.Tests.csproj"
@@ -90,6 +97,7 @@ if (Test-Path "coveragereport") {
 }
 
 Write-Host "Running tests with coverage collection..." -ForegroundColor Yellow
+Write-Host "Using $coverageConfiguration configuration for coverage collection." -ForegroundColor Cyan
 foreach ($testProject in $testProjects) {
     Write-Host "Testing $($testProject.Path)" -ForegroundColor Cyan
 
@@ -98,7 +106,7 @@ foreach ($testProject in $testProjects) {
         "--project",
         $testProject.Path,
         "--configuration",
-        "Release",
+        $coverageConfiguration,
         "--framework",
         "net10.0",
         "--coverlet",
