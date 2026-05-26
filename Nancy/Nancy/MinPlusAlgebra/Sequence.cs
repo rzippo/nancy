@@ -309,6 +309,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             if (Elements.First() is Point p)
             {
+                if (Count == 1)
+                    return false;
                 var s = (Segment) Elements.First(e => e is Segment);
                 return s.IsConstant && s.RightLimitAtStartTime == p.Value;
             }
@@ -331,6 +333,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             if (Elements.Last() is Point p)
             {
+                if (Count == 1)
+                    return false;
                 var s = (Segment) Elements.Last(e => e is Segment);
                 return s.IsConstant && s.LeftLimitAtEndTime == p.Value;
             }
