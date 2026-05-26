@@ -64,10 +64,26 @@ public class PrimitiveEdgeCases
         Assert.Equal(fraction, value.GetFractionPart());
     }
 
+    [Fact]
+    public void Abs_OfLongMinValue()
+    {
+        Assert.Throws<OverflowException>(() => LongRational.Abs(new LongRational(long.MinValue, 1)));
+    }
+
+    [Fact]
+    public void Negate_OfLongMinValue()
+    {
+        var min = new LongRational(long.MinValue, 1);
+        Assert.Throws<OverflowException>(() => LongRational.Negate(min));
+    }
+
     public static List<(LongRational value, LongRational abs, LongRational negated, LongRational inverted)> UnaryOperationCases =
     [
         (new LongRational(-3, 4), new LongRational(3, 4), new LongRational(3, 4), new LongRational(-4, 3)),
         (new LongRational(3, 4), new LongRational(3, 4), new LongRational(-3, 4), new LongRational(4, 3)),
+        (LongRational.Zero, LongRational.Zero, LongRational.Zero, LongRational.PlusInfinity),
+        (LongRational.One, LongRational.One, new LongRational(-1), LongRational.One),
+        (new LongRational(-1), LongRational.One, LongRational.One, new LongRational(-1)),
         (LongRational.PlusInfinity, LongRational.PlusInfinity, LongRational.MinusInfinity, LongRational.Zero),
         (LongRational.MinusInfinity, LongRational.PlusInfinity, LongRational.PlusInfinity, LongRational.Zero)
     ];
@@ -111,6 +127,43 @@ public class PrimitiveEdgeCases
         Assert.Equal(quotient, result);
         Assert.Equal(remainder, actualRemainder);
         Assert.Equal(remainder, LongRational.Remainder(dividend, divisor));
+    }
+
+    [Fact]
+    public void DivRem_LargeDividend_ThrowsOverflow()
+    {
+        // this is a known limitation of the current implementation
+        // the results would in fact fit in a long
+        var dividend = new LongRational(long.MaxValue / 2, 1);
+        var divisor = new LongRational(3, 5);
+        Assert.Throws<OverflowException>(() => LongRational.DivRem(dividend, divisor, out _));
+    }
+
+    public static List<(long a, long b, long expectedGcd)> GcdLongCases =
+    [
+        (12, 8, 4),
+        (7, 13, 1),
+        (0, 5, 5),
+        (-12, 8, 4)
+    ];
+
+    public static IEnumerable<object[]> GcdLongTestCases()
+        => GcdLongCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GcdLongTestCases))]
+    public void GreatestCommonDivisor_OfLongValues(long a, long b, long expectedGcd)
+    {
+        var result = LongRational.GreatestCommonDivisor(a, b);
+        Assert.Equal(expectedGcd, result);
+    }
+
+    [Fact]
+    public void GreatestCommonDivisor_WithMinValue_ThrowsOverflow()
+    {
+        // this is a known limitation of the current implementation
+        // the result would be 1, but the algorithm relies on negating the value, which overflows
+        Assert.Throws<OverflowException>(() => LongRational.GreatestCommonDivisor(long.MinValue, 1));
     }
 
     public static List<(LongRational left, LongRational right)> InfiniteRemainderCases =
