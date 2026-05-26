@@ -643,7 +643,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 return true;
 
             var ti = PseudoPeriodStartInfimum;
-            var transientIsFinite =  ti > 0 && CutAsEnumerable(0, ti).IsFinite() || true;
+            var transientIsFinite =  ti == 0 || CutAsEnumerable(0, ti, true, false).IsFinite();
             var periodIsPlainlyInfinite =
                 ValueAt(ti).IsFinite
                     ? (CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsMinusInfinite() ||
