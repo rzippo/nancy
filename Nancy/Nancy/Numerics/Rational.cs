@@ -44,6 +44,7 @@ namespace Unipi.Nancy.Numerics
     [ComVisible(false)]
     [JsonObject(MemberSerialization.OptIn)]
     [System.Text.Json.Serialization.JsonConverter(typeof(RationalSystemJsonConverter))]
+    [Newtonsoft.Json.JsonConverter(typeof(RationalNewtonsoftJsonConverter))]
     public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IStableHashCode, IToCodeString, IToMppgString
     {
         #region Static public values

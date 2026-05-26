@@ -1,0 +1,71 @@
+﻿using System;
+using System.Numerics;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace Unipi.Nancy.Numerics;
+
+/// <exclude />
+/// <summary>
+/// Custom Newtonsoft.Json JsonConverter for <see cref="LongRational"/>.
+/// </summary>
+public class LongRationalNewtonsoftJsonConverter : JsonConverter
+{
+    private static readonly string NumeratorName = "num";
+    private static readonly string DenominatorName = "den";
+
+    /// <inheritdoc />
+    public override bool CanConvert(Type objectType)
+    {
+        return (objectType == typeof(LongRational));
+    }
+
+    /// <inheritdoc />
+    public override object ReadJson(JsonReader reader, Type objectType, object? existingValue,
+        JsonSerializer serializer)
+    {
+        var jt = JToken.Load(reader);
+        if (jt.Type == JTokenType.Integer)
+        {
+            return new LongRational(jt.ToObject<int>());
+        }
+
+        var numTkn = jt[NumeratorName]!;
+        var denTkn = jt[DenominatorName]!;
+
+        long num, den;
+        if (numTkn.Type == JTokenType.Integer)
+            num = numTkn.ToObject<long>();
+        else
+            num = long.Parse(numTkn.ToString());
+
+        if (denTkn.Type == JTokenType.Integer)
+            den = denTkn.ToObject<long>();
+        else
+            den = long.Parse(denTkn.ToString());
+
+        return new LongRational(num, den);
+    }
+
+    /// <inheritdoc />
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+        LongRational rational = (LongRational) value;
+
+        if (rational.Denominator == 1)
+        {
+            writer.WriteValue(rational.Numerator);
+        }
+        else
+        {
+            JObject jo = new JObject
+            {
+                {NumeratorName, JToken.FromObject(rational.Numerator, serializer)},
+                {DenominatorName, JToken.FromObject(rational.Denominator, serializer)},
+            };
+            jo.WriteTo(writer);
+        }
+    }
+}

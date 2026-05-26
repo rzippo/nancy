@@ -23,6 +23,7 @@ namespace Unipi.Nancy.Numerics;
 [Serializable]
 [ComVisible(false)]
 [JsonObject(MemberSerialization.OptIn)]
+[Newtonsoft.Json.JsonConverter(typeof(LongRationalNewtonsoftJsonConverter))]
 public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<LongRational>, IToCodeString, IStableHashCode
 {
     #region Static public values
