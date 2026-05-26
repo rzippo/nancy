@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -116,6 +117,26 @@ public class CurveLowerBounds
             new Rational(3), new Rational(1, 2),
             new Rational(6), new Rational(2)
         };
+    }
+
+    public static List<(Point[] points, decimal alpha)> RateLatencyLowerBoundEdgeCases =
+    [
+        (new[] { new Point(0, 5), new Point(10, 10) }, 0m),
+        (new[] { new Point(0, 1), new Point(5, 2) }, 0m),
+        (new[] { new Point(0, 10), new Point(20, 30) }, 0m)
+    ];
+
+    public static IEnumerable<object[]> GetRateLatencyLowerBoundEdgeCases()
+        => RateLatencyLowerBoundEdgeCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetRateLatencyLowerBoundEdgeCases))]
+    public void RateLatencyLowerBound_PointsWithoutZero_ReturnsValidBound(Point[] points, decimal alpha)
+    {
+        var bound = Nancy.NetworkCalculus.CurveLowerBounds.RateLatencyLowerBound(points, alpha);
+        Assert.True(bound.IsFinite);
+        foreach (var point in points)
+            Assert.True(bound <= point);
     }
 
     [Theory]

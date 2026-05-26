@@ -211,6 +211,7 @@ public static class CurveLowerBounds
     {
         //Filter out infinite values and duplicates, order by time
         points = points.Where(p => p.IsFinite)
+            .Select(p => p.Time == 0 && p.Value > 0 ? Point.Origin() : p)
             .OrderBy(p => p.Time)
             .Distinct()
             .ToArray();
