@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -11,7 +12,8 @@ public class TwoRates
     [
         (0, 5, 7, 9),
         (5, 5, 7, 10),
-        (14.5m, 6.33m, new Rational(44, 3), new Rational(20, 3))
+        (14.5m, 6.33m, new Rational(44, 3), new Rational(20, 3)),
+        (5, 10, 5, 3)
     ];
 
     public static IEnumerable<object[]> GetTwoRatesCtorCases()
@@ -48,14 +50,38 @@ public class TwoRates
         Assert.Equal(endTransientValue + 10.5m * steadyRate, curve.ValueAt(transientEnd + 10.5m));
         Assert.Equal(endTransientValue + 110 * steadyRate, curve.ValueAt(transientEnd + 110));
 
-        if (curve.FirstNonZeroTime > 0)
+        if (delay == transientEnd)
         {
             Assert.False(curve.IsSubAdditive);
+            Assert.True(curve.IsSuperAdditive);
+        }
+        else if (curve.FirstNonZeroTime > 0)
+        {
+            Assert.False(curve.IsSubAdditive);
+            Assert.Equal(steadyRate > transientRate, curve.IsSuperAdditive);
         }
         else
         {
             Assert.Equal(steadyRate < transientEnd, curve.IsSubAdditive);
+            Assert.Equal(steadyRate > transientRate, curve.IsSuperAdditive);
         }
-        Assert.Equal(steadyRate > transientRate, curve.IsSuperAdditive);
+    }
+
+    public static List<(Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate)> InvalidCtorCases =
+    [
+        (10, 5, 5, 3)
+    ];
+
+    public static IEnumerable<object[]> GetInvalidCtorCases()
+        => InvalidCtorCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetInvalidCtorCases))]
+    public void TwoRatesCtor_InvalidParameters_ThrowsDescriptive(Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate)
+    {
+        var exception = Assert.Throws<ArgumentException>(
+            () => new TwoRatesServiceCurve(delay, transientRate, transientEnd, steadyRate)
+        );
+        Assert.Contains("Delay time must precede transient end time", exception.Message);
     }
 }

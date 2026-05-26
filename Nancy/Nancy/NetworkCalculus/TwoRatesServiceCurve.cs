@@ -71,10 +71,49 @@ public class TwoRatesServiceCurve : Curve
         var endTransientValue = transientRate * (transientEnd - delay);
 
         Element[] elements;
-        if (delay == 0)
+        if (delay == transientEnd)
         {
-            elements = new Element[]
+            if (delay == 0)
             {
+                elements = 
+                [
+                    Point.Origin(),
+                    new Segment
+                    (
+                        startTime : 0,
+                        rightLimitAtStartTime : 0,
+                        slope : steadyRate,
+                        endTime : DefaultPeriodLength
+                    )
+                ];
+            }
+            else
+            {
+                elements =
+                [
+                    Point.Origin(),
+                    new Segment
+                    (
+                        startTime : 0,
+                        rightLimitAtStartTime : 0,
+                        slope : 0,
+                        endTime : delay
+                    ),
+                    new Point(time: delay, value: 0),
+                    new Segment
+                    (
+                        startTime : delay,
+                        rightLimitAtStartTime : 0,
+                        slope : steadyRate,
+                        endTime : delay + DefaultPeriodLength
+                    )
+                ];
+            }
+        }
+        else if (delay == 0)
+        {
+            elements = 
+            [
                 Point.Origin(),
                 new Segment
                 (
@@ -94,12 +133,12 @@ public class TwoRatesServiceCurve : Curve
                     slope : steadyRate,
                     endTime : transientEnd + DefaultPeriodLength
                 )
-            };
+            ];
         }
         else
         {
-            elements = new Element[]
-            {
+            elements =
+            [
                 Point.Origin(),
                 new Segment
                 (
@@ -127,7 +166,7 @@ public class TwoRatesServiceCurve : Curve
                     slope : steadyRate,
                     endTime : transientEnd + DefaultPeriodLength
                 )
-            };
+            ];
         }
 
         return new Sequence(elements);
