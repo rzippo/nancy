@@ -308,12 +308,16 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="BigRational.GetWholePart" />
         public readonly BigInteger GetWholePart()
         {
+            if (IsInfinite)
+                throw new UndeterminedResultException("Cannot get whole part of an infinite value");
             return BigInteger.Divide(Numerator, Denominator);
         }
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.GetWholePart" />
         public readonly long GetWholePart()
         {
+            if (IsInfinite)
+                throw new UndeterminedResultException("Cannot get whole part of an infinite value");
             return Numerator / Denominator;
         }
         #endif
@@ -325,6 +329,8 @@ namespace Unipi.Nancy.Numerics
         #endif
         public readonly Rational GetFractionPart()
         {
+            if (IsInfinite)
+                throw new UndeterminedResultException("Cannot get fraction part of an infinite value");
             #if BIG_RATIONAL
             return new Rational(BigInteger.Remainder(Numerator, Denominator), Denominator);
             #elif LONG_RATIONAL

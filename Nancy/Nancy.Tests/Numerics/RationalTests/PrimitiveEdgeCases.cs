@@ -304,6 +304,25 @@ public class PrimitiveEdgeCases
         Assert.Equal(isInteger, value.IsInteger);
     }
 
+    public static List<Rational> InfiniteDecompositionCases =
+    [
+        Rational.PlusInfinity,
+        Rational.MinusInfinity
+    ];
+
+    public static IEnumerable<object[]> InfiniteDecompositionTestCases()
+        => InfiniteDecompositionCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(InfiniteDecompositionTestCases))]
+    public void DecompositionRejectsInfiniteValues(Rational value)
+    {
+        Assert.Throws<UndeterminedResultException>(() => value.GetWholePart());
+        Assert.Throws<UndeterminedResultException>(() => value.GetFractionPart());
+        Assert.Throws<UndeterminedResultException>(() => value.Floor());
+        Assert.Throws<UndeterminedResultException>(() => value.Ceil());
+    }
+
     public static List<(Rational value, Rational floor, Rational ceil, int fastFloor, int fastCeil)> RoundingBoundaryCases =
     [
         (new Rational(7, 3), 2, 3, 2, 3),

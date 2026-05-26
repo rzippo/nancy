@@ -199,6 +199,8 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </summary>
     public readonly long GetWholePart()
     {
+        if (IsInfinite)
+            throw new UndeterminedResultException("Cannot get whole part of an infinite value");
         return Numerator / Denominator;
     }
 
@@ -207,6 +209,8 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// </summary>
     public readonly LongRational GetFractionPart()
     {
+        if (IsInfinite)
+            throw new UndeterminedResultException("Cannot get fraction part of an infinite value");
         return new LongRational(Numerator % Denominator, Denominator);
     }
 

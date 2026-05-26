@@ -199,6 +199,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     public readonly BigInteger GetWholePart()
     {
+        if (IsInfinite)
+            throw new UndeterminedResultException("Cannot get whole part of an infinite value");
         return BigInteger.Divide(Numerator, Denominator);
     }
 
@@ -207,6 +209,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     public readonly BigRational GetFractionPart()
     {
+        if (IsInfinite)
+            throw new UndeterminedResultException("Cannot get fraction part of an infinite value");
         return new BigRational(BigInteger.Remainder(Numerator, Denominator), Denominator);
     }
 
