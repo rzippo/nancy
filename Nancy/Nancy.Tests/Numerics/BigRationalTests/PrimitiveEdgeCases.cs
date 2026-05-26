@@ -174,6 +174,14 @@ public class PrimitiveEdgeCases
     public static IEnumerable<object[]> DivRemIdentityTestCases()
         => DivRemIdentityCases.ToXUnitTestCases();
 
+    [Fact]
+    public void DivRem_ZeroDivisor_Throws()
+    {
+        var dividend = new BigRational(5, 1);
+        var divisor = BigRational.Zero;
+        Assert.Throws<DivideByZeroException>(() => BigRational.DivRem(dividend, divisor, out _));
+    }
+
     [Theory]
     [MemberData(nameof(DivRemIdentityTestCases))]
     public void DivRemIdentity_Hold(BigRational dividend, BigRational divisor)

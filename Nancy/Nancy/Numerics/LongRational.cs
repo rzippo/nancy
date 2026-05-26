@@ -577,6 +577,9 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <returns>The integer result of the division.</returns>
     public static LongRational DivRem(LongRational dividend, LongRational divisor, out LongRational remainder)
     {
+        if (divisor == LongRational.Zero)
+            throw new DivideByZeroException("Divisor must be non-zero.");
+
         // a/b / c/d  == (ad)/(bc)
         // a/b % c/d  == (ad % bc)/bd
 

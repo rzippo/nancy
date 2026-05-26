@@ -890,6 +890,9 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static Rational DivRem(Rational dividend, Rational divisor, out Rational remainder)
         {
+            if (divisor == Rational.Zero)
+                throw new DivideByZeroException("Divisor must be non-zero.");
+
             // a/b / c/d  == (ad)/(bc)
             // a/b % c/d  == (ad % bc)/bd
 

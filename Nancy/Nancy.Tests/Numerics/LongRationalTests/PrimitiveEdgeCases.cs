@@ -155,6 +155,14 @@ public class PrimitiveEdgeCases
     }
 
     [Fact]
+    public void DivRem_ZeroDivisor_Throws()
+    {
+        var dividend = new LongRational(5, 1);
+        var divisor = LongRational.Zero;
+        Assert.Throws<DivideByZeroException>(() => LongRational.DivRem(dividend, divisor, out _));
+    }
+
+    [Fact]
     public void DivRem_LargeDividend_ThrowsOverflow()
     {
         // this is a known limitation of the current implementation

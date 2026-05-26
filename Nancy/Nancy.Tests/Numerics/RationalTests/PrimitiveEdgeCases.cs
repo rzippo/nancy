@@ -114,6 +114,14 @@ public class PrimitiveEdgeCases
         Assert.Equal(remainder, Rational.Remainder(dividend, divisor));
     }
 
+    [Fact]
+    public void DivRem_ZeroDivisor_Throws()
+    {
+        var dividend = new Rational(5, 1);
+        var divisor = Rational.Zero;
+        Assert.Throws<DivideByZeroException>(() => Rational.DivRem(dividend, divisor, out _));
+    }
+
     public static List<(Rational dividend, Rational divisor)> DivRemIdentityCases =
     [
         (new Rational(7, 3), new Rational(1, 2)),

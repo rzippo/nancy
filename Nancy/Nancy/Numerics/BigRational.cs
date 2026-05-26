@@ -691,6 +691,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <returns>The integer result of the division.</returns>
     public static BigRational DivRem(BigRational dividend, BigRational divisor, out BigRational remainder)
     {
+        if (divisor == BigRational.Zero)
+            throw new DivideByZeroException("Divisor must be non-zero.");
+
         // a/b / c/d  == (ad)/(bc)
         // a/b % c/d  == (ad % bc)/bd
 
