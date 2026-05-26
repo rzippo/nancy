@@ -582,7 +582,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         long bd = dividend.Denominator * divisor.Denominator;
 
         remainder = new LongRational(ad % bc, bd);
-        return new LongRational(ad, bc);
+        return new LongRational(ad / bc);
     }
 
     /// <summary>

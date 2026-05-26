@@ -135,9 +135,9 @@ public class PrimitiveEdgeCases
 
     public static List<(BigRational dividend, BigRational divisor, BigRational quotient, BigRational remainder)> DivRemCases =
     [
-        (new BigRational(7, 3), new BigRational(1, 2), new BigRational(14, 3), new BigRational(1, 3)),
-        (new BigRational(-7, 3), new BigRational(1, 2), new BigRational(-14, 3), new BigRational(-1, 3)),
-        (new BigRational(7, 3), new BigRational(2, 3), new BigRational(7, 2), new BigRational(1, 3))
+        (new BigRational(7, 3), new BigRational(1, 2), new BigRational(4), new BigRational(1, 3)),
+        (new BigRational(-7, 3), new BigRational(1, 2), new BigRational(-4), new BigRational(-1, 3)),
+        (new BigRational(7, 3), new BigRational(2, 3), new BigRational(3), new BigRational(1, 3))
     ];
 
     public static IEnumerable<object[]> DivRemTestCases()
@@ -156,6 +156,31 @@ public class PrimitiveEdgeCases
         Assert.Equal(quotient, result);
         Assert.Equal(remainder, actualRemainder);
         Assert.Equal(remainder, BigRational.Remainder(dividend, divisor));
+    }
+
+    public static List<(BigRational dividend, BigRational divisor)> DivRemIdentityCases =
+    [
+        (new BigRational(7, 3), new BigRational(1, 2)),
+        (new BigRational(-7, 3), new BigRational(1, 2)),
+        (new BigRational(7, 3), new BigRational(2, 3)),
+        (new BigRational(5, 1), new BigRational(2, 1)),
+        (new BigRational(0, 1), new BigRational(5, 1)),
+        (new BigRational(1, 1), new BigRational(3, 1)),
+        (new BigRational(-5, 1), new BigRational(2, 1)),
+        (new BigRational(5, 1), new BigRational(-2, 1)),
+        (new BigRational(-5, 1), new BigRational(-2, 1))
+    ];
+
+    public static IEnumerable<object[]> DivRemIdentityTestCases()
+        => DivRemIdentityCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(DivRemIdentityTestCases))]
+    public void DivRemIdentity_Hold(BigRational dividend, BigRational divisor)
+    {
+        var quotient = BigRational.DivRem(dividend, divisor, out var remainder);
+        Assert.True(quotient.IsInteger);
+        Assert.Equal(dividend, quotient * divisor + remainder);
     }
 
     public static List<(BigRational left, BigRational right)> InfiniteRemainderCases =

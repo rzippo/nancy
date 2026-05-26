@@ -696,7 +696,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         BigInteger bd = dividend.Denominator * divisor.Denominator;
 
         remainder = new BigRational(ad % bc, bd);
-        return new BigRational(ad, bc);
+        return new BigRational(ad / bc);
     }
 
     /// <summary>

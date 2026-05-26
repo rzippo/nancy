@@ -893,7 +893,7 @@ namespace Unipi.Nancy.Numerics
             var bd = dividend.Denominator * divisor.Denominator;
 
             remainder = new Rational(ad % bc, bd);
-            return new Rational(ad, bc);
+            return new Rational(ad / bc);
         }
 
         #if BIG_RATIONAL

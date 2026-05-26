@@ -91,9 +91,9 @@ public class PrimitiveEdgeCases
 
     public static List<(Rational dividend, Rational divisor, Rational quotient, Rational remainder)> DivRemCases =
     [
-        (new Rational(7, 3), new Rational(1, 2), new Rational(14, 3), new Rational(1, 3)),
-        (new Rational(-7, 3), new Rational(1, 2), new Rational(-14, 3), new Rational(-1, 3)),
-        (new Rational(7, 3), new Rational(2, 3), new Rational(7, 2), new Rational(1, 3))
+        (new Rational(7, 3), new Rational(1, 2), new Rational(4), new Rational(1, 3)),
+        (new Rational(-7, 3), new Rational(1, 2), new Rational(-4), new Rational(-1, 3)),
+        (new Rational(7, 3), new Rational(2, 3), new Rational(3), new Rational(1, 3))
     ];
 
     public static IEnumerable<object[]> DivRemTestCases()
@@ -112,6 +112,31 @@ public class PrimitiveEdgeCases
         Assert.Equal(quotient, result);
         Assert.Equal(remainder, actualRemainder);
         Assert.Equal(remainder, Rational.Remainder(dividend, divisor));
+    }
+
+    public static List<(Rational dividend, Rational divisor)> DivRemIdentityCases =
+    [
+        (new Rational(7, 3), new Rational(1, 2)),
+        (new Rational(-7, 3), new Rational(1, 2)),
+        (new Rational(7, 3), new Rational(2, 3)),
+        (new Rational(5, 1), new Rational(2, 1)),
+        (new Rational(0, 1), new Rational(5, 1)),
+        (new Rational(1, 1), new Rational(3, 1)),
+        (new Rational(-5, 1), new Rational(2, 1)),
+        (new Rational(5, 1), new Rational(-2, 1)),
+        (new Rational(-5, 1), new Rational(-2, 1))
+    ];
+
+    public static IEnumerable<object[]> DivRemIdentityTestCases()
+        => DivRemIdentityCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(DivRemIdentityTestCases))]
+    public void DivRemIdentity_Hold(Rational dividend, Rational divisor)
+    {
+        var quotient = Rational.DivRem(dividend, divisor, out var remainder);
+        Assert.True(quotient.IsInteger);
+        Assert.Equal(dividend, quotient * divisor + remainder);
     }
 
     public static List<(Rational left, Rational right)> InfiniteRemainderCases =

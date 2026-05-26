@@ -106,9 +106,9 @@ public class PrimitiveEdgeCases
 
     public static List<(LongRational dividend, LongRational divisor, LongRational quotient, LongRational remainder)> DivRemCases =
     [
-        (new LongRational(7, 3), new LongRational(1, 2), new LongRational(14, 3), new LongRational(1, 3)),
-        (new LongRational(-7, 3), new LongRational(1, 2), new LongRational(-14, 3), new LongRational(-1, 3)),
-        (new LongRational(7, 3), new LongRational(2, 3), new LongRational(7, 2), new LongRational(1, 3))
+        (new LongRational(7, 3), new LongRational(1, 2), new LongRational(4), new LongRational(1, 3)),
+        (new LongRational(-7, 3), new LongRational(1, 2), new LongRational(-4), new LongRational(-1, 3)),
+        (new LongRational(7, 3), new LongRational(2, 3), new LongRational(3), new LongRational(1, 3))
     ];
 
     public static IEnumerable<object[]> DivRemTestCases()
@@ -127,6 +127,31 @@ public class PrimitiveEdgeCases
         Assert.Equal(quotient, result);
         Assert.Equal(remainder, actualRemainder);
         Assert.Equal(remainder, LongRational.Remainder(dividend, divisor));
+    }
+
+    public static List<(LongRational dividend, LongRational divisor)> DivRemIdentityCases =
+    [
+        (new LongRational(7, 3), new LongRational(1, 2)),
+        (new LongRational(-7, 3), new LongRational(1, 2)),
+        (new LongRational(7, 3), new LongRational(2, 3)),
+        (new LongRational(5, 1), new LongRational(2, 1)),
+        (new LongRational(0, 1), new LongRational(5, 1)),
+        (new LongRational(1, 1), new LongRational(3, 1)),
+        (new LongRational(-5, 1), new LongRational(2, 1)),
+        (new LongRational(5, 1), new LongRational(-2, 1)),
+        (new LongRational(-5, 1), new LongRational(-2, 1))
+    ];
+
+    public static IEnumerable<object[]> DivRemIdentityTestCases()
+        => DivRemIdentityCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(DivRemIdentityTestCases))]
+    public void DivRemIdentity_Hold(LongRational dividend, LongRational divisor)
+    {
+        var quotient = LongRational.DivRem(dividend, divisor, out var remainder);
+        Assert.True(quotient.IsInteger);
+        Assert.Equal(dividend, quotient * divisor + remainder);
     }
 
     [Fact]
