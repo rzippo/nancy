@@ -1829,7 +1829,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     var indexes = settings.UseParallelExtend
                         ? Enumerable.Range(startingPseudoPeriodIndex,
                                 (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1))
-                            .AsParallel()
+                            .AsParallel().AsOrdered()
                         : Enumerable.Range(startingPseudoPeriodIndex,
                             (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
 
@@ -1846,7 +1846,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         endingPseudoPeriodIndex++;
 
                     var indexes = settings.UseParallelExtend
-                        ? Enumerable.Range(1, endingPseudoPeriodIndex).AsParallel()
+                        ? Enumerable.Range(1, endingPseudoPeriodIndex).AsParallel().AsOrdered()
                         : Enumerable.Range(1, endingPseudoPeriodIndex);
 
                     var extensionElements = indexes
