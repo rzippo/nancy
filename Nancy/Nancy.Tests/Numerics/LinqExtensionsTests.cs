@@ -40,19 +40,28 @@ public class LinqExtensionsTests
         Assert.Equal(expected, values.Sum(value => new Rational(value, 2)));
     }
 
-    public static List<List<Rational>> EmptyRationalSumCases =
-    [
-        []
-    ];
-
-    public static IEnumerable<object[]> GetEmptyRationalSumCases()
-        => EmptyRationalSumCases.ToXUnitTestCases();
-
-    [Theory]
-    [MemberData(nameof(GetEmptyRationalSumCases))]
-    public void RationalSum_EmptyEnumerable_Throws(List<Rational> values)
+    [Fact]
+    public void RationalSum_EmptyEnumerable_Throws()
     {
-        Assert.Throws<InvalidOperationException>(() => values.Sum());
+        Assert.Throws<InvalidOperationException>(() => new List<Rational>().Sum());
+    }
+
+    [Fact]
+    public void RationalSum_EmptyEnumerable_DefaultZero_ReturnsZero()
+    {
+        Assert.Equal(Rational.Zero, new List<Rational>().Sum(defaultZero: true));
+    }
+
+    [Fact]
+    public void RationalSelectorSum_EmptyEnumerable_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => new List<int>().Sum(v => new Rational(v)));
+    }
+
+    [Fact]
+    public void RationalSelectorSum_EmptyEnumerable_DefaultZero_ReturnsZero()
+    {
+        Assert.Equal(Rational.Zero, new List<int>().Sum(v => new Rational(v), defaultZero: true));
     }
 
     public static List<(List<LongRational> values, LongRational expected)> LongRationalSumCases =
@@ -88,6 +97,30 @@ public class LinqExtensionsTests
         Assert.Equal(expected, values.Sum(value => new LongRational(value, 2)));
     }
 
+    [Fact]
+    public void LongRationalSum_EmptyEnumerable_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => new List<LongRational>().Sum());
+    }
+
+    [Fact]
+    public void LongRationalSum_EmptyEnumerable_DefaultZero_ReturnsZero()
+    {
+        Assert.Equal(LongRational.Zero, new List<LongRational>().Sum(defaultZero: true));
+    }
+
+    [Fact]
+    public void LongRationalSelectorSum_EmptyEnumerable_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => new List<int>().Sum(v => new LongRational(v)));
+    }
+
+    [Fact]
+    public void LongRationalSelectorSum_EmptyEnumerable_DefaultZero_ReturnsZero()
+    {
+        Assert.Equal(LongRational.Zero, new List<int>().Sum(v => new LongRational(v), defaultZero: true));
+    }
+
     public static List<(List<BigRational> values, BigRational expected)> BigRationalSumCases =
     [
         ([new BigRational(1, 2), new BigRational(2, 3), new BigRational(5, 6)], 2),
@@ -119,5 +152,29 @@ public class LinqExtensionsTests
     public void BigRationalSelectorSum_ReturnsAggregate(List<int> values, BigRational expected)
     {
         Assert.Equal(expected, values.Sum(value => new BigRational(value, 2)));
+    }
+
+    [Fact]
+    public void BigRationalSum_EmptyEnumerable_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => new List<BigRational>().Sum());
+    }
+
+    [Fact]
+    public void BigRationalSum_EmptyEnumerable_DefaultZero_ReturnsZero()
+    {
+        Assert.Equal(BigRational.Zero, new List<BigRational>().Sum(defaultZero: true));
+    }
+
+    [Fact]
+    public void BigRationalSelectorSum_EmptyEnumerable_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => new List<int>().Sum(v => new BigRational(v)));
+    }
+
+    [Fact]
+    public void BigRationalSelectorSum_EmptyEnumerable_DefaultZero_ReturnsZero()
+    {
+        Assert.Equal(BigRational.Zero, new List<int>().Sum(v => new BigRational(v), defaultZero: true));
     }
 }
