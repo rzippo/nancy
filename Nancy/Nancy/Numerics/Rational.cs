@@ -957,6 +957,8 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static Rational GreatestCommonDivisor(Rational a, Rational b)
         {
+            a = Abs(a);
+            b = Abs(b);
             while (b != 0)
             {
                 Rational temp = b;
@@ -971,7 +973,6 @@ namespace Unipi.Nancy.Numerics
         {
             a = Math.Abs(a);
             b = Math.Abs(b);
-
             while (b != 0)
             {
                 long temp = b;
@@ -988,6 +989,8 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static Rational LeastCommonMultiple(Rational a, Rational b)
         {
+            a = Abs(a);
+            b = Abs(b);
             return (a / Rational.GreatestCommonDivisor(a, b)) * b;
         }
 

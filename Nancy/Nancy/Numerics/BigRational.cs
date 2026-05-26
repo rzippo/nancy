@@ -767,6 +767,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <param name="b">The second operand.</param>
     public static BigRational GreatestCommonDivisor(BigRational a, BigRational b)
     {
+        a = Abs(a);
+        b = Abs(b);
         while (b != 0)
         {
             BigRational temp = b;
@@ -783,6 +785,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <param name="b">The second operand.</param>
     public static BigRational LeastCommonMultiple(BigRational a, BigRational b)
     {
+        a = Abs(a);
+        b = Abs(b);
         return (a / BigRational.GreatestCommonDivisor(a, b)) * b;
     }
 

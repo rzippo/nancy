@@ -653,6 +653,8 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <param name="b">The second operand.</param>
     public static LongRational GreatestCommonDivisor(LongRational a, LongRational b)
     {
+        a = Abs(a);
+        b = Abs(b);
         while (b != 0)
         {
             LongRational temp = b;
@@ -671,7 +673,6 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     {
         a = Math.Abs(a);
         b = Math.Abs(b);
-
         while (b != 0)
         {
             long temp = b;
@@ -688,6 +689,8 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <param name="b">The second operand.</param>
     public static LongRational LeastCommonMultiple(LongRational a, LongRational b)
     {
+        a = Abs(a);
+        b = Abs(b);
         return (a / LongRational.GreatestCommonDivisor(a, b)) * b;
     }
 
