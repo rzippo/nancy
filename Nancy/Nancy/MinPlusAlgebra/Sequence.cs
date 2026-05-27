@@ -2070,7 +2070,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="g">The second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
-    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">
+    /// If defined, computation of convolutions beyond the given limit will be omitted. 
+    /// Supported only for non-decreasing sequences.
+    /// </param>
     /// <param name="isEndIncluded">Whether the end point is included.</param>
     /// <param name="isCeilingIncluded">Whether the ceiling value is included.</param>
     /// <param name="useIsomorphism">Whether to use the convolution isomorphism.</param>
@@ -2286,6 +2289,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 if (cutCeiling == Rational.PlusInfinity) 
                     return true;
 
+                // note: decreasing segments are not supported with cutCeiling
                 var ea_s = GetStart(ea);
                 var eb_s = GetStart(eb);
                 if(isCeilingIncluded)

@@ -221,6 +221,9 @@ public readonly struct Interval : IToCodeString
     /// <summary>
     /// Returns true if every point of this interval is inside <paramref name="other"/>.
     /// </summary>
+    /// <exception cref="EmptyIntervalException">
+    /// If any of the intervals is empty.
+    /// </exception>
     public bool IsSubsetOf(Interval other)
     {
         if (this.IsEmpty) 
