@@ -113,7 +113,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                 {
                     if (center.IsInfinite)
                     {
-                        // todo: do something about infinite points 
+                        System.Diagnostics.Trace.WriteLine($"Warning: skipping infinite point at time {center.Time}");
                     }
                     else
                         points.Add((x: (decimal)center.Time, y: (decimal)center.Value));
@@ -121,7 +121,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                     {
                         if(left.IsInfinite)
                         {
-                            // todo: do something about infinite points 
+                            System.Diagnostics.Trace.WriteLine($"Warning: skipping infinite discontinuity value at time {center.Time}");
                         }
                         else
                             discontinuities.Add((x: (decimal)center.Time, y: (decimal)left.LeftLimitAtEndTime));
@@ -131,7 +131,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                     {
                         if (right.IsInfinite)
                         {
-                            // todo: do something about infinite segments
+                            System.Diagnostics.Trace.WriteLine($"Warning: skipping infinite segment [{right.StartTime}, {right.EndTime}]");
                         }
                         else
                         {
@@ -152,7 +152,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                     var tail = (Segment)sequence.Elements.Last();
                     if (tail.IsInfinite)
                     {
-                        // todo: do something about infinite segments
+                        System.Diagnostics.Trace.WriteLine("Warning: skipping infinite tail segment");
                     }
                     else
                     {
