@@ -103,6 +103,19 @@ public class CurveShifts
 
     [Theory]
     [MemberData(nameof(PositiveHorizontalShiftTestCases))]
+    public void ForwardByMixedOverloadTests(Curve a, Rational b)
+    {
+        var bExp = b.ToExpression();
+        var forwardExp = Expressions.ForwardBy(a, bExp);
+        var forwardCurve = a.ForwardBy(b);
+        var forwardExpResult = forwardExp.Compute();
+
+        Assert.IsType<ForwardByExpression>(forwardExp);
+        Assert.True(Curve.Equivalent(forwardCurve, forwardExpResult));
+    }
+
+    [Theory]
+    [MemberData(nameof(PositiveHorizontalShiftTestCases))]
     public void DelayByExpressionComputesConcreteDelay(Curve a, Rational b)
     {
         var delayExp = Expressions.DelayBy(a.ToExpression(), b.ToExpression());
@@ -154,6 +167,19 @@ public class CurveShifts
     public void HorizontalShiftInstanceMethodTests(Curve a, Rational b)
     {
         var shiftExp = a.ToExpression().HorizontalShift(b);
+        var shiftCurve = a.HorizontalShift(b);
+        var shiftExpResult = shiftExp.Compute();
+
+        Assert.IsType<HorizontalShiftExpression>(shiftExp);
+        Assert.True(Curve.Equivalent(shiftCurve, shiftExpResult));
+    }
+
+    [Theory]
+    [MemberData(nameof(ShiftTestCases))]
+    public void HorizontalShiftMixedOverloadTests(Curve a, Rational b)
+    {
+        var bExp = b.ToExpression();
+        var shiftExp = Expressions.HorizontalShift(a, bExp);
         var shiftCurve = a.HorizontalShift(b);
         var shiftExpResult = shiftExp.Compute();
 

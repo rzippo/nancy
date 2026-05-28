@@ -119,6 +119,26 @@ public class CurveExpressionOperations
         Assert.Equal(expected, rightConcreteExpression.Compute());
     }
 
+    [Theory]
+    [MemberData(nameof(CurvePairTestCases))]
+    public void HorizontalDeviationExpressionComputesConcreteDeviation(Curve a, Curve b)
+    {
+        var expression = Expressions.HorizontalDeviation(a.ToExpression(), b.ToExpression());
+        var concreteExpression = Expressions.HorizontalDeviation(a, b);
+        var leftConcreteExpression = Expressions.HorizontalDeviation(a, b.ToExpression());
+        var rightConcreteExpression = Expressions.HorizontalDeviation(a.ToExpression(), b);
+        var expected = Curve.HorizontalDeviation(a, b);
+
+        Assert.IsType<HorizontalDeviationExpression>(expression);
+        Assert.IsType<HorizontalDeviationExpression>(concreteExpression);
+        Assert.IsType<HorizontalDeviationExpression>(leftConcreteExpression);
+        Assert.IsType<HorizontalDeviationExpression>(rightConcreteExpression);
+        Assert.Equal(expected, expression.Compute());
+        Assert.Equal(expected, concreteExpression.Compute());
+        Assert.Equal(expected, leftConcreteExpression.Compute());
+        Assert.Equal(expected, rightConcreteExpression.Compute());
+    }
+
     [Fact]
     public void ConvexAndNonNegativeVisitorsEvaluateRepresentativePaths()
     {
