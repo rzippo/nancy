@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -172,5 +173,79 @@ public class GetElement
             Assert.Equal(viaBinarySearch, viaLinearSearch);
             index = i;
         }
+    }
+
+    [Fact]
+    public void GetElementAt_Linear_OutOfSupport_Throws()
+    {
+        var s = new Sequence(new Element[]
+        {
+            new Point(0, 0),
+            new Segment(0, 10, 0, 1)
+        });
+        Assert.Throws<ArgumentException>(() => s.GetElementAt_Linear(20));
+    }
+
+    [Fact]
+    public void GetElementAt_Linear_BadStartingIndex_Throws()
+    {
+        // time=0 is covered by Point(0,0) at index 0.
+        // startingIndex=1 skips it, and no later element covers time 0.
+        var s = new Sequence(new Element[]
+        {
+            new Point(0, 0),
+            new Segment(0, 10, 0, 1)
+        });
+        Assert.Throws<ArgumentException>(() => s.GetElementAt_Linear(0, startingIndex: 1));
+    }
+
+    [Fact]
+    public void GetSegmentBefore_Linear_OutOfSupport_Throws()
+    {
+        var s = new Sequence(new Element[]
+        {
+            new Point(0, 0),
+            new Segment(0, 10, 0, 1)
+        });
+        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(20));
+    }
+
+    [Fact]
+    public void GetSegmentBefore_Linear_AtPoint_Throws()
+    {
+        // time=0 matches Point(0,0) first via EndTime >= 0,
+        // cast to Segment fails → InvalidCastException caught.
+        var s = new Sequence(new Element[]
+        {
+            new Point(0, 0),
+            new Segment(0, 10, 0, 1)
+        });
+        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(0));
+    }
+
+    [Fact]
+    public void GetSegmentAfter_Linear_OutOfSupport_Throws()
+    {
+        var s = new Sequence(new Element[]
+        {
+            new Point(0, 0),
+            new Segment(0, 10, 0, 1)
+        });
+        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(20));
+    }
+
+    [Fact]
+    public void GetSegmentAfter_Linear_BadStartingIndex_Throws()
+    {
+        // time=2 is covered by Segment(0,5) at index 1.
+        // startingIndex=2 skips it, and no later segment has StartTime <= 2.
+        var s = new Sequence(new Element[]
+        {
+            new Point(0, 0),
+            new Segment(0, 5, 0, 0),
+            new Point(5, 0),
+            new Segment(5, 10, 0, 0)
+        });
+        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(2, startingIndex: 2));
     }
 }

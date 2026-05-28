@@ -924,9 +924,16 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
 
-        var targetIndex = Enumerable.Range(startingIndex, Count - startingIndex)
-            .First(i => Elements[i].IsDefinedFor(time));
-        return (element: Elements[targetIndex], index: targetIndex);
+        try
+        {
+            var targetIndex = Enumerable.Range(startingIndex, Count - startingIndex)
+                .First(i => Elements[i].IsDefinedFor(time));
+            return (element: Elements[targetIndex], index: targetIndex);
+        }
+        catch (InvalidOperationException)
+        {
+            throw new ArgumentException("The given time is out of sequence support.");
+        }
     }
 
     /// <summary>
@@ -943,6 +950,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     internal (Segment segment, int index) GetSegmentBefore_Linear(Rational time, int startingIndex = 0)
     {
+        if(!IsDefinedAt(time))
+            throw new ArgumentException("The given time is out of sequence support.");
+
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
 
@@ -953,6 +963,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             return (segment: (Segment) Elements[targetIndex], index: targetIndex);
         }
         catch (InvalidCastException)
+        {
+            throw new ArgumentException("Sequence is not defined before given time");
+        }
+        catch (InvalidOperationException)
         {
             throw new ArgumentException("Sequence is not defined before given time");
         }
@@ -973,6 +987,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     internal (Segment segment, int index) GetSegmentAfter_Linear(Rational time, int startingIndex = 0)
     {
+        if(!IsDefinedAt(time))
+            throw new ArgumentException("The given time is out of sequence support.");
+
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
 
