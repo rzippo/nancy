@@ -127,6 +127,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The first instant around which the curve is not infinite, excluding the origin point.
     /// Does not specify whether it's inclusive or not, i.e. if $f(t)$ is finite.
     /// </summary>
+    /// <remarks>
+    /// Can return 0 when $f(0^+)$ is finite.
+    /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
     public Rational FirstFiniteTimeExceptOrigin
     {
