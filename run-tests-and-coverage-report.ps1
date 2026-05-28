@@ -40,6 +40,10 @@ $testProjects = @(
     @{
         Path = "./Nancy/Nancy.Plots/Nancy.Plots.XPlot.Plotly.Tests/Nancy.Plots.XPlot.Plotly.Tests.csproj"
         CoverletIncludes = @("[Unipi.Nancy.Plots.XPlot.Plotly]*")
+    },
+    @{
+        Path = "./Nancy/Nancy.Plots/Nancy.Plots.Terminal.Tests/Nancy.Plots.Terminal.Tests.csproj"
+        CoverletIncludes = @("[Unipi.Nancy.Plots.Terminal]*")
     }
 )
 
