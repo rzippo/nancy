@@ -386,25 +386,6 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
-        // todo: benchmarks to verify it's faster
-        /// <summary>
-        /// Returns the largest integer less than or equal to the current rational.
-        /// </summary>
-        public readonly int FastFloor()
-        {
-            var d = (decimal)this;
-            return (int)Math.Floor(d);
-        }
-
-        /// <summary>
-        /// Returns the smallest integer greater than or equal to the current rational.
-        /// </summary>
-        public readonly int FastCeil()
-        {
-            var d = (decimal)this;
-            return (int)Math.Ceiling(d);
-        }
-
         /// <inheritdoc />
         public override readonly bool Equals(object? obj)
         {

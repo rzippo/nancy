@@ -331,11 +331,11 @@ public class PrimitiveEdgeCases
         Assert.Throws<UndeterminedResultException>(() => value.Ceil());
     }
 
-    public static List<(Rational value, Rational floor, Rational ceil, int fastFloor, int fastCeil)> RoundingBoundaryCases =
+    public static List<(Rational value, Rational floor, Rational ceil)> RoundingBoundaryCases =
     [
-        (new Rational(7, 3), 2, 3, 2, 3),
-        (new Rational(-7, 3), -3, -2, -3, -2),
-        (new Rational(2), 2, 2, 2, 2)
+        (new Rational(7, 3), 2, 3),
+        (new Rational(-7, 3), -3, -2),
+        (new Rational(2), 2, 2)
     ];
 
     public static IEnumerable<object[]> RoundingBoundaryTestCases()
@@ -343,17 +343,13 @@ public class PrimitiveEdgeCases
 
     [Theory]
     [MemberData(nameof(RoundingBoundaryTestCases))]
-    public void FloorCeilAndFastVariantsReturnExpectedBounds(
+    public void FloorCeilReturnExpectedBounds(
         Rational value,
         Rational floor,
-        Rational ceil,
-        int fastFloor,
-        int fastCeil)
+        Rational ceil)
     {
         Assert.Equal(floor, new Rational(value.Floor()));
         Assert.Equal(ceil, new Rational(value.Ceil()));
-        Assert.Equal(fastFloor, value.FastFloor());
-        Assert.Equal(fastCeil, value.FastCeil());
     }
 
     public static List<(Rational left, Rational right, Rational sum, Rational difference, Rational product, Rational quotient)> StaticArithmeticCases =

@@ -1808,7 +1808,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             // Its start is not a valid T, because there is no overlap there.
             // We will need the next segment for the periodic behavior.
             // Note: this code casts to int because, if it did not suffice, the runtime would be too high anyway.
-            var n0 = (StartTime / (EndTime - StartTime)).FastFloor() + 1;
+            var n0 = (int)(StartTime / (EndTime - StartTime)).Floor() + 1;
 
             // Add the powers that are entirely contained in the result,
             // i.e. before the first overlap occurs.
@@ -1878,7 +1878,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             // Its start is not a valid T, because there is no overlap there.
             // We will need the next segment for the periodic behavior.
             // Note: this code casts to int because, if it did not suffice, the runtime would be too high anyway.
-            var n0 = (StartTime / (EndTime - StartTime)).FastFloor() + 1;
+            var n0 = (int)(StartTime / (EndTime - StartTime)).Floor() + 1;
 
             // Add the powers that are entirely contained in the result,
             // i.e. up until the first overlap occurs.
@@ -1939,7 +1939,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             // Its start is not a valid T, because there is no overlap there.
             // We will need the next segment for the periodic behavior.
             // Note: this code casts to int because, if it did not suffice, the runtime would be too high anyway.
-            var n0 = (StartTime / (EndTime - StartTime)).FastFloor() + 1;
+            var n0 = (int)(StartTime / (EndTime - StartTime)).Floor() + 1;
 
             // Add the powers that are entirely contained in the result,
             // i.e. before the first overlap occurs.

@@ -388,7 +388,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 return Rational.PlusInfinity;
             else
             {
-                var k = (-ValueAt(PseudoPeriodStart) / PseudoPeriodHeight).FastFloor();
+                var k = (-ValueAt(PseudoPeriodStart) / PseudoPeriodHeight).Floor();
                 return FindFirstNonNegativeInSequence(
                     CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 1) * PseudoPeriodLength, isEndIncluded: true)
                 );
@@ -1683,8 +1683,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 if (cutStart > BaseSequence.DefinedUntil)
                 {
-                    var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                    var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                    var startingPseudoPeriodIndex = (int)((cutStart - PseudoPeriodStart) / PseudoPeriodLength).Floor();
+                    var endingPseudoPeriodIndex = (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor();
                     if (isEndIncluded)
                         endingPseudoPeriodIndex++;
 
@@ -1712,7 +1712,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 }
                 else
                 {
-                    var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                    var endingPseudoPeriodIndex = (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor();
                     if (isEndIncluded)
                         endingPseudoPeriodIndex++;
 
@@ -1828,8 +1828,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 if (cutStart > BaseSequence.DefinedUntil)
                 {
-                    var startingPseudoPeriodIndex = ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
-                    var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                    var startingPseudoPeriodIndex = (int)((cutStart - PseudoPeriodStart) / PseudoPeriodLength).Floor();
+                    var endingPseudoPeriodIndex = (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor();
                     if (isEndIncluded)
                         endingPseudoPeriodIndex++;
 
@@ -1848,7 +1848,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 }
                 else
                 {
-                    var endingPseudoPeriodIndex = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).FastFloor();
+                    var endingPseudoPeriodIndex = (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor();
                     if (isEndIncluded)
                         endingPseudoPeriodIndex++;
 
