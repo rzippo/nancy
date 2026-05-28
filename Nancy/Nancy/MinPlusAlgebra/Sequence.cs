@@ -2088,8 +2088,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
     /// <param name="cutCeiling">
-    /// If defined, computation of convolutions beyond the given limit will be omitted. 
-    /// Supported only for non-decreasing sequences.
+    /// If defined, computation of convolutions beyond the given limit will be omitted.
+    /// Supported only for non-decreasing sequences. 
+    /// If the sequence contains decreasing segments, the ceiling filter will throw an <see cref="ArgumentException"/>.
     /// </param>
     /// <param name="isEndIncluded">Whether the end point is included.</param>
     /// <param name="isCeilingIncluded">Whether the ceiling value is included.</param>
@@ -2480,7 +2481,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
-    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">
+    /// If defined, computation of convolutions beyond the given limit will be omitted.
+    /// Supported only for non-decreasing sequences.
+    /// If the sequence contains decreasing segments, the ceiling filter will throw an <see cref="ArgumentException"/>.
+    /// </param>
     /// <returns>
     /// The number of elementary convolutions involved in computing the result of the convolution,
     /// or the number of elements resulting from these convolutions if <paramref name="countElements"/> is `true`.
@@ -2686,7 +2691,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="g">The second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
-    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">
+    /// If defined, computation of convolutions beyond the given limit will be omitted.
+    /// Supported only for non-decreasing sequences.
+    /// If the sequence contains decreasing segments, <see cref="SequenceExtensions.CutWithCeiling"/> will throw an <see cref="ArgumentException"/>.
+    /// </param>
     /// <param name="isEndIncluded">Whether the end point is included.</param>
     /// <param name="isCeilingIncluded">Whether the ceiling value is included.</param>
     /// <param name="useIsomorphism">Whether to use the convolution isomorphism.</param>

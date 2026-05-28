@@ -1521,7 +1521,13 @@ public static class SequenceExtensions
         }
     }
 
-    // todo: write docs
+    /// <summary>
+    /// Filters elements whose value exceeds a ceiling threshold.
+    /// </summary>
+    /// <remarks>
+    /// This method does not support decreasing segments.
+    /// If a decreasing <see cref="Segment"/> is encountered, an <see cref="ArgumentException"/> is thrown.
+    /// </remarks>
     internal static IEnumerable<Element> CutWithCeiling(
         this IEnumerable<Element> elements,
         Rational? ceiling,
@@ -1563,7 +1569,9 @@ public static class SequenceExtensions
                     case Segment s:
                     {
                         if (s.Slope < 0)
-                            throw new ArgumentException("Segments must be non-decreasing");
+                            throw new ArgumentException(
+                                "cutCeiling is not supported for decreasing segments. " +
+                                "If the input sequence contains decreasing segments, omit the cutCeiling parameter or ensure the sequence is non-decreasing.");
 
                         if (s.IsConstant)
                         {

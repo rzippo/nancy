@@ -584,7 +584,11 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="element">Second operand.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
-    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">
+    /// If defined, computation of convolutions beyond the given limit will be omitted.
+    /// Supported only for non-decreasing sequences.
+    /// If the sequence contains decreasing segments, the downstream ceiling filter will throw an <see cref="ArgumentException"/>.
+    /// </param>
     /// <returns>The set of segments resulting from the convolution.</returns>
     /// <remarks>Described in [BT08] Section 3.2.1</remarks>
     public abstract IEnumerable<Element> Convolution(Element element, Rational? cutEnd = null, Rational? cutCeiling = null);
@@ -595,7 +599,11 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
     /// <param name="cutEnd">If defined, computation of convolutions beyond the given limit will be omitted.</param>
-    /// <param name="cutCeiling">If defined, computation of convolutions beyond the given limit will be omitted.</param>
+    /// <param name="cutCeiling">
+    /// If defined, computation of convolutions beyond the given limit will be omitted.
+    /// Supported only for non-decreasing sequences.
+    /// If the sequence contains decreasing segments, the downstream ceiling filter will throw an <see cref="ArgumentException"/>.
+    /// </param>
     /// <returns>The set of segments resulting from the convolution.</returns>
     /// <remarks>Described in [BT08] Section 3.2.1</remarks>
     public static IEnumerable<Element> Convolution(Element a, Element b, Rational? cutEnd = null, Rational? cutCeiling = null)

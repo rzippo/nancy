@@ -25,7 +25,7 @@ internal class IntervalBucketTree
 
 #if DEBUG
         if (!Intervals.AreInTimeSequence())
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Interval buckets are not in time sequence");
 #endif
     }
 
