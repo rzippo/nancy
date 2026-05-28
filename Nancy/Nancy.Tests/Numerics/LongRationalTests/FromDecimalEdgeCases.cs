@@ -113,4 +113,42 @@ public class FromDecimalEdgeCases
         var r = new LongRational(123.456m);
         Assert.Equal(new LongRational(123456, 1000), r);
     }
+
+    [Fact]
+    public void DecimalCtor_LongMaxValue_Succeeds()
+    {
+        var d = (decimal)long.MaxValue;
+        var r = new LongRational(d);
+        Assert.Equal(long.MaxValue, r.Numerator);
+        Assert.Equal(1, r.Denominator);
+    }
+
+    [Fact]
+    public void DecimalCtor_LongMaxValuePlusOne_Throws()
+    {
+        var d = (decimal)long.MaxValue + 1m;
+        Assert.Throws<OverflowException>(() => new LongRational(d));
+    }
+
+    [Fact]
+    public void DecimalCtor_LongMinValue_Succeeds()
+    {
+        var d = (decimal)long.MinValue;
+        var r = new LongRational(d);
+        Assert.Equal(long.MinValue, r.Numerator);
+        Assert.Equal(1, r.Denominator);
+    }
+
+    [Fact]
+    public void DecimalCtor_LongMinValueMinusOne_Throws()
+    {
+        var d = (decimal)long.MinValue - 1m;
+        Assert.Throws<OverflowException>(() => new LongRational(d));
+    }
+
+    [Fact]
+    public void DecimalCtor_LargeDenominator_Throws()
+    {
+        Assert.Throws<OverflowException>(() => new LongRational(0.00000000000000000001m));
+    }
 }
