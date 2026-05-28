@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -449,5 +450,19 @@ public class PeriodicSegmentSubAdditiveClosure
         var result = segment.SubAdditiveClosure(periodLength, periodHeight);
         _testOutputHelper.WriteLine($"var result = {result.ToCodeString()};");
         Assert.True(Curve.Equivalent(closure, result));
+    }
+
+    [Fact]
+    public void SubAdditiveClosure_RejectsZeroLength()
+    {
+        var segment = new Segment(1, 2, 1, 2);
+        Assert.Throws<ArgumentException>(() => segment.SubAdditiveClosure(0, 6));
+    }
+
+    [Fact]
+    public void SubAdditiveClosure_RejectsNegativeLength()
+    {
+        var segment = new Segment(1, 2, 1, 2);
+        Assert.Throws<ArgumentException>(() => segment.SubAdditiveClosure(-1, 6));
     }
 }

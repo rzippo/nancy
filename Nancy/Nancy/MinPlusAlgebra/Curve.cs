@@ -57,7 +57,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Time length of each pseudo-period.
     /// </summary>
     /// <remarks>
-    /// Referred to as $d$ in [BT08] Section 4.1
+    /// Referred to as $d$ in [BT08] Section 4.1. 
+    /// Must be $d \gt 0$.
     /// </remarks>
     [JsonProperty(PropertyName = "pseudoPeriodLength")]
     [JsonPropertyName("pseudoPeriodLength")]
@@ -903,6 +904,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Rational pseudoPeriodHeight
     )
     {
+        if (pseudoPeriodLength <= 0)
+            throw new ArgumentException("Period length must be > 0", nameof(pseudoPeriodLength));
+
         if (baseSequence.DefinedFrom != 0 || baseSequence.DefinedUntil != pseudoPeriodStart + pseudoPeriodLength)
         {
             throw new ArgumentException("Base sequence must start at t = 0 and end at T + d");
@@ -946,6 +950,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         bool isPartialCurve
     )
     {
+        if (pseudoPeriodLength <= 0)
+            throw new ArgumentException("Period length must be > 0", nameof(pseudoPeriodLength));
+
         if (baseSequence.DefinedFrom != 0 || baseSequence.DefinedUntil != pseudoPeriodStart + pseudoPeriodLength)
         {
             if (isPartialCurve)

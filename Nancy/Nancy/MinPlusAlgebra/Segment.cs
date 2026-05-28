@@ -2001,6 +2001,9 @@ public sealed class Segment : Element, IEquatable<Segment>
     )
     {
         settings ??= ComputationSettings.Default();
+        if (pseudoPeriodLength <= 0)
+            throw new ArgumentException("Period length must be > 0", nameof(pseudoPeriodLength));
+
         Rational pseudoPeriodSlope = pseudoPeriodHeight / pseudoPeriodLength;
 
         SubAdditiveCurve closure;
