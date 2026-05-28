@@ -77,6 +77,10 @@ public class CurvePolimorphicNewtonsoftJson
             new Point(5, 4).SubAdditiveClosure(),
             "{\"type\":\"subAdditiveCurve\",\"baseSequence\":{\"elements\":[{\"type\":\"point\",\"time\":0,\"value\":0},{\"type\":\"segment\",\"startTime\":0,\"endTime\":5,\"rightLimitAtStartTime\":{\"num\":1,\"den\":0},\"slope\":0}]},\"pseudoPeriodStart\":0,\"pseudoPeriodLength\":5,\"pseudoPeriodHeight\":4}"
         ),
+        (
+            new TwoRatesServiceCurve(delay: 5, transientRate: 10, transientEnd: 7, steadyRate: 3),
+            "{\"type\":\"twoRatesServiceCurve\",\"delay\":5,\"transientRate\":10,\"transientEnd\":7,\"steadyRate\":3}"
+        ),
     };
 
     public static IEnumerable<object[]> CoherencyTestCases()
