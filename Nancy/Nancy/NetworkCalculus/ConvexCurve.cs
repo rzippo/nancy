@@ -113,5 +113,5 @@ public static class ConvexCurveExtensions
 
     /// <inheritdoc cref="Curve.Convolution(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Convolution(this IReadOnlyCollection<ConvexCurve> curves, ComputationSettings? settings = null)
-        => new ConvexCurve(Convolution(curves, settings));
+        => new ConvexCurve(Curve.Convolution(curves, settings));
 }
