@@ -59,6 +59,10 @@ public class IsLeftContinuousVisitor : ICurveExpressionVisitor
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(WithOriginAtExpression expression) 
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
     {
         expression.Expression.Accept(this);

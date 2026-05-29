@@ -305,6 +305,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new NegateExpression(this, expressionName, settings);
 
     /// <summary>
+    /// Implementation of the unary - operator as the negation of a <see cref="CurveExpression"/>.
+    /// </summary>
+    public static CurveExpression operator -(CurveExpression expression)
+        => expression.Negate();
+
+    /// <summary>
     /// Adds to the expression the operation to compute its non-negative version.
     /// </summary>
     public CurveExpression ToNonNegative(string expressionName = "", ExpressionSettings? settings = null)
@@ -351,6 +357,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </summary>
     public CurveExpression WithZeroOrigin(string expressionName = "", ExpressionSettings? settings = null)
         => new WithZeroOriginExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Adds to the expression an operation which enforces it to assume the given value at time 0.
+    /// </summary>
+    public CurveExpression WithOriginAt(Rational value, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new WithOriginAtExpression(this, value, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute the lower pseudo-inverse function,

@@ -56,6 +56,9 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     public virtual void Visit(WithZeroOriginExpression expression) => expression.Expression.Accept(this);
 
     /// <inheritdoc />
+    public virtual void Visit(WithOriginAtExpression expression) => expression.Expression.Accept(this);
+
+    /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
     {
         throw new NotImplementedException();

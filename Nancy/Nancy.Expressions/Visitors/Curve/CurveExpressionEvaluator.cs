@@ -145,4 +145,8 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
         => _result = expression.LeftExpression.Value.Scale(expression.RightExpression.Value);
+
+    /// <inheritdoc />
+    public virtual void Visit(WithOriginAtExpression expression)
+        => _result = expression.Expression.Value.WithOriginAt(expression.OriginValue);
 }

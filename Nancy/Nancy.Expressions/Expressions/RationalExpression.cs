@@ -269,10 +269,28 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         => new NegateRationalExpression(this, expressionName, settings);
 
     /// <summary>
+    /// Implementation of the unary - operator as the negation of a <see cref="RationalExpression"/>.
+    /// </summary>
+    public static RationalExpression operator -(RationalExpression expression)
+        => expression.Negate();
+
+    /// <summary>
+    /// Implementation of the unary + operator as the identity on a <see cref="RationalExpression"/>.
+    /// </summary>
+    public static RationalExpression operator +(RationalExpression expression)
+        => expression;
+
+    /// <summary>
     /// Adds the inversion operator to the expression.
     /// </summary>
     public RationalExpression Invert(string expressionName = "", ExpressionSettings? settings = null)
         => new InvertRationalExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Adds the absolute value operator to the expression.
+    /// </summary>
+    public RationalExpression AbsoluteValue(string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalAbsoluteValueExpression(this, expressionName, settings);
 
     #region Addition
 
@@ -493,6 +511,76 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         => Division(left, right);
 
     #endregion Division
+
+    #region Remainder
+
+    /// <summary>
+    /// Creates a new expression composed of the remainder (modulo) between the current expression and the one passed as
+    /// argument.
+    /// </summary>
+    public RationalExpression Remainder(RationalExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new RationalModuloExpression(this, expression, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the remainder (modulo) between the expression <paramref name="left"/> and the
+    /// expression <paramref name="right"/> passed as arguments.
+    /// </summary>
+    public static RationalExpression Remainder(RationalExpression left, RationalExpression right,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => left.Remainder(right, expressionName, settings);
+
+    /// <summary>
+    /// Implementation of the % operator as the remainder (modulo) between <see cref="RationalExpression"/> objects.
+    /// </summary>
+    public static RationalExpression operator %(RationalExpression left, RationalExpression right)
+        => Remainder(left, right);
+
+    /// <summary>
+    /// Creates a new expression composed of the remainder (modulo) between the current expression and the rational number
+    /// (internally converted to <see cref="RationalNumberExpression"/>) passed as argument.
+    /// </summary>
+    public RationalExpression Remainder(Rational rational, [CallerArgumentExpression("rational")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalModuloExpression(this, new RationalNumberExpression(rational, name), expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the remainder (modulo) between the expression <paramref name="left"/> and the
+    /// rational number <paramref name="right"/> (internally converted to <see cref="RationalNumberExpression"/>)
+    /// passed as arguments.
+    /// </summary>
+    public static RationalExpression Remainder(RationalExpression left, Rational right,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => left.Remainder(right, expressionName:expressionName, settings:settings);
+
+    /// <summary>
+    /// Implementation of the % operator as the remainder (modulo) between a rational expression
+    /// (<paramref name="left"/>) and a rational number (<paramref name="right"/>), which is internally converted
+    /// to a <see cref="RationalNumberExpression"/>.
+    /// </summary>
+    public static RationalExpression operator %(RationalExpression left, Rational right)
+        => Remainder(left, right);
+
+    #endregion Remainder
+
+    #region Power
+
+    /// <summary>
+    /// Creates a new expression composed of the power of the current expression to the exponent passed as argument.
+    /// </summary>
+    public RationalExpression Pow(RationalExpression exponent, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new RationalPowerExpression(this, exponent, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the power of the expression <paramref name="base"/> to the exponent
+    /// <paramref name="exponent"/> passed as arguments.
+    /// </summary>
+    public static RationalExpression Pow(RationalExpression @base, RationalExpression exponent,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => @base.Pow(exponent, expressionName, settings);
+
+    #endregion Power
 
     #region LeastCommonMultiple
 

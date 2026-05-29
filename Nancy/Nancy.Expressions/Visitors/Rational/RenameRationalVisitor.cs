@@ -105,6 +105,18 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
         => CommonVisit(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(RationalAbsoluteValueExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(RationalModuloExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(RationalPowerExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(RationalPlaceholderExpression expression)
         => CommonVisit(expression);
 }

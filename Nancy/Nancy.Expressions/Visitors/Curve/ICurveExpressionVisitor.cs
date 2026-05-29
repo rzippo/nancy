@@ -146,6 +146,11 @@ public interface ICurveExpressionVisitor : IExpressionVisitor<Curve>
     /// Visit method for the type <see cref="ScaleExpression"/>
     /// </summary>
     public void Visit(ScaleExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="WithOriginAtExpression"/>
+    /// </summary>
+    public void Visit(WithOriginAtExpression expression);
 }
 
 /// <summary>
@@ -293,4 +298,9 @@ public interface ICurveExpressionVisitor<out TResult> : IExpressionVisitor<Curve
     /// Visit method for the type <see cref="ScaleExpression"/>
     /// </summary>
     public TResult Visit(ScaleExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="WithOriginAtExpression"/>
+    /// </summary>
+    public TResult Visit(WithOriginAtExpression expression);
 }

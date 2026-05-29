@@ -152,4 +152,8 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
         => Result = expression with { Name = NewName };
+
+    /// <inheritdoc />
+    public virtual void Visit(WithOriginAtExpression expression)
+        => CommonVisit(expression);
 }

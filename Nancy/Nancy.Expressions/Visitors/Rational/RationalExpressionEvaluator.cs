@@ -1,4 +1,5 @@
-﻿using Unipi.Nancy.Expressions.Internals;
+﻿using System.Numerics;
+using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 
@@ -88,7 +89,12 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(InvertRationalExpression expression) => _result = Rational.Invert(expression.Expression.Value);
 
-    /// <inheritdoc />
+    public virtual void Visit(RationalAbsoluteValueExpression expression) => _result = Rational.Abs(expression.Expression.Value);
+
+    public virtual void Visit(RationalModuloExpression expression) => _result = expression.LeftExpression.Value % expression.RightExpression.Value;
+
+    public virtual void Visit(RationalPowerExpression expression) => _result = Rational.Pow(expression.LeftExpression.Value, (System.Numerics.BigInteger)expression.RightExpression.Value);
+
     public virtual void Visit(RationalPlaceholderExpression expression)
         => throw new InvalidOperationException("Can't evaluate an expression with placeholders!");
 }

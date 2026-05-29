@@ -83,6 +83,13 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     }
 
     /// <inheritdoc />
+    public virtual void Visit(WithOriginAtExpression expression)
+    {
+        expression.Expression.Accept(this);
+        if(!IsNonNegative) _throughCurveComputation(expression);
+    }
+
+    /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression) 
         => _throughCurveComputation(expression);
 

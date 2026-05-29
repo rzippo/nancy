@@ -117,6 +117,18 @@ public class RationalArithmeticExpressions
     }
 
     [Theory]
+    [MemberData(nameof(InvertTestCases))]
+    public void UnaryMinusOperatorNegatesExpression(Rational value)
+    {
+        var expression = -value.ToExpression();
+        var negated = -(-value.ToExpression());
+
+        Assert.IsType<NegateRationalExpression>(expression);
+        Assert.Equal(Rational.Negate(value), expression.Compute());
+        Assert.Equal(value, negated.Compute());
+    }
+
+    [Theory]
     [MemberData(nameof(ProductTestCases))]
     public void RationalProductExpressionComputesProduct(Rational a, Rational b, Rational c)
     {

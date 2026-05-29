@@ -1480,6 +1480,54 @@ public static class Expressions
 
     #endregion Invert
 
+    #region AbsoluteValue
+
+    /// <summary>
+    /// Adds the absolute value operator to the expression passed as argument.
+    /// </summary>
+    public static RationalExpression AbsoluteValue(RationalExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.AbsoluteValue(expressionName, settings);
+
+    /// <summary>
+    /// Adds the absolute value operator to the number passed as argument (which is converted to
+    /// <see cref="RationalNumberExpression"/>).
+    /// </summary>
+    public static RationalExpression AbsoluteValue(Rational number, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new RationalAbsoluteValueExpression(number, expressionName, settings);
+
+    #endregion AbsoluteValue
+
+    #region Remainder
+
+    /// <summary>
+    /// Creates the remainder (modulo) of the division of <paramref name="dividend"/> by <paramref name="divisor"/>.
+    /// </summary>
+    public static RationalExpression Remainder(RationalExpression dividend, RationalExpression divisor,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => dividend.Remainder(divisor, expressionName, settings);
+
+    /// <summary>
+    /// Creates the remainder (modulo) of the division of <paramref name="dividend"/> by <paramref name="divisor"/>.
+    /// </summary>
+    public static RationalExpression Remainder(RationalExpression dividend, Rational divisor,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => dividend.Remainder(divisor, expressionName:expressionName, settings:settings);
+
+    #endregion Remainder
+
+    #region Power
+
+    /// <summary>
+    /// Creates a power expression: <paramref name="base"/> raised to <paramref name="exponent"/>.
+    /// </summary>
+    public static RationalExpression Pow(RationalExpression @base, RationalExpression exponent,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => @base.Pow(exponent, expressionName, settings);
+
+    #endregion Power
+
     /// <summary>
     /// Creates a placeholder expression for a curve expression.
     /// </summary>

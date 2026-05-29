@@ -666,6 +666,10 @@ public partial class LatexFormatterVisitor :
         => VisitUnaryPostfix(expression, @"^{\circ}", true);
 
     /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(WithOriginAtExpression expression)
+        => VisitUnaryPostfix(expression, @"^{\circ}", true);
+
+    /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
         => VisitUnaryPostfix(expression, @"^{\underline{-1}}", 
             innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
@@ -772,6 +776,18 @@ public partial class LatexFormatterVisitor :
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
         => VisitUnaryPostfix(expression, "^{-1}", expression.Expression is RationalNumberExpression);
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalAbsoluteValueExpression expression)
+        => VisitUnaryCommand(expression, @"\operatorname{abs}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalModuloExpression expression)
+        => VisitBinaryInfix(expression, @" \bmod ");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalPowerExpression expression)
+        => VisitBinaryInfix(expression, " ^ ");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(HorizontalDeviationExpression expression)

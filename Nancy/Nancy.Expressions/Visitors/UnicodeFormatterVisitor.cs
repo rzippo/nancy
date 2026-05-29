@@ -462,6 +462,32 @@ public partial class UnicodeFormatterVisitor :
     }
 
     /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(WithOriginAtExpression expression)
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (unicode, needsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            if (needsParentheses)
+            {
+                sb.Append('(');
+                sb.Append(unicode);
+                sb.Append(")^\u2218");
+            }
+            else
+            {
+                sb.Append(unicode);
+                sb.Append("^\u2218");
+            }
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -630,6 +656,18 @@ public partial class UnicodeFormatterVisitor :
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
         => VisitUnaryPostfix(expression, "\u207B" + "\u00B9", expression.Expression is RationalNumberExpression);
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalAbsoluteValueExpression expression)
+        => VisitUnaryPrefix(expression, "abs");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalModuloExpression expression)
+        => VisitBinaryInfix(expression, " % ");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalPowerExpression expression)
+        => VisitBinaryInfix(expression, " ^ ");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(HorizontalDeviationExpression expression)

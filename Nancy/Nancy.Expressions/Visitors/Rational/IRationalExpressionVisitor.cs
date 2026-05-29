@@ -77,6 +77,18 @@ public interface IRationalExpressionVisitor : IExpressionVisitor<Rational>
     /// </summary>
     public void Visit(InvertRationalExpression expression);
     /// <summary>
+    /// Visit method for the type <see cref="RationalAbsoluteValueExpression"/>
+    /// </summary>
+    public void Visit(RationalAbsoluteValueExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalModuloExpression"/>
+    /// </summary>
+    public void Visit(RationalModuloExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalPowerExpression"/>
+    /// </summary>
+    public void Visit(RationalPowerExpression expression);
+    /// <summary>
     /// Visit method for the type <see cref="RationalPlaceholderExpression"/>
     /// </summary>
     public void Visit(RationalPlaceholderExpression expression);
@@ -157,6 +169,18 @@ public interface IRationalExpressionVisitor<out TResult> : IExpressionVisitor<Ra
     /// Visit method for the type <see cref="InvertRationalExpression"/>
     /// </summary>
     public TResult Visit(InvertRationalExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalAbsoluteValueExpression"/>
+    /// </summary>
+    public TResult Visit(RationalAbsoluteValueExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalModuloExpression"/>
+    /// </summary>
+    public TResult Visit(RationalModuloExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalPowerExpression"/>
+    /// </summary>
+    public TResult Visit(RationalPowerExpression expression);
     /// <summary>
     /// Visit method for the type <see cref="RationalPlaceholderExpression"/>
     /// </summary>
