@@ -64,4 +64,23 @@ public class DivisionTests
     {
         Assert.Throws<UndeterminedResultException>(() => Rational.Zero / Rational.Zero);
     }
+
+    [Fact]
+    public void DivideByOne()
+    {
+        Assert.Equal(new Rational(2, 3), new Rational(2, 3) / Rational.One);
+        Assert.Equal(new Rational(-2, 3), new Rational(-2, 3) / Rational.One);
+    }
+
+    [Fact]
+    public void ReciprocalOfPositive()
+    {
+        Assert.Equal(new Rational(3, 2), Rational.One / new Rational(2, 3));
+    }
+
+    [Fact]
+    public void ReciprocalOfNegative()
+    {
+        Assert.Equal(new Rational(-3, 2), Rational.One / new Rational(-2, 3));
+    }
 }

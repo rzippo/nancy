@@ -53,4 +53,46 @@ public class AdditionTests
     {
         Assert.Equal(BigRational.Zero, BigRational.Zero + BigRational.Zero);
     }
+
+    [Fact]
+    public void SameDenominator()
+    {
+        Assert.Equal(new BigRational(1, 1), new BigRational(1, 2) + new BigRational(1, 2));
+    }
+
+    [Fact]
+    public void LcdSharedFactors()
+    {
+        Assert.Equal(new BigRational(5, 12), new BigRational(1, 4) + new BigRational(1, 6));
+    }
+
+    [Fact]
+    public void LcdNegativeNumerator()
+    {
+        Assert.Equal(new BigRational(-1, 6), new BigRational(-1, 3) + new BigRational(1, 6));
+    }
+
+    [Fact]
+    public void LcdDenominatorMultiple()
+    {
+        Assert.Equal(new BigRational(1, 2), new BigRational(1, 3) + new BigRational(1, 6));
+    }
+
+    [Fact]
+    public void LcdSecondLevelGcd()
+    {
+        Assert.Equal(new BigRational(1, 2), new BigRational(2, 8) + new BigRational(3, 12));
+    }
+
+    [Fact]
+    public void LcdLargeSharedFactor()
+    {
+        Assert.Equal(new BigRational(11, 24), new BigRational(3, 8) + new BigRational(1, 12));
+    }
+
+    [Fact]
+    public void CoPrimeDenominators()
+    {
+        Assert.Equal(new BigRational(8, 15), new BigRational(1, 3) + new BigRational(1, 5));
+    }
 }
