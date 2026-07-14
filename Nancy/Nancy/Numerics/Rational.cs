@@ -1207,8 +1207,32 @@ namespace Unipi.Nancy.Numerics
             }
             else
             {
+                #if BIG_RATIONAL
+                // LCD via cross-cancel: a/b + c/d = (a*d' + c*b') / (g*b'*d')
+                // where g = gcd(b, d), b' = b/g, d' = d/g
+                var g = BigInteger.GreatestCommonDivisor(r1.Denominator, r2.Denominator);
+                if (!g.IsOne)
+                {
+                    var bPrime = r1.Denominator / g;
+                    var dPrime = r2.Denominator / g;
+                    var num = r1.Numerator * dPrime + r2.Numerator * bPrime;
+                    var den = bPrime * dPrime * g;
+                    // second-level GCD: unlike mul/div, addition can retain common factors in the LCD result
+                    var h = BigInteger.GreatestCommonDivisor(num, den);
+                    if (!h.IsOne) { num /= h; den /= h; }
+                    return new Rational(num, den, true);
+                }
+                else
+                {
+                    return new Rational(
+                        r1.Numerator * r2.Denominator + r2.Numerator * r1.Denominator,
+                        r1.Denominator * r2.Denominator
+                    );
+                }
+                #elif LONG_RATIONAL
                 // a/b + c/d  == (ad + bc)/bd
                 return new Rational((r1.Numerator * r2.Denominator) + (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));
+                #endif
             }
         }
 
@@ -1338,6 +1362,19 @@ namespace Unipi.Nancy.Numerics
 
             if (y.IsInfinite)
                 return Rational.Zero;
+
+            // identity: y == 1 → x / 1 = x
+            if (y.IsOne)
+                return x;
+
+            // identity: x == 1 → 1 / (c/d) = d/c
+            if (x.IsOne)
+            {
+                if (y.Numerator.Sign > 0)
+                    return new Rational(y.Denominator, y.Numerator, true);
+                else
+                    return new Rational(-y.Denominator, -y.Numerator, true);
+            }
 
             int sign = (x.Numerator.Sign == y.Numerator.Sign) ? 1 : -1;
 
