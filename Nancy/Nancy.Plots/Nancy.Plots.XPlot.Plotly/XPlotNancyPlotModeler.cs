@@ -39,6 +39,14 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
 
         var chart = Chart.Plot(traces);
 
+        var showLegend = PlotSettings.LegendStrategy switch
+        {
+            LegendStrategy.Auto => sequencesList.Count > 1 || namesList.Any(n => !string.IsNullOrWhiteSpace(n)),
+            LegendStrategy.ForceEnable => true,
+            LegendStrategy.ForceDisable => false,
+            _ => true
+        };
+
         chart.WithLayout(
             new Layout.Layout
             {
@@ -56,11 +64,18 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                     title = PlotSettings.YLabel,
                     range = ToPlotlyRange(axisLimits.YLimit)
                 },
-                showlegend = true,
+                showlegend = showLegend,
                 hovermode = "closest",
                 title = PlotSettings.Title,
                 width = PlotSettings.Width,
-                height = PlotSettings.Height
+                height = PlotSettings.Height,
+                legend = new Legend
+                {
+                    x = GetLegendX(PlotSettings.LegendPosition),
+                    y = GetLegendY(PlotSettings.LegendPosition),
+                    xanchor = GetLegendXAnchor(PlotSettings.LegendPosition),
+                    yanchor = GetLegendYAnchor(PlotSettings.LegendPosition)
+                }
             }
         );
 
@@ -241,5 +256,33 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                 (decimal)limit.Upper
             ];
         }
+
+        static double GetLegendX(LegendPosition position) => position switch
+        {
+            LegendPosition.NorthWest or LegendPosition.West or LegendPosition.SouthWest => 0.0,
+            LegendPosition.North or LegendPosition.South => 0.5,
+            _ => 1.0
+        };
+
+        static double GetLegendY(LegendPosition position) => position switch
+        {
+            LegendPosition.NorthWest or LegendPosition.North or LegendPosition.NorthEast => 1.0,
+            LegendPosition.West or LegendPosition.East => 0.5,
+            _ => 0.0
+        };
+
+        static string GetLegendXAnchor(LegendPosition position) => position switch
+        {
+            LegendPosition.NorthWest or LegendPosition.West or LegendPosition.SouthWest => "left",
+            LegendPosition.North or LegendPosition.South => "center",
+            _ => "right"
+        };
+
+        static string GetLegendYAnchor(LegendPosition position) => position switch
+        {
+            LegendPosition.NorthWest or LegendPosition.North or LegendPosition.NorthEast => "top",
+            LegendPosition.West or LegendPosition.East => "middle",
+            _ => "bottom"
+        };
     }
 }
