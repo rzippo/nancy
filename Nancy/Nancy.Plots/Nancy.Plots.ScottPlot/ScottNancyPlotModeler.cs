@@ -115,6 +115,27 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
             }
         }
 
+        var showLegend = PlotSettings.LegendStrategy switch
+        {
+            LegendStrategy.Auto => sequencesList.Count > 1 || namesList.Any(n => !string.IsNullOrWhiteSpace(n)),
+            LegendStrategy.ForceEnable => true,
+            LegendStrategy.ForceDisable => false,
+            _ => true
+        };
+        plot.Legend.IsVisible = showLegend;
+        plot.Legend.Alignment = PlotSettings.LegendPosition switch
+        {
+            LegendPosition.North => Alignment.UpperCenter,
+            LegendPosition.NorthEast => Alignment.UpperRight,
+            LegendPosition.East => Alignment.MiddleRight,
+            LegendPosition.SouthEast => Alignment.LowerRight,
+            LegendPosition.South => Alignment.LowerCenter,
+            LegendPosition.SouthWest => Alignment.LowerLeft,
+            LegendPosition.West => Alignment.MiddleLeft,
+            LegendPosition.NorthWest => Alignment.UpperLeft,
+            _ => Alignment.LowerRight
+        };
+
         return plot;
     }
 
