@@ -23,6 +23,25 @@ public class TikzPlot
     /// </summary>
     public TikzPlotSettings Settings { get; set; } = new();
 
+    private sealed record UppMarksAnnotation(
+        string Name,
+        Rational T,
+        Rational D,
+        Rational C,
+        Rational FT,
+        Rational FTd,
+        Rational FT2d
+    );
+
+    private readonly Dictionary<string, UppMarksAnnotation> _uppMarks = new();
+
+    private void EnsureNamePresent(string name)
+    {
+        if (!SequencesToPlot.Any(s => s.Name == name))
+            throw new ArgumentException(
+                $"Name '{name}' does not match any plotted sequence.", nameof(name));
+    }
+
     /// <summary>
     /// Builds a TikZ plot from the given sequences.
     /// </summary>
@@ -60,6 +79,60 @@ public class TikzPlot
             .ToList();
         SequencesToPlot = sequencesToPlot;
     }
+
+    /// <summary>
+    /// Adds UPP (Ultimate Pseudo-Periodic) marks on the plot, annotating
+    /// the period start (T), period duration (d), and period height (c)
+    /// from a Curve's pseudo-periodic parameters.
+    /// </summary>
+    public void AddUppMarks(Curve curve,
+        [System.Runtime.CompilerServices.CallerArgumentExpression("curve")]
+        string name = "f")
+    {
+        if (curve.IsUltimatelyInfinite)
+            throw new ArgumentException("Curve must be ultimately periodic (not UltimatelyInfinite).", nameof(curve));
+
+        // EnsureNamePresent(name);
+        _uppMarks[name] = new UppMarksAnnotation(
+            Name: name,
+            T: curve.PseudoPeriodStart,
+            D: curve.FirstPseudoPeriodEnd - curve.PseudoPeriodStart,
+            C: curve.PseudoPeriodHeight,
+            FT: curve.ValueAt(curve.PseudoPeriodStart),
+            FTd: curve.ValueAt(curve.FirstPseudoPeriodEnd),
+            FT2d: curve.ValueAt(curve.SecondPseudoPeriodEnd)
+        );
+    }
+
+    /// <summary>
+    /// Adds UPP (Ultimate Pseudo-Periodic) marks on the plot from raw parameters.
+    /// </summary>
+    /// <param name="T">Pseudo-period start.</param>
+    /// <param name="d">Pseudo-period length.</param>
+    /// <param name="c">Pseudo-period height.</param>
+    /// <param name="f_T">Value at the period start.</param>
+    /// <param name="f_Td">Value at T + d.</param>
+    /// <param name="f_T2d">Value at T + 2d.</param>
+    /// <param name="name">The name to use in annotations.</param>
+    public void AddUppMarks(Rational T, Rational d, Rational c,
+        Rational f_T, Rational f_Td, Rational f_T2d, string name)
+    {
+        // EnsureNamePresent(name);
+        _uppMarks[name] = new UppMarksAnnotation(
+            Name: name,
+            T: T,
+            D: d,
+            C: c,
+            FT: f_T,
+            FTd: f_Td,
+            FT2d: f_T2d
+        );
+    }
+
+    /// <summary>
+    /// Removes any UPP marks associated with the given sequence name.
+    /// </summary>
+    public void RemoveUppMarks(string name) => _uppMarks.Remove(name);
 
     /// <summary>
     /// Produces the TikZ code for this plot,
@@ -124,12 +197,9 @@ public class TikzPlot
         
         sb.AppendLines(GetTikzContent(sequences, names, colors, lineStyles, Settings, includeLegend));
 
-        // todo: how to handle UPP marks?
-        // if (curves.Count == 1 && curves.Single() is { IsUltimatelyInfinite: false } f)
-        // {
-        //     sb.AppendLines(GetUppMarks(f, names[0]));
-        // }
-        
+        foreach (var annotation in _uppMarks.Values)
+            sb.AppendLines(GetUppMarksLines(annotation));
+
         sb.AppendLines(GetTikzFooter());
         
         return sb.ToString();
@@ -401,6 +471,32 @@ public class TikzPlot
     // ReSharper disable once MemberCanBePrivate.Global
     public static IEnumerable<string> GetUppMarks(Curve f, string name)
     {
+        var tf = (decimal)f.PseudoPeriodStart;
+        var ftf = (decimal)f.ValueAt(f.PseudoPeriodStart);
+        var tfdf = (decimal)f.FirstPseudoPeriodEnd;
+        var ftfdf = (decimal)f.ValueAt(f.FirstPseudoPeriodEnd);
+        var tf2df = (decimal)f.SecondPseudoPeriodEnd;
+        var ftf2df = (decimal)f.ValueAt(f.SecondPseudoPeriodEnd);
+        var c = (decimal)f.PseudoPeriodHeight;
+        return GetUppMarksLines(name, tf, tfdf, tf2df, ftf, ftfdf, ftf2df, c);
+    }
+
+    private static IEnumerable<string> GetUppMarksLines(UppMarksAnnotation a)
+    {
+        var tf = (decimal)a.T;
+        var tfdf = (decimal)(a.T + a.D);
+        var tf2df = (decimal)(a.T + 2 * a.D);
+        var ftf = (decimal)a.FT;
+        var ftfdf = (decimal)a.FTd;
+        var ftf2df = (decimal)a.FT2d;
+        var c = (decimal)a.C;
+        return GetUppMarksLines(a.Name, tf, tfdf, tf2df, ftf, ftfdf, ftf2df, c);
+    }
+
+    private static IEnumerable<string> GetUppMarksLines(
+        string name, decimal tf, decimal tfdf, decimal tf2df,
+        decimal ftf, decimal ftfdf, decimal ftf2df, decimal c)
+    {
         return _getUppMarks().Select(FormattableString.Invariant);
 
         IEnumerable<FormattableString> _getUppMarks()
@@ -409,17 +505,10 @@ public class TikzPlot
             var marksStyle = "thick, densely dashed";
             var arrowStyle = "thick, <->";
 
-            var tf = (decimal)f.PseudoPeriodStart;
-            var ftf = (decimal)f.ValueAt(f.PseudoPeriodStart);
-
             if(ftf > 0)
                 yield return $"{Tabs(2)}\\addplot [ color = {marksColor}, {marksStyle} ] coordinates {{ ({tf}, 0) ({tf}, {ftf}) }};";
             yield return $"{Tabs(2)}\\node [ anchor = north ] at (axis cs:{tf}, 0) {{$T_{{{name}}}$}};";
             yield return $"";
-
-            var tfdf = (decimal)f.FirstPseudoPeriodEnd;
-            var ftfdf = (decimal)f.ValueAt(f.FirstPseudoPeriodEnd);
-            var ftf2df = (decimal)f.ValueAt(f.SecondPseudoPeriodEnd);
 
             yield return
                 $"{Tabs(2)}\\addplot [ color = {marksColor}, {marksStyle} ] coordinates {{ ({tfdf}, {ftfdf}) ({tfdf}, {(ftfdf + ftf2df) / 2}) }};";
@@ -430,9 +519,7 @@ public class TikzPlot
             yield return $"{Tabs(2)}\\node [ anchor = south ] at (axis cs:{(tf + tfdf) / 2}, {(ftfdf + ftf2df) / 2}) {{$d_{{{name}}}$}};";
             yield return $"";
 
-            var tf2df = (decimal)f.SecondPseudoPeriodEnd;
-
-            if (f.PseudoPeriodHeight > 0)
+            if (c > 0)
             {
                 yield return
                     $"{Tabs(2)}\\addplot [ color = {marksColor}, {marksStyle} ] coordinates {{ ({tf}, {ftf}) ({(tfdf + tf2df) / 2}, {ftf}) }};";

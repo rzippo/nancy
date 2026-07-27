@@ -19,4 +19,19 @@ public class TikzNancyPlotModeler : NancyPlotModeler<TikzPlotSettings, TikzPlot>
         );
         return tikzPlot;
     }
+
+    /// <inheritdoc />
+    public override TikzPlot GetPlot(
+        IReadOnlyCollection<Curve> curves,
+        IEnumerable<string> names)
+    {
+        var plot = base.GetPlot(curves, names);
+
+        if (curves.Count == 1 && curves.Single() is { IsUltimatelyInfinite: false } f)
+        {
+            plot.AddUppMarks(f, names.First());
+        }
+
+        return plot;
+    }
 }

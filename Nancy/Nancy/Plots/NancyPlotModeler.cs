@@ -43,7 +43,7 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     /// </summary>
     /// <param name="curves">The curves to plot.</param>
     /// <param name="names">The names of the curves.</param>
-    public TPlot GetPlot(
+    public virtual TPlot GetPlot(
         IReadOnlyCollection<Curve> curves,
         IEnumerable<string> names
     )
