@@ -228,6 +228,8 @@ public class TikzPlot
         yield return $"\\begin{{tikzpicture}}";
         yield return $"{Tabs(1)}\\begin{{axis}}[";
         yield return $"{Tabs(2)}font = {settings.FontSize.ToLatex()},";
+        if(!string.IsNullOrWhiteSpace(settings.Title))
+            yield return $"{Tabs(2)}title = {{{settings.Title}}},";
         yield return $"{Tabs(2)}clip = false,";
 
         switch (settings.GridTickLayout)
@@ -250,8 +252,8 @@ public class TikzPlot
         yield return $"{Tabs(2)}grid style = {{draw=gray!30}},";
         yield return $"{Tabs(2)}axis lines = left,";
         yield return $"{Tabs(2)}axis equal image,";
-        yield return $"{Tabs(2)}xlabel = time,";
-        yield return $"{Tabs(2)}ylabel = data,";
+        yield return $"{Tabs(2)}xlabel = {{{settings.XLabel}}},";
+        yield return $"{Tabs(2)}ylabel = {{{settings.YLabel}}},";
         var xLabelAnchor = settings.GridTickLayout switch {
             GridTickLayout.SquareGridNoLabels => "north",
             _ => "north west"
