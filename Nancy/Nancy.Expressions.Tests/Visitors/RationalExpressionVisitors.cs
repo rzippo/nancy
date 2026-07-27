@@ -20,6 +20,7 @@ public class RationalExpressionVisitors
         [
             Expressions.HorizontalDeviation(arrival, service),
             Expressions.VerticalDeviation(arrival, service),
+            Expressions.ZDeviation(arrival, service),
             arrival.ValueAt(new Rational(1)),
             arrival.LeftLimitAt(new Rational(1)),
             arrival.RightLimitAt(new Rational(1)),
@@ -55,6 +56,7 @@ public class RationalExpressionVisitors
         [
             (Expressions.HorizontalDeviation(arrival, service), Curve.HorizontalDeviation(arrivalCurve, serviceCurve)),
             (Expressions.VerticalDeviation(arrival, service), Curve.VerticalDeviation(arrivalCurve, serviceCurve)),
+            (Expressions.ZDeviation(arrival, service), Curve.ZDeviation(arrivalCurve, serviceCurve)),
             (arrival.ValueAt(new Rational(1)), arrivalCurve.ValueAt(new Rational(1))),
             (arrival.LeftLimitAt(new Rational(1)), arrivalCurve.LeftLimitAt(new Rational(1))),
             (arrival.RightLimitAt(new Rational(1)), arrivalCurve.RightLimitAt(new Rational(1))),

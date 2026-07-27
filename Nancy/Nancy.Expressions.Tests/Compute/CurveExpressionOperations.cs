@@ -121,6 +121,26 @@ public class CurveExpressionOperations
 
     [Theory]
     [MemberData(nameof(CurvePairTestCases))]
+    public void ZDeviationExpressionComputesConcreteDeviation(Curve a, Curve b)
+    {
+        var expression = Expressions.ZDeviation(a.ToExpression(), b.ToExpression());
+        var concreteExpression = Expressions.ZDeviation(a, b);
+        var leftConcreteExpression = Expressions.ZDeviation(a, b.ToExpression());
+        var rightConcreteExpression = Expressions.ZDeviation(a.ToExpression(), b);
+        var expected = Curve.ZDeviation(a, b);
+
+        Assert.IsType<ZDeviationExpression>(expression);
+        Assert.IsType<ZDeviationExpression>(concreteExpression);
+        Assert.IsType<ZDeviationExpression>(leftConcreteExpression);
+        Assert.IsType<ZDeviationExpression>(rightConcreteExpression);
+        Assert.Equal(expected, expression.Compute());
+        Assert.Equal(expected, concreteExpression.Compute());
+        Assert.Equal(expected, leftConcreteExpression.Compute());
+        Assert.Equal(expected, rightConcreteExpression.Compute());
+    }
+
+    [Theory]
+    [MemberData(nameof(CurvePairTestCases))]
     public void HorizontalDeviationExpressionComputesConcreteDeviation(Curve a, Curve b)
     {
         var expression = Expressions.HorizontalDeviation(a.ToExpression(), b.ToExpression());

@@ -678,6 +678,10 @@ public partial class UnicodeFormatterVisitor :
         => VisitBinaryPrefix(expression, "vdev");
 
     /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ZDeviationExpression expression)
+        => VisitBinaryPrefix(expression, "zdev");
+
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))

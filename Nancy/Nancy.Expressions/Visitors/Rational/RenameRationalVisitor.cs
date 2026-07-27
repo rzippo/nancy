@@ -49,6 +49,10 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
         => CommonVisit(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(ZDeviationExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(ValueAtExpression expression)
         => CommonVisit(expression);
 

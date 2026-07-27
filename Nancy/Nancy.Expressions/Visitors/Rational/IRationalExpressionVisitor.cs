@@ -21,6 +21,10 @@ public interface IRationalExpressionVisitor : IExpressionVisitor<Rational>
     /// </summary>
     public void Visit(VerticalDeviationExpression expression);
     /// <summary>
+    /// Visit method for the type <see cref="ZDeviationExpression"/>
+    /// </summary>
+    public void Visit(ZDeviationExpression expression);
+    /// <summary>
     /// Visit method for the type <see cref="ValueAtExpression"/>
     /// </summary>
     public void Visit(ValueAtExpression expression);
@@ -113,6 +117,10 @@ public interface IRationalExpressionVisitor<out TResult> : IExpressionVisitor<Ra
     /// Visit method for the type <see cref="VerticalDeviationExpression"/>
     /// </summary>
     public TResult Visit(VerticalDeviationExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="ZDeviationExpression"/>
+    /// </summary>
+    public TResult Visit(ZDeviationExpression expression);
     /// <summary>
     /// Visit method for the type <see cref="ValueAtExpression"/>
     /// </summary>

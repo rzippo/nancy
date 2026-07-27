@@ -798,6 +798,10 @@ public partial class LatexFormatterVisitor :
         => VisitBinaryPrefix(expression, "vdev");
 
     /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ZDeviationExpression expression)
+        => VisitBinaryPrefix(expression, "zdev");
+
+    /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))

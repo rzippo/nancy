@@ -778,6 +778,46 @@ public static class Expressions
 
     #endregion VerticalDeviation
 
+    #region ZDeviation
+
+    /// <summary>
+    /// Creates a new expression composed of the z-deviation operation between the two expressions passed as arguments.
+    /// </summary>
+    public static RationalExpression ZDeviation(CurveExpression expressionL, CurveExpression expressionR,
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new ZDeviationExpression(expressionL, expressionR, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the z-deviation operation between the expression and the curve
+    /// (internally converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
+    /// </summary>
+    public static RationalExpression ZDeviation(CurveExpression expression, Curve curve,
+        [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new ZDeviationExpression(expression, new ConcreteCurveExpression(curve, name), expressionName,
+            settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the z-deviation operation between the two curves (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
+    /// </summary>
+    public static RationalExpression ZDeviation(Curve curveL, Curve curveR,
+        [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new ZDeviationExpression(curveL, nameL, curveR, nameR, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression composed of the z-deviation operation between the curve <paramref name="curveL"/>
+    /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/>
+    /// passed as arguments.
+    /// </summary>
+    public static RationalExpression ZDeviation(Curve curveL, CurveExpression expressionR,
+        [CallerArgumentExpression("curveL")] string nameL = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new ZDeviationExpression(curveL, nameL, expressionR, expressionName, settings);
+
+    #endregion ZDeviation
+
     #region DelayBy
 
     /// <summary>
