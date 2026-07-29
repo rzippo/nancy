@@ -1,28 +1,33 @@
-name: Nancy.Plots.ScottPlot-pack-release
+name: Nancy.Plots.ScottPlot-test
 
 on:
   workflow_dispatch:
   push:
     branches:
       - master
-    paths: 
-      - 'Nancy/Nancy.Plots/Nancy.Plots.ScottPlot/Nancy.Plots.ScottPlot.csproj'
+    paths:
+      - 'Nancy/Nancy.Plots/Nancy.Plots.ScottPlot/*'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.ScottPlot.Tests/*'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Plots/Nancy.Plots.ScottPlot/*'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.ScottPlot.Tests/*'
+
 jobs:
-  Nancy-Plots-ScottPlot-pack-release:
-    # only release what is on master: a pull request, or a manual run on another branch, must not publish
-    if: github.ref == 'refs/heads/master'
+  Nancy-Plots-ScottPlot-test:
     runs-on: ubuntu-latest
-    
+
     env:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.Plots/Nancy.Plots.sln"
       NANCY_PLOTS_SCOTTPLOT: "Nancy/Nancy.Plots/Nancy.Plots.ScottPlot/Nancy.Plots.ScottPlot.csproj"
       NANCY_PLOTS_SCOTTPLOT_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.ScottPlot.Tests/Nancy.Plots.ScottPlot.Tests.csproj"
-      NANCY_PLOTS_SCOTTPLOT_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.ScottPlot/bin/Release/**/*.nupkg"
 
     steps:
       - uses: actions/checkout@v6
-      
+
       - name: Setup dotnet
         uses: actions/setup-dotnet@v5
         with:
@@ -39,9 +44,3 @@ jobs:
 
       - name: Test Nancy.Plots.ScottPlot
         run: dotnet test --project $NANCY_PLOTS_SCOTTPLOT_TESTS --configuration $BUILD_CONFIG --framework net10.0
-
-      - name: Pack
-        run: dotnet pack $NANCY_PLOTS_SCOTTPLOT --configuration $BUILD_CONFIG --no-restore --no-build
-
-      - name: Publish
-        run: dotnet nuget push $NANCY_PLOTS_SCOTTPLOT_PACKS --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET_API_KEY}}

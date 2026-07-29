@@ -7,14 +7,10 @@ on:
       - master
     paths:
       - "Nancy/Nancy.Interactive/Nancy.Interactive.csproj"
-  pull_request:
-    branches:
-      - master
-    paths:
-      - "Nancy/Nancy.Interactive/Nancy.Interactive.csproj"
-
 jobs:
   Nancy-Interactive-pack-release:
+    # only release what is on master: a pull request, or a manual run on another branch, must not publish
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
         
     env:

@@ -1,0 +1,37 @@
+name: Nancy.Analyzers.CodeFixers-test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers.CodeFixers/*'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers.CodeFixers/*'
+
+jobs:
+  Nancy-Analyzers-CodeFixers-test:
+    runs-on: ubuntu-latest
+
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_FIXERS: "Nancy/Nancy.Analyzers/Nancy.Analyzers.CodeFixers/Nancy.Analyzers.CodeFixers.csproj"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            9.0.x
+
+      - name: Build Nancy.Analyzers.CodeFixers
+        run: dotnet build $NANCY_FIXERS --configuration $BUILD_CONFIG
+
+      # No actual tests available

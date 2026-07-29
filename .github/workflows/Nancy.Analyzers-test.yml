@@ -1,0 +1,37 @@
+name: Nancy.Analyzers-test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers/*'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers/*'
+
+jobs:
+  Nancy-Analyzers-test:
+    runs-on: ubuntu-latest
+
+    env:
+      BUILD_CONFIG: "Release"
+      SOLUTION: "Nancy/Nancy.sln"
+      NANCY_ANALYZERS: "Nancy/Nancy.Analyzers/Nancy.Analyzers/Nancy.Analyzers.csproj"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            9.0.x
+
+      - name: Build Nancy.Analyzers
+        run: dotnet build $NANCY_ANALYZERS --configuration $BUILD_CONFIG
+
+      # No actual tests available
