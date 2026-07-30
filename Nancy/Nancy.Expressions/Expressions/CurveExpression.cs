@@ -328,6 +328,36 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         }
     }
 
+    /// <summary>
+    /// True if the curve described by the expression has no discontinuity, i.e., it is both left- and right-continuous.
+    /// </summary>
+    public bool IsContinuous
+        => IsLeftContinuous && IsRightContinuous;
+
+    /// <summary>
+    /// True if the curve described by the expression is subadditive with $f(0) = 0$.
+    /// </summary>
+    public bool IsRegularSubAdditive
+        => IsSubAdditive && IsPassingThroughOrigin;
+
+    /// <summary>
+    /// True if the curve described by the expression is super-additive with $f(0) = 0$.
+    /// </summary>
+    public bool IsRegularSuperAdditive
+        => IsSuperAdditive && IsPassingThroughOrigin;
+
+    /// <summary>
+    /// True if the curve described by the expression is concave with $f(0) = 0$.
+    /// </summary>
+    public bool IsRegularConcave
+        => IsConcave && IsPassingThroughOrigin;
+
+    /// <summary>
+    /// True if the curve described by the expression is convex with $f(0) = 0$.
+    /// </summary>
+    public bool IsRegularConvex
+        => IsConvex && IsPassingThroughOrigin;
+
     #endregion Properties
 
     #region Constructors
