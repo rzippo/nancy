@@ -41,6 +41,11 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
             _isSuperAdditive = expression._isSuperAdditive,
             _isIncreasing = expression._isIncreasing,
             _isPassingThroughOrigin = expression._isPassingThroughOrigin,
+            _isUltimatelyFinite = expression._isUltimatelyFinite,
+            _isPlain = expression._isPlain,
+            _isUltimatelyPlain = expression._isUltimatelyPlain,
+            _isUltimatelyAffine = expression._isUltimatelyAffine,
+            _isUltimatelyConstant = expression._isUltimatelyConstant,
         };
     }
 

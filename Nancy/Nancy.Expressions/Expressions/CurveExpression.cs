@@ -292,6 +292,131 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     }
 
     /// <summary>
+    /// Private cache field for <see cref="IsUltimatelyFinite"/>.
+    /// </summary>
+    internal bool? _isUltimatelyFinite;
+
+    /// <summary>
+    /// True if the curve described by the expression is ultimately finite. Property evaluated avoiding as much as
+    /// possible to make any computation.
+    /// </summary>
+    public bool IsUltimatelyFinite
+    {
+        get
+        {
+            return _isUltimatelyFinite ??= CheckIsUltimatelyFinite();
+
+            bool CheckIsUltimatelyFinite()
+            {
+                var visitor = new IsUltimatelyFiniteVisitor();
+                Accept(visitor);
+
+                return visitor.IsUltimatelyFinite;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsPlain"/>.
+    /// </summary>
+    internal bool? _isPlain;
+
+    /// <summary>
+    /// True if the curve described by the expression is plain, as defined in [BT08], Definition 1. Property
+    /// evaluated avoiding as much as possible to make any computation.
+    /// </summary>
+    public bool IsPlain
+    {
+        get
+        {
+            return _isPlain ??= CheckIsPlain();
+
+            bool CheckIsPlain()
+            {
+                var visitor = new IsPlainVisitor();
+                Accept(visitor);
+
+                return visitor.IsPlain;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsUltimatelyPlain"/>.
+    /// </summary>
+    internal bool? _isUltimatelyPlain;
+
+    /// <summary>
+    /// True if the curve described by the expression is ultimately plain, as defined in [BT08], Definition 1.
+    /// Property evaluated avoiding as much as possible to make any computation.
+    /// </summary>
+    public bool IsUltimatelyPlain
+    {
+        get
+        {
+            return _isUltimatelyPlain ??= CheckIsUltimatelyPlain();
+
+            bool CheckIsUltimatelyPlain()
+            {
+                var visitor = new IsUltimatelyPlainVisitor();
+                Accept(visitor);
+
+                return visitor.IsUltimatelyPlain;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsUltimatelyAffine"/>.
+    /// </summary>
+    internal bool? _isUltimatelyAffine;
+
+    /// <summary>
+    /// True if the curve described by the expression is ultimately affine. Property evaluated avoiding as much as
+    /// possible to make any computation.
+    /// </summary>
+    public bool IsUltimatelyAffine
+    {
+        get
+        {
+            return _isUltimatelyAffine ??= CheckIsUltimatelyAffine();
+
+            bool CheckIsUltimatelyAffine()
+            {
+                var visitor = new IsUltimatelyAffineVisitor();
+                Accept(visitor);
+
+                return visitor.IsUltimatelyAffine;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsUltimatelyConstant"/>.
+    /// </summary>
+    internal bool? _isUltimatelyConstant;
+
+    /// <summary>
+    /// True if the curve described by the expression is ultimately constant. Property evaluated avoiding as much as
+    /// possible to make any computation.
+    /// </summary>
+    public bool IsUltimatelyConstant
+    {
+        get
+        {
+            return _isUltimatelyConstant ??= CheckIsUltimatelyConstant();
+
+            bool CheckIsUltimatelyConstant()
+            {
+                var visitor = new IsUltimatelyConstantVisitor();
+                Accept(visitor);
+
+                return visitor.IsUltimatelyConstant;
+            }
+        }
+    }
+
+    /// <summary>
     /// Private cache field for <see cref="IsWellDefined"/>.
     /// </summary>
     internal bool? _isWellDefined;
@@ -1458,12 +1583,6 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </remarks>
     public static CurveExpression operator -(CurveExpression curveExpression, Rational rational)
         => curveExpression.VerticalShift(-rational);
-
-    /// <summary>
-    /// Returns true if for $t \ge$ <see cref="Curve.PseudoPeriodStart"/> the curve expression is constant.
-    /// Implemented by computing the value of the expression.
-    /// </summary>
-    public bool IsUltimatelyConstant() => Compute().IsUltimatelyConstant;
 
     #endregion Methods
 }

@@ -1,0 +1,149 @@
+using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.MinPlusAlgebra;
+
+namespace Unipi.Nancy.Expressions.Visitors;
+
+/// <summary>
+/// Visitor used to check whether the value of a curve expression is ultimately constant. Implemented minimizing the
+/// amount of computations.
+/// </summary>
+public class IsUltimatelyConstantVisitor : ICurveExpressionVisitor
+{
+    /// <summary>
+    /// Field used as intermediate and final result of the visitor
+    /// </summary>
+    public bool IsUltimatelyConstant;
+
+    /// <inheritdoc />
+    public virtual void Visit(ConcreteCurveExpression expression)
+        => IsUltimatelyConstant = expression.Value.IsUltimatelyConstant;
+
+    private void _throughCurveComputation(IGenericExpression<Curve> expression)
+        => IsUltimatelyConstant = expression.Compute().IsUltimatelyConstant;
+
+    /// <inheritdoc />
+    /// <remarks>Negating a constant tail yields a (different) constant tail.</remarks>
+    public virtual void Visit(NegateExpression expression)
+        => expression.Expression.Accept(this);
+
+    /// <inheritdoc />
+    public virtual void Visit(ToNonNegativeExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(SubAdditiveClosureExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(SuperAdditiveClosureExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(ToUpperNonDecreasingExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(ToLowerNonDecreasingExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(ToLeftContinuousExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(ToRightContinuousExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    /// <remarks>A vertical repositioning of a constant tail yields a (different) constant tail.</remarks>
+    public virtual void Visit(WithZeroOriginExpression expression)
+        => expression.Expression.Accept(this);
+
+    /// <inheritdoc />
+    /// <remarks>A vertical repositioning of a constant tail yields a (different) constant tail.</remarks>
+    public virtual void Visit(WithOriginAtExpression expression)
+        => expression.Expression.Accept(this);
+
+    /// <inheritdoc />
+    public virtual void Visit(LowerPseudoInverseExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(UpperPseudoInverseExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(AdditionExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(SubtractionExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(MinimumExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(MaximumExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(ConvolutionExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(DeconvolutionExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(MaxPlusConvolutionExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(MaxPlusDeconvolutionExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(CompositionExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    /// <remarks>A time shift preserves a constant tail.</remarks>
+    public virtual void Visit(DelayByExpression expression)
+        => expression.LeftExpression.Accept(this);
+
+    /// <inheritdoc />
+    /// <remarks>A time shift preserves a constant tail.</remarks>
+    public virtual void Visit(ForwardByExpression expression)
+        => expression.LeftExpression.Accept(this);
+
+    /// <inheritdoc />
+    /// <remarks>A time shift preserves a constant tail.</remarks>
+    public virtual void Visit(HorizontalShiftExpression expression)
+        => expression.LeftExpression.Accept(this);
+
+    /// <inheritdoc />
+    /// <remarks>A vertical shift preserves a constant tail.</remarks>
+    public virtual void Visit(VerticalShiftExpression expression)
+        => expression.LeftExpression.Accept(this);
+
+    /// <inheritdoc />
+    public virtual void Visit(CurvePlaceholderExpression expression)
+        => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");
+
+    /// <inheritdoc />
+    /// <remarks>Scaling (by any factor, including zero) preserves a constant tail.</remarks>
+    public virtual void Visit(ScaleExpression expression)
+        => expression.LeftExpression.Accept(this);
+
+    /// <inheritdoc />
+    /// <remarks>Floor of a constant tail is a (different) constant tail.</remarks>
+    public virtual void Visit(FloorExpression expression)
+        => expression.Expression.Accept(this);
+
+    /// <inheritdoc />
+    /// <remarks>Ceiling of a constant tail is a (different) constant tail.</remarks>
+    public virtual void Visit(CeilExpression expression)
+        => expression.Expression.Accept(this);
+}

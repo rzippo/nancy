@@ -232,7 +232,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
     {
         return (Predicate<CurveExpression>)Property;
 
-        bool Property(CurveExpression expression) => expression.IsUltimatelyConstant();
+        bool Property(CurveExpression expression) => expression.IsUltimatelyConstant;
     }
 
     /// <inheritdoc /> 
