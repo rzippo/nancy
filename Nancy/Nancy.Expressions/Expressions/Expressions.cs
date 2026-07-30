@@ -1539,6 +1539,44 @@ public static class Expressions
 
     #endregion AbsoluteValue
 
+    #region Floor
+
+    /// <summary>
+    /// Adds the floor operator to the expression passed as argument, $\lfloor x \rfloor$.
+    /// </summary>
+    public static RationalExpression Floor(RationalExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.Floor(expressionName, settings);
+
+    /// <summary>
+    /// Adds the floor operator to the number passed as argument (which is converted to
+    /// <see cref="RationalNumberExpression"/>), $\lfloor x \rfloor$.
+    /// </summary>
+    public static RationalExpression Floor(Rational number, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new RationalFloorExpression(number, expressionName, settings);
+
+    #endregion Floor
+
+    #region Ceil
+
+    /// <summary>
+    /// Adds the ceiling operator to the expression passed as argument, $\lceil x \rceil$.
+    /// </summary>
+    public static RationalExpression Ceil(RationalExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.Ceil(expressionName, settings);
+
+    /// <summary>
+    /// Adds the ceiling operator to the number passed as argument (which is converted to
+    /// <see cref="RationalNumberExpression"/>), $\lceil x \rceil$.
+    /// </summary>
+    public static RationalExpression Ceil(Rational number, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new RationalCeilExpression(number, expressionName, settings);
+
+    #endregion Ceil
+
     #region Remainder
 
     /// <summary>

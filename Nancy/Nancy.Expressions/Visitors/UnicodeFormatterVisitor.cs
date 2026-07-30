@@ -662,6 +662,42 @@ public partial class UnicodeFormatterVisitor :
         => VisitUnaryPrefix(expression, "abs");
 
     /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalFloorExpression expression)
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (inner, _) = GeneralizedAccept(expression.Expression);
+            sb.Append('⌊');
+            sb.Append(inner);
+            sb.Append('⌋');
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalCeilExpression expression)
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (inner, _) = GeneralizedAccept(expression.Expression);
+            sb.Append('⌈');
+            sb.Append(inner);
+            sb.Append('⌉');
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalModuloExpression expression)
         => VisitBinaryInfix(expression, " % ");
 

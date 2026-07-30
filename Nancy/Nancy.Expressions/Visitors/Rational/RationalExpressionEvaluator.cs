@@ -101,4 +101,10 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     public virtual void Visit(RationalPlaceholderExpression expression)
         => throw new InvalidOperationException("Can't evaluate an expression with placeholders!");
+
+    /// <inheritdoc />
+    public virtual void Visit(RationalFloorExpression expression) => _result = expression.Expression.Value.Floor();
+
+    /// <inheritdoc />
+    public virtual void Visit(RationalCeilExpression expression) => _result = expression.Expression.Value.Ceil();
 }

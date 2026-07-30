@@ -123,4 +123,12 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(RationalPlaceholderExpression expression)
         => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(RationalFloorExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(RationalCeilExpression expression)
+        => CommonVisit(expression);
 }

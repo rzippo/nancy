@@ -292,6 +292,18 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression AbsoluteValue(string expressionName = "", ExpressionSettings? settings = null)
         => new RationalAbsoluteValueExpression(this, expressionName, settings);
 
+    /// <summary>
+    /// Adds the floor operator to the expression, $\lfloor x \rfloor$.
+    /// </summary>
+    public RationalExpression Floor(string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalFloorExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Adds the ceiling operator to the expression, $\lceil x \rceil$.
+    /// </summary>
+    public RationalExpression Ceil(string expressionName = "", ExpressionSettings? settings = null)
+        => new RationalCeilExpression(this, expressionName, settings);
+
     #region Addition
 
     /// <summary>

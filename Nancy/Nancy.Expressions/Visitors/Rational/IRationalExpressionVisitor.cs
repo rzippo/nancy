@@ -96,6 +96,14 @@ public interface IRationalExpressionVisitor : IExpressionVisitor<Rational>
     /// Visit method for the type <see cref="RationalPlaceholderExpression"/>
     /// </summary>
     public void Visit(RationalPlaceholderExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalFloorExpression"/>
+    /// </summary>
+    public void Visit(RationalFloorExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalCeilExpression"/>
+    /// </summary>
+    public void Visit(RationalCeilExpression expression);
 }
 
 /// <summary>
@@ -193,4 +201,12 @@ public interface IRationalExpressionVisitor<out TResult> : IExpressionVisitor<Ra
     /// Visit method for the type <see cref="RationalPlaceholderExpression"/>
     /// </summary>
     public TResult Visit(RationalPlaceholderExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalFloorExpression"/>
+    /// </summary>
+    public TResult Visit(RationalFloorExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="RationalCeilExpression"/>
+    /// </summary>
+    public TResult Visit(RationalCeilExpression expression);
 }
