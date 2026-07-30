@@ -72,6 +72,8 @@ public class CurveExpressionVisitors
             arrival.VerticalShift(new Rational(2)),
             arrival.Scale(new Rational(2)),
             arrival.Scale(Rational.Zero),
+            arrival.Floor(),
+            arrival.Ceil(),
         ];
 #pragma warning restore CS0618 // Type or member is obsolete
     }
@@ -102,6 +104,8 @@ public class CurveExpressionVisitors
             Expressions.Maximum(arrival, service),
             Expressions.Convolution(arrival, service),
             Expressions.Deconvolution(arrival, service),
+            arrival.Floor(),
+            arrival.Ceil(),
         ];
 #pragma warning restore CS0618 // Type or member is obsolete
     }
@@ -165,7 +169,7 @@ public class CurveExpressionVisitors
             expression.IsNonDecreasing,
             expression.IsConcave,
             expression.IsConvex,
-            expression.IsZeroAtZero
+            expression.IsPassingThroughOrigin
         );
 
         var secondRead = (
@@ -176,7 +180,7 @@ public class CurveExpressionVisitors
             expression.IsNonDecreasing,
             expression.IsConcave,
             expression.IsConvex,
-            expression.IsZeroAtZero
+            expression.IsPassingThroughOrigin
         );
 
         Assert.Equal(firstRead, secondRead);
@@ -195,7 +199,7 @@ public class CurveExpressionVisitors
         Assert.Equal(curve.IsNonDecreasing, expression.IsNonDecreasing);
         Assert.Equal(curve.IsConcave, expression.IsConcave);
         Assert.Equal(curve.IsConvex, expression.IsConvex);
-        Assert.Equal(curve.ValueAt(Rational.Zero) == Rational.Zero, expression.IsZeroAtZero);
+        Assert.Equal(curve.ValueAt(Rational.Zero) == Rational.Zero, expression.IsPassingThroughOrigin);
     }
 
     [Fact]
@@ -209,8 +213,161 @@ public class CurveExpressionVisitors
         Assert.True(arrival.ToLowerNonDecreasing().IsNonDecreasing);
         Assert.True(arrival.ToLeftContinuous().IsLeftContinuous);
         Assert.True(arrival.ToRightContinuous().IsRightContinuous);
-        Assert.True(arrival.WithZeroOrigin().IsZeroAtZero);
+        Assert.True(arrival.WithZeroOrigin().IsPassingThroughOrigin);
         Assert.True(service.SubAdditiveClosure().IsSubAdditive);
+    }
+
+    [Theory]
+    [MemberData(nameof(CurveExpressionTestCases))]
+    public void CurveAnalysisVisitorsReturnStableValuesForNewProperties(CurveExpression expression)
+    {
+        var firstRead = (
+            expression.IsSuperAdditive,
+            expression.IsIncreasing,
+            expression.IsContinuous,
+            expression.IsUltimatelyFinite,
+            expression.IsPlain,
+            expression.IsUltimatelyPlain,
+            expression.IsUltimatelyAffine,
+            expression.IsUltimatelyConstant,
+            expression.IsRegularSubAdditive,
+            expression.IsRegularSuperAdditive,
+            expression.IsRegularConcave,
+            expression.IsRegularConvex
+        );
+
+        var secondRead = (
+            expression.IsSuperAdditive,
+            expression.IsIncreasing,
+            expression.IsContinuous,
+            expression.IsUltimatelyFinite,
+            expression.IsPlain,
+            expression.IsUltimatelyPlain,
+            expression.IsUltimatelyAffine,
+            expression.IsUltimatelyConstant,
+            expression.IsRegularSubAdditive,
+            expression.IsRegularSuperAdditive,
+            expression.IsRegularConcave,
+            expression.IsRegularConvex
+        );
+
+        Assert.Equal(firstRead, secondRead);
+    }
+
+    [Fact]
+    public void CurveAnalysisVisitorsMatchConcreteCurveNewProperties()
+    {
+        var curve = new RateLatencyServiceCurve(rate: 3, latency: 1);
+        var expression = curve.ToExpression("s");
+
+        Assert.Equal(curve.IsSuperAdditive, expression.IsSuperAdditive);
+        Assert.Equal(curve.IsIncreasing, expression.IsIncreasing);
+        Assert.Equal(curve.IsContinuous, expression.IsContinuous);
+        Assert.Equal(curve.IsUltimatelyFinite, expression.IsUltimatelyFinite);
+        Assert.Equal(curve.IsPlain, expression.IsPlain);
+        Assert.Equal(curve.IsUltimatelyPlain, expression.IsUltimatelyPlain);
+        Assert.Equal(curve.IsUltimatelyAffine, expression.IsUltimatelyAffine);
+        Assert.Equal(curve.IsUltimatelyConstant, expression.IsUltimatelyConstant);
+        Assert.Equal(curve.IsRegularSubAdditive, expression.IsRegularSubAdditive);
+        Assert.Equal(curve.IsRegularSuperAdditive, expression.IsRegularSuperAdditive);
+        Assert.Equal(curve.IsRegularConcave, expression.IsRegularConcave);
+        Assert.Equal(curve.IsRegularConvex, expression.IsRegularConvex);
+    }
+
+    [Fact]
+    public void IsSuperAdditiveVisitorAppliesKnownClosureShortcuts()
+    {
+        var rl = new RateLatencyServiceCurve(rate: 2, latency: 3);
+        var rl2 = new RateLatencyServiceCurve(rate: 1, latency: 1);
+        var arrivalCurve = new SigmaRhoArrivalCurve(sigma: 2, rho: 1);
+        var rlExpr = rl.ToExpression("rl");
+        var rl2Expr = rl2.ToExpression("rl2");
+        var arrivalExpr = arrivalCurve.ToExpression("a");
+
+        // Negation swaps sub-/super-additivity.
+        Assert.Equal(arrivalCurve.Negate().IsSuperAdditive, (-arrivalExpr).IsSuperAdditive);
+
+        // The super-additive closure is always super-additive.
+        Assert.True(rlExpr.SuperAdditiveClosure().IsSuperAdditive);
+
+        // The sum of super-additive curves is super-additive.
+        var sum = rlExpr.Addition(rl2Expr);
+        Assert.Equal(Curve.Addition(rl, rl2).IsSuperAdditive, sum.IsSuperAdditive);
+
+        // The (max,+) convolution of super-additive curves is super-additive.
+        var maxPlusConv = rlExpr.MaxPlusConvolution(rl2Expr);
+        Assert.Equal(Curve.MaxPlusConvolution(rl, rl2).IsSuperAdditive, maxPlusConv.IsSuperAdditive);
+    }
+
+    [Fact]
+    public void IsIncreasingVisitorMatchesGroundTruthAcrossShortcutPaths()
+    {
+        var rl = new RateLatencyServiceCurve(rate: 2, latency: 3);
+        var rlExpr = rl.ToExpression("rl");
+
+        // Flat-then-increasing curve is not (strictly) increasing.
+        Assert.Equal(rl.IsIncreasing, rlExpr.IsIncreasing);
+        Assert.False(rlExpr.IsIncreasing);
+
+        // Negation of a non-increasing curve requires falling back to computation, still correct.
+        Assert.Equal(rl.Negate().IsIncreasing, (-rlExpr).IsIncreasing);
+
+        // A pure time shift does not change whether a curve is increasing.
+        var delayed = rlExpr.DelayBy(new Rational(2));
+        Assert.Equal(rl.DelayBy(new Rational(2)).IsIncreasing, delayed.IsIncreasing);
+    }
+
+    [Fact]
+    public void UltimateShapePropertiesArePreservedUnderShiftsAndScaling()
+    {
+        var constantCurve = new ConstantCurve(7);
+        var constantExpr = constantCurve.ToExpression("c");
+
+        var delayed = constantExpr.DelayBy(new Rational(4));
+        var shifted = constantExpr.VerticalShift(new Rational(-3));
+        var scaled = constantExpr.Scale(new Rational(5));
+        var negated = -constantExpr;
+        var withZeroOrigin = constantExpr.WithZeroOrigin();
+
+        Assert.Equal(constantCurve.DelayBy(new Rational(4)).IsUltimatelyConstant, delayed.IsUltimatelyConstant);
+        Assert.Equal(constantCurve.VerticalShift(new Rational(-3)).IsUltimatelyConstant, shifted.IsUltimatelyConstant);
+        Assert.Equal(constantCurve.Scale(new Rational(5)).IsUltimatelyConstant, scaled.IsUltimatelyConstant);
+        Assert.Equal(constantCurve.Negate().IsUltimatelyConstant, negated.IsUltimatelyConstant);
+        Assert.Equal(constantCurve.WithZeroOrigin().IsUltimatelyConstant, withZeroOrigin.IsUltimatelyConstant);
+
+        Assert.True(delayed.IsUltimatelyFinite);
+        Assert.True(delayed.IsPlain);
+        Assert.True(delayed.IsUltimatelyPlain);
+        Assert.True(delayed.IsUltimatelyAffine);
+
+        // Floor/Ceil of an ultimately-constant tail is still ultimately constant.
+        var floored = constantExpr.Floor();
+        var ceiled = constantExpr.Ceil();
+        Assert.Equal(constantCurve.Floor().IsUltimatelyConstant, floored.IsUltimatelyConstant);
+        Assert.Equal(constantCurve.Ceil().IsUltimatelyConstant, ceiled.IsUltimatelyConstant);
+    }
+
+    [Fact]
+    public void FloorAndCeilPreserveNonNegativeAndNonDecreasingButFallBackForContinuity()
+    {
+        var arrival = new SigmaRhoArrivalCurve(sigma: 2, rho: 1);
+        var arrivalExpr = arrival.ToExpression("a");
+        var nonNegativeNonDecreasing = arrivalExpr.ToNonNegative().ToUpperNonDecreasing();
+        var nonNegativeNonDecreasingCurve = arrival.ToNonNegative().ToUpperNonDecreasing();
+
+        var floored = nonNegativeNonDecreasing.Floor();
+        var ceiled = nonNegativeNonDecreasing.Ceil();
+
+        Assert.True(floored.IsNonNegative);
+        Assert.True(floored.IsNonDecreasing);
+        Assert.True(ceiled.IsNonNegative);
+        Assert.True(ceiled.IsNonDecreasing);
+
+        // No shortcut is applied for continuity; the visitor must fall back to computation, and still be correct.
+        Assert.Equal(nonNegativeNonDecreasingCurve.Floor().IsLeftContinuous, floored.IsLeftContinuous);
+        Assert.Equal(nonNegativeNonDecreasingCurve.Floor().IsRightContinuous, floored.IsRightContinuous);
+        Assert.Equal(nonNegativeNonDecreasingCurve.Ceil().IsLeftContinuous, ceiled.IsLeftContinuous);
+        Assert.Equal(nonNegativeNonDecreasingCurve.Ceil().IsRightContinuous, ceiled.IsRightContinuous);
     }
 
     [Theory]
@@ -323,8 +480,15 @@ public class CurveExpressionVisitors
         Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsNonDecreasing);
         Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsConcave);
         Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsConvex);
-        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsZeroAtZero);
+        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsPassingThroughOrigin);
         Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsWellDefined);
+        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsSuperAdditive);
+        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsIncreasing);
+        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsUltimatelyFinite);
+        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsPlain);
+        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsUltimatelyPlain);
+        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsUltimatelyAffine);
+        Assert.Throws<InvalidOperationException>(() => Expressions.Placeholder("p").IsUltimatelyConstant);
     }
 
     [Fact]

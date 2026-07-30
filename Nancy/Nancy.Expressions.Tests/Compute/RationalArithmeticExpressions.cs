@@ -168,4 +168,59 @@ public class RationalArithmeticExpressions
         Assert.IsType<RationalProductExpression>(expression);
         Assert.Equal(numbers.Aggregate(Rational.One, (product, number) => product * number), expression.Compute());
     }
+
+    public static List<Rational> FloorCeilCases =
+    [
+        new Rational(5, 2),
+        new Rational(-5, 2),
+        new Rational(4),
+    ];
+
+    public static IEnumerable<object[]> FloorCeilTestCases
+        => FloorCeilCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(FloorCeilTestCases))]
+    public void FloorExpressionComputesFloor(Rational value)
+    {
+        var expression = Expressions.Floor(value.ToExpression());
+        var concreteExpression = Expressions.Floor(value);
+        var instanceExpression = value.ToExpression().Floor();
+
+        Rational expected = value.Floor();
+
+        Assert.IsType<RationalFloorExpression>(expression);
+        Assert.IsType<RationalFloorExpression>(concreteExpression);
+        Assert.IsType<RationalFloorExpression>(instanceExpression);
+        Assert.Equal(expected, expression.Compute());
+        Assert.Equal(expected, concreteExpression.Compute());
+        Assert.Equal(expected, instanceExpression.Compute());
+    }
+
+    [Theory]
+    [MemberData(nameof(FloorCeilTestCases))]
+    public void CeilExpressionComputesCeiling(Rational value)
+    {
+        var expression = Expressions.Ceil(value.ToExpression());
+        var concreteExpression = Expressions.Ceil(value);
+        var instanceExpression = value.ToExpression().Ceil();
+
+        Rational expected = value.Ceil();
+
+        Assert.IsType<RationalCeilExpression>(expression);
+        Assert.IsType<RationalCeilExpression>(concreteExpression);
+        Assert.IsType<RationalCeilExpression>(instanceExpression);
+        Assert.Equal(expected, expression.Compute());
+        Assert.Equal(expected, concreteExpression.Compute());
+        Assert.Equal(expected, instanceExpression.Compute());
+    }
+
+    [Fact]
+    public void FloorAndCeilAgreeOnIntegerValues()
+    {
+        var value = new Rational(4);
+
+        Assert.Equal(value, Expressions.Floor(value).Compute());
+        Assert.Equal(value, Expressions.Ceil(value).Compute());
+    }
 }

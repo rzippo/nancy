@@ -70,7 +70,7 @@ public class CurveProjectionExpressions
         Assert.IsType<WithZeroOriginExpression>(expression);
         Assert.IsType<WithZeroOriginExpression>(concreteExpression);
         Assert.IsType<WithZeroOriginExpression>(instanceExpression);
-        Assert.True(expression.IsZeroAtZero);
+        Assert.True(expression.IsPassingThroughOrigin);
         Assert.True(Curve.Equivalent(expected, expression.Compute()));
         Assert.True(Curve.Equivalent(expected, concreteExpression.Compute()));
         Assert.True(Curve.Equivalent(expected, instanceExpression.Compute()));

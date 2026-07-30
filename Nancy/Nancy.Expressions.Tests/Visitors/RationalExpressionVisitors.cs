@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -13,6 +14,7 @@ public class RationalExpressionVisitors
     {
         var arrival = new SigmaRhoArrivalCurve(sigma: 2, rho: 1).ToExpression("a");
         var service = new RateLatencyServiceCurve(rate: 3, latency: 0).ToExpression("s");
+        var constant = new ConstantCurve(7).ToExpression("c");
         var x = new Rational(2).ToExpression("x");
         var y = new Rational(3).ToExpression("y");
 
@@ -35,6 +37,12 @@ public class RationalExpressionVisitors
             Expressions.FromRational(new Rational(5), "five"),
             Expressions.Negate(x),
             Expressions.Invert(y),
+            Expressions.Floor(new Rational(5, 2).ToExpression("z")),
+            Expressions.Ceil(new Rational(5, 2).ToExpression("z")),
+            arrival.SupValue(),
+            arrival.InfValue(),
+            constant.MaxValue(),
+            constant.MinValue(),
         ];
     }
 
@@ -45,12 +53,16 @@ public class RationalExpressionVisitors
     {
         var arrivalCurve = new SigmaRhoArrivalCurve(sigma: 2, rho: 1);
         var serviceCurve = new RateLatencyServiceCurve(rate: 3, latency: 0);
+        var constantCurve = new ConstantCurve(7);
         var arrival = arrivalCurve.ToExpression("a");
         var service = serviceCurve.ToExpression("s");
+        var constant = constantCurve.ToExpression("c");
         var xValue = new Rational(2);
         var yValue = new Rational(3);
+        var zValue = new Rational(5, 2);
         var x = xValue.ToExpression("x");
         var y = yValue.ToExpression("y");
+        var z = zValue.ToExpression("z");
 
         return
         [
@@ -71,6 +83,12 @@ public class RationalExpressionVisitors
             (Expressions.FromRational(new Rational(5), "five"), new Rational(5)),
             (Expressions.Negate(x), Rational.Negate(xValue)),
             (Expressions.Invert(y), Rational.Invert(yValue)),
+            (Expressions.Floor(z), zValue.Floor()),
+            (Expressions.Ceil(z), zValue.Ceil()),
+            (arrival.SupValue(), arrivalCurve.SupValue()),
+            (arrival.InfValue(), arrivalCurve.InfValue()),
+            (constant.MaxValue(), constantCurve.MaxValue() ?? throw new InvalidOperationException("Expected an attained maximum.")),
+            (constant.MinValue(), constantCurve.MinValue() ?? throw new InvalidOperationException("Expected an attained minimum.")),
         ];
     }
 
