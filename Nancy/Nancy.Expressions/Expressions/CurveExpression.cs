@@ -192,6 +192,31 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     }
 
     /// <summary>
+    /// Private cache field for <see cref="IsIncreasing"/>.
+    /// </summary>
+    internal bool? _isIncreasing;
+
+    /// <summary>
+    /// True if the curve described by the expression is (strictly) increasing. Property evaluated avoiding as much
+    /// as possible to make any computation.
+    /// </summary>
+    public bool IsIncreasing
+    {
+        get
+        {
+            return _isIncreasing ??= CheckIsIncreasing();
+
+            bool CheckIsIncreasing()
+            {
+                var isIncreasingVisitor = new IsIncreasingVisitor();
+                Accept(isIncreasingVisitor);
+
+                return isIncreasingVisitor.IsIncreasing;
+            }
+        }
+    }
+
+    /// <summary>
     /// Private cache field for <see cref="IsConcave"/>.
     /// </summary>
     internal bool? _isConcave;
