@@ -17,7 +17,7 @@ public class ConvolutionWithConcaveFunctions : Equivalence
     {
         AddHypothesis("f", f => f.IsConcave);
         AddHypothesis("g", g => g.IsConcave);
-        AddHypothesis("f", f => f.IsZeroAtZero);
-        AddHypothesis("g", g => g.IsZeroAtZero);
+        AddHypothesis("f", f => f.IsPassingThroughOrigin);
+        AddHypothesis("g", g => g.IsPassingThroughOrigin);
     }
 }

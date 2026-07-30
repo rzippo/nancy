@@ -224,7 +224,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
     {
         return (Predicate<CurveExpression>)Property;
 
-        bool Property(CurveExpression expression) => expression.IsZeroAtZero;
+        bool Property(CurveExpression expression) => expression.IsPassingThroughOrigin;
     }
 
     /// <inheritdoc /> 

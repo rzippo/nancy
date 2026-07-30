@@ -14,6 +14,6 @@ public class SelfConvolutionSubAdditive : Equivalence
         new CurvePlaceholderExpression("f"))
     {
         AddHypothesis("f", f => f.IsSubAdditive);
-        AddHypothesis("f", f => f.IsZeroAtZero);
+        AddHypothesis("f", f => f.IsPassingThroughOrigin);
     }
 }

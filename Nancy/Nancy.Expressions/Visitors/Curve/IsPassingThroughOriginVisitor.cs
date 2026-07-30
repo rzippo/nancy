@@ -1,4 +1,3 @@
-using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
@@ -6,24 +5,27 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Visitors;
 
 /// <summary>
-/// Visitor used to check the concavity of the value of a curve expression. Implemented minimizing the amount of
-/// computations.
+/// Visitor used to check whether the value of a curve expression passes through the origin, i.e. $f(0) = 0$.
+/// Implemented minimizing the amount of computations.
 /// </summary>
-public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
+/// <remarks>
+/// Replaces the former <c>IsZeroAtZeroVisitor</c>, renamed for consistency with <see cref="Curve.IsPassingThroughOrigin"/>.
+/// </remarks>
+public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
 {
     /// <summary>
     /// Field used as intermediate and final result of the visitor
     /// </summary>
-    public bool IsZeroAtZero;
+    public bool IsPassingThroughOrigin;
 
     /// <inheritdoc />
     public virtual void Visit(ConcreteCurveExpression expression)
         =>
-        IsZeroAtZero = expression.Value.IsZeroAtZero();
+        IsPassingThroughOrigin = expression.Value.IsPassingThroughOrigin;
 
     private void _throughCurveComputation(IGenericExpression<Curve> expression)
         =>
-        IsZeroAtZero = expression.Compute().IsZeroAtZero();
+        IsPassingThroughOrigin = expression.Compute().IsPassingThroughOrigin;
 
     /// <inheritdoc />
     public virtual void Visit(NegateExpression expression)
@@ -31,16 +33,16 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression)
-        => IsZeroAtZero = expression.Expression.Compute().ValueAt(Rational.Zero) <= Rational.Zero;
+        => IsPassingThroughOrigin = expression.Expression.Compute().ValueAt(Rational.Zero) <= Rational.Zero;
 
     /// <inheritdoc />
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
         // The SAC is 0 in 0 only if the argument is >= 0 in 0
         expression.Expression.Accept(this);
-        if (!IsZeroAtZero)
+        if (!IsPassingThroughOrigin)
         {
-            IsZeroAtZero = expression.Expression.Value.ValueAt(Rational.Zero) > Rational.Zero;
+            IsPassingThroughOrigin = expression.Expression.Value.ValueAt(Rational.Zero) > Rational.Zero;
         }
     }
 
@@ -66,11 +68,11 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(WithZeroOriginExpression expression)
-        => IsZeroAtZero = true;
+        => IsPassingThroughOrigin = true;
 
     /// <inheritdoc />
     public virtual void Visit(WithOriginAtExpression expression)
-        => IsZeroAtZero = expression.OriginValue == Rational.Zero;
+        => IsPassingThroughOrigin = expression.OriginValue == Rational.Zero;
 
     /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
@@ -86,23 +88,23 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
         foreach (var e in expression.Expressions)
         {
             e.Accept(this);
-            if (!IsZeroAtZero)
+            if (!IsPassingThroughOrigin)
                 break;
         }
 
-        if (!IsZeroAtZero) _throughCurveComputation(expression);
+        if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
     public virtual void Visit(SubtractionExpression expression)
     {
         expression.LeftExpression.Accept(this);
-        if (IsZeroAtZero)
+        if (IsPassingThroughOrigin)
         {
             expression.RightExpression.Accept(this);
         }
 
-        if (!IsZeroAtZero) _throughCurveComputation(expression);
+        if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
@@ -111,11 +113,11 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
         foreach (var e in expression.Expressions)
         {
             e.Accept(this);
-            if (!IsZeroAtZero)
+            if (!IsPassingThroughOrigin)
                 break;
         }
 
-        if (!IsZeroAtZero) _throughCurveComputation(expression);
+        if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
@@ -124,11 +126,11 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
         foreach (var e in expression.Expressions)
         {
             e.Accept(this);
-            if (!IsZeroAtZero)
+            if (!IsPassingThroughOrigin)
                 break;
         }
 
-        if (!IsZeroAtZero) _throughCurveComputation(expression);
+        if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
@@ -174,7 +176,7 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
     {
-        if (expression.RightExpression.Compute() == 0) IsZeroAtZero = true;
+        if (expression.RightExpression.Compute() == 0) IsPassingThroughOrigin = true;
         else expression.LeftExpression.Accept(this);
     }
 
@@ -183,7 +185,7 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
     public virtual void Visit(FloorExpression expression)
     {
         expression.Expression.Accept(this);
-        if (!IsZeroAtZero) _throughCurveComputation(expression);
+        if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
@@ -191,6 +193,6 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
     public virtual void Visit(CeilExpression expression)
     {
         expression.Expression.Accept(this);
-        if (!IsZeroAtZero) _throughCurveComputation(expression);
+        if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
     }
 }

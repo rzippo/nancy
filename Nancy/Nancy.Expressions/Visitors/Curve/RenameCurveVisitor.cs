@@ -40,6 +40,7 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
             _isSubAdditive = expression._isSubAdditive,
             _isSuperAdditive = expression._isSuperAdditive,
             _isIncreasing = expression._isIncreasing,
+            _isPassingThroughOrigin = expression._isPassingThroughOrigin,
         };
     }
 

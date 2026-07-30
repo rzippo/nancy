@@ -1,21 +1,10 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
-using Unipi.Nancy.Numerics;
-
-namespace Unipi.Nancy.Expressions.ExpressionsUtility;
+﻿namespace Unipi.Nancy.Expressions.ExpressionsUtility;
 
 /// <summary>
 /// Class containing extension methods
 /// </summary>
 public static class ExtensionMethods
 {
-    /// <summary>
-    /// Extension method for the class <see cref="Curve"/>, which returns true if the curve is 0 in 0.
-    /// </summary>
-    public static bool IsZeroAtZero(this Curve curve)
-    {
-        return curve.ValueAt(Rational.Zero) == Rational.Zero;
-    }
-
     /// <summary>
     /// Returns all the different subsets of <paramref name="length"/> elements from a list.
     /// </summary>

@@ -267,26 +267,26 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     }
 
     /// <summary>
-    /// Private cache field for <see cref="IsZeroAtZero"/>.
+    /// Private cache field for <see cref="IsPassingThroughOrigin"/>.
     /// </summary>
-    internal bool? _isZeroAtZero;
+    internal bool? _isPassingThroughOrigin;
 
     /// <summary>
-    /// True if the curve f described by the expression is 0 in 0 (f(0) = 0). Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if the curve $f$ described by the expression passes through the origin, i.e. $f(0) = 0$. Property
+    /// evaluated avoiding as much as possible to make any computation.
     /// </summary>
-    public bool IsZeroAtZero
+    public bool IsPassingThroughOrigin
     {
         get
         {
-            return _isZeroAtZero ??= CheckIsZeroAtZero();
+            return _isPassingThroughOrigin ??= CheckIsPassingThroughOrigin();
 
-            bool CheckIsZeroAtZero()
+            bool CheckIsPassingThroughOrigin()
             {
-                var isZeroAtZeroVisitor = new IsZeroAtZeroVisitor();
-                Accept(isZeroAtZeroVisitor);
+                var isPassingThroughOriginVisitor = new IsPassingThroughOriginVisitor();
+                Accept(isPassingThroughOriginVisitor);
 
-                return isZeroAtZeroVisitor.IsZeroAtZero;
+                return isPassingThroughOriginVisitor.IsPassingThroughOrigin;
             }
         }
     }

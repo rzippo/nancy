@@ -17,8 +17,8 @@ public class ConvSubAdditiveAsSelfConvMinimum : Equivalence
     {
         AddHypothesis("f", f => f.IsSubAdditive);
         AddHypothesis("g", g => g.IsSubAdditive);
-        AddHypothesis("f", f => f.IsZeroAtZero);
-        AddHypothesis("g", g => g.IsZeroAtZero);
+        AddHypothesis("f", f => f.IsPassingThroughOrigin);
+        AddHypothesis("g", g => g.IsPassingThroughOrigin);
         AddHypothesis("f", "g", (f, g) => f.Convolution(g).IsWellDefined);
     }
 }
