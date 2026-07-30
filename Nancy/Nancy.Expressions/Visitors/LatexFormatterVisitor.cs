@@ -818,6 +818,22 @@ public partial class LatexFormatterVisitor :
     }
 
     /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SupValueExpression expression)
+        => VisitUnaryPrefix(expression, @"\sup");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(InfValueExpression expression)
+        => VisitUnaryPrefix(expression, @"\inf");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MaxValueExpression expression)
+        => VisitUnaryPrefix(expression, @"\max");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MinValueExpression expression)
+        => VisitUnaryPrefix(expression, @"\min");
+
+    /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalModuloExpression expression)
         => VisitBinaryInfix(expression, @" \bmod ");
 

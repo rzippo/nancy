@@ -955,6 +955,60 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     #endregion Sampling
 
+    #region Extrema
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum value attained by the curve expression, $\sup_{t \ge 0} f(t)$.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Curve.SupValue"/>
+    public RationalExpression SupValue(string expressionName = "", ExpressionSettings? settings = null)
+        => new SupValueExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum value attained by the curve expression, $\inf_{t \ge 0} f(t)$.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Curve.InfValue"/>
+    public RationalExpression InfValue(string expressionName = "", ExpressionSettings? settings = null)
+        => new InfValueExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value attained by the curve expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not
+    /// attain a maximum (i.e., its supremum is not attained by any point of the curve); use <see cref="SupValue"/>
+    /// if the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Curve.MaxValue"/>
+    public RationalExpression MaxValue(string expressionName = "", ExpressionSettings? settings = null)
+        => new MaxValueExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value attained by the curve expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not
+    /// attain a minimum (i.e., its infimum is not attained by any point of the curve); use <see cref="InfValue"/>
+    /// if the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Curve.MinValue"/>
+    public RationalExpression MinValue(string expressionName = "", ExpressionSettings? settings = null)
+        => new MinValueExpression(this, expressionName, settings);
+
+    #endregion Extrema
+
     /// <inheritdoc />
     public Curve Compute() => _value ??= new CurveExpressionEvaluator().GetResult(this);
 

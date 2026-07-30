@@ -107,4 +107,22 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(RationalCeilExpression expression) => _result = expression.Expression.Value.Ceil();
+
+    /// <inheritdoc />
+    public virtual void Visit(SupValueExpression expression) => _result = expression.Expression.Value.SupValue();
+
+    /// <inheritdoc />
+    public virtual void Visit(InfValueExpression expression) => _result = expression.Expression.Value.InfValue();
+
+    /// <inheritdoc />
+    public virtual void Visit(MaxValueExpression expression)
+        => _result = expression.Expression.Value.MaxValue() ??
+                     throw new InvalidOperationException(
+                         "The curve does not attain a maximum value (its supremum is not attained); use SupValue() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(MinValueExpression expression)
+        => _result = expression.Expression.Value.MinValue() ??
+                     throw new InvalidOperationException(
+                         "The curve does not attain a minimum value (its infimum is not attained); use InfValue() instead.");
 }

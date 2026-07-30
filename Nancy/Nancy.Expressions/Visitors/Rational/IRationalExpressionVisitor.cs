@@ -104,6 +104,22 @@ public interface IRationalExpressionVisitor : IExpressionVisitor<Rational>
     /// Visit method for the type <see cref="RationalCeilExpression"/>
     /// </summary>
     public void Visit(RationalCeilExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="SupValueExpression"/>
+    /// </summary>
+    public void Visit(SupValueExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="InfValueExpression"/>
+    /// </summary>
+    public void Visit(InfValueExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="MaxValueExpression"/>
+    /// </summary>
+    public void Visit(MaxValueExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="MinValueExpression"/>
+    /// </summary>
+    public void Visit(MinValueExpression expression);
 }
 
 /// <summary>
@@ -209,4 +225,20 @@ public interface IRationalExpressionVisitor<out TResult> : IExpressionVisitor<Ra
     /// Visit method for the type <see cref="RationalCeilExpression"/>
     /// </summary>
     public TResult Visit(RationalCeilExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="SupValueExpression"/>
+    /// </summary>
+    public TResult Visit(SupValueExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="InfValueExpression"/>
+    /// </summary>
+    public TResult Visit(InfValueExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="MaxValueExpression"/>
+    /// </summary>
+    public TResult Visit(MaxValueExpression expression);
+    /// <summary>
+    /// Visit method for the type <see cref="MinValueExpression"/>
+    /// </summary>
+    public TResult Visit(MinValueExpression expression);
 }

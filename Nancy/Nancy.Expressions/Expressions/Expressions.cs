@@ -854,6 +854,82 @@ public static class Expressions
 
     #endregion ZDeviation
 
+    #region SupValue
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum value attained by the curve expression passed as argument.
+    /// </summary>
+    public static RationalExpression SupValue(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.SupValue(expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum value attained by the curve passed as argument (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    public static RationalExpression SupValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SupValueExpression(curve, name, expressionName, settings);
+
+    #endregion SupValue
+
+    #region InfValue
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum value attained by the curve expression passed as argument.
+    /// </summary>
+    public static RationalExpression InfValue(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.InfValue(expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum value attained by the curve passed as argument (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    public static RationalExpression InfValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new InfValueExpression(curve, name, expressionName, settings);
+
+    #endregion InfValue
+
+    #region MaxValue
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value attained by the curve expression passed as argument.
+    /// </summary>
+    public static RationalExpression MaxValue(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.MaxValue(expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value attained by the curve passed as argument (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    public static RationalExpression MaxValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MaxValueExpression(curve, name, expressionName, settings);
+
+    #endregion MaxValue
+
+    #region MinValue
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value attained by the curve expression passed as argument.
+    /// </summary>
+    public static RationalExpression MinValue(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.MinValue(expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value attained by the curve passed as argument (internally
+    /// converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    public static RationalExpression MinValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MinValueExpression(curve, name, expressionName, settings);
+
+    #endregion MinValue
+
     #region DelayBy
 
     /// <summary>
