@@ -38,6 +38,7 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
             // it is safe to explicitly copy over the cache fields
             _value = expression._value,
             _isSubAdditive = expression._isSubAdditive,
+            _isSuperAdditive = expression._isSuperAdditive,
         };
     }
 

@@ -67,6 +67,31 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     }
 
     /// <summary>
+    /// Private cache field for <see cref="IsSuperAdditive"/>.
+    /// </summary>
+    internal bool? _isSuperAdditive;
+
+    /// <summary>
+    /// True if the curve described by the expression is super-additive. Property evaluated avoiding as much as
+    /// possible to make any computation.
+    /// </summary>
+    public bool IsSuperAdditive
+    {
+        get
+        {
+            return _isSuperAdditive ??= CheckIsSuperAdditive();
+
+            bool CheckIsSuperAdditive()
+            {
+                var isSuperAdditiveVisitor = new IsSuperAdditiveVisitor();
+                Accept(isSuperAdditiveVisitor);
+
+                return isSuperAdditiveVisitor.IsSuperAdditive;
+            }
+        }
+    }
+
+    /// <summary>
     /// Private cache field for <see cref="IsLeftContinuous"/>.
     /// </summary>
     internal bool? _isLeftContinuous;
