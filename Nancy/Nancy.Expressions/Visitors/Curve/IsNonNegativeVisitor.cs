@@ -214,4 +214,20 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
         if (expression.RightExpression.Compute() > 0) expression.LeftExpression.Accept(this);
         else _throughCurveComputation(expression);
     }
+
+    /// <inheritdoc />
+    /// <remarks>$\lfloor x \rfloor \ge 0$ whenever $x \ge 0$.</remarks>
+    public virtual void Visit(FloorExpression expression)
+    {
+        expression.Expression.Accept(this);
+        if (!IsNonNegative) _throughCurveComputation(expression);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>$\lceil x \rceil \ge x \ge 0$ whenever $x \ge 0$.</remarks>
+    public virtual void Visit(CeilExpression expression)
+    {
+        expression.Expression.Accept(this);
+        if (!IsNonNegative) _throughCurveComputation(expression);
+    }
 }

@@ -946,6 +946,42 @@ public partial class LatexFormatterVisitor :
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ScaleExpression expression)
         => VisitBinaryInfix(expression, @" \cdot ");
 
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(FloorExpression expression)
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
+            sb.Append(@"\lfloor ");
+            sb.Append(innerLatex);
+            sb.Append(@" \rfloor");
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(CeilExpression expression)
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
+            sb.Append(@"\lceil ");
+            sb.Append(innerLatex);
+            sb.Append(@" \rceil");
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
     /// <summary>
     /// Regular expression to detect strings which terminate with digits
     /// </summary>

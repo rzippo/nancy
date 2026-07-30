@@ -151,6 +151,16 @@ public interface ICurveExpressionVisitor : IExpressionVisitor<Curve>
     /// Visit method for the type <see cref="WithOriginAtExpression"/>
     /// </summary>
     public void Visit(WithOriginAtExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="FloorExpression"/>
+    /// </summary>
+    public void Visit(FloorExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="CeilExpression"/>
+    /// </summary>
+    public void Visit(CeilExpression expression);
 }
 
 /// <summary>
@@ -303,4 +313,14 @@ public interface ICurveExpressionVisitor<out TResult> : IExpressionVisitor<Curve
     /// Visit method for the type <see cref="WithOriginAtExpression"/>
     /// </summary>
     public TResult Visit(WithOriginAtExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="FloorExpression"/>
+    /// </summary>
+    public TResult Visit(FloorExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="CeilExpression"/>
+    /// </summary>
+    public TResult Visit(CeilExpression expression);
 }

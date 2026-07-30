@@ -149,4 +149,12 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(WithOriginAtExpression expression)
         => _result = expression.Expression.Value.WithOriginAt(expression.OriginValue);
+
+    /// <inheritdoc />
+    public virtual void Visit(FloorExpression expression)
+        => VisitUnary(expression, curve => curve.Floor());
+
+    /// <inheritdoc />
+    public virtual void Visit(CeilExpression expression)
+        => VisitUnary(expression, curve => curve.Ceil());
 }

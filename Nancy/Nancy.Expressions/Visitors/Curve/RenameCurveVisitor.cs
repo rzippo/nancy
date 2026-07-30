@@ -156,4 +156,12 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(WithOriginAtExpression expression)
         => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(FloorExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(CeilExpression expression)
+        => CommonVisit(expression);
 }

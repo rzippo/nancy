@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.Expressions.ExpressionsUtility;
+using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
@@ -17,11 +17,11 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
     public bool IsZeroAtZero;
 
     /// <inheritdoc />
-    public virtual void Visit(ConcreteCurveExpression expression) 
+    public virtual void Visit(ConcreteCurveExpression expression)
         =>
         IsZeroAtZero = expression.Value.IsZeroAtZero();
 
-    private void _throughCurveComputation(IGenericExpression<Curve> expression) 
+    private void _throughCurveComputation(IGenericExpression<Curve> expression)
         =>
         IsZeroAtZero = expression.Compute().IsZeroAtZero();
 
@@ -45,27 +45,27 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
     }
 
     /// <inheritdoc />
-    public virtual void Visit(SuperAdditiveClosureExpression expression) 
+    public virtual void Visit(SuperAdditiveClosureExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(ToUpperNonDecreasingExpression expression) 
+    public virtual void Visit(ToUpperNonDecreasingExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(ToLowerNonDecreasingExpression expression) 
+    public virtual void Visit(ToLowerNonDecreasingExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(ToLeftContinuousExpression expression) 
+    public virtual void Visit(ToLeftContinuousExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(ToRightContinuousExpression expression) 
+    public virtual void Visit(ToRightContinuousExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(WithZeroOriginExpression expression) 
+    public virtual void Visit(WithZeroOriginExpression expression)
         => IsZeroAtZero = true;
 
     /// <inheritdoc />
@@ -73,11 +73,11 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
         => IsZeroAtZero = expression.OriginValue == Rational.Zero;
 
     /// <inheritdoc />
-    public virtual void Visit(LowerPseudoInverseExpression expression) 
+    public virtual void Visit(LowerPseudoInverseExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(UpperPseudoInverseExpression expression) 
+    public virtual void Visit(UpperPseudoInverseExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
@@ -132,33 +132,33 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
     }
 
     /// <inheritdoc />
-    public virtual void Visit(ConvolutionExpression expression) 
+    public virtual void Visit(ConvolutionExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(DeconvolutionExpression expression) 
+    public virtual void Visit(DeconvolutionExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(MaxPlusConvolutionExpression expression) 
+    public virtual void Visit(MaxPlusConvolutionExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(MaxPlusDeconvolutionExpression expression) 
+    public virtual void Visit(MaxPlusDeconvolutionExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(CompositionExpression expression) 
+    public virtual void Visit(CompositionExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    public virtual void Visit(DelayByExpression expression) 
+    public virtual void Visit(DelayByExpression expression)
         => expression.LeftExpression.Accept(this);
 
     /// <inheritdoc />
-    public virtual void Visit(ForwardByExpression expression) 
+    public virtual void Visit(ForwardByExpression expression)
         => _throughCurveComputation(expression);
-    
+
     /// <inheritdoc />
     public virtual void Visit(HorizontalShiftExpression expression)
         => _throughCurveComputation(expression);
@@ -176,5 +176,21 @@ public class IsZeroAtZeroVisitor : ICurveExpressionVisitor
     {
         if (expression.RightExpression.Compute() == 0) IsZeroAtZero = true;
         else expression.LeftExpression.Accept(this);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>$\lfloor 0 \rfloor = 0$.</remarks>
+    public virtual void Visit(FloorExpression expression)
+    {
+        expression.Expression.Accept(this);
+        if (!IsZeroAtZero) _throughCurveComputation(expression);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>$\lceil 0 \rceil = 0$.</remarks>
+    public virtual void Visit(CeilExpression expression)
+    {
+        expression.Expression.Accept(this);
+        if (!IsZeroAtZero) _throughCurveComputation(expression);
     }
 }

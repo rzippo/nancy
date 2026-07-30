@@ -61,6 +61,42 @@ public static class Expressions
 
     #endregion ToNonNegative
 
+    #region Floor
+
+    /// <summary>
+    /// Adds to the expression passed as argument the operation to compute its floor, $\lfloor f(t) \rfloor$.
+    /// </summary>
+    public static CurveExpression Floor(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.Floor(expressionName, settings);
+
+    /// <summary>
+    /// Adds to the curve passed as argument the operation to compute its floor, $\lfloor f(t) \rfloor$.
+    /// </summary>
+    public static CurveExpression Floor(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new FloorExpression(curve, name, expressionName, settings);
+
+    #endregion Floor
+
+    #region Ceil
+
+    /// <summary>
+    /// Adds to the expression passed as argument the operation to compute its ceiling, $\lceil f(t) \rceil$.
+    /// </summary>
+    public static CurveExpression Ceil(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.Ceil(expressionName, settings);
+
+    /// <summary>
+    /// Adds to the curve passed as argument the operation to compute its ceiling, $\lceil f(t) \rceil$.
+    /// </summary>
+    public static CurveExpression Ceil(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new CeilExpression(curve, name, expressionName, settings);
+
+    #endregion Ceil
+
     #region SubAdditiveClosure
 
     /// <summary>

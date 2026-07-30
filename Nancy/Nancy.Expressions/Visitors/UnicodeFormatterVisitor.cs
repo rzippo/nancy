@@ -826,6 +826,42 @@ public partial class UnicodeFormatterVisitor :
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ScaleExpression expression)
         => VisitBinaryInfix(expression, "·");
 
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(FloorExpression expression)
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (inner, _) = GeneralizedAccept(expression.Expression);
+            sb.Append('⌊');
+            sb.Append(inner);
+            sb.Append('⌋');
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CeilExpression expression)
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (inner, _) = GeneralizedAccept(expression.Expression);
+            sb.Append('⌈');
+            sb.Append(inner);
+            sb.Append('⌉');
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
     /// <summary>
     /// Regular expression to detect strings which terminate with digits
     /// </summary>

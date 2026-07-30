@@ -201,4 +201,24 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
         if (expression.RightExpression.Compute() > 0) expression.LeftExpression.Accept(this);
         else _throughCurveComputation(expression);
     }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Floor is itself a non-decreasing function, so the composition with a non-decreasing curve is non-decreasing.
+    /// </remarks>
+    public virtual void Visit(FloorExpression expression)
+    {
+        expression.Expression.Accept(this);
+        if (!IsNonDecreasing) _throughCurveComputation(expression);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Ceiling is itself a non-decreasing function, so the composition with a non-decreasing curve is non-decreasing.
+    /// </remarks>
+    public virtual void Visit(CeilExpression expression)
+    {
+        expression.Expression.Accept(this);
+        if (!IsNonDecreasing) _throughCurveComputation(expression);
+    }
 }

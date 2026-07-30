@@ -183,4 +183,10 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     {
         throw new NotImplementedException();
     }
+
+    /// <inheritdoc />
+    public virtual void Visit(FloorExpression expression) => expression.Expression.Accept(this);
+
+    /// <inheritdoc />
+    public virtual void Visit(CeilExpression expression) => expression.Expression.Accept(this);
 }

@@ -150,4 +150,12 @@ public class IsSubAdditiveVisitor : ICurveExpressionVisitor
         if (expression.RightExpression.Compute() > 0) expression.LeftExpression.Accept(this);
         else _throughCurveComputation(expression);
     }
+
+    /// <inheritdoc />
+    public virtual void Visit(FloorExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(CeilExpression expression)
+        => _throughCurveComputation(expression);
 }

@@ -317,6 +317,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new ToNonNegativeExpression(this, expressionName, settings);
 
     /// <summary>
+    /// Adds the floor operator to the expression, $\lfloor f(t) \rfloor$.
+    /// </summary>
+    public CurveExpression Floor(string expressionName = "", ExpressionSettings? settings = null)
+        => new FloorExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Adds the ceiling operator to the expression, $\lceil f(t) \rceil$.
+    /// </summary>
+    public CurveExpression Ceil(string expressionName = "", ExpressionSettings? settings = null)
+        => new CeilExpression(this, expressionName, settings);
+
+    /// <summary>
     /// Adds the sub-additive closure operator to the expression.
     /// </summary>
     public CurveExpression SubAdditiveClosure(string expressionName = "", ExpressionSettings? settings = null)
@@ -940,7 +952,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         string expressionName = "",
         ExpressionSettings? settings = null)
         => new RightLimitAtExpression(this, timeExpression, expressionName, settings);
-        
+
     #endregion Sampling
 
     /// <inheritdoc />
