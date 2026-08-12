@@ -2203,7 +2203,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var sb = new StringBuilder("upp(");
             if (HasTransient)
                 sb.Append($"{TransientSequence!.ToMppgString()}, ");
-            sb.Append($"period({PseudoPeriodicSequence.ToMppgString()}), {PseudoPeriodHeight}, {PseudoPeriodLength})");
+            sb.Append($"period({PseudoPeriodicSequence.ToMppgString()}), {PseudoPeriodHeight.ToMppgString()}, {PseudoPeriodLength.ToMppgString()})");
             return sb.ToString();
         }
     }
