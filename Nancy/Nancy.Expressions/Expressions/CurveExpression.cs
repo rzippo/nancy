@@ -1453,8 +1453,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         var unicodeFormatterVisitor = new UnicodeFormatterVisitor(depth, showRationalsAsName);
         var (sb, _) = Accept(unicodeFormatterVisitor);
         var unicodeExpr = sb.ToString();
-        
+
         return unicodeExpr;
+    }
+
+    /// <inheritdoc />
+    public string ToMppgString(int depth = 20, bool showRationalsAsName = false)
+    {
+        var mppgFormatterVisitor = new MppgFormatterVisitor(depth, showRationalsAsName);
+        var (sb, _) = Accept(mppgFormatterVisitor);
+        var mppgExpr = sb.ToString();
+
+        return mppgExpr;
     }
 
     /// <summary>

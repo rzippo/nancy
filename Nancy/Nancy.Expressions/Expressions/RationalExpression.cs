@@ -121,6 +121,16 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <inheritdoc />
+    public string ToMppgString(int depth = 20, bool showRationalsAsName = false)
+    {
+        var mppgFormatterVisitor = new MppgFormatterVisitor(depth, showRationalsAsName);
+        var (sb, _) = Accept(mppgFormatterVisitor);
+        var mppgExpr = sb.ToString();
+
+        return mppgExpr;
+    }
+
+    /// <inheritdoc />
     public sealed override string ToString()
         => ToUnicodeString();
 

@@ -42,7 +42,26 @@ public interface IExpression
         int depth = 20,
         bool showRationalsAsName = false
     );
-    
+
+    /// <summary>
+    /// Returns the representation of the expression as MPPG source text, valid under syntax version 1.3.
+    /// </summary>
+    /// <param name="depth">Level of the expression tree up to which to print the expression fully expanded.</param>
+    /// <param name="showRationalsAsName">
+    /// If true, shows rational numbers with their expression name in place of their value.
+    /// </param>
+    /// <exception cref="Visitors.MppgFormattingException">
+    /// If the expression contains an operation for which the MPPG syntax has no notation.
+    /// </exception>
+    /// <remarks>
+    /// The result is a single expression, with no statement around it, and does not require the expression to be computed.
+    /// It only parses in a context where the names it uses are declared.
+    /// </remarks>
+    public string ToMppgString(
+        int depth = 20,
+        bool showRationalsAsName = false
+    );
+
     /// <summary>
     /// Represents the expression in textual format.
     /// </summary>
