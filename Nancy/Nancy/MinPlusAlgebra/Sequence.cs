@@ -740,7 +740,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
-    /// True if the first sequence is a lower bound for the second one, for their overlapping part.
+    /// True if the first sequence is a lower bound for the second one, over their overlapping part.
     /// </summary>
     public static bool operator <=(Sequence a, Sequence b)
     {
@@ -748,15 +748,17 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
-    /// True if the first sequence is a lower bound for the second one, for their overlapping part.
+    /// True if the first sequence is a lower bound for the second one, over their overlapping part.
     /// </summary>
+    /// <exception cref="ArgumentException">If the two sequences do not overlap.</exception>
     public static bool LessOrEqual(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
-        return a.Equivalent(Minimum(a, b, true, settings));
+        var minimum = Minimum(a, b, true, settings);
+        return a.CutToOverlap(minimum).Equivalent(minimum);
     }
 
     /// <summary>
-    /// True if the first curve is an upper bound for the second one, for their overlapping part.
+    /// True if the first sequence is an upper bound for the second one, over their overlapping part.
     /// </summary>
     public static bool operator >=(Sequence a, Sequence b)
     {
@@ -764,12 +766,25 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
-    /// True if the first sequence is an upper bound for the second one, for their overlapping part.
+    /// True if the first sequence is an upper bound for the second one, over their overlapping part.
     /// </summary>
+    /// <exception cref="ArgumentException">If the two sequences do not overlap.</exception>
     public static bool GreaterOrEqual(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
-        return a.Equivalent(Maximum(a, b, true, settings));
+        var maximum = Maximum(a, b, true, settings);
+        return a.CutToOverlap(maximum).Equivalent(maximum);
     }
+
+    /// <summary>
+    /// Restricts this sequence to the support of <paramref name="overlap"/>, so that the two can be compared.
+    /// </summary>
+    private Sequence CutToOverlap(Sequence overlap)
+        => Cut(
+            overlap.DefinedFrom,
+            overlap.DefinedUntil,
+            isStartIncluded: overlap.IsLeftClosed,
+            isEndIncluded: overlap.IsRightClosed
+        );
 
     /// <summary>
     /// Returns the opposite function, $g(t) = -f(t)$.
