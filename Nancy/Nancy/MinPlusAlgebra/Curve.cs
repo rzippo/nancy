@@ -4318,6 +4318,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (b.IsUltimatelyAffine)
                     return a.PseudoPeriodLength;
 
+                #if FALSE
+                // TODO: this optimization is not sound as written, so it is currently disabled.
+                // A better fix is coming soon.
+
                 //Optimization: avoid enlargement of lengths if a curve is trivially below the other
                 var maxBaseSequenceEnd = Rational.Max(a.FirstPseudoPeriodEnd, b.FirstPseudoPeriodEnd);
                 var aBaseCut = a.Cut(0, maxBaseSequenceEnd, settings: settings);
@@ -4326,6 +4330,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     return a.PseudoPeriodLength;
                 if (Sequence.LessOrEqual(bBaseCut, aBaseCut, settings) && b.PseudoPeriodSlope <= a.PseudoPeriodSlope)
                     return b.PseudoPeriodLength;
+                #endif
 
                 return Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
             }
@@ -4594,6 +4599,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (b.IsUltimatelyAffine)
                     return a.PseudoPeriodLength;
 
+                #if FALSE
+                // TODO: this optimization is not sound as written, so it is currently disabled.
+                // A better fix is coming soon.
+
                 //Optimization: avoid enlargement of lengths if a curve is trivially above the other
                 var maxBaseSequenceEnd = Rational.Max(a.FirstPseudoPeriodEnd, b.FirstPseudoPeriodEnd);
                 var aBaseCut = a.Cut(0, maxBaseSequenceEnd, settings: settings);
@@ -4602,6 +4611,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     return a.PseudoPeriodLength;
                 if (Sequence.GreaterOrEqual(bBaseCut, aBaseCut, settings) && b.PseudoPeriodSlope >= a.PseudoPeriodSlope)
                     return b.PseudoPeriodLength;
+                #endif
 
                 return Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
             }
