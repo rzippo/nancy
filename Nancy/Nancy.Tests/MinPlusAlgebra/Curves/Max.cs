@@ -241,4 +241,47 @@ public class Max
             Assert.Contains(curves, c => c.ValueAt(point.Time) == point.Value);
         }
     }
+
+    [Fact]
+    public void DifferentPeriodsSameSlope()
+    {
+        // a is above b over both base sequences, but the two have different periods: past those,
+        // they are at different phases, and b overtakes a once per least common multiple.
+        // Deciding the period of the result from that comparison left it below b from 10.5 on.
+        var a = new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                new Point(0, 1),
+                Segment.Constant(0, 9, 1),
+                new Point(9, 2),
+                new Segment(9, 10, 1, 1)
+            }),
+            pseudoPeriodStart: 9,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 1
+        );
+        var b = new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                new Point(0, -10),
+                Segment.Constant(0, 4, -10),
+                new Point(4, -3),
+                Segment.Constant(4, 6, -3),
+                new Point(6, -1),
+                Segment.Constant(6, 8, -1)
+            }),
+            pseudoPeriodStart: 6,
+            pseudoPeriodLength: 2,
+            pseudoPeriodHeight: 2
+        );
+
+        var max = Curve.Maximum(a, b);
+
+        // sampled past the least common multiple of the two periods, which is where they interleave
+        for (var quarter = 0; quarter <= 80; quarter++)
+        {
+            var t = new Rational(quarter, 4);
+            Assert.Equal(Rational.Max(a.ValueAt(t), b.ValueAt(t)), max.ValueAt(t));
+        }
+    }
 }
