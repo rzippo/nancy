@@ -130,12 +130,17 @@ public class DelayServiceCurve : SuperAdditiveCurve
     /// <inheritdoc cref="Curve.Convolution(Curve, ComputationSettings?)"/>
     public override Curve Convolution(Curve curve, ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
+
         if (Delay == 0)
             return curve;
         else if (curve is DelayServiceCurve d)
             return d.Delay == 0 ? this : new DelayServiceCurve(Delay + d.Delay);
-        else
+        else if (settings.UseDelayConvolutionShortcut && curve.IsNonDecreasing && curve.ValueAt(0) == 0)
+            // $\delta_T \otimes f = f([t - T]^+)$, for a non-decreasing $f$ with $f(0) = 0$, see [DNC18] Proposition 3.2
             return curve.DelayBy(Delay);
+        else
+            return base.Convolution(curve, settings);
     }
 
     /// <summary>
