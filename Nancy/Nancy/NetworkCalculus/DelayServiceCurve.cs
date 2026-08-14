@@ -34,7 +34,7 @@ public class DelayServiceCurve : SuperAdditiveCurve
             baseSequence: BuildSequence(delay),
             pseudoPeriodStart: delay > 0 ? 2 * delay : DefaultPeriodLength,
             pseudoPeriodLength:delay > 0 ? delay : DefaultPeriodLength,
-            pseudoPeriodHeight: Rational.PlusInfinity,
+            pseudoPeriodHeight: 0,
             doTest: false
         )
     {
