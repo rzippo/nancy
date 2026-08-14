@@ -284,4 +284,40 @@ public class Deconvolution
 
         Assert.True(result.IsMinusInfinite);
     }
+
+    public static List<Curve> DelayDeconvolutionCurves = [
+        // non-decreasing through the origin: the ForwardBy shortcut fires
+        new RateLatencyServiceCurve(2, 1),
+        // non-decreasing, f(0) = 5: the shortcut must not fire
+        new RateLatencyServiceCurve(2, 1).VerticalShift(5, false),
+        // decreasing: the shortcut must not fire
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                Point.Origin(),
+                new Segment(0, 2, 0, -2),
+                new Point(2, -4),
+                Segment.Constant(2, 3, -4)
+            }),
+            pseudoPeriodStart: 2,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        ),
+    ];
+
+    public static IEnumerable<object[]> GetDelayDeconvolutionTestCases()
+        => DelayDeconvolutionCurves.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetDelayDeconvolutionTestCases))]
+    public void DelayDeconvolution_ShortcutMatchesGeneralAlgorithm(Curve curve)
+    {
+        var delay = new DelayServiceCurve(3);
+        var settings = ComputationSettings.Default();
+
+        var withShortcut = Curve.Deconvolution(curve, delay, settings);
+        var withoutShortcut = Curve.Deconvolution(curve, delay, settings with { UseDelayDeconvolutionShortcut = false });
+
+        Assert.True(Curve.Equivalent(withShortcut, withoutShortcut));
+    }
 }
