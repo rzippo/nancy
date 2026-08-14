@@ -532,6 +532,61 @@ public class Convolution
         Assert.True(Curve.Equivalent(withShortcut, withoutShortcut));
     }
 
+    // curves that are finite only at the origin, i.e. $f(0) + \delta_0$
+    public static List<Curve> OriginCurves = [
+        new Curve(new DelayServiceCurve(0)),
+        new Curve(new DelayServiceCurve(0)).VerticalShift(5, false),
+        new Curve(new DelayServiceCurve(0)).VerticalShift(-5, false)
+    ];
+
+    public static List<Curve> OriginConvolutionCurves = [
+        new Curve(new RateLatencyServiceCurve(2, 1)),
+        Curve.Zero(),
+        // reaches $+\infty$, which the shortcut carries over unchanged
+        new Curve(new DelayServiceCurve(3)),
+        // generic UPP curve, with a period longer than the transient part
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                Point.Origin(),
+                new Segment(0, 1, 0, 2),
+                new Point(1, 4),
+                new Segment(1, 4, 4, new Rational(1, 2))
+            }),
+            pseudoPeriodStart: 1,
+            pseudoPeriodLength: 3,
+            pseudoPeriodHeight: new Rational(3, 2)
+        ),
+        // decreasing
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                Point.Origin(),
+                new Segment(0, 2, 0, -2),
+                new Point(2, -4),
+                Segment.Constant(2, 3, -4)
+            }),
+            pseudoPeriodStart: 2,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        )
+    ];
+
+    public static IEnumerable<object[]> GetOriginConvolutionTestCases()
+        => OriginCurves
+            .SelectMany(f => OriginConvolutionCurves.Select(g => (f, g)))
+            .ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetOriginConvolutionTestCases))]
+    public void OriginConvolution_ShortcutMatchesGeneralAlgorithm(Curve f, Curve g)
+    {
+        var withShortcut = Curve.Convolution(f, g, settings);
+        var withoutShortcut = Curve.Convolution(f, g, settings with { UseOriginConvolutionShortcut = false });
+
+        Assert.True(Curve.Equivalent(withShortcut, withoutShortcut));
+    }
+
     public static List<Curve> ZeroConvolutionCurves = [
         // non-decreasing through the origin: the shortcut returns the constant 0
         new RateLatencyServiceCurve(2, 1),

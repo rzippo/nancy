@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
@@ -278,6 +279,58 @@ public class MaxPlusConvolution
         Assert.True(conv.IsRightContinuous);
     }
     
+    // curves that are finite only at the origin, i.e. $f(0) - \delta_0$
+    public static List<Curve> OriginCurves = [
+        -new Curve(new DelayServiceCurve(0)),
+        (-new Curve(new DelayServiceCurve(0))).VerticalShift(5, false),
+        (-new Curve(new DelayServiceCurve(0))).VerticalShift(-5, false)
+    ];
+
+    public static List<Curve> OriginConvolutionCurves = [
+        Curve.Zero(),
+        // generic UPP curve, with a period longer than the transient part
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                Point.Origin(),
+                new Segment(0, 1, 0, 2),
+                new Point(1, 4),
+                new Segment(1, 4, 4, new Rational(1, 2))
+            }),
+            pseudoPeriodStart: 1,
+            pseudoPeriodLength: 3,
+            pseudoPeriodHeight: new Rational(3, 2)
+        ),
+        // decreasing
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                Point.Origin(),
+                new Segment(0, 2, 0, -2),
+                new Point(2, -4),
+                Segment.Constant(2, 3, -4)
+            }),
+            pseudoPeriodStart: 2,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        )
+    ];
+
+    public static IEnumerable<object[]> GetOriginConvolutionTestCases()
+        => OriginCurves
+            .SelectMany(f => OriginConvolutionCurves.Select(g => (f, g)))
+            .ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetOriginConvolutionTestCases))]
+    public void OriginConvolution_ShortcutMatchesGeneralAlgorithm(Curve f, Curve g)
+    {
+        var withShortcut = Curve.MaxPlusConvolution(f, g, settings);
+        var withoutShortcut = Curve.MaxPlusConvolution(f, g, settings with { UseOriginConvolutionShortcut = false });
+
+        Assert.True(Curve.Equivalent(withShortcut, withoutShortcut));
+    }
+
     #if ONE_SIDED_RIGHT_CONTINUITY_TH
     // The following tests show that the analogous result of [Lie17, p.134], 
     // for which it is sufficient that one of the operands is right-continuous for the (max,+) convolution to be right-continuous, 
