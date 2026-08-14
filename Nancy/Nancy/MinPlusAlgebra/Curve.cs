@@ -4910,13 +4910,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
             return f.VerticalShift(g.ValueAt(0), false);
 
-        //Checks for convolution of positive curve with zero
-        if (f.IsZero || g.IsZero)
+        // Shortcut: $0 \otimes f$, for a non-decreasing f, is constant $f(0)$
+        if (settings.UseZeroConvolutionShortcut && (f.IsZero || g.IsZero))
         {
-            if (f.IsZero && g.IsNonNegative)
-                return f;
-            if (g.IsZero && f.IsNonNegative)
-                return g;
+            if (f.IsZero && g.IsNonDecreasing)
+                return f.VerticalShift(g.ValueAt(0), false);
+            if (g.IsZero && f.IsNonDecreasing)
+                return g.VerticalShift(f.ValueAt(0), false);
         }
 
         #if DO_LOG

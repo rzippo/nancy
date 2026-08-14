@@ -159,6 +159,11 @@ public record ComputationSettings
     /// </summary>
     public bool UseSubAdditiveConvolutionOptimizations { get; set; } = true;
 
+    /// <summary>
+    /// If set, the convolution with the zero curve is shortcut to the constant value at the origin when the other operand is non-decreasing.
+    /// </summary>
+    public bool UseZeroConvolutionShortcut { get; set; } = true;
+
     /// <exclude />
     /// <summary>
     /// If set, optimized convolution of sub-additive curves is used even if the operands are not finite for any $t$.
