@@ -5769,6 +5769,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (f.PseudoPeriodSlope > g.PseudoPeriodSlope)
             return PlusInfinite();
 
+        // $f \oslash \delta_T = f(t + T)$, for a non-decreasing $f$ with $f(0) = 0$, see [DNC18] Proposition 3.2
+        if (settings.UseDelayDeconvolutionShortcut && g is DelayServiceCurve delay &&
+            f.IsNonDecreasing && f.ValueAt(0) == 0)
+            return f.ForwardBy(delay.Delay);
+
         Rational T = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart) + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
 
         Sequence fCut = f.Cut(0, T + FirstPseudoPeriodEnd, settings: settings);

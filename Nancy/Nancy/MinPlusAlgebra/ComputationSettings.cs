@@ -169,6 +169,11 @@ public record ComputationSettings
     /// </summary>
     public bool UseDelayConvolutionShortcut { get; set; } = true;
 
+    /// <summary>
+    /// If set, the deconvolution of a non-decreasing curve through the origin by a delay curve is shortcut to a horizontal shift.
+    /// </summary>
+    public bool UseDelayDeconvolutionShortcut { get; set; } = true;
+
     /// <exclude />
     /// <summary>
     /// If set, optimized convolution of sub-additive curves is used even if the operands are not finite for any $t$.
