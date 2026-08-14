@@ -496,4 +496,74 @@ public class Convolution
 
         Assert.True(Curve.Equivalent(singlePassConv, nonSinglePassConv));
     }
+
+    public static List<Curve> ZeroConvolutionCurves = [
+        // non-decreasing through the origin: the shortcut returns the constant 0
+        new RateLatencyServiceCurve(2, 1),
+        // non-decreasing, f(0) = -3: the shortcut returns the constant -3
+        new RateLatencyServiceCurve(2, 1).VerticalShift(-3, false),
+        // non-decreasing, f(0) = 5: the shortcut returns the constant 5
+        new RateLatencyServiceCurve(2, 1).VerticalShift(5, false),
+        // decreasing, f(0) = 5: the shortcut must not fire, the running infimum is f itself
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                new Point(0, 5),
+                new Segment(0, 2, 5, -2),
+                new Point(2, 1),
+                Segment.Constant(2, 3, 1)
+            }),
+            pseudoPeriodStart: 2,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        ),
+        // dips to 2 then rises: the shortcut must not fire, the running infimum follows f until its minimum
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                new Point(0, 5),
+                new Segment(0, 1, 5, -3),
+                new Point(1, 2),
+                new Segment(1, 3, 2, 3),
+                new Point(3, 8),
+                Segment.Constant(3, 4, 8)
+            }),
+            pseudoPeriodStart: 3,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        ),
+        // f(0) = 0 but dips below zero: the shortcut must not fire, the running infimum is negative
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                Point.Origin(),
+                new Segment(0, 1, 0, -3),
+                new Point(1, -3),
+                new Segment(1, 2, -3, 3),
+                new Point(2, 0),
+                Segment.Constant(2, 3, 0)
+            }),
+            pseudoPeriodStart: 2,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        ),
+    ];
+
+    public static IEnumerable<object[]> GetZeroConvolutionTestCases()
+        => ZeroConvolutionCurves.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetZeroConvolutionTestCases))]
+    public void ConvolutionWithZero_ShortcutMatchesGeneralAlgorithm(Curve curve)
+    {
+        var zero = Curve.Zero();
+
+        var withShortcut = Curve.Convolution(zero, curve, settings);
+        var withoutShortcut = Curve.Convolution(zero, curve, settings with { UseZeroConvolutionShortcut = false });
+        var reversedWithShortcut = Curve.Convolution(curve, zero, settings);
+        var reversedWithoutShortcut = Curve.Convolution(curve, zero, settings with { UseZeroConvolutionShortcut = false });
+
+        Assert.True(Curve.Equivalent(withShortcut, withoutShortcut));
+        Assert.True(Curve.Equivalent(reversedWithShortcut, reversedWithoutShortcut));
+    }
 }
