@@ -497,6 +497,41 @@ public class Convolution
         Assert.True(Curve.Equivalent(singlePassConv, nonSinglePassConv));
     }
 
+    public static List<Curve> DelayConvolutionCurves = [
+        // non-decreasing through the origin: the DelayBy shortcut fires
+        new RateLatencyServiceCurve(2, 1),
+        // non-decreasing, f(0) = 5: the shortcut must not fire
+        new RateLatencyServiceCurve(2, 1).VerticalShift(5, false),
+        // decreasing: the shortcut must not fire
+        new Curve(
+            baseSequence: new Sequence(new Element[]
+            {
+                Point.Origin(),
+                new Segment(0, 2, 0, -2),
+                new Point(2, -4),
+                Segment.Constant(2, 3, -4)
+            }),
+            pseudoPeriodStart: 2,
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 0
+        ),
+    ];
+
+    public static IEnumerable<object[]> GetDelayConvolutionTestCases()
+        => DelayConvolutionCurves.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetDelayConvolutionTestCases))]
+    public void DelayConvolution_ShortcutMatchesGeneralAlgorithm(Curve curve)
+    {
+        var delay = new DelayServiceCurve(3);
+
+        var withShortcut = Curve.Convolution(delay, curve, settings);
+        var withoutShortcut = Curve.Convolution(delay, curve, settings with { UseDelayConvolutionShortcut = false });
+
+        Assert.True(Curve.Equivalent(withShortcut, withoutShortcut));
+    }
+
     public static List<Curve> ZeroConvolutionCurves = [
         // non-decreasing through the origin: the shortcut returns the constant 0
         new RateLatencyServiceCurve(2, 1),
