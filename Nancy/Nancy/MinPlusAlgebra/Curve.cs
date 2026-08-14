@@ -4895,6 +4895,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// Base algorithm derived from [BT08] Section 4.4, with isospeed optimizations described in [ZNS23a] and [TBP]
     /// </remarks>
+    /// <exception cref="UndeterminedResultException">If one operand reaches $+\infty$ and the other $-\infty$, since their sum is undefined.</exception>
     public virtual Curve Convolution(Curve curve, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -4904,11 +4905,37 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         var f = this;
         var g = curve;
 
-        //Checks for convolution with infinite curves
-        if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-            return g.VerticalShift(f.ValueAt(0), false);
-        if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-            return f.VerticalShift(g.ValueAt(0), false);
+        // Checks for convolution with infinite curves.
+        // Note that the by-parts algorithms are only sound for finite results.
+
+        // We do not adopt the absorbing conventions i.e. $(+\infty) + (-\infty) = +\infty$ in (min,+) and $-\infty$ in (max,+) (see [DNC18] Proposition 2.1).
+        // Instead, as in [BT08] p. 7, we consider these cases not well-defined and throw.
+        if (f.BaseSequence.Elements.Any(element => element.IsPlusInfinite) &&
+                g.BaseSequence.Elements.Any(element => element.IsMinusInfinite) ||
+            f.BaseSequence.Elements.Any(element => element.IsMinusInfinite) &&
+                g.BaseSequence.Elements.Any(element => element.IsPlusInfinite))
+            throw new UndeterminedResultException(
+                "The (min,+) convolution of a curve reaching +infinity and one reaching -infinity is undefined.");
+
+        // with no opposing infinity left, an operand that is infinite everywhere decides the result
+        if (f.IsPlusInfinite || g.IsPlusInfinite)
+            return PlusInfinite();
+        if (f.IsMinusInfinite || g.IsMinusInfinite)
+            return MinusInfinite();
+
+        // An operand that takes $-\infty$ anywhere makes the result $-\infty$ from that time on.
+        if (FirstMinusInfinity(f) is not null || FirstMinusInfinity(g) is not null)
+            return ConvolutionReachingMinusInfinity();
+
+        // Shortcut: if one operand is finite only at the origin, the result is a vertical shift of the other operand.
+        // Note that the check below works because $-\infty$ is already handled above.
+        if (settings.UseOriginConvolutionShortcut)
+        {
+            if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
+                return g.VerticalShift(f.ValueAt(0), false);
+            if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
+                return f.VerticalShift(g.ValueAt(0), false);
+        }
 
         // Shortcut: $0 \otimes f$, for a non-decreasing f, is constant $f(0)$
         if (settings.UseZeroConvolutionShortcut && (f.IsZero || g.IsZero))
@@ -5031,6 +5058,69 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (settings.UseRepresentationMinimization)
                 result = result.Optimize();
             return result;
+        }
+
+        // The first time the curve is $-\infty$, and whether the value at that time is already $-\infty$
+        (Rational Time, bool IsValueInfinite)? FirstMinusInfinity(Curve curve)
+        {
+            foreach (var element in curve.BaseSequence.Elements)
+            {
+                if (element.IsMinusInfinite)
+                    return (element.StartTime, element is Point);
+            }
+
+            return null;
+        }
+
+        // Computes the convolution when an operand reaches $-\infty$, which the algorithms below cannot do arithmetic on.
+        Curve ConvolutionReachingMinusInfinity()
+        {
+            var starts = new[] { f, g }
+                .Select(FirstMinusInfinity)
+                .Where(start => start is not null)
+                .Select(start => start!.Value)
+                .ToList();
+
+            var time = starts.Min(start => start.Time);
+            var isValueInfinite = starts.Any(start => start.Time == time && start.IsValueInfinite);
+
+            // the periodic part must be infinite throughout, so it starts at the first infinite point:
+            // the same time if the value there is infinite, the next one if it is still finite
+            var periodStart = isValueInfinite ? time : time + 1;
+
+            var head = Convolution(BeforeMinusInfinity(f), BeforeMinusInfinity(g), settings);
+
+            return new Curve(
+                baseSequence: head
+                    .CutAsEnumerable(0, time, isEndIncluded: !isValueInfinite)
+                    .Fill(0, periodStart + 1, fillWith: Rational.MinusInfinity)
+                    .ToSequence(),
+                pseudoPeriodStart: periodStart,
+                pseudoPeriodLength: 1,
+                // the periodic part is $-\infty$ throughout, so the height is 0, as in Curve.MinusInfinite()
+                pseudoPeriodHeight: 0
+            );
+
+            // what a curve does from its first $-\infty$ on does not affect the result before it,
+            // so it is replaced by a finite continuation
+            Curve BeforeMinusInfinity(Curve curve)
+            {
+                var start = FirstMinusInfinity(curve);
+                if (start is null)
+                    return curve;
+
+                var (from, isInfiniteThere) = start.Value;
+
+                return new Curve(
+                    baseSequence: curve
+                        .CutAsEnumerable(0, from, isEndIncluded: !isInfiniteThere)
+                        .Fill(0, from + 1, fillWith: 0)
+                        .ToSequence(),
+                    pseudoPeriodStart: from,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                );
+            }
         }
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
@@ -5265,6 +5355,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the convolution.</returns>
     /// <remarks>Described in [BT08] Section 4.4</remarks>
+    /// <exception cref="UndeterminedResultException">If one operand reaches $+\infty$ and the other $-\infty$, since their sum is undefined.</exception>
     public static Curve Convolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Convolution(b, settings);
 
@@ -5907,6 +5998,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the max-plus convolution.</returns>
     /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 4.4</remarks>
+    /// <exception cref="UndeterminedResultException">If one operand reaches $+\infty$ and the other $-\infty$, since their sum is undefined.</exception>
     public virtual Curve MaxPlusConvolution(Curve curve, ComputationSettings? settings = null)
     {
         #if MAX_CONV_AS_NEGATIVE_MIN_CONV
@@ -5921,10 +6013,35 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         var g = curve;
 
         //Checks for convolution with infinite curves
-        if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-            return g.VerticalShift(f.ValueAt(0), false);
-        if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-            return f.VerticalShift(g.ValueAt(0), false);
+
+        // We do not adopt the absorbing conventions i.e. $(+\infty) + (-\infty) = +\infty$ in (min,+) and $-\infty$ in (max,+) (see [DNC18] Proposition 2.1).
+        // Instead, as in [BT08] p. 7, we consider these cases not well-defined and throw.
+        if (f.BaseSequence.Elements.Any(element => element.IsPlusInfinite) &&
+                g.BaseSequence.Elements.Any(element => element.IsMinusInfinite) ||
+            f.BaseSequence.Elements.Any(element => element.IsMinusInfinite) &&
+                g.BaseSequence.Elements.Any(element => element.IsPlusInfinite))
+            throw new UndeterminedResultException(
+                "The (max,+) convolution of a curve reaching +infinity and one reaching -infinity is undefined.");
+
+        // with no opposing infinity left, an operand that is infinite everywhere decides the result
+        if (f.IsMinusInfinite || g.IsMinusInfinite)
+            return MinusInfinite();
+        if (f.IsPlusInfinite || g.IsPlusInfinite)
+            return PlusInfinite();
+
+        // An operand that takes $+\infty$ anywhere makes the result $+\infty$ from that time on.
+        if (FirstPlusInfinity(f) is not null || FirstPlusInfinity(g) is not null)
+            return MaxPlusConvolutionReachingPlusInfinity();
+
+        // Shortcut: if one operand is finite only at the origin, the result is a vertical shift of the other operand.
+        // Note that the check below works because $+\infty$ is already handled above.
+        if (settings.UseOriginConvolutionShortcut)
+        {
+            if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
+                return g.VerticalShift(f.ValueAt(0), false);
+            if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
+                return f.VerticalShift(g.ValueAt(0), false);
+        }
 
         #if DO_LOG
         logger.Trace($"Computing max-plus convolution of f1 ({f.BaseSequence.Count} elements, T: {f.PseudoPeriodStart} d: {f.PseudoPeriodLength})" +
@@ -6057,6 +6174,69 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (settings.UseRepresentationMinimization)
                 result = result.Optimize();
             return result;
+        }
+
+        // The first time the curve is $+\infty$, and whether the value at that time is already $+\infty$
+        (Rational Time, bool IsValueInfinite)? FirstPlusInfinity(Curve curve)
+        {
+            foreach (var element in curve.BaseSequence.Elements)
+            {
+                if (element.IsPlusInfinite)
+                    return (element.StartTime, element is Point);
+            }
+
+            return null;
+        }
+
+        // Computes the convolution when an operand reaches $+\infty$, which the algorithms below cannot do arithmetic on.
+        Curve MaxPlusConvolutionReachingPlusInfinity()
+        {
+            var starts = new[] { f, g }
+                .Select(FirstPlusInfinity)
+                .Where(start => start is not null)
+                .Select(start => start!.Value)
+                .ToList();
+
+            var time = starts.Min(start => start.Time);
+            var isValueInfinite = starts.Any(start => start.Time == time && start.IsValueInfinite);
+
+            // the periodic part must be infinite throughout, so it starts at the first infinite point:
+            // the same time if the value there is infinite, the next one if it is still finite
+            var periodStart = isValueInfinite ? time : time + 1;
+
+            var head = MaxPlusConvolution(BeforePlusInfinity(f), BeforePlusInfinity(g), settings);
+
+            return new Curve(
+                baseSequence: head
+                    .CutAsEnumerable(0, time, isEndIncluded: !isValueInfinite)
+                    .Fill(0, periodStart + 1, fillWith: Rational.PlusInfinity)
+                    .ToSequence(),
+                pseudoPeriodStart: periodStart,
+                pseudoPeriodLength: 1,
+                // the periodic part is $+\infty$ throughout, so the height is 0, as in Curve.PlusInfinite()
+                pseudoPeriodHeight: 0
+            );
+
+            // what a curve does from its first $+\infty$ on does not affect the result before it,
+            // so it is replaced by a finite continuation
+            Curve BeforePlusInfinity(Curve curve)
+            {
+                var start = FirstPlusInfinity(curve);
+                if (start is null)
+                    return curve;
+
+                var (from, isInfiniteThere) = start.Value;
+
+                return new Curve(
+                    baseSequence: curve
+                        .CutAsEnumerable(0, from, isEndIncluded: !isInfiniteThere)
+                        .Fill(0, from + 1, fillWith: 0)
+                        .ToSequence(),
+                    pseudoPeriodStart: from,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                );
+            }
         }
 
         // Computes a partial convolution term, that is the convolution of two transient parts.
@@ -6353,6 +6533,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus convolution</returns>
     /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 4.4</remarks>
+    /// <exception cref="UndeterminedResultException">If one operand reaches $+\infty$ and the other $-\infty$, since their sum is undefined.</exception>
     public static Curve MaxPlusConvolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.MaxPlusConvolution(b, settings);
 

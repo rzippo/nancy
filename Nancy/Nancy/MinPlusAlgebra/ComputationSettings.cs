@@ -160,6 +160,12 @@ public record ComputationSettings
     public bool UseSubAdditiveConvolutionOptimizations { get; set; } = true;
 
     /// <summary>
+    /// If set, the convolution with a curve that is finite only at the origin is shortcut to a vertical shift of the other operand.
+    /// Applies to both the (min,+) and the (max,+) convolution.
+    /// </summary>
+    public bool UseOriginConvolutionShortcut { get; set; } = true;
+
+    /// <summary>
     /// If set, the convolution with the zero curve is shortcut to the constant value at the origin when the other operand is non-decreasing.
     /// </summary>
     public bool UseZeroConvolutionShortcut { get; set; } = true;

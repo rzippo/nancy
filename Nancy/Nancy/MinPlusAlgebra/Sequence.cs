@@ -2286,10 +2286,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         // If fastIteration is true, some checks are skipped - this is mainly for counting purposes.
         IEnumerable<(Element ea, Element eb)> GetElementPairs(bool fastIteration = false)
         {
+            // an element valued $+\infty$ never wins the minimum, so it is skipped;
+            // one valued $-\infty$ always does, so it is kept
             var elementPairs = f.Elements
-                .Where(ea => ea.IsFinite)
+                .Where(ea => !ea.IsPlusInfinite)
                 .SelectMany(ea => g.Elements
-                    .Where(eb => eb.IsFinite)
+                    .Where(eb => !eb.IsPlusInfinite)
                     .Where(eb => PairBeforeEnd(ea, eb))
                     .Where(eb => fastIteration || PairBelowCeiling(ea, eb))
                     .Select(eb => (a: ea, b: eb))
@@ -2559,9 +2561,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         IEnumerable<(Element ea, Element eb)> GetElementPairs()
         {
             var elementPairs = a.Elements
-                .Where(ea => ea.IsFinite)
+                .Where(ea => !ea.IsPlusInfinite)
                 .SelectMany(ea => b.Elements
-                    .Where(eb => eb.IsFinite)
+                    .Where(eb => !eb.IsPlusInfinite)
                     .Where(eb => ea.StartTime + eb.StartTime < cutEnd)
                     .Where(eb => PairBelowCeiling(ea, eb))
                     .Select(eb => (a: ea, b: eb))
@@ -2921,10 +2923,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
         IEnumerable<(Element ea, Element eb)> GetElementPairs()
         {
+            // an element valued $-\infty$ never wins the maximum, so it is skipped;
+            // one valued $+\infty$ always does, so it is kept
             var elementPairs = f.Elements
-                .Where(ea => ea.IsFinite)
+                .Where(ea => !ea.IsMinusInfinite)
                 .SelectMany(ea => g.Elements
-                    .Where(eb => eb.IsFinite)
+                    .Where(eb => !eb.IsMinusInfinite)
                     .Where(eb => PairBeforeEnd(ea, eb))
                     .Select(eb => (a: ea, b: eb))
                 );

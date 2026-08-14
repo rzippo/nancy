@@ -157,6 +157,14 @@ public class SubAdditiveCurve : Curve
     {
         settings ??= ComputationSettings.Default();
 
+        // the optimizations below decide the result through the minimum,
+        // so a pair reaching opposite infinities is left to the general algorithm, which reports it
+        if (BaseSequence.Elements.Any(element => element.IsPlusInfinite) &&
+                curve.BaseSequence.Elements.Any(element => element.IsMinusInfinite) ||
+            BaseSequence.Elements.Any(element => element.IsMinusInfinite) &&
+                curve.BaseSequence.Elements.Any(element => element.IsPlusInfinite))
+            return new SubAdditiveCurve(base.Convolution(curve, settings), false);
+
         // This implementation relies on the minimum of the two curves being correctly computed using Curve.Minimum()
         if (!Curve.IsMinimumUltimatelyPseudoPeriodic(this, curve))
             return new SubAdditiveCurve(base.Convolution(curve, settings), false);
