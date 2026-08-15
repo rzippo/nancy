@@ -129,7 +129,7 @@ public class SubAdditiveCurveTests
     public static List<SubAdditiveCurve> SubAdditiveCurves =
     [
         new FlowControlCurve(latency: 3, rate: 5, height: 2),
-        new ConstantCurve(7)
+        new SigmaRhoArrivalCurve(sigma: 7, rho: 0)
     ];
 
     public static IEnumerable<object[]> GetSubAdditiveCurves()
@@ -157,8 +157,8 @@ public class SubAdditiveCurveTests
             new FlowControlCurve(latency: 3, rate: 5, height: 5)
         ),
         (
-            new ConstantCurve(4),
-            new ConstantCurve(9)
+            new SigmaRhoArrivalCurve(sigma: 4, rho: 0),
+            new SigmaRhoArrivalCurve(sigma: 9, rho: 0)
         )
     ];
 
@@ -298,7 +298,7 @@ public class SubAdditiveCurveTests
         [
             new FlowControlCurve(latency: 3, rate: 5, height: 2),
             new FlowControlCurve(latency: 3, rate: 5, height: 5),
-            new ConstantCurve(10)
+            new SigmaRhoArrivalCurve(sigma: 10, rho: 0)
         ]
     ];
 

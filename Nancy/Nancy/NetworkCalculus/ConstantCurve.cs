@@ -8,10 +8,15 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// <summary>
 /// A constant curve, with 0 at the origin.
 /// It is equivalent to a step function with stepTime = 0.
-/// Sub-additive.
+/// Sub-additive only if the value is non-negative, which is why this type does not derive from <see cref="SubAdditiveCurve"/>.
 /// </summary>
+/// <remarks>
+/// The curve is ultimately affine, so the algorithms of [ZS23] that <see cref="SubAdditiveCurve"/> provides
+/// were measured to cost as much as the general ones on this shape.
+/// The one they did save, the sub-additive closure, is provided here instead.
+/// </remarks>
 [JsonConverter(typeof(ConstantCurveSystemJsonConverter))]
-public class ConstantCurve : SubAdditiveCurve
+public class ConstantCurve : Curve
 {
     /// <summary>
     /// Type identification constant for JSON (de)serialization. 
@@ -28,16 +33,16 @@ public class ConstantCurve : SubAdditiveCurve
     /// Constructor.
     /// </summary>
     public ConstantCurve(Rational value)
-        // the test is skipped: the property does not hold for a negative value, which this type accepts
         : base(
             baseSequence: BuildSequence(value),
             pseudoPeriodStart: DefaultPeriodLength,
             pseudoPeriodLength: DefaultPeriodLength,
-            pseudoPeriodHeight: 0,
-            doTest: false
+            pseudoPeriodHeight: 0
         )
     {
         Value = value;
+        if (!value.IsNegative)
+            _IsSubAdditive = true;
     }
 
     /// <summary>
@@ -76,6 +81,17 @@ public class ConstantCurve : SubAdditiveCurve
     }
 
     internal static readonly Rational DefaultPeriodLength = 1;
+
+    /// <inheritdoc cref="Curve.SubAdditiveClosure(ComputationSettings?)"/>
+    /// <remarks>
+    /// A non-negative constant curve is its own sub-additive closure, so the general algorithm is skipped.
+    /// </remarks>
+    public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
+    {
+        if (Value.IsNegative)
+            return base.SubAdditiveClosure(settings);
+        return new SubAdditiveCurve(this, false);
+    }
 
     /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>
     public override Curve VerticalShift(Rational shift, bool exceptOrigin = true)

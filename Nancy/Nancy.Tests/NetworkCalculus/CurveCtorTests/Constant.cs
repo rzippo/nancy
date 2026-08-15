@@ -49,14 +49,12 @@ public class Constant
     [Theory]
     [InlineData(-3)]
     [InlineData(-1)]
-    public void NegativeConstantCurve_DoesNotPassTheSubAdditiveCheck(int value)
+    public void NegativeConstantCurve_IsNotSubAdditive(Rational value)
     {
-        // the type declares itself sub-additive for any value, which a negative constant is not:
-        // the forced check is what tells the two apart
         ConstantCurve curve = new ConstantCurve(value: value);
 
-        Assert.False(curve.IsSubAdditiveCheck());
-        Assert.False(curve.IsRegularSubAdditiveCheck());
+        Assert.False(curve.IsSubAdditive);
+        Assert.False(curve.IsRegularSubAdditive);
     }
 
     [Fact]
