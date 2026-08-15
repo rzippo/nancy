@@ -140,6 +140,10 @@ public class RaisedRateLatencyServiceCurve : Curve
     /// <remarks>Optimized via known closed-form expression.</remarks>
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
+        // a negative shift is not described by a FlowControlCurve, whose steps would have a negative height
+        if (BufferShift.IsNegative)
+            return base.SubAdditiveClosure(settings);
+
         //Actual shape may not be staircase, but is guaranteed to be sub-additive
         return new FlowControlCurve(latency: Latency, rate: Rate, height: BufferShift);
     }
