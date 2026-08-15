@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -198,5 +199,17 @@ public class RaisedRateLatency
             Assert.True(closure.IsLeftContinuous);
             Assert.True(closure.PseudoPeriodSlope > 0);
         }
+    }
+
+    [Theory]
+    [InlineData(-5)]
+    [InlineData(-1)]
+    public void SubAdditiveClosure_NegativeBufferShift_DoesNotUseTheClosedForm(int bufferShift)
+    {
+        var curve = new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: bufferShift);
+
+        // the curve is negative at the origin, which Curve.SubAdditiveClosure reports rather than computes
+        Assert.True(curve.ValueAt(0) < 0);
+        Assert.Throws<InvalidOperationException>(() => curve.SubAdditiveClosure());
     }
 }
