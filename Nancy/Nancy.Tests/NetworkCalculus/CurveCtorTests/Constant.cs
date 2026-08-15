@@ -138,4 +138,30 @@ public class Constant
         Assert.True(curve.IsRegularSubAdditive);
         Assert.True(Curve.Equivalent(curve, curve.SubAdditiveClosure()));
     }
+
+    [Fact]
+    public void VerticalShift_DefaultDoesNotDependOnTheDeclaredType()
+    {
+        ConstantCurve curve = new ConstantCurve(value: 5);
+
+        var throughType = curve.VerticalShift(3);
+        var throughCurve = ((Curve)curve).VerticalShift(3);
+
+        // the origin is shifted either way, as Curve declares
+        Assert.Equal(3, throughType.ValueAt(0));
+        Assert.Equal(8, throughType.ValueAt(1));
+        Assert.True(Curve.Equivalent(throughType, throughCurve));
+    }
+
+    [Fact]
+    public void VerticalShift_ExceptOriginKeepsTheType()
+    {
+        ConstantCurve curve = new ConstantCurve(value: 5);
+
+        var shifted = curve.VerticalShift(3, exceptOrigin: true);
+
+        Assert.Equal(0, shifted.ValueAt(0));
+        Assert.Equal(8, shifted.ValueAt(1));
+        Assert.IsType<ConstantCurve>(shifted);
+    }
 }
