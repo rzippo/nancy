@@ -112,4 +112,30 @@ public class Constant
         shifted = curve.Optimize().VerticalShift(3);
         Assert.True(shifted.IsUltimatelyConstant);
     }
+
+    [Fact]
+    public void MinusInfiniteCurve()
+    {
+        ConstantCurve curve = new ConstantCurve(value: Rational.MinusInfinity);
+
+        Assert.Equal(0, curve.ValueAt(0));
+        Assert.Equal(Rational.MinusInfinity, curve.RightLimitAt(0));
+        Assert.Equal(Rational.MinusInfinity, curve.ValueAt(curve.PseudoPeriodStart));
+        Assert.Equal(Rational.MinusInfinity, curve.ValueAt(curve.SecondPseudoPeriodEnd));
+        Assert.Equal(Rational.MinusInfinity, curve.ValueAt(17));
+
+        Assert.True(curve.IsPlain);
+        Assert.True(Curve.Equivalent(curve, Curve.MinusInfinite().WithOriginAt(0)));
+    }
+
+    [Fact]
+    public void MinusInfiniteCurve_IsItsOwnSubAdditiveClosure()
+    {
+        // at -infinity both f(t+s) and f(t) + f(s) are -infinity, so the property holds
+        ConstantCurve curve = new ConstantCurve(value: Rational.MinusInfinity);
+
+        Assert.True(curve.IsSubAdditive);
+        Assert.True(curve.IsRegularSubAdditive);
+        Assert.True(Curve.Equivalent(curve, curve.SubAdditiveClosure()));
+    }
 }
