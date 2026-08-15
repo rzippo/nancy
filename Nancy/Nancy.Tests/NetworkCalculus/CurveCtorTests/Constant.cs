@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -55,6 +56,32 @@ public class Constant
 
         Assert.False(curve.IsSubAdditive);
         Assert.False(curve.IsRegularSubAdditive);
+    }
+
+    [Theory]
+    [InlineData(-3)]
+    [InlineData(-1)]
+    public void NegativeConstantCurve_ConvolvesByTheDefinition(Rational value)
+    {
+        // the shortcut of a sub-additive curve would decide this through the minimum, giving value
+        ConstantCurve curve = new ConstantCurve(value: value);
+
+        var selfConvolution = Curve.Convolution(curve, curve);
+
+        Assert.Equal(0, selfConvolution.ValueAt(0));
+        Assert.Equal(2 * value, selfConvolution.ValueAt(1));
+        Assert.Equal(2 * value, selfConvolution.ValueAt(17));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetConstantCtorCases))]
+    public void NonNegativeConstantCurve_IsItsOwnSubAdditiveClosure(Rational value)
+    {
+        ConstantCurve curve = new ConstantCurve(value: value);
+
+        Assert.True(curve.IsSubAdditive);
+        Assert.True(curve.IsRegularSubAdditive);
+        Assert.True(Curve.Equivalent(curve, curve.SubAdditiveClosure()));
     }
 
     [Fact]
