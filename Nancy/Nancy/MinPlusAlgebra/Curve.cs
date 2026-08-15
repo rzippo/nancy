@@ -218,6 +218,28 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         this.Equivalent(MinusInfinite());
 
     /// <summary>
+    /// True if the curve has $+\infty$ value for some $t$.
+    /// </summary>
+    /// <remarks>
+    /// It is enough to look at <see cref="BaseSequence"/>, since the pseudo-periodic extension repeats its elements and adding a finite <see cref="PseudoPeriodHeight"/> does not change an infinity.
+    /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool HasPlusInfinity
+        => _hasPlusInfinity ??= BaseSequence.HasPlusInfinity;
+
+    internal bool? _hasPlusInfinity;
+
+    /// <summary>
+    /// True if the curve has $-\infty$ value for some $t$.
+    /// </summary>
+    /// <inheritdoc cref="HasPlusInfinity" path="/remarks"/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool HasMinusInfinity
+        => _hasMinusInfinity ??= BaseSequence.HasMinusInfinity;
+
+    internal bool? _hasMinusInfinity;
+
+    /// <summary>
     /// True if $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
@@ -4910,10 +4932,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         // We do not adopt the absorbing conventions i.e. $(+\infty) + (-\infty) = +\infty$ in (min,+) and $-\infty$ in (max,+) (see [DNC18] Proposition 2.1).
         // Instead, as in [BT08] p. 7, we consider these cases not well-defined and throw.
-        if (f.BaseSequence.Elements.Any(element => element.IsPlusInfinite) &&
-                g.BaseSequence.Elements.Any(element => element.IsMinusInfinite) ||
-            f.BaseSequence.Elements.Any(element => element.IsMinusInfinite) &&
-                g.BaseSequence.Elements.Any(element => element.IsPlusInfinite))
+        if (f.HasPlusInfinity && g.HasMinusInfinity ||
+            f.HasMinusInfinity && g.HasPlusInfinity)
             throw new UndeterminedResultException(
                 "The (min,+) convolution of a curve reaching +infinity and one reaching -infinity is undefined.");
 
@@ -4924,7 +4944,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return MinusInfinite();
 
         // An operand that takes $-\infty$ anywhere makes the result $-\infty$ from that time on.
-        if (FirstMinusInfinity(f) is not null || FirstMinusInfinity(g) is not null)
+        if (f.HasMinusInfinity || g.HasMinusInfinity)
             return ConvolutionReachingMinusInfinity();
 
         // Shortcut: if one operand is finite only at the origin, the result is a vertical shift of the other operand.
@@ -6016,10 +6036,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         // We do not adopt the absorbing conventions i.e. $(+\infty) + (-\infty) = +\infty$ in (min,+) and $-\infty$ in (max,+) (see [DNC18] Proposition 2.1).
         // Instead, as in [BT08] p. 7, we consider these cases not well-defined and throw.
-        if (f.BaseSequence.Elements.Any(element => element.IsPlusInfinite) &&
-                g.BaseSequence.Elements.Any(element => element.IsMinusInfinite) ||
-            f.BaseSequence.Elements.Any(element => element.IsMinusInfinite) &&
-                g.BaseSequence.Elements.Any(element => element.IsPlusInfinite))
+        if (f.HasPlusInfinity && g.HasMinusInfinity ||
+            f.HasMinusInfinity && g.HasPlusInfinity)
             throw new UndeterminedResultException(
                 "The (max,+) convolution of a curve reaching +infinity and one reaching -infinity is undefined.");
 
@@ -6030,7 +6048,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return PlusInfinite();
 
         // An operand that takes $+\infty$ anywhere makes the result $+\infty$ from that time on.
-        if (FirstPlusInfinity(f) is not null || FirstPlusInfinity(g) is not null)
+        if (f.HasPlusInfinity || g.HasPlusInfinity)
             return MaxPlusConvolutionReachingPlusInfinity();
 
         // Shortcut: if one operand is finite only at the origin, the result is a vertical shift of the other operand.

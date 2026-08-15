@@ -88,6 +88,18 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     public bool IsMinusInfinite => Elements.All(e => e.IsMinusInfinite);
 
     /// <summary>
+    /// True if any element of the sequence is plus infinite.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool HasPlusInfinity => Elements.Any(e => e.IsPlusInfinite);
+
+    /// <summary>
+    /// True if any element of the sequence is minus infinite.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool HasMinusInfinity => Elements.Any(e => e.IsMinusInfinite);
+
+    /// <summary>
     /// The first instant around which the sequence is not infinite.
     /// Does not specify whether it's inclusive or not, i.e. if $f(t)$ is finite.
     /// </summary>

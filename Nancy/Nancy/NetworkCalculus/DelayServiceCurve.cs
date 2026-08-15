@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -136,7 +135,7 @@ public class DelayServiceCurve : SuperAdditiveCurve
         // $\delta_0$ is the unit element of the (min,+) convolution, see [DNC18] Definition 3.1,
         // but an operand reaching $-\infty$ pairs it with the $+\infty$ of this curve:
         // that combination is left to the general algorithm, which reports it as undefined
-        if (Delay == 0 && !curve.BaseSequence.Elements.Any(element => element.IsMinusInfinite))
+        if (Delay == 0 && !curve.HasMinusInfinity)
             return curve;
         else if (curve is DelayServiceCurve d)
             return d.Delay == 0 ? this : new DelayServiceCurve(Delay + d.Delay);

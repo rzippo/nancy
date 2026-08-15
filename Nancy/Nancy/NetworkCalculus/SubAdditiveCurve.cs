@@ -159,10 +159,8 @@ public class SubAdditiveCurve : Curve
 
         // the optimizations below decide the result through the minimum,
         // so a pair reaching opposite infinities is left to the general algorithm, which reports it
-        if (BaseSequence.Elements.Any(element => element.IsPlusInfinite) &&
-                curve.BaseSequence.Elements.Any(element => element.IsMinusInfinite) ||
-            BaseSequence.Elements.Any(element => element.IsMinusInfinite) &&
-                curve.BaseSequence.Elements.Any(element => element.IsPlusInfinite))
+        if (HasPlusInfinity && curve.HasMinusInfinity ||
+            HasMinusInfinity && curve.HasPlusInfinity)
             return new SubAdditiveCurve(base.Convolution(curve, settings), false);
 
         // This implementation relies on the minimum of the two curves being correctly computed using Curve.Minimum()
