@@ -5994,6 +5994,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// which allows many optimizations via the <see cref="SubAdditiveCurve"/> class.
     /// For a more general implementation, see <see cref="GeneralSubAdditiveClosure"/>. 
     /// Described in [BT08] Section 4.6 as algorithm 5.
+    /// If $f(0^+) &lt; 0$ the result is $-\infty$ for any $t > 0$, and is returned without running the algorithm.
     /// </remarks>
     public virtual SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
@@ -6003,6 +6004,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (ValueAt(0) < 0)
             throw new InvalidOperationException(
                 "This method cannot compute the subadditive closure of curves with f(0) < 0. See GeneralSubAdditiveClosure instead.");
+
+        // With $f(0^+) < 0$, splitting any $t > 0$ into $k$ parts gives $k \cdot f(t/k) \to -\infty$, so the closure is $-\infty$ there.
+        // The decomposition below cannot reach that value: the closure of the first element is $-\infty$ past the origin,
+        // that of the origin is $+\infty$ past it, and their convolution reaches $(+\infty) + (-\infty)$,
+        // which is undefined unless a (min,+) convention for that sum is coded in.
+        if (RightLimitAt(0) < 0)
+            return new SubAdditiveCurve(MinusInfinite().WithOriginAt(0), false);
 
         settings ??= ComputationSettings.Default();
 
