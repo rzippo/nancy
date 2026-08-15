@@ -166,6 +166,14 @@ public record ComputationSettings
     public bool UseOriginConvolutionShortcut { get; set; } = true;
 
     /// <summary>
+    /// If set, the non-decreasing closures are computed by bounding each decreasing breakpoint, rather than through the algebraic method.
+    /// </summary>
+    /// <remarks>
+    /// Bounding the breakpoints costs with the number of decreasing breakpoints, the algebraic method with the size of the representation.
+    /// </remarks>
+    public bool UseNonDecreasingClosureOptimizations { get; set; } = true;
+
+    /// <summary>
     /// If set, the convolution with the zero curve is shortcut to the constant value at the origin when the other operand is non-decreasing.
     /// </summary>
     public bool UseZeroConvolutionShortcut { get; set; } = true;

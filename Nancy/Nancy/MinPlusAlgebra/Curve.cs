@@ -2435,16 +2435,21 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the _upper non-decreasing closure_ of this curve,
     /// i.e., the lowest curve $g(t) \ge f(t)$ so that $g(t + s) \ge g(t)$ for any $t, s \ge 0$.
     /// </summary>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
-    /// This implements the _upper non-decreasing closure_ defined in [DNC18] p. 45, although the implementation differs.
+    /// This implements the _upper non-decreasing closure_ defined in [DNC18] p. 45, whose algebraic method is $f \overline{\otimes} 0$.
+    /// The implementation used here bounds each decreasing breakpoint instead, which is faster unless most breakpoints are decreases.
+    /// See <see cref="ComputationSettings.UseNonDecreasingClosureOptimizations"/> to select the algebraic method instead.
     /// </remarks>
-    public Curve ToUpperNonDecreasing()
+    public Curve ToUpperNonDecreasing(ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
+
         if (IsNonDecreasing)
             return this;
 
-        // the following implementation is more efficient than the definition in [DNC18] p. 45, which uses the max-plus convolution,
-        // since here we add terms to the global maximum only if there actually is a decrease.
+        if (!settings.UseNonDecreasingClosureOptimizations)
+            return MaxPlusConvolution(this, Zero(), settings);
 
         // this list will contain the curve to transform plus,
         // for each breakpoint at which a decrease happens, a constant segment with the sup value at the breakpoint and $-\infty$ before it.
@@ -2463,8 +2468,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).BreakpointSupValue();
-                    curves.Add(GetLowerboundCurve(time, value));
+                    var (valueAt, valueAfter) = LowerboundValues((left, center, right));
+                    curves.Add(GetLowerboundCurve(time, valueAt, valueAfter));
                 }
             }
         }
@@ -2481,8 +2486,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).BreakpointSupValue();
-                    curves.Add(GetPeriodicLowerboundCurve(time, value));
+                    var (valueAt, valueAfter) = LowerboundValues((left, center, right));
+                    curves.Add(GetPeriodicLowerboundCurve(time, valueAt, valueAfter));
                 }
             }
         }
@@ -2498,15 +2503,25 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).BreakpointSupValue();
-                    curves.Add(GetLowerboundCurve(time, value));
+                    var (valueAt, valueAfter) = LowerboundValues((left, center, right));
+                    curves.Add(GetLowerboundCurve(time, valueAt, valueAfter));
                 }
             }
         }
 
         return Maximum(curves);
 
-        Curve GetLowerboundCurve(Rational time, Rational value)
+        // the values the closure is bounded from below by at a breakpoint and after it:
+        // the right limit is approached only after the breakpoint, so it does not bound the value at the breakpoint itself
+        (Rational At, Rational After) LowerboundValues((Segment? left, Point center, Segment? right) breakpoint)
+        {
+            var at = breakpoint.left is not null
+                ? Rational.Max(breakpoint.center.Value, breakpoint.left.LeftLimitAtEndTime)
+                : breakpoint.center.Value;
+            return (at, breakpoint.BreakpointSupValue());
+        }
+
+        Curve GetLowerboundCurve(Rational time, Rational valueAt, Rational valueAfter)
         {
             List<Element> elements;
             if (time > 0)
@@ -2515,54 +2530,57 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 {
                     Point.MinusInfinite(0),
                     Segment.MinusInfinite(0, time),
-                    new Point(time, value),
-                    new Segment(time, time + 1, value, 0)
+                    new Point(time, valueAt),
+                    new Segment(time, time + 1, valueAfter, 0),
+                    new Point(time + 1, valueAfter),
+                    new Segment(time + 1, time + 2, valueAfter, 0)
                 };
             }
             else
             {
                 elements = new()
                 {
-                    new Point(time, value),
-                    new Segment(time, time + 1, value, 0)
+                    new Point(time, valueAt),
+                    new Segment(time, time + 1, valueAfter, 0),
+                    new Point(time + 1, valueAfter),
+                    new Segment(time + 1, time + 2, valueAfter, 0)
                 };
             }
 
+            // the period starts after the breakpoint, so that its value is not repeated at each period
             return new Curve(
                 baseSequence: new Sequence(elements),
-                pseudoPeriodStart: time,
+                pseudoPeriodStart: time + 1,
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
             );
         }
 
-        Curve GetPeriodicLowerboundCurve(Rational time, Rational value)
+        Curve GetPeriodicLowerboundCurve(Rational time, Rational valueAt, Rational valueAfter)
         {
-            List<Element> elements;
+            var length = PseudoPeriodLength;
+            var height = PseudoPeriodHeight;
+
+            List<Element> elements = [];
             if (time > 0)
             {
-                elements = new()
-                {
-                    Point.MinusInfinite(0),
-                    Segment.MinusInfinite(0, time),
-                    new Point(time, value),
-                    new Segment(time, time + PseudoPeriodLength, value, 0)
-                };
-            }
-            else
-            {
-                elements = new()
-                {
-                    new Point(time, value),
-                    new Segment(time, time + PseudoPeriodLength, value, 0)
-                };
+                elements.Add(Point.MinusInfinite(0));
+                elements.Add(Segment.MinusInfinite(0, time));
             }
 
+            // the bound of a repetition applies to every time after it,
+            // so at each repetition of the breakpoint the bound is the higher of its own and the one carried over from the period before
+            elements.Add(new Point(time, valueAt));
+            elements.Add(new Segment(time, time + length, valueAfter, 0));
+            elements.Add(new Point(time + length, Rational.Max(valueAt + height, valueAfter)));
+            elements.Add(new Segment(time + length, time + 2 * length, valueAfter + height, 0));
+
+            // the period starts at the second repetition, the first one having no period before it
             return new Curve(
                 baseSequence: new Sequence(elements),
-                pseudoPeriodStart: time,
-                pseudoPeriodLength: PseudoPeriodLength,
-                pseudoPeriodHeight: PseudoPeriodHeight
+                pseudoPeriodStart: time + length,
+                pseudoPeriodLength: length,
+                pseudoPeriodHeight: height
             );
         }
     }
@@ -2571,10 +2589,26 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the _lower non-decreasing closure_ of this curve,
     /// i.e., the highest curve $g(t) \le f(t)$ so that $g(t + s) \ge g(t)$ for any $t, s \ge 0$.
     /// </summary>
-    public Curve ToLowerNonDecreasing()
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <remarks>
+    /// This implements the _lower non-decreasing closure_ introduced in [DNC18] p. 107, whose algebraic method is $f \overline{\oslash} 0$.
+    /// The implementation used here bounds each decreasing breakpoint instead, which is faster unless most breakpoints are decreases.
+    /// See <see cref="ComputationSettings.UseNonDecreasingClosureOptimizations"/> to select the algebraic method instead.
+    /// </remarks>
+    public Curve ToLowerNonDecreasing(ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
+
         if (IsNonDecreasing)
             return this;
+
+        // a curve that falls forever has an infimum of $-\infty$ over each of its tails,
+        // so the highest non-decreasing curve below it is $-\infty$ everywhere
+        if (PseudoPeriodSlope < 0)
+            return MinusInfinite();
+
+        if (!settings.UseNonDecreasingClosureOptimizations)
+            return MaxPlusDeconvolution(this, Zero(), settings);
 
         // this list will contain the curve to transform plus,
         // for each breakpoint at which a decrease ends, a constant segment with the inf value at the breakpoint and $+\infty$ after it.
@@ -2593,59 +2627,51 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 )
                 {
                     var time = center.Time;
-                    var value = (left, center, right).BreakpointInfValue();
-                    curves.Add(GetUpperboundCurve(time, value));
+                    var (valueBefore, valueAt) = UpperboundValues((left, center, right));
+                    curves.Add(GetUpperboundCurve(time, valueBefore, valueAt));
                 }
             }
         }
 
-        if(PseudoPeriodSlope > 0)
+        // a bound of this closure applies before its breakpoint,
+        // so the bounds of the periodic part must repeat with it: with a slope of 0 they repeat unchanged, and are still needed
+        foreach (var (left, center, right) in
+                 Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
         {
-            foreach (var (left, center, right) in
-                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+            if (
+                left is not null && left.LeftLimitAtEndTime > center.Value ||
+                right is not null && center.Value > right.RightLimitAtStartTime ||
+                left is not null && left.Slope < 0
+            )
             {
-                if (
-                    left is not null && left.LeftLimitAtEndTime > center.Value ||
-                    right is not null && center.Value > right.RightLimitAtStartTime ||
-                    left is not null && left.Slope < 0
-                )
-                {
-                    var time = center.Time;
-                    var value = (left, center, right).BreakpointInfValue();
-                    curves.Add(GetPeriodicUpperboundCurve(time, value));
-                }
-            }
-        }
-        else
-        {
-            foreach (var (left, center, right) in
-                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
-            {
-                if (
-                    left is not null && left.LeftLimitAtEndTime > center.Value ||
-                    right is not null && center.Value > right.RightLimitAtStartTime ||
-                    left is not null && left.Slope < 0
-                )
-                {
-                    var time = center.Time;
-                    var value = (left, center, right).BreakpointInfValue();
-                    curves.Add(GetUpperboundCurve(time, value));
-                }
+                var time = center.Time;
+                var (valueBefore, valueAt) = UpperboundValues((left, center, right));
+                curves.Add(GetPeriodicUpperboundCurve(time, valueBefore, valueAt));
             }
         }
 
         return Minimum(curves);
 
-        Curve GetUpperboundCurve(Rational time, Rational value)
+        // the values the closure is bounded from above by before a breakpoint and at it:
+        // the left limit is approached only before the breakpoint, so it does not bound the value at the breakpoint itself
+        (Rational Before, Rational At) UpperboundValues((Segment? left, Point center, Segment? right) breakpoint)
+        {
+            var at = breakpoint.right is not null
+                ? Rational.Min(breakpoint.center.Value, breakpoint.right.RightLimitAtStartTime)
+                : breakpoint.center.Value;
+            return (breakpoint.BreakpointInfValue(), at);
+        }
+
+        Curve GetUpperboundCurve(Rational time, Rational valueBefore, Rational valueAt)
         {
             List<Element> elements;
             if (time > 0)
             {
                 elements = new()
                 {
-                    new Point(0, value),
-                    Segment.Constant(0, time, value),
-                    new Point(time, value),
+                    new Point(0, valueBefore),
+                    Segment.Constant(0, time, valueBefore),
+                    new Point(time, valueAt),
                     Segment.PlusInfinite(time, time + 2)
                 };
             }
@@ -2653,7 +2679,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 elements = new()
                 {
-                    new Point(time, value),
+                    new Point(time, valueAt),
                     Segment.PlusInfinite(time, time + 2)
                 };
             }
@@ -2666,25 +2692,28 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             );
         }
 
-        Curve GetPeriodicUpperboundCurve(Rational time, Rational value)
+        Curve GetPeriodicUpperboundCurve(Rational time, Rational valueBefore, Rational valueAt)
         {
             List<Element> elements;
+            // the repetition of this breakpoint one period later bounds the value at it too,
+            // since that bound applies to every time before that repetition
+            var valueAtBreakpoint = Rational.Min(valueAt, valueBefore + PseudoPeriodHeight);
             if (time > 0)
             {
                 elements = new()
                 {
-                    new Point(0, value),
-                    Segment.Constant(0, time, value),
-                    new Point(time, value),
-                    new Segment(time, time + PseudoPeriodLength, value + PseudoPeriodHeight, 0)
+                    new Point(0, valueBefore),
+                    Segment.Constant(0, time, valueBefore),
+                    new Point(time, valueAtBreakpoint),
+                    new Segment(time, time + PseudoPeriodLength, valueBefore + PseudoPeriodHeight, 0)
                 };
             }
             else
             {
                 elements = new()
                 {
-                    new Point(time, value),
-                    new Segment(time, time + PseudoPeriodLength, value + PseudoPeriodHeight, 0)
+                    new Point(time, valueAtBreakpoint),
+                    new Segment(time, time + PseudoPeriodLength, valueBefore + PseudoPeriodHeight, 0)
                 };
             }
 
