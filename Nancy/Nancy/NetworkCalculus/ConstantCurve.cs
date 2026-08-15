@@ -128,8 +128,9 @@ public class ConstantCurve : Curve
     /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
     public override Curve Addition(Curve curve, ComputationSettings? settings = null)
     {
+        // this curve is 0 at the origin, so the sum is not raised there
         if (curve is RateLatencyServiceCurve serviceCurve)
-            return new RaisedRateLatencyServiceCurve(serviceCurve.Rate, serviceCurve.Latency, Value);
+            return new RaisedRateLatencyServiceCurve(serviceCurve.Rate, serviceCurve.Latency, Value, withZeroOrigin: true);
         else
             return base.Addition(curve, settings);
     }

@@ -12,7 +12,8 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 public class RaisedRateLatencyServiceCurveSystemJsonConverter : JsonConverter<RaisedRateLatencyServiceCurve>
 {
     // ugly hack?
-    internal record PlainRaisedRateLatencyServiceCurve(string type, Rational rate, Rational latency, Rational bufferShift);
+    // withZeroOrigin is absent from values serialized before it was introduced, and defaults to false, which is how they were built
+    internal record PlainRaisedRateLatencyServiceCurve(string type, Rational rate, Rational latency, Rational bufferShift, bool withZeroOrigin = false);
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override RaisedRateLatencyServiceCurve Read(
@@ -23,7 +24,7 @@ public class RaisedRateLatencyServiceCurveSystemJsonConverter : JsonConverter<Ra
         var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainRaisedRateLatencyServiceCurve);
         if (plain?.type != RaisedRateLatencyServiceCurve.TypeCode)
             throw new JsonException();
-        return new RaisedRateLatencyServiceCurve(plain.rate, plain.latency, plain.bufferShift);
+        return new RaisedRateLatencyServiceCurve(plain.rate, plain.latency, plain.bufferShift, plain.withZeroOrigin);
     }
 
     /// <inheritdoc cref="JsonConverter{T}.Write"/>
@@ -32,7 +33,7 @@ public class RaisedRateLatencyServiceCurveSystemJsonConverter : JsonConverter<Ra
         RaisedRateLatencyServiceCurve value,
         JsonSerializerOptions options)
     {
-        var plain = new PlainRaisedRateLatencyServiceCurve(RaisedRateLatencyServiceCurve.TypeCode, value.Rate, value.Latency, value.BufferShift);
+        var plain = new PlainRaisedRateLatencyServiceCurve(RaisedRateLatencyServiceCurve.TypeCode, value.Rate, value.Latency, value.BufferShift, value.HasZeroOrigin);
         JsonSerializer.Serialize(writer, plain, NancyJsonSerializerContext.Default.PlainRaisedRateLatencyServiceCurve);
     }
 }

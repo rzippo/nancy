@@ -16,6 +16,7 @@ public class RaisedRateLatencyServiceCurveNewtonsoftJsonConverter : JsonConverte
     private static readonly string LatencyName = "latency";
     private static readonly string RateName = "rate";
     private static readonly string BufferShiftName = "bufferShift";
+    private static readonly string WithZeroOriginName = "withZeroOrigin";
 
     /// <inheritdoc />
     public override bool CanConvert(Type objectType)
@@ -33,9 +34,11 @@ public class RaisedRateLatencyServiceCurveNewtonsoftJsonConverter : JsonConverte
         Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
         Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
         Rational bufferShift = jo[BufferShiftName]!.ToObject<Rational>(serializer);
+        // absent from values serialized before it was introduced, and false is how they were built
+        bool withZeroOrigin = jo[WithZeroOriginName]?.ToObject<bool>(serializer) ?? false;
 
         RaisedRateLatencyServiceCurve curve = new RaisedRateLatencyServiceCurve(rate: rate,
-            latency: latency, bufferShift: bufferShift);
+            latency: latency, bufferShift: bufferShift, withZeroOrigin: withZeroOrigin);
         return curve;
     }
 
@@ -53,7 +56,8 @@ public class RaisedRateLatencyServiceCurveNewtonsoftJsonConverter : JsonConverte
             { TypeName, JToken.FromObject(RaisedRateLatencyServiceCurve.TypeCode, serializer) },
             { RateName, JToken.FromObject(curve.Rate, serializer) },
             { LatencyName, JToken.FromObject(curve.Latency, serializer) },
-            { BufferShiftName, JToken.FromObject(curve.BufferShift, serializer) }
+            { BufferShiftName, JToken.FromObject(curve.BufferShift, serializer) },
+            { WithZeroOriginName, JToken.FromObject(curve.HasZeroOrigin, serializer) }
         };
 
         jo.WriteTo(writer);

@@ -159,8 +159,9 @@ public class RateLatencyServiceCurve : ConvexCurve
         #if DO_LOG
         logger.Trace("Optimized RL Addition");
         #endif
+        // a constant curve is 0 at the origin, so the sum is not raised there
         if (curve is ConstantCurve bufferCurve)
-            return new RaisedRateLatencyServiceCurve(Rate, Latency, bufferCurve.Value);
+            return new RaisedRateLatencyServiceCurve(Rate, Latency, bufferCurve.Value, withZeroOrigin: true);
         else
             return base.Addition(curve, settings);
     }
@@ -168,15 +169,14 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>
     public override Curve VerticalShift(Rational shift, bool exceptOrigin = false)
     {
-        if (exceptOrigin)
-        {
-            #if DO_LOG
-            logger.Trace("Optimized RL VerticalShift");
-            #endif
-            return new RaisedRateLatencyServiceCurve(Rate, Latency, shift);
-        }
-        else
-            return base.VerticalShift(shift, exceptOrigin);
+        if (shift == 0)
+            return this;
+
+        #if DO_LOG
+        logger.Trace("Optimized RL VerticalShift");
+        #endif
+        // both cases are a raised rate-latency, differing only in the value at the origin
+        return new RaisedRateLatencyServiceCurve(Rate, Latency, shift, withZeroOrigin: exceptOrigin);
     }
 
     /// <inheritdoc cref="Curve.Convolution(Curve, ComputationSettings?)"/>

@@ -34,11 +34,27 @@ public class RaisedRateLatencyServiceCurve : Curve
     public Rational BufferShift { get; }
 
     /// <summary>
+    /// True if the value at the origin is left at 0, rather than raised by <see cref="BufferShift"/>.
+    /// </summary>
+    /// <remarks>
+    /// It tells the sum with a <see cref="ConstantCurve"/>, which is 0 at the origin, from the sum with a constant, which is not.
+    /// The two differ only at $t = 0$, and have the same <see cref="SubAdditiveClosure"/>.
+    /// </remarks>
+    public bool HasZeroOrigin { get; }
+
+    /// <summary>
     /// Constructor.
     /// </summary>
-    public RaisedRateLatencyServiceCurve(Rational rate, Rational latency, Rational bufferShift)
+    /// <param name="rate">Minimum rate of service.</param>
+    /// <param name="latency">Maximum latency of service.</param>
+    /// <param name="bufferShift">Upwards shifting due to sum with buffer.</param>
+    /// <param name="withZeroOrigin">
+    /// If false, which is the default, the value at the origin is raised by <paramref name="bufferShift"/> as well.
+    /// If true, it is left at 0.
+    /// </param>
+    public RaisedRateLatencyServiceCurve(Rational rate, Rational latency, Rational bufferShift, bool withZeroOrigin = false)
         : base(
-            baseSequence: BuildSequence(rate, latency, bufferShift),
+            baseSequence: BuildSequence(rate, latency, bufferShift, withZeroOrigin),
             pseudoPeriodStart: PeriodStart(latency, bufferShift),
             pseudoPeriodLength: DefaultPeriodLength,
             pseudoPeriodHeight: PeriodHeight(latency, rate)
@@ -47,6 +63,7 @@ public class RaisedRateLatencyServiceCurve : Curve
         Latency = latency;
         Rate = rate;
         BufferShift = bufferShift;
+        HasZeroOrigin = withZeroOrigin;
     }
 
     /// <summary>

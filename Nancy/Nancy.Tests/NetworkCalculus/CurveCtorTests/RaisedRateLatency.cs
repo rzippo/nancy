@@ -97,8 +97,17 @@ public class RaisedRateLatency
 
         Assert.True(raisedRateLatency.IsFinite);
         Assert.False(raisedRateLatency.IsZero);
-        Assert.True(raisedRateLatency.IsContinuous);
-        Assert.True(raisedRateLatency.IsRightContinuous);
+        // a constant curve is 0 at the origin, so the sum is not raised there and jumps unless the shift is 0
+        if (bufferShift == 0)
+        {
+            Assert.True(raisedRateLatency.IsContinuous);
+            Assert.True(raisedRateLatency.IsRightContinuous);
+        }
+        else
+        {
+            Assert.False(raisedRateLatency.IsContinuous);
+            Assert.False(raisedRateLatency.IsRightContinuous);
+        }
         Assert.True(raisedRateLatency.IsContinuousExceptOrigin);
         Assert.True(raisedRateLatency.IsLeftContinuous);
         Assert.True(raisedRateLatency.IsUltimatelyPlain);
@@ -106,8 +115,8 @@ public class RaisedRateLatency
         if (bufferShift == 0)
             Assert.Equal(delay, raisedRateLatency.FirstNonZeroTime);
 
-        Assert.Equal(bufferShift, raisedRateLatency.ValueAt(0));
-        Assert.Equal(bufferShift, raisedRateLatency.ValueAt(delay));
+        Assert.Equal(0, raisedRateLatency.ValueAt(0));
+        Assert.Equal(delay > 0 ? bufferShift : 0, raisedRateLatency.ValueAt(delay));
         Assert.Equal(bufferShift, raisedRateLatency.RightLimitAt(delay));
         if (delay > 0)
             Assert.Equal(bufferShift, raisedRateLatency.LeftLimitAt(delay));
