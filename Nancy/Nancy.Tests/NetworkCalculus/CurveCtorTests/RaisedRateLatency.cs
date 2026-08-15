@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -208,6 +209,53 @@ public class RaisedRateLatency
             Assert.True(closure.IsLeftContinuous);
             Assert.True(closure.PseudoPeriodSlope > 0);
         }
+    }
+
+    [Theory]
+    [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
+    public void SumWithConstantCurve_MatchesTheDefinition(Rational latency, Rational rate, Rational bufferShift)
+    {
+        var rateLatency = new RateLatencyServiceCurve(rate, latency);
+        var constantCurve = new ConstantCurve(bufferShift);
+
+        var typed = rateLatency + constantCurve;
+        var commuted = constantCurve + rateLatency;
+        var byDefinition = new Curve(rateLatency) + new Curve(constantCurve);
+
+        Assert.IsType<RaisedRateLatencyServiceCurve>(typed);
+        Assert.True(Curve.Equivalent(byDefinition, typed));
+        Assert.True(Curve.Equivalent(byDefinition, commuted));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
+    public void VerticalShift_MatchesTheDefinition(Rational latency, Rational rate, Rational bufferShift)
+    {
+        var rateLatency = new RateLatencyServiceCurve(rate, latency);
+        var byDefinition = new Curve(rateLatency);
+
+        foreach (var exceptOrigin in new[] { true, false })
+        {
+            var typed = rateLatency.VerticalShift(bufferShift, exceptOrigin);
+
+            Assert.True(Curve.Equivalent(byDefinition.VerticalShift(bufferShift, exceptOrigin), typed));
+            if (bufferShift > 0)
+                Assert.IsType<RaisedRateLatencyServiceCurve>(typed);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
+    public void BothOrigins_ShareTheSubAdditiveClosure(Rational latency, Rational rate, Rational bufferShift)
+    {
+        var raised = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift, withZeroOrigin: false);
+        var zeroOrigin = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift, withZeroOrigin: true);
+
+        Assert.Equal(bufferShift, raised.ValueAt(0));
+        Assert.Equal(0, zeroOrigin.ValueAt(0));
+        Assert.Equal(raised.RightLimitAt(0), zeroOrigin.RightLimitAt(0));
+
+        Assert.True(Curve.Equivalent(raised.SubAdditiveClosure(), zeroOrigin.SubAdditiveClosure()));
     }
 
     [Theory]
