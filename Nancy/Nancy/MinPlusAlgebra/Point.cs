@@ -932,9 +932,8 @@ public sealed class Point : Element, IEquatable<Point>
     /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 7</remarks>
     public static Segment Deconvolution(Point point, Segment segment)
     {
-        if (point.IsInfinite || segment.IsInfinite)
-            throw new ArgumentException("The arguments must be finite.");
-
+        // an infinite operand gives an infinite difference,
+        // which the constructor normalizes to a constant segment, while the subtraction reports the undefined cases
         return new Segment(
             startTime: point.Time - segment.EndTime,
             endTime: point.Time - segment.StartTime,

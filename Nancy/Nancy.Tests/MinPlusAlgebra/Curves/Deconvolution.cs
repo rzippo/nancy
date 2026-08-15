@@ -98,7 +98,7 @@ public class Deconvolution
         Assert.True(Curve.Equivalent(expected, deconv));
     }
 
-    public static List<(Curve f, Curve g, Curve expected)> KnownDeconvolutions =
+    public static List<(Curve f, Curve g)> UndefinedDeconvolutions =
     [
         // edge case: two UI curves, one from 1, the other from 5
         (
@@ -123,24 +123,24 @@ public class Deconvolution
                 6,
                 1,
                 0
-            ),
-            expected: Curve.PlusInfinite()
+            )
         )
     ];
 
-    public static IEnumerable<object[]> KnownDeconvolutionsTestCases()
-        => KnownDeconvolutions.ToXUnitTestCases();
+    public static IEnumerable<object[]> UndefinedDeconvolutionsTestCases()
+        => UndefinedDeconvolutions.ToXUnitTestCases();
 
+    /// <summary>
+    /// Both operands reach $+\infty$, so the terms past the later of the two reach $(+\infty) - (+\infty)$.
+    /// The library adopts no convention for that combination, so the deconvolution is undefined rather than $+\infty$.
+    /// </summary>
     [Theory]
-    [MemberData(nameof(KnownDeconvolutionsTestCases))]
-    public void KnownDeconvolutionsEquivalence(Curve f, Curve g, Curve expected)
+    [MemberData(nameof(UndefinedDeconvolutionsTestCases))]
+    public void UndefinedDeconvolutionsThrow(Curve f, Curve g)
     {
         _testOutputHelper.WriteLine($"var f = {f.ToCodeString()}");
         _testOutputHelper.WriteLine($"var g = {g.ToCodeString()}");
-        _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()}");
-        var deconvolution = Curve.Deconvolution(f, g);
-        _testOutputHelper.WriteLine($"var deconvolution = {deconvolution.ToCodeString()}");
-        Assert.True(Curve.Equivalent(expected, deconvolution));
+        Assert.Throws<UndeterminedResultException>(() => Curve.Deconvolution(f, g));
     }
     
     public static IEnumerable<object[]> GetConvolutionInverseTestCases()

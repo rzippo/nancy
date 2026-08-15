@@ -446,14 +446,16 @@ public class Deviations
         _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()}");
 
         // todo: document source for this result
-        // if a or b are UC, their UPIs are UltimatelyPlusInfinite.
-        // Computing the (max,+) deconvolution hits +infty - (+infty)
-        var doHDev1 = !a.IsUltimatelyConstant && !b.IsUltimatelyConstant;
+        // This alternative is well-defined only if the pseudo-inverses are finite: 
+        // otherwise the (max,+) deconvolution reaches +infty - (+infty) or -infty - (-infty), 
+        // and whatever it returns is not the deviation.
+        // The UPI is UltimatelyPlusInfinite if the curve is UC, and is -infty in 0 if f(0) > 0
+        var a_upi = a.UpperPseudoInverse();
+        var b_upi = b.UpperPseudoInverse();
+        var doHDev1 = a_upi.IsFinite && b_upi.IsFinite;
         Rational hDev_1 = 0;
         if (doHDev1)
         {
-            var a_upi = a.UpperPseudoInverse();
-            var b_upi = b.UpperPseudoInverse();
             hDev_1 = Curve.MaxPlusDeconvolution(a_upi, b_upi)
                 .Negate()
                 .ToNonNegative()

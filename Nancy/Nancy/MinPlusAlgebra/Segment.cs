@@ -1566,9 +1566,8 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <remarks>Defined in [BT08] Section 3.2.2, Lemma 8</remarks>
     public static IEnumerable<Element> Deconvolution(Segment a, Segment b)
     {
-        if (a.IsInfinite || b.IsInfinite)
-            throw new ArgumentException("The arguments must be finite.");
-
+        // an infinite operand gives an infinite difference throughout,
+        // which the constructors normalize to constant elements, while the subtraction reports the undefined cases
         Segment minSlopeSegment, maxSlopeSegment;
         if (a.Slope < b.Slope)
         {

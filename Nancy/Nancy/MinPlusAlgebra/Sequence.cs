@@ -2625,7 +2625,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
-    /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, endpoint excluded.</param>
+    /// <param name="cutEnd">If not null, the result is cut or filled with $-\infty$ up to this time, endpoint excluded.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT08], Section 4.5</remarks>
@@ -2645,7 +2645,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             .SelectMany(ea => b.Elements
                 .Select(eb => (a: ea, b: eb))
             )
-            .Where(pair => pair.a.IsFinite && pair.b.IsFinite)
+            // in $f \oslash g$ the two operands play opposite roles, since $g$ contributes its opposite:
+            // $+\infty$ in $f$ and $-\infty$ in $g$ both win the maximum, and are kept
+            .Where(pair => !pair.a.IsMinusInfinite && !pair.b.IsPlusInfinite)
             .Where(pair => cutStart == null || pair.a.EndTime - pair.b.StartTime >= cutStart)
             .ToList();
         var pairsCount = elementPairs.Count;
@@ -2662,8 +2664,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (cutStart != null || cutEnd != null)
         {
             IEnumerable<Element> cutResult = result;
+            // a time no pair covers has no term in the supremum, hence $-\infty$:
+            // the pairs left out are the ones that would have provided it
             if (cutEnd != null)
-                cutResult = cutResult.Fill(resultStart, cutEnd.Value);
+                cutResult = cutResult.Fill(resultStart, cutEnd.Value, fillWith: Rational.MinusInfinity);
 
             var start = cutStart ?? resultStart;
             var end = cutEnd ?? resultEnd;
@@ -2702,7 +2706,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="sequence">The sequence to process.</param>
     /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
-    /// <param name="cutEnd">If not null, the result is cut or filled with $+\infty$ up to this time, endpoint excluded.</param>
+    /// <param name="cutEnd">If not null, the result is cut or filled with $-\infty$ up to this time, endpoint excluded.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the deconvolution.</returns>
     /// <remarks>Described in [BT08], Section 4.5</remarks>
