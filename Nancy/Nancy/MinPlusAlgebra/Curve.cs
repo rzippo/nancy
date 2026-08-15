@@ -717,7 +717,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 if (ValueAt(0) >= 0)
                 {
-                    var f_circ = WithZeroOrigin();
+                    // the operand is copied to a plain Curve: a subclass would shortcut the convolution
+                    // through the very property being checked, making the check circular
+                    var f_circ = new Curve(WithZeroOrigin());
                     var selfConv = Convolution(f_circ, f_circ);
                     return Equivalent(f_circ, selfConv);
                 }

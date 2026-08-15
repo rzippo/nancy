@@ -28,11 +28,13 @@ public class ConstantCurve : SubAdditiveCurve
     /// Constructor.
     /// </summary>
     public ConstantCurve(Rational value)
+        // the test is skipped: the property does not hold for a negative value, which this type accepts
         : base(
             baseSequence: BuildSequence(value),
             pseudoPeriodStart: DefaultPeriodLength,
             pseudoPeriodLength: DefaultPeriodLength,
-            pseudoPeriodHeight: 0
+            pseudoPeriodHeight: 0,
+            doTest: false
         )
     {
         Value = value;

@@ -40,11 +40,13 @@ public class FlowControlCurve : SubAdditiveCurve
     /// Constructor.
     /// </summary>
     public FlowControlCurve(Rational latency, Rational rate, Rational height)
+        // the test is skipped: the curve is a sub-additive closure by construction, and the test is a convolution
         : base(
             baseSequence: BuildSequence(latency, rate, height),
             pseudoPeriodStart: PeriodStart(latency, rate, height),
             pseudoPeriodLength: PeriodLength(latency, rate, height),
-            pseudoPeriodHeight: PeriodHeight(latency, rate, height)
+            pseudoPeriodHeight: PeriodHeight(latency, rate, height),
+            doTest: false
         )
     {
         Latency = latency;

@@ -35,11 +35,13 @@ public class SubAdditiveCurveNewtonsoftJsonConverter : JsonConverter
         Rational periodLength = jo[CurveNewtonsoftJsonConverter.PseudoPeriodLengthName]!.ToObject<Rational>(serializer);
         Rational periodHeight = jo[CurveNewtonsoftJsonConverter.PseudoPeriodHeightName]!.ToObject<Rational>(serializer);
 
+        // the property is not re-verified: the value was serialized from a SubAdditiveCurve, and the test is a convolution
         SubAdditiveCurve curve = new SubAdditiveCurve(
             baseSequence: sequence,
             pseudoPeriodStart: periodStart,
             pseudoPeriodLength: periodLength,
-            pseudoPeriodHeight: periodHeight
+            pseudoPeriodHeight: periodHeight,
+            doTest: false
         );
         return curve;
     }

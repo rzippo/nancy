@@ -54,7 +54,9 @@ public class SubAdditiveCurve : Curve
         Rational pseudoPeriodHeight, bool doTest = true)
         : base(baseSequence, pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight)
     {
-        if (doTest && !base.IsRegularSubAdditive)
+        // Curve.IsRegularSubAdditive cannot be used here: it is not virtual, and the IsSubAdditive it reads is,
+        // so it would dispatch to the override below and the test would always pass
+        if (doTest && !(base.IsSubAdditive && IsPassingThroughOrigin))
             throw new InvalidOperationException("The curve constructed is not actually sub-additive with f(0) = 0");
     }
 
@@ -72,7 +74,9 @@ public class SubAdditiveCurve : Curve
     public SubAdditiveCurve(Curve other, bool doTest = true)
         : base(other)
     {
-        if (doTest && !base.IsRegularSubAdditive)
+        // Curve.IsRegularSubAdditive cannot be used here: it is not virtual, and the IsSubAdditive it reads is,
+        // so it would dispatch to the override below and the test would always pass
+        if (doTest && !(base.IsSubAdditive && IsPassingThroughOrigin))
             throw new InvalidOperationException("The curve constructed is not actually sub-additive with f(0) = 0");
     }
 

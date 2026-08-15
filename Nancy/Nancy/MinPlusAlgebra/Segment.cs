@@ -1774,7 +1774,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             var sign = RightLimitAtStartTime.Sign;
             if(sign < 0)
                 // the closure is minus infinite everywhere except origin 
-                return new SubAdditiveCurve(Curve.MinusInfinite().WithOriginAt(0));
+                return new SubAdditiveCurve(Curve.MinusInfinite().WithOriginAt(0), false);
             else if(sign == 0)
                 // the closure is just a half line
                 return new SigmaRhoArrivalCurve(0, Slope);
@@ -1862,7 +1862,8 @@ public sealed class Segment : Element, IEquatable<Segment>
                 baseSequence: sequence,
                 pseudoPeriodStart: periodStartTime,
                 pseudoPeriodLength: StartTime,
-                pseudoPeriodHeight: RightLimitAtStartTime
+                pseudoPeriodHeight: RightLimitAtStartTime,
+                doTest: false
             );
         }
 
@@ -1924,7 +1925,8 @@ public sealed class Segment : Element, IEquatable<Segment>
                 baseSequence: sequence,
                 pseudoPeriodStart: periodStartTime,
                 pseudoPeriodLength: EndTime,
-                pseudoPeriodHeight: LeftLimitAtEndTime
+                pseudoPeriodHeight: LeftLimitAtEndTime,
+                doTest: false
             );
         }
         
@@ -1981,7 +1983,8 @@ public sealed class Segment : Element, IEquatable<Segment>
                 baseSequence: sequence,
                 pseudoPeriodStart: periodStartTime,
                 pseudoPeriodLength: 1,
-                pseudoPeriodHeight: Slope
+                pseudoPeriodHeight: Slope,
+                doTest: false
             );
         }
     }

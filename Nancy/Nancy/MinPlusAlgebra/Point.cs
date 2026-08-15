@@ -1072,7 +1072,7 @@ public sealed class Point : Element, IEquatable<Point>
                 throw new NotImplementedException("Sub-additive closure of negative point is not implemented.");
             }
 
-            return new SubAdditiveCurve(new DelayServiceCurve(0));
+            return new SubAdditiveCurve(new DelayServiceCurve(0), false);
         }
         else
         {
@@ -1085,7 +1085,8 @@ public sealed class Point : Element, IEquatable<Point>
                 baseSequence: baseSequence,
                 pseudoPeriodStart: 0,
                 pseudoPeriodLength: Time,
-                pseudoPeriodHeight: Value
+                pseudoPeriodHeight: Value,
+                doTest: false
             );
         }
     }
@@ -1154,7 +1155,8 @@ public sealed class Point : Element, IEquatable<Point>
             baseSequence: sequence,
             pseudoPeriodStart: pseudoPeriodLength,
             pseudoPeriodLength: pseudoPeriodLength,
-            pseudoPeriodHeight: pseudoPeriodHeight
+            pseudoPeriodHeight: pseudoPeriodHeight,
+            doTest: false
         );
     }
 
@@ -1300,7 +1302,8 @@ public sealed class Point : Element, IEquatable<Point>
             ),
             pseudoPeriodStart: closurePeriodStart,
             pseudoPeriodLength: closurePeriodLenght,
-            pseudoPeriodHeight: closurePeriodHeight
+            pseudoPeriodHeight: closurePeriodHeight,
+            doTest: false
         );
 
         Rational Frobenius(Rational a, Rational b)

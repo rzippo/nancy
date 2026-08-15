@@ -20,7 +20,8 @@ public class SubAdditiveCurveSystemJsonConverter : JsonConverter<SubAdditiveCurv
         var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainCurve);
         if (plain?.type != SubAdditiveCurve.TypeCode)
             throw new JsonException();
-        return new SubAdditiveCurve(plain.baseSequence, plain.pseudoPeriodStart, plain.pseudoPeriodLength, plain.pseudoPeriodHeight);
+        // the property is not re-verified: the value was serialized from a SubAdditiveCurve, and the test is a convolution
+        return new SubAdditiveCurve(plain.baseSequence, plain.pseudoPeriodStart, plain.pseudoPeriodLength, plain.pseudoPeriodHeight, doTest: false);
     }
 
     /// <inheritdoc cref="JsonConverter{T}.Write"/>
