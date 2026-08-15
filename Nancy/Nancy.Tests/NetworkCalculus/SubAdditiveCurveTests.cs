@@ -52,6 +52,80 @@ public class SubAdditiveCurveTests
         Assert.False(subAdditiveCurve.IsRegularSubAdditiveCheck());
     }
 
+    public static List<Curve> NonSubAdditiveConstructorCases =
+    [
+        new StepCurve(value: 5, stepTime: 3),
+        new Curve(
+            baseSequence: new Sequence(
+                [
+                    Point.Origin(),
+                    new Segment(0, 2, 0, 1),
+                    new Point(2, 2),
+                    new Segment(2, 4, 2, 3)
+                ]
+            ),
+            pseudoPeriodStart: 2,
+            pseudoPeriodLength: 2,
+            pseudoPeriodHeight: 6
+        )
+    ];
+
+    public static IEnumerable<object[]> GetNonSubAdditiveConstructorCases()
+        => NonSubAdditiveConstructorCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetNonSubAdditiveConstructorCases))]
+    public void Constructor_WithTest_RejectsNonSubAdditiveCurve(Curve curve)
+    {
+        Assert.True(curve.IsPassingThroughOrigin);
+        Assert.False(curve.IsSubAdditive);
+
+        Assert.Throws<InvalidOperationException>(() => new SubAdditiveCurve(curve));
+        Assert.Throws<InvalidOperationException>(() => new SubAdditiveCurve(
+            curve.BaseSequence,
+            curve.PseudoPeriodStart,
+            curve.PseudoPeriodLength,
+            curve.PseudoPeriodHeight
+        ));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetNonSubAdditiveConstructorCases))]
+    public void Checks_AreNotDecidedByTheDeclaredType(Curve curve)
+    {
+        var declared = new SubAdditiveCurve(curve, doTest: false);
+
+        Assert.True(declared.IsSubAdditive);
+        Assert.False(declared.IsSubAdditiveCheck());
+        Assert.False(declared.IsRegularSubAdditiveCheck());
+    }
+
+    public static List<Curve> SubAdditiveConstructorCases =
+    [
+        new Curve(new FlowControlCurve(latency: 3, rate: 5, height: 2)),
+        new Curve(new SigmaRhoArrivalCurve(sigma: 2, rho: 3)),
+        new RateLatencyServiceCurve(rate: 2, latency: 1).SubAdditiveClosure()
+    ];
+
+    public static IEnumerable<object[]> GetSubAdditiveConstructorCases()
+        => SubAdditiveConstructorCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetSubAdditiveConstructorCases))]
+    public void Constructor_WithTest_AcceptsSubAdditiveCurve(Curve curve)
+    {
+        var fromCopy = new SubAdditiveCurve(curve);
+        var fromRepresentation = new SubAdditiveCurve(
+            curve.BaseSequence,
+            curve.PseudoPeriodStart,
+            curve.PseudoPeriodLength,
+            curve.PseudoPeriodHeight
+        );
+
+        Assert.True(fromCopy.IsSubAdditiveCheck());
+        Assert.True(fromRepresentation.IsSubAdditiveCheck());
+    }
+
     public static List<SubAdditiveCurve> SubAdditiveCurves =
     [
         new FlowControlCurve(latency: 3, rate: 5, height: 2),
