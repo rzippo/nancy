@@ -8,7 +8,7 @@ namespace Unipi.Nancy.NetworkCalculus;
 /// <summary>
 /// A constant curve, with 0 at the origin.
 /// It is equivalent to a step function with stepTime = 0.
-/// Sub-additive only if the value is non-negative, which is why this type does not derive from <see cref="SubAdditiveCurve"/>.
+/// Sub-additive unless the value is finite and negative, which is why this type does not derive from <see cref="SubAdditiveCurve"/>.
 /// </summary>
 /// <remarks>
 /// The curve is ultimately affine, so the algorithms of [ZS23] that <see cref="SubAdditiveCurve"/> provides
@@ -41,7 +41,8 @@ public class ConstantCurve : Curve
         )
     {
         Value = value;
-        if (!value.IsNegative)
+        // sub-additivity fails only for a finite negative value: at $-\infty$, $f(t+s)$ and $f(t) + f(s)$ are both $-\infty$
+        if (!(value.IsFinite && value.IsNegative))
             _IsSubAdditive = true;
     }
 
@@ -63,7 +64,7 @@ public class ConstantCurve : Curve
                         2 * DefaultPeriodLength, value)
                 });
         }
-        else
+        else if (value.IsPlusInfinite)
         {
             return new Sequence(
                 new Element[]
@@ -78,17 +79,32 @@ public class ConstantCurve : Curve
                         2 * DefaultPeriodLength)
                 });
         }
+        else
+        {
+            return new Sequence(
+                new Element[]
+                {
+                    Point.Origin(),
+                    Segment.MinusInfinite(
+                        0,
+                        DefaultPeriodLength),
+                    Point.MinusInfinite(DefaultPeriodLength),
+                    Segment.MinusInfinite(
+                        DefaultPeriodLength,
+                        2 * DefaultPeriodLength)
+                });
+        }
     }
 
     internal static readonly Rational DefaultPeriodLength = 1;
 
     /// <inheritdoc cref="Curve.SubAdditiveClosure(ComputationSettings?)"/>
     /// <remarks>
-    /// A non-negative constant curve is its own sub-additive closure, so the general algorithm is skipped.
+    /// A constant curve that is sub-additive is its own sub-additive closure, so the general algorithm is skipped.
     /// </remarks>
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
-        if (Value.IsNegative)
+        if (Value.IsFinite && Value.IsNegative)
             return base.SubAdditiveClosure(settings);
         return new SubAdditiveCurve(this, false);
     }
