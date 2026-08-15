@@ -2366,6 +2366,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Shifts the curve vertically by an additive factor, i.e. $g(t) = k + f(t)$.
     /// </summary>
+    /// <param name="shift">The additive factor $k$.</param>
+    /// <param name="exceptOrigin">
+    /// If false, which is the default, the shift applies to any $t$, the origin included.
+    /// If true, the value at the origin is left as it is and the shift applies to $t > 0$.
+    /// </param>
     public virtual Curve VerticalShift(Rational shift, bool exceptOrigin = false)
     {
         if (shift == 0)

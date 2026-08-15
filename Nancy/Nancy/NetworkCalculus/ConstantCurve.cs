@@ -110,7 +110,12 @@ public class ConstantCurve : Curve
     }
 
     /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>
-    public override Curve VerticalShift(Rational shift, bool exceptOrigin = true)
+    /// <param name="shift">The additive factor $k$.</param>
+    /// <param name="exceptOrigin">
+    /// If false, which is the default, the shift applies to any $t$, the origin included, and the result is a plain <see cref="Curve"/>.
+    /// If true, the value at the origin is left at 0 and the result is again a <see cref="ConstantCurve"/>.
+    /// </param>
+    public override Curve VerticalShift(Rational shift, bool exceptOrigin = false)
     {
         if (shift == 0)
             return this;
