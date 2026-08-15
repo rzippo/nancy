@@ -28,6 +28,57 @@ public class SuperAdditiveClosure
         Assert.True(Curve.Equivalent(closure, curve));
     }
 
+    public static List<Curve> PositiveAtOriginRightLimit =
+    [
+        // constant 3
+        new Curve(
+            new Sequence([Point.Origin(), Segment.Constant(0, 1, 3), new Point(1, 3), Segment.Constant(1, 2, 3)]),
+            pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 0),
+        // starts at 3, then decreases with slope -1
+        new Curve(
+            new Sequence([Point.Origin(), new Segment(0, 1, 3, -1), new Point(1, 2), new Segment(1, 2, 2, -1)]),
+            pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: -1)
+    ];
+
+    public static IEnumerable<object[]> GetPositiveAtOriginRightLimit()
+        => PositiveAtOriginRightLimit.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetPositiveAtOriginRightLimit))]
+    public void ClosureOfCurvePositiveAtOriginRightLimit(Curve operand)
+    {
+        // splitting any t > 0 into k parts gives k * f(t/k), which diverges when f(0+) > 0
+        Assert.True(operand.RightLimitAt(0) > 0);
+
+        var closure = operand.SuperAdditiveClosure();
+
+        Assert.Equal(0, closure.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, closure.ValueAt(1));
+        Assert.Equal(Rational.PlusInfinity, closure.ValueAt(17));
+        Assert.True(new Curve(closure).IsRegularSuperAdditive);
+    }
+
+    [Theory]
+    [InlineData(3, 2, 5, 1)]
+    [InlineData(2, 1, 4, 3)]
+    public void ClosureOfTokenBucketMinusRateLatency(int rate, int latency, int sigma, int rho)
+    {
+        // the difference rises by sigma at the origin, whichever way its tail goes
+        var beta = new RateLatencyServiceCurve(rate: rate, latency: latency);
+        var alpha = new SigmaRhoArrivalCurve(sigma: sigma, rho: rho);
+        var operand = alpha - beta;
+
+        Assert.Equal(0, operand.ValueAt(0));
+        Assert.Equal(sigma, operand.RightLimitAt(0));
+
+        var closure = operand.SuperAdditiveClosure();
+
+        Assert.Equal(0, closure.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, closure.ValueAt(1));
+        Assert.Equal(Rational.PlusInfinity, closure.ValueAt(17));
+        Assert.True(new Curve(closure).IsRegularSuperAdditive);
+    }
+
     // note: super-additive closure and super-additive property are not well defined enough for infinite parts as in the pure delay
     // we rely on the super class properties in the meantime 
 

@@ -314,6 +314,86 @@ public class SubAdditiveClosure
         Assert.True(Curve.Equivalent(expected, result));
     }
 
+    public static List<Curve> NegativeAtOriginRightLimit =
+    [
+        // constant -3
+        new Curve(
+            new Sequence([Point.Origin(), Segment.Constant(0, 1, -3), new Point(1, -3), Segment.Constant(1, 2, -3)]),
+            pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 0),
+        // starts at -3, then rises with slope 1
+        new Curve(
+            new Sequence([Point.Origin(), new Segment(0, 1, -3, 1), new Point(1, -2), new Segment(1, 2, -2, 1)]),
+            pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 1)
+    ];
+
+    public static IEnumerable<object[]> GetNegativeAtOriginRightLimit()
+        => NegativeAtOriginRightLimit.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetNegativeAtOriginRightLimit))]
+    public void ClosureOfCurveNegativeAtOriginRightLimit(Curve operand)
+    {
+        Assert.True(operand.RightLimitAt(0) < 0);
+
+        var closure = operand.SubAdditiveClosure();
+
+        Assert.Equal(0, closure.ValueAt(0));
+        Assert.Equal(Rational.MinusInfinity, closure.ValueAt(1));
+        Assert.Equal(Rational.MinusInfinity, closure.ValueAt(17));
+        Assert.True(new Curve(closure).IsRegularSubAdditive);
+    }
+
+    [Theory]
+    [InlineData(3, 2, 5, 1)]
+    [InlineData(2, 1, 4, 3)]
+    public void ClosureOfRateLatencyMinusTokenBucket(int rate, int latency, int sigma, int rho)
+    {
+        // the difference drops by sigma at the origin, whichever way its tail goes
+        var beta = new RateLatencyServiceCurve(rate: rate, latency: latency);
+        var alpha = new SigmaRhoArrivalCurve(sigma: sigma, rho: rho);
+        var operand = beta - alpha;
+
+        Assert.Equal(0, operand.ValueAt(0));
+        Assert.Equal(-sigma, operand.RightLimitAt(0));
+
+        var closure = operand.SubAdditiveClosure();
+
+        Assert.Equal(0, closure.ValueAt(0));
+        Assert.Equal(Rational.MinusInfinity, closure.ValueAt(1));
+        Assert.Equal(Rational.MinusInfinity, closure.ValueAt(17));
+        Assert.True(new Curve(closure).IsRegularSubAdditive);
+    }
+
+    public static List<Curve> NegativeAfterOrigin =
+    [
+        // reaches 0 at the origin, then decreases with slope -1
+        new Curve(
+            new Sequence([Point.Origin(), new Segment(0, 1, 0, -1), new Point(1, -1), new Segment(1, 2, -1, -1)]),
+            pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: -1),
+        // 0 until 2, then -1
+        new Curve(
+            new Sequence([Point.Origin(), Segment.Constant(0, 2, 0), new Point(2, -1), Segment.Constant(2, 3, -1)]),
+            pseudoPeriodStart: 2, pseudoPeriodLength: 1, pseudoPeriodHeight: 0)
+    ];
+
+    public static IEnumerable<object[]> GetNegativeAfterOrigin()
+        => NegativeAfterOrigin.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetNegativeAfterOrigin))]
+    public void ClosureOfCurveNegativeOnlyAfterOrigin(Curve operand)
+    {
+        // negativity that starts away from the origin can be used only finitely many times before t is exhausted,
+        // so the closure stays finite and the short-circuit for f(0+) < 0 must not fire
+        Assert.False(operand.RightLimitAt(0) < 0);
+
+        var closure = operand.SubAdditiveClosure();
+
+        Assert.True(closure.ValueAt(9).IsFinite);
+        Assert.True(closure.ValueAt(20).IsFinite);
+        Assert.True(new Curve(closure).IsRegularSubAdditive);
+    }
+
     [Theory]
     [MemberData(nameof(KnownSubadditiveClosureTestCases))]
     public void KnownSubadditiveClosureEquivalenceWithForcedTransient(Curve operand, Curve expected)
