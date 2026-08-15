@@ -376,6 +376,119 @@ public class ToLowerNonDecreasing
                 pseudoPeriodLength: 3,
                 pseudoPeriodHeight: 1
             ).VerticalShift(3, false)
+        ),
+        (
+            // f jumps up at t = 1: the highest non-decreasing minorant takes the value there,
+            // not the left limit, since the left limit belongs to the times before it
+            operand: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 1, 0, -1),
+                    new Point(1, 2),
+                    new Segment(1, 2, 2, 1)
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 1
+            ),
+            expected: new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, -1),
+                    Segment.Constant(0, 1, -1),
+                    new Point(1, 2),
+                    new Segment(1, 2, 2, 1)
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 1
+            )
+        ),
+        (
+            // the periodic part oscillates with a slope of 0,
+            // so the bounds of its breakpoints repeat with the period, and the closure is the value they keep returning to
+            operand: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 1, 2)
+                ]),
+                pseudoPeriodStart: 0,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            ),
+            expected: Curve.Zero()
+        ),
+        (
+            // a curve that falls forever: every tail has an infimum of -infinity,
+            // so the highest non-decreasing curve below it is -infinity everywhere
+            operand: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 1, 2),
+                    new Point(1, 1),
+                    new Segment(1, 2, 1, -1)
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: -1
+            ),
+            expected: Curve.MinusInfinite()
+        ),
+        (
+            // a spike inside the periodic part,
+            // where the bound at the breakpoint and the one carried from its repetition one period later differ, and the lower of the two holds
+            operand: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 1, 0),
+                    new Point(1, 10),
+                    new Segment(1, 2, 5, -5)
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            ),
+            expected: Curve.Zero()
+        ),
+        (
+            // f decreases, then reaches $+\infty$:
+            // the infimum over each tail is the limit the finite part approaches, until the infinity takes over
+            operand: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 1, 0, -1),
+                    Point.PlusInfinite(1),
+                    Segment.PlusInfinite(1, 2)
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            ),
+            expected: new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, -1),
+                    Segment.Constant(0, 1, -1),
+                    Point.PlusInfinite(1),
+                    Segment.PlusInfinite(1, 2)
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            )
+        ),
+        (
+            // f reaches $-\infty$, so each of its tails has an infimum of $-\infty$
+            operand: new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    Segment.Constant(0, 1, 0),
+                    Point.MinusInfinite(1),
+                    Segment.MinusInfinite(1, 2)
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            ),
+            expected: Curve.MinusInfinite()
         )
     ];
 
@@ -399,5 +512,21 @@ public class ToLowerNonDecreasing
         var (dominance, lower, upper) = Curve.Dominance(operand, result);
         Assert.True(dominance);
         Assert.True(Curve.Equivalent(lower, result));
+    }
+
+    /// <summary>
+    /// The algebraic definition, $f \overline{\oslash} 0$, must give the same result as the construction.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetDecreasingTestCases))]
+    public void AlgebraicImplementation(Curve operand, Curve expected)
+    {
+        Assert.False(operand.IsNonDecreasing);
+        var settings = ComputationSettings.Default() with { UseNonDecreasingClosureOptimizations = false };
+
+        var result = operand.ToLowerNonDecreasing(settings);
+
+        Assert.True(result.IsNonDecreasing);
+        Assert.True(Curve.Equivalent(result, expected));
     }
 }
