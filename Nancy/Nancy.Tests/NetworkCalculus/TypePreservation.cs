@@ -1,0 +1,156 @@
+using System.Collections.Generic;
+using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Numerics;
+using Xunit;
+
+namespace Unipi.Nancy.Tests.NetworkCalculus;
+
+/// <summary>
+/// The specialized types must survive the operations that preserve their property,
+/// and each result must equal the same computation with the types erased.
+/// </summary>
+public class TypePreservation
+{
+    private static Curve Erased(Curve curve) => new Curve(curve);
+
+    [Fact]
+    public void SumOfSubAdditiveCurvesIsSubAdditive()
+    {
+        var a = new FlowControlCurve(latency: 3, rate: 2, height: 5);
+        var b = new FlowControlCurve(latency: 4, rate: 3, height: 2);
+
+        var sum = a + b;
+
+        Assert.IsAssignableFrom<SubAdditiveCurve>(sum);
+        Assert.True(Curve.Equivalent(Erased(a) + Erased(b), sum));
+        Assert.True(new Curve(sum).IsRegularSubAdditive);
+    }
+
+    [Fact]
+    public void SumOfSuperAdditiveCurvesIsSuperAdditive()
+    {
+        var a = new SuperAdditiveCurve(new RateLatencyServiceCurve(2, 3), doTest: false);
+        var b = new SuperAdditiveCurve(new RateLatencyServiceCurve(3, 1), doTest: false);
+
+        var sum = a + b;
+
+        Assert.IsAssignableFrom<SuperAdditiveCurve>(sum);
+        Assert.True(Curve.Equivalent(Erased(a) + Erased(b), sum));
+        Assert.True(new Curve(sum).IsRegularSuperAdditive);
+    }
+
+    [Fact]
+    public void SumOfConstantCurvesIsConstant()
+    {
+        var a = new ConstantCurve(5);
+        var b = new ConstantCurve(3);
+
+        var sum = a + b;
+
+        Assert.IsType<ConstantCurve>(sum);
+        Assert.Equal(8, ((ConstantCurve)sum).Value);
+        Assert.True(Curve.Equivalent(Erased(a) + Erased(b), sum));
+    }
+
+    public static List<(Rational sigma, Rational rho, Rational shift)> BurstShifts =
+    [
+        (3, 2, 5),
+        (3, 2, -1),
+        (3, 2, -3),
+        (3, 2, -5)
+    ];
+
+    public static IEnumerable<object[]> GetBurstShifts()
+        => BurstShifts.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetBurstShifts))]
+    public void ShiftingAnArrivalCurveRaisesItsBurst(Rational sigma, Rational rho, Rational shift)
+    {
+        var arrival = new SigmaRhoArrivalCurve(sigma, rho);
+
+        var shifted = arrival.VerticalShift(shift, exceptOrigin: true);
+
+        Assert.True(Curve.Equivalent(Erased(arrival).VerticalShift(shift, exceptOrigin: true), shifted));
+        // the burst must stay non-negative for the result to be an arrival curve of this kind
+        if ((sigma + shift).IsNegative)
+            Assert.IsType<Curve>(shifted);
+        else
+            Assert.Equal(sigma + shift, Assert.IsType<SigmaRhoArrivalCurve>(shifted).Sigma);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ShiftingARaisedRateLatencyRaisesItsBuffer(bool hasZeroOrigin)
+    {
+        var curve = new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: 5, withZeroOrigin: hasZeroOrigin);
+
+        foreach (var exceptOrigin in new[] { true, false })
+        {
+            var shifted = curve.VerticalShift(4, exceptOrigin);
+
+            Assert.True(Curve.Equivalent(Erased(curve).VerticalShift(4, exceptOrigin), shifted));
+            // the origin lands where this type puts it only when the two agree
+            if (exceptOrigin == hasZeroOrigin)
+                Assert.Equal(9, Assert.IsType<RaisedRateLatencyServiceCurve>(shifted).BufferShift);
+            else
+                Assert.IsType<Curve>(shifted);
+        }
+    }
+
+    [Fact]
+    public void StaticWindowFlowControlKeepsItsTypes()
+    {
+        // the equivalent service curve of a window flow controlled server, as in [ZS23]:
+        // the service curve raised by the window size, then closed, then convolved along the tandem
+        var beta1 = new RateLatencyServiceCurve(rate: 20, latency: 10);
+        var beta2 = new RateLatencyServiceCurve(rate: 15, latency: 5);
+        var window = new ConstantCurve(30);
+
+        var raised = beta1 + window;
+        Assert.IsType<RaisedRateLatencyServiceCurve>(raised);
+        Assert.Equal(0, raised.ValueAt(0));
+
+        var flowController = raised.SubAdditiveClosure();
+        Assert.IsType<FlowControlCurve>(flowController);
+
+        var equivalent = flowController.Convolution(new SubAdditiveCurve(beta2.SubAdditiveClosure(), doTest: false));
+        Assert.IsAssignableFrom<SubAdditiveCurve>(equivalent);
+
+        // the whole pipeline must agree with the same computation over plain curves
+        var erasedEquivalent = Curve.Convolution(
+            Erased(Erased(beta1 + window).SubAdditiveClosure()),
+            Erased(Erased(beta2).SubAdditiveClosure())
+        );
+        Assert.True(Curve.Equivalent(erasedEquivalent, equivalent));
+    }
+
+    [Fact]
+    public void TokenBucketPipelineKeepsItsTypes()
+    {
+        // a token bucket policed flow through a rate-latency server, the shape of the delay bound example in [DNC18]
+        var arrival = new SigmaRhoArrivalCurve(sigma: 100, rho: 10);
+        var service = new RateLatencyServiceCurve(rate: 20, latency: 4);
+
+        // an extra burst allowance keeps the arrival curve an arrival curve
+        var raisedArrival = arrival.VerticalShift(20, exceptOrigin: true);
+        Assert.IsType<SigmaRhoArrivalCurve>(raisedArrival);
+        Assert.Equal(120, ((SigmaRhoArrivalCurve)raisedArrival).Sigma);
+
+        // the aggregate of two flows is still concave
+        var aggregate = arrival + new SigmaRhoArrivalCurve(sigma: 50, rho: 5);
+        Assert.IsAssignableFrom<ConcaveCurve>(aggregate);
+        Assert.True(Curve.Equivalent(Erased(arrival) + Erased(new SigmaRhoArrivalCurve(50, 5)), aggregate));
+
+        // the tandem of two service curves is still a rate-latency one
+        var tandem = service.Convolution(new RateLatencyServiceCurve(rate: 30, latency: 2));
+        Assert.IsType<RateLatencyServiceCurve>(tandem);
+        Assert.Equal(20, tandem.Rate);
+        Assert.Equal(6, tandem.Latency);
+
+        var delay = Curve.HorizontalDeviation(raisedArrival, service);
+        Assert.True(delay.IsFinite);
+    }
+}
