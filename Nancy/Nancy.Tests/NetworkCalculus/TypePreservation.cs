@@ -80,6 +80,28 @@ public class TypePreservation
             Assert.Equal(sigma + shift, Assert.IsType<SigmaRhoArrivalCurve>(shifted).Sigma);
     }
 
+    [Fact]
+    public void ShiftingByAnInfiniteFactorLeavesTheSpecializedTypes()
+    {
+        // the burst of an arrival curve cannot hold an infinite value, so the shortcut must not be taken for one
+        var subjects = new Curve[]
+        {
+            new SigmaRhoArrivalCurve(sigma: 3, rho: 2),
+            new ConstantCurve(5),
+            new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: 5),
+            new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: 5, withZeroOrigin: true),
+            new RateLatencyServiceCurve(rate: 2, latency: 3)
+        };
+
+        foreach (var curve in subjects)
+        foreach (var shift in new[] { Rational.PlusInfinity, Rational.MinusInfinity })
+        foreach (var exceptOrigin in new[] { true, false })
+            Assert.True(
+                Curve.Equivalent(Erased(curve).VerticalShift(shift, exceptOrigin), curve.VerticalShift(shift, exceptOrigin)),
+                $"{curve.GetType().Name}.VerticalShift({shift}, {exceptOrigin})"
+            );
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
