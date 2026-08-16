@@ -44,8 +44,10 @@ public class SubAdditiveCurve : Curve
     /// <param name="pseudoPeriodLength">Length of each pseudo-period.</param>
     /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period.</param>
     /// <param name="doTest">
-    /// If true, the sub-additive property is tested.
+    /// If true, the sub-additive property is tested, together with $f(0) = 0$.
     /// This test can be computationally expensive.
+    /// Skipping it asserts both, and the optimizations of this type rely on them: applied to a curve whose value at the origin is not 0,
+    /// the theorems of [ZS23] do not hold, and the results are wrong rather than merely unoptimized.
     /// </param>
     /// <exception cref="InvalidOperationException">
     /// If <paramref name="doTest"/> is true and the sub-additive property was not successfully verified.
@@ -65,8 +67,10 @@ public class SubAdditiveCurve : Curve
     /// </summary>
     /// <param name="other">The <see cref="Curve"/> object to copy from.</param>
     /// <param name="doTest">
-    /// If true, the sub-additive property is tested.
+    /// If true, the sub-additive property is tested, together with $f(0) = 0$.
     /// This test can be computationally expensive.
+    /// Skipping it asserts both, and the optimizations of this type rely on them: applied to a curve whose value at the origin is not 0,
+    /// the theorems of [ZS23] do not hold, and the results are wrong rather than merely unoptimized.
     /// </param>
     /// <exception cref="InvalidOperationException">
     /// If <paramref name="doTest"/> is true and the sub-additive property was not successfully verified.

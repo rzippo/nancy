@@ -11,8 +11,14 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.NetworkCalculus;
 
 /// <summary>
-/// Used to represent curves that are known to be super-additive.
+/// Used to represent curves that are known to be super-additive, and with $f(0) = 0$ (see <see cref="Curve.IsRegularSuperAdditive"/>).
 /// </summary>
+/// <remarks>
+/// $f(0) = 0$ is what the optimizations written against this type rely on, as they do on the sub-additive side.
+/// The constructor does not test it separately, since <see cref="Curve.IsSuperAdditive"/> implies it for a curve finite at the origin:
+/// it tests $f = f \overline{\otimes} f$, which at $t = 0$ forces $2 f(0) = f(0)$.
+/// The one curve it admits without it is the everywhere $+\infty$ one, which is super-additive and does not pass through the origin.
+/// </remarks>
 [JsonConverter(typeof(SuperAdditiveCurveSystemJsonConverter))]
 public class SuperAdditiveCurve : Curve
 {
@@ -36,6 +42,7 @@ public class SuperAdditiveCurve : Curve
     /// <param name="doTest">
     /// If true, the super-additive property is tested.
     /// This test can be computationally expensive.
+    /// Skipping it asserts the property, and with it the $f(0) = 0$ that the optimizations of this type rely on.
     /// </param>
     /// <exception cref="InvalidOperationException">
     /// If <paramref name="doTest"/> is true and the super-additive property was not successfully verified.
@@ -55,6 +62,7 @@ public class SuperAdditiveCurve : Curve
     /// <param name="doTest">
     /// If true, the super-additive property is tested.
     /// This test can be computationally expensive.
+    /// Skipping it asserts the property, and with it the $f(0) = 0$ that the optimizations of this type rely on.
     /// </param>
     /// <exception cref="InvalidOperationException">
     /// If <paramref name="doTest"/> is true and the super-additive property was not successfully verified.
