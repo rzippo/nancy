@@ -146,6 +146,34 @@ public partial class MppgFormatterVisitor :
         => precedence + 1;
 
     /// <summary>
+    /// Visits <paramref name="expression"/> as the operand of an infix operation, parenthesizing it if it is one itself.
+    /// </summary>
+    /// <remarks>
+    /// The formatting style spells the grouping out, rather than leaving it to the reader to apply the precedence rules,
+    /// so a compound operand is parenthesized even where precedence would not require it: $f + x * y$ is written as <c>f + (x * y)</c>.
+    /// </remarks>
+    private StringBuilder RenderOperand<TExpressionResult>(
+        IGenericExpression<TExpressionResult> expression,
+        MppgPrecedence required
+    )
+    {
+        var (mppg, precedence) = GeneralizedAccept(expression);
+
+        // a rational literal is one value rather than a compound operand, so it is written as it is,
+        // and parenthesized only where it would re-associate, as in the right operand of a division
+        if (expression is RationalNumberExpression && !ShowRationalsAsName)
+            return precedence >= required ? mppg : Parenthesized(mppg);
+
+        return precedence == MppgPrecedence.Atom ? mppg : Parenthesized(mppg);
+    }
+
+    /// <summary>
+    /// Wraps what has been built so far, which is an infix operation, so that it can appear as an operand of the next one.
+    /// </summary>
+    private static StringBuilder Parenthesized(StringBuilder mppg)
+        => new StringBuilder().Append('(').Append(mppg).Append(')');
+
+    /// <summary>
     /// True if the expression must be represented through its name, which happens past <see cref="MaxDepth"/>.
     /// </summary>
     private bool TryFormatAsName(
@@ -219,9 +247,9 @@ public partial class MppgFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            sb.Append(Render(expression.LeftExpression, precedence));
+            sb.Append(RenderOperand(expression.LeftExpression, precedence));
             sb.Append(mppgOperation);
-            sb.Append(Render(expression.RightExpression, Tighter(precedence)));
+            sb.Append(RenderOperand(expression.RightExpression, Tighter(precedence)));
             CurrentDepth--;
             return (sb, precedence);
         }
@@ -238,14 +266,19 @@ public partial class MppgFormatterVisitor :
         else
         {
             CurrentDepth++;
+            // the operation is n-ary here and binary in MPPG, and the style spells out the left-associative grouping,
+            // so the operands are chained as $((a + b) + c) + d$ rather than written flat
             var sb = new StringBuilder();
-            var isFirst = true;
+            var rendered = 0;
             foreach (var e in expression.Expressions)
             {
-                if (!isFirst)
-                    sb.Append(mppgOperation);
-                sb.Append(Render(e, isFirst ? precedence : Tighter(precedence)));
-                isFirst = false;
+                if (rendered == 0)
+                    sb.Append(RenderOperand(e, precedence));
+                else if (rendered == 1)
+                    sb.Append(mppgOperation).Append(RenderOperand(e, Tighter(precedence)));
+                else
+                    sb = Parenthesized(sb).Append(mppgOperation).Append(RenderOperand(e, Tighter(precedence)));
+                rendered++;
             }
             CurrentDepth--;
             return (sb, precedence);

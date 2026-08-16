@@ -31,32 +31,31 @@ public class ToMppgString
 
         // sum-level operators
         (Expressions.Addition(A, B), "a + b"),
-        (Expressions.Addition(Expressions.Addition(A, B), C), "a + b + c"),
+        (Expressions.Addition(Expressions.Addition(A, B), C), "(a + b) + c"),
         (Expressions.Subtraction(A, B), "a - b"),
         (Expressions.Minimum(A, B), @"a /\ b"),
         (Expressions.Maximum(A, B), @"a \/ b"),
 
         // product-level operators
         (Expressions.Convolution(A, B), "a * b"),
-        (Expressions.Convolution(Expressions.Convolution(A, B), C), "a * b * c"),
+        (Expressions.Convolution(Expressions.Convolution(A, B), C), "(a * b) * c"),
         (Expressions.Deconvolution(A, B), "a / b"),
         (Expressions.MaxPlusConvolution(A, B), "a *^ b"),
         (Expressions.MaxPlusDeconvolution(A, B), "a /^ b"),
         (Expressions.Composition(A, B), "a comp b"),
 
-        // precedence
+        // grouping, which the formatting style spells out even where precedence would not need it
         (Expressions.Convolution(Expressions.Addition(A, B), C), "(a + b) * c"),
-        (Expressions.Addition(Expressions.Convolution(A, B), C), "a * b + c"),
-        (Expressions.Addition(Expressions.Minimum(A, B), C), @"a /\ b + c"),
+        (Expressions.Addition(Expressions.Convolution(A, B), C), "(a * b) + c"),
+        (Expressions.Addition(Expressions.Minimum(A, B), C), @"(a /\ b) + c"),
         (Expressions.Minimum(C, Expressions.Addition(A, B)), @"c /\ (a + b)"),
         (Expressions.Deconvolution(A, Expressions.Deconvolution(B, C)), "a / (b / c)"),
-        (Expressions.Deconvolution(Expressions.Deconvolution(A, B), C), "a / b / c"),
-        (Expressions.Composition(Expressions.Composition(A, B), C), "a comp b comp c"),
+        (Expressions.Deconvolution(Expressions.Deconvolution(A, B), C), "(a / b) / c"),
+        (Expressions.Composition(Expressions.Composition(A, B), C), "(a comp b) comp c"),
         (Expressions.Convolution(
             Expressions.Minimum(A, B).SubAdditiveClosure(),
             Expressions.Deconvolution(C, Expressions.Addition(A, B))),
             @"subaddclosure(a /\ b) * (c / (a + b))"),
-
         // unary operators
         (A.SubAdditiveClosure(), "subaddclosure(a)"),
         (A.SuperAdditiveClosure(), "superaddclosure(a)"),
@@ -141,7 +140,7 @@ public class ToMppgString
         var expr = Expressions.Addition(inner, C);
 
         Assert.Equal("k + c", expr.ToMppgString(depth: 1));
-        Assert.Equal("a * b + c", expr.ToMppgString());
+        Assert.Equal("(a * b) + c", expr.ToMppgString());
     }
 
     [Fact]
