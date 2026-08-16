@@ -6768,14 +6768,46 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the super-additive closure.</returns>
-    /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
+    /// <remarks>
+    /// Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4.
+    /// If $f(0^+) > 0$ the result is $+\infty$ for any $t > 0$, and is returned without running the algorithm.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if $f(0) &gt; 0$, which means the super-additive closure is $+\infty$ for any $t$.
+    /// </exception>
     public virtual SuperAdditiveCurve SuperAdditiveClosure(ComputationSettings? settings = null)
     {
         #if DO_LOG
         logger.Trace("Computing super-additive closure");
         #endif
+        if (ValueAt(0) > 0)
+            throw new InvalidOperationException(
+                "This method cannot compute the superadditive closure of curves with f(0) > 0. See GeneralSuperAdditiveClosure instead.");
+
+        // With $f(0^+) > 0$, splitting any $t > 0$ into $k$ parts gives $k \cdot f(t/k) \to +\infty$, so the closure is $+\infty$ there.
+        // The negation below reaches the same value, at the cost of two sign flips and a decomposition.
+        if (RightLimitAt(0) > 0)
+            return new SuperAdditiveCurve(PlusInfinite().WithOriginAt(0), false);
+
         var result = -((-this).SubAdditiveClosure(settings));
         return new SuperAdditiveCurve(result, false);
+    }
+
+    /// <summary>
+    /// Computes the super-additive closure of the curve.
+    /// </summary>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result of the super-additive closure.</returns>
+    /// <remarks>
+    /// This version does not assume $f_*(0) = 0$, making the result more general but at the cost of optimizations,
+    /// since the result is not statically guaranteed to be a <see cref="SuperAdditiveCurve"/>.
+    /// </remarks>
+    public Curve GeneralSuperAdditiveClosure(ComputationSettings? settings = null)
+    {
+        if (ValueAt(0) > 0)
+            return PlusInfinite();
+        else
+            return SuperAdditiveClosure(settings);
     }
 
     #endregion Max-plus operators
