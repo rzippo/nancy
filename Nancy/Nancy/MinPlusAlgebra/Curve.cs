@@ -763,9 +763,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 if(ValueAt(0) <= 0)
                 {
-                    // the operand is copied to a plain Curve: a subclass would shortcut the max-plus convolution
+                    // $f$ is super-additive iff the curve with the origin raised to 0 is, and the characterization below holds for that one:
+                    // raising is the max-plus dual of the lowering that WithZeroOrigin performs for the sub-additive check.
+                    // The operand is copied to a plain Curve: a subclass would shortcut the max-plus convolution
                     // through the very property being checked, making the check circular
-                    var f_circ = new Curve(WithZeroOrigin());
+                    var f_circ = new Curve(WithOriginAt(0));
                     var selfConv = MaxPlusConvolution(f_circ, f_circ);
                     return Equivalent(f_circ, selfConv);
                 }

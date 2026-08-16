@@ -11,13 +11,13 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.NetworkCalculus;
 
 /// <summary>
-/// Used to represent curves that are known to be super-additive, and with $f(0) = 0$ (see <see cref="Curve.IsRegularSuperAdditive"/>).
+/// Used to represent curves that are known to be super-additive with $f(0) = 0$ (see <see cref="Curve.IsRegularSuperAdditive"/>),
+/// and exploit these properties to optimize computations.
 /// </summary>
 /// <remarks>
-/// $f(0) = 0$ is what the optimizations written against this type rely on, as they do on the sub-additive side.
-/// The constructor does not test it separately, since <see cref="Curve.IsSuperAdditive"/> implies it for a curve finite at the origin:
-/// it tests $f = f \overline{\otimes} f$, which at $t = 0$ forces $2 f(0) = f(0)$.
-/// The one curve it admits without it is the everywhere $+\infty$ one, which is super-additive and does not pass through the origin.
+/// $f(0) = 0$ is required for the curve to be <see cref="Curve.IsRegularSuperAdditive"/>,
+/// and the optimizations written against this type rely on it, as they do on the sub-additive side.
+/// It is not implied by super-additivity, which only requires $f(0) \le 0$, so the constructor tests it.
 /// </remarks>
 [JsonConverter(typeof(SuperAdditiveCurveSystemJsonConverter))]
 public class SuperAdditiveCurve : Curve
@@ -51,8 +51,10 @@ public class SuperAdditiveCurve : Curve
         Rational pseudoPeriodHeight, bool doTest = true)
         : base(baseSequence, pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight)
     {
-        if (doTest && !base.IsSuperAdditive)
-            throw new InvalidOperationException("The curve constructed is not actually is super-additive");
+        // Curve.IsRegularSuperAdditive cannot be used here: it is not virtual, and the IsSuperAdditive it reads is,
+        // so it would dispatch to the override below and the test would always pass
+        if (doTest && !(base.IsSuperAdditive && IsPassingThroughOrigin))
+            throw new InvalidOperationException("The curve constructed is not actually super-additive with f(0) = 0");
     }
 
     /// <summary>
@@ -70,8 +72,10 @@ public class SuperAdditiveCurve : Curve
     public SuperAdditiveCurve(Curve other, bool doTest = true)
         : base(other)
     {
-        if (doTest && !base.IsSuperAdditive)
-            throw new InvalidOperationException("The curve constructed is not actually is super-additive");
+        // Curve.IsRegularSuperAdditive cannot be used here: it is not virtual, and the IsSuperAdditive it reads is,
+        // so it would dispatch to the override below and the test would always pass
+        if (doTest && !(base.IsSuperAdditive && IsPassingThroughOrigin))
+            throw new InvalidOperationException("The curve constructed is not actually super-additive with f(0) = 0");
     }
 
     /// <summary>
@@ -91,6 +95,17 @@ public class SuperAdditiveCurve : Curve
     public bool IsSuperAdditiveCheck()
     {
         return base.IsSuperAdditive;
+    }
+
+    /// <summary>
+    /// Forced check for super-additive property with f(0) = 0.
+    /// </summary>
+    /// <remarks>
+    /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
+    /// </remarks>
+    public bool IsRegularSuperAdditiveCheck()
+    {
+        return base.IsSuperAdditive && IsPassingThroughOrigin;
     }
 
     /// <inheritdoc />
