@@ -56,6 +56,17 @@ public class ToMppgString
             Expressions.Minimum(A, B).SubAdditiveClosure(),
             Expressions.Deconvolution(C, Expressions.Addition(A, B))),
             @"subaddclosure(a /\ b) * (c / (a + b))"),
+        // the cases the playground's own reformat tests pin, up to the names
+        (Expressions.Addition(Expressions.Subtraction(A, B), C), "(a - b) + c"),
+        (Expressions.Addition(A, Expressions.Convolution(B, C)), "a + (b * c)"),
+        // an n-ary node is flattened by the library and chained left-associatively when written
+        (Expressions.Addition([A, B, C, A]), "((a + b) + c) + a"),
+        (Expressions.Convolution([A, B, C]), "(a * b) * c"),
+        (Expressions.Addition(Expressions.Convolution(A, B), Expressions.Convolution(C, A)), "(a * b) + (c * a)"),
+        // a call delimits its arguments already, so they take no parentheses of their own
+        (Expressions.Addition(A, B).SubAdditiveClosure(), "subaddclosure(a + b)"),
+        (Expressions.HorizontalDeviation(A, B), "hDev(a, b)"),
+
         // unary operators
         (A.SubAdditiveClosure(), "subaddclosure(a)"),
         (A.SuperAdditiveClosure(), "superaddclosure(a)"),
