@@ -90,4 +90,23 @@ public class SuperAdditiveCurve : Curve
     {
         return this;
     }
+
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
+    /// <remarks>
+    /// The sum of two super-additive curves is super-additive, so the type is kept when both operands have it.
+    /// </remarks>
+    public override Curve Addition(Curve b, ComputationSettings? settings = null)
+    {
+        var sum = base.Addition(b, settings);
+        if (b is SuperAdditiveCurve)
+            return new SuperAdditiveCurve(sum, false);
+        else
+            return sum;
+    }
+
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
+    public SuperAdditiveCurve Addition(SuperAdditiveCurve b, ComputationSettings? settings = null)
+    {
+        return new SuperAdditiveCurve(base.Addition(b, settings), false);
+    }
 }

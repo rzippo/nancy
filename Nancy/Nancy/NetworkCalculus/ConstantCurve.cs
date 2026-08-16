@@ -131,6 +131,8 @@ public class ConstantCurve : Curve
         // this curve is 0 at the origin, so the sum is not raised there
         if (curve is RateLatencyServiceCurve serviceCurve)
             return new RaisedRateLatencyServiceCurve(serviceCurve.Rate, serviceCurve.Latency, Value, withZeroOrigin: true);
+        else if (curve is ConstantCurve constantCurve)
+            return new ConstantCurve(Value + constantCurve.Value);
         else
             return base.Addition(curve, settings);
     }

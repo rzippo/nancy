@@ -116,6 +116,25 @@ public class SubAdditiveCurve : Curve
         return this;
     }
 
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
+    /// <remarks>
+    /// The sum of two sub-additive curves is sub-additive, so the type is kept when both operands have it.
+    /// </remarks>
+    public override Curve Addition(Curve b, ComputationSettings? settings = null)
+    {
+        var sum = base.Addition(b, settings);
+        if (b is SubAdditiveCurve)
+            return new SubAdditiveCurve(sum, false);
+        else
+            return sum;
+    }
+
+    /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
+    public SubAdditiveCurve Addition(SubAdditiveCurve b, ComputationSettings? settings = null)
+    {
+        return new SubAdditiveCurve(base.Addition(b, settings), false);
+    }
+
     #region Convolution
 
     /// <summary>
