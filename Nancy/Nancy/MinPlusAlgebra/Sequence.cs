@@ -1597,7 +1597,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Shifts the sequence vertically by an additive factor.
     /// </summary>
-    public Sequence VerticalShift(Rational shift, bool exceptOrigin = true)
+    /// <param name="shift">The additive factor.</param>
+    /// <param name="exceptOrigin">
+    /// If false, which is the default, the shift applies to every element.
+    /// If true, an element at $t = 0$ is left as it is, which matters only for a sequence that contains one.
+    /// </param>
+    public Sequence VerticalShift(Rational shift, bool exceptOrigin = false)
     {
         if (shift == 0)
             return this;
