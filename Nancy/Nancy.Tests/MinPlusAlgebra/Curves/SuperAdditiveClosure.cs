@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -26,6 +27,31 @@ public class SuperAdditiveClosure
 
         var closure = curve.SuperAdditiveClosure();
         Assert.True(Curve.Equivalent(closure, curve));
+    }
+
+    public static Curve PositiveAtOrigin = new Curve(
+        new Sequence([new Point(0, 1), Segment.Constant(0, 1, 2), new Point(1, 2), Segment.Constant(1, 2, 2)]),
+        pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 0);
+
+    [Fact]
+    public void ClosureOfCurvePositiveAtOrigin_IsReportedAsSuperAdditive()
+    {
+        Assert.True(PositiveAtOrigin.ValueAt(0) > 0);
+
+        // the report must name the operation the caller asked for, not the one it delegates to
+        var exception = Assert.Throws<InvalidOperationException>(() => PositiveAtOrigin.SuperAdditiveClosure());
+
+        Assert.Contains("superadditive", exception.Message);
+        Assert.Contains(nameof(Curve.GeneralSuperAdditiveClosure), exception.Message);
+    }
+
+    [Fact]
+    public void GeneralClosureOfCurvePositiveAtOrigin_IsPlusInfinite()
+    {
+        var closure = PositiveAtOrigin.GeneralSuperAdditiveClosure();
+
+        Assert.Equal(Rational.PlusInfinity, closure.ValueAt(0));
+        Assert.Equal(Rational.PlusInfinity, closure.ValueAt(17));
     }
 
     public static List<Curve> PositiveAtOriginRightLimit =
