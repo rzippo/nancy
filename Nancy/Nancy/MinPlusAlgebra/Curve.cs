@@ -749,7 +749,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <remarks>
     /// Based on [Zippo23] Lemma 9.4: $f$ is super-additive $\iff f^\circ = f^\circ \overline{\otimes} f^\circ$,
-    /// where $f^\circ$ is defined in <see cref="Curve.WithZeroOrigin"/>.
+    /// where $f^\circ$ is $f$ with its value at the origin raised to 0, through <see cref="Curve.WithOriginAt"/>.
+    /// That is the max-plus dual of the lowering <see cref="Curve.WithZeroOrigin"/> performs for <see cref="IsSubAdditive"/>,
+    /// and it is what makes the characterization apply, since it holds only where the value at the origin is 0.
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]

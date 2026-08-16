@@ -123,13 +123,18 @@ public class SigmaRhoArrivalCurve : ConcaveCurve
         if (shift == 0)
             return this;
 
-        // leaving the origin at 0 raises the burst, which is another curve of this kind, as long as it stays non-negative
-        if (exceptOrigin && !(Sigma + shift).IsNegative)
+        // leaving the origin at 0 raises the burst, which is another curve of this kind,
+        // as long as the raised burst is one this type accepts, i.e. finite and non-negative
+        if (exceptOrigin && shift.IsFinite)
         {
-            #if DO_LOG
-            logger.Trace("Optimized SR VerticalShift");
-            #endif
-            return new SigmaRhoArrivalCurve(sigma: Sigma + shift, rho: Rho);
+            var raisedSigma = Sigma + shift;
+            if (raisedSigma.IsFinite && !raisedSigma.IsNegative)
+            {
+                #if DO_LOG
+                logger.Trace("Optimized SR VerticalShift");
+                #endif
+                return new SigmaRhoArrivalCurve(sigma: raisedSigma, rho: Rho);
+            }
         }
 
         return base.VerticalShift(shift, exceptOrigin);
