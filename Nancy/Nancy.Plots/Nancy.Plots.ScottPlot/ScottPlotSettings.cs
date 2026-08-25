@@ -5,10 +5,6 @@
 /// </summary>
 public record ScottPlotSettings : PlotSettings
 {
-    /// If true, the plot is forced to have the x and y axes to have the same scale.
-    /// If false, they are adapted to the render size.
-    public bool SameScaleAxes { get; set; } = false;
-
     /// <summary>
     /// Output image width in pixels.
     /// </summary>

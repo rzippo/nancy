@@ -4,6 +4,7 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots;
 using PlotAxisLimitAlgorithms = global::Unipi.Nancy.Plots.PlotAxisLimitAlgorithms;
+using Hatches = global::ScottPlot.Hatches;
 
 namespace Unipi.Nancy.Plots.ScottPlot;
 
@@ -29,23 +30,17 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         var sequencesList = sequences.ToList();
         var namesList = names.ToList();
 
-        // todo: move colors to settings
-        var colors = new List<string>
-        {
-            "#636EFA",
-            "#EF553B",
-            "#00CC96",
-            "#AB63FA",
-            "#FFA15A",
-            "#19D3F3",
-            "#FF6692",
-            "#B6E880",
-            "#FF97FF",
-            "#FECB52"
-        };
+        var lineStyles = PlotSettings.UseLineStyles
+            ? PlotSettings.LineStyles ?? PlotStyleCycles.DefaultLineStyles
+            : [ PlotLineStyle.Solid ];
+        var fillPatterns = PlotSettings.FillPatterns ?? PlotStyleCycles.DefaultFillPatterns;
 
         var plot = new Plot();
         plot.Font.Set("Lato");
+
+        // ScottPlot's own palette, rather than one copied from another backend
+        var palette = plot.Add.Palette;
+        var colorCount = palette.Colors.Length;
 
         if(!string.IsNullOrWhiteSpace(PlotSettings.XLabel))
             plot.XLabel(PlotSettings.XLabel);
@@ -58,7 +53,8 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         if(PlotSettings.SameScaleAxes)
             plot.Axes.SquareUnits();
         
-        var axisLimits = PlotAxisLimitAlgorithms.GetSequenceAxisLimits(sequencesList, PlotSettings);
+        var axisLimits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+            sequencesList, PlotSettings, SequencesContinuePastCut);
 
         // set the axes limits
         plot.Axes.SetLimitsX(
@@ -68,10 +64,32 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
             (double)axisLimits.YLimit.Lower,
             (double)axisLimits.YLimit.Upper);
 
+        // the areas are added first, so that the curves are drawn over them
+        if (PlotSettings.InfinityStrategy == InfinityStrategy.Areas)
+        {
+            var withInfinities = sequencesList
+                .Select((sequence, idx) => (sequence, idx))
+                .Where(p => p.sequence.HasPlusInfinity || p.sequence.HasMinusInfinity)
+                .ToList();
+
+            foreach (var ((sequence, idx), position) in withInfinities.WithIndex())
+            {
+                var color = palette.GetColor(idx);
+                var pattern = PlotStyleCycles.Pick(idx, fillPatterns);
+                foreach (var region in sequence.EnumerateVisibleInfiniteRegions(
+                             axisLimits.XLimit, SequencesContinuePastCut))
+                    AddInfinityArea(
+                        plot, region, axisLimits, color, pattern, position, withInfinities.Count);
+            }
+        }
+
         foreach (var (sequence, idx) in sequencesList.WithIndex())
         {
-            var color = Color.FromHex(colors[idx % colors.Count]);
-            var sequenceTrace = new SequenceTraces(sequence);
+            var color = palette.GetColor(idx);
+            var linePattern = ToLinePattern(PlotStyleCycles.Pick(idx, lineStyles));
+            var sequenceTrace = new SequenceTraces(
+                sequence,
+                sequence.GetTrailingContinuation(axisLimits.XLimit, SequencesContinuePastCut));
 
             if (sequenceTrace.Points.Any())
             {
@@ -106,6 +124,7 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
                         .ToArray();
                     var lineScatter = plot.Add.ScatterLine(coordinates);
                     lineScatter.Color = color;
+                    lineScatter.LinePattern = linePattern;
                     if (!legendApplied)
                     {
                         lineScatter.LegendText = namesList[idx];
@@ -123,6 +142,14 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
             _ => true
         };
         plot.Legend.IsVisible = showLegend;
+        if (showLegend && PlotSettings.LegendPlacement == LegendPlacement.Outside)
+            plot.ShowLegend(PlotSettings.LegendPosition switch
+            {
+                LegendPosition.North => Edge.Top,
+                LegendPosition.South => Edge.Bottom,
+                LegendPosition.West or LegendPosition.NorthWest or LegendPosition.SouthWest => Edge.Left,
+                _ => Edge.Right
+            });
         plot.Legend.Alignment = PlotSettings.LegendPosition switch
         {
             LegendPosition.North => Alignment.UpperCenter,
@@ -139,6 +166,95 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         return plot;
     }
 
+    /// <summary>
+    /// Adds the area marking an infinite part of a sequence.
+    /// </summary>
+    /// <param name="plot">The plot to add to.</param>
+    /// <param name="region">The infinite part to mark.</param>
+    /// <param name="axisLimits">The limits of the plot, which reserved the room for the area.</param>
+    /// <param name="color">The color of the sequence.</param>
+    /// <param name="pattern">The fill pattern of the sequence.</param>
+    /// <param name="position">The position of the sequence among those that have infinite parts.</param>
+    /// <param name="count">The number of sequences that have infinite parts.</param>
+    /// <remarks>
+    /// The label is staggered by <paramref name="position"/>, so that overlapping areas do not write over each other.
+    /// </remarks>
+    private static void AddInfinityArea(
+        Plot plot,
+        InfiniteRegion region,
+        PlotAxisLimits axisLimits,
+        Color color,
+        PlotFillPattern pattern,
+        int position,
+        int count)
+    {
+        var band = region.IsPlusInfinite
+            ? axisLimits.PlusInfinityBand
+            : axisLimits.MinusInfinityBand;
+
+        var left = (double)region.StartTime;
+        var right = (double)region.EndTime;
+        var bottom = (double)band.Lower;
+        var top = (double)band.Upper;
+        if (right <= left)
+            return;
+
+        var area = plot.Add.Rectangle(left, right, bottom, top);
+        // the background is kept faint so that overlapping areas still show both patterns,
+        // but not transparent, which makes ScottPlot skip the hatch altogether
+        area.FillColor = color.WithAlpha(.18);
+        area.FillHatch = ToHatch(pattern);
+        area.FillHatchColor = color;
+        area.LineWidth = 0;
+
+        var label = plot.Add.Text(
+            region.IsPlusInfinite ? "+∞" : "-∞",
+            (left + right) / 2,
+            bottom + (top - bottom) * (position + 1) / (count + 1));
+        label.LabelFontColor = color;
+        label.LabelFontSize = 24;
+        label.LabelBold = true;
+        label.Alignment = Alignment.MiddleCenter;
+    }
+
+    /// <summary>
+    /// Maps a <see cref="PlotLineStyle"/> to the matching ScottPlot pattern.
+    /// </summary>
+    /// <remarks>
+    /// ScottPlot has no dash-dot pattern, so <see cref="PlotLineStyle.DashDotted"/> is rendered as <see cref="PlotLineStyle.Dashed"/>.
+    /// A cycle using both will have two entries that look alike.
+    /// </remarks>
+    private static LinePattern ToLinePattern(PlotLineStyle style)
+    {
+        return style switch
+        {
+            PlotLineStyle.Solid => LinePattern.Solid,
+            PlotLineStyle.Dashed => LinePattern.Dashed,
+            PlotLineStyle.Dotted => LinePattern.Dotted,
+            PlotLineStyle.DashDotted => LinePattern.Dashed,
+            PlotLineStyle.DenselyDashed => LinePattern.DenselyDashed,
+            PlotLineStyle.DenselyDotted => LinePattern.Dotted,
+            _ => LinePattern.Solid
+        };
+    }
+
+    /// <summary>
+    /// Maps a <see cref="PlotFillPattern"/> to the matching ScottPlot hatch.
+    /// </summary>
+    private static IHatch ToHatch(PlotFillPattern pattern)
+    {
+        return pattern switch
+        {
+            PlotFillPattern.Dots => new Hatches.Dots(),
+            PlotFillPattern.DenseDots => new Hatches.Checker(),
+            PlotFillPattern.DiagonalLines => new Hatches.Striped(Hatches.StripeDirection.DiagonalUp),
+            PlotFillPattern.ReverseDiagonalLines => new Hatches.Striped(Hatches.StripeDirection.DiagonalDown),
+            PlotFillPattern.Grid => new Hatches.Grid(rotate: false),
+            PlotFillPattern.Crosshatch => new Hatches.Grid(rotate: true),
+            _ => new Hatches.Dots()
+        };
+    }
+
     private class SequenceTraces
     {
         public List<List<(double x, double y)>> ContinuousLines { get; } = [];
@@ -147,7 +263,7 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         
         public List<(double x, double y)> Discontinuities { get; } = [];
         
-        public SequenceTraces(Sequence sequence)
+        public SequenceTraces(Sequence sequence, TrailingContinuation? continuation)
         {
             var currentLine = new List<(double x, double y)>();
             if (sequence.IsLeftOpen)
@@ -160,8 +276,8 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
             var breakpoints = sequence.EnumerateBreakpoints();
             foreach (var (left, center, right) in breakpoints)
             {
-                if (left is not null and not { IsPlusInfinite: true } &&
-                    right is not null and not { IsPlusInfinite: true } &&
+                if (left is not null and not { IsInfinite: true } &&
+                    right is not null and not { IsInfinite: true } &&
                     left.LeftLimitAtEndTime == center.Value && center.Value == right.RightLimitAtStartTime
                    )
                 {
@@ -223,13 +339,38 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
             if (sequence.IsRightOpen)
             {
                 var lastSegment = (Segment)sequence.Elements.Last();
-                if (lastSegment is not { IsPlusInfinite: true }) {
+                if (lastSegment is not { IsInfinite: true }) {
                     var lastCoord = EndCoord(lastSegment);
                     currentLine.Add(lastCoord);
                     ContinuousLines.Add(currentLine);
                     Discontinuities.Add(lastCoord);
                 }
             }
+
+            if (continuation is { } trailing)
+                ExtendToRightEdge(trailing);
+        }
+
+        /// <summary>
+        /// Carries the last line on to the right edge of the plot, dropping the mark at the cut.
+        /// </summary>
+        /// <remarks>
+        /// Whether the data goes on past the plot is decided in the shared layer, so that every renderer answers it the same way.
+        /// </remarks>
+        private void ExtendToRightEdge(TrailingContinuation continuation)
+        {
+            if (ContinuousLines.Count == 0)
+                return;
+
+            var line = ContinuousLines[^1];
+            if (line.Count == 0)
+                return;
+
+            var end = line[^1];
+            line.Add((x: (double)continuation.Time, y: (double)continuation.Value));
+
+            // the mark sat on the cut, which is not an endpoint of the curve
+            Points.RemoveAll(p => p.x == end.x && p.y == end.y);
         }
     }
 
