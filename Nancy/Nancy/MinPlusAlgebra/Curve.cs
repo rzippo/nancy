@@ -105,6 +105,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <remarks>
     /// Referred to as $[t_1, ..., t_k]$ in [BT08] Section 4.1
+    /// This is usually not <see cref="Sequence.IsNormalized"/>: a breakpoint is forced at <see cref="PseudoPeriodStart"/>, even where the graph does not need one.
+    /// Use <see cref="Cut(Unipi.Nancy.Numerics.Interval,ComputationSettings)"/> for a normalized sequence.
     /// </remarks>
     [JsonProperty(PropertyName = "baseSequence")]
     [JsonPropertyName("baseSequence")]
@@ -1644,6 +1646,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A sequence equivalently defined within the given interval.</returns>
+    /// <remarks>
+    /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
+    /// </remarks>
     public Sequence Cut(
         Rational cutStart,
         Rational cutEnd,
@@ -1912,6 +1917,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="interval">The interval to use.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A sequence equivalently defined within the given interval.</returns>
+    /// <remarks>
+    /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
+    /// </remarks>
     public Sequence Cut(
         Interval interval,
         ComputationSettings? settings = null

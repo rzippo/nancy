@@ -270,6 +270,9 @@ public static class SequenceExtensions
     /// <param name="doSort">If true, the elements are sorted before attempting to merge.</param>
     /// <param name="settings">Settings to forward to SortElements, if used.</param>
     /// <returns>A set where no further merges are possible.</returns>
+    /// <remarks>
+    /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
+    /// </remarks>
     public static List<Element> Merge(this IReadOnlyList<Element> elements, bool doSort = false, ComputationSettings? settings = null)
     {
         var reorderedElements = doSort ? elements.SortElements(settings): elements;
@@ -360,7 +363,10 @@ public static class SequenceExtensions
     /// </summary>
     /// <param name="elements">The elements to merge, must be sorted</param>
     /// <returns>A set where no further merges are possible.</returns>
-    /// <remarks>Optimized for minimal allocations</remarks>
+    /// <remarks>
+    /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
+    /// Optimized for minimal allocations.
+    /// </remarks>
     public static IEnumerable<Element> MergeAsEnumerable(this IEnumerable<Element> elements)
     {
         using var enumerator = elements.GetEnumerator();

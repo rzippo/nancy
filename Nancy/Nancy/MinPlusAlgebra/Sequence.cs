@@ -139,6 +139,35 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         Elements.All(e => e.IsZero);
 
     /// <summary>
+    /// True if no two consecutive elements of the sequence can be merged.
+    /// </summary>
+    /// <remarks>
+    /// A normalized sequence uses one element per stretch over which the graph is a single line, whatever breakpoints the operands it came from had.
+    /// This is what lets a caller read a maximal run off the elements: a run that arrived split would be indistinguishable from two runs with a gap between them.
+    /// Results of operations are normalized unless documented otherwise, while <see cref="Curve.BaseSequence"/> is not, since a breakpoint is forced at the pseudo-period start.
+    /// Use <see cref="SequenceExtensions.Merge"/> to normalize a set of elements.
+    /// </remarks>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsNormalized
+    {
+        get
+        {
+            for (var i = 0; i + 2 < Count; i++)
+            {
+                if (Elements[i] is Segment left &&
+                    Elements[i + 1] is Point point &&
+                    Elements[i + 2] is Segment right &&
+                    SequenceExtensions.CanMergeTriplet(left, point, right))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// True if there is no discontinuity within the sequence.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
@@ -1295,7 +1324,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Returns an equivalent sequence optimized to have the minimum amount of segments.
     /// </summary>
-    /// <remarks>The result is a well-formed sequence [ZS23]</remarks>
+    /// <remarks>
+    /// The result is a well-formed sequence [ZS23].
+    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// </remarks>
     public Sequence Optimize()
     {
         var mergedElements = Elements.Merge();
@@ -1819,6 +1851,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the floor function, $\lfloor f(t) \rfloor$.
     /// </summary>
+    /// <remarks>
+    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// </remarks>
     public Sequence Floor()
     {
         var elements = Elements
@@ -1830,6 +1865,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Computes the ceiling function, $\lceil f(t) \rceil$.
     /// </summary>
+    /// <remarks>
+    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// </remarks>
     public Sequence Ceil()
     {
         var elements = Elements
@@ -1848,6 +1886,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <returns>The sequence resulting from the sum.</returns>
+    /// <remarks>
+    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// </remarks>
     public static Sequence Addition(Sequence a, Sequence b)
     {
         var overlap = GetOverlap(a, b);
@@ -1874,6 +1915,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="b">The second operand.</param>
     /// <returns>The sequence resulting from the sum.</returns>
+    /// <remarks>
+    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// </remarks>
     public Sequence Addition(Sequence b)
         => Addition(this, b);
 
@@ -1895,6 +1939,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>
     /// The result may contain negative values. 
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
+    /// The result is normalized, see <see cref="IsNormalized"/>.
     /// </remarks>
     public static Sequence Subtraction(Sequence a, Sequence b)
         => Addition(a, -b);
@@ -1907,6 +1952,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>
     /// The result may contain negative values. 
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
+    /// The result is normalized, see <see cref="IsNormalized"/>.
     /// </remarks>
     public Sequence Subtraction(Sequence b)
         => Subtraction(this, b);
@@ -1918,6 +1964,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
+    /// <remarks>
+    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// </remarks>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static Sequence Subtraction(Sequence a, Sequence b, bool nonNegative)
         => nonNegative ?
@@ -1930,6 +1979,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="b">The second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     /// <returns>The sequence resulting from the sum.</returns>
+    /// <remarks>
+    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// </remarks>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public Sequence Subtraction(Sequence b, bool nonNegative)
         => Subtraction(this, b, nonNegative);
@@ -3198,7 +3250,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="g">Inner function, non-negative and non-decreasing, defined in $[a, b[$.</param>
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
-    /// <remarks>Algorithmic properties discussed in [ZNS23b].</remarks>
+    /// <remarks>
+    /// Algorithmic properties discussed in [ZNS23b].
+    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// </remarks>
     public static Sequence Composition(Sequence f, Sequence g)
     {
         if (g.IsLeftOpen || g.IsRightClosed)
