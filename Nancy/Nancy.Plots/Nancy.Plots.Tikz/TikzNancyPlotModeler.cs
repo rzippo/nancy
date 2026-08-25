@@ -16,7 +16,10 @@ public class TikzNancyPlotModeler : NancyPlotModeler<TikzPlotSettings, TikzPlot>
             sequences.ToList(),
             names.ToList(),
             PlotSettings
-        );
+        )
+        {
+            SequencesContinuePastEnd = SequencesContinuePastCut
+        };
         return tikzPlot;
     }
 

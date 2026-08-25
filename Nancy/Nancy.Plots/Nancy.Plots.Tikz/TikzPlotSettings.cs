@@ -6,19 +6,18 @@
 public record TikzPlotSettings : PlotSettings
 {
     /// <summary>
-    /// Constructor.
+    /// The line styles to cycle, written as TikZ option strings.
     /// </summary>
-    public TikzPlotSettings()
-    {
-        RelativeXAxisMargin = 0;
-        RelativeYAxisMargin = 0;
-    }
+    /// <remarks>
+    /// Takes precedence over <see cref="PlotSettings.LineStyles"/> when set, and accepts any TikZ style, such as <c>densely dash dot dot</c>.
+    /// </remarks>
+    public IReadOnlyList<string>? RawLineStyles { get; set; } = null;
 
     /// Controls the fontsize used for the plot.
     public FontSize FontSize { get; set; } = FontSize.small;
 
     /// Controls the grid and ticks layout.
-    public GridTickLayout GridTickLayout { get; set; } = GridTickLayout.Auto;
+    public GridTickLayout GridTickLayout { get; set; } = GridTickLayout.RoundValues;
 
     /// Controls curve layout.
     public CurveLayout CurveLayout { get; set; } = CurveLayout.SimplifyContinuous;
@@ -58,6 +57,33 @@ public static class LegendPositionExtension
     }
 }
 
+
+/// <summary>
+/// Extension class placing the legend outside the axis box.
+/// </summary>
+/// <exclude />
+public static class LegendPlacementExtension
+{
+    /// <summary>
+    /// Returns the pgfplots anchor and position for a legend placed beside the axis.
+    /// </summary>
+    /// <remarks>
+    /// The coordinates are relative to the axis box, so a legend anchored past 1 or below 0 sits outside it whatever its size.
+    /// </remarks>
+    public static (string At, string Anchor) ToOutsideLatex(this LegendPosition position)
+        => position switch
+        {
+            LegendPosition.North => ("0.5,1.05", "south"),
+            LegendPosition.NorthEast => ("1.05,1", "north west"),
+            LegendPosition.East => ("1.05,0.5", "west"),
+            LegendPosition.SouthEast => ("1.05,0", "south west"),
+            LegendPosition.South => ("0.5,-0.15", "north"),
+            LegendPosition.SouthWest => ("-0.05,0", "south east"),
+            LegendPosition.West => ("-0.05,0.5", "east"),
+            LegendPosition.NorthWest => ("-0.05,1", "north east"),
+            _ => ("1.05,0", "south west")
+        };
+}
 
 /// <summary>
 /// Options for plot font size.
@@ -147,13 +173,18 @@ public enum GridTickLayout
 {
     /// The tick marks are set to the breakpoints of the curves plotted,
     /// and the grid layout is left to TikZ's automatic algorithms.
-    Auto,
+    /// Every breakpoint is labelled, which reads well for few curves and crowds the axes for many.
+    Breakpoints,
     
     /// The grid marks all natural numbers, but the ticks are not labelled.
     SquareGridNoLabels,
     
     /// The ticks and grid mark all natural numbers.
-    SquareGrid
+    SquareGrid,
+
+    /// The tick marks are placed at regularly spaced round values, chosen by pgfplots.
+    /// This is what the other Nancy plot backends do, and it keeps the axes readable however many curves are plotted.
+    RoundValues
 }
 
 /// Options for curve layout.

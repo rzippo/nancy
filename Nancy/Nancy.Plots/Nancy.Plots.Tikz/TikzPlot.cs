@@ -23,6 +23,15 @@ public class TikzPlot
     /// </summary>
     public TikzPlotSettings Settings { get; set; } = new();
 
+    /// <summary>
+    /// True if the sequences are cuts of curves that go on past them.
+    /// </summary>
+    /// <remarks>
+    /// The areas marking infinite values then reach the edge of the plot, rather than stopping at the cut as if the value ended there.
+    /// It is false for sequences plotted directly, whose values past their end are not known.
+    /// </remarks>
+    public bool SequencesContinuePastEnd { get; set; }
+
     private sealed record UppMarksAnnotation(
         string Name,
         Rational T,
@@ -144,6 +153,7 @@ public class TikzPlot
     /// \usepackage{tikz}
     /// \usepackage{pgfplots}
     /// \usetikzlibrary{arrows}
+    /// \usetikzlibrary{patterns}
     /// </code>
     /// </remarks>
     public string ToTikzCode()
@@ -157,10 +167,11 @@ public class TikzPlot
         var colors = SequencesToPlot
             .Select(stp => stp.Color)
             .ToList();
-        // todo: expose this setting?
-        var lineStyles = GetDefaultLineStyles(sequences.Count);
+        var lineStyles = GetLineStyles(Settings, sequences.Count, DefaultColorList.Count);
+        var fillPatterns = Settings.FillPatterns ?? PlotStyleCycles.DefaultFillPatterns;
 
-        var axisLimits = PlotAxisLimitAlgorithms.GetSequenceAxisLimits(sequences, Settings);
+        var axisLimits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+            sequences, Settings, SequencesContinuePastEnd);
 
         var xmarks = sequences
             .SelectMany(s => s
@@ -185,6 +196,11 @@ public class TikzPlot
         var sb = new StringBuilder();
         sb.AppendLines(GetTikzHeader(axisLimits, xmarks, ymarks, Settings));
 
+        // the areas go first, so that the curves are drawn over them
+        if (Settings.InfinityStrategy == InfinityStrategy.Areas)
+            sb.AppendLines(GetInfinityAreaLines(
+                sequences, colors, fillPatterns, axisLimits, SequencesContinuePastEnd));
+
         var includeLegend = Settings.LegendStrategy switch
         {
             // By default, the legend is omitted if a single curve or sequence is being plotted,
@@ -195,7 +211,12 @@ public class TikzPlot
             _ => true
         };
         
-        sb.AppendLines(GetTikzContent(sequences, names, colors, lineStyles, Settings, includeLegend));
+        var continuations = sequences
+            .Select(s => s.GetTrailingContinuation(axisLimits.XLimit, SequencesContinuePastEnd))
+            .ToList();
+
+        sb.AppendLines(GetTikzContent(
+            sequences, names, colors, lineStyles, continuations, Settings, includeLegend));
 
         foreach (var annotation in _uppMarks.Values)
             sb.AppendLines(GetUppMarksLines(annotation));
@@ -255,18 +276,66 @@ public class TikzPlot
     }
 
     /// <summary>
-    /// Get a list of <paramref name="n"/> default line styles.
+    /// Get the line styles to use, one per sequence.
     /// </summary>
-    public static List<string> GetDefaultLineStyles(int n)
+    /// <param name="settings">The settings of the plot.</param>
+    /// <param name="n">The number of sequences.</param>
+    /// <param name="colorCount">The number of colors being cycled.</param>
+    public static List<string> GetLineStyles(TikzPlotSettings settings, int n, int colorCount)
     {
         var result = new List<string>();
-        for (int i = 0; i < n; i++)
+        if (settings.RawLineStyles is { Count: > 0 } raw)
         {
-            result.Add("solid");
+            for (var i = 0; i < n; i++)
+                result.Add(raw[i % raw.Count]);
+            return result;
         }
 
+        if (!settings.UseLineStyles)
+        {
+            for (var i = 0; i < n; i++)
+                result.Add("solid");
+            return result;
+        }
+
+        var styles = settings.LineStyles ?? PlotStyleCycles.DefaultLineStyles;
+        for (var i = 0; i < n; i++)
+            result.Add(ToTikzLineStyle(PlotStyleCycles.Pick(i, styles)));
         return result;
     }
+
+    /// <summary>
+    /// Maps a <see cref="PlotLineStyle"/> to the matching TikZ option.
+    /// </summary>
+    public static string ToTikzLineStyle(PlotLineStyle style)
+        => style switch
+        {
+            PlotLineStyle.Solid => "solid",
+            PlotLineStyle.Dashed => "dashed",
+            PlotLineStyle.Dotted => "dotted",
+            PlotLineStyle.DashDotted => "dash dot",
+            PlotLineStyle.DenselyDashed => "densely dashed",
+            PlotLineStyle.DenselyDotted => "densely dotted",
+            _ => "solid"
+        };
+
+    /// <summary>
+    /// Maps a <see cref="PlotFillPattern"/> to the matching TikZ pattern.
+    /// </summary>
+    /// <remarks>
+    /// These require the <c>patterns</c> TikZ library in the preamble.
+    /// </remarks>
+    public static string ToTikzFillPattern(PlotFillPattern pattern)
+        => pattern switch
+        {
+            PlotFillPattern.Dots => "dots",
+            PlotFillPattern.DenseDots => "crosshatch dots",
+            PlotFillPattern.DiagonalLines => "north east lines",
+            PlotFillPattern.ReverseDiagonalLines => "north west lines",
+            PlotFillPattern.Grid => "grid",
+            PlotFillPattern.Crosshatch => "crosshatch",
+            _ => "dots"
+        };
 
     /// <summary>
     /// Handy method that concatenates n tabs.  
@@ -293,7 +362,7 @@ public class TikzPlot
         TikzPlotSettings? settings = null)
     {
         settings ??= new ();
-        var displayLimits = GetDisplayLimits(axisLimits, settings);
+        var displayLimits = axisLimits;
 
         yield return $"\\begin{{tikzpicture}}";
         yield return $"{Tabs(1)}\\begin{{axis}}[";
@@ -304,7 +373,7 @@ public class TikzPlot
 
         switch (settings.GridTickLayout)
         {
-            case GridTickLayout.Auto:
+            case GridTickLayout.Breakpoints:
                 yield return $"{Tabs(2)}grid = both,";
                 yield return $"{Tabs(2)}minor tick num = 1,";
                 break;
@@ -321,7 +390,8 @@ public class TikzPlot
 
         yield return $"{Tabs(2)}grid style = {{draw=gray!30}},";
         yield return $"{Tabs(2)}axis lines = left,";
-        yield return $"{Tabs(2)}axis equal image,";
+        if (settings.SameScaleAxes)
+            yield return $"{Tabs(2)}axis equal image,";
         yield return $"{Tabs(2)}xlabel = {{{settings.XLabel}}},";
         yield return $"{Tabs(2)}ylabel = {{{settings.YLabel}}},";
         var xLabelAnchor = settings.GridTickLayout switch {
@@ -335,7 +405,15 @@ public class TikzPlot
 
         switch (settings.GridTickLayout)
         {
-            case GridTickLayout.Auto:
+            case GridTickLayout.RoundValues:
+            {
+                // the ticks are left to pgfplots, which places them at round values
+                yield return $"{Tabs(2)}xmax = {ToInvariantDecimal(displayLimits.XLimit.Upper)},";
+                yield return $"{Tabs(2)}ymax = {ToInvariantDecimal(displayLimits.YLimit.Upper)},";
+                break;
+            }
+
+            case GridTickLayout.Breakpoints:
             {
                 yield return $"{Tabs(2)}xmax = {ToInvariantDecimal(displayLimits.XLimit.Upper)},";
                 yield return $"{Tabs(2)}ymax = {ToInvariantDecimal(displayLimits.YLimit.Upper)},";
@@ -421,7 +499,16 @@ public class TikzPlot
             }
         }
 
-        yield return $"{Tabs(2)}legend pos = {settings.LegendPosition.ToLatex()}";
+        if (settings.LegendPlacement == LegendPlacement.Outside)
+        {
+            // placed against the outside of the axis box, where it cannot cover the curves
+            var (at, anchor) = settings.LegendPosition.ToOutsideLatex();
+            yield return $"{Tabs(2)}legend style = {{ at = {{({at})}}, anchor = {anchor} }}";
+        }
+        else
+        {
+            yield return $"{Tabs(2)}legend pos = {settings.LegendPosition.ToLatex()}";
+        }
         yield return $"{Tabs(1)}]";
     }
 
@@ -461,6 +548,69 @@ public class TikzPlot
     {
         yield return $"{Tabs(1)}\\end{{axis}}";
         yield return "\\end{tikzpicture}";
+    }
+
+    /// <summary>
+    /// Computes the lines that draw the areas marking infinite values.
+    /// </summary>
+    /// <param name="sequences">The sequences being plotted.</param>
+    /// <param name="colors">The colors in use, one per sequence.</param>
+    /// <param name="fillPatterns">The fill patterns being cycled.</param>
+    /// <param name="axisLimits">The limits of the plot, which reserved the room for the areas.</param>
+    /// <param name="continuesPastEnd">True if the sequences are cuts of curves that go on past them.</param>
+    /// <remarks>
+    /// These are drawn with plain TikZ rather than <c>ddplot</c>, so that they take no part in the legend or the color cycle.
+    /// No border is drawn: at a curve's weight it would read as a segment of the curve itself.
+    /// The label is staggered per sequence, so that overlapping areas do not write over each other.
+    /// </remarks>
+    private static IEnumerable<string> GetInfinityAreaLines(
+        IReadOnlyList<Sequence> sequences,
+        IReadOnlyList<string> colors,
+        IReadOnlyList<PlotFillPattern> fillPatterns,
+        PlotAxisLimits axisLimits,
+        bool continuesPastEnd)
+    {
+        var withInfinities = sequences
+            .Select((sequence, index) => (sequence, index))
+            .Where(p => p.sequence.HasPlusInfinity || p.sequence.HasMinusInfinity)
+            .ToList();
+        if (withInfinities.Count == 0)
+            yield break;
+
+        foreach (var ((sequence, index), position) in withInfinities.WithIndex())
+        {
+            var color = colors[index % colors.Count];
+            var pattern = ToTikzFillPattern(
+                PlotStyleCycles.Pick(index, fillPatterns));
+
+            foreach (var region in sequence.EnumerateVisibleInfiniteRegions(
+                         axisLimits.XLimit, continuesPastEnd))
+            {
+                var band = region.IsPlusInfinite
+                    ? axisLimits.PlusInfinityBand
+                    : axisLimits.MinusInfinityBand;
+                if (region.EndTime <= region.StartTime || band.Upper <= band.Lower)
+                    continue;
+
+                var x0 = ToInvariantDecimal(region.StartTime);
+                var x1 = ToInvariantDecimal(region.EndTime);
+                var y0 = ToInvariantDecimal(band.Lower);
+                var y1 = ToInvariantDecimal(band.Upper);
+
+                yield return
+                    $"{Tabs(2)}\\fill [ pattern = {pattern}, pattern color = {color}, opacity = 0.6 ] " +
+                    $"(axis cs:{x0},{y0}) rectangle (axis cs:{x1},{y1});";
+
+                var labelX = ToInvariantDecimal((region.StartTime + region.EndTime) / 2);
+                var labelY = ToInvariantDecimal(
+                    band.Lower + (band.Upper - band.Lower) * (position + 1) / (withInfinities.Count + 1));
+                var sign = region.IsPlusInfinite ? "+" : "-";
+                yield return
+                    $"{Tabs(2)}\\node [ {color}, font = \\large, fill = white, fill opacity = 0.7, text opacity = 1, inner sep = 1pt ] at (axis cs:{labelX},{labelY}) {{$ {sign}\\infty $}};";
+            }
+
+            yield return "";
+        }
     }
 
     /// <summary>
@@ -555,17 +705,20 @@ public class TikzPlot
         IReadOnlyList<string> names, 
         IReadOnlyList<string> colors,
         IReadOnlyList<string> lineStyles,
+        IReadOnlyList<TrailingContinuation?> continuations,
         TikzPlotSettings settings,
         bool includeLegend
     )
     {
         if (sequences.Count != names.Count || sequences.Count != colors.Count)
-            throw new InvalidEnumArgumentException("The arguments must be of the same length");
+            throw new ArgumentException("The arguments must be of the same length");
         if (sequences.Any(s => s.FirstFiniteTime.IsPlusInfinite))
-            throw new InvalidEnumArgumentException("Cannot plot infinite-only sequences");
+            throw new ArgumentException("Cannot plot infinite-only sequences");
 
         var plots = sequences
-            .Select((s, i) => ToTikzExtensions.ToTikzLines(s, colors[i], lineStyles[i], settings).ToList())
+            .Select((s, i) => ToTikzExtensions
+                .ToTikzLines(s, colors[i], lineStyles[i], settings, continuations[i])
+                .ToList())
             .ToList();
 
         if (!includeLegend)
@@ -652,7 +805,8 @@ static class ToTikzExtensions
         this Sequence sequence, 
         string color, 
         string? lineStyle = null,
-        TikzPlotSettings? settings = null
+        TikzPlotSettings? settings = null,
+        TrailingContinuation? continuation = null
     )
     {
         settings ??= new TikzPlotSettings();
@@ -684,6 +838,7 @@ static class ToTikzExtensions
                 {
                     var isStartClosed = enumerator.Current is Point;
                     var isEndClosed = false;
+                    var carriesOn = false;
                     var breakpoints = new List<(Rational time, Rational value)> { };
 
                     // this while body runs once per element
@@ -746,6 +901,15 @@ static class ToTikzExtensions
                         }
                     }
 
+                    // the last run of a cut curve is carried on to the edge of the plot,
+                    // since the cut is not where the curve ends
+                    if (!keepLooping && continuation is { } trailing && breakpoints.Count > 1 &&
+                        breakpoints[^1].time == sequence.DefinedUntil)
+                    {
+                        breakpoints.Add((trailing.Time, trailing.Value));
+                        carriesOn = true;
+                    }
+
                     // the plotting step, after the inner loop ends
                     if(breakpoints.Count > 0)
                         foreach (var line in plotContinuousSequence())
@@ -769,9 +933,9 @@ static class ToTikzExtensions
                             // plot line for continuous sequence
                             var sb = new StringBuilder();
                             var leftBracket = isStartClosed ? "" : ")";
-                            var rightBracket = isEndClosed ? "" : "(";
+                            var rightBracket = isEndClosed || carriesOn ? "" : "(";
                             var shortenLeft = isStartClosed ? "" : "shorten < = 1pt, ";
-                            var shortenRight = isEndClosed ? "" : "shorten > = 1pt, ";
+                            var shortenRight = isEndClosed || carriesOn ? "" : "shorten > = 1pt, ";
 
                             var header =
                                 $"\\addplot [ color = {color}, thick, {leftBracket}-{rightBracket}, {lineStyle}{shortenLeft}{shortenRight} ] coordinates {{ ";
@@ -804,7 +968,7 @@ static class ToTikzExtensions
                             sb.AppendLine($"}};");
                         }
 
-                        if (isEndClosed)
+                        if (isEndClosed && !carriesOn)
                         {
                             // plot mark for ending point
                             var x = (decimal) breakpoints.Last().time;

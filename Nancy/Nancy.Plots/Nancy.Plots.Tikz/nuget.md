@@ -20,6 +20,7 @@ The following lines will be needed in the LaTeX preamble:
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usetikzlibrary{arrows}
+\usetikzlibrary{patterns}
 ```
 
 This package is based on the interface defined in the `Unipi.Nancy.Plots` namespace, which is shared with other `Nancy.Plots.*` packages, allowing code reuse and similar functionalities.
