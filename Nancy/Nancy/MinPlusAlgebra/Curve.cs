@@ -796,7 +796,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public bool IsRegularSuperAdditive
         => IsSuperAdditive && IsPassingThroughOrigin;
 
-
     /// <summary>
     /// Tests if the curve is concave,
     /// i.e. for any two points $(t, f(t))$ the straight line joining them is below $f$.
@@ -1365,6 +1364,700 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public static Curve operator -(Curve c)
         => c.Negate();
+
+    #endregion
+
+    #region Intersection and crossing methods
+
+    /// <summary>
+    /// The times, as intervals, at which this curve and <paramref name="other"/> take the same value.
+    /// </summary>
+    /// <param name="other">The curve to compare against.</param>
+    /// <param name="from">The time to start from, null meaning 0.</param>
+    /// <param name="to">The time to stop at, included or not per <paramref name="isEndInclusive"/>; null meaning unbounded. A value of $+\infty$ is treated as unbounded, and its inclusivity is ignored.</param>
+    /// <param name="isStartInclusive">If true, <paramref name="from"/> is included in the search.</param>
+    /// <param name="isEndInclusive">If true, <paramref name="to"/> is included in the search.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The pattern of intersections, infinite when the two meet forever.</returns>
+    /// <remarks>
+    /// Equality at an infinity counts: two curves both saturated over a stretch do take the same value there.
+    /// A jump over the other curve does not count, since the two never take the same value.
+    /// Where the two share a whole stretch, the result is that stretch as an interval rather than its endpoints.
+    /// Intervals are merged when their union is itself an interval, so a stretch of equality is reported whole.
+    /// A one-point hole keeps two stretches apart, since the instant between them belongs to neither.
+    /// An unbounded interval is returned with the infinite endpoint excluded, since there is no time at infinity.
+    /// A window with upper bound $+\infty$ is read as unbounded even when the bound is closed.
+    /// </remarks>
+    /// <exception cref="ArgumentException">Thrown when a bound is negative, $-\infty$ included, since a curve is not defined for $t &lt; 0$.</exception>
+    public IntersectionPattern GetIntersections(
+        Curve other,
+        Rational? from = null,
+        Rational? to = null,
+        bool isStartInclusive = true,
+        bool isEndInclusive = false,
+        ComputationSettings? settings = null)
+    {
+        settings ??= ComputationSettings.Default();
+        var start = from ?? Rational.Zero;
+        if (start < 0 || to < 0)
+            throw new ArgumentException("A curve is not defined for t < 0");
+
+        // an unbounded end is what null means, and no time is +infinity
+        if (to is { IsPlusInfinite: true })
+            to = null;
+
+        var period = GetDifferencePeriod(this, other);
+
+        if (start.IsPlusInfinite)
+            return new IntersectionPattern(Array.Empty<Interval>(), Array.Empty<Interval>(), period.Start, period.Length);
+
+        if (to is { } upper)
+        {
+            // a window that ends before it starts holds nothing, which the read-out answers on its own
+            var bounded = IntersectionsOver(this, other, start, upper, isStartInclusive, isEndInclusive, settings);
+            return new IntersectionPattern(bounded, Array.Empty<Interval>(), period.Start, period.Length);
+        }
+
+        var anchor = GetPeriodicAnchor(this, other, start, period, settings);
+
+        var transient = anchor > start
+            ? IntersectionsOver(this, other, start, anchor, isStartInclusive, isEndInclusive: false, settings)
+            : new List<Interval>();
+
+        // two periods, so that a stretch running across a period boundary is seen whole:
+        // one period alone would report it as two, chopped where the representation repeats
+        var twoPeriods = IntersectionsOver(
+            this, other, anchor, anchor + 2 * period.Length,
+            isStartInclusive: true, isEndInclusive: false, settings);
+
+        var window = Interval.ClosedOpen(anchor, anchor + 2 * period.Length);
+        if (twoPeriods.Count == 1 && twoPeriods[0].IsSupersetOf(window))
+        {
+            // equal without interruption over two periods, so equal from here on
+            var tail = Interval.UnboundedAbove(twoPeriods[0].Lower, twoPeriods[0].IsLowerIncluded);
+
+            // the transient is already maximal, so the tail can only reach back to its last interval
+            if (transient.Count > 0 && Interval.Union(transient[^1], tail) is { } joined)
+                transient[^1] = joined;
+            else
+                transient.Add(tail);
+
+            return new IntersectionPattern(transient, Array.Empty<Interval>(), anchor, period.Length);
+        }
+
+        // the block is one period's worth of starts: an interval reaching past the boundary
+        // stays whole, since repeating it a period later reproduces the set either way
+        var repeating = twoPeriods
+            .Where(i => i.Lower < anchor + period.Length)
+            .ToList();
+
+        return new IntersectionPattern(transient, repeating, anchor, period.Length);
+    }
+
+    /// <summary>
+    /// The times, as intervals, at which this curve and <paramref name="other"/> take the same value, within a given window.
+    /// </summary>
+    /// <param name="other">The curve to compare against.</param>
+    /// <param name="window">The interval of time to search, as an <see cref="Interval"/>.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <inheritdoc cref="GetIntersections(Curve, Rational?, Rational?, bool, bool, ComputationSettings?)" path="/returns"/>
+    /// <inheritdoc cref="GetIntersections(Curve, Rational?, Rational?, bool, bool, ComputationSettings?)" path="/remarks"/>
+    /// <inheritdoc cref="GetIntersections(Curve, Rational?, Rational?, bool, bool, ComputationSettings?)" path="/exception"/>
+    public IntersectionPattern GetIntersections(Curve other, Interval window, ComputationSettings? settings = null)
+        => GetIntersections(
+            other, window.Lower, window.Upper, window.IsLowerIncluded, window.IsUpperIncluded, settings);
+
+    /// <summary>
+    /// True if this curve and <paramref name="other"/> take the same value at least once.
+    /// </summary>
+    /// <param name="other">The curve to compare against.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    public bool IntersectsWith(Curve other, ComputationSettings? settings = null)
+        => !GetIntersections(other, settings: settings).IsEmpty;
+
+    /// <summary>
+    /// True if this curve and <paramref name="other"/> agree over a whole stretch, rather than only at isolated points.
+    /// </summary>
+    /// <param name="other">The curve to compare against.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    public bool OverlapsWith(Curve other, ComputationSettings? settings = null)
+    {
+        var pattern = GetIntersections(other, settings: settings);
+        return pattern.Transient.Any(i => i.Lower < i.Upper)
+            || pattern.Repeating.Any(i => i.Lower < i.Upper);
+    }
+
+    /// <summary>
+    /// The times at which this curve crosses <paramref name="other"/>, in the sense that the sign of their difference flips.
+    /// </summary>
+    /// <param name="other">The curve to compare against.</param>
+    /// <param name="from">The time to start from, null meaning 0.</param>
+    /// <param name="to">The time to stop at, included or not per <paramref name="isEndInclusive"/>; null meaning unbounded. A value of $+\infty$ is treated as unbounded, and its inclusivity is ignored.</param>
+    /// <param name="isStartInclusive">If true, <paramref name="from"/> is included in the search.</param>
+    /// <param name="isEndInclusive">If true, <paramref name="to"/> is included in the search.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The pattern of crossings, infinite when the two cross forever.</returns>
+    /// <remarks>
+    /// A continuous crossing is also an intersection, and is reported with <see cref="CurveCrossing.IsContact"/> true.
+    /// A jump over the other curve is a crossing without an intersection, and is reported with <see cref="CurveCrossing.IsContact"/> false.
+    /// A tangency is an intersection but not a crossing, so it is not reported here.
+    /// A window with upper bound $+\infty$ is read as unbounded even when the bound is closed.
+    /// </remarks>
+    /// <exception cref="ArgumentException">Thrown when a bound is negative, $-\infty$ included, since a curve is not defined for $t &lt; 0$.</exception>
+    public CrossingPattern GetCrossings(
+        Curve other,
+        Rational? from = null,
+        Rational? to = null,
+        bool isStartInclusive = true,
+        bool isEndInclusive = false,
+        ComputationSettings? settings = null)
+    {
+        settings ??= ComputationSettings.Default();
+        var start = from ?? Rational.Zero;
+        if (start < 0 || to < 0)
+            throw new ArgumentException("A curve is not defined for t < 0");
+
+        // an unbounded end is what null means, and no time is +infinity
+        if (to is { IsPlusInfinite: true })
+            to = null;
+
+        var period = GetDifferencePeriod(this, other);
+
+        if (start.IsPlusInfinite)
+            return new CrossingPattern(Array.Empty<CurveCrossing>(), Array.Empty<CurveCrossing>(), period.Start, period.Length);
+
+        if (to is { } upper)
+        {
+            // a window that ends before it starts holds nothing, which the read-out answers on its own
+            var bounded = CrossingsOver(this, other, start, upper, isStartInclusive, isEndInclusive, settings);
+            return new CrossingPattern(bounded, Array.Empty<CurveCrossing>(), period.Start, period.Length);
+        }
+
+        var anchor = GetPeriodicAnchor(this, other, start, period, settings);
+
+        // a crossing is read from the signs on both of its sides, so the repeating block starts one
+        // period past the anchor: the left side of a crossing at the block's edge then lies in the
+        // periodic regime as well, and the block repeats faithfully
+        var boundary = anchor + period.Length;
+        var transient = boundary > start
+            ? CrossingsOver(this, other, start, boundary, isStartInclusive, isEndInclusive: false, settings)
+            : new List<CurveCrossing>();
+        var repeating = CrossingsOver(
+            this, other, boundary, boundary + period.Length,
+            isStartInclusive: true, isEndInclusive: false, settings);
+
+        return new CrossingPattern(transient, repeating, boundary, period.Length);
+    }
+
+    /// <summary>
+    /// The times at which this curve crosses <paramref name="other"/>, within a given window.
+    /// </summary>
+    /// <param name="other">The curve to compare against.</param>
+    /// <param name="window">The interval of time to search, as an <see cref="Interval"/>.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <inheritdoc cref="GetCrossings(Curve, Rational?, Rational?, bool, bool, ComputationSettings?)" path="/returns"/>
+    /// <inheritdoc cref="GetCrossings(Curve, Rational?, Rational?, bool, bool, ComputationSettings?)" path="/remarks"/>
+    /// <inheritdoc cref="GetCrossings(Curve, Rational?, Rational?, bool, bool, ComputationSettings?)" path="/exception"/>
+    public CrossingPattern GetCrossings(Curve other, Interval window, ComputationSettings? settings = null)
+        => GetCrossings(
+            other, window.Lower, window.Upper, window.IsLowerIncluded, window.IsUpperIncluded, settings);
+
+    /// <summary>
+    /// True if this curve and <paramref name="other"/> cross at least once.
+    /// </summary>
+    /// <param name="other">The curve to compare against.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    public bool CrossesWith(Curve other, ComputationSettings? settings = null)
+        => !GetCrossings(other, settings: settings).IsEmpty;
+
+    /// <summary>
+    /// The pseudo-period parameters of the difference between two curves.
+    /// </summary>
+    /// <returns>
+    /// The time from which the difference is pseudo-periodic, the length of its period, and how much it drifts over one.
+    /// </returns>
+    /// <remarks>
+    /// An infinite drift is not a magnitude but a statement that the drift is undetermined, because one side is constantly infinite past the period start.
+    /// Callers must read it as "the comparison is already periodic there" rather than as a large number, and in particular must not divide by it; <see cref="GetPeriodicAnchor"/> is what does so.
+    /// </remarks>
+    private static (Rational Start, Rational Length, Rational Height) GetDifferencePeriod(Curve a, Curve b)
+    {
+        var start = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
+        var length = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        var aGain = a.PseudoPeriodHeight * (length / a.PseudoPeriodLength);
+        var bGain = b.PseudoPeriodHeight * (length / b.PseudoPeriodLength);
+
+        Rational height;
+        if (aGain.IsInfinite)
+            height = aGain;
+        else if (bGain.IsInfinite)
+            height = -bGain;
+        else
+            height = aGain - bGain;
+
+        return (start, length, height);
+    }
+
+    /// <summary>
+    /// The first period boundary at or after <paramref name="from"/>, aligned with <paramref name="start"/>.
+    /// </summary>
+    /// <param name="start">The time the periods are counted from, which is the result whenever <paramref name="from"/> is at or before it.</param>
+    /// <param name="length">The length of one period, which must be finite and positive since the count of periods divides by it.</param>
+    /// <param name="from">The time the result is at or after.</param>
+    private static Rational AlignPeriodStart(Rational start, Rational length, Rational from)
+    {
+        if (from <= start)
+            return start;
+
+        var offset = from - start;
+        var periods = new Rational((offset / length).Ceil());
+        return start + periods * length;
+    }
+
+    /// <summary>
+    /// The period boundary at or after <paramref name="from"/> from which the comparison of two curves repeats every period.
+    /// </summary>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve.</param>
+    /// <param name="from">The time the query starts at, which the result is never before.</param>
+    /// <param name="period">The pseudo-period parameters of the difference, as <see cref="GetDifferencePeriod"/> returns them.</param>
+    /// <param name="settings">Settings for the operation.</param>
+    /// <remarks>
+    /// With no drift the difference itself repeats from the period start.
+    /// With an undetermined, i.e. infinite, drift one side is constantly infinite past the period start, so meetings reduce to the other side's periodic pattern and repeat from there too.
+    /// With a finite nonzero drift the finite-valued meetings are over by the drift horizon, and past it only the meetings at an infinity are left, which a finite drift never moves.
+    /// </remarks>
+    private static Rational GetPeriodicAnchor(
+        Curve a,
+        Curve b,
+        Rational from,
+        (Rational Start, Rational Length, Rational Height) period,
+        ComputationSettings settings)
+    {
+        var periodicFrom = period.Height.IsZero || period.Height.IsInfinite
+            ? period.Start
+            : GetFiniteDriftHorizon(a, b, period.Start, period.Length, period.Height, settings);
+
+        return AlignPeriodStart(period.Start, period.Length, Rational.Max(from, periodicFrom));
+    }
+
+    /// <summary>
+    /// The time past which a difference that drifts by <paramref name="height"/> each period can no longer reach 0.
+    /// </summary>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve.</param>
+    /// <param name="start">The time the difference becomes pseudo-periodic, at or after 0.</param>
+    /// <param name="length">The length of one period, finite and positive.</param>
+    /// <param name="height">How much the difference drifts over one period, which must be finite and nonzero: the result divides by it, and a difference that does not drift never stops reaching 0.</param>
+    /// <param name="settings">Settings for the operation.</param>
+    /// <remarks>
+    /// The range of the difference over one period is read value by value rather than by subtracting:
+    /// where both sides are infinite their difference is undefined, yet those very spots may be equalities.
+    /// Only finite values take part, since an infinite difference never yields a meeting.
+    /// </remarks>
+    private static Rational GetFiniteDriftHorizon(
+        Curve a,
+        Curve b,
+        Rational start,
+        Rational length,
+        Rational height,
+        ComputationSettings settings)
+    {
+        var aElements = a.Cut(start, start + length, isStartIncluded: true, isEndIncluded: true, settings: settings).Elements;
+        var bElements = b.Cut(start, start + length, isStartIncluded: true, isEndIncluded: true, settings: settings).Elements;
+
+        var times = aElements
+            .SelectMany(e => new[] { e.StartTime, e.EndTime })
+            .Concat(bElements.SelectMany(e => new[] { e.StartTime, e.EndTime }))
+            .Distinct()
+            .OrderBy(t => t)
+            .ToList();
+
+        Rational? lowest = null;
+        Rational? highest = null;
+
+        foreach (var t in times)
+        {
+            var aValue = a.ValueAt(t);
+            var bValue = b.ValueAt(t);
+            if (aValue.IsFinite && bValue.IsFinite)
+                Include(aValue - bValue);
+        }
+
+        for (var i = 0; i + 1 < times.Count; i++)
+        {
+            var aRight = a.RightLimitAt(times[i]);
+            var bRight = b.RightLimitAt(times[i]);
+            if (aRight.IsFinite && bRight.IsFinite)
+            {
+                Include(aRight - bRight);
+                Include(a.LeftLimitAt(times[i + 1]) - b.LeftLimitAt(times[i + 1]));
+            }
+        }
+
+        if (lowest is not { } lowestValue || highest is not { } highestValue)
+            return start + length;
+
+        var distance = height > 0 ? -lowestValue : highestValue;
+        var repetitions = distance <= 0
+            ? Rational.Zero
+            : new Rational((distance / Rational.Abs(height)).Ceil());
+
+        return start + (repetitions + 1) * length;
+
+        void Include(Rational value)
+        {
+            if (lowest is not { } lo || value < lo)
+                lowest = value;
+            if (highest is not { } hi || value > hi)
+                highest = value;
+        }
+    }
+
+    /// <summary>
+    /// One open interval between consecutive breakpoints of either curve, with how the two compare across it.
+    /// </summary>
+    /// <param name="Start">The breakpoint the interval runs from.</param>
+    /// <param name="End">The breakpoint the interval runs to.</param>
+    /// <param name="NearLeft">The sign of the difference just after <paramref name="Start"/>.</param>
+    /// <param name="NearRight">The sign of the difference just before <paramref name="End"/>.</param>
+    /// <param name="IsEqualStretch">True if the two curves coincide over the whole of the interval.</param>
+    /// <param name="ZeroPoint">The one time inside the interval at which the two meet, where there is one.</param>
+    private readonly record struct SignSpan(
+        Rational Start,
+        Rational End,
+        int NearLeft,
+        int NearRight,
+        bool IsEqualStretch,
+        Rational? ZeroPoint
+    );
+
+    /// <summary>
+    /// Walks how two curves compare across a bounded window, one interval between consecutive breakpoints at a time, in increasing order.
+    /// </summary>
+    /// <remarks>
+    /// Values are read directly rather than subtracted, so a stretch where both curves are infinite is equality rather than an undetermined difference, and a jump over the other curve is a sign flip rather than nothing at all.
+    /// Both read-outs rest on this, and each takes the parts of a span it needs.
+    /// The window must be non-degenerate, $lo &lt; hi$, which guarantees at least one span: a cut over such a window yields a sequence whose breakpoints include both of its ends.
+    /// That is what lets the read-outs treat the last span's end as the one breakpoint no span starts at.
+    /// </remarks>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve, which <paramref name="a"/> is compared against and never the reverse.</param>
+    /// <param name="lo">The start of the window, at or after 0.</param>
+    /// <param name="hi">The end of the window, finite: an unbounded query is not answerable here, and cutting to infinity throws.</param>
+    /// <param name="settings">Settings for the operation.</param>
+    /// <exception cref="ArgumentException">Thrown by the underlying cut when the window starts before 0 or ends at infinity.</exception>
+    private static IEnumerable<SignSpan> EnumerateSignSpansOver(
+        Curve a,
+        Curve b,
+        Rational lo,
+        Rational hi,
+        ComputationSettings settings)
+    {
+        var aElements = a.Cut(lo, hi, isStartIncluded: true, isEndIncluded: true, settings: settings).Elements;
+        var bElements = b.Cut(lo, hi, isStartIncluded: true, isEndIncluded: true, settings: settings).Elements;
+
+        var times = aElements
+            .SelectMany(e => new[] { e.StartTime, e.EndTime })
+            .Concat(bElements.SelectMany(e => new[] { e.StartTime, e.EndTime }))
+            .Distinct()
+            .OrderBy(t => t)
+            .ToList();
+
+        for (var i = 0; i + 1 < times.Count; i++)
+        {
+            var start = times[i];
+            var end = times[i + 1];
+
+            var aRight = a.RightLimitAt(start);
+            var aLeft = a.LeftLimitAt(end);
+            var bRight = b.RightLimitAt(start);
+            var bLeft = b.LeftLimitAt(end);
+
+            if (!aRight.IsFinite || !bRight.IsFinite)
+            {
+                // at least one side is infinite, so the sign is constant across the interval
+                var constantSign = aRight.CompareTo(bRight);
+                yield return new SignSpan(
+                    start, end, constantSign, constantSign, IsEqualStretch: aRight == bRight, ZeroPoint: null);
+                continue;
+            }
+
+            var slopeA = (aLeft - aRight) / (end - start);
+            var slopeB = (bLeft - bRight) / (end - start);
+
+            if (slopeA == slopeB)
+            {
+                var parallelSign = aRight.CompareTo(bRight);
+                yield return new SignSpan(
+                    start, end, parallelSign, parallelSign, IsEqualStretch: aRight == bRight, ZeroPoint: null);
+                continue;
+            }
+
+            var tStar = start + (bRight - aRight) / (slopeA - slopeB);
+
+            var leftSign = aRight.CompareTo(bRight);
+            if (leftSign == 0)
+                leftSign = slopeA.CompareTo(slopeB);
+            var rightSign = aLeft.CompareTo(bLeft);
+            if (rightSign == 0)
+                rightSign = -slopeA.CompareTo(slopeB);
+
+            yield return new SignSpan(
+                start,
+                end,
+                leftSign,
+                rightSign,
+                IsEqualStretch: false,
+                ZeroPoint: tStar > start && tStar < end ? tStar : null);
+        }
+    }
+
+    /// <summary>
+    /// The sign of the difference between two curves just before <paramref name="t"/>.
+    /// </summary>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve.</param>
+    /// <param name="t">The time to look just before, which must be greater than 0: no curve is defined to the left of 0.</param>
+    /// <remarks>
+    /// A crossing at the edge of a window is a fact about the curves, so the sign is read from the whole neighborhood of that edge rather than from the part of it inside the window.
+    /// </remarks>
+    private static int LeftSignOutside(Curve a, Curve b, Rational t)
+    {
+        var sign = a.LeftLimitAt(t).CompareTo(b.LeftLimitAt(t));
+        if (sign != 0)
+            return sign;
+
+        // the limits coincide, so the slopes decide which side is above just before t
+        return -a.GetSegmentBefore(t).Slope.CompareTo(b.GetSegmentBefore(t).Slope);
+    }
+
+    /// <summary>
+    /// The sign of the difference between two curves just after <paramref name="t"/>.
+    /// </summary>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve.</param>
+    /// <param name="t">The time to look just after, at or after 0.</param>
+    /// <inheritdoc cref="LeftSignOutside" path="/remarks"/>
+    private static int RightSignOutside(Curve a, Curve b, Rational t)
+    {
+        var sign = a.RightLimitAt(t).CompareTo(b.RightLimitAt(t));
+        if (sign != 0)
+            return sign;
+
+        // the limits coincide, so the slopes decide which side is above just after t
+        return a.GetSegmentAfter(t, autoMerge: false).Slope.CompareTo(b.GetSegmentAfter(t, autoMerge: false).Slope);
+    }
+
+    /// <summary>
+    /// The intervals over which two curves take the same value, within a bounded window.
+    /// </summary>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve, which <paramref name="a"/> is compared against and never the reverse.</param>
+    /// <param name="lo">The start of the window, at or after 0.</param>
+    /// <param name="hi">The end of the window, finite: an unbounded query is not answerable here, and cutting to infinity throws.</param>
+    /// <param name="isStartInclusive">If true, <paramref name="lo"/> is part of the window.</param>
+    /// <param name="isEndInclusive">If true, <paramref name="hi"/> is part of the window.</param>
+    /// <param name="settings">Settings for the operation.</param>
+    private static List<Interval> IntersectionsOver(
+        Curve a,
+        Curve b,
+        Rational lo,
+        Rational hi,
+        bool isStartInclusive,
+        bool isEndInclusive,
+        ComputationSettings settings)
+        => EnumerateIntersectionsOver(a, b, lo, hi, isStartInclusive, isEndInclusive, settings).ToList();
+
+    /// <summary>
+    /// Walks the intervals over which two curves take the same value, within a bounded window, in increasing order.
+    /// </summary>
+    /// <remarks>
+    /// The pieces of equality are visited a breakpoint at a time, each followed by the interval after it, so they arrive in order and a running interval can absorb the next while their union stays an interval.
+    /// One is emitted as soon as the piece after it fails to join, since nothing later can reach back and extend it.
+    /// </remarks>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve, which <paramref name="a"/> is compared against and never the reverse.</param>
+    /// <param name="lo">The start of the window, at or after 0.</param>
+    /// <param name="hi">The end of the window, finite: an unbounded query is not answerable here, and cutting to infinity throws.</param>
+    /// <param name="isStartInclusive">If true, <paramref name="lo"/> is part of the window.</param>
+    /// <param name="isEndInclusive">If true, <paramref name="hi"/> is part of the window.</param>
+    /// <param name="settings">Settings for the operation.</param>
+    /// <exception cref="ArgumentException">Thrown by the underlying cut when the window starts before 0 or ends at infinity.</exception>
+    private static IEnumerable<Interval> EnumerateIntersectionsOver(
+        Curve a,
+        Curve b,
+        Rational lo,
+        Rational hi,
+        bool isStartInclusive,
+        bool isEndInclusive,
+        ComputationSettings settings)
+    {
+        if (lo > hi)
+            yield break;
+
+        if (lo == hi)
+        {
+            if (isStartInclusive && isEndInclusive && a.ValueAt(lo) == b.ValueAt(lo))
+                yield return new Interval(lo, hi, isLowerIncluded: true, isUpperIncluded: true);
+
+            yield break;
+        }
+
+        var window = new Interval(lo, hi, isStartInclusive, isEndInclusive);
+
+        Interval? current = null;
+        foreach (var piece in EqualityPieces())
+        {
+            if (current is null)
+            {
+                current = piece;
+                continue;
+            }
+
+            if (Interval.Union(current.Value, piece) is { } merged)
+            {
+                current = merged;
+                continue;
+            }
+
+            if (Clip(current.Value) is { } complete)
+                yield return complete;
+
+            current = piece;
+        }
+
+        if (current is not null && Clip(current.Value) is { } last)
+            yield return last;
+
+        IEnumerable<Interval> EqualityPieces()
+        {
+            SignSpan? previous = null;
+            foreach (var span in EnumerateSignSpansOver(a, b, lo, hi, settings))
+            {
+                if (a.ValueAt(span.Start) == b.ValueAt(span.Start))
+                    yield return new Interval(span.Start, span.Start, isLowerIncluded: true, isUpperIncluded: true);
+
+                // equality over the whole of the interval, or at the one meeting inside it
+                if (span.IsEqualStretch)
+                    yield return new Interval(span.Start, span.End, isLowerIncluded: false, isUpperIncluded: false);
+                else if (span.ZeroPoint is { } tStar)
+                    yield return new Interval(tStar, tStar, isLowerIncluded: true, isUpperIncluded: true);
+
+                previous = span;
+            }
+
+            // the last span's End is the one breakpoint no span starts at
+            if (previous is { } last && a.ValueAt(last.End) == b.ValueAt(last.End))
+                yield return new Interval(last.End, last.End, isLowerIncluded: true, isUpperIncluded: true);
+        }
+
+        Interval? Clip(Interval interval)
+        {
+            var clipped = Interval.Intersection(interval, window);
+            return clipped is { } value && !value.IsEmpty ? value : null;
+        }
+    }
+
+    /// <summary>
+    /// The times at which one curve passes the other, within a bounded window.
+    /// </summary>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve, which <paramref name="a"/> is compared against and never the reverse.</param>
+    /// <param name="lo">The start of the window, at or after 0.</param>
+    /// <param name="hi">The end of the window, finite: an unbounded query is not answerable here, and cutting to infinity throws.</param>
+    /// <param name="isStartInclusive">If true, <paramref name="lo"/> is part of the window.</param>
+    /// <param name="isEndInclusive">If true, <paramref name="hi"/> is part of the window.</param>
+    /// <param name="settings">Settings for the operation.</param>
+    private static List<CurveCrossing> CrossingsOver(
+        Curve a,
+        Curve b,
+        Rational lo,
+        Rational hi,
+        bool isStartInclusive,
+        bool isEndInclusive,
+        ComputationSettings settings)
+        => EnumerateCrossingsOver(a, b, lo, hi, isStartInclusive, isEndInclusive, settings).ToList();
+
+    /// <summary>
+    /// Walks the times at which one curve passes the other, within a bounded window, in increasing order.
+    /// </summary>
+    /// <remarks>
+    /// A breakpoint is visited, then the interval that follows it, so the two kinds of crossing arrive interleaved in time rather than in two runs that would have to be put back in order.
+    /// </remarks>
+    /// <param name="a">One curve.</param>
+    /// <param name="b">The other curve, which <paramref name="a"/> is compared against and never the reverse.</param>
+    /// <param name="lo">The start of the window, at or after 0.</param>
+    /// <param name="hi">The end of the window, finite: an unbounded query is not answerable here, and cutting to infinity throws.</param>
+    /// <param name="isStartInclusive">If true, <paramref name="lo"/> is part of the window.</param>
+    /// <param name="isEndInclusive">If true, <paramref name="hi"/> is part of the window.</param>
+    /// <param name="settings">Settings for the operation.</param>
+    /// <exception cref="ArgumentException">Thrown by the underlying cut when the window starts before 0 or ends at infinity.</exception>
+    private static IEnumerable<CurveCrossing> EnumerateCrossingsOver(
+        Curve a,
+        Curve b,
+        Rational lo,
+        Rational hi,
+        bool isStartInclusive,
+        bool isEndInclusive,
+        ComputationSettings settings)
+    {
+        if (lo > hi)
+            yield break;
+
+        if (lo == hi)
+        {
+            if (isStartInclusive && isEndInclusive)
+            {
+                var leftSignAlone = lo > 0 ? LeftSignOutside(a, b, lo) : 0;
+                var rightSignAlone = RightSignOutside(a, b, lo);
+                if (leftSignAlone != 0 && rightSignAlone != 0 && leftSignAlone != rightSignAlone)
+                    yield return new CurveCrossing(lo, IsUpward: leftSignAlone < 0, IsContact: a.ValueAt(lo) == b.ValueAt(lo));
+            }
+
+            yield break;
+        }
+
+        SignSpan? previous = null;
+        foreach (var span in EnumerateSignSpansOver(a, b, lo, hi, settings))
+        {
+            // a sign flip across the breakpoint the span starts at, which is a jump over the other
+            // curve unless the two are equal there; outside the first span there is no earlier sign
+            // to compare against, so it is read from the curves themselves
+            var before = previous is { } earlier
+                ? earlier.NearRight
+                : span.Start > 0 ? LeftSignOutside(a, b, span.Start) : 0;
+
+            if (CrossingAt(span.Start, before, span.NearLeft) is { } atStart)
+                yield return atStart;
+
+            // a sign flip inside the span, where the two meet before parting the other way
+            if (span.ZeroPoint is { } tStar)
+                yield return new CurveCrossing(tStar, IsUpward: span.NearLeft < 0, IsContact: true);
+
+            previous = span;
+        }
+
+        // the last span's End is the one breakpoint no span starts at
+        if (previous is { } last && CrossingAt(last.End, last.NearRight, RightSignOutside(a, b, last.End)) is { } atEnd)
+            yield return atEnd;
+
+        CurveCrossing? CrossingAt(Rational t, int before, int after)
+            => before != 0 && after != 0 && before != after && InWindow(t)
+                ? new CurveCrossing(t, IsUpward: before < 0, IsContact: a.ValueAt(t) == b.ValueAt(t))
+                : null;
+
+        bool InWindow(Rational t)
+        {
+            if (t > lo && t < hi)
+                return true;
+            if (t == lo)
+                return isStartInclusive;
+            if (t == hi)
+                return isEndInclusive;
+            return false;
+        }
+    }
 
     #endregion
 

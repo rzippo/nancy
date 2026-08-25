@@ -38,6 +38,10 @@ public readonly struct Interval : IToCodeString
     /// <param name="upper">The upper bound.</param>
     /// <param name="isLowerIncluded">Whether the lower bound is included.</param>
     /// <param name="isUpperIncluded">Whether the upper bound is included.</param>
+    /// <remarks>
+    /// This is a generic interval over <see cref="Rational"/>, which itself can represent infinities.
+    /// Callers that use intervals for domains where infinity is only a bound, such as time windows, should normalize or reject those bounds at that API boundary.
+    /// </remarks>
     /// <exception cref="ArgumentException">Thrown when the operation cannot be completed.</exception>
     public Interval(
         Rational lower, 
@@ -82,6 +86,22 @@ public readonly struct Interval : IToCodeString
     /// </summary>
     public static Interval ClosedOpen(Rational a, Rational b) =>
         new Interval(a, b, isLowerIncluded: true, isUpperIncluded: false);
+
+    /// <summary>
+    /// Shorthand constructor for an interval $[a, +\infty[$, unbounded above.
+    /// </summary>
+    /// <param name="a">The lower bound, included unless <paramref name="isLowerIncluded"/> says otherwise.</param>
+    /// <param name="isLowerIncluded">Whether $a$ itself belongs to the interval.</param>
+    public static Interval UnboundedAbove(Rational a, bool isLowerIncluded = true) =>
+        new Interval(a, Rational.PlusInfinity, isLowerIncluded, isUpperIncluded: false);
+
+    /// <summary>
+    /// Shorthand constructor for an interval $]-\infty, b]$, unbounded below.
+    /// </summary>
+    /// <param name="b">The upper bound, included unless <paramref name="isUpperIncluded"/> says otherwise.</param>
+    /// <param name="isUpperIncluded">Whether $b$ itself belongs to the interval.</param>
+    public static Interval UnboundedBelow(Rational b, bool isUpperIncluded = true) =>
+        new Interval(Rational.MinusInfinity, b, isLowerIncluded: false, isUpperIncluded);
 
     /// <summary>
     /// Returns a new interval with the specified lower bound.
@@ -176,6 +196,33 @@ public readonly struct Interval : IToCodeString
     #endregion
 
     #region Basic properties
+
+    /// <summary>
+    /// True if the upper endpoint is $+\infty$.
+    /// </summary>
+    public bool IsUnboundedAbove => Upper.IsPlusInfinite;
+
+    /// <summary>
+    /// True if the lower endpoint is $-\infty$.
+    /// </summary>
+    public bool IsUnboundedBelow => Lower.IsMinusInfinite;
+
+    /// <summary>
+    /// True if the interval is confined to a finite stretch, i.e. neither endpoint is infinite.
+    /// </summary>
+    /// <remarks>
+    /// A bounded interval spans a finite amount of time, so it can be plotted or cut over whole, which an unbounded one cannot.
+    /// </remarks>
+    public bool IsBounded => !IsUnboundedBelow && !IsUnboundedAbove;
+
+    /// <summary>
+    /// The distance between the endpoints, regardless of whether they are included.
+    /// </summary>
+    /// <remarks>
+    /// An interval with one infinite endpoint and a different other endpoint has infinite length.
+    /// A degenerate interval, whose endpoints coincide, has length 0 whether they are finite or infinite: it holds at most the single point they name, and the distance from a point to itself is 0.
+    /// </remarks>
+    public Rational Length => Lower == Upper ? Rational.Zero : Upper - Lower;
 
     /// <summary>
     /// True if this interval does not contain any Rational,
