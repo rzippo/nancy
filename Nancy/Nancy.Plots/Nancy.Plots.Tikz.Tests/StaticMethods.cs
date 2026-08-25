@@ -21,13 +21,13 @@ public class StaticMethods
         var rl = new RateLatencyServiceCurve(1, 3);
         var tikzCode = TikzPlots.ToTikzPlotCode(rl);
         
-        // the curve is cut over [0, 5] and spans [0, 2], is then carried on to the right edge,
-        // reaching 2.15 there, and the framing adds its margin on the side the values occupy
-        // and half of it on the other
-        Assert.Contains("xmin = -0.075,", tikzCode);
-        Assert.Contains("ymin = -0.03225,", tikzCode);
-        Assert.Contains("xmax = 5.15,", tikzCode);
-        Assert.Contains("ymax = 2.2145,", tikzCode);
+        // the curve is ultimately affine, so it is cut over twice its transient, [0, 6], and
+        // spans [0, 3]; it is then carried on to the right edge, and the framing adds its margin
+        // on the side the values occupy and half of it on the other
+        Assert.Contains("xmin = -0.09,", tikzCode);
+        Assert.Contains("ymin = -0.0477,", tikzCode);
+        Assert.Contains("xmax = 6.18,", tikzCode);
+        Assert.Contains("ymax = 3.2754,", tikzCode);
         _testOutputHelper.WriteLine(tikzCode);
     }
     
