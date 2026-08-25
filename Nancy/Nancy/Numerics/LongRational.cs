@@ -287,6 +287,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     }
 
     // IComparable
+    /// <inheritdoc cref="CompareTo(LongRational)" path="/remarks"/>
     readonly int IComparable.CompareTo(object? obj)
     {
         if (obj == null)
@@ -301,6 +302,10 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// Compares this instance to a specified <see cref="LongRational"/> and returns an indication of their relative values.
     /// </summary>
     /// <param name="other">The rational to compare with this instance.</param>
+    /// <remarks>
+    /// Stronger than the interface requires: the result is exactly $-1$, $0$ or $1$, never another value of the same sign.
+    /// Callers may therefore use it as a sign, rather than only testing it against zero.
+    /// </remarks>
     public readonly int CompareTo(LongRational other)
     {
         return Compare(this, other);
@@ -721,6 +726,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     ///     <description><paramref name="left"/> is greater than <paramref name="right"/>.</description>
     /// </item>
     /// </list>
+    /// The result is exactly $-1$, $0$ or $1$.
     /// </returns>
     public static int Compare(LongRational left, LongRational right)
     {
@@ -728,7 +734,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         {
             //I will call int.CompareTo with adapted parameters to delegate knowledge about return values
             if (left.IsInfinite && right.IsInfinite)
-                return left.Sign.CompareTo(right.Sign);
+                return Math.Sign(left.Sign.CompareTo(right.Sign));
             else
             {
                 //An infinite value is always bigger in absolute value
@@ -745,7 +751,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         else
         {
             // a/b = c/d, iff ad = bc
-            return (left.Numerator * right.Denominator).CompareTo(right.Numerator * left.Denominator);
+            return Math.Sign((left.Numerator * right.Denominator).CompareTo(right.Numerator * left.Denominator));
         }
     }
 

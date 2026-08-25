@@ -282,6 +282,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     // IComparable
+    /// <inheritdoc cref="CompareTo(BigRational)" path="/remarks"/>
     readonly int IComparable.CompareTo(object? obj)
     {
         if (obj == null)
@@ -293,6 +294,10 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
 
     // IComparable<BigRational>
     /// <inheritdoc />
+    /// <remarks>
+    /// Stronger than the interface requires: the result is exactly $-1$, $0$ or $1$, never another value of the same sign.
+    /// Callers may therefore use it as a sign, rather than only testing it against zero.
+    /// </remarks>
     public readonly int CompareTo(BigRational other)
     {
         return Compare(this, other);
@@ -817,13 +822,14 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     ///     <description><paramref name="left"/> is greater than <paramref name="right"/>.</description>
     /// </item>
     /// </list>
+    /// The result is exactly $-1$, $0$ or $1$.
     /// </returns>
     public static int Compare(BigRational left, BigRational right)
     {
         if (left.IsInfinite)
         {
             if (right.IsInfinite)
-                return left.Sign.CompareTo(right.Sign);
+                return Math.Sign(left.Sign.CompareTo(right.Sign));
             else
                 return left.Sign;
         }
@@ -834,12 +840,12 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         // Fast sign path
         int signLeft = left.Numerator.Sign;
         int signRight = right.Numerator.Sign;
-        if (signLeft != signRight) return signLeft.CompareTo(signRight);
+        if (signLeft != signRight) return Math.Sign(signLeft.CompareTo(signRight));
         if (signLeft == 0) return 0; // both zero if signs equal and s1==0
 
         // Fast same-denominator path
         if (left.Denominator == right.Denominator)
-            return left.Numerator.CompareTo(right.Numerator);
+            return Math.Sign(left.Numerator.CompareTo(right.Numerator));
 
         // Need to compare fractions with the same sign.
         
@@ -856,7 +862,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
 
         // Fast comparison failed, fall back to multiplication comparison
         // We do not do any simplification because the cost of the GCDs and divisions would be larger than what we can save in the multiplication 
-        return BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator);
+        return Math.Sign(BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator));
     }
 
     /// <summary>

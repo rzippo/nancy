@@ -407,6 +407,7 @@ namespace Unipi.Nancy.Numerics
         }
 
         // IComparable
+        /// <inheritdoc cref="CompareTo(Rational)" path="/remarks"/>
         readonly int IComparable.CompareTo(object? obj)
         {
             if (obj == null)
@@ -418,6 +419,10 @@ namespace Unipi.Nancy.Numerics
 
         // IComparable<Rational>
         /// <inheritdoc />
+        /// <remarks>
+        /// Stronger than the interface requires: the result is exactly $-1$, $0$ or $1$, never another value of the same sign.
+        /// Callers may therefore use it as a sign, rather than only testing it against zero.
+        /// </remarks>
         public readonly int CompareTo(Rational other)
         {
             return Compare(this, other);
@@ -986,7 +991,7 @@ namespace Unipi.Nancy.Numerics
             if (left.IsInfinite)
             {
                 if (right.IsInfinite)
-                    return left.Sign.CompareTo(right.Sign);
+                    return Math.Sign(left.Sign.CompareTo(right.Sign));
                 else
                     return left.Sign;
             }
@@ -997,12 +1002,12 @@ namespace Unipi.Nancy.Numerics
             // Fast sign path
             int signLeft = left.Numerator.Sign;
             int signRight = right.Numerator.Sign;
-            if (signLeft != signRight) return signLeft.CompareTo(signRight);
+            if (signLeft != signRight) return Math.Sign(signLeft.CompareTo(signRight));
             if (signLeft == 0) return 0; // both zero if signs equal and s1==0
 
             // Fast same-denominator path
             if (left.Denominator == right.Denominator)
-                return left.Numerator.CompareTo(right.Numerator);
+                return Math.Sign(left.Numerator.CompareTo(right.Numerator));
 
             // Need to compare fractions with the same sign.
         
@@ -1019,7 +1024,7 @@ namespace Unipi.Nancy.Numerics
 
             // Fast comparison failed, fall back to multiplication comparison
             // We do not do any simplification because the cost of the GCDs and divisions would be larger than what we can save in the multiplication 
-            return BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator);
+            return Math.Sign(BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator));
             #elif LONG_RATIONAL
             if (left.IsInfinite || right.IsInfinite)
             {
@@ -1041,12 +1046,12 @@ namespace Unipi.Nancy.Numerics
             else
             {
                 // a/b >= c/d, iff ad >= bc
-                return BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator);
+                return Math.Sign(BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator));
             }
 
             int intCompare(int left, int right)
             {
-                return left - right;
+                return Math.Sign(left - right);
             }
             #endif
         }
