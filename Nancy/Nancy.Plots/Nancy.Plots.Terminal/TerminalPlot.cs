@@ -32,6 +32,14 @@ public class TerminalPlot
     public TerminalPlotSettings Settings { get; set; } = new();
 
     /// <summary>
+    /// True if the sequences are cuts of curves that go on past them.
+    /// </summary>
+    /// <remarks>
+    /// The areas marking infinite values then reach the edge of the plot, rather than stopping at the cut as if the value ended there.
+    /// </remarks>
+    public bool SequencesContinuePastEnd { get; set; }
+
+    /// <summary>
     /// Builds a terminal plot from the given sequences.
     /// </summary>
     /// <param name="sequences">The sequences to plot.</param>
@@ -92,7 +100,15 @@ public class TerminalPlot
             Out = new AnsiConsoleOutput(writer)
         });
 
-        WriteTo(console);
+        // Spectre word-wraps at the profile width, which is 80 when it cannot see a terminal.
+        // Wrapping re-flows the grid and destroys the layout, so the profile is made wide enough for
+        // the whole plot: the markup is never shorter than what it renders to, so it bounds the width.
+        var markup = ToMarkup();
+        console.Profile.Width = Math.Max(
+            80,
+            markup.Split('\n').Max(line => line.Length) + 1);
+
+        console.Markup(markup);
         return writer.ToString();
     }
 
@@ -102,7 +118,8 @@ public class TerminalPlot
     public string ToMarkup()
     {
         var sequences = SequencesToPlot.Select(stp => stp.Sequence).ToList();
-        var axisLimits = GetSequenceAxisLimits(sequences, Settings);
+        var axisLimits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+            sequences, Settings, SequencesContinuePastEnd);
         var grid = BuildGrid(axisLimits);
         var sb = new StringBuilder();
 
@@ -145,12 +162,15 @@ public class TerminalPlot
         return result;
     }
 
-    private Cell[,] BuildGrid(AxisLimits axisLimits)
+    private Cell[,] BuildGrid(PlotAxisLimits axisLimits)
     {
         var grid = new Cell[Settings.Height, Settings.Width];
 
         if (Settings.DrawAxes)
             DrawAxes(grid, axisLimits);
+
+        if (Settings.InfinityStrategy == InfinityStrategy.Areas)
+            DrawInfinityAreas(grid, axisLimits);
 
         foreach (var sequenceToPlot in SequencesToPlot)
             DrawSequence(grid, axisLimits, sequenceToPlot);
@@ -158,7 +178,62 @@ public class TerminalPlot
         return grid;
     }
 
-    private void DrawAxes(Cell[,] grid, AxisLimits axisLimits)
+    /// <summary>
+    /// Fills the cells marking infinite values, at a priority below the curves.
+    /// </summary>
+    /// <remarks>
+    /// A terminal has no hatching, so the pattern is which cells are filled: it is shifted per sequence, so that overlapping areas stay apart.
+    /// The fill character is cycled with it, which is what tells two overlapping areas apart in plain text.
+    /// </remarks>
+    private void DrawInfinityAreas(Cell[,] grid, PlotAxisLimits axisLimits)
+    {
+        var withInfinities = SequencesToPlot
+            .Select((stp, index) => (stp, index))
+            .Where(p => p.stp.Sequence.HasPlusInfinity || p.stp.Sequence.HasMinusInfinity)
+            .ToList();
+        if (withInfinities.Count == 0)
+            return;
+
+        var characters = Settings.InfinityFillCharacters;
+
+        foreach (var ((sequenceToPlot, index), position) in withInfinities.WithIndex())
+        {
+            var character = characters[index % characters.Count];
+            foreach (var region in sequenceToPlot.Sequence.EnumerateVisibleInfiniteRegions(
+                         axisLimits.XLimit, SequencesContinuePastEnd))
+            {
+                var band = region.IsPlusInfinite
+                    ? axisLimits.PlusInfinityBand
+                    : axisLimits.MinusInfinityBand;
+                if (region.EndTime <= region.StartTime || band.Upper <= band.Lower)
+                    continue;
+
+                var x0 = MapX(Rational.Max(region.StartTime, axisLimits.XLimit.Lower), axisLimits);
+                var x1 = MapX(Rational.Min(region.EndTime, axisLimits.XLimit.Upper), axisLimits);
+                var y0 = MapY(band.Upper, axisLimits);
+                var y1 = MapY(band.Lower, axisLimits);
+
+                for (var x = Math.Max(0, x0); x <= Math.Min(Settings.Width - 1, x1); x++)
+                for (var y = Math.Max(0, y0); y <= Math.Min(Settings.Height - 1, y1); y++)
+                {
+                    // the lattice is shifted per sequence, so that two areas over the same cells interleave
+                    if ((x + 2 * index) % 3 != 0 || (y + index) % 2 != 0)
+                        continue;
+                    // priority 0: the area fills what is still empty, and never contests
+                    // a cell with the axes or a curve, which would read as a collision
+                    SetCell(grid, x, y, character, sequenceToPlot.Color, 0);
+                }
+
+                var labelText = region.IsPlusInfinite ? "+inf" : "-inf";
+                var labelX = (x0 + x1) / 2 - labelText.Length / 2;
+                var labelY = y0 + (y1 - y0) * (position + 1) / (withInfinities.Count + 1);
+                for (var i = 0; i < labelText.Length; i++)
+                    SetCell(grid, labelX + i, labelY, labelText[i], sequenceToPlot.Color, 3);
+            }
+        }
+    }
+
+    private void DrawAxes(Cell[,] grid, PlotAxisLimits axisLimits)
     {
         if (axisLimits.YLimit.Contains(0))
         {
@@ -178,7 +253,7 @@ public class TerminalPlot
             SetCell(grid, MapX((Rational)0, axisLimits), MapY((Rational)0, axisLimits), '+', "grey", 2);
     }
 
-    private void DrawSequence(Cell[,] grid, AxisLimits axisLimits, TerminalSequenceToPlot sequenceToPlot)
+    private void DrawSequence(Cell[,] grid, PlotAxisLimits axisLimits, TerminalSequenceToPlot sequenceToPlot)
     {
         foreach (var segment in sequenceToPlot.Sequence.Elements.OfType<Segment>())
             DrawSegment(grid, axisLimits, segment, sequenceToPlot.Color);
@@ -210,7 +285,7 @@ public class TerminalPlot
         }
     }
 
-    private void DrawSegment(Cell[,] grid, AxisLimits axisLimits, Segment segment, string color)
+    private void DrawSegment(Cell[,] grid, PlotAxisLimits axisLimits, Segment segment, string color)
     {
         if (!segment.IsFinite)
             return;
@@ -265,7 +340,7 @@ public class TerminalPlot
 
     private void DrawPoint(
         Cell[,] grid,
-        AxisLimits axisLimits,
+        PlotAxisLimits axisLimits,
         Rational time,
         Rational value,
         char character,
@@ -296,7 +371,7 @@ public class TerminalPlot
             grid[y, x] = new Cell(Settings.CollisionCharacter, "white", priority + 1);
     }
 
-    private void AppendPlotRows(StringBuilder sb, Cell[,] grid, AxisLimits axisLimits)
+    private void AppendPlotRows(StringBuilder sb, Cell[,] grid, PlotAxisLimits axisLimits)
     {
         var yLabels = BuildYAxisLabels(axisLimits);
         for (var row = 0; row < Settings.Height; row++)
@@ -312,7 +387,7 @@ public class TerminalPlot
         }
     }
 
-    private void AppendAxisLabels(StringBuilder sb, AxisLimits axisLimits)
+    private void AppendAxisLabels(StringBuilder sb, PlotAxisLimits axisLimits)
     {
         sb.Append(' ', Settings.YAxisLabelWidth + 1);
         sb.Append(Markup.Escape(BuildXAxisLabelLine(axisLimits)));
@@ -386,7 +461,7 @@ public class TerminalPlot
         };
     }
 
-    private Dictionary<int, string> BuildYAxisLabels(AxisLimits axisLimits)
+    private Dictionary<int, string> BuildYAxisLabels(PlotAxisLimits axisLimits)
     {
         var labels = new Dictionary<int, string>();
 
@@ -407,7 +482,7 @@ public class TerminalPlot
         return labels;
     }
 
-    private string BuildXAxisLabelLine(AxisLimits axisLimits)
+    private string BuildXAxisLabelLine(PlotAxisLimits axisLimits)
     {
         var labels = Enumerable.Repeat(' ', Settings.Width).ToArray();
         var lower = axisLimits.XLimit.Lower;
@@ -440,14 +515,14 @@ public class TerminalPlot
         return new string(labels).TrimEnd();
     }
 
-    private IEnumerable<Rational> GetPreferredXAxisTickValues(AxisLimits axisLimits)
+    private IEnumerable<Rational> GetPreferredXAxisTickValues(PlotAxisLimits axisLimits)
     {
         return SequencesToPlot
             .SelectMany(sequenceToPlot => sequenceToPlot.Sequence.Elements.SelectMany(GetElementBoundaryTimes))
             .Where(time => time.IsFinite && axisLimits.XLimit.Contains(time));
     }
 
-    private IEnumerable<Rational> GetPreferredYAxisTickValues(AxisLimits axisLimits)
+    private IEnumerable<Rational> GetPreferredYAxisTickValues(PlotAxisLimits axisLimits)
     {
         return SequencesToPlot
             .SelectMany(sequenceToPlot => sequenceToPlot.Sequence.Elements.SelectMany(GetElementBoundaryValues))
@@ -570,12 +645,12 @@ public class TerminalPlot
             : label[..width];
     }
 
-    private int MapX(Rational x, AxisLimits axisLimits)
+    private int MapX(Rational x, PlotAxisLimits axisLimits)
     {
         return MapX((double)x, axisLimits);
     }
 
-    private int MapX(double x, AxisLimits axisLimits)
+    private int MapX(double x, PlotAxisLimits axisLimits)
     {
         var lower = (double)axisLimits.XLimit.Lower;
         var upper = (double)axisLimits.XLimit.Upper;
@@ -585,12 +660,12 @@ public class TerminalPlot
         return (int)Math.Round((x - lower) / (upper - lower) * (Settings.Width - 1));
     }
 
-    private int MapY(Rational y, AxisLimits axisLimits)
+    private int MapY(Rational y, PlotAxisLimits axisLimits)
     {
         return MapY((double)y, axisLimits);
     }
 
-    private int MapY(double y, AxisLimits axisLimits)
+    private int MapY(double y, PlotAxisLimits axisLimits)
     {
         var lower = (double)axisLimits.YLimit.Lower;
         var upper = (double)axisLimits.YLimit.Upper;
@@ -656,87 +731,6 @@ public class TerminalPlot
             : value.ToString("0.###", CultureInfo.InvariantCulture);
     }
 
-    private static AxisLimits GetSequenceAxisLimits(
-        IReadOnlyCollection<Sequence> sequences,
-        TerminalPlotSettings settings)
-    {
-        if (sequences.Count == 0)
-            throw new ArgumentException("Empty sequence collection.", nameof(sequences));
-
-        var xLimit = GetFiniteLimit(settings.XLimit) ?? ApplyRelativeMargin(
-            GetDefaultSequenceXLimit(sequences),
-            settings.RelativeXAxisMargin);
-        var yLimit = GetFiniteLimit(settings.YLimit) ?? ApplyRelativeMargin(
-            GetDefaultSequenceYLimit(sequences),
-            settings.RelativeYAxisMargin);
-
-        return new AxisLimits(xLimit, yLimit);
-    }
-
-    private static Interval? GetFiniteLimit(Interval? limit)
-    {
-        return limit is { Lower.IsFinite: true, Upper.IsFinite: true }
-            ? limit
-            : null;
-    }
-
-    private static Interval ApplyRelativeMargin(Interval limit, double relativeMargin)
-    {
-        if (relativeMargin < 0)
-            throw new ArgumentOutOfRangeException(
-                nameof(relativeMargin),
-                relativeMargin,
-                "Relative axis margins cannot be negative.");
-
-        if (relativeMargin == 0 || !limit.Lower.IsFinite || !limit.Upper.IsFinite)
-            return limit;
-
-        var length = limit.Upper - limit.Lower;
-        var adjustment = length > 0
-            ? length * (Rational)(decimal)relativeMargin
-            : Rational.One;
-
-        return new Interval(
-            limit.Lower - adjustment,
-            limit.Upper + adjustment,
-            isLowerIncluded: true,
-            isUpperIncluded: true);
-    }
-
-    private static Interval GetDefaultSequenceXLimit(IEnumerable<Sequence> sequences)
-    {
-        var finiteXValues = sequences
-            .SelectMany(s => new[] { s.DefinedFrom, s.DefinedUntil })
-            .Where(x => x.IsFinite)
-            .ToList();
-
-        if (finiteXValues.Count == 0)
-            throw new ArgumentException("Cannot compute x-axis limits: no finite x values were found.");
-
-        return new Interval(
-            finiteXValues.Min(),
-            finiteXValues.Max(),
-            isLowerIncluded: true,
-            isUpperIncluded: true);
-    }
-
-    private static Interval GetDefaultSequenceYLimit(IEnumerable<Sequence> sequences)
-    {
-        var finiteYValues = sequences
-            .SelectMany(sequence => sequence.Elements.SelectMany(GetElementBoundaryValues))
-            .Where(y => y.IsFinite)
-            .ToList();
-
-        if (finiteYValues.Count == 0)
-            throw new ArgumentException("Cannot compute y-axis limits: no finite y values were found.");
-
-        return new Interval(
-            finiteYValues.Min(),
-            finiteYValues.Max(),
-            isLowerIncluded: true,
-            isUpperIncluded: true);
-    }
-
     private static IEnumerable<Rational> GetElementBoundaryValues(Element element)
     {
         if (element is Segment segment)
@@ -782,8 +776,6 @@ public class TerminalPlot
             _ => ColorSystemSupport.Detect
         };
     }
-
-    private readonly record struct AxisLimits(Interval XLimit, Interval YLimit);
 
     private readonly record struct Cell(char Character, string? Style, int Priority)
     {

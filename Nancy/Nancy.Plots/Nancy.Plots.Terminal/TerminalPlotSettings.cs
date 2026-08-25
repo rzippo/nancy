@@ -3,17 +3,30 @@
 /// <summary>
 /// Settings controlling terminal plot rendering.
 /// </summary>
+/// <remarks>
+/// A terminal has no line styles and no hatching, so <see cref="PlotSettings.UseLineStyles"/>, <see cref="PlotSettings.LineStyles"/> and <see cref="PlotSettings.FillPatterns"/> are accepted and ignored.
+/// Sequences are told apart by color, and the areas by <see cref="InfinityFillCharacters"/>.
+/// <see cref="PlotSettings.SameScaleAxes"/> is ignored too: a cell is not square.
+/// </remarks>
 public record TerminalPlotSettings : PlotSettings
 {
     /// <summary>
     /// Width of the plot area in terminal cells.
     /// </summary>
-    public int Width { get; set; } = 72;
+    /// <remarks>
+    /// The rendered line is this plus <see cref="YAxisLabelWidth"/> and one separator.
+    /// The default keeps that at 80 columns, which is the width every terminal is expected to have.
+    /// </remarks>
+    public int Width { get; set; } = 70;
 
     /// <summary>
     /// Height of the plot area in terminal cells.
     /// </summary>
-    public int Height { get; set; } = 20;
+    /// <remarks>
+    /// Five more lines are written below the plot, for the axis labels, the legend and the symbol key.
+    /// The default keeps the whole thing inside the 24 rows of a standard terminal.
+    /// </remarks>
+    public int Height { get; set; } = 19;
 
     /// <summary>
     /// Controls whether Spectre.Console emits ANSI escape sequences.
@@ -59,6 +72,14 @@ public record TerminalPlotSettings : PlotSettings
     /// Character used when multiple traces share the same terminal cell.
     /// </summary>
     public char CollisionCharacter { get; set; } = '#';
+
+    /// <summary>
+    /// Characters cycled to fill the areas marking infinite values.
+    /// </summary>
+    /// <remarks>
+    /// One per sequence, so that overlapping areas can be told apart where a hatch is not available.
+    /// </remarks>
+    public IReadOnlyList<char> InfinityFillCharacters { get; set; } = ['.', ':', '"', ','];
 
     /// <summary>
     /// Character used for discontinuity markers.
