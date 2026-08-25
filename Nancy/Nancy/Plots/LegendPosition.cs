@@ -45,3 +45,17 @@ public enum LegendPosition
     /// </summary>
     NorthWest,
 }
+
+/// <summary>
+/// Controls whether the legend is placed inside the plot area or beside it.
+/// </summary>
+public enum LegendPlacement
+{
+    /// The legend is placed inside the plot area, at the corner or edge given by <see cref="LegendPosition"/>.
+    /// It may then cover the curves: what it would cover is not known when the plot is built, since the legend is laid out by the renderer.
+    Inside,
+
+    /// The legend is placed beside the plot area, on the side given by <see cref="LegendPosition"/>.
+    /// It cannot cover the curves, at the cost of a wider figure.
+    Outside
+}

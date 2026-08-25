@@ -26,6 +26,15 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     public TSettings PlotSettings { get; init; } = new();
 
     /// <summary>
+    /// True while plotting sequences obtained by cutting curves, which are known to continue past the cut.
+    /// </summary>
+    /// <remarks>
+    /// A plot may then carry a curve on to its edge, rather than marking the cut as if the curve ended there.
+    /// It is false whenever sequences are plotted directly: a sequence ends where it ends, and nothing is known past it.
+    /// </remarks>
+    protected bool SequencesContinuePastCut { get; private set; }
+
+    /// <summary>
     /// Plots a set of sequences.
     /// </summary>
     /// <param name="sequences">The sequences to plot.</param>
@@ -54,7 +63,16 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
             .Select(c => c.Cut(xi))
             .ToList();
 
-        return GetPlot(cuts, names);
+        SequencesContinuePastCut = true;
+        try
+        {
+            return GetPlot(cuts, names);
+        }
+        finally
+        {
+            // reset, so that plotting sequences directly on the same modeler is never taken as a cut
+            SequencesContinuePastCut = false;
+        }
     }
 
     /// <summary>

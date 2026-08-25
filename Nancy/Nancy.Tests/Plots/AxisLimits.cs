@@ -38,11 +38,11 @@ public class AxisLimits
     }
 
     [Fact]
-    public void SequenceAxisLimitsApplyRelativeMarginsToDefaults()
+    public void SequenceAxisLimitsApplyMarginsLargerWhereTheValuesAre()
     {
         var sequence = GetSequence();
 
-        var limits = PlotAxisLimitAlgorithms.GetSequenceAxisLimits(
+        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
             [sequence],
             new PlotSettings
             {
@@ -50,8 +50,9 @@ public class AxisLimits
                 RelativeYAxisMargin = 0.25
             });
 
-        Assert.Equal(new Interval(-1, 5), limits.XLimit);
-        Assert.Equal(new Interval(new Rational(55, 4), new Rational(85, 4)), limits.YLimit);
+        // both axes are non-negative here, so the full margin goes above and half of it below
+        Assert.Equal(new Interval(new Rational(-1, 2), 5), limits.XLimit);
+        Assert.Equal(new Interval(new Rational(115, 8), new Rational(85, 4)), limits.YLimit);
     }
 
     [Fact]
@@ -61,7 +62,7 @@ public class AxisLimits
         var xLimit = new Interval(-1, 10);
         var yLimit = new Interval(-2, 20);
 
-        var limits = PlotAxisLimitAlgorithms.GetSequenceAxisLimits(
+        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
             [sequence],
             new PlotSettings
             {
