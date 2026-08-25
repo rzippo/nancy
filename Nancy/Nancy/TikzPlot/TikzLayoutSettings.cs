@@ -1,6 +1,7 @@
 ﻿namespace Unipi.Nancy.TikzPlot;
 
 /// Settings for the plot layout.
+[System.Obsolete("Use Unipi.Nancy.Plots.Tikz.TikzPlotSettings instead.")]
 public record TikzLayoutSettings
 {
     /// Controls, if the legend is included in the plot, where it should be placed.
@@ -20,6 +21,7 @@ public record TikzLayoutSettings
 }
 
 /// Options to control whether the legend is included or not in the plot.
+[System.Obsolete("Use Unipi.Nancy.Plots.LegendStrategy instead.")]
 public enum LegendStrategy
 {
     /// Decides automatically if to show the legend or not.
@@ -35,6 +37,7 @@ public enum LegendStrategy
 }
 
 /// Options for legend position.
+[System.Obsolete("Use Unipi.Nancy.Plots.LegendPosition instead.")]
 public enum LegendPosition
 {
     /// Corresponds, in LaTeX, to "north".
@@ -66,6 +69,7 @@ public enum LegendPosition
 /// Extension class for <see cref="LegendPosition"/>.
 /// </summary>
 /// <exclude />
+[System.Obsolete("Use Unipi.Nancy.Plots.Tikz.LegendPositionExtension instead.")]
 public static class LegendPositionExtension
 {
     /// Returns the LaTeX string corresponding to the position.
@@ -100,6 +104,7 @@ public static class LegendPositionExtension
 /// <summary>
 /// Options for plot font size.
 /// </summary>
+[System.Obsolete("Use Unipi.Nancy.Plots.Tikz.FontSize instead.")]
 public enum FontSize {
     // ReSharper disable IdentifierTypo
     // ReSharper disable CommentTypo
@@ -142,6 +147,7 @@ public enum FontSize {
 /// Extension class for <see cref="FontSize"/>.
 /// </summary>
 /// <exclude />
+[System.Obsolete("Use Unipi.Nancy.Plots.Tikz.FontSizeExtensions instead.")]
 public static class FontSizeExtensions 
 {
     /// Returns the LaTeX string corresponding to the fontsize.
@@ -179,6 +185,7 @@ public static class FontSizeExtensions
 }
 
 /// Options for grid and ticks layout.
+[System.Obsolete("Use Unipi.Nancy.Plots.Tikz.GridTickLayout instead.")]
 public enum GridTickLayout
 {
     /// The tick marks are set to the breakpoints of the curves plotted,
@@ -193,6 +200,7 @@ public enum GridTickLayout
 }
 
 /// Options for curve layout.
+[System.Obsolete("Use Unipi.Nancy.Plots.Tikz.CurveLayout instead.")]
 public enum CurveLayout
 {
     /// Continuous sequences are plotted as single uninterrupted lines.

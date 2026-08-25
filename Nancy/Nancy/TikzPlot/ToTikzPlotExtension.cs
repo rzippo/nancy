@@ -20,6 +20,7 @@ namespace Unipi.Nancy.TikzPlot;
 /// \usetikzlibrary{arrows}
 /// </code>
 /// </remarks>
+[Obsolete("This plotting API is superseded by the Unipi.Nancy.Plots.Tikz package: use Unipi.Nancy.Plots.Tikz.TikzPlots instead.")]
 public static class ToTikzPlotExtension
 {
     /// <summary>
@@ -826,11 +827,10 @@ public static class ToTikzPlotExtension
     }
 }
 
-// todo: extend with strategies based on intersections
-
 /// <summary>
 /// Different strategies to compute the x-axis right boundary.
 /// </summary>
+[Obsolete("Use Unipi.Nancy.Plots.PlotEndStrategy instead.")]
 public enum PlotEndStrategy
 {
     /// <summary>
