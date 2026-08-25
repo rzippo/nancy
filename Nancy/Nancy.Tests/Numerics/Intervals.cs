@@ -287,4 +287,157 @@ public class IntervalTests
         Assert.True(interior.IsSubsetOf(closure));
     }
 
+    #region Unbounded intervals
+
+    [Fact]
+    public void UnboundedAbove_RunsFromItsBoundForever()
+    {
+        var interval = Interval.UnboundedAbove(5);            // [5, +inf[
+
+        Assert.Equal(5, interval.Lower);
+        Assert.True(interval.IsLowerIncluded);
+        Assert.True(interval.IsUnboundedAbove);
+        Assert.False(interval.IsUnboundedBelow);
+    }
+
+    [Fact]
+    public void UnboundedBelow_RunsToItsBoundFromForever()
+    {
+        var interval = Interval.UnboundedBelow(5);            // ]-inf, 5]
+
+        Assert.Equal(5, interval.Upper);
+        Assert.True(interval.IsUpperIncluded);
+        Assert.True(interval.IsUnboundedBelow);
+        Assert.False(interval.IsUnboundedAbove);
+    }
+
+    [Fact]
+    public void IsBounded_SeparatesFiniteStretchesFromUnboundedOnes()
+    {
+        Assert.True(Interval.Closed(1, 5).IsBounded);
+        Assert.True(Interval.Open(1, 5).IsBounded);
+        Assert.False(Interval.UnboundedAbove(5).IsBounded);
+        Assert.False(Interval.UnboundedBelow(5).IsBounded);
+        Assert.False(new Interval(Rational.MinusInfinity, Rational.PlusInfinity, false, false).IsBounded);
+    }
+
+    [Fact]
+    public void Length_MeasuresTheSpanRegardlessOfInclusion()
+    {
+        Assert.Equal(4, Interval.Closed(1, 5).Length);
+        Assert.Equal(4, Interval.Open(1, 5).Length);
+        Assert.Equal(0, Interval.Closed(3, 3).Length);
+        Assert.True(Interval.UnboundedAbove(5).Length.IsPlusInfinite);
+        Assert.True(Interval.UnboundedBelow(5).Length.IsPlusInfinite);
+    }
+
+    [Fact]
+    public void ADegenerateIntervalHasNoLengthEvenAtAnInfinity()
+    {
+        // the endpoints coincide, so the interval holds at most the one point they name and the
+        // distance between them is 0; subtracting would be undetermined at an infinity
+        Assert.Equal(0, Interval.Closed(5, 5).Length);
+        Assert.Equal(0, new Interval(Rational.PlusInfinity, Rational.PlusInfinity, true, true).Length);
+        Assert.Equal(0, new Interval(Rational.MinusInfinity, Rational.MinusInfinity, true, true).Length);
+        Assert.Equal(0, Interval.UnboundedAbove(Rational.PlusInfinity).Length);
+    }
+
+    [Fact]
+    public void AnIntervalReachingAnInfinityHasInfiniteLength()
+    {
+        Assert.True(Interval.UnboundedAbove(5).Length.IsPlusInfinite);
+        Assert.True(Interval.UnboundedBelow(5).Length.IsPlusInfinite);
+        Assert.True(new Interval(Rational.MinusInfinity, Rational.PlusInfinity, false, false).Length.IsPlusInfinite);
+        Assert.True(Interval.Closed(0, Rational.PlusInfinity).Length.IsPlusInfinite);
+    }
+
+    [Fact]
+    public void TheInteriorOfASinglePointIsEmptyEvenAtAnInfinity()
+    {
+        Assert.True(Interval.Closed(5, 5).Interior().IsEmpty);
+        Assert.True(new Interval(Rational.PlusInfinity, Rational.PlusInfinity, true, true).Interior().IsEmpty);
+    }
+
+    [Fact]
+    public void TheClosureOfAnUnboundedIntervalReachesItsInfinity()
+    {
+        // in the extended rationals the infinity is a point of the space, so it belongs to the closure
+        var closure = Interval.UnboundedAbove(0).Closure();
+
+        Assert.True(closure.IsUpperIncluded);
+        Assert.True(closure.Contains(Rational.PlusInfinity));
+    }
+
+    [Fact]
+    public void UnboundedFactoryIntervalsDoNotContainTheirInfinity()
+    {
+        // the unbounded factories model an open infinite endpoint, as time windows usually need
+        Assert.False(Interval.UnboundedAbove(5).Contains(Rational.PlusInfinity));
+        Assert.True(Interval.UnboundedAbove(5).Contains(1000000));
+        Assert.False(Interval.UnboundedBelow(5).Contains(Rational.MinusInfinity));
+        Assert.True(Interval.UnboundedBelow(5).Contains(-1000000));
+    }
+
+    [Fact]
+    public void TheConstructorCanIncludeAnInfiniteUpperEndpoint()
+    {
+        // Interval is generic over Rational, so value intervals can include an attained infinity.
+        var interval = new Interval(5, Rational.PlusInfinity, true, true);
+
+        Assert.True(interval.IsUnboundedAbove);
+        Assert.True(interval.IsUpperIncluded);
+        Assert.True(interval.IsLowerIncluded);
+        Assert.Equal(5, interval.Lower);
+        Assert.True(interval.Contains(Rational.PlusInfinity));
+    }
+
+    [Fact]
+    public void TheConstructorCanIncludeAnInfiniteLowerEndpoint()
+    {
+        var interval = new Interval(Rational.MinusInfinity, 5, true, true);
+
+        Assert.True(interval.IsUnboundedBelow);
+        Assert.True(interval.IsLowerIncluded);
+        Assert.True(interval.IsUpperIncluded);
+        Assert.True(interval.Contains(Rational.MinusInfinity));
+    }
+
+    [Fact]
+    public void TheConstructorLeavesFiniteEndpointsAlone()
+    {
+        var interval = new Interval(1, 5, true, true);
+
+        Assert.True(interval.IsLowerIncluded);
+        Assert.True(interval.IsUpperIncluded);
+    }
+
+    [Fact]
+    public void FactoriesAndMutationPreserveTheirOwnInfinityInclusion()
+    {
+        // closed intervals keep infinities as values; the unbounded factories leave them open by choice
+        Assert.True(Interval.Closed(0, Rational.PlusInfinity).IsUpperIncluded);
+        Assert.False(Interval.UnboundedAbove(0).IsUpperIncluded);
+        Assert.True(Interval.Closed(0, 5).WithUpper(Rational.PlusInfinity).IsUpperIncluded);
+        Assert.True(Interval.Open(0, Rational.PlusInfinity).WithIsUpperIncluded(true).IsUpperIncluded);
+    }
+
+    [Fact]
+    public void UnboundedIntervalsJoinLikeAnyOther()
+    {
+        // the case the intersection API relies on: a bounded stretch running into an unbounded one
+        var joined = Interval.Union(Interval.ClosedOpen(0, 5), Interval.UnboundedAbove(5));
+
+        Assert.NotNull(joined);
+        Assert.Equal(0, joined!.Value.Lower);
+        Assert.True(joined.Value.IsUnboundedAbove);
+    }
+
+    [Fact]
+    public void UnboundedIntervalsWithAGapDoNotJoin()
+    {
+        // 5 belongs to neither, so the union is not an interval
+        Assert.Null(Interval.Union(Interval.ClosedOpen(0, 5), Interval.UnboundedAbove(5, isLowerIncluded: false)));
+    }
+
+    #endregion
 }

@@ -1,4 +1,5 @@
 ﻿using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Sequences;
@@ -49,5 +50,18 @@ public class Infinite
 
         Assert.Equal(0, min.ValueAt(0));
         Assert.Equal(10, min.ValueAt(10));
+    }
+
+    [Fact]
+    public void ImageCanContainAnAttainedInfinity()
+    {
+        var sequence = Sequence.PlusInfinite(0, 10);
+
+        Assert.True(sequence.AttainsValue(Rational.PlusInfinity));
+        Assert.True(sequence.Image.IsUpperIncluded);
+        Assert.True(sequence.Image.Contains(Rational.PlusInfinity));
+
+        // the image is the single value +infinity, so it spans nothing
+        Assert.Equal(0, sequence.Image.Length);
     }
 }
