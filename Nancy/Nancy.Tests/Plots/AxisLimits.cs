@@ -9,8 +9,10 @@ namespace Unipi.Nancy.Tests.Plots;
 public class AxisLimits
 {
     [Fact]
-    public void CurveSamplingUsesSecondPseudoPeriodEndByDefault()
+    public void CurveSamplingShowsTwiceTheTransientOfAnUltimatelyAffineCurve()
     {
+        // the pseudo-period of an ultimately affine curve is an artifact of the representation,
+        // so two of them say nothing: what is worth showing is the transient and as much again
         var curve = new RateLatencyServiceCurve(rate: 1, latency: 3);
 
         var limit = PlotAxisLimitAlgorithms.GetCurveSamplingXLimit(
@@ -18,7 +20,7 @@ public class AxisLimits
             new PlotSettings());
 
         Assert.Equal(0, limit.Lower);
-        Assert.Equal(curve.SecondPseudoPeriodEnd, limit.Upper);
+        Assert.Equal(curve.PseudoPeriodStart * 2, limit.Upper);
     }
 
     [Fact]
