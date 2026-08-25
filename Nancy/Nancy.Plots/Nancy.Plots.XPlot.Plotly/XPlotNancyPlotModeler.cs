@@ -17,7 +17,8 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
     {
         var sequencesList = sequences.ToList();
         var namesList = names.ToList();
-        var axisLimits = PlotAxisLimitAlgorithms.GetSequenceAxisLimits(sequencesList, PlotSettings);
+        var axisLimits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+            sequencesList, PlotSettings, SequencesContinuePastCut);
 
         // todo: move colors to settings
         var colors = new List<string>
@@ -34,8 +35,17 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
             "#FECB52"
         };
 
-        var traces = Enumerable.Zip(sequencesList, namesList)
-            .SelectMany((ns, i) => GetTrace(ns.First, ns.Second, i));
+        var lineStyles = PlotSettings.UseLineStyles
+            ? PlotSettings.LineStyles ?? PlotStyleCycles.DefaultLineStyles
+            : [ PlotLineStyle.Solid ];
+
+        var areas = GetInfinityAreas(sequencesList, colors, axisLimits, SequencesContinuePastCut);
+
+        // the areas go first, so that plotly draws them under the curves:
+        // a layout shape would have gone over them, having no layer of its own
+        var traces = areas.Areas.Concat(
+            Enumerable.Zip(sequencesList, namesList)
+                .SelectMany((ns, i) => GetTrace(ns.First, ns.Second, i)));
 
         var chart = Chart.Plot(traces);
 
@@ -50,6 +60,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
         chart.WithLayout(
             new Layout.Layout
             {
+                annotations = areas.Annotations,
                 xaxis = new Xaxis
                 {
                     zeroline = true,
@@ -69,23 +80,111 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                 title = PlotSettings.Title,
                 width = PlotSettings.Width,
                 height = PlotSettings.Height,
-                legend = new Legend
-                {
-                    x = GetLegendX(PlotSettings.LegendPosition),
-                    y = GetLegendY(PlotSettings.LegendPosition),
-                    xanchor = GetLegendXAnchor(PlotSettings.LegendPosition),
-                    yanchor = GetLegendYAnchor(PlotSettings.LegendPosition)
-                }
+                legend = PlotSettings.LegendPlacement == LegendPlacement.Outside
+                    // plotly's own default is beside the plot, which is what Outside asks for
+                    ? new Legend()
+                    : new Legend
+                    {
+                        x = GetLegendX(PlotSettings.LegendPosition),
+                        y = GetLegendY(PlotSettings.LegendPosition),
+                        xanchor = GetLegendXAnchor(PlotSettings.LegendPosition),
+                        yanchor = GetLegendYAnchor(PlotSettings.LegendPosition)
+                    }
             }
         );
 
         return chart;
 
+        (IEnumerable<Scattergl> Areas, IEnumerable<Annotation> Annotations) GetInfinityAreas(
+            IReadOnlyList<Sequence> sequences,
+            IReadOnlyList<string> palette,
+            PlotAxisLimits limits,
+            bool continuesPastEnd)
+        {
+            var areas = new List<Scattergl>();
+            var annotations = new List<Annotation>();
+            if (PlotSettings.InfinityStrategy != InfinityStrategy.Areas)
+                return (areas, annotations);
+
+            var withInfinities = sequences
+                .Select((sequence, index) => (sequence, index))
+                .Where(p => p.sequence.HasPlusInfinity || p.sequence.HasMinusInfinity)
+                .ToList();
+
+            foreach (var ((sequence, index), position) in withInfinities.WithIndex())
+            {
+                var color = palette[index % palette.Count];
+                foreach (var region in sequence.EnumerateVisibleInfiniteRegions(
+                             limits.XLimit, continuesPastEnd))
+                {
+                    var band = region.IsPlusInfinite
+                        ? limits.PlusInfinityBand
+                        : limits.MinusInfinityBand;
+                    if (region.EndTime <= region.StartTime || band.Upper <= band.Lower)
+                        continue;
+
+                    // a closed rectangle, drawn as a trace so that it can sit under the curves
+                    var x0 = (decimal)region.StartTime;
+                    var x1 = (decimal)region.EndTime;
+                    var y0 = (decimal)band.Lower;
+                    var y1 = (decimal)band.Upper;
+                    areas.Add(new Scattergl
+                    {
+                        x = new[] { x0, x1, x1, x0, x0 },
+                        y = new[] { y0, y0, y1, y1, y0 },
+                        mode = "lines",
+                        fill = "toself",
+                        fillcolor = color,
+                        opacity = PlotSettings.InfinityAreaOpacity,
+                        line = new Line { width = 0 },
+                        hoverinfo = "skip",
+                        showlegend = false
+                    });
+
+                    annotations.Add(new Annotation
+                    {
+                        text = region.IsPlusInfinite ? "+∞" : "-∞",
+                        xref = "x",
+                        yref = "y",
+                        x = (decimal)((region.StartTime + region.EndTime) / 2),
+                        y = (decimal)(band.Lower + (band.Upper - band.Lower)
+                            * (position + 1) / (withInfinities.Count + 1)),
+                        showarrow = false,
+                        font = new Font { color = color, size = 18 }
+                    });
+                }
+            }
+
+            return (areas, annotations);
+        }
+
+        /// <summary>
+        /// Maps a line style to the matching plotly dash.
+        /// </summary>
+        static string ToPlotlyDash(PlotLineStyle style)
+            => style switch
+            {
+                PlotLineStyle.Solid => "solid",
+                PlotLineStyle.Dashed => "dash",
+                PlotLineStyle.Dotted => "dot",
+                PlotLineStyle.DashDotted => "dashdot",
+                // plotly has no denser variants: longdash keeps the default cycle's four distinct,
+                // while a densely dotted line is indistinguishable from a dotted one here
+                PlotLineStyle.DenselyDashed => "longdash",
+                PlotLineStyle.DenselyDotted => "dot",
+                _ => "solid"
+            };
+
         IEnumerable<Scattergl> GetTrace(Sequence sequence, string name, int index)
         {
             var color = colors[index % colors.Count];
 
-            if (sequence.IsContinuous)
+            var dash = ToPlotlyDash(
+                PlotStyleCycles.Pick(index, lineStyles));
+
+            // a sequence that is infinite throughout is continuous, so this path has to
+            // filter as the one below does: casting an infinity to decimal throws
+            if (sequence.IsContinuous && !sequence.HasPlusInfinity && !sequence.HasMinusInfinity)
             {
                 var points = sequence.Elements
                     .OfType<Point>()
@@ -107,7 +206,8 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                     mode = "lines+markers",
                     line = new Line
                     {
-                        color = color
+                        color = color,
+                        dash = dash
                     },
                     marker = new Marker
                     {
@@ -193,7 +293,8 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                         mode = "lines",
                         line = new Line
                         {
-                            color = color
+                            color = color,
+                            dash = dash
                         },
                         showlegend = segmentsLegend && isFirst
                     };
