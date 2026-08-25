@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -81,8 +81,94 @@ public static class PlotAxisLimitAlgorithms
                     isUpperIncluded: xLimit.IsUpperIncluded);
         }
 
-        var rightEdge = curves.Max(c => c.SecondPseudoPeriodEnd);
+        var rightEdge = GetPlotEnd(curves, settings.PlotEndStrategy);
         return new Interval(0, rightEdge, isLowerIncluded: true, isUpperIncluded: true);
+    }
+
+    /// <summary>
+    /// Computes how far to the right a plot of the given curves should reach.
+    /// </summary>
+    /// <param name="curves">The curves to be plotted.</param>
+    /// <param name="strategy">How to choose the boundary.</param>
+    /// <remarks>
+    /// A curve whose tail is affine or infinite has no period worth showing: its pseudo-period is an artifact of the representation, so twice the transient is used instead.
+    /// The furthest of the two readings sets the end, so such a curve keeps its transient on screen however long the periods of the curves beside it.
+    /// When every curve is of that kind and none has a transient, one unit is shown, since there is nothing else to scale against.
+    /// </remarks>
+    public static Rational GetPlotEnd(
+        IReadOnlyCollection<Curve> curves,
+        PlotEndStrategy strategy = PlotEndStrategy.TwoPeriodsEach)
+    {
+        if (curves.Count == 0)
+            throw new ArgumentException("Empty curve collection.", nameof(curves));
+
+        var periodic = curves
+            .Where(c => !c.IsUltimatelyAffine && !c.IsUltimatelyInfinite)
+            .ToList();
+        var withoutPeriod = curves
+            .Where(c => c.IsUltimatelyAffine || c.IsUltimatelyInfinite)
+            .ToList();
+
+        var periodEnd = periodic.Count > 0
+            ? strategy == PlotEndStrategy.OnePeriodEach
+                ? periodic.Max(c => c.FirstPseudoPeriodEnd)
+                : periodic.Max(c => c.SecondPseudoPeriodEnd)
+            : Rational.Zero;
+
+        // whatever the periods of the others ask for, a curve without a period still has its transient to show
+        var transientEnd = withoutPeriod.Count > 0
+            ? GetTransientEnd(withoutPeriod)
+            : Rational.Zero;
+
+        var end = Rational.Max(periodEnd, transientEnd);
+
+        return strategy == PlotEndStrategy.UntilLastIntersection
+            ? Rational.Max(end, GetLastIntersectionEnd(curves))
+            : end;
+    }
+
+    /// <summary>
+    /// Computes how far to the right the last intersection between any two of the curves reaches.
+    /// </summary>
+    /// <remarks>
+    /// The shorter pseudo-period of the pair that meets is left beyond it, so that the intersection is not drawn against the edge.
+    /// A pair that meets infinitely often has no last intersection and is skipped.
+    /// </remarks>
+    private static Rational GetLastIntersectionEnd(IReadOnlyCollection<Curve> curves)
+    {
+        var list = curves.ToList();
+        var reach = Rational.Zero;
+
+        for (var i = 0; i < list.Count; i++)
+        for (var j = i + 1; j < list.Count; j++)
+        {
+            // curves that both start at 0 meet at the origin, which frames nothing, so it is excluded
+            var pattern = list[i].GetIntersections(list[j], isStartInclusive: false);
+
+            // a pair that meets infinitely often has no last intersection
+            if (pattern.IsInfinite)
+                continue;
+
+            var last = pattern.Last;
+            if (last is not { } interval)
+                continue;
+
+            // an intersection that never ends gives nothing to frame on
+            if (interval.IsUnboundedAbove)
+                continue;
+
+            var slack = Rational.Min(list[i].PseudoPeriodLength, list[j].PseudoPeriodLength);
+            if (interval.Upper + slack > reach)
+                reach = interval.Upper + slack;
+        }
+
+        return reach;
+    }
+
+    private static Rational GetTransientEnd(IReadOnlyCollection<Curve> curves)
+    {
+        var start = curves.Max(c => c.PseudoPeriodStart);
+        return start > 0 ? start * 2 : Rational.One;
     }
 
     /// <summary>

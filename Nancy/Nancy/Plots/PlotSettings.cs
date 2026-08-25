@@ -23,6 +23,11 @@ public record PlotSettings
     public Interval? XLimit { get; set; } = null;
 
     /// <summary>
+    /// Controls how far to the right a plot of curves reaches, when <see cref="XLimit"/> does not say.
+    /// </summary>
+    public PlotEndStrategy PlotEndStrategy { get; set; } = PlotEndStrategy.TwoPeriodsEach;
+
+    /// <summary>
     /// Range for the y-axis.
     /// </summary>
     public Interval? YLimit { get; set; } = null;

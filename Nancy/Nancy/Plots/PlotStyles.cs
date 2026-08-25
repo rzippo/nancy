@@ -73,6 +73,27 @@ public enum InfinityStrategy
 }
 
 /// <summary>
+/// Controls how far to the right a plot of curves reaches.
+/// </summary>
+/// <remarks>
+/// A curve is defined everywhere, so plotting one means choosing where to stop.
+/// This is only the default: an explicit <see cref="PlotSettings.XLimit"/> overrides it.
+/// </remarks>
+public enum PlotEndStrategy
+{
+    /// At least one full pseudo-period of each curve is plotted.
+    OnePeriodEach,
+
+    /// At least two full pseudo-periods of each curve are plotted.
+    TwoPeriodsEach,
+
+    /// The plot reaches the last time two of the curves intersect, plus the shorter of their two pseudo-periods.
+    /// Past that intersection the curves keep their order, so the rest says less than the part that is shown.
+    /// Falls back to <see cref="TwoPeriodsEach"/> when the curves do not meet, or meet infinitely often.
+    UntilLastIntersection
+}
+
+/// <summary>
 /// The default cycles used when <see cref="PlotSettings.LineStyles"/> or <see cref="PlotSettings.FillPatterns"/> are not set.
 /// </summary>
 public static class PlotStyleCycles
@@ -109,7 +130,7 @@ public static class PlotStyleCycles
     /// <param name="styles">The styles being cycled.</param>
     /// <remarks>
     /// The style advances at every sequence, so that two curves plotted together never share one.
-    /// Colors and styles then cycle independently, and a pen repeats only after the least common multiple of the two lengths: 12 for 3 colors and 4 styles.
+    /// Colors and styles cycle independently, so a pair of them repeats only after the least common multiple of the two lengths: 12 for 3 colors and 4 styles.
     /// Lengths that share a factor repeat sooner, so a palette meant to be cycled is best given a length coprime with the number of styles.
     /// </remarks>
     public static TStyle Pick<TStyle>(int index, IReadOnlyList<TStyle> styles)
