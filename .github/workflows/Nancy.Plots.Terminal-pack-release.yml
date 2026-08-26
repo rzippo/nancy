@@ -6,12 +6,7 @@ on:
     branches:
       - master
     paths:
-      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal/**'
-      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal.Tests/**'
-      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal.Sample/**'
-      - 'Nancy/Nancy.Plots/Nancy.Plots.sln'
-      - 'Nancy/Nancy.Plots/Nancy.Plots.Local.slnf'
-      - 'Nancy/Nancy.Plots/Nancy.Plots.Nuget.slnf'
+      - 'Nancy/Nancy.Plots/Nancy.Plots.Terminal/Nancy.Plots.Terminal.csproj'
 jobs:
   Nancy-Plots-Terminal-pack-release:
     # only release what is on master: a pull request, or a manual run on another branch, must not publish
