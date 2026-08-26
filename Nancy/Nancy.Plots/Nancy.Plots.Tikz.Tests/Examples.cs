@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -58,6 +58,7 @@ public class Examples
     ];
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void WriteDocument()
     {
         var cases = new List<(string Caption, string Code)>

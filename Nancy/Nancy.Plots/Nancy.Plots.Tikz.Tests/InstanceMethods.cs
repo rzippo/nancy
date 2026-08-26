@@ -5,6 +5,13 @@ using Xunit;
 
 namespace Nancy.Plots.Tikz.Tests;
 
+/// <summary>
+/// Smoke tests for the TikZ instance plotting entry points.
+/// </summary>
+/// <remarks>
+/// These check that the call completes and produces output, not what the output contains.
+/// They are marked with the Smoke category so they can be told apart from the tests that assert.
+/// </remarks>
 public class InstanceMethods
 {
     private readonly ITestOutputHelper _testOutputHelper;
@@ -15,6 +22,7 @@ public class InstanceMethods
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Test1()
     {
         var rl = new RateLatencyServiceCurve(1, 1);
@@ -32,6 +40,7 @@ public class InstanceMethods
     }
     
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Test2()
     {
         var sc = new RateLatencyServiceCurve(2, 1);
@@ -50,6 +59,7 @@ public class InstanceMethods
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Test3()
     {
         var sc = new RateLatencyServiceCurve(2, 1);

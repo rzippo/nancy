@@ -1,4 +1,4 @@
-using Unipi.Nancy.MinPlusAlgebra;
+﻿using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots;
@@ -54,18 +54,21 @@ public class Examples
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Delay0()
     {
         Write("delay-0", [new DelayServiceCurve(0)], ["\\delta_0"]);
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Delay10()
     {
         Write("delay-10", [new DelayServiceCurve(10)], ["\\delta_10"]);
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Delay0AndDelay10()
     {
         Write(
@@ -75,6 +78,7 @@ public class Examples
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void RateLatencyAndDelay()
     {
         Write(
@@ -84,6 +88,7 @@ public class Examples
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void SixCurves()
     {
         Write(
@@ -100,6 +105,7 @@ public class Examples
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void SixCurvesLegendOutside()
         => Write(
             "six-curves-legend-outside",
@@ -115,6 +121,7 @@ public class Examples
             new ScottPlotSettings { LegendPlacement = LegendPlacement.Outside });
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void SixCurvesWithoutLineStyles()
     {
         Write(
@@ -138,6 +145,7 @@ public class Examples
     /// Exercises an area whose two vertical edges are both drawn, one excluded and one excluded.
     /// </remarks>
     [Fact]
+    [Trait("Category", "Smoke")]
     public void InteriorPlateau()
     {
         var sequence = new Sequence(new Element[]
@@ -158,6 +166,7 @@ public class Examples
     /// A curve reaching $-\infty$, for the area below the x-axis and the reserved lower limit.
     /// </summary>
     [Fact]
+    [Trait("Category", "Smoke")]
     public void MinusInfinity()
     {
         var sequence = new Sequence(new Element[]
@@ -175,6 +184,7 @@ public class Examples
     /// A curve with both a $+\infty$ and a $-\infty$ part, so both areas appear at once.
     /// </summary>
     [Fact]
+    [Trait("Category", "Smoke")]
     public void BothInfinities()
     {
         var sequence = new Sequence(new Element[]
@@ -196,6 +206,7 @@ public class Examples
     /// A non-positive curve, which should get its room below and only a sliver above.
     /// </summary>
     [Fact]
+    [Trait("Category", "Smoke")]
     public void NegativeRateLatency()
     {
         Write("negative-rate-latency", [-new RateLatencyServiceCurve(1, 1)], ["-beta"]);
@@ -205,6 +216,7 @@ public class Examples
     /// A curve whose only finite value is 0, and whose sign is told by its $-\infty$ part.
     /// </summary>
     [Fact]
+    [Trait("Category", "Smoke")]
     public void NegativeDelay10()
     {
         Write("negative-delay-10", [-new DelayServiceCurve(10)], ["-delta_10"]);
@@ -214,6 +226,7 @@ public class Examples
     /// The same curve without the areas, where the sign is still read off the infinite part.
     /// </summary>
     [Fact]
+    [Trait("Category", "Smoke")]
     public void NegativeDelay10Ignored()
     {
         Write(
@@ -224,6 +237,7 @@ public class Examples
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Delay10Ignored()
     {
         Write(

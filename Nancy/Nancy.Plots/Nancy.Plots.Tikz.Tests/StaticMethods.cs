@@ -1,4 +1,4 @@
-using Unipi.Nancy.NetworkCalculus;
+﻿using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.Tikz;
 using Unipi.Nancy.Utility;
@@ -6,6 +6,12 @@ using Xunit;
 
 namespace Nancy.Plots.Tikz.Tests;
 
+/// <summary>
+/// Tests for the TikZ static plotting entry points.
+/// </summary>
+/// <remarks>
+/// The cases in the Smoke category check only that the call completes and produces output; the rest assert on what is emitted.
+/// </remarks>
 public class StaticMethods
 {
     private readonly ITestOutputHelper _testOutputHelper;
@@ -32,6 +38,7 @@ public class StaticMethods
     }
     
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Test1_Settings()
     {
         var rl = new RateLatencyServiceCurve(1, 3);
@@ -44,6 +51,7 @@ public class StaticMethods
     }
     
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Test2()
     {
         var sc = new RateLatencyServiceCurve(3, 1);
@@ -54,6 +62,7 @@ public class StaticMethods
     }
     
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Test2_Settings()
     {
         var sc = new RateLatencyServiceCurve(3, 1);

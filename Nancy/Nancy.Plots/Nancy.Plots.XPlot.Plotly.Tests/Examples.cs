@@ -1,4 +1,4 @@
-using Unipi.Nancy.MinPlusAlgebra;
+﻿using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots;
@@ -53,10 +53,12 @@ public class Examples
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Delay10()
         => Write("delay-10", [new DelayServiceCurve(10)], ["delta_10"]);
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Delay0AndDelay10()
         => Write(
             "delay-0-and-10",
@@ -64,6 +66,7 @@ public class Examples
             ["delta_0", "delta_10"]);
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void RateLatencyAndDelay()
         => Write(
             "rate-latency-and-delay",
@@ -71,6 +74,7 @@ public class Examples
             ["beta", "delta_10"]);
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void SixCurves()
         => Write(
             "six-curves",
@@ -91,6 +95,7 @@ public class Examples
     /// An everywhere-infinite sequence is continuous, so it took a fast path that cast infinity to decimal.
     /// </remarks>
     [Fact]
+    [Trait("Category", "Smoke")]
     public void FiniteBesideAnEverywhereInfiniteSequence()
     {
         var infinite = new Sequence(
@@ -116,6 +121,7 @@ public class Examples
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void BothInfinities()
     {
         var sequence = new Sequence(
@@ -140,6 +146,7 @@ public class Examples
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public void Delay10Ignored()
         => Write(
             "delay-10-ignored",
