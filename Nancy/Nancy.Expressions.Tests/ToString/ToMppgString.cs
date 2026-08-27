@@ -124,6 +124,18 @@ public class ToMppgString
         (new RationalMaximumExpression([X, Y]), @"3 \/ 5/2"),
         (((X + Y) * (X - Y)).AbsoluteValue(), "abs((3 + 5/2) * (3 - 5/2))"),
 
+        // rational literals, which rule 9 of the formatting style spells tight
+        (Expressions.FromRational(1) / Expressions.FromRational(2), "1/2"),
+        (Expressions.FromRational(3).Negate() / Expressions.FromRational(2), "-3/2"),
+        ((Expressions.FromRational(3) / Expressions.FromRational(2)).Negate(), "-3/2"),
+        (Expressions.FromRational(1) / Expressions.FromRational(2) / Expressions.FromRational(3), "1/2/3"),
+        ((Expressions.FromRational(1) / Expressions.FromRational(2)).Negate() / Expressions.FromRational(3), "-1/2/3"),
+        ((Expressions.FromRational(3).Negate() / Expressions.FromRational(2)).Negate(), "-(-3/2)"),
+        (Expressions.FromRational(3) / (Expressions.FromRational(5) / Expressions.FromRational(2)), "3 / (5/2)"),
+        (Expressions.FromRational(1) / X, "1/3"),
+        (A.Scale(new Rational(1, 2)), "(1/2) * a"),
+        (Expressions.FromRational(1) * Expressions.FromRational(2), "1 * 2"),
+
         // scalar-returning operations on curves
         (A.ValueAt(3), "a(3)"),
         (A.LeftLimitAt(3), "a(3~-)"),
@@ -171,5 +183,15 @@ public class ToMppgString
 
         Assert.Equal("vShift(a, 3)", expr.ToMppgString());
         Assert.Equal("vShift(a, x)", expr.ToMppgString(showRationalsAsName: true));
+    }
+
+    [Fact]
+    public void ToMppgString_ShowRationalsAsName_KeepsLiteralOperationsSpaced()
+    {
+        var division = new RationalDivisionExpression(X, Y);
+        var mixed = new RationalDivisionExpression(Expressions.FromRational(1), X);
+
+        Assert.Equal("x / y", division.ToMppgString(showRationalsAsName: true));
+        Assert.Equal("1 / x", mixed.ToMppgString(showRationalsAsName: true));
     }
 }
