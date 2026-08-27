@@ -53,16 +53,16 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         if(PlotSettings.SameScaleAxes)
             plot.Axes.SquareUnits();
         
-        var axisLimits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+        var axisLimits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
             sequencesList, PlotSettings, SequencesContinuePastCut);
 
         // set the axes limits
         plot.Axes.SetLimitsX(
-            (double)axisLimits.XLimit.Lower,
-            (double)axisLimits.XLimit.Upper);
+            (double)axisLimits.XFramingLimit.Lower,
+            (double)axisLimits.XFramingLimit.Upper);
         plot.Axes.SetLimitsY(
-            (double)axisLimits.YLimit.Lower,
-            (double)axisLimits.YLimit.Upper);
+            (double)axisLimits.YFramingLimit.Lower,
+            (double)axisLimits.YFramingLimit.Upper);
 
         // the areas are added first, so that the curves are drawn over them
         if (PlotSettings.InfinityStrategy == InfinityStrategy.Areas)
@@ -77,7 +77,7 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
                 var color = palette.GetColor(idx);
                 var pattern = PlotStyleCycles.Pick(idx, fillPatterns);
                 foreach (var region in sequence.EnumerateVisibleInfiniteRegions(
-                             axisLimits.XLimit, SequencesContinuePastCut))
+                             axisLimits.XFramingLimit, SequencesContinuePastCut))
                     AddInfinityArea(
                         plot, region, axisLimits, color, pattern, position, withInfinities.Count);
             }
@@ -89,7 +89,7 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
             var linePattern = ToLinePattern(PlotStyleCycles.Pick(idx, lineStyles));
             var sequenceTrace = new SequenceTraces(
                 sequence,
-                sequence.GetTrailingContinuation(axisLimits.XLimit, SequencesContinuePastCut));
+                sequence.GetTrailingContinuation(axisLimits.XFramingLimit, SequencesContinuePastCut));
 
             if (sequenceTrace.Points.Any())
             {

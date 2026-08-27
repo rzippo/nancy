@@ -91,6 +91,8 @@ public class StaticMethods
             Height = 12,
             AnsiMode = TerminalPlotAnsiMode.PlainText,
             LegendStrategy = LegendStrategy.ForceEnable,
+            RelativeXAxisMargin = 0,
+            RelativeYAxisMargin = 0,
             XLimit = new Interval(0, 8),
             YLimit = new Interval(0, 10)
         });
@@ -116,6 +118,8 @@ public class StaticMethods
             LegendStrategy = LegendStrategy.ForceEnable,
             XAxisTickStrategy = TerminalPlotTickStrategy.EvenlySpaced,
             YAxisTickStrategy = TerminalPlotTickStrategy.EvenlySpaced,
+            RelativeXAxisMargin = 0,
+            RelativeYAxisMargin = 0,
             XLimit = new Interval(0, 8),
             YLimit = new Interval(0, 10)
         });
@@ -144,6 +148,8 @@ public class StaticMethods
             YAxisTickCount = 7,
             XAxisTickStrategy = TerminalPlotTickStrategy.EvenlySpaced,
             YAxisTickStrategy = TerminalPlotTickStrategy.EvenlySpaced,
+            RelativeXAxisMargin = 0,
+            RelativeYAxisMargin = 0,
             XLimit = new Interval(0, 10),
             YLimit = new Interval(0, 10)
         });
@@ -169,6 +175,8 @@ public class StaticMethods
             YAxisTickCount = 7,
             XAxisTickStrategy = TerminalPlotTickStrategy.EvenlySpaced,
             YAxisTickStrategy = TerminalPlotTickStrategy.EvenlySpaced,
+            RelativeXAxisMargin = 0,
+            RelativeYAxisMargin = 0,
             XLimit = new Interval(0, 10),
             YLimit = new Interval(0, 10)
         });

@@ -98,8 +98,9 @@ public class StaticMethods
         });
         
         Assert.Contains("\"title\":\"static negative xlim\"", html);
-        Assert.Contains("\"xaxis\":{\"title\":\"time\",\"range\":[-1.0,10.0]", html);
-        Assert.Contains("\"yaxis\":{\"title\":\"data\",\"range\":[-2.0,30.0]", html);
+        // the explicit limits are the data window, and the default margin frames them
+        Assert.Contains("\"xaxis\":{\"title\":\"time\",\"range\":[-1.33,10.33]", html);
+        Assert.Contains("\"yaxis\":{\"title\":\"data\",\"range\":[-2.96,30.96]", html);
         var hash = html.GetStableHashCode();
         var hashHex = hash.ToString("X");
         var path = Path.GetFullPath($"{hashHex}.html");

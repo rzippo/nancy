@@ -118,7 +118,7 @@ public class TerminalPlot
     public string ToMarkup()
     {
         var sequences = SequencesToPlot.Select(stp => stp.Sequence).ToList();
-        var axisLimits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+        var axisLimits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
             sequences, Settings, SequencesContinuePastEnd);
         var grid = BuildGrid(axisLimits);
         var sb = new StringBuilder();
@@ -200,7 +200,7 @@ public class TerminalPlot
         {
             var character = characters[index % characters.Count];
             foreach (var region in sequenceToPlot.Sequence.EnumerateVisibleInfiniteRegions(
-                         axisLimits.XLimit, SequencesContinuePastEnd))
+                         axisLimits.XFramingLimit, SequencesContinuePastEnd))
             {
                 var band = region.IsPlusInfinite
                     ? axisLimits.PlusInfinityBand
@@ -208,8 +208,8 @@ public class TerminalPlot
                 if (region.EndTime <= region.StartTime || band.Upper <= band.Lower)
                     continue;
 
-                var x0 = MapX(Rational.Max(region.StartTime, axisLimits.XLimit.Lower), axisLimits);
-                var x1 = MapX(Rational.Min(region.EndTime, axisLimits.XLimit.Upper), axisLimits);
+                var x0 = MapX(Rational.Max(region.StartTime, axisLimits.XFramingLimit.Lower), axisLimits);
+                var x1 = MapX(Rational.Min(region.EndTime, axisLimits.XFramingLimit.Upper), axisLimits);
                 var y0 = MapY(band.Upper, axisLimits);
                 var y1 = MapY(band.Lower, axisLimits);
 
@@ -235,21 +235,21 @@ public class TerminalPlot
 
     private void DrawAxes(Cell[,] grid, PlotAxisLimits axisLimits)
     {
-        if (axisLimits.YLimit.Contains(0))
+        if (axisLimits.YFramingLimit.Contains(0))
         {
             var y = MapY((Rational)0, axisLimits);
             for (var x = 0; x < Settings.Width; x++)
                 SetCell(grid, x, y, '-', "grey", 1);
         }
 
-        if (axisLimits.XLimit.Contains(0))
+        if (axisLimits.XFramingLimit.Contains(0))
         {
             var x = MapX((Rational)0, axisLimits);
             for (var y = 0; y < Settings.Height; y++)
                 SetCell(grid, x, y, '|', "grey", 1);
         }
 
-        if (axisLimits.XLimit.Contains(0) && axisLimits.YLimit.Contains(0))
+        if (axisLimits.XFramingLimit.Contains(0) && axisLimits.YFramingLimit.Contains(0))
             SetCell(grid, MapX((Rational)0, axisLimits), MapY((Rational)0, axisLimits), '+', "grey", 2);
     }
 
@@ -290,8 +290,8 @@ public class TerminalPlot
         if (!segment.IsFinite)
             return;
 
-        var startTime = Rational.Max(segment.StartTime, axisLimits.XLimit.Lower);
-        var endTime = Rational.Min(segment.EndTime, axisLimits.XLimit.Upper);
+        var startTime = Rational.Max(segment.StartTime, axisLimits.XFramingLimit.Lower);
+        var endTime = Rational.Min(segment.EndTime, axisLimits.XFramingLimit.Upper);
         if (startTime > endTime)
             return;
 
@@ -349,7 +349,7 @@ public class TerminalPlot
     {
         if (!time.IsFinite || !value.IsFinite)
             return;
-        if (!axisLimits.XLimit.Contains(time) || !axisLimits.YLimit.Contains(value))
+        if (!axisLimits.XFramingLimit.Contains(time) || !axisLimits.YFramingLimit.Contains(value))
             return;
 
         SetCell(grid, MapX(time, axisLimits), MapY(value, axisLimits), character, color, priority);
@@ -466,17 +466,17 @@ public class TerminalPlot
         var labels = new Dictionary<int, string>();
 
         foreach (var tick in BuildTickLabels(
-                     axisLimits.YLimit,
+                     axisLimits.YFramingLimit,
                      Settings.YAxisTickCount,
                      GetPreferredYAxisTickValues(axisLimits),
                      Settings.YAxisTickStrategy,
                      Settings.TickLabelStyle))
             labels[MapY(tick.Value, axisLimits)] = tick.Label;
 
-        labels[0] = Format(axisLimits.YLimit.Upper, Settings.TickLabelStyle);
-        labels[Settings.Height - 1] = Format(axisLimits.YLimit.Lower, Settings.TickLabelStyle);
+        labels[0] = Format(axisLimits.YFramingLimit.Upper, Settings.TickLabelStyle);
+        labels[Settings.Height - 1] = Format(axisLimits.YFramingLimit.Lower, Settings.TickLabelStyle);
 
-        if (axisLimits.YLimit.Contains(0))
+        if (axisLimits.YFramingLimit.Contains(0))
             labels[MapY(0, axisLimits)] = "0";
 
         return labels;
@@ -485,16 +485,16 @@ public class TerminalPlot
     private string BuildXAxisLabelLine(PlotAxisLimits axisLimits)
     {
         var labels = Enumerable.Repeat(' ', Settings.Width).ToArray();
-        var lower = axisLimits.XLimit.Lower;
-        var upper = axisLimits.XLimit.Upper;
-        var lowerLabel = Format(axisLimits.XLimit.Lower, Settings.TickLabelStyle);
-        var upperLabel = Format(axisLimits.XLimit.Upper, Settings.TickLabelStyle);
+        var lower = axisLimits.XFramingLimit.Lower;
+        var upper = axisLimits.XFramingLimit.Upper;
+        var lowerLabel = Format(axisLimits.XFramingLimit.Lower, Settings.TickLabelStyle);
+        var upperLabel = Format(axisLimits.XFramingLimit.Upper, Settings.TickLabelStyle);
 
         PlaceLabel(labels, 0, lowerLabel, overwrite: true);
         PlaceLabel(labels, Settings.Width - upperLabel.Length, upperLabel, overwrite: true);
 
         foreach (var tick in BuildTickLabels(
-                         axisLimits.XLimit,
+                         axisLimits.XFramingLimit,
                          Settings.XAxisTickCount,
                          GetPreferredXAxisTickValues(axisLimits),
                          Settings.XAxisTickStrategy,
@@ -506,7 +506,7 @@ public class TerminalPlot
             TryPlaceLabel(labels, column - tick.Label.Length / 2, tick.Label);
         }
 
-        if (axisLimits.XLimit.Contains(0) && lower != 0 && upper != 0)
+        if (axisLimits.XFramingLimit.Contains(0) && lower != 0 && upper != 0)
         {
             const string zeroLabel = "0";
             TryPlaceLabel(labels, MapX((Rational)0, axisLimits), zeroLabel);
@@ -519,14 +519,14 @@ public class TerminalPlot
     {
         return SequencesToPlot
             .SelectMany(sequenceToPlot => sequenceToPlot.Sequence.Elements.SelectMany(GetElementBoundaryTimes))
-            .Where(time => time.IsFinite && axisLimits.XLimit.Contains(time));
+            .Where(time => time.IsFinite && axisLimits.XFramingLimit.Contains(time));
     }
 
     private IEnumerable<Rational> GetPreferredYAxisTickValues(PlotAxisLimits axisLimits)
     {
         return SequencesToPlot
             .SelectMany(sequenceToPlot => sequenceToPlot.Sequence.Elements.SelectMany(GetElementBoundaryValues))
-            .Where(value => value.IsFinite && axisLimits.YLimit.Contains(value));
+            .Where(value => value.IsFinite && axisLimits.YFramingLimit.Contains(value));
     }
 
     private static IReadOnlyList<TickLabel> BuildTickLabels(
@@ -652,8 +652,8 @@ public class TerminalPlot
 
     private int MapX(double x, PlotAxisLimits axisLimits)
     {
-        var lower = (double)axisLimits.XLimit.Lower;
-        var upper = (double)axisLimits.XLimit.Upper;
+        var lower = (double)axisLimits.XFramingLimit.Lower;
+        var upper = (double)axisLimits.XFramingLimit.Upper;
         if (upper == lower)
             return 0;
 
@@ -667,8 +667,8 @@ public class TerminalPlot
 
     private int MapY(double y, PlotAxisLimits axisLimits)
     {
-        var lower = (double)axisLimits.YLimit.Lower;
-        var upper = (double)axisLimits.YLimit.Upper;
+        var lower = (double)axisLimits.YFramingLimit.Lower;
+        var upper = (double)axisLimits.YFramingLimit.Upper;
         if (upper == lower)
             return Settings.Height - 1;
 

@@ -86,11 +86,12 @@ public class StaticMethods
             XLimit = new Interval(-1, 10),
             YLimit = new Interval(-2, 30)
         });
-        
-        Assert.Contains("xmin = -1,", tikzCode);
-        Assert.Contains("xmax = 10,", tikzCode);
-        Assert.Contains("ymin = -2,", tikzCode);
-        Assert.Contains("ymax = 30,", tikzCode);
+
+        // the explicit limits are the data window, and the default margin frames them
+        Assert.Contains("xmin = -1.33,", tikzCode);
+        Assert.Contains("xmax = 10.33,", tikzCode);
+        Assert.Contains("ymin = -2.96,", tikzCode);
+        Assert.Contains("ymax = 30.96,", tikzCode);
         _testOutputHelper.WriteLine(tikzCode);
     }
 }

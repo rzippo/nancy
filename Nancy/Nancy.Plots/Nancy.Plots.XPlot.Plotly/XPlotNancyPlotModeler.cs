@@ -17,7 +17,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
     {
         var sequencesList = sequences.ToList();
         var namesList = names.ToList();
-        var axisLimits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+        var axisLimits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
             sequencesList, PlotSettings, SequencesContinuePastCut);
 
         // todo: move colors to settings
@@ -66,14 +66,14 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
                     zeroline = true,
                     showgrid = true,
                     title = PlotSettings.XLabel,
-                    range = ToPlotlyRange(axisLimits.XLimit)
+                    range = ToPlotlyRange(axisLimits.XFramingLimit)
                 },
                 yaxis = new Yaxis
                 {
                     zeroline = true,
                     showgrid = true,
                     title = PlotSettings.YLabel,
-                    range = ToPlotlyRange(axisLimits.YLimit)
+                    range = ToPlotlyRange(axisLimits.YFramingLimit)
                 },
                 showlegend = showLegend,
                 hovermode = "closest",
@@ -115,7 +115,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
             {
                 var color = palette[index % palette.Count];
                 foreach (var region in sequence.EnumerateVisibleInfiniteRegions(
-                             limits.XLimit, continuesPastEnd))
+                             limits.XFramingLimit, continuesPastEnd))
                 {
                     var band = region.IsPlusInfinite
                         ? limits.PlusInfinityBand

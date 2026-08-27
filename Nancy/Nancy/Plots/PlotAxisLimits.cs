@@ -7,14 +7,21 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Plots;
 
 /// <summary>
-/// Axis limits for a plot.
+/// Axis limits for a plot, split between the data range and the frame.
 /// </summary>
-/// <param name="XLimit">Range for the x-axis.</param>
-/// <param name="YLimit">Range for the y-axis.</param>
-public readonly record struct PlotAxisLimits(Interval XLimit, Interval YLimit)
+/// <param name="XFramingLimit">Range the frame is drawn at, the data range plus the margin.</param>
+/// <param name="YFramingLimit">Range the frame is drawn at, the data range plus the margin.</param>
+public readonly record struct PlotAxisLimits(
+    Interval XFramingLimit,
+    Interval YFramingLimit)
 {
     /// <summary>
-    /// True if <see cref="YLimit"/> was extended upwards to make room for a $+\infty$ area.
+    /// The data limits the framing was derived from.
+    /// </summary>
+    public PlotDataLimits DataLimits { get; init; }
+
+    /// <summary>
+    /// True if <see cref="YFramingLimit"/> was extended upwards to make room for a $+\infty$ area.
     /// </summary>
     /// <remarks>
     /// A backend post-processing the limits must not undo that extension, or the area is lost.
@@ -22,13 +29,13 @@ public readonly record struct PlotAxisLimits(Interval XLimit, Interval YLimit)
     public bool HasPlusInfinityBand { get; init; }
 
     /// <summary>
-    /// True if <see cref="YLimit"/> was extended downwards to make room for a $-\infty$ area.
+    /// True if <see cref="YFramingLimit"/> was extended downwards to make room for a $-\infty$ area.
     /// </summary>
     /// <inheritdoc cref="HasPlusInfinityBand" path="/remarks"/>
     public bool HasMinusInfinityBand { get; init; }
 
     /// <summary>
-    /// The y-axis range <see cref="YLimit"/> was extended by, on each side that has an area.
+    /// The y-axis range <see cref="YFramingLimit"/> was extended by, on each side that has an area.
     /// </summary>
     public Rational InfinityBandHeight { get; init; }
 
@@ -39,8 +46,8 @@ public readonly record struct PlotAxisLimits(Interval XLimit, Interval YLimit)
     /// Growing out of the x-axis is what tells the two signs apart, and reaching the edge is what conveys that the value goes on.
     /// </remarks>
     public Interval PlusInfinityBand => new (
-        Rational.Max(0, YLimit.Lower),
-        YLimit.Upper,
+        Rational.Max(0, YFramingLimit.Lower),
+        YFramingLimit.Upper,
         isLowerIncluded: true,
         isUpperIncluded: true);
 
@@ -49,10 +56,25 @@ public readonly record struct PlotAxisLimits(Interval XLimit, Interval YLimit)
     /// </summary>
     /// <inheritdoc cref="PlusInfinityBand" path="/remarks"/>
     public Interval MinusInfinityBand => new (
-        YLimit.Lower,
-        Rational.Min(0, YLimit.Upper),
+        YFramingLimit.Lower,
+        Rational.Min(0, YFramingLimit.Upper),
         isLowerIncluded: true,
         isUpperIncluded: true);
+}
+
+/// <summary>
+/// The limits the plotted items occupy, before any framing.
+/// </summary>
+/// <param name="XDataLimit">Range the plotted items occupy along the x-axis.</param>
+/// <param name="YDataLimit">Range the finite values occupy along the y-axis.</param>
+public readonly record struct PlotDataLimits(
+    Interval XDataLimit,
+    Interval YDataLimit)
+{
+    /// <summary>
+    /// True when the values occupy the space below 0, so the framing gives them their room on that side.
+    /// </summary>
+    public bool PrefersRoomBelow { get; init; }
 }
 
 /// <summary>
@@ -172,26 +194,25 @@ public static class PlotAxisLimitAlgorithms
     }
 
     /// <summary>
-    /// Suggests the axis limits for already-sampled sequences.
-    /// Explicit finite limits in <paramref name="settings"/> take precedence.
+    /// Computes the limits the plotted items occupy.
     /// </summary>
     /// <param name="sequences">The sequences to be plotted.</param>
     /// <param name="settings">The settings of the plot.</param>
     /// <param name="continuesPastEnd">True if the sequences are cuts of curves that go on past them.</param>
+    /// <param name="xFrameLimit">The x framing limit to carry the trailing continuation to, when known; the x data limit when null.</param>
     /// <remarks>
-    /// This is the default framing policy, which a renderer may use as it is, adjust, or replace.
-    /// Framing belongs to the renderer: how much room a curve needs to stay clear of the frame, and whether it needs any, depends on the medium.
-    /// The steps are kept separate below so that a renderer can compose its own from the same parts.
+    /// An explicit finite limit in <paramref name="settings"/> is the data limit, as requested.
+    /// Otherwise the data limit is the extent of the finite values, with the trailing continuation.
+    /// Reserving room for the areas marking infinite values, opening up degenerate ranges and margins are framing concerns, and belong to <see cref="SuggestFramingLimits"/>.
     /// </remarks>
-    public static PlotAxisLimits SuggestAxisLimits(
+    public static PlotDataLimits SuggestDataLimits(
         IReadOnlyCollection<Sequence> sequences,
         PlotSettings settings,
-        bool continuesPastEnd = false)
+        bool continuesPastEnd = false,
+        Interval? xFrameLimit = null)
     {
         if (sequences.Count == 0)
             throw new ArgumentException("Empty sequence collection.", nameof(sequences));
-
-        var finiteXLimit = GetDefaultSequenceXLimit(sequences);
 
         var hasPlusInfinity = false;
         var hasMinusInfinity = false;
@@ -205,62 +226,108 @@ public static class PlotAxisLimitAlgorithms
         // which is the only hint available when every finite value is 0
         var prefersRoomBelow = hasMinusInfinity && !hasPlusInfinity;
 
-        var xLimit = GetFiniteLimit(settings.XLimit) ?? ApplySignedMargin(
-            EnsureNonDegenerate(finiteXLimit, Rational.One, prefersRoomBelow: false),
+        var xDataLimit = GetFiniteLimit(settings.XLimit) ?? GetDefaultSequenceXLimit(sequences);
+        var xCarryLimit = xFrameLimit ?? xDataLimit;
+
+        var yDataLimit = GetFiniteLimit(settings.YLimit) ?? GetAutoYDataLimit();
+
+        return new PlotDataLimits(xDataLimit, yDataLimit)
+        {
+            PrefersRoomBelow = prefersRoomBelow
+        };
+
+        Interval GetAutoYDataLimit()
+        {
+            // a curve carried on to the edge reaches past its last sampled value,
+            // so the value it reaches there is part of what has to fit
+            var finiteYLimit = GetDefaultSequenceYLimit(sequences);
+            foreach (var sequence in sequences)
+            {
+                if (sequence.GetTrailingContinuation(xCarryLimit, continuesPastEnd) is { } trailing)
+                    finiteYLimit = new Interval(
+                        Rational.Min(finiteYLimit.Lower, trailing.Value),
+                        Rational.Max(finiteYLimit.Upper, trailing.Value),
+                        isLowerIncluded: true,
+                        isUpperIncluded: true);
+            }
+
+            return finiteYLimit;
+        }
+    }
+
+    /// <summary>
+    /// Suggests the framing limits for already-sampled sequences: the data limits, room for the areas marking infinite values, a degenerate range opened up, and a signed margin.
+    /// </summary>
+    /// <param name="sequences">The sequences to be plotted.</param>
+    /// <param name="settings">The settings of the plot.</param>
+    /// <param name="continuesPastEnd">True if the sequences are cuts of curves that go on past them.</param>
+    /// <remarks>
+    /// This is the default framing policy, which a renderer may use as it is, adjust, or replace.
+    /// Framing belongs to the renderer: how much room a curve needs to stay clear of the frame, and whether it needs any, depends on the medium.
+    /// The data limits and the framing steps are kept separate so that a renderer can compose its own from the same parts.
+    /// </remarks>
+    public static PlotAxisLimits SuggestFramingLimits(
+        IReadOnlyCollection<Sequence> sequences,
+        PlotSettings settings,
+        bool continuesPastEnd = false)
+    {
+        if (sequences.Count == 0)
+            throw new ArgumentException("Empty sequence collection.", nameof(sequences));
+
+        var xDataLimit = GetFiniteLimit(settings.XLimit) ?? GetDefaultSequenceXLimit(sequences);
+        var xFramingLimit = ApplySignedMargin(
+            EnsureNonDegenerate(xDataLimit, Rational.One, prefersRoomBelow: false),
             settings.RelativeXAxisMargin);
 
-        if (GetFiniteLimit(settings.YLimit) is { } explicitYLimit)
-            return new PlotAxisLimits(xLimit, explicitYLimit);
+        var dataLimits = SuggestDataLimits(
+            sequences, settings, continuesPastEnd, xFrameLimit: xFramingLimit);
 
-        // a curve carried on to the edge reaches past its last sampled value,
-        // so the value it reaches there is part of what has to fit
-        var finiteYLimit = GetDefaultSequenceYLimit(sequences);
+        var hasPlusInfinity = false;
+        var hasMinusInfinity = false;
         foreach (var sequence in sequences)
         {
-            if (sequence.GetTrailingContinuation(xLimit, continuesPastEnd) is { } trailing)
-                finiteYLimit = new Interval(
-                    Rational.Min(finiteYLimit.Lower, trailing.Value),
-                    Rational.Max(finiteYLimit.Upper, trailing.Value),
-                    isLowerIncluded: true,
-                    isUpperIncluded: true);
+            hasPlusInfinity |= sequence.HasPlusInfinity;
+            hasMinusInfinity |= sequence.HasMinusInfinity;
         }
 
-        var drawsAreas = settings.InfinityStrategy == InfinityStrategy.Areas &&
+        // an explicit y limit is the data window the user asked for: the areas are drawn within it
+        var drawsAreas = GetFiniteLimit(settings.YLimit) is null &&
+                         settings.InfinityStrategy == InfinityStrategy.Areas &&
                          (hasPlusInfinity || hasMinusInfinity);
 
         var bandHeight = Rational.Zero;
-        var yRange = finiteYLimit;
+        var yRange = dataLimits.YDataLimit;
         if (drawsAreas)
         {
             // the areas need room of their own, which then doubles as the range a margin can scale against
-            bandHeight = GetInfinityBandHeight(xLimit, finiteYLimit, settings);
+            bandHeight = GetInfinityBandHeight(xFramingLimit, yRange, settings);
             yRange = new Interval(
                 hasMinusInfinity ? yRange.Lower - bandHeight : yRange.Lower,
                 hasPlusInfinity ? yRange.Upper + bandHeight : yRange.Upper,
                 isLowerIncluded: true,
                 isUpperIncluded: true);
         }
-        else
-        {
-            yRange = EnsureNonDegenerate(yRange, Rational.One, prefersRoomBelow);
-        }
 
-        return new PlotAxisLimits(
-            xLimit,
-            ApplySignedMargin(yRange, settings.RelativeYAxisMargin, prefersRoomBelow))
+        var yFramingLimit = ApplySignedMargin(
+            EnsureNonDegenerate(yRange, Rational.One, dataLimits.PrefersRoomBelow),
+            settings.RelativeYAxisMargin,
+            dataLimits.PrefersRoomBelow);
+
+        return new PlotAxisLimits(xFramingLimit, yFramingLimit)
         {
+            DataLimits = dataLimits,
             HasPlusInfinityBand = drawsAreas && hasPlusInfinity,
             HasMinusInfinityBand = drawsAreas && hasMinusInfinity,
             InfinityBandHeight = bandHeight
         };
     }
 
-    /// <inheritdoc cref="SuggestAxisLimits"/>
-    [Obsolete("Renamed to SuggestAxisLimits, which says that the renderer is free to frame otherwise.")]
+    /// <inheritdoc cref="SuggestFramingLimits"/>
+    [Obsolete("Renamed to SuggestFramingLimits, which says that the renderer is free to frame otherwise.")]
     public static PlotAxisLimits GetSequenceAxisLimits(
         IReadOnlyCollection<Sequence> sequences,
         PlotSettings settings)
-        => SuggestAxisLimits(sequences, settings);
+        => SuggestFramingLimits(sequences, settings);
 
     /// <summary>
     /// Computes the y-axis range to reserve for the areas marking infinite values.

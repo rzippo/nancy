@@ -44,7 +44,7 @@ public class AxisLimits
     {
         var sequence = GetSequence();
 
-        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
             [sequence],
             new PlotSettings
             {
@@ -52,30 +52,38 @@ public class AxisLimits
                 RelativeYAxisMargin = 0.25
             });
 
+        // the data limits are the extent of the finite values
+        Assert.Equal(new Interval(0, 4), limits.DataLimits.XDataLimit);
+        Assert.Equal(new Interval(15, 20), limits.DataLimits.YDataLimit);
         // both axes are non-negative here, so the full margin goes above and half of it below
-        Assert.Equal(new Interval(new Rational(-1, 2), 5), limits.XLimit);
-        Assert.Equal(new Interval(new Rational(115, 8), new Rational(85, 4)), limits.YLimit);
+        Assert.Equal(new Interval(new Rational(-1, 2), 5), limits.XFramingLimit);
+        Assert.Equal(new Interval(new Rational(115, 8), new Rational(85, 4)), limits.YFramingLimit);
     }
 
     [Fact]
-    public void ExplicitFiniteSequenceAxisLimitsTakePrecedenceOverMargins()
+    public void ExplicitLimitsAreTheDataLimitsAndMarginsStillFrame()
     {
         var sequence = GetSequence();
-        var xLimit = new Interval(-1, 10);
-        var yLimit = new Interval(-2, 20);
+        var xDataLimit = new Interval(-1, 10);
+        var yDataLimit = new Interval(-2, 20);
 
-        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
             [sequence],
             new PlotSettings
             {
-                XLimit = xLimit,
-                YLimit = yLimit,
+                XLimit = xDataLimit,
+                YLimit = yDataLimit,
                 RelativeXAxisMargin = 1,
                 RelativeYAxisMargin = 1
             });
 
-        Assert.Equal(xLimit, limits.XLimit);
-        Assert.Equal(yLimit, limits.YLimit);
+        Assert.Equal(xDataLimit, limits.DataLimits.XDataLimit);
+        Assert.Equal(yDataLimit, limits.DataLimits.YDataLimit);
+        // both ranges straddle 0, so the full margin is added on every side
+        Assert.Equal(new Interval(-12, 21), limits.XFramingLimit);
+        Assert.Equal(new Interval(-24, 42), limits.YFramingLimit);
+    }
+
     }
 
     private static Sequence GetSequence()

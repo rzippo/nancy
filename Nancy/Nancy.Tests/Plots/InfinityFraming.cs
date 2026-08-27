@@ -89,38 +89,38 @@ public class InfinityFraming
     {
         // a delay curve has 0 as its only finite value, so there is no y-range to scale the area against
         var settings = new PlotSettings { RelativeXAxisMargin = 0, RelativeYAxisMargin = 0 };
-        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits([DelaySequence(10, 40)], settings);
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits([DelaySequence(10, 40)], settings);
 
         Assert.True(limits.HasPlusInfinityBand);
         Assert.False(limits.HasMinusInfinityBand);
         // 40 * 0.6
         Assert.Equal(24, limits.InfinityBandHeight);
-        Assert.Equal(new Interval(0, 24), limits.YLimit);
+        Assert.Equal(new Interval(0, 24), limits.YFramingLimit);
     }
 
     [Fact]
     public void PlusInfinityAreaGrowsOutOfTheXAxis()
     {
         var settings = new PlotSettings { RelativeXAxisMargin = 0, RelativeYAxisMargin = 0 };
-        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits([DelaySequence(10, 40)], settings);
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits([DelaySequence(10, 40)], settings);
 
         Assert.Equal(0, limits.PlusInfinityBand.Lower);
-        Assert.Equal(limits.YLimit.Upper, limits.PlusInfinityBand.Upper);
+        Assert.Equal(limits.YFramingLimit.Upper, limits.PlusInfinityBand.Upper);
     }
 
     [Fact]
     public void MinusInfinityReservesRoomBelowTheAxis()
     {
         var settings = new PlotSettings { RelativeXAxisMargin = 0, RelativeYAxisMargin = 0 };
-        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
             [(-new DelayServiceCurve(10)).Cut(0, 40, true, true)],
             settings);
 
         Assert.True(limits.HasMinusInfinityBand);
         // the room is below 0, even though every finite value is non-negative
-        Assert.True(limits.YLimit.Lower < 0);
+        Assert.True(limits.YFramingLimit.Lower < 0);
         Assert.Equal(0, limits.MinusInfinityBand.Upper);
-        Assert.Equal(limits.YLimit.Lower, limits.MinusInfinityBand.Lower);
+        Assert.Equal(limits.YFramingLimit.Lower, limits.MinusInfinityBand.Lower);
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class InfinityFraming
             RelativeXAxisMargin = 0,
             RelativeYAxisMargin = 0
         };
-        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits([DelaySequence(10, 40)], settings);
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits([DelaySequence(10, 40)], settings);
 
         Assert.False(limits.HasPlusInfinityBand);
         Assert.Equal(0, limits.InfinityBandHeight);
@@ -195,14 +195,14 @@ public class InfinityFraming
         // the x-margin is what leaves room past the data for the line to be carried into
         var settings = new PlotSettings { RelativeXAxisMargin = 0.1, RelativeYAxisMargin = 0 };
 
-        var limits = PlotAxisLimitAlgorithms.SuggestAxisLimits(
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
             [sequence], settings, continuesPastEnd: true);
-        var continuation = sequence.GetTrailingContinuation(limits.XLimit, continuesPastEnd: true);
+        var continuation = sequence.GetTrailingContinuation(limits.XFramingLimit, continuesPastEnd: true);
 
         Assert.NotNull(continuation);
         Assert.True(
-            continuation!.Value.Value <= limits.YLimit.Upper,
-            $"the carried value {continuation.Value.Value} must fit under ymax {limits.YLimit.Upper}");
+            continuation!.Value.Value <= limits.YFramingLimit.Upper,
+            $"the carried value {continuation.Value.Value} must fit under ymax {limits.YFramingLimit.Upper}");
     }
 
     #region Provenance

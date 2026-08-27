@@ -18,8 +18,12 @@ public record PlotSettings
     public string Title { get; set; } = string.Empty;
     
     /// <summary>
-    /// Range for the x-axis.
+    /// Range the plotted items occupy along the x-axis.
     /// </summary>
+    /// <remarks>
+    /// When null, the extent of the plotted values is used.
+    /// The frame drawn around the plot adds <see cref="RelativeXAxisMargin"/> on top of this range.
+    /// </remarks>
     public Interval? XLimit { get; set; } = null;
 
     /// <summary>
@@ -28,13 +32,14 @@ public record PlotSettings
     public PlotEndStrategy PlotEndStrategy { get; set; } = PlotEndStrategy.TwoPeriodsEach;
 
     /// <summary>
-    /// Range for the y-axis.
+    /// Range the plotted items occupy along the y-axis.
     /// </summary>
+    /// <inheritdoc cref="XLimit" path="/remarks"/>
     public Interval? YLimit { get; set; } = null;
 
     /// <summary>
-    /// If non-zero, adds margins left and right to automatically computed x-axis limits.
-    /// To be read as a ratio over the initial x-axis interval length.
+    /// If non-zero, adds margins left and right to the x-axis limits, however they were obtained.
+    /// To be read as a ratio over the x-axis interval length.
     /// </summary>
     /// <remarks>
     /// Kept small, so that the mark at the origin is drawn whole without the axis appearing to open before time starts.
@@ -42,8 +47,8 @@ public record PlotSettings
     public double RelativeXAxisMargin { get; set; } = 0.03;
 
     /// <summary>
-    /// If non-zero, adds margins top and bottom to automatically computed y-axis limits.
-    /// To be read as a ratio over the initial y-axis interval length.
+    /// If non-zero, adds margins top and bottom to the y-axis limits, however they were obtained.
+    /// To be read as a ratio over the y-axis interval length.
     /// </summary>
     /// <remarks>
     /// Kept equal to <see cref="RelativeXAxisMargin"/>, so that the plot is framed evenly on both axes.
