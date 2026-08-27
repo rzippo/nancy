@@ -369,7 +369,9 @@ public class TikzPlot
         yield return $"{Tabs(2)}font = {settings.FontSize.ToLatex()},";
         if(!string.IsNullOrWhiteSpace(settings.Title))
             yield return $"{Tabs(2)}title = {{{settings.Title}}},";
-        yield return $"{Tabs(2)}clip = false,";
+        yield return settings.ClipStrategy == ClipStrategy.ToLimits
+            ? $"{Tabs(2)}clip = true,"
+            : $"{Tabs(2)}clip = false,";
 
         switch (settings.GridTickLayout)
         {

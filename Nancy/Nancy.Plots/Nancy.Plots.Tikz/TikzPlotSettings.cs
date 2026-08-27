@@ -21,6 +21,15 @@ public record TikzPlotSettings : PlotSettings
 
     /// Controls curve layout.
     public CurveLayout CurveLayout { get; set; } = CurveLayout.SimplifyContinuous;
+
+    /// <summary>
+    /// Controls whether the plotted curves are clipped to the axis limits.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="ClipStrategy.ToLimits"/> by default, so that a curve leaving the axis limits is cut at the frame rather than drawn past it.
+    /// <see cref="ClipStrategy.Off"/> reproduces the legacy behavior, which keeps marks drawn exactly on the frame whole, at the cost of curves escaping the plot.
+    /// </remarks>
+    public ClipStrategy ClipStrategy { get; set; } = ClipStrategy.ToLimits;
 }
 
 /// <summary>
@@ -201,4 +210,16 @@ public enum CurveLayout
     /// All segments and points are plotted separately.
     /// Best to highlight the objects that compose the curve or sequence. 
     SplitAllElements
+}
+
+/// Options for how the plotted curves are clipped to the axis limits.
+public enum ClipStrategy
+{
+    /// Curves are clipped to the axis box, so that they do not run off the plot.
+    /// Marks and labels sitting exactly on the frame are cut in half.
+    ToLimits,
+
+    /// Curves are not clipped, and are drawn whole even past the axis box.
+    /// Keeps marks on the frame whole, at the cost of curves escaping the plot.
+    Off
 }
