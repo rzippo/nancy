@@ -60,6 +60,25 @@ public class StaticMethods
     }
 
     [Fact]
+    public void ExplicitLimitsFrameWithTheDefaultMargins()
+    {
+        var terminalPlot = TerminalPlots.ToTerminalPlot([BuildSampleSequence()], settings: new TerminalPlotSettings
+        {
+            Width = 44,
+            Height = 12,
+            AnsiMode = TerminalPlotAnsiMode.PlainText,
+            LegendStrategy = LegendStrategy.ForceEnable,
+            XLimit = new Interval(0, 8),
+            YLimit = new Interval(0, 10)
+        });
+
+        // the requested window is the data limit, and the default signed margin frames it
+        Assert.Contains(terminalPlot.Split(Environment.NewLine), line => line.TrimStart().StartsWith("10.3"));
+        Assert.Contains(terminalPlot.Split(Environment.NewLine), line => line.Contains("-0.12") && line.Contains("8.24"));
+        _testOutputHelper.WriteLine(terminalPlot);
+    }
+
+    [Fact]
     public void PlotMultipleCurvesWithExplicitLimits()
     {
         var sc = new RateLatencyServiceCurve(3, 1);
