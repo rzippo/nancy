@@ -84,6 +84,24 @@ public class AxisLimits
         Assert.Equal(new Interval(-24, 42), limits.YFramingLimit);
     }
 
+    [Fact]
+    public void ExplicitLimitsFrameWithTheDefaultMargins()
+    {
+        var sequence = GetSequence();
+
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
+            [sequence],
+            new PlotSettings
+            {
+                XLimit = new Interval(0, 10),
+                YLimit = new Interval(0, 10)
+            });
+
+        // the data limits are as requested, and the default 0.03 margin frames them
+        Assert.Equal(new Interval(0, 10), limits.DataLimits.XDataLimit);
+        Assert.Equal(new Interval(0, 10), limits.DataLimits.YDataLimit);
+        Assert.Equal(new Interval(new Rational(-3, 20), new Rational(103, 10)), limits.XFramingLimit);
+        Assert.Equal(new Interval(new Rational(-3, 20), new Rational(103, 10)), limits.YFramingLimit);
     }
 
     private static Sequence GetSequence()
