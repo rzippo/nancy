@@ -161,7 +161,7 @@ public partial class MppgFormatterVisitor :
 
         // a rational literal is one value rather than a compound operand, so it is written as it is,
         // and parenthesized only where it would re-associate, as in the right operand of a division
-        if (expression is RationalNumberExpression && !ShowRationalsAsName)
+        if (expression is IGenericExpression<Rational> rational && IsTightLiteral(rational, CurrentDepth))
             return precedence >= required ? mppg : Parenthesized(mppg);
 
         return precedence == MppgPrecedence.Atom ? mppg : Parenthesized(mppg);
@@ -329,6 +329,14 @@ public partial class MppgFormatterVisitor :
                 new StringBuilder((-number.Value).ToMppgString()),
                 RationalLiteralPrecedence(-number.Value)
             );
+        else if (expression is RationalDivisionExpression division
+            && !ShowRationalsAsName
+            && IsTightLiteral(division, CurrentDepth)
+            && !StartsWithMinus(division))
+            return (
+                new StringBuilder().Append('-').Append(RenderTightLiteral(division).MppgBuilder),
+                MppgPrecedence.Product
+            );
         else
             return (
                 new StringBuilder().Append("-(").Append(Render(expression, MppgPrecedence.Sum)).Append(')'),
@@ -341,6 +349,100 @@ public partial class MppgFormatterVisitor :
     /// </summary>
     private static MppgPrecedence RationalLiteralPrecedence(Rational value)
         => value.IsInfinite || value.Denominator == 1 ? MppgPrecedence.Atom : MppgPrecedence.Product;
+
+    /// <summary>
+    /// True if the expression is a rational literal, which renders without spaces around its <c>/</c> and with no space after its <c>-</c>.
+    /// </summary>
+    /// <remarks>
+    /// A literal is a number, a negation of a literal, or a division of two literals whose tight rendering re-parses to the same value.
+    /// A subtree whose leaf would render as a name, rather than as its value, is not a literal.
+    /// </remarks>
+    private bool IsTightLiteral(IGenericExpression<Rational> expression, int depth)
+    {
+        if (ShowRationalsAsName)
+            return false;
+        switch (expression)
+        {
+            case RationalNumberExpression number:
+                return !(depth >= MaxDepth && IsValidMppgName(number.Name));
+            case NegateRationalExpression negate:
+                if (depth >= MaxDepth && IsValidMppgName(negate.Name))
+                    return false;
+                return negate.Expression switch
+                {
+                    RationalNumberExpression => true,
+                    RationalDivisionExpression division => IsTightLiteral(division, depth + 1) && !StartsWithMinus(division),
+                    _ => false
+                };
+            case RationalDivisionExpression division:
+                if (depth >= MaxDepth && IsValidMppgName(division.Name))
+                    return false;
+                return IsTightLiteral(division.LeftExpression, depth + 1)
+                    && IsTightLiteral(division.RightExpression, depth + 1)
+                    && !TightFormHasDivision(division.RightExpression);
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Renders a rational literal tightly, without the spaces the binary operators get.
+    /// </summary>
+    /// <remarks>
+    /// The caller guarantees through <see cref="IsTightLiteral"/> that the rendering re-parses to the same value.
+    /// </remarks>
+    private (StringBuilder MppgBuilder, MppgPrecedence Precedence) RenderTightLiteral(
+        IGenericExpression<Rational> expression
+    ) => expression switch
+    {
+        RationalNumberExpression number => (
+            new StringBuilder(number.Value.ToMppgString()),
+            RationalLiteralPrecedence(number.Value)
+        ),
+        NegateRationalExpression negate => negate.Expression switch
+        {
+            RationalNumberExpression number => (
+                new StringBuilder((-number.Value).ToMppgString()),
+                RationalLiteralPrecedence(-number.Value)
+            ),
+            _ => (
+                new StringBuilder().Append('-').Append(RenderTightLiteral(negate.Expression).MppgBuilder),
+                MppgPrecedence.Product
+            )
+        },
+        RationalDivisionExpression division => (
+            new StringBuilder()
+                .Append(RenderTightLiteral(division.LeftExpression).MppgBuilder)
+                .Append('/')
+                .Append(RenderTightLiteral(division.RightExpression).MppgBuilder),
+            MppgPrecedence.Product
+        ),
+        _ => throw new InvalidOperationException("The expression is not a rational literal.")
+    };
+
+    /// <summary>
+    /// True if the tight rendering of the expression contains a <c>/</c>, which as the right operand of a tight division would re-associate.
+    /// </summary>
+    private static bool TightFormHasDivision(IGenericExpression<Rational> expression)
+        => expression switch
+        {
+            RationalNumberExpression number => !number.Value.IsInfinite && number.Value.Denominator != 1,
+            NegateRationalExpression negate => TightFormHasDivision(negate.Expression),
+            RationalDivisionExpression => true,
+            _ => false
+        };
+
+    /// <summary>
+    /// True if the tight rendering of the expression starts with <c>-</c>, which a glued negation would double.
+    /// </summary>
+    private static bool StartsWithMinus(IGenericExpression<Rational> expression)
+        => expression switch
+        {
+            RationalNumberExpression number => number.Value.IsNegative,
+            NegateRationalExpression negate => !StartsWithMinus(negate.Expression),
+            RationalDivisionExpression division => StartsWithMinus(division.LeftExpression),
+            _ => false
+        };
 
     /// <summary>
     /// Renders the sampling forms, which MPPG only accepts on the name of a function variable.
@@ -662,7 +764,14 @@ public partial class MppgFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(RationalDivisionExpression expression)
-        => VisitBinaryInfix(expression, " / ", MppgPrecedence.Product);
+    {
+        if (TryFormatAsName(expression, out var named))
+            return named;
+        else if (IsTightLiteral(expression, CurrentDepth))
+            return RenderTightLiteral(expression);
+        else
+            return VisitBinaryInfix(expression, " / ", MppgPrecedence.Product);
+    }
 
     /// <inheritdoc />
     public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(RationalModuloExpression expression)
