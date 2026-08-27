@@ -183,7 +183,7 @@ public enum GridTickLayout
     SquareGrid,
 
     /// The tick marks are placed at regularly spaced round values, chosen by pgfplots.
-    /// This is what the other Nancy plot backends do, and it keeps the axes readable however many curves are plotted.
+    /// It keeps the axes readable however many curves are plotted.
     RoundValues
 }
 
