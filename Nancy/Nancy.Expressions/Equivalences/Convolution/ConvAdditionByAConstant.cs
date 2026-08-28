@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// $(f \otimes g) + K = (f \otimes (g + K))$.

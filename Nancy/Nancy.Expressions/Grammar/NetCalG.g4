@@ -1,4 +1,4 @@
-﻿grammar NetCalG;
+grammar NetCalG;
 
 @header {
 #pragma warning disable 3021

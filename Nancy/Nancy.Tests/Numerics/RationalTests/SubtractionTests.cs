@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.Numerics.RationalTests;

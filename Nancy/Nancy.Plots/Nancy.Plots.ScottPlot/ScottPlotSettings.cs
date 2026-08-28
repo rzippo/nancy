@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Plots.ScottPlot;
+namespace Unipi.Nancy.Plots.ScottPlot;
 
 /// <summary>
 /// Settings controlling ScottPlot rendering.

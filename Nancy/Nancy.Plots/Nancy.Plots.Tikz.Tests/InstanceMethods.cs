@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots.Tikz;
 using Xunit;

@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
 /// Interface with members and functions which allow to define a unary expression, i.e. an expression whose root node

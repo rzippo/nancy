@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Plots;
 using XPlot.Plotly;

@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Numerics;
 
 namespace Nancy.Analyzers.Sample;
 

@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Plots.Tikz;
+namespace Unipi.Nancy.Plots.Tikz;
 
 /// <summary>
 /// Settings controlling TikZ plot rendering.

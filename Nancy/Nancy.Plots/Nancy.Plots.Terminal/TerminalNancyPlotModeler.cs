@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Plots.Terminal;
 

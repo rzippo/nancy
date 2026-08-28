@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.Expressions.Equivalences;
+using Unipi.Nancy.Expressions.Equivalences;
 using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.MinPlusAlgebra;

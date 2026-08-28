@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 #if BIG_RATIONAL
 [assembly: InternalsVisibleTo("Unipi.Nancy.Tests")]

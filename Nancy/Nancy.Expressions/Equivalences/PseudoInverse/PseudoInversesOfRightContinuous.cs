@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// If $f$ is non-decreasing and right-continuous, the upper pseudoinverse of its lower pseudoinverse is equal to $f$ again.

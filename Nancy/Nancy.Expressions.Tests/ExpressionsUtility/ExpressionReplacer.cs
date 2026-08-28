@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.Expressions.Internals;
 using Xunit;

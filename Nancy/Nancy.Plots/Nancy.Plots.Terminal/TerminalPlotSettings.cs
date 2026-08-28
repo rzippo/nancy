@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Plots.Terminal;
+namespace Unipi.Nancy.Plots.Terminal;
 
 /// <summary>
 /// Settings controlling terminal plot rendering.

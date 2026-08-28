@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;

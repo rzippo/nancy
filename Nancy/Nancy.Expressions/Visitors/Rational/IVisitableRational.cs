@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Visitors;
+namespace Unipi.Nancy.Expressions.Visitors;
 
 /// <summary>
 /// Interface to constraint the expression types to implement the Accept method and make themselves "visitable"

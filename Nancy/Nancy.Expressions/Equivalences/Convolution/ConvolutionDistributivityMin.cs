@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// $f \otimes (g \wedge h) = (f \otimes g) \wedge (f \otimes h)$.

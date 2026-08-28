@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Antlr4.Runtime;
 using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.Expressions.ExpressionsUtility.Internals;

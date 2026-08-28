@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Internals;
 using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Expressions.Visitors;

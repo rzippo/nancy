@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// $(g \oslash \overline{f}) \otimes \overline{f} = g \oslash \overline{f}$.

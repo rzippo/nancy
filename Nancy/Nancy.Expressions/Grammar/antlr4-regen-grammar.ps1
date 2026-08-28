@@ -1,4 +1,4 @@
-﻿if(Get-Command antlr4 -ErrorAction SilentlyContinue)
+if(Get-Command antlr4 -ErrorAction SilentlyContinue)
 {
     antlr4 -Dlanguage=CSharp -o ./ -package Unipi.Nancy.Expressions.Grammar -visitor -no-listener -lib ./ ./NetCalG.g4
 }

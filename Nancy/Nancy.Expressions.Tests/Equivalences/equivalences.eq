@@ -1,4 +1,4 @@
-﻿{
+{
     f in U subadditive; 
     g in U zero-at-zero; 
     f <= g; 

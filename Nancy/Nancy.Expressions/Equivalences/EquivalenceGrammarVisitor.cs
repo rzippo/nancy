@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.Expressions.Grammar;
+using Unipi.Nancy.Expressions.Grammar;
 
 namespace Unipi.Nancy.Expressions.Equivalences;
 

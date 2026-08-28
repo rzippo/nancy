@@ -1,4 +1,4 @@
-﻿using Antlr4.Runtime;
+using Antlr4.Runtime;
 using Unipi.Nancy.Expressions.Grammar;
 
 namespace Unipi.Nancy.Expressions.Equivalences;

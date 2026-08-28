@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text.Json;
 using Unipi.Nancy.Tests.MinPlusAlgebra.Sequences;
 using Unipi.Nancy.MinPlusAlgebra;

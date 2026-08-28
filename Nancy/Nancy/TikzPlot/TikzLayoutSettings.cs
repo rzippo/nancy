@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.TikzPlot;
+namespace Unipi.Nancy.TikzPlot;
 
 /// Settings for the plot layout.
 [System.Obsolete("Use Unipi.Nancy.Plots.Tikz.TikzPlotSettings instead.")]

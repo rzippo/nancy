@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.MinPlusAlgebra;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Sequences;

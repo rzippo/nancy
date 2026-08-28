@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;

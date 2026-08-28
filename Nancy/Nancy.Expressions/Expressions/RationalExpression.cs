@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Unipi.Nancy.Expressions.Equivalences;
 using Unipi.Nancy.Expressions.ExpressionsUtility;
 using Unipi.Nancy.Expressions.ExpressionsUtility.Internals;

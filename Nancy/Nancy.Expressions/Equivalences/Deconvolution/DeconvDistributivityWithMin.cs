@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// $f \oslash (g \wedge h) = (f \oslash g) \vee (f \oslash h)$.

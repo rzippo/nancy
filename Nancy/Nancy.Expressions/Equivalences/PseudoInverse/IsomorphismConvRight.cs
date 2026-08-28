@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// The lower pseudoinverse of a (max,+) convolution of two non-decreasing right-continuous function is equal

@@ -1,4 +1,4 @@
-﻿using ScottPlot;
+using ScottPlot;
 using SkiaSharp;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;

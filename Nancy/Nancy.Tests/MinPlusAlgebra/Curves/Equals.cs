@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Xunit;
 

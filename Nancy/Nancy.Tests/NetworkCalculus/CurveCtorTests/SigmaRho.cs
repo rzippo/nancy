@@ -1,4 +1,4 @@
-﻿using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.NetworkCalculus;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.NetworkCalculus.CurveCtorTests;

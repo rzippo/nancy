@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// If $f$ and $g$ are subadditive and 0 at 0, then $f \otimes g = (f \wedge g) \otimes (f \wedge g)$.

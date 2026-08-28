@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Spectre.Console;
 using Unipi.Nancy.MinPlusAlgebra;
 

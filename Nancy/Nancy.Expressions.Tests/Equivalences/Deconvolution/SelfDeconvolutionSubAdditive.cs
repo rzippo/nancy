@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Xunit;
 using Unipi.Nancy.NetworkCalculus;

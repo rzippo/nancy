@@ -1,4 +1,4 @@
-﻿using Microsoft.DotNet.Interactive;
+using Microsoft.DotNet.Interactive;
 using Microsoft.DotNet.Interactive.Formatting;
 using Unipi.Nancy.MinPlusAlgebra;
 

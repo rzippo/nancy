@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Utility;
+namespace Unipi.Nancy.Utility;
 
 /// <summary>
 /// Interface that provides a stable hash code, useful for identification and caching.

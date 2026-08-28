@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Plots.XPlot.Plotly;
+namespace Unipi.Nancy.Plots.XPlot.Plotly;
 
 /// <summary>
 /// Settings controlling XPlot.Plotly rendering.

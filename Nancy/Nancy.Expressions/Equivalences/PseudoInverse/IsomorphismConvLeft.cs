@@ -1,4 +1,4 @@
-﻿namespace Unipi.Nancy.Expressions.Equivalences;
+namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
 /// The upper pseudoinverse of a (min,+) convolution of two non-decreasing left-continuous function is equal
