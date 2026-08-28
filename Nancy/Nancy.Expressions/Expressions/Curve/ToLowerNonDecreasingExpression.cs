@@ -4,13 +4,13 @@ using Unipi.Nancy.MinPlusAlgebra;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// Class representing an expression whose root operation is the lower non-decreasing closure of a curve
+/// Class representing an expression whose root operation is the lower non-decreasing closure, $\mathrm{LND}$, of a curve
 /// (<see cref="Curve.ToLowerNonDecreasing"/>)
 /// </summary>
 public record ToLowerNonDecreasingExpression : CurveUnaryExpression<Curve>
 {
     /// <summary>
-    /// Creates the lower non-decreasing closure expression
+    /// Creates the lower non-decreasing closure, $\mathrm{LND}$, expression
     /// </summary>
     public ToLowerNonDecreasingExpression(
         Curve curve,
@@ -22,7 +22,7 @@ public record ToLowerNonDecreasingExpression : CurveUnaryExpression<Curve>
     }
 
     /// <summary>
-    /// Class representing an expression whose root operation is the lower non-decreasing closure of a curve
+    /// Class representing an expression whose root operation is the lower non-decreasing closure, $\mathrm{LND}$, of a curve
     /// (<see cref="Curve.ToLowerNonDecreasing"/>)
     /// </summary>
     public ToLowerNonDecreasingExpression(

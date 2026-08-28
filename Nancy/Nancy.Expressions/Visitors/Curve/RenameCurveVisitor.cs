@@ -78,6 +78,14 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
         => CommonVisit(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(ToUpperNonIncreasingExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(ToLowerNonIncreasingExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression)
         => CommonVisit(expression);
 

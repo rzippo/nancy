@@ -48,6 +48,16 @@ public interface ICurveExpressionVisitor : IExpressionVisitor<Curve>
     public void Visit(ToLowerNonDecreasingExpression expression);
 
     /// <summary>
+    /// Visit method for the type <see cref="ToUpperNonIncreasingExpression"/>
+    /// </summary>
+    public void Visit(ToUpperNonIncreasingExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="ToLowerNonIncreasingExpression"/>
+    /// </summary>
+    public void Visit(ToLowerNonIncreasingExpression expression);
+
+    /// <summary>
     /// Visit method for the type <see cref="ToLeftContinuousExpression"/>
     /// </summary>
     public void Visit(ToLeftContinuousExpression expression);
@@ -208,6 +218,16 @@ public interface ICurveExpressionVisitor<out TResult> : IExpressionVisitor<Curve
     /// Visit method for the type <see cref="ToLowerNonDecreasingExpression"/>
     /// </summary>
     public TResult Visit(ToLowerNonDecreasingExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="ToUpperNonIncreasingExpression"/>
+    /// </summary>
+    public TResult Visit(ToUpperNonIncreasingExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="ToLowerNonIncreasingExpression"/>
+    /// </summary>
+    public TResult Visit(ToLowerNonIncreasingExpression expression);
 
     /// <summary>
     /// Visit method for the type <see cref="ToLeftContinuousExpression"/>

@@ -62,6 +62,14 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(ToUpperNonIncreasingExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(ToLowerNonIncreasingExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(ToRightContinuousExpression expression) 
         => _throughCurveComputation(expression);
 

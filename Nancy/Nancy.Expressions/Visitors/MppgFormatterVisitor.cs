@@ -35,7 +35,9 @@ public enum MppgPrecedence
 /// Used for visiting an expression and create its representation as MPPG source text.
 /// </summary>
 /// <remarks>
-/// The result is a single MPPG expression, valid under syntax version 1.3, without any statement around it.
+/// The result is a single MPPG expression, without any statement around it, valid under syntax version 1.3 —
+/// or 1.4 if the visited expression uses a monotonicity closure ($\mathrm{UND}$, $\mathrm{LND}$, $\mathrm{UNI}$,
+/// $\mathrm{LNI}$), which this formatter always renders with their explicit, <c>closure</c>-suffixed 1.4 spelling.
 /// Parsing and evaluating it yields a value equivalent to computing the visited expression.
 /// The visit neither computes the expression nor caches any computed value.
 /// </remarks>
@@ -81,22 +83,34 @@ public partial class MppgFormatterVisitor :
     #region Names
 
     /// <summary>
-    /// Names that MPPG lexes as keywords, as of syntax version 1.3, and can therefore not be used as variable names.
+    /// Names that MPPG lexes as keywords, as of syntax version 1.4, and can therefore not be used as variable names.
     /// </summary>
+    /// <remarks>
+    /// This formatter targets syntax version 1.3 for everything except the four closures, which it renders
+    /// with their explicit, <c>closure</c>-suffixed 1.4 spelling (<c>upnondecclosure</c>, <c>lownondecclosure</c>,
+    /// <c>nnupnondecclosure</c>, <c>nnlownondecclosure</c>, <c>upnonincclosure</c>, <c>lownonincclosure</c>).
+    /// Because a rendered expression can therefore always require a 1.4 parser, all twelve of the closure
+    /// tokens 1.4 reserves — including the six this formatter never itself emits (the short aliases
+    /// <c>upnondec</c>/<c>lownondec</c>/<c>nnupnondec</c>/<c>nnlownondec</c>/<c>upnoninc</c>/<c>lownoninc</c>) —
+    /// must be listed here too, so a curve or rational happening to carry one of those names as its own name
+    /// is never emitted as a bare identifier.
+    /// </remarks>
     private static readonly HashSet<string> ReservedNames =
     [
         "abs", "affine", "assert", "bg", "bucket", "ceil", "comp", "delay", "div", "epsilon", "floor", "gcd", "grid",
-        "gui", "hDev", "hShift", "hdev", "hshift", "inv", "lcm", "low_inv", "lowclosure", "main", "mod",
-        "nnlowclosure", "nnupclosure", "out", "period", "plot", "plotTikz", "pow", "printExpression", "ratency",
-        "stair", "star", "step", "subaddclosure", "superaddclosure", "title", "uaf", "up_inv", "upclosure", "upp",
-        "vDev", "vShift", "vdev", "vshift", "xlab", "xlim", "ylab", "ylim", "zDev", "zdev", "zero"
+        "gui", "hDev", "hShift", "hdev", "hshift", "inv", "lcm", "low_inv", "lowclosure", "lownondec",
+        "lownondecclosure", "lownoninc", "lownonincclosure", "main", "mod", "nnlowclosure", "nnlownondec",
+        "nnlownondecclosure", "nnupclosure", "nnupnondec", "nnupnondecclosure", "out", "period", "plot", "plotTikz",
+        "pow", "printExpression", "ratency", "stair", "star", "step", "subaddclosure", "superaddclosure", "title",
+        "uaf", "up_inv", "upclosure", "upnondec", "upnondecclosure", "upnoninc", "upnonincclosure", "upp", "vDev",
+        "vShift", "vdev", "vshift", "xlab", "xlim", "ylab", "ylim", "zDev", "zdev", "zero"
     ];
 
     /// <summary>
     /// True if <paramref name="name"/> can be used as a variable name in MPPG.
     /// </summary>
     /// <remarks>
-    /// A name is usable if it matches the lexer rule for variable names and is not a keyword of syntax version 1.3.
+    /// A name is usable if it matches the lexer rule for variable names and is not a keyword of syntax version 1.4.
     /// Note that the rendered expression only parses in a context where the names it uses are declared.
     /// </remarks>
     public static bool IsValidMppgName(string name)
@@ -520,9 +534,9 @@ public partial class MppgFormatterVisitor :
         if (TryFormatAsName(expression, out var named))
             return named;
         else if (expression.Expression is ToUpperNonDecreasingExpression upper)
-            return VisitFusedNonNegativeClosure(upper.Expression, "nnupclosure");
+            return VisitFusedNonNegativeClosure(upper.Expression, "nnupnondecclosure");
         else if (expression.Expression is ToLowerNonDecreasingExpression lower)
-            return VisitFusedNonNegativeClosure(lower.Expression, "nnlowclosure");
+            return VisitFusedNonNegativeClosure(lower.Expression, "nnlownondecclosure");
         else
         {
             CurrentDepth++;
@@ -569,9 +583,9 @@ public partial class MppgFormatterVisitor :
         if (TryFormatAsName(expression, out var named))
             return named;
         else if (expression.Expression is ToNonNegativeExpression nonNegative)
-            return VisitFusedNonNegativeClosure(nonNegative.Expression, "nnupclosure");
+            return VisitFusedNonNegativeClosure(nonNegative.Expression, "nnupnondecclosure");
         else
-            return VisitUnaryCall(expression, "upclosure");
+            return VisitUnaryCall(expression, "upnondecclosure");
     }
 
     /// <inheritdoc />
@@ -580,9 +594,27 @@ public partial class MppgFormatterVisitor :
         if (TryFormatAsName(expression, out var named))
             return named;
         else if (expression.Expression is ToNonNegativeExpression nonNegative)
-            return VisitFusedNonNegativeClosure(nonNegative.Expression, "nnlowclosure");
+            return VisitFusedNonNegativeClosure(nonNegative.Expression, "nnlownondecclosure");
         else
-            return VisitUnaryCall(expression, "lowclosure");
+            return VisitUnaryCall(expression, "lownondecclosure");
+    }
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(ToUpperNonIncreasingExpression expression)
+    {
+        if (TryFormatAsName(expression, out var named))
+            return named;
+        else
+            return VisitUnaryCall(expression, "upnonincclosure");
+    }
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(ToLowerNonIncreasingExpression expression)
+    {
+        if (TryFormatAsName(expression, out var named))
+            return named;
+        else
+            return VisitUnaryCall(expression, "lownonincclosure");
     }
 
     /// <inheritdoc />

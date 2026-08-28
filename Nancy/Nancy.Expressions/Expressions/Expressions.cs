@@ -175,6 +175,46 @@ public static class Expressions
 
     #endregion ToLowerNonDecreasing
 
+    #region ToUpperNonIncreasing
+
+    /// <summary>
+    /// Adds to the expression passed as argument the operation to compute its upper non-increasing version.
+    /// </summary>
+    public static CurveExpression ToUpperNonIncreasing(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.ToUpperNonIncreasing(expressionName, settings);
+
+    /// <summary>
+    /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
+    /// compute its upper non-increasing version.
+    /// </summary>
+    public static CurveExpression ToUpperNonIncreasing(Curve curve,
+        [CallerArgumentExpression("curve")] string name = "", string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new ToUpperNonIncreasingExpression(curve, name, expressionName, settings);
+
+    #endregion ToUpperNonIncreasing
+
+    #region ToLowerNonIncreasing
+
+    /// <summary>
+    /// Adds to the expression passed as argument the operation to compute its lower non-increasing version.
+    /// </summary>
+    public static CurveExpression ToLowerNonIncreasing(CurveExpression expression, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => expression.ToLowerNonIncreasing(expressionName, settings);
+
+    /// <summary>
+    /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
+    /// compute its lower non-increasing version.
+    /// </summary>
+    public static CurveExpression ToLowerNonIncreasing(Curve curve,
+        [CallerArgumentExpression("curve")] string name = "", string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new ToLowerNonIncreasingExpression(curve, name, expressionName, settings);
+
+    #endregion ToLowerNonIncreasing
+
     #region ToLeftContinuous
 
     /// <summary>

@@ -62,6 +62,17 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(ToUpperNonIncreasingExpression expression)
+    {
+        expression.Expression.Accept(this);
+        if(!IsNonNegative) _throughCurveComputation(expression);
+    }
+
+    /// <inheritdoc />
+    public virtual void Visit(ToLowerNonIncreasingExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression)
     {
         expression.Expression.Accept(this);

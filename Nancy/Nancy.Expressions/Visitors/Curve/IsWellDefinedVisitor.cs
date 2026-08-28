@@ -47,6 +47,12 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     public virtual void Visit(ToLowerNonDecreasingExpression expression) => expression.Expression.Accept(this);
 
     /// <inheritdoc />
+    public virtual void Visit(ToUpperNonIncreasingExpression expression) => IsWellDefined = true;
+
+    /// <inheritdoc />
+    public virtual void Visit(ToLowerNonIncreasingExpression expression) => expression.Expression.Accept(this);
+
+    /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression) => expression.Expression.Accept(this);
 
     /// <inheritdoc />

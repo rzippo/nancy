@@ -383,49 +383,19 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToUpperNonDecreasingExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (unicode, needsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
-            var parenthesesExceptions = expression.Expression is (ConcreteCurveExpression or ToNonNegativeExpression);
-            var squareParentheses = needsParentheses && !parenthesesExceptions;
-            if (squareParentheses) 
-                sb.Append('[');
-            sb.Append(unicode);
-            if (squareParentheses) 
-                sb.Append(']');
-            sb.Append('↑');
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitUnaryPrefix(expression, "UND");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLowerNonDecreasingExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (unicode, needsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
-            var parenthesesExceptions = expression.Expression is (ConcreteCurveExpression or ToNonNegativeExpression);
-            var squareParentheses = needsParentheses && !parenthesesExceptions;
-            if (squareParentheses)
-                sb.Append('[');
-            sb.Append(unicode);
-            if (squareParentheses)
-                sb.Append(']');
-            sb.Append('↓');
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitUnaryPrefix(expression, "LND");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToUpperNonIncreasingExpression expression)
+        => VisitUnaryPrefix(expression, "UNI");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLowerNonIncreasingExpression expression)
+        => VisitUnaryPrefix(expression, "LNI");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToLeftContinuousExpression expression)

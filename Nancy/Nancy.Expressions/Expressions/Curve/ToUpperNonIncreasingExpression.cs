@@ -4,15 +4,15 @@ using Unipi.Nancy.MinPlusAlgebra;
 namespace Unipi.Nancy.Expressions.Internals;
 
 /// <summary>
-/// Class representing an expression whose root operation is the upper non-decreasing closure, $\mathrm{UND}$, of a curve
-/// (<see cref="Curve.ToUpperNonDecreasing"/>)
+/// Class representing an expression whose root operation is the upper non-increasing closure, $\mathrm{UNI}$, of a curve
+/// (<see cref="Curve.ToUpperNonIncreasing"/>)
 /// </summary>
-public record ToUpperNonDecreasingExpression : CurveUnaryExpression<Curve>
+public record ToUpperNonIncreasingExpression : CurveUnaryExpression<Curve>
 {
     /// <summary>
-    /// Creates the upper non-decreasing closure, $\mathrm{UND}$, expression
+    /// Creates the upper non-increasing closure, $\mathrm{UNI}$, expression
     /// </summary>
-    public ToUpperNonDecreasingExpression(
+    public ToUpperNonIncreasingExpression(
         Curve curve,
         string name,
         string expressionName = "",
@@ -22,9 +22,10 @@ public record ToUpperNonDecreasingExpression : CurveUnaryExpression<Curve>
     }
 
     /// <summary>
-    /// Creates the upper non-decreasing closure, $\mathrm{UND}$, expression
+    /// Class representing an expression whose root operation is the upper non-increasing closure, $\mathrm{UNI}$, of a curve
+    /// (<see cref="Curve.ToUpperNonIncreasing"/>)
     /// </summary>
-    public ToUpperNonDecreasingExpression(
+    public ToUpperNonIncreasingExpression(
         CurveExpression expression,
         string expressionName = "",
         ExpressionSettings? settings = null)

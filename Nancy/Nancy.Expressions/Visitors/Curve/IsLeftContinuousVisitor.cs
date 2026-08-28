@@ -47,6 +47,14 @@ public class IsLeftContinuousVisitor : ICurveExpressionVisitor
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(ToUpperNonIncreasingExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(ToLowerNonIncreasingExpression expression)
+        => _throughCurveComputation(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression) 
         => IsLeftContinuous = true;
 

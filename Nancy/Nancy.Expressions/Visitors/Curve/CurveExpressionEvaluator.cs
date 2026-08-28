@@ -65,6 +65,14 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
         => VisitUnary(expression, curve => curve.ToLowerNonDecreasing());
 
     /// <inheritdoc />
+    public virtual void Visit(ToUpperNonIncreasingExpression expression)
+        => VisitUnary(expression, curve => curve.ToUpperNonIncreasing());
+
+    /// <inheritdoc />
+    public virtual void Visit(ToLowerNonIncreasingExpression expression)
+        => VisitUnary(expression, curve => curve.ToLowerNonIncreasing());
+
+    /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression)
         => VisitUnary(expression, curve => curve.ToLeftContinuous());
 

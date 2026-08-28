@@ -558,6 +558,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => new ToLowerNonDecreasingExpression(this, expressionName, settings);
 
     /// <summary>
+    /// Adds to the expression the operation to compute its upper non-increasing version.
+    /// </summary>
+    public CurveExpression ToUpperNonIncreasing(string expressionName = "", ExpressionSettings? settings = null)
+        => new ToUpperNonIncreasingExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Adds to the expression the operation to compute its lower non-increasing version.
+    /// </summary>
+    public CurveExpression ToLowerNonIncreasing(string expressionName = "", ExpressionSettings? settings = null)
+        => new ToLowerNonIncreasingExpression(this, expressionName, settings);
+
+    /// <summary>
     /// Adds to the expression the operation to compute a left continuous version of it.
     /// </summary>
     public CurveExpression ToLeftContinuous(string expressionName = "", ExpressionSettings? settings = null)

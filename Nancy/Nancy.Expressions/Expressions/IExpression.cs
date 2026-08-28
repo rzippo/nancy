@@ -44,7 +44,8 @@ public interface IExpression
     );
 
     /// <summary>
-    /// Returns the representation of the expression as MPPG source text, valid under syntax version 1.3.
+    /// Returns the representation of the expression as MPPG source text, valid under syntax version 1.3,
+    /// or 1.4 if the expression uses a monotonicity closure ($\mathrm{UND}$, $\mathrm{LND}$, $\mathrm{UNI}$, $\mathrm{LNI}$).
     /// </summary>
     /// <param name="depth">Level of the expression tree up to which to print the expression fully expanded.</param>
     /// <param name="showRationalsAsName">
