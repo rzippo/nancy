@@ -160,7 +160,7 @@ public class ToUnicodeString
                 "a",
                 "b"
             ).ToLowerNonDecreasing(),
-            @"[a - b]⁺↓"
+            @"LND([a - b]⁺)"
         ),
         (
             Expressions.Subtraction(
@@ -170,7 +170,7 @@ public class ToUnicodeString
                 "a",
                 "b"
             ).ToUpperNonDecreasing(),
-            @"[a - b]⁺↑"
+            @"UND([a - b]⁺)"
         ),
 #pragma warning restore CS0618 // Type or member is obsolete
         (
@@ -180,7 +180,7 @@ public class ToUnicodeString
                 "a",
                 "b"
             ).ToLowerNonDecreasing(),
-            @"[a + b]↓"
+            @"LND(a + b)"
         ),
         (
             Expressions.Addition(
@@ -192,7 +192,7 @@ public class ToUnicodeString
             .ToNonNegative()
             .ToLowerNonDecreasing()
             ,
-            @"[a + b]⁺↓"
+            @"LND([a + b]⁺)"
         ),
         (
             Expressions.Addition(
@@ -204,7 +204,15 @@ public class ToUnicodeString
                 .ToNonNegative()
                 .ToUpperNonDecreasing()
             ,
-            @"[a + b]⁺↑"
+            @"UND([a + b]⁺)"
+        ),
+        (
+            Expressions.FromCurve(new SigmaRhoArrivalCurve(1, 2), "a").ToUpperNonIncreasing(),
+            @"UNI(a)"
+        ),
+        (
+            Expressions.FromCurve(new SigmaRhoArrivalCurve(1, 2), "a").ToLowerNonIncreasing(),
+            @"LNI(a)"
         ),
     ];
 

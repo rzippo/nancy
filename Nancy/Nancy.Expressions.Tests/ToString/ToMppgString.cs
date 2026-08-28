@@ -71,8 +71,10 @@ public class ToMppgString
         (A.SubAdditiveClosure(), "subaddclosure(a)"),
         (A.SuperAdditiveClosure(), "superaddclosure(a)"),
         (Expressions.Addition(A, B).SubAdditiveClosure(), "subaddclosure(a + b)"),
-        (A.ToUpperNonDecreasing(), "upclosure(a)"),
-        (A.ToLowerNonDecreasing(), "lowclosure(a)"),
+        (A.ToUpperNonDecreasing(), "upnondecclosure(a)"),
+        (A.ToLowerNonDecreasing(), "lownondecclosure(a)"),
+        (A.ToUpperNonIncreasing(), "upnonincclosure(a)"),
+        (A.ToLowerNonIncreasing(), "lownonincclosure(a)"),
         (A.ToLeftContinuous(), "left-ext(a)"),
         (A.ToRightContinuous(), "right-ext(a)"),
         (A.LowerPseudoInverse(), "low_inv(a)"),
@@ -83,10 +85,10 @@ public class ToMppgString
         (Expressions.Convolution(A, B).Negate(), "-(a * b)"),
 
         // the non-negative closures, which MPPG fuses into a single operator
-        (A.ToNonNegative().ToUpperNonDecreasing(), "nnupclosure(a)"),
-        (A.ToUpperNonDecreasing().ToNonNegative(), "nnupclosure(a)"),
-        (A.ToNonNegative().ToLowerNonDecreasing(), "nnlowclosure(a)"),
-        (A.ToLowerNonDecreasing().ToNonNegative(), "nnlowclosure(a)"),
+        (A.ToNonNegative().ToUpperNonDecreasing(), "nnupnondecclosure(a)"),
+        (A.ToUpperNonDecreasing().ToNonNegative(), "nnupnondecclosure(a)"),
+        (A.ToNonNegative().ToLowerNonDecreasing(), "nnlownondecclosure(a)"),
+        (A.ToLowerNonDecreasing().ToNonNegative(), "nnlownondecclosure(a)"),
         (A.ToNonNegative(), @"a \/ 0"),
         (Expressions.Addition(A, B).ToNonNegative(), @"(a + b) \/ 0"),
 #pragma warning disable CS0618 // Type or member is obsolete

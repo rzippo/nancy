@@ -160,7 +160,7 @@ public class ToLatexString
                 "a",
                 "b"
             ).ToLowerNonDecreasing(),
-            @"\left[ a - b \right]^{+}_{\downarrow}"
+            @"\mathrm{LND}\left( \left[ a - b \right]^{+} \right)"
         ),
         (
             Expressions.Subtraction(
@@ -170,9 +170,17 @@ public class ToLatexString
                 "a",
                 "b"
             ).ToUpperNonDecreasing(),
-            @"\left[ a - b \right]^{+}_{\uparrow}"
+            @"\mathrm{UND}\left( \left[ a - b \right]^{+} \right)"
         ),
 #pragma warning restore CS0618 // Type or member is obsolete
+        (
+            Expressions.FromCurve(new SigmaRhoArrivalCurve(1, 2), "a").ToUpperNonIncreasing(),
+            @"\mathrm{UNI}\left( a \right)"
+        ),
+        (
+            Expressions.FromCurve(new SigmaRhoArrivalCurve(1, 2), "a").ToLowerNonIncreasing(),
+            @"\mathrm{LNI}\left( a \right)"
+        ),
         (
             Expressions.Addition(
                 new SigmaRhoArrivalCurve(1, 2),
@@ -180,7 +188,7 @@ public class ToLatexString
                 "a",
                 "b"
             ).ToLowerNonDecreasing(),
-            @"\left[ a + b \right]_{\downarrow}"
+            @"\mathrm{LND}\left( a + b \right)"
         ),
         (
             Expressions.Addition(
@@ -192,7 +200,7 @@ public class ToLatexString
             .ToNonNegative()
             .ToLowerNonDecreasing()
             ,
-            @"\left[ a + b \right]^{+}_{\downarrow}"
+            @"\mathrm{LND}\left( \left[ a + b \right]^{+} \right)"
         ),
         (
             Expressions.Addition(
@@ -204,7 +212,7 @@ public class ToLatexString
                 .ToNonNegative()
                 .ToUpperNonDecreasing()
             ,
-            @"\left[ a + b \right]^{+}_{\uparrow}"
+            @"\mathrm{UND}\left( \left[ a + b \right]^{+} \right)"
         ),
     ];
 
