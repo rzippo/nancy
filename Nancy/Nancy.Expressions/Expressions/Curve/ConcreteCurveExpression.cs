@@ -33,4 +33,12 @@ public record ConcreteCurveExpression : CurveExpression
     /// <inheritdoc />
     public override TResult Accept<TResult>(ICurveExpressionVisitor<TResult> visitor)
         => visitor.Visit(this);
+
+    /// <summary>
+    /// Always <see langword="true"/>.
+    /// </summary>
+    /// <remarks>
+    /// A leaf's <c>Value</c> is its only state, set once at construction and never recomputed, so clearing it would lose the curve for good.
+    /// </remarks>
+    protected internal override bool ValueCacheIsCheap => true;
 }

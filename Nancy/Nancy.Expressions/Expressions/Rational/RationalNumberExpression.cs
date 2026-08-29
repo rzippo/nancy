@@ -28,4 +28,12 @@ public record RationalNumberExpression : RationalExpression
     /// <inheritdoc />
     public override TResult Accept<TResult>(IRationalExpressionVisitor<TResult> visitor)
         => visitor.Visit(this);
+
+    /// <summary>
+    /// Always <see langword="true"/>.
+    /// </summary>
+    /// <remarks>
+    /// A leaf's <c>Value</c> is its only state, set once at construction and never recomputed, so clearing it would lose the value for good.
+    /// </remarks>
+    protected internal override bool ValueCacheIsCheap => true;
 }

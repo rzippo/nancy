@@ -43,7 +43,83 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <inheritdoc cref="IExpression.IsComputed"/>
     public bool IsComputed
         => _value != null;
-    
+
+    /// <summary>
+    /// True if this node's own cached <see cref="Value"/> is small enough to be worth keeping.
+    /// </summary>
+    /// <remarks>
+    /// The cached value's segment count is checked against <see cref="CacheSettings.CheapCacheSegmentThreshold"/>, taken from <see cref="ExpressionSettings.CacheSettings"/> on <see cref="Settings"/>, or from the default threshold when unset.
+    /// A node with no cached value yet has nothing to clear, and reports <see langword="true"/>.
+    /// </remarks>
+    protected internal virtual bool ValueCacheIsCheap
+    {
+        get
+        {
+            if (_value is null)
+                return true;
+            var threshold = Settings?.CacheSettings?.CheapCacheSegmentThreshold
+                ?? new CacheSettings().CheapCacheSegmentThreshold;
+            return _value.BaseSequence.Elements.Count / 2 <= threshold;
+        }
+    }
+
+    /// <summary>
+    /// Clears this node's own cached <see cref="Value"/>, and, per <paramref name="scope"/>, its descendants', mutating them in place.
+    /// </summary>
+    /// <remarks>
+    /// Mutating in place is what makes this cheap: a shared node's memory is reclaimed while every ancestor holding a reference to it stays as it is.
+    /// A node whose own <see cref="ValueCacheIsCheap"/> is <see langword="true"/> keeps its cache, and recursion still descends into its children, since a cheap node can have expensive descendants.
+    /// A horizontal deviation is the case to have in mind: its own <see cref="Rational"/> result is two integers, while the curves it was computed from can be arbitrarily large.
+    /// </remarks>
+    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree)
+    {
+        if (!ValueCacheIsCheap)
+            _value = null;
+
+        if (scope == CacheClearScope.SelfOnly)
+            return;
+
+        foreach (var child in EnumerateChildren())
+        {
+            if (scope == CacheClearScope.SubtreeUntilNamed && !string.IsNullOrEmpty(child.Name))
+                continue;
+            ClearValueCacheDispatch.Clear(child, scope);
+        }
+    }
+
+    private IEnumerable<IExpression> EnumerateChildren()
+    {
+        switch (this)
+        {
+            case IGenericUnaryExpression<Curve, Curve> u:
+                yield return u.Operand;
+                break;
+            case IGenericUnaryExpression<Rational, Curve> u:
+                yield return u.Operand;
+                break;
+            case IGenericBinaryExpression<Curve, Curve, Curve> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case IGenericBinaryExpression<Curve, Rational, Curve> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case IGenericBinaryExpression<Rational, Curve, Curve> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case IGenericBinaryExpression<Rational, Rational, Curve> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case CurveNAryExpression n:
+                foreach (var operand in n.Operands)
+                    yield return operand;
+                break;
+        }
+    }
+
     /// <summary>
     /// Private cache field for <see cref="IsSubAdditive"/>.
     /// </summary>

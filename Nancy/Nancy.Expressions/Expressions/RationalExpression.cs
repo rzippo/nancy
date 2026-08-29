@@ -52,7 +52,72 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <inheritdoc cref="IExpression.IsComputed"/>
     public bool IsComputed
         => _value != null;
-    
+
+    /// <summary>
+    /// Always <see langword="true"/>.
+    /// </summary>
+    /// <remarks>
+    /// A <see cref="Rational"/>'s cached value is a pair of integers, however expensive it was to compute, so clearing it frees nothing worth the recomputation.
+    /// </remarks>
+    protected internal virtual bool ValueCacheIsCheap => true;
+
+    /// <summary>
+    /// Clears this node's own cached <see cref="Value"/>, and, per <paramref name="scope"/>, its descendants', mutating them in place.
+    /// </summary>
+    /// <remarks>
+    /// Mutating in place is what makes this cheap: a shared node's memory is reclaimed while every ancestor holding a reference to it stays as it is.
+    /// <see cref="ValueCacheIsCheap"/> is always <see langword="true"/> here, so this node keeps its own cache.
+    /// Recursion still descends into its children, which can be <see cref="Curve"/>-typed and arbitrarily large.
+    /// </remarks>
+    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree)
+    {
+        if (!ValueCacheIsCheap)
+            _value = null;
+
+        if (scope == CacheClearScope.SelfOnly)
+            return;
+
+        foreach (var child in EnumerateChildren())
+        {
+            if (scope == CacheClearScope.SubtreeUntilNamed && !string.IsNullOrEmpty(child.Name))
+                continue;
+            ClearValueCacheDispatch.Clear(child, scope);
+        }
+    }
+
+    private IEnumerable<IExpression> EnumerateChildren()
+    {
+        switch (this)
+        {
+            case IGenericUnaryExpression<Curve, Rational> u:
+                yield return u.Operand;
+                break;
+            case IGenericUnaryExpression<Rational, Rational> u:
+                yield return u.Operand;
+                break;
+            case IGenericBinaryExpression<Curve, Curve, Rational> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case IGenericBinaryExpression<Curve, Rational, Rational> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case IGenericBinaryExpression<Rational, Curve, Rational> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case IGenericBinaryExpression<Rational, Rational, Rational> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case RationalNAryExpression n:
+                foreach (var operand in n.Operands)
+                    yield return operand;
+                break;
+        }
+    }
+
     #endregion Properties
 
     #region Constructors
