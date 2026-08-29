@@ -11,8 +11,11 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class FlowControlCurveSystemJsonConverter : JsonConverter<FlowControlCurve>
 {
+    /// <summary>
+    /// Proxy record for the serialization of <see cref="FlowControlCurve"/>.
+    /// </summary>
     // ugly hack?
-    internal record PlainFlowControlCurve(string type, Rational latency, Rational rate, Rational height);
+    public record PlainFlowControlCurve(string type, Rational latency, Rational rate, Rational height);
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override FlowControlCurve Read(

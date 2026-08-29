@@ -14,14 +14,20 @@ public class RationalSystemJsonConverter : JsonConverter<Rational>
 {
     // ugly hack...
     #if BIG_RATIONAL
-        internal record PlainRational(
+        /// <summary>
+        /// Proxy record for the serialization of <see cref="Rational"/>.
+        /// </summary>
+        public record PlainRational(
             [property: JsonConverter(typeof(BigIntegerSystemJsonConverter))]
             BigInteger num, 
             [property: JsonConverter(typeof(BigIntegerSystemJsonConverter))]
             BigInteger den
         );
     #else
-        internal record PlainRational(long num, long den);
+        /// <summary>
+        /// Proxy record for the serialization of <see cref="Rational"/>.
+        /// </summary>
+        public record PlainRational(long num, long den);
     #endif
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>

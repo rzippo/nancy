@@ -6,6 +6,10 @@ using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy;
 
+/// <summary>
+/// Source-generated serialization metadata for the Nancy types.
+/// Reachable by a consumer building an AOT-safe path that does not fall back on reflection.
+/// </summary>
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(RationalSystemJsonConverter.PlainRational))]
 [JsonSerializable(typeof(TwoRatesServiceCurveSystemJsonConverter.PlainTwoRatesServiceCurve))]
@@ -33,6 +37,6 @@ namespace Unipi.Nancy;
 [JsonSerializable(typeof(StepCurve))]
 [JsonSerializable(typeof(StairCurve))]
 [JsonSerializable(typeof(SigmaRhoArrivalCurve))]
-partial class NancyJsonSerializerContext : JsonSerializerContext
+public partial class NancyJsonSerializerContext : JsonSerializerContext
 {
 }

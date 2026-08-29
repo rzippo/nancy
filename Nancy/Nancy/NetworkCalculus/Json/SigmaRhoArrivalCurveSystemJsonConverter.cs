@@ -11,8 +11,11 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class SigmaRhoArrivalCurveSystemJsonConverter : JsonConverter<SigmaRhoArrivalCurve>
 {
+    /// <summary>
+    /// Proxy record for the serialization of <see cref="SigmaRhoArrivalCurve"/>.
+    /// </summary>
     // ugly hack?
-    internal record PlainSigmaRhoArrivalCurve(string type, Rational sigma, Rational rho);
+    public record PlainSigmaRhoArrivalCurve(string type, Rational sigma, Rational rho);
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override SigmaRhoArrivalCurve Read(

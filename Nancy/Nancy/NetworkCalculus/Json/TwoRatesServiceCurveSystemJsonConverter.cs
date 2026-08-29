@@ -11,8 +11,11 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class TwoRatesServiceCurveSystemJsonConverter : JsonConverter<TwoRatesServiceCurve>
 {
+    /// <summary>
+    /// Proxy record for the serialization of <see cref="TwoRatesServiceCurve"/>.
+    /// </summary>
     // ugly hack?
-    internal record PlainTwoRatesServiceCurve(string type, Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate);
+    public record PlainTwoRatesServiceCurve(string type, Rational delay, Rational transientRate, Rational transientEnd, Rational steadyRate);
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override TwoRatesServiceCurve Read(

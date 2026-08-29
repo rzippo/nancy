@@ -11,9 +11,12 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class RaisedRateLatencyServiceCurveSystemJsonConverter : JsonConverter<RaisedRateLatencyServiceCurve>
 {
+    /// <summary>
+    /// Proxy record for the serialization of <see cref="RaisedRateLatencyServiceCurve"/>.
+    /// </summary>
     // ugly hack?
     // withZeroOrigin is absent from values serialized before it was introduced, and defaults to false, which is how they were built
-    internal record PlainRaisedRateLatencyServiceCurve(string type, Rational rate, Rational latency, Rational bufferShift, bool withZeroOrigin = false);
+    public record PlainRaisedRateLatencyServiceCurve(string type, Rational rate, Rational latency, Rational bufferShift, bool withZeroOrigin = false);
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override RaisedRateLatencyServiceCurve Read(

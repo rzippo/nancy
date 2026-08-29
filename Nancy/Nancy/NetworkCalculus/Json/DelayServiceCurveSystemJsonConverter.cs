@@ -11,8 +11,11 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class DelayServiceCurveSystemJsonConverter : JsonConverter<DelayServiceCurve>
 {
+    /// <summary>
+    /// Proxy record for the serialization of <see cref="DelayServiceCurve"/>.
+    /// </summary>
     // ugly hack?
-    internal record PlainDelayServiceCurve(string type, Rational delay);
+    public record PlainDelayServiceCurve(string type, Rational delay);
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override DelayServiceCurve Read(

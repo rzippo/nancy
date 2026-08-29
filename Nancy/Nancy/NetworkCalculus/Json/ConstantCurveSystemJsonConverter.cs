@@ -11,8 +11,11 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class ConstantCurveSystemJsonConverter : JsonConverter<ConstantCurve>
 {
+    /// <summary>
+    /// Proxy record for the serialization of <see cref="ConstantCurve"/>.
+    /// </summary>
     // ugly hack?
-    internal record PlainConstantCurve(string type, Rational value);
+    public record PlainConstantCurve(string type, Rational value);
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override ConstantCurve Read(

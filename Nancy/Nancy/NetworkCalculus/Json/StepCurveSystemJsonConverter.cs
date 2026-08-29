@@ -11,8 +11,11 @@ namespace Unipi.Nancy.NetworkCalculus.Json;
 /// </summary>
 public class StepCurveSystemJsonConverter : JsonConverter<StepCurve>
 {
+    /// <summary>
+    /// Proxy record for the serialization of <see cref="StepCurve"/>.
+    /// </summary>
     // ugly hack?
-    internal record PlainStepCurve(string type, Rational value, Rational stepTime);
+    public record PlainStepCurve(string type, Rational value, Rational stepTime);
 
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override StepCurve Read(

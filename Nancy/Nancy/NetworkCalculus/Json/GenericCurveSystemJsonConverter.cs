@@ -18,7 +18,7 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
 
     // ugly hack?
     /// Proxy class for the serialization of <see cref="Curve"/>.
-    internal record PlainCurve(string type, Sequence baseSequence, Rational pseudoPeriodStart, Rational pseudoPeriodLength, Rational pseudoPeriodHeight);
+    public record PlainCurve(string type, Sequence baseSequence, Rational pseudoPeriodStart, Rational pseudoPeriodLength, Rational pseudoPeriodHeight);
     
     /// <inheritdoc cref="JsonConverter{T}.Read"/>
     public override Curve Read(
