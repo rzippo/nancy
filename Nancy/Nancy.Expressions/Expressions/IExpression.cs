@@ -17,7 +17,19 @@ public interface IExpression
     /// <summary>
     /// The name of the expression.
     /// </summary>
+    /// <remarks>
+    /// Names collide across reassignment: binding the same script variable twice produces two expressions carrying the same <see cref="Name"/>, and this property alone cannot tell them apart.
+    /// Where that distinction matters, see <see cref="Generation"/>.
+    /// </remarks>
     public string Name { get; }
+
+    /// <summary>
+    /// A caller-supplied marker for which binding of <see cref="Name"/> produced this expression, across repeated reassignment of the same script variable.
+    /// </summary>
+    /// <remarks>
+    /// The library stores this value as given, and neither assigns nor interprets it, the same way it treats <see cref="Name"/>.
+    /// </remarks>
+    public int Generation { get; }
     
     /// <summary>
     /// Formats the expression in LaTeX.

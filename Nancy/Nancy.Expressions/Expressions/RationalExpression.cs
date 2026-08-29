@@ -21,6 +21,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public string Name { get; init; }
 
     /// <inheritdoc />
+    public int Generation { get; init; }
+
+    /// <inheritdoc />
     public ExpressionSettings? Settings { get; init; }
 
     /// <summary>
@@ -59,11 +62,12 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </summary>
     /// <param name="other">The other value.</param>
     /// <remarks>
-    /// Made explicit so that the `with` operator carries what the caller set, the name and the settings, and leaves behind the cache fields, which the new expression has to earn again.
+    /// Made explicit so that the `with` operator carries what the caller set, the name, the generation and the settings, and leaves behind the cache fields, which the new expression has to earn again.
     /// </remarks>
     public RationalExpression(RationalExpression other)
     {
         Name = other.Name;
+        Generation = other.Generation;
         Settings = other.Settings;
     }
 
@@ -260,6 +264,23 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
 
     IGenericExpression<Rational> IGenericExpression<Rational>.WithName(string expressionName) =>
         WithName(expressionName);
+
+    /// <returns>
+    /// The expression (new object of type <see cref="RationalExpression"/>) with the new generation.
+    /// </returns>
+    /// <remarks>
+    /// Same non-destructive, cache-preserving shape as <see cref="WithName"/>.
+    /// </remarks>
+    public RationalExpression WithGeneration(int generation)
+    {
+        var changeGenerationVisitor = new RenameRationalVisitor(newGeneration: generation);
+        Accept(changeGenerationVisitor);
+
+        return changeGenerationVisitor.Result;
+    }
+
+    IGenericExpression<Rational> IGenericExpression<Rational>.WithGeneration(int generation) =>
+        WithGeneration(generation);
 
     /// <summary>
     /// This operator returns true if the value of a rational expression is below or equal than the value of another one.

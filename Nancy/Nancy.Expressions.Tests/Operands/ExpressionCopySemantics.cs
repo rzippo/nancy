@@ -23,21 +23,24 @@ public class ExpressionCopySemantics
         {
             var original = new DeconvolutionExpression(Leaf(1, "a"), Leaf(2, "b"), "d", Settings);
             original.ComputeWithoutResult();
-            return (original, original with { LeftOperand = Leaf(3, "c") });
+            var withGen = (DeconvolutionExpression)original.WithGeneration(7);
+            return (withGen, withGen with { LeftOperand = Leaf(3, "c") });
         });
 
         yield return Case("with, on a unary operand", () =>
         {
             var original = new NegateExpression(Leaf(1, "a"), "n", Settings);
             original.ComputeWithoutResult();
-            return (original, original with { Operand = Leaf(3, "c") });
+            var withGen = (NegateExpression)original.WithGeneration(7);
+            return (withGen, withGen with { Operand = Leaf(3, "c") });
         });
 
         yield return Case("ReplaceByPosition, on an n-ary operand", () =>
         {
             var original = (CurveExpression)Leaf(1, "a").Addition(Leaf(2, "b"), "s", Settings);
             original.ComputeWithoutResult();
-            return (original, original.ReplaceByPosition(new ExpressionPosition(["0"]), new ConstantCurve(100), "big"));
+            var withGen = (CurveExpression)original.WithGeneration(7);
+            return (withGen, withGen.ReplaceByPosition(new ExpressionPosition(["0"]), new ConstantCurve(100), "big"));
         });
 
         static object[] Case(string label, System.Func<(CurveExpression, CurveExpression)> make)
@@ -53,6 +56,22 @@ public class ExpressionCopySemantics
 
         Assert.True(original.IsComputed);
         Assert.False(derived.IsComputed);
+    }
+
+    // `with` goes through the copy constructor, which carries the generation.
+    // ReplaceByPosition rebuilds each node through its constructor instead, and no constructor takes a generation, so the rebuilt expression keeps its name and loses which binding produced it.
+    // Left as it stands rather than fixed here, since carrying it means touching every reconstruction site in OneTimeExpressionReplacer; the divergence is what this test records.
+    [Theory]
+    [MemberData(nameof(Derivations))]
+    public void ADerivationThroughWithKeepsTheGenerationTheCallerSet(
+        string label, System.Func<(CurveExpression Original, CurveExpression Derived)> make)
+    {
+        if (label.StartsWith("ReplaceByPosition"))
+            return;
+
+        var (original, derived) = make();
+
+        Assert.Equal(original.Generation, derived.Generation);
     }
 
     [Theory]

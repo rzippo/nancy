@@ -21,6 +21,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <inheritdoc />
     public string Name { get; init; }
 
+    /// <inheritdoc />
+    public int Generation { get; init; }
+
     /// <summary>
     /// Static dictionary field collecting the well-known equivalences, indexed by the "main" type of equivalence
     /// </summary>
@@ -492,11 +495,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </summary>
     /// <param name="other">The other value.</param>
     /// <remarks>
-    /// Made explicit so that the `with` operator carries what the caller set, the name and the settings, and leaves behind the cache fields, which the new expression has to earn again.
+    /// Made explicit so that the `with` operator carries what the caller set, the name, the generation and the settings, and leaves behind the cache fields, which the new expression has to earn again.
     /// </remarks>
     public CurveExpression(CurveExpression other)
     {
         Name = other.Name;
+        Generation = other.Generation;
         Settings = other.Settings;
     }
     
@@ -1520,7 +1524,24 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     /// <inheritdoc />
     IGenericExpression<Curve> IGenericExpression<Curve>.WithName(string expressionName) => WithName(expressionName);
-    
+
+    /// <returns>
+    /// The expression (new object of type <see cref="CurveExpression"/>) with the new generation.
+    /// </returns>
+    /// <remarks>
+    /// Same non-destructive, cache-preserving shape as <see cref="WithName"/>.
+    /// </remarks>
+    public CurveExpression WithGeneration(int generation)
+    {
+        var changeGenerationVisitor = new RenameCurveVisitor(newGeneration: generation);
+        Accept(changeGenerationVisitor);
+
+        return changeGenerationVisitor.Result;
+    }
+
+    /// <inheritdoc />
+    IGenericExpression<Curve> IGenericExpression<Curve>.WithGeneration(int generation) => WithGeneration(generation);
+
     /// <summary>
     /// This operator returns true if the value of a curve expression is below or equal than the value of another one.
     /// </summary>

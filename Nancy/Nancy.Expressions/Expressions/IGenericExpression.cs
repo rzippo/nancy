@@ -84,7 +84,20 @@ public interface IGenericExpression<out TExpressionResult> : IExpression
     /// </summary>
     /// <param name="expressionName">The new name of the expression</param>
     /// <returns>The expression (new object) with the new name</returns>
+    /// <remarks>
+    /// Returns a new instance; does not mutate the receiver.
+    /// </remarks>
     public IGenericExpression<TExpressionResult> WithName(string expressionName);
+
+    /// <summary>
+    /// Changes the <see cref="IExpression.Generation"/> of the expression.
+    /// </summary>
+    /// <param name="generation">The new generation of the expression</param>
+    /// <returns>The expression (new object) with the new generation</returns>
+    /// <remarks>
+    /// Returns a new instance; does not mutate the receiver.
+    /// </remarks>
+    public IGenericExpression<TExpressionResult> WithGeneration(int generation);
 
     /// <summary>
     /// Applies an equivalence to the current expression.

@@ -16,24 +16,32 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
     public RationalExpression Result = Expressions.FromRational(Rational.Zero);
 
     /// <summary>
-    /// The new name of the expression.
+    /// The new name of the expression, or <see langword="null"/> to keep the visited expression's own.
     /// </summary>
-    public string NewName { get; init; }
+    public string? NewName { get; init; }
 
     /// <summary>
-    /// Visitor class used to change the name of a rational expression.
+    /// The new generation of the expression, or <see langword="null"/> to keep the visited expression's own.
     /// </summary>
-    /// <param name="newName">The new name of the expression.</param>
-    public RenameRationalVisitor(string newName)
+    public int? NewGeneration { get; init; }
+
+    /// <summary>
+    /// Visitor class used to change the name and/or generation of a rational expression.
+    /// </summary>
+    /// <param name="newName">The new name of the expression, or <see langword="null"/> to keep it as-is.</param>
+    /// <param name="newGeneration">The new generation of the expression, or <see langword="null"/> to keep it as-is.</param>
+    public RenameRationalVisitor(string? newName = null, int? newGeneration = null)
     {
         NewName = newName;
+        NewGeneration = newGeneration;
     }
 
     private void CommonVisit(RationalExpression expression)
     {
         Result = expression with
         {
-            Name = NewName,
+            Name = NewName ?? expression.Name,
+            Generation = NewGeneration ?? expression.Generation,
             // Since we know renaming does not change the result,
             // it is safe to explicitly copy over the cache fields
             _value = expression._value,
