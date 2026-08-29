@@ -13,6 +13,9 @@ public interface IGenericNAryExpression<out T1, out TResult> : IGenericExpressio
     /// <summary>
     /// The operands of the n-ary operator.
     /// </summary>
+    /// <remarks>
+    /// Compared as an unordered multiset in <see cref="object.Equals(object?)"/> and <see cref="object.GetHashCode"/>, this interface guaranteeing the operator is associative and commutative.
+    /// </remarks>
     public IReadOnlyCollection<IGenericExpression<T1>> Operands { get; }
 
     /// <inheritdoc cref="Operands"/>

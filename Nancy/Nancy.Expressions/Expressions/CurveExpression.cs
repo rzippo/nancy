@@ -666,6 +666,28 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     
     #endregion Constructors
     
+    #region Equality
+
+    /// <summary>
+    /// True if <paramref name="other"/> is the same operator over the same operands.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Name"/>, <see cref="Generation"/> and <see cref="Settings"/> do not participate:
+    /// an expression by a different name is the same expression.
+    /// Each arity overrides this further with its own operand comparison, on top of this base check.
+    /// </remarks>
+    public virtual bool Equals(CurveExpression? other)
+        => other is not null;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Seeded by the concrete <see cref="Type"/>, so every expression's hash differs from the hash of the bare value it wraps, a <see cref="ConcreteCurveExpression"/> from its own <see cref="Curve"/> included.
+    /// </remarks>
+    public override int GetHashCode()
+        => HashCode.Combine(-363510328, GetType());
+
+    #endregion Equality
+
     #region Methods
 
     /// <summary>

@@ -30,4 +30,18 @@ public record RationalPlaceholderExpression : RationalExpression
     /// Name of the rational placeholder.
     /// </summary>
     public string RationalName { get; init; }
+
+    /// <summary>
+    /// True if <paramref name="other"/> is a placeholder with the same <see cref="RationalName"/>.
+    /// </summary>
+    /// <remarks>
+    /// The one exception to "name does not matter".
+    /// A placeholder has no operands and no computable value, so its name is its entire identity.
+    /// </remarks>
+    public virtual bool Equals(RationalPlaceholderExpression? other)
+        => other is not null && base.Equals(other) && RationalName == other.RationalName;
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), RationalName);
 }

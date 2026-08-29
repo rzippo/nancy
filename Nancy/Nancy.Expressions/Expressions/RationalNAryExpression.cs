@@ -45,6 +45,42 @@ public abstract record
     }
 
     /// <summary>
+    /// True if <paramref name="other"/> is the same operator over the same operands, as an unordered multiset.
+    /// </summary>
+    /// <remarks>
+    /// <c>Addition(a, b)</c> equals <c>Addition(b, a)</c>, the operator being commutative.
+    /// Each operand is paired off against a candidate confirmed by a real <see cref="object.Equals(object?)"/> call, with hash equality serving as a cheap filter first, so two distinct operands that collide on their hash still compare correctly.
+    /// </remarks>
+    public virtual bool Equals(RationalNAryExpression? other)
+    {
+        if (other is null || !base.Equals(other))
+            return false;
+        if (Operands.Count != other.Operands.Count)
+            return false;
+
+        var remaining = other.Operands.ToList();
+        foreach (var operand in Operands)
+        {
+            var hash = operand.GetHashCode();
+            var index = remaining.FindIndex(candidate => candidate.GetHashCode() == hash && operand.Equals(candidate));
+            if (index < 0)
+                return false;
+            remaining.RemoveAt(index);
+        }
+        return true;
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(base.GetHashCode());
+        foreach (var operandHash in Operands.Select(operand => operand.GetHashCode()).OrderBy(h => h))
+            hash.Add(operandHash);
+        return hash.ToHashCode();
+    }
+
+    /// <summary>
     /// Adds another operand to the expression.
     /// </summary>
     public RationalExpression Append(IGenericExpression<Rational> operand, string expressionName = "", ExpressionSettings? settings = null)

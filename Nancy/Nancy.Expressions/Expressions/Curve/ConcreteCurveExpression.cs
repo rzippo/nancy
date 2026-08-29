@@ -41,4 +41,14 @@ public record ConcreteCurveExpression : CurveExpression
     /// A leaf's <c>Value</c> is its only state, set once at construction and never recomputed, so clearing it would lose the curve for good.
     /// </remarks>
     protected internal override bool ValueCacheIsCheap => true;
+
+    /// <summary>
+    /// True if <paramref name="other"/> wraps an equal <see cref="Curve"/>.
+    /// </summary>
+    public virtual bool Equals(ConcreteCurveExpression? other)
+        => other is not null && base.Equals(other) && Value.Equals(other.Value);
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Value);
 }
