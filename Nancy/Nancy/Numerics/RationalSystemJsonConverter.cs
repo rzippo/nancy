@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -46,7 +47,7 @@ public class RationalSystemJsonConverter : JsonConverter<Rational>
                     return (Rational)d;
                 }
                 else
-                    throw new JsonException($"Could not parse Rational from: {reader.GetString()}");
+                    throw new JsonException($"Could not parse Rational from: {Encoding.UTF8.GetString(reader.ValueSpan)}");
             }
 
             #if BIG_RATIONAL
