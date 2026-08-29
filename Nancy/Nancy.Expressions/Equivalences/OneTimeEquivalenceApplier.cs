@@ -176,26 +176,26 @@ public class OneTimeEquivalenceApplier
                 return MatchSideOfEquivalence(p.Expression, e.Expression, false);
             case (IGenericBinaryExpression<Curve, Curve, T> p, IGenericBinaryExpression<Curve, Curve, T> e):
                 {
-                    var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
-                    var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false);
+                    var leftMatchResult = MatchSideOfEquivalence(p.LeftOperand, e.LeftOperand, false);
+                    var rightMatchResult = MatchSideOfEquivalence(p.RightOperand, e.RightOperand, false);
                     return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
                 }
             case (IGenericBinaryExpression<Rational, Rational, T> p, IGenericBinaryExpression<Rational, Rational, T> e):
                 {
-                    var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
-                    var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false);
+                    var leftMatchResult = MatchSideOfEquivalence(p.LeftOperand, e.LeftOperand, false);
+                    var rightMatchResult = MatchSideOfEquivalence(p.RightOperand, e.RightOperand, false);
                     return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
                 }
             case (IGenericBinaryExpression<Rational, Curve, T> p, IGenericBinaryExpression<Rational, Curve, T> e):
                 {
-                    var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
-                    var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false);
+                    var leftMatchResult = MatchSideOfEquivalence(p.LeftOperand, e.LeftOperand, false);
+                    var rightMatchResult = MatchSideOfEquivalence(p.RightOperand, e.RightOperand, false);
                     return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
                 }
             case (IGenericBinaryExpression<Curve, Rational, T> p, IGenericBinaryExpression<Curve, Rational, T> e):
                 {
-                    var leftMatchResult = MatchSideOfEquivalence(p.LeftExpression, e.LeftExpression, false);
-                    var rightMatchResult = MatchSideOfEquivalence(p.RightExpression, e.RightExpression, false);
+                    var leftMatchResult = MatchSideOfEquivalence(p.LeftOperand, e.LeftOperand, false);
+                    var rightMatchResult = MatchSideOfEquivalence(p.RightOperand, e.RightOperand, false);
                     return new MatchPatternResult { IsMatch = leftMatchResult.IsMatch && rightMatchResult.IsMatch };
                 }
             case (CurveNAryExpression p, CurveNAryExpression e):

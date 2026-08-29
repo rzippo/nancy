@@ -119,22 +119,22 @@ public class IsUltimatelyConstantVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>A time shift preserves a constant tail.</remarks>
     public virtual void Visit(DelayByExpression expression)
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>A time shift preserves a constant tail.</remarks>
     public virtual void Visit(ForwardByExpression expression)
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>A time shift preserves a constant tail.</remarks>
     public virtual void Visit(HorizontalShiftExpression expression)
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>A vertical shift preserves a constant tail.</remarks>
     public virtual void Visit(VerticalShiftExpression expression)
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(CurvePlaceholderExpression expression)
@@ -143,7 +143,7 @@ public class IsUltimatelyConstantVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>Scaling (by any factor, including zero) preserves a constant tail.</remarks>
     public virtual void Visit(ScaleExpression expression)
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>Floor of a constant tail is a (different) constant tail.</remarks>

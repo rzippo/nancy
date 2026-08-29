@@ -12,10 +12,18 @@ public interface IGenericBinaryExpression<out T1, out T2, out TResult> : IGeneri
     /// <summary>
     /// Left operand of the operator.
     /// </summary>
-    public IGenericExpression<T1> LeftExpression { get; }
+    public IGenericExpression<T1> LeftOperand { get; }
 
     /// <summary>
     /// Right operand of the operator.
     /// </summary>
-    public IGenericExpression<T2> RightExpression { get; }
+    public IGenericExpression<T2> RightOperand { get; }
+
+    /// <inheritdoc cref="LeftOperand"/>
+    [Obsolete("Renamed to LeftOperand.")]
+    public IGenericExpression<T1> LeftExpression => LeftOperand;
+
+    /// <inheritdoc cref="RightOperand"/>
+    [Obsolete("Renamed to RightOperand.")]
+    public IGenericExpression<T2> RightExpression => RightOperand;
 }

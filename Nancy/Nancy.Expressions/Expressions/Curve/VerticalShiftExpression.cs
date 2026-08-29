@@ -32,10 +32,10 @@ public record VerticalShiftExpression : CurveBinaryExpression<Curve, Rational>
     public VerticalShiftExpression(
         Curve curveL, 
         string nameL, 
-        RationalExpression rightExpression,
+        RationalExpression rightOperand,
         string expressionName = "", 
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, expressionName, settings)
     {
     }
     

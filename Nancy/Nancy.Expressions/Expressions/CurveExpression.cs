@@ -670,9 +670,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the subtraction between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Subtraction(CurveExpression expression, string expressionName = "",
+    public CurveExpression Subtraction(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new SubtractionExpression(this, expression, expressionName, settings);
+        => new SubtractionExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the current expression and the curve (internally
@@ -687,9 +687,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// argument.
     /// </summary>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
-    public CurveExpression Subtraction(CurveExpression expression, bool nonNegative, string expressionName = "",
+    public CurveExpression Subtraction(CurveExpression operand, bool nonNegative, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new SubtractionExpression(this, expression, nonNegative, expressionName, settings);
+        => new SubtractionExpression(this, operand, nonNegative, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the current expression and the curve (internally
@@ -822,9 +822,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the deconvolution between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Deconvolution(CurveExpression expression, string expressionName = "",
+    public CurveExpression Deconvolution(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new DeconvolutionExpression(this, expression, expressionName, settings);
+        => new DeconvolutionExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the current expression and the curve (internally
@@ -872,9 +872,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the max-plus deconvolution between the current expression and the one
     /// passed as argument.
     /// </summary>
-    public CurveExpression MaxPlusDeconvolution(CurveExpression expression, string expressionName = "",
+    public CurveExpression MaxPlusDeconvolution(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new MaxPlusDeconvolutionExpression(this, expression, expressionName, settings);
+        => new MaxPlusDeconvolutionExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the current expression and the curve (internally
@@ -892,9 +892,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the composition between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Composition(CurveExpression expression, string expressionName = "",
+    public CurveExpression Composition(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new CompositionExpression(this, expression, expressionName, settings);
+        => new CompositionExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the composition between the current expression and the curve (internally
@@ -919,9 +919,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.DelayBy"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
-    public CurveExpression DelayBy(RationalExpression expression, string expressionName = "",
+    public CurveExpression DelayBy(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new DelayByExpression(this, expression, expressionName, settings);
+        => new DelayByExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that delays the current expression by the rational <paramref name="delay"/>,
@@ -952,9 +952,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.ForwardBy"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
-    public CurveExpression ForwardBy(RationalExpression expression, string expressionName = "",
+    public CurveExpression ForwardBy(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new ForwardByExpression(this, expression, expressionName, settings);
+        => new ForwardByExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that forwards the current expression by the rational <paramref name="time"/>,
@@ -985,9 +985,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.HorizontalShift"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
-    public CurveExpression HorizontalShift(RationalExpression expression, string expressionName = "",
+    public CurveExpression HorizontalShift(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new HorizontalShiftExpression(this, expression, expressionName, settings);
+        => new HorizontalShiftExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that shifts the current expression by the rational <paramref name="value"/>,
@@ -1014,9 +1014,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
-    public CurveExpression VerticalShift(RationalExpression expression, string expressionName = "",
+    public CurveExpression VerticalShift(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new VerticalShiftExpression(this, expression, expressionName, settings);
+        => new VerticalShiftExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that shifts the current curve
@@ -1036,9 +1036,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the operation to scale the curve corresponding to the current expression
     /// by the rational number described by the argument <paramref name="expression"/> of type
     /// <see cref="RationalExpression"/>. </summary>
-    public CurveExpression Scale(RationalExpression expression, string expressionName = "",
+    public CurveExpression Scale(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new ScaleExpression(this, expression, expressionName, settings);
+        => new ScaleExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the operation to scale the curve corresponding to the current expression

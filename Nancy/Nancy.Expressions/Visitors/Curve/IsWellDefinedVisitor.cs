@@ -96,13 +96,13 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     public virtual void Visit(SubtractionExpression expression)
     {
         // If at least one of the operands is finite --> Subtraction is finite
-        if (expression.LeftExpression.Value.IsFinite || expression.RightExpression.Value.IsFinite) IsWellDefined = true;
+        if (expression.LeftOperand.Value.IsFinite || expression.RightOperand.Value.IsFinite) IsWellDefined = true;
 
         // f - g is undefined if it exists t: f(t) = g(t) = +infinity (-infinity)
-        else if (expression.LeftExpression.Value.InfValue() == expression.RightExpression.Value.InfValue() &&
-                 expression.LeftExpression.Value.InfValue() == Rational.MinusInfinity ||
-                 expression.LeftExpression.Value.SupValue() == expression.RightExpression.Value.SupValue() &&
-                 expression.LeftExpression.Value.SupValue() == Rational.PlusInfinity) IsWellDefined = false;
+        else if (expression.LeftOperand.Value.InfValue() == expression.RightOperand.Value.InfValue() &&
+                 expression.LeftOperand.Value.InfValue() == Rational.MinusInfinity ||
+                 expression.LeftOperand.Value.SupValue() == expression.RightOperand.Value.SupValue() &&
+                 expression.LeftOperand.Value.SupValue() == Rational.PlusInfinity) IsWellDefined = false;
     }
 
     /// <inheritdoc />
@@ -131,7 +131,7 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     public virtual void Visit(DeconvolutionExpression expression)
     {
         // f deconv g is undefined if ∃ t1 ≤ t2, f (t2) = g(t1) = +∞ (or−∞)
-        if (expression.LeftExpression.Value.IsFinite || expression.RightExpression.Value.IsFinite) IsWellDefined = true;
+        if (expression.LeftOperand.Value.IsFinite || expression.RightOperand.Value.IsFinite) IsWellDefined = true;
         else
         {
             throw new NotImplementedException("f deconv g is undefined if ∃ t1 ≤ t2, f (t2) = g(t1) = +∞ (or−∞)");

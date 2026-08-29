@@ -157,9 +157,9 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(DeconvolutionExpression expression)
     {
-        if (((CurveExpression)expression.LeftExpression).IsNonNegative)
+        if (((CurveExpression)expression.LeftOperand).IsNonNegative)
         {
-            expression.LeftExpression.Accept(this);
+            expression.LeftOperand.Accept(this);
             if (IsNonDecreasing)
             {
                 // expression._isNonNegative = true;
@@ -185,11 +185,11 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(DelayByExpression expression) 
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ForwardByExpression expression) 
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(HorizontalShiftExpression expression)
@@ -197,7 +197,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(VerticalShiftExpression expression) 
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(CurvePlaceholderExpression expression)
@@ -206,7 +206,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
     {
-        if (expression.RightExpression.Compute() > 0) expression.LeftExpression.Accept(this);
+        if (expression.RightOperand.Compute() > 0) expression.LeftOperand.Accept(this);
         else _throughCurveComputation(expression);
     }
 

@@ -13,18 +13,26 @@ public abstract record CurveBinaryExpression<T1, T2> : CurveExpression, IGeneric
 {
     /// <inheritdoc/>
     protected CurveBinaryExpression(
-        IGenericExpression<T1> leftExpression,
-        IGenericExpression<T2> rightExpression,
+        IGenericExpression<T1> leftOperand,
+        IGenericExpression<T2> rightOperand,
         string ExpressionName = "",
         ExpressionSettings? Settings = null) : base(ExpressionName, Settings)
     {
-        LeftExpression = leftExpression;
-        RightExpression = rightExpression;
+        LeftOperand = leftOperand;
+        RightOperand = rightOperand;
     }
 
     /// <inheritdoc />
-    public IGenericExpression<T1> LeftExpression { get; init; }
+    public IGenericExpression<T1> LeftOperand { get; init; }
 
     /// <inheritdoc />
-    public IGenericExpression<T2> RightExpression { get; init; }
+    public IGenericExpression<T2> RightOperand { get; init; }
+
+    /// <inheritdoc cref="IGenericBinaryExpression{T1,T2,TResult}.LeftExpression"/>
+    [Obsolete("Renamed to LeftOperand.")]
+    public IGenericExpression<T1> LeftExpression => LeftOperand;
+
+    /// <inheritdoc cref="IGenericBinaryExpression{T1,T2,TResult}.RightExpression"/>
+    [Obsolete("Renamed to RightOperand.")]
+    public IGenericExpression<T2> RightExpression => RightOperand;
 }

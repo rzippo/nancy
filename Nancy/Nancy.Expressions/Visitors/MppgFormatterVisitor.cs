@@ -240,9 +240,9 @@ public partial class MppgFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(mppgOperation);
             sb.Append('(');
-            sb.Append(Render(expression.LeftExpression, MppgPrecedence.Sum));
+            sb.Append(Render(expression.LeftOperand, MppgPrecedence.Sum));
             sb.Append(", ");
-            sb.Append(Render(expression.RightExpression, MppgPrecedence.Sum));
+            sb.Append(Render(expression.RightOperand, MppgPrecedence.Sum));
             sb.Append(')');
             CurrentDepth--;
             return (sb, MppgPrecedence.Atom);
@@ -261,9 +261,9 @@ public partial class MppgFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            sb.Append(RenderOperand(expression.LeftExpression, precedence));
+            sb.Append(RenderOperand(expression.LeftOperand, precedence));
             sb.Append(mppgOperation);
-            sb.Append(RenderOperand(expression.RightExpression, Tighter(precedence)));
+            sb.Append(RenderOperand(expression.RightOperand, Tighter(precedence)));
             CurrentDepth--;
             return (sb, precedence);
         }
@@ -391,9 +391,9 @@ public partial class MppgFormatterVisitor :
             case RationalDivisionExpression division:
                 if (depth >= MaxDepth && IsValidMppgName(division.Name))
                     return false;
-                return IsTightLiteral(division.LeftExpression, depth + 1)
-                    && IsTightLiteral(division.RightExpression, depth + 1)
-                    && !TightFormHasDivision(division.RightExpression);
+                return IsTightLiteral(division.LeftOperand, depth + 1)
+                    && IsTightLiteral(division.RightOperand, depth + 1)
+                    && !TightFormHasDivision(division.RightOperand);
             default:
                 return false;
         }
@@ -426,9 +426,9 @@ public partial class MppgFormatterVisitor :
         },
         RationalDivisionExpression division => (
             new StringBuilder()
-                .Append(RenderTightLiteral(division.LeftExpression).MppgBuilder)
+                .Append(RenderTightLiteral(division.LeftOperand).MppgBuilder)
                 .Append('/')
-                .Append(RenderTightLiteral(division.RightExpression).MppgBuilder),
+                .Append(RenderTightLiteral(division.RightOperand).MppgBuilder),
             MppgPrecedence.Product
         ),
         _ => throw new InvalidOperationException("The expression is not a rational literal.")
@@ -454,7 +454,7 @@ public partial class MppgFormatterVisitor :
         {
             RationalNumberExpression number => number.Value.IsNegative,
             NegateRationalExpression negate => !StartsWithMinus(negate.Expression),
-            RationalDivisionExpression division => StartsWithMinus(division.LeftExpression),
+            RationalDivisionExpression division => StartsWithMinus(division.LeftOperand),
             _ => false
         };
 
@@ -470,7 +470,7 @@ public partial class MppgFormatterVisitor :
             return named;
         else
         {
-            var curveName = expression.LeftExpression.Name;
+            var curveName = expression.LeftOperand.Name;
             if (!IsValidMppgName(curveName))
                 throw new MppgFormattingException(
                     expression.GetType(),
@@ -482,7 +482,7 @@ public partial class MppgFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(curveName);
             sb.Append('(');
-            sb.Append(Render(expression.RightExpression, MppgPrecedence.Sum));
+            sb.Append(Render(expression.RightOperand, MppgPrecedence.Sum));
             sb.Append(timeSuffix);
             sb.Append(')');
             CurrentDepth--;
@@ -655,9 +655,9 @@ public partial class MppgFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder()
                 .Append('(')
-                .Append(Render(expression.LeftExpression, MppgPrecedence.Sum))
+                .Append(Render(expression.LeftOperand, MppgPrecedence.Sum))
                 .Append(" - ")
-                .Append(Render(expression.RightExpression, MppgPrecedence.Product))
+                .Append(Render(expression.RightOperand, MppgPrecedence.Product))
                 .Append(") \\/ 0");
             CurrentDepth--;
             return (sb, MppgPrecedence.Sum);
@@ -712,10 +712,10 @@ public partial class MppgFormatterVisitor :
         else
         {
             CurrentDepth++;
-            var (negatedTime, _) = RenderNegated(expression.RightExpression);
+            var (negatedTime, _) = RenderNegated(expression.RightOperand);
             var sb = new StringBuilder()
                 .Append("hShift(")
-                .Append(Render(expression.LeftExpression, MppgPrecedence.Sum))
+                .Append(Render(expression.LeftOperand, MppgPrecedence.Sum))
                 .Append(", ")
                 .Append(negatedTime)
                 .Append(')');
@@ -742,9 +742,9 @@ public partial class MppgFormatterVisitor :
             CurrentDepth++;
             // the scalar of a scaling is restricted to the enclosed forms, which exclude the infix ones
             var sb = new StringBuilder()
-                .Append(Render(expression.RightExpression, MppgPrecedence.Atom))
+                .Append(Render(expression.RightOperand, MppgPrecedence.Atom))
                 .Append(" * ")
-                .Append(Render(expression.LeftExpression, MppgPrecedence.Atom));
+                .Append(Render(expression.LeftOperand, MppgPrecedence.Atom));
             CurrentDepth--;
             return (sb, MppgPrecedence.Product);
         }

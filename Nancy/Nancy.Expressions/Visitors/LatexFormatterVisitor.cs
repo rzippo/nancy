@@ -195,10 +195,10 @@ public partial class LatexFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(latexCommand);
             sb.Append("{");
-            var (leftLatex, _) = GeneralizedAccept(expression.LeftExpression);
+            var (leftLatex, _) = GeneralizedAccept(expression.LeftOperand);
             sb.Append(leftLatex);
             sb.Append("}{");
-            var (rightLatex, _) = GeneralizedAccept(expression.RightExpression);
+            var (rightLatex, _) = GeneralizedAccept(expression.RightOperand);
             sb.Append(rightLatex);
             sb.Append('}');
             CurrentDepth--;
@@ -218,7 +218,7 @@ public partial class LatexFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder();
 
-            var (leftLatexBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftExpression);
+            var (leftLatexBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftOperand);
             if (leftNeedsParentheses)
             {
                 sb.Append(@"\left( ");
@@ -230,7 +230,7 @@ public partial class LatexFormatterVisitor :
 
             sb.Append(latexOperation);
 
-            var (rightLatexBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightExpression);
+            var (rightLatexBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightOperand);
             if (rightNeedsParentheses)
             {
                 sb.Append(@"\left( ");
@@ -258,10 +258,10 @@ public partial class LatexFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(latexOperation);
             sb.Append(@"\left( ");
-            var (leftLatex, _) = GeneralizedAccept(expression.LeftExpression);
+            var (leftLatex, _) = GeneralizedAccept(expression.LeftOperand);
             sb.Append(leftLatex);
             sb.Append(", ");
-            var (rightLatex, _) = GeneralizedAccept(expression.RightExpression);
+            var (rightLatex, _) = GeneralizedAccept(expression.RightOperand);
             sb.Append(rightLatex);
             sb.Append(@" \right)");
             CurrentDepth--;
@@ -587,13 +587,13 @@ public partial class LatexFormatterVisitor :
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(VerticalShiftExpression expression)
     {
-        switch (expression.RightExpression)
+        switch (expression.RightOperand)
         {
             case NegateRationalExpression negate:
             {
                 var inner = negate.Expression;
                 var substitute = new VerticalShiftExpression(
-                    (CurveExpression) expression.LeftExpression, 
+                    (CurveExpression) expression.LeftOperand, 
                     (RationalExpression) inner);
                 return VisitBinaryInfix(substitute, " - ");
             }
@@ -601,7 +601,7 @@ public partial class LatexFormatterVisitor :
             case RationalNumberExpression rex when rex.Value.IsNegative:
             {
                 var substitute = new VerticalShiftExpression(
-                    (CurveExpression) expression.LeftExpression, 
+                    (CurveExpression) expression.LeftOperand, 
                     new RationalNumberExpression(-rex.Value));
                 return VisitBinaryInfix(substitute, " - ");
             }
@@ -706,7 +706,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveLatex, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveLatex, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append(@"\left(");
@@ -715,7 +715,7 @@ public partial class LatexFormatterVisitor :
             }
             else
                 sb.Append(curveLatex);
-            var (timeLatex, _) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            var (timeLatex, _) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
             sb.Append(@"\left(");
             sb.Append(timeLatex);
             sb.Append(@"\right)");
@@ -733,7 +733,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveLatex, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveLatex, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append(@"\left(");
@@ -742,7 +742,7 @@ public partial class LatexFormatterVisitor :
             }
             else
                 sb.Append(curveLatex);
-            var (timeLatex, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            var (timeLatex, timeNeedsParentheses) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
             sb.Append(@"\left(");
             if (timeNeedsParentheses)
             {
@@ -768,7 +768,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveLatex, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveLatex, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append(@"\left(");
@@ -777,7 +777,7 @@ public partial class LatexFormatterVisitor :
             }
             else
                 sb.Append(curveLatex);
-            var (timeLatex, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            var (timeLatex, timeNeedsParentheses) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
             sb.Append(@"\left(");
             if (timeNeedsParentheses)
             {

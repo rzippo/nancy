@@ -33,10 +33,10 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     public SubtractionExpression(
         Curve curveL, 
         string nameL, 
-        CurveExpression rightExpression,
+        CurveExpression rightOperand,
         string expressionName = "", 
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, expressionName, settings)
     {
     }
 
@@ -44,11 +44,11 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     /// Creates a subtraction expression
     /// </summary>
     public SubtractionExpression(
-        CurveExpression leftExpression,
-        CurveExpression rightExpression,
+        CurveExpression leftOperand,
+        CurveExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : base(leftExpression, rightExpression, expressionName, settings)
+        : base(leftOperand, rightOperand, expressionName, settings)
     {
         NonNegative = false;
     }
@@ -76,11 +76,11 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     public SubtractionExpression(
         Curve curveL, 
         string nameL, 
-        CurveExpression rightExpression, 
+        CurveExpression rightOperand, 
         bool nonNegative,
         string expressionName = "", 
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, nonNegative, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, nonNegative, expressionName, settings)
     {
     }
 
@@ -89,12 +89,12 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     /// </summary>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public SubtractionExpression(
-        CurveExpression leftExpression,
-        CurveExpression rightExpression,
+        CurveExpression leftOperand,
+        CurveExpression rightOperand,
         bool nonNegative,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : base(leftExpression, rightExpression, expressionName, settings)
+        : base(leftOperand, rightOperand, expressionName, settings)
     {
         NonNegative = nonNegative;
     }

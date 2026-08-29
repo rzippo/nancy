@@ -28,10 +28,10 @@ public record ScaleExpression : CurveBinaryExpression<Curve, Rational>
     public ScaleExpression(
         Curve curveL,
         string nameL,
-        RationalExpression rightExpression,
+        RationalExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null)
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, expressionName, settings)
     {
     }
 
@@ -39,11 +39,11 @@ public record ScaleExpression : CurveBinaryExpression<Curve, Rational>
     /// Creates the "scale" expression
     /// </summary>
     public ScaleExpression(
-        CurveExpression leftExpression,
-        RationalExpression rightExpression,
+        CurveExpression leftOperand,
+        RationalExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null)
-        : base(leftExpression, rightExpression, expressionName, settings)
+        : base(leftOperand, rightOperand, expressionName, settings)
     {
     }
 

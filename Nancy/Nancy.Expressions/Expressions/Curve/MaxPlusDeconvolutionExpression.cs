@@ -28,10 +28,10 @@ public record MaxPlusDeconvolutionExpression : CurveBinaryExpression<Curve, Curv
     public MaxPlusDeconvolutionExpression(
         Curve curveL,
         string nameL,
-        CurveExpression rightExpression,
+        CurveExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, expressionName, settings)
     {
     }
 
@@ -39,11 +39,11 @@ public record MaxPlusDeconvolutionExpression : CurveBinaryExpression<Curve, Curv
     /// Creates a max-plus deconvolution expression
     /// </summary>
     public MaxPlusDeconvolutionExpression(
-        CurveExpression leftExpression,
-        CurveExpression rightExpression,
+        CurveExpression leftOperand,
+        CurveExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : base(leftExpression, rightExpression, expressionName, settings)
+        : base(leftOperand, rightOperand, expressionName, settings)
     {
     }
 

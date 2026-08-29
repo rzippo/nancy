@@ -28,10 +28,10 @@ public record ZDeviationExpression : RationalBinaryExpression<Curve, Curve>
     public ZDeviationExpression(
         Curve curveL,
         string nameL,
-        CurveExpression rightExpression,
+        CurveExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, expressionName, settings)
     {
     }
 
@@ -51,12 +51,12 @@ public record ZDeviationExpression : RationalBinaryExpression<Curve, Curve>
     /// Creates a z-deviation expression
     /// </summary>
     public ZDeviationExpression(
-        CurveExpression leftExpression,
+        CurveExpression leftOperand,
         Curve curveR,
         string nameR,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : this(leftExpression, new ConcreteCurveExpression(curveR, nameR), expressionName, settings)
+        : this(leftOperand, new ConcreteCurveExpression(curveR, nameR), expressionName, settings)
     {
     }
 

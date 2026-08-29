@@ -15,19 +15,27 @@ public abstract record RationalBinaryExpression<TLeftOperand, TRightOperand> : R
     /// object.
     /// </summary>
     protected RationalBinaryExpression(
-        IGenericExpression<TLeftOperand> leftExpression,
-        IGenericExpression<TRightOperand> rightExpression,
+        IGenericExpression<TLeftOperand> leftOperand,
+        IGenericExpression<TRightOperand> rightOperand,
         string ExpressionName = "", 
         ExpressionSettings? Settings = null) 
         : base(ExpressionName, Settings)
     {
-        LeftExpression = leftExpression;
-        RightExpression = rightExpression;
+        LeftOperand = leftOperand;
+        RightOperand = rightOperand;
     }
 
     /// <inheritdoc />
-    public IGenericExpression<TLeftOperand> LeftExpression { get; init; }
+    public IGenericExpression<TLeftOperand> LeftOperand { get; init; }
 
     /// <inheritdoc />
-    public IGenericExpression<TRightOperand> RightExpression { get; init; }
+    public IGenericExpression<TRightOperand> RightOperand { get; init; }
+
+    /// <inheritdoc cref="IGenericBinaryExpression{T1,T2,TResult}.LeftExpression"/>
+    [Obsolete("Renamed to LeftOperand.")]
+    public IGenericExpression<TLeftOperand> LeftExpression => LeftOperand;
+
+    /// <inheritdoc cref="IGenericBinaryExpression{T1,T2,TResult}.RightExpression"/>
+    [Obsolete("Renamed to RightOperand.")]
+    public IGenericExpression<TRightOperand> RightExpression => RightOperand;
 }

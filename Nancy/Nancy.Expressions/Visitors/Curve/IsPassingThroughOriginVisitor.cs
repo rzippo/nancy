@@ -106,10 +106,10 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(SubtractionExpression expression)
     {
-        expression.LeftExpression.Accept(this);
+        expression.LeftOperand.Accept(this);
         if (IsPassingThroughOrigin)
         {
-            expression.RightExpression.Accept(this);
+            expression.RightOperand.Accept(this);
         }
 
         if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
@@ -163,7 +163,7 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(DelayByExpression expression)
-        => expression.LeftExpression.Accept(this);
+        => expression.LeftOperand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ForwardByExpression expression)
@@ -184,8 +184,8 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
     {
-        if (expression.RightExpression.Compute() == 0) IsPassingThroughOrigin = true;
-        else expression.LeftExpression.Accept(this);
+        if (expression.RightOperand.Compute() == 0) IsPassingThroughOrigin = true;
+        else expression.LeftOperand.Accept(this);
     }
 
     /// <inheritdoc />

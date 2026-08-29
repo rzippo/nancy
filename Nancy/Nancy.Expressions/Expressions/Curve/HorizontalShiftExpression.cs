@@ -43,10 +43,10 @@ public record HorizontalShiftExpression : CurveBinaryExpression<Curve, Rational>
     public HorizontalShiftExpression(
         Curve curveL,
         string nameL,
-        RationalExpression rightExpression,
+        RationalExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, expressionName, settings)
     {
     }
 
@@ -59,11 +59,11 @@ public record HorizontalShiftExpression : CurveBinaryExpression<Curve, Rational>
     /// if the shift argument turns out to be infinite.
     /// </remarks>
     public HorizontalShiftExpression(
-        CurveExpression leftExpression,
-        RationalExpression rightExpression,
+        CurveExpression leftOperand,
+        RationalExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : base(leftExpression, rightExpression, expressionName, settings)
+        : base(leftOperand, rightOperand, expressionName, settings)
     {
     }
 

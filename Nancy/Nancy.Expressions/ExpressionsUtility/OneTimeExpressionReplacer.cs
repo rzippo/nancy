@@ -77,26 +77,26 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 return MatchPattern(p.Expression, e.Expression, false);
             case (IGenericBinaryExpression<Curve, Curve, T> p, IGenericBinaryExpression<Curve, Curve, T> e):
             {
-                var leftMatch = MatchPattern(p.LeftExpression, e.LeftExpression, false);
-                var rightMatch = MatchPattern(p.RightExpression, e.RightExpression, false);
+                var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
+                var rightMatch = MatchPattern(p.RightOperand, e.RightOperand, false);
                 return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
             }
             case (IGenericBinaryExpression<Rational, Rational, T> p, IGenericBinaryExpression<Rational, Rational, T> e):
             {
-                var leftMatch = MatchPattern(p.LeftExpression, e.LeftExpression, false);
-                var rightMatch = MatchPattern(p.RightExpression, e.RightExpression, false);
+                var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
+                var rightMatch = MatchPattern(p.RightOperand, e.RightOperand, false);
                 return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
             }
             case (IGenericBinaryExpression<Rational, Curve, T> p, IGenericBinaryExpression<Rational, Curve, T> e):
             {
-                var leftMatch = MatchPattern(p.LeftExpression, e.LeftExpression, false);
-                var rightMatch = MatchPattern(p.RightExpression, e.RightExpression, false);
+                var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
+                var rightMatch = MatchPattern(p.RightOperand, e.RightOperand, false);
                 return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
             }
             case (IGenericBinaryExpression<Curve, Rational, T> p, IGenericBinaryExpression<Curve, Rational, T> e):
             {
-                var leftMatch = MatchPattern(p.LeftExpression, e.LeftExpression, false);
-                var rightMatch = MatchPattern(p.RightExpression, e.RightExpression, false);
+                var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
+                var rightMatch = MatchPattern(p.RightOperand, e.RightOperand, false);
                 return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
             }
             case (CurveNAryExpression p, CurveNAryExpression e):
@@ -525,7 +525,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         IGenericBinaryExpression<TLeft, TRight, T> binaryExpression)
     {
         var result = new ReplaceResult();
-        var innerResultLeft = ReplaceByValue(expressionPattern, binaryExpression.LeftExpression);
+        var innerResultLeft = ReplaceByValue(expressionPattern, binaryExpression.LeftOperand);
         object? tempL;
         if (typeof(TLeft) == typeof(Curve))
         {
@@ -535,7 +535,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                     NewExpressionToReplace, 
                     innerResultLeft.MatchPatternResult),
                 2 => _tempCurveExpression,
-                _ => binaryExpression.LeftExpression as IGenericExpression<Curve>
+                _ => binaryExpression.LeftOperand as IGenericExpression<Curve>
             };
         }
         else
@@ -546,11 +546,11 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                     NewExpressionToReplace,
                     innerResultLeft.MatchPatternResult),
                 2 => _tempRationalExpression,
-                _ => binaryExpression.LeftExpression as IGenericExpression<Rational>
+                _ => binaryExpression.LeftOperand as IGenericExpression<Rational>
             };
         }
 
-        var innerResultRight = ReplaceByValue(expressionPattern, binaryExpression.RightExpression);
+        var innerResultRight = ReplaceByValue(expressionPattern, binaryExpression.RightOperand);
         object? tempR;
         if (typeof(TRight) == typeof(Curve))
         {
@@ -560,7 +560,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                     NewExpressionToReplace,
                     innerResultLeft.MatchPatternResult),
                 2 => _tempCurveExpression,
-                _ => binaryExpression.RightExpression as IGenericExpression<Curve>
+                _ => binaryExpression.RightOperand as IGenericExpression<Curve>
             };
         }
         else
@@ -571,7 +571,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                     NewExpressionToReplace,
                     innerResultLeft.MatchPatternResult),
                 2 => _tempRationalExpression,
-                _ => binaryExpression.RightExpression as IGenericExpression<Rational>
+                _ => binaryExpression.RightOperand as IGenericExpression<Rational>
             };
         }
 
@@ -827,7 +827,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         IGenericBinaryExpression<TLeft, TRight, TResult> binaryExpression
     )
     {
-        var result = ReplaceByPosition(positionPath, binaryExpression.LeftExpression);
+        var result = ReplaceByPosition(positionPath, binaryExpression.LeftOperand);
         switch (result)
         {
             case 1 when typeof(TResult) == typeof(Curve):
@@ -835,7 +835,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 var curveBinaryExpression = (CurveBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
                 _tempCurveExpression = curveBinaryExpression with
                 {
-                    LeftExpression = NewExpressionToReplace
+                    LeftOperand = NewExpressionToReplace
                 };
                 break;
             }
@@ -844,7 +844,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 var rationalBinaryExpression = (RationalBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
                 _tempRationalExpression = rationalBinaryExpression with
                 {
-                    LeftExpression = NewExpressionToReplace
+                    LeftOperand = NewExpressionToReplace
                 };
                 break;
             }
@@ -853,7 +853,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 var curveBinaryExpression = (CurveBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
                 _tempCurveExpression = curveBinaryExpression with
                 {
-                    LeftExpression = (typeof(TReplacedOperand) == typeof(Curve)) ?
+                    LeftOperand = (typeof(TReplacedOperand) == typeof(Curve)) ?
                         (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
                         (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
                 };
@@ -864,7 +864,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 var rationalBinaryExpression = (RationalBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
                 _tempRationalExpression = rationalBinaryExpression with
                 {
-                    LeftExpression = (typeof(TReplacedOperand) == typeof(Curve)) ? 
+                    LeftOperand = (typeof(TReplacedOperand) == typeof(Curve)) ? 
                         (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
                         (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
                 };
@@ -897,7 +897,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         IEnumerator<string> positionPath,
         IGenericBinaryExpression<TLeft, TRight, TResult> binaryExpression)
     {
-        var result = ReplaceByPosition(positionPath, binaryExpression.RightExpression);
+        var result = ReplaceByPosition(positionPath, binaryExpression.RightOperand);
         switch (result)
         {
             case 1 when typeof(TResult) == typeof(Curve):
@@ -905,7 +905,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 var curveBinaryExpression = (CurveBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
                 _tempCurveExpression = curveBinaryExpression with
                 {
-                    RightExpression = NewExpressionToReplace
+                    RightOperand = NewExpressionToReplace
                 };
                 break;
             }
@@ -914,7 +914,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 var rationalBinaryExpression = (RationalBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
                 _tempRationalExpression = rationalBinaryExpression with
                 {
-                    RightExpression = NewExpressionToReplace
+                    RightOperand = NewExpressionToReplace
                 };
                 break;
             }
@@ -923,7 +923,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 var curveBinaryExpression = (CurveBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
                 _tempCurveExpression = curveBinaryExpression with
                 {
-                    RightExpression = (typeof(TReplacedOperand) == typeof(Curve)) ?
+                    RightOperand = (typeof(TReplacedOperand) == typeof(Curve)) ?
                         (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
                         (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
                 };
@@ -934,7 +934,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 var rationalBinaryExpression = (RationalBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
                 _tempRationalExpression = rationalBinaryExpression with
                 {
-                    RightExpression = (typeof(TReplacedOperand) == typeof(Curve)) ?
+                    RightOperand = (typeof(TReplacedOperand) == typeof(Curve)) ?
                         (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
                         (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
                 };

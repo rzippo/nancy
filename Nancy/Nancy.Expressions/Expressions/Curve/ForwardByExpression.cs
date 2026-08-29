@@ -43,10 +43,10 @@ public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
     public ForwardByExpression(
         Curve curveL, 
         string nameL, 
-        RationalExpression rightExpression,
+        RationalExpression rightOperand,
         string expressionName = "", 
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, expressionName, settings)
     {
     }
 
@@ -59,11 +59,11 @@ public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
     /// if the time argument turns out to be either negative or infinite.
     /// </remarks>
     public ForwardByExpression(
-        CurveExpression leftExpression,
-        RationalExpression rightExpression,
+        CurveExpression leftOperand,
+        RationalExpression rightOperand,
         string expressionName = "", 
         ExpressionSettings? settings = null)
-        : base(leftExpression, rightExpression, expressionName, settings)
+        : base(leftOperand, rightOperand, expressionName, settings)
     {
     }
 

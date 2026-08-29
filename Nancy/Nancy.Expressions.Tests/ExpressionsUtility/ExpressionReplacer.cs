@@ -128,7 +128,7 @@ public class ExpressionReplacer
 
         var e2 = (HorizontalDeviationExpression)e1 with
         {
-            RightExpression = Expressions.FromCurve(new RateLatencyServiceCurve( 2, 5)) 
+            RightOperand = Expressions.FromCurve(new RateLatencyServiceCurve( 2, 5))
         };
 
         // expected value = 5 + 6 / 2 = 8

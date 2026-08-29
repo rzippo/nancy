@@ -157,7 +157,7 @@ public partial class UnicodeFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder();
 
-            var (leftUnicodeBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftExpression);
+            var (leftUnicodeBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftOperand);
             if (leftNeedsParentheses)
             {
                 sb.Append('(');
@@ -169,7 +169,7 @@ public partial class UnicodeFormatterVisitor :
 
             sb.Append(unicodeOperation);
 
-            var (rightUnicodeBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightExpression);
+            var (rightUnicodeBuilder, rightNeedsParentheses) = GeneralizedAccept(expression.RightOperand);
             if (rightNeedsParentheses)
             {
                 sb.Append('(');
@@ -197,10 +197,10 @@ public partial class UnicodeFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(unicodeOperation);
             sb.Append('(');
-            var (leftUnicode, _) = GeneralizedAccept(expression.LeftExpression);
+            var (leftUnicode, _) = GeneralizedAccept(expression.LeftOperand);
             sb.Append(leftUnicode);
             sb.Append(", ");
-            var (rightUnicode, _) = GeneralizedAccept(expression.RightExpression);
+            var (rightUnicode, _) = GeneralizedAccept(expression.RightOperand);
             sb.Append(rightUnicode);
             sb.Append(')');
             CurrentDepth--;
@@ -593,13 +593,13 @@ public partial class UnicodeFormatterVisitor :
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(VerticalShiftExpression expression)
     {
-        switch (expression.RightExpression)
+        switch (expression.RightOperand)
         {
             case NegateRationalExpression negate:
             {
                 var inner = negate.Expression;
                 var substitute = new VerticalShiftExpression(
-                    (CurveExpression) expression.LeftExpression, 
+                    (CurveExpression) expression.LeftOperand, 
                     (RationalExpression) inner);
                 return VisitBinaryInfix(substitute, " - ");
             }
@@ -607,7 +607,7 @@ public partial class UnicodeFormatterVisitor :
             case RationalNumberExpression rex when rex.Value.IsNegative:
             {
                 var substitute = new VerticalShiftExpression(
-                    (CurveExpression) expression.LeftExpression, 
+                    (CurveExpression) expression.LeftOperand, 
                     new RationalNumberExpression(-rex.Value));
                 return VisitBinaryInfix(substitute, " - ");
             }
@@ -712,7 +712,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveUnicode, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append('(');
@@ -721,7 +721,7 @@ public partial class UnicodeFormatterVisitor :
             }
             else
                 sb.Append(curveUnicode);
-            var (timeUnicode, _) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            var (timeUnicode, _) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
             sb.Append('(');
             sb.Append(timeUnicode);
             sb.Append(')');
@@ -739,7 +739,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveUnicode, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append('(');
@@ -748,7 +748,7 @@ public partial class UnicodeFormatterVisitor :
             }
             else
                 sb.Append(curveUnicode);
-            var (timeUnicode, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            var (timeUnicode, timeNeedsParentheses) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
             sb.Append('(');
             if (timeNeedsParentheses)
             {
@@ -774,7 +774,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftExpression.Accept<(StringBuilder, bool)>(this);
+            var (curveUnicode, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
             if (curveNeedsParentheses)
             {
                 sb.Append('(');
@@ -783,7 +783,7 @@ public partial class UnicodeFormatterVisitor :
             }
             else
                 sb.Append(curveUnicode);
-            var (timeUnicode, timeNeedsParentheses) = expression.RightExpression.Accept<(StringBuilder, bool)>(this);
+            var (timeUnicode, timeNeedsParentheses) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
             sb.Append('(');
             if (timeNeedsParentheses)
             {

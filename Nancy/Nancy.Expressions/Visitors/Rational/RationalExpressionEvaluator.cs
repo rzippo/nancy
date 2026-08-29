@@ -26,27 +26,27 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(HorizontalDeviationExpression expression)
-        => _result = Curve.HorizontalDeviation(expression.LeftExpression.Value, expression.RightExpression.Value);
+        => _result = Curve.HorizontalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(VerticalDeviationExpression expression)
-        => _result = Curve.VerticalDeviation(expression.LeftExpression.Value, expression.RightExpression.Value);
+        => _result = Curve.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(ZDeviationExpression expression)
-        => _result = Curve.ZDeviation(expression.LeftExpression.Value, expression.RightExpression.Value);
+        => _result = Curve.ZDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(ValueAtExpression expression)
-        => _result = expression.LeftExpression.Value.ValueAt(expression.RightExpression.Value);
+        => _result = expression.LeftOperand.Value.ValueAt(expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(LeftLimitAtExpression expression)
-        => _result = expression.LeftExpression.Value.LeftLimitAt(expression.RightExpression.Value);
+        => _result = expression.LeftOperand.Value.LeftLimitAt(expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(RightLimitAtExpression expression)
-        => _result = expression.LeftExpression.Value.RightLimitAt(expression.RightExpression.Value);
+        => _result = expression.LeftOperand.Value.RightLimitAt(expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(RationalAdditionExpression expression)
@@ -54,7 +54,7 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(RationalSubtractionExpression expression)
-        => _result = expression.LeftExpression.Value - expression.RightExpression.Value;
+        => _result = expression.LeftOperand.Value - expression.RightOperand.Value;
     
     /// <inheritdoc />
     public virtual void Visit(RationalProductExpression expression)
@@ -62,7 +62,7 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(RationalDivisionExpression expression)
-        => _result = expression.LeftExpression.Value / expression.RightExpression.Value;
+        => _result = expression.LeftOperand.Value / expression.RightOperand.Value;
 
     /// <inheritdoc />
     public virtual void Visit(RationalLeastCommonMultipleExpression expression)
@@ -95,9 +95,9 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     public virtual void Visit(RationalAbsoluteValueExpression expression) => _result = Rational.Abs(expression.Expression.Value);
 
-    public virtual void Visit(RationalModuloExpression expression) => _result = expression.LeftExpression.Value % expression.RightExpression.Value;
+    public virtual void Visit(RationalModuloExpression expression) => _result = expression.LeftOperand.Value % expression.RightOperand.Value;
 
-    public virtual void Visit(RationalPowerExpression expression) => _result = Rational.Pow(expression.LeftExpression.Value, (System.Numerics.BigInteger)expression.RightExpression.Value);
+    public virtual void Visit(RationalPowerExpression expression) => _result = Rational.Pow(expression.LeftOperand.Value, (System.Numerics.BigInteger)expression.RightOperand.Value);
 
     public virtual void Visit(RationalPlaceholderExpression expression)
         => throw new InvalidOperationException("Can't evaluate an expression with placeholders!");

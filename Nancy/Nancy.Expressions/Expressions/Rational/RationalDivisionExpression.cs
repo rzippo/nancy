@@ -12,11 +12,11 @@ public record RationalDivisionExpression : RationalBinaryExpression<Rational, Ra
     /// Class representing an expression whose root operation is the division between rational numbers
     /// </summary>
     public RationalDivisionExpression(
-        IGenericExpression<Rational> leftExpression,
-        IGenericExpression<Rational> rightExpression,
+        IGenericExpression<Rational> leftOperand,
+        IGenericExpression<Rational> rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null)
-        : base(leftExpression, rightExpression, expressionName, settings)
+        : base(leftOperand, rightOperand, expressionName, settings)
     {
     }
 

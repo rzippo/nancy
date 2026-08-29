@@ -6,11 +6,11 @@ namespace Unipi.Nancy.Expressions.Internals;
 public record RationalPowerExpression : RationalBinaryExpression<Rational, Rational>
 {
     public RationalPowerExpression(
-        IGenericExpression<Rational> leftExpression,
-        IGenericExpression<Rational> rightExpression,
+        IGenericExpression<Rational> leftOperand,
+        IGenericExpression<Rational> rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null)
-        : base(leftExpression, rightExpression, expressionName, settings)
+        : base(leftOperand, rightOperand, expressionName, settings)
     {
     }
 

@@ -30,7 +30,7 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
 
     private void VisitBinary(CurveBinaryExpression<Curve, Curve> expression,
         Func<Curve, Curve, Curve> operation)
-        => _result = operation(expression.LeftExpression.Value, expression.RightExpression.Value);
+        => _result = operation(expression.LeftOperand.Value, expression.RightOperand.Value);
 
     private void VisitNAry(CurveNAryExpression expression, Func<IReadOnlyCollection<Curve>, Curve> operation)
     {
@@ -132,19 +132,19 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(DelayByExpression expression)
-        => _result = expression.LeftExpression.Value.DelayBy(expression.RightExpression.Value);
+        => _result = expression.LeftOperand.Value.DelayBy(expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(ForwardByExpression expression)
-        => _result = expression.LeftExpression.Value.ForwardBy(expression.RightExpression.Value);
+        => _result = expression.LeftOperand.Value.ForwardBy(expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(HorizontalShiftExpression expression)
-        => _result = expression.LeftExpression.Value.HorizontalShift(expression.RightExpression.Value);
+        => _result = expression.LeftOperand.Value.HorizontalShift(expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(VerticalShiftExpression expression)
-        => _result = expression.LeftExpression.Value.VerticalShift(expression.RightExpression.Value, false);
+        => _result = expression.LeftOperand.Value.VerticalShift(expression.RightOperand.Value, false);
 
     /// <inheritdoc />
     public virtual void Visit(CurvePlaceholderExpression expression)
@@ -152,7 +152,7 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
-        => _result = expression.LeftExpression.Value.Scale(expression.RightExpression.Value);
+        => _result = expression.LeftOperand.Value.Scale(expression.RightOperand.Value);
 
     /// <inheritdoc />
     public virtual void Visit(WithOriginAtExpression expression)

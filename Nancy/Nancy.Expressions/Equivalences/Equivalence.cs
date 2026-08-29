@@ -179,14 +179,14 @@ public partial class Equivalence
             RationalNumberExpression => false,
             IGenericUnaryExpression<Curve, T> e => _endWithPlaceholder(e.Expression),
             IGenericUnaryExpression<Rational, T> e => _endWithPlaceholder(e.Expression),
-            IGenericBinaryExpression<Curve, Curve, T> e => _endWithPlaceholder(e.LeftExpression) ||
-                                                           _endWithPlaceholder(e.RightExpression),
-            IGenericBinaryExpression<Rational, Curve, T> e => _endWithPlaceholder(e.LeftExpression) ||
-                                                              _endWithPlaceholder(e.RightExpression),
-            IGenericBinaryExpression<Curve, Rational, T> e => _endWithPlaceholder(e.LeftExpression) ||
-                                                              _endWithPlaceholder(e.RightExpression),
-            IGenericBinaryExpression<Rational, Rational, T> e => _endWithPlaceholder(e.LeftExpression) ||
-                                                                 _endWithPlaceholder(e.RightExpression),
+            IGenericBinaryExpression<Curve, Curve, T> e => _endWithPlaceholder(e.LeftOperand) ||
+                                                           _endWithPlaceholder(e.RightOperand),
+            IGenericBinaryExpression<Rational, Curve, T> e => _endWithPlaceholder(e.LeftOperand) ||
+                                                              _endWithPlaceholder(e.RightOperand),
+            IGenericBinaryExpression<Curve, Rational, T> e => _endWithPlaceholder(e.LeftOperand) ||
+                                                              _endWithPlaceholder(e.RightOperand),
+            IGenericBinaryExpression<Rational, Rational, T> e => _endWithPlaceholder(e.LeftOperand) ||
+                                                                 _endWithPlaceholder(e.RightOperand),
             IGenericNAryExpression<T, T> e => e.Operands.Any(_endWithPlaceholder),
             _ => throw new InvalidOperationException(expression.GetType() +
                                                      " case is missing in '_endWithPlaceholder' method")

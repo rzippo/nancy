@@ -377,9 +377,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// Creates a new expression composed of the subtraction between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public RationalExpression Subtraction(RationalExpression expression, string expressionName = "",
+    public RationalExpression Subtraction(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new RationalSubtractionExpression(this, expression, expressionName, settings);
+        => new RationalSubtractionExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the expression <paramref name="left"/> and the
@@ -487,9 +487,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// Creates a new expression composed of the division between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public RationalExpression Division(RationalExpression expression, string expressionName = "",
+    public RationalExpression Division(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new RationalDivisionExpression(this, expression, expressionName, settings);
+        => new RationalDivisionExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the division between the expression <paramref name="left"/> and the expression
@@ -540,9 +540,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// Creates a new expression composed of the remainder (modulo) between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public RationalExpression Remainder(RationalExpression expression, string expressionName = "",
+    public RationalExpression Remainder(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => new RationalModuloExpression(this, expression, expressionName, settings);
+        => new RationalModuloExpression(this, operand, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the remainder (modulo) between the expression <paramref name="left"/> and the

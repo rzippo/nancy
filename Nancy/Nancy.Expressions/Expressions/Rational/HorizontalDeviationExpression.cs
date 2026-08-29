@@ -28,10 +28,10 @@ public record HorizontalDeviationExpression : RationalBinaryExpression<Curve, Cu
     public HorizontalDeviationExpression(
         Curve curveL,
         string nameL,
-        CurveExpression rightExpression,
+        CurveExpression rightOperand,
         string expressionName = "",
         ExpressionSettings? settings = null) 
-        : this(new ConcreteCurveExpression(curveL, nameL), rightExpression, expressionName, settings)
+        : this(new ConcreteCurveExpression(curveL, nameL), rightOperand, expressionName, settings)
     {
     }
 

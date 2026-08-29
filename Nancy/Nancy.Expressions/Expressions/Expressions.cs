@@ -380,10 +380,10 @@ public static class Expressions
     /// Creates a new expression composed of the subtraction between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Subtraction(CurveExpression expression, Curve curve,
+    public static CurveExpression Subtraction(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Subtraction(curve, name, expressionName, settings);
+        => operand.Subtraction(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two curves (internally
@@ -417,10 +417,10 @@ public static class Expressions
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
-    public static CurveExpression Subtraction(CurveExpression expression, Curve curve, bool nonNegative,
+    public static CurveExpression Subtraction(CurveExpression operand, Curve curve, bool nonNegative,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Subtraction(curve, nonNegative, name, expressionName, settings);
+        => operand.Subtraction(curve, nonNegative, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two curves (internally
@@ -617,10 +617,10 @@ public static class Expressions
     /// Creates a new expression composed of the deconvolution between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Deconvolution(CurveExpression expression, Curve curve,
+    public static CurveExpression Deconvolution(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Deconvolution(curve, name, expressionName, settings);
+        => operand.Deconvolution(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the two curves (internally
@@ -709,10 +709,10 @@ public static class Expressions
     /// Creates a new expression composed of the max-plus deconvolution between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression MaxPlusDeconvolution(CurveExpression expression, Curve curve,
+    public static CurveExpression MaxPlusDeconvolution(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.MaxPlusDeconvolution(curve, name, expressionName, settings);
+        => operand.MaxPlusDeconvolution(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the two curves (internally
@@ -748,10 +748,10 @@ public static class Expressions
     /// Creates a new expression composed of the composition between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Composition(CurveExpression expression, Curve curve,
+    public static CurveExpression Composition(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Composition(curve, name, expressionName, settings);
+        => operand.Composition(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the composition between the two curves (internally
@@ -998,9 +998,9 @@ public static class Expressions
     /// <seealso cref="Curve.DelayBy"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
-    public static CurveExpression DelayBy(CurveExpression expression, Rational delay,
+    public static CurveExpression DelayBy(CurveExpression operand, Rational delay,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.DelayBy(delay, expressionName, settings);
+        => operand.DelayBy(delay, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that delays the curve <paramref name="curveL"/>
@@ -1064,9 +1064,9 @@ public static class Expressions
     /// <seealso cref="Curve.ForwardBy"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
-    public static CurveExpression ForwardBy(CurveExpression expression, Rational time,
+    public static CurveExpression ForwardBy(CurveExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.ForwardBy(time, expressionName, settings);
+        => operand.ForwardBy(time, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that forwards the curve <paramref name="curveL"/>
@@ -1132,9 +1132,9 @@ public static class Expressions
     /// <seealso cref="Curve.HorizontalShift"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
-    public static CurveExpression HorizontalShift(CurveExpression expression, Rational time,
+    public static CurveExpression HorizontalShift(CurveExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.HorizontalShift(time, expressionName, settings);
+        => operand.HorizontalShift(time, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that shifts the curve <paramref name="curveL"/> horizontally to the right
@@ -1186,9 +1186,9 @@ public static class Expressions
     /// Creates a new expression that shifts the curve expression
     /// <paramref name="expression"/> by the rational <paramref name="time"/>, i.e., computing $f(t) + K$.
     /// </summary>
-    public static CurveExpression VerticalShift(CurveExpression expression, Rational time,
+    public static CurveExpression VerticalShift(CurveExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.VerticalShift(time, expressionName, settings);
+        => operand.VerticalShift(time, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that shifts the curve <paramref name="curveL"/>
@@ -1224,9 +1224,9 @@ public static class Expressions
     /// Creates a new expression that scales the curve expression
     /// <paramref name="expression"/> by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
-    public static CurveExpression Scale(CurveExpression expression, Rational scaleFactor,
+    public static CurveExpression Scale(CurveExpression operand, Rational scaleFactor,
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Scale(scaleFactor, expressionName, settings);
+        => operand.Scale(scaleFactor, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that scales the curve <paramref name="curveL"/>
@@ -1510,10 +1510,10 @@ public static class Expressions
     /// Creates a new expression composed of the division between the expression and the number (internally
     /// converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
-    public static RationalExpression Division(RationalExpression expression, Rational number,
+    public static RationalExpression Division(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Division(number, name, expressionName, settings);
+        => operand.Division(number, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the division between the two numbers (internally
