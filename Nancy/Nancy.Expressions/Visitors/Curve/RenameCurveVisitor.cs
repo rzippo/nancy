@@ -39,13 +39,20 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
             _value = expression._value,
             _isSubAdditive = expression._isSubAdditive,
             _isSuperAdditive = expression._isSuperAdditive,
+            _isLeftContinuous = expression._isLeftContinuous,
+            _isRightContinuous = expression._isRightContinuous,
+            _isNonNegative = expression._isNonNegative,
+            _isNonDecreasing = expression._isNonDecreasing,
             _isIncreasing = expression._isIncreasing,
+            _isConcave = expression._isConcave,
+            _isConvex = expression._isConvex,
             _isPassingThroughOrigin = expression._isPassingThroughOrigin,
             _isUltimatelyFinite = expression._isUltimatelyFinite,
             _isPlain = expression._isPlain,
             _isUltimatelyPlain = expression._isUltimatelyPlain,
             _isUltimatelyAffine = expression._isUltimatelyAffine,
             _isUltimatelyConstant = expression._isUltimatelyConstant,
+            _isWellDefined = expression._isWellDefined,
         };
     }
 
@@ -130,44 +137,44 @@ public class RenameCurveVisitor : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(DeconvolutionExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(MaxPlusConvolutionExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
 
     /// <inheritdoc />
     public virtual void Visit(MaxPlusDeconvolutionExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(CompositionExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(DelayByExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(ForwardByExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(HorizontalShiftExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(VerticalShiftExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(CurvePlaceholderExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(ScaleExpression expression)
-        => Result = expression with { Name = NewName };
+        => CommonVisit(expression);
 
     /// <inheritdoc />
     public virtual void Visit(WithOriginAtExpression expression)
