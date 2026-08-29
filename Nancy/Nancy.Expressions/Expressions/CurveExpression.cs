@@ -1703,6 +1703,15 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     IGenericExpression<Curve> IGenericExpression<Curve>.WithGeneration(int generation) => WithGeneration(generation);
 
     /// <summary>
+    /// Collapses this expression to a plain leaf wrapping its current <see cref="Value"/>.
+    /// </summary>
+    /// <remarks>
+    /// Pure: this expression's own tree is untouched, and remains exactly as valid as before.
+    /// </remarks>
+    public ConcreteCurveExpression ToConcrete(string? expressionName = null)
+        => new(Value, expressionName ?? Name, Settings);
+
+    /// <summary>
     /// This operator returns true if the value of a curve expression is below or equal than the value of another one.
     /// </summary>
     public static bool operator <=(CurveExpression expressionL, CurveExpression expressionR)

@@ -348,6 +348,15 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         WithGeneration(generation);
 
     /// <summary>
+    /// Collapses this expression to a plain leaf wrapping its current <see cref="Value"/>.
+    /// </summary>
+    /// <remarks>
+    /// Pure: this expression's own tree is untouched, and remains exactly as valid as before.
+    /// </remarks>
+    public RationalNumberExpression ToConcrete(string? expressionName = null)
+        => new(Value, expressionName ?? Name, Settings);
+
+    /// <summary>
     /// This operator returns true if the value of a rational expression is below or equal than the value of another one.
     /// </summary>
     public static bool operator <=(RationalExpression expressionL, RationalExpression expressionR)
