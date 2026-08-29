@@ -120,6 +120,90 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         }
     }
 
+    #region IfKnown accessors
+
+    /// <summary>
+    /// <see cref="IsSubAdditive"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? SubAdditiveIfKnown => _isSubAdditive;
+
+    /// <summary>
+    /// <see cref="IsSuperAdditive"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? SuperAdditiveIfKnown => _isSuperAdditive;
+
+    /// <summary>
+    /// <see cref="IsLeftContinuous"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? LeftContinuousIfKnown => _isLeftContinuous;
+
+    /// <summary>
+    /// <see cref="IsRightContinuous"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? RightContinuousIfKnown => _isRightContinuous;
+
+    /// <summary>
+    /// <see cref="IsNonNegative"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? NonNegativeIfKnown => _isNonNegative;
+
+    /// <summary>
+    /// <see cref="IsNonDecreasing"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? NonDecreasingIfKnown => _isNonDecreasing;
+
+    /// <summary>
+    /// <see cref="IsIncreasing"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? IncreasingIfKnown => _isIncreasing;
+
+    /// <summary>
+    /// <see cref="IsConcave"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? ConcaveIfKnown => _isConcave;
+
+    /// <summary>
+    /// <see cref="IsConvex"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? ConvexIfKnown => _isConvex;
+
+    /// <summary>
+    /// <see cref="IsPassingThroughOrigin"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? PassingThroughOriginIfKnown => _isPassingThroughOrigin;
+
+    /// <summary>
+    /// <see cref="IsUltimatelyFinite"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? UltimatelyFiniteIfKnown => _isUltimatelyFinite;
+
+    /// <summary>
+    /// <see cref="IsPlain"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? PlainIfKnown => _isPlain;
+
+    /// <summary>
+    /// <see cref="IsUltimatelyPlain"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? UltimatelyPlainIfKnown => _isUltimatelyPlain;
+
+    /// <summary>
+    /// <see cref="IsUltimatelyAffine"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? UltimatelyAffineIfKnown => _isUltimatelyAffine;
+
+    /// <summary>
+    /// <see cref="IsUltimatelyConstant"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? UltimatelyConstantIfKnown => _isUltimatelyConstant;
+
+    /// <summary>
+    /// <see cref="IsWellDefined"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? WellDefinedIfKnown => _isWellDefined;
+
+    #endregion IfKnown accessors
+
     /// <summary>
     /// Private cache field for <see cref="IsSubAdditive"/>.
     /// </summary>
