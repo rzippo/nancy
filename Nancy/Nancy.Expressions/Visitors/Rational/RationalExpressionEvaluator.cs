@@ -50,7 +50,7 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(RationalAdditionExpression expression)
-        => _result = expression.Operands.Aggregate(Rational.Zero, (current, e) => current + e.Value);
+        => _result = expression.FlattenOperands().Aggregate(Rational.Zero, (current, e) => current + e.Value);
 
     /// <inheritdoc />
     public virtual void Visit(RationalSubtractionExpression expression)
@@ -58,7 +58,7 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
     
     /// <inheritdoc />
     public virtual void Visit(RationalProductExpression expression)
-        => _result = expression.Operands.Aggregate(Rational.One, (current, e) => current * e.Value);
+        => _result = expression.FlattenOperands().Aggregate(Rational.One, (current, e) => current * e.Value);
 
     /// <inheritdoc />
     public virtual void Visit(RationalDivisionExpression expression)
@@ -66,23 +66,23 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(RationalLeastCommonMultipleExpression expression)
-        => _result = expression.Operands
+        => _result = expression.FlattenOperands()
             .Select(e => e.Value )
             .Aggregate((current, next) => Rational.LeastCommonMultiple(current, next));
 
     /// <inheritdoc />
     public virtual void Visit(RationalGreatestCommonDivisorExpression expression)
-        => _result = expression.Operands
+        => _result = expression.FlattenOperands()
             .Select(e => e.Value )
             .Aggregate((current, next) => Rational.GreatestCommonDivisor(current, next));
 
     /// <inheritdoc />
     public virtual void Visit(RationalMinimumExpression expression)
-        => _result = expression.Operands.Aggregate(Rational.PlusInfinity, (current, e) => Rational.Min(current, e.Value));
+        => _result = expression.FlattenOperands().Aggregate(Rational.PlusInfinity, (current, e) => Rational.Min(current, e.Value));
     
     /// <inheritdoc />
     public virtual void Visit(RationalMaximumExpression expression)
-        => _result = expression.Operands.Aggregate(Rational.MinusInfinity, (current, e) => Rational.Max(current, e.Value));
+        => _result = expression.FlattenOperands().Aggregate(Rational.MinusInfinity, (current, e) => Rational.Max(current, e.Value));
     
     /// <inheritdoc />
     public virtual void Visit(RationalNumberExpression expression) => _result = expression.Value;

@@ -56,4 +56,25 @@ public abstract record
         return (RationalExpression)Activator.CreateInstance(GetType(),
             (IReadOnlyCollection<IGenericExpression<Rational>>) [.. Operands, operand], expressionName, settings)!;
     }
+
+    /// <summary>
+    /// The widest possible operand list for this operator, descending into a child of the same concrete operator type whether or not it carries a bound <see cref="IExpression.Name"/>.
+    /// </summary>
+    /// <remarks>
+    /// A named boundary marks the tree's own shape, and <see cref="Operands"/> stops there by construction; this recurses through it, for a caller that wants every operand the operator ultimately combines.
+    /// Uncached by design, so it costs a walk on each call and adds no field or invalidation question.
+    /// Caching it later, along the lines of <see cref="RationalExpression.Value"/>, becomes worthwhile if profiling shows repeated calls on the same node are a real cost.
+    /// </remarks>
+    public IReadOnlyCollection<IGenericExpression<Rational>> FlattenOperands()
+    {
+        List<IGenericExpression<Rational>> result = [];
+        foreach (var operand in Operands)
+        {
+            if (operand.GetType() == GetType())
+                result.AddRange(((RationalNAryExpression)operand).FlattenOperands());
+            else
+                result.Add(operand);
+        }
+        return result;
+    }
 }

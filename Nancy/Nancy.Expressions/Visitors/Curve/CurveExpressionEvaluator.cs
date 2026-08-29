@@ -35,7 +35,7 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
     private void VisitNAry(CurveNAryExpression expression, Func<IReadOnlyCollection<Curve>, Curve> operation)
     {
         List<Curve> curves = [];
-        curves.AddRange(expression.Operands.Select(e => e.Value));
+        curves.AddRange(expression.FlattenOperands().Select(e => e.Value));
 
         _result = operation(curves);
     }
