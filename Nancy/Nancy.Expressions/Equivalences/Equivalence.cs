@@ -187,7 +187,7 @@ public partial class Equivalence
                                                               _endWithPlaceholder(e.RightExpression),
             IGenericBinaryExpression<Rational, Rational, T> e => _endWithPlaceholder(e.LeftExpression) ||
                                                                  _endWithPlaceholder(e.RightExpression),
-            IGenericNAryExpression<T, T> e => e.Expressions.Any(_endWithPlaceholder),
+            IGenericNAryExpression<T, T> e => e.Operands.Any(_endWithPlaceholder),
             _ => throw new InvalidOperationException(expression.GetType() +
                                                      " case is missing in '_endWithPlaceholder' method")
         };

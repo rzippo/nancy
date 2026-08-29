@@ -327,10 +327,10 @@ public static class Expressions
     /// Creates a new expression composed of the addition between the expression and the curve (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Addition(CurveExpression expression, Curve curve,
+    public static CurveExpression Addition(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Addition(curve, name, expressionName, settings);
+        => operand.Addition(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the addition between the two curves (converted to
@@ -458,10 +458,10 @@ public static class Expressions
     /// Creates a new expression composed of the minimum between the expression and the curve (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Minimum(CurveExpression expression, Curve curve,
+    public static CurveExpression Minimum(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Minimum(curve, name, expressionName, settings);
+        => operand.Minimum(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the minimum between the two curves (converted to
@@ -511,10 +511,10 @@ public static class Expressions
     /// Creates a new expression composed of the maximum between the expression and the curve (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Maximum(CurveExpression expression, Curve curve,
+    public static CurveExpression Maximum(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Maximum(curve, name, expressionName, settings);
+        => operand.Maximum(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the maximum between the two curves (converted to
@@ -564,10 +564,10 @@ public static class Expressions
     /// Creates a new expression composed of the convolution between the expression and the curve (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression Convolution(CurveExpression expression, Curve curve,
+    public static CurveExpression Convolution(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Convolution(curve, name, expressionName, settings);
+        => operand.Convolution(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the convolution between the two curves (converted to
@@ -656,10 +656,10 @@ public static class Expressions
     /// Creates a new expression composed of the max-plus convolution between the expression and the curve
     /// (converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static CurveExpression MaxPlusConvolution(CurveExpression expression, Curve curve,
+    public static CurveExpression MaxPlusConvolution(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.MaxPlusConvolution(curve, name, expressionName, settings);
+        => operand.MaxPlusConvolution(curve, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the two curves (converted to
@@ -1454,10 +1454,10 @@ public static class Expressions
     /// Creates a new expression composed of the product between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
-    public static RationalExpression Product(RationalExpression expression, Rational number,
+    public static RationalExpression Product(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Product(number, name, expressionName, settings);
+        => operand.Product(number, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the product between the expressions passed as arguments.
@@ -1542,10 +1542,10 @@ public static class Expressions
     /// Creates a new expression composed of the l.c.m. between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
-    public static RationalExpression LeastCommonMultiple(RationalExpression expression, Rational number,
+    public static RationalExpression LeastCommonMultiple(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.LeastCommonMultiple(number, name, expressionName, settings);
+        => operand.LeastCommonMultiple(number, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the l.c.m. between the expressions passed as arguments.
@@ -1591,10 +1591,10 @@ public static class Expressions
     /// Creates a new expression composed of the g.c.d. between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
-    public static RationalExpression GreatestCommonDivisor(RationalExpression expression, Rational number,
+    public static RationalExpression GreatestCommonDivisor(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.GreatestCommonDivisor(number, name, expressionName, settings);
+        => operand.GreatestCommonDivisor(number, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the g.c.d. between the expressions passed as arguments.

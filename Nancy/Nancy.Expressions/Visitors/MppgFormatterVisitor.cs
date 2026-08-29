@@ -284,7 +284,7 @@ public partial class MppgFormatterVisitor :
             // so the operands are chained as $((a + b) + c) + d$ rather than written flat
             var sb = new StringBuilder();
             var rendered = 0;
-            foreach (var e in expression.Expressions)
+            foreach (var e in expression.Operands)
             {
                 if (rendered == 0)
                     sb.Append(RenderOperand(e, precedence));
@@ -312,7 +312,7 @@ public partial class MppgFormatterVisitor :
         else
         {
             CurrentDepth++;
-            var operands = expression.Expressions
+            var operands = expression.Operands
                 .Select(e => Render(e, MppgPrecedence.Sum))
                 .ToList();
             var sb = operands[^1];

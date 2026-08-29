@@ -12,10 +12,10 @@ public record RationalLeastCommonMultipleExpression : RationalNAryExpression
     /// Creates a l.c.m. expression
     /// </summary>
     public RationalLeastCommonMultipleExpression(
-        IReadOnlyCollection<IGenericExpression<Rational>> expressions,
+        IReadOnlyCollection<IGenericExpression<Rational>> operands,
         string expressionName = "",
         ExpressionSettings? settings = null)
-        : base(expressions, expressionName, settings)
+        : base(operands, expressionName, settings)
     {
     }
 

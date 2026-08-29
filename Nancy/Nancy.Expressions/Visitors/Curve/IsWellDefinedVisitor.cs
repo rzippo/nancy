@@ -81,7 +81,7 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     {
         var plusInfinity = 0;
         var minusInfinity = 0;
-        foreach (var operand in expression.Expressions)
+        foreach (var operand in expression.Operands)
         {
             if (operand.Value.IsFinite) continue;
             if (operand.Value.SupValue() == Rational.PlusInfinity) plusInfinity++;
@@ -116,7 +116,7 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     {
         var plusInfinity = 0;
         var minusInfinity = 0;
-        foreach (var operand in expression.Expressions)
+        foreach (var operand in expression.Operands)
         {
             if (operand.Value.IsFinite) continue;
             if (operand.Value.SupValue() == Rational.PlusInfinity) plusInfinity++;

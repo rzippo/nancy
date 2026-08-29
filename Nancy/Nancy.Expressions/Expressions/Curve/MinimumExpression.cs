@@ -11,12 +11,12 @@ public record MinimumExpression : CurveNAryExpression
     /// <summary>
     /// Creates a minimum expression
     /// </summary>
-    /// <param name="expressions">The operands (expressions) of the addition</param>
+    /// <param name="operands">The operands (expressions) of the addition</param>
     /// <param name="expressionName">The name of the expression</param>
     /// <param name="settings">Settings for the expression definition and evaluation</param>
-    public MinimumExpression(IReadOnlyCollection<IGenericExpression<Curve>> expressions, string expressionName = "",
+    public MinimumExpression(IReadOnlyCollection<IGenericExpression<Curve>> operands, string expressionName = "",
         ExpressionSettings? settings = null) :
-        base(expressions, expressionName, settings)
+        base(operands, expressionName, settings)
     {
     }
 

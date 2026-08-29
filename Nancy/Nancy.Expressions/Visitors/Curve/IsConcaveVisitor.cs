@@ -85,7 +85,7 @@ public class IsConcaveVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(AdditionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsConcave)
@@ -102,7 +102,7 @@ public class IsConcaveVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(MinimumExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsConcave)

@@ -99,7 +99,7 @@ public class IsLeftContinuousVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ConvolutionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             IsLeftContinuous = false;
             if (((CurveExpression)e).IsNonDecreasing)

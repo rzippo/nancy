@@ -281,8 +281,8 @@ public partial class LatexFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder();
 
-            var c = expression.Expressions.Count;
-            foreach (var e in expression.Expressions)
+            var c = expression.Operands.Count;
+            foreach (var e in expression.Operands)
             {
                 var (latex, needsParentheses) = GeneralizedAccept(e);
                 if (needsParentheses)
@@ -316,8 +316,8 @@ public partial class LatexFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(latexOperation);
             sb.Append(@"\left( ");
-            var c = expression.Expressions.Count;
-            foreach (var e in expression.Expressions)
+            var c = expression.Operands.Count;
+            foreach (var e in expression.Operands)
             {
                 var (latex, _) = GeneralizedAccept(e);
                 sb.Append(latex);

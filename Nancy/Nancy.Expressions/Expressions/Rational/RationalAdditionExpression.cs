@@ -13,10 +13,10 @@ public record RationalAdditionExpression : RationalNAryExpression
     /// Creates an expression for addition of rational numbers.
     /// </summary>
     public RationalAdditionExpression(
-        IReadOnlyCollection<IGenericExpression<Rational>> expressions,
+        IReadOnlyCollection<IGenericExpression<Rational>> operands,
         string expressionName = "",
         ExpressionSettings? settings = null)
-        : base(expressions, expressionName, settings)
+        : base(operands, expressionName, settings)
     {
     }
 

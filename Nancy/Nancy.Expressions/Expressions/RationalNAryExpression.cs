@@ -13,16 +13,20 @@ public abstract record
     /// <summary>
     /// The operands of this operator.
     /// </summary>
-    public IReadOnlyCollection<IGenericExpression<Rational>> Expressions { get; }
+    public IReadOnlyCollection<IGenericExpression<Rational>> Operands { get; }
+
+    /// <inheritdoc cref="IGenericNAryExpression{T1,TResult}.Expressions"/>
+    [Obsolete("Renamed to Operands.")]
+    public IReadOnlyCollection<IGenericExpression<Rational>> Expressions => Operands;
 
     /// <summary>
     /// Creates the n-ary operation starting from a collection of expression operands.
     /// </summary>
     public RationalNAryExpression(
-        IReadOnlyCollection<IGenericExpression<Rational>> expressions,
+        IReadOnlyCollection<IGenericExpression<Rational>> operands,
         string expressionName = "", ExpressionSettings? settings = null) : base(expressionName, settings)
     {
-        Expressions = expressions;
+        Operands = operands;
     }
 
     /// <summary>
@@ -34,22 +38,22 @@ public abstract record
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null) : base(expressionName, settings)
     {
-        List<IGenericExpression<Rational>> expressions = [];
+        List<IGenericExpression<Rational>> operands = [];
         foreach (var (rational, name) in rationals.Zip(names, (c, n) => (curve: c, name: n)))
-            expressions.Add(new RationalNumberExpression(rational, name));
-        Expressions = expressions;
+            operands.Add(new RationalNumberExpression(rational, name));
+        Operands = operands;
     }
 
     /// <summary>
     /// Adds another operand to the expression.
     /// </summary>
-    public RationalExpression Append(IGenericExpression<Rational> expression, string expressionName = "", ExpressionSettings? settings = null)
+    public RationalExpression Append(IGenericExpression<Rational> operand, string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (GetType() == expression.GetType())
+        if (GetType() == operand.GetType())
             return (RationalExpression)Activator.CreateInstance(GetType(),
                 (IReadOnlyCollection<IGenericExpression<Rational>>)
-                [.. Expressions, .. ((RationalNAryExpression)expression).Expressions], expressionName, settings)!;
+                [.. Operands, .. ((RationalNAryExpression)operand).Operands], expressionName, settings)!;
         return (RationalExpression)Activator.CreateInstance(GetType(),
-            (IReadOnlyCollection<IGenericExpression<Rational>>) [.. Expressions, expression], expressionName, settings)!;
+            (IReadOnlyCollection<IGenericExpression<Rational>>) [.. Operands, operand], expressionName, settings)!;
     }
 }

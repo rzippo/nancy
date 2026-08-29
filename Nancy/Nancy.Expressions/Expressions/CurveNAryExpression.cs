@@ -11,16 +11,20 @@ public abstract record
     CurveNAryExpression : CurveExpression, IGenericNAryExpression<Curve, Curve> // For operators on curves that are commutative and associative
 {
     /// <inheritdoc />
-    public IReadOnlyCollection<IGenericExpression<Curve>> Expressions { get; }
+    public IReadOnlyCollection<IGenericExpression<Curve>> Operands { get; }
+
+    /// <inheritdoc cref="IGenericNAryExpression{T1,TResult}.Expressions"/>
+    [Obsolete("Renamed to Operands.")]
+    public IReadOnlyCollection<IGenericExpression<Curve>> Expressions => Operands;
 
     /// <summary>
     /// Creates the n-ary expression starting from a collection of expression operands
     /// </summary>
     public CurveNAryExpression(
-        IReadOnlyCollection<IGenericExpression<Curve>> expressions,
+        IReadOnlyCollection<IGenericExpression<Curve>> operands,
         string expressionName = "", ExpressionSettings? settings = null) : base(expressionName, settings)
     {
-        Expressions = expressions;
+        Operands = operands;
     }
 
     /// <summary>
@@ -33,22 +37,22 @@ public abstract record
         string expressionName = "", 
         ExpressionSettings? settings = null) : base(expressionName, settings)
     {
-        List<IGenericExpression<Curve>> expressions = [];
+        List<IGenericExpression<Curve>> operands = [];
         foreach (var (curve, name) in curves.Zip(names, (c, n) => (curve: c, name: n)))
-            expressions.Add(new ConcreteCurveExpression(curve, name));
-        Expressions = expressions;
+            operands.Add(new ConcreteCurveExpression(curve, name));
+        Operands = operands;
     }
 
     /// <summary>
     /// Adds another operand to the expression
     /// </summary>
-    public CurveExpression Append(IGenericExpression<Curve> expression, string expressionName = "", ExpressionSettings? settings = null)
+    public CurveExpression Append(IGenericExpression<Curve> operand, string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (GetType() == expression.GetType())
+        if (GetType() == operand.GetType())
             return (CurveExpression)Activator.CreateInstance(GetType(),
                 (IReadOnlyCollection<IGenericExpression<Curve>>)
-                [.. Expressions, .. ((CurveNAryExpression)expression).Expressions], expressionName, settings)!;
+                [.. Operands, .. ((CurveNAryExpression)operand).Operands], expressionName, settings)!;
         return (CurveExpression)Activator.CreateInstance(GetType(),
-            (IReadOnlyCollection<IGenericExpression<Curve>>) [.. Expressions, expression], expressionName, settings)!;
+            (IReadOnlyCollection<IGenericExpression<Curve>>) [.. Operands, operand], expressionName, settings)!;
     }
 }

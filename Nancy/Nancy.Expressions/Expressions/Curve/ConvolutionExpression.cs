@@ -27,11 +27,11 @@ public record ConvolutionExpression : CurveNAryExpression
     /// <summary>
     /// Creates a convolution expression
     /// </summary>
-    /// <param name="expressions">The operands (expressions) of the addition</param>
+    /// <param name="operands">The operands (expressions) of the addition</param>
     /// <param name="expressionName">The name of the expression</param>
     /// <param name="settings">Settings for the expression definition and evaluation</param>
-    public ConvolutionExpression(IReadOnlyCollection<IGenericExpression<Curve>> expressions,
-        string expressionName = "", ExpressionSettings? settings = null) : base(expressions, expressionName, settings)
+    public ConvolutionExpression(IReadOnlyCollection<IGenericExpression<Curve>> operands,
+        string expressionName = "", ExpressionSettings? settings = null) : base(operands, expressionName, settings)
     {
     }
 

@@ -87,7 +87,7 @@ public class IsSuperAdditiveVisitor : ICurveExpressionVisitor
     /// <remarks>The sum of superadditive curves is superadditive.</remarks>
     public virtual void Visit(AdditionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsSuperAdditive)
@@ -122,7 +122,7 @@ public class IsSuperAdditiveVisitor : ICurveExpressionVisitor
     /// (min,+) convolution property for subadditive curves).</remarks>
     public virtual void Visit(MaxPlusConvolutionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsSuperAdditive)

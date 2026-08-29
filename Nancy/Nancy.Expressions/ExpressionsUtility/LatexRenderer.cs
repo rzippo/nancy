@@ -32,7 +32,7 @@ public static class LatexRenderer
     /// <summary>
     /// Returns HTML content that shows the expression formatted using LaTeX.
     /// </summary>
-    /// <param name="expressions">The expressions.</param>
+    /// <param name="operands">The expressions.</param>
     /// <param name="depth">The rendering depth.</param>
     /// <param name="showRationalsAsName">Whether rational expressions should be rendered as names.</param>
     /// <remarks>Uses MathJax to render LaTeX in HTML.</remarks>

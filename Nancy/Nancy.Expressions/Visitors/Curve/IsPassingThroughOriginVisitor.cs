@@ -93,7 +93,7 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(AdditionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsPassingThroughOrigin)
@@ -118,7 +118,7 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(MinimumExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsPassingThroughOrigin)
@@ -131,7 +131,7 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(MaximumExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsPassingThroughOrigin)

@@ -220,8 +220,8 @@ public partial class UnicodeFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder();
 
-            var c = expression.Expressions.Count;
-            foreach (var e in expression.Expressions)
+            var c = expression.Operands.Count;
+            foreach (var e in expression.Operands)
             {
                 var (unicode, needsParentheses) = GeneralizedAccept(e);
                 if (needsParentheses)
@@ -255,8 +255,8 @@ public partial class UnicodeFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(unicodeOperation);
             sb.Append('(');
-            var c = expression.Expressions.Count;
-            foreach (var e in expression.Expressions)
+            var c = expression.Operands.Count;
+            foreach (var e in expression.Operands)
             {
                 var (unicode, _) = GeneralizedAccept(e);
                 sb.Append(unicode);

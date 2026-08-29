@@ -87,7 +87,7 @@ public class IsIncreasingVisitor : ICurveExpressionVisitor
     /// <remarks>The sum of increasing curves is increasing.</remarks>
     public virtual void Visit(AdditionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsIncreasing)

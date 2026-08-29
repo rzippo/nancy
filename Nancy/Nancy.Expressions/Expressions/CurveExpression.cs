@@ -614,13 +614,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the addition between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Addition(CurveExpression expression, string expressionName = "",
+    public CurveExpression Addition(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(AdditionExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(AdditionExpression), this, operand) switch
         {
-            1 => ((AdditionExpression)this).Append(expression, expressionName, settings),
-            2 => ((AdditionExpression)expression).Append(this, expressionName, settings),
-            _ => new AdditionExpression([this, expression], expressionName, settings)
+            1 => ((AdditionExpression)this).Append(operand, expressionName, settings),
+            2 => ((AdditionExpression)operand).Append(this, expressionName, settings),
+            _ => new AdditionExpression([this, operand], expressionName, settings)
         };
 
     /// <summary>
@@ -735,13 +735,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the minimum between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Minimum(CurveExpression expression, string expressionName = "",
+    public CurveExpression Minimum(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(MinimumExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(MinimumExpression), this, operand) switch
         {
-            1 => ((MinimumExpression)this).Append(expression, expressionName, settings),
-            2 => ((MinimumExpression)expression).Append(this, expressionName, settings),
-            _ => new MinimumExpression([this, expression], expressionName, settings)
+            1 => ((MinimumExpression)this).Append(operand, expressionName, settings),
+            2 => ((MinimumExpression)operand).Append(this, expressionName, settings),
+            _ => new MinimumExpression([this, operand], expressionName, settings)
         };
 
     /// <summary>
@@ -764,13 +764,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the maximum between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Maximum(CurveExpression expression, string expressionName = "",
+    public CurveExpression Maximum(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(MaximumExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(MaximumExpression), this, operand) switch
         {
-            1 => ((MaximumExpression)this).Append(expression, expressionName, settings),
-            2 => ((MaximumExpression)expression).Append(this, expressionName, settings),
-            _ => new MaximumExpression([this, expression], expressionName, settings),
+            1 => ((MaximumExpression)this).Append(operand, expressionName, settings),
+            2 => ((MaximumExpression)operand).Append(this, expressionName, settings),
+            _ => new MaximumExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>
@@ -793,13 +793,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the convolution between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public CurveExpression Convolution(CurveExpression expression, string expressionName = "",
+    public CurveExpression Convolution(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(ConvolutionExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(ConvolutionExpression), this, operand) switch
         {
-            1 => ((ConvolutionExpression)this).Append(expression, expressionName, settings),
-            2 => ((ConvolutionExpression)expression).Append(this, expressionName, settings),
-            _ => new ConvolutionExpression([this, expression], expressionName, settings),
+            1 => ((ConvolutionExpression)this).Append(operand, expressionName, settings),
+            2 => ((ConvolutionExpression)operand).Append(this, expressionName, settings),
+            _ => new ConvolutionExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>
@@ -842,13 +842,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the max-plus convolution between the current expression and the one passed
     /// as argument.
     /// </summary>
-    public CurveExpression MaxPlusConvolution(CurveExpression expression, string expressionName = "",
+    public CurveExpression MaxPlusConvolution(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(MaxPlusConvolutionExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(MaxPlusConvolutionExpression), this, operand) switch
         {
-            1 => ((MaxPlusConvolutionExpression)this).Append(expression, expressionName, settings),
-            2 => ((MaxPlusConvolutionExpression)expression).Append(this, expressionName, settings),
-            _ => new MaxPlusConvolutionExpression([this, expression], expressionName, settings),
+            1 => ((MaxPlusConvolutionExpression)this).Append(operand, expressionName, settings),
+            2 => ((MaxPlusConvolutionExpression)operand).Append(this, expressionName, settings),
+            _ => new MaxPlusConvolutionExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>

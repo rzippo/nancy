@@ -11,14 +11,14 @@ public record MaxPlusConvolutionExpression : CurveNAryExpression
     /// <summary>
     /// Creates a max-plus convolution expression
     /// </summary>
-    /// <param name="expressions">The operands (expressions) of the addition</param>
+    /// <param name="operands">The operands (expressions) of the addition</param>
     /// <param name="expressionName">The name of the expression</param>
     /// <param name="settings">Settings for the expression definition and evaluation</param>
     public MaxPlusConvolutionExpression(
-        IReadOnlyCollection<IGenericExpression<Curve>> expressions,
+        IReadOnlyCollection<IGenericExpression<Curve>> operands,
         string expressionName = "",
         ExpressionSettings? settings = null)
-        : base(expressions, expressionName, settings)
+        : base(operands, expressionName, settings)
     {
     }
 

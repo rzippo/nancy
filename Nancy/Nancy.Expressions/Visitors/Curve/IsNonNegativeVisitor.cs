@@ -111,7 +111,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(AdditionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             IsNonNegative = false;
             if (((CurveExpression)e).IsNonDecreasing)
@@ -133,7 +133,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     public virtual void Visit(MinimumExpression expression)
     {
         // If all operands are non negative --> then the minimum is non negative
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (!IsNonNegative)
@@ -145,7 +145,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     public virtual void Visit(MaximumExpression expression)
     {
         // If at least one operand is non negative --> then the maximum is non negative
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             e.Accept(this);
             if (IsNonNegative)
@@ -156,7 +156,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ConvolutionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             IsNonNegative = false;
             if (((CurveExpression)e).IsNonDecreasing)

@@ -98,7 +98,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(AdditionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             IsNonDecreasing = false;
             if (((CurveExpression)e).IsNonNegative)
@@ -119,7 +119,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(MinimumExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             IsNonDecreasing = false;
             if (((CurveExpression)e).IsNonNegative)
@@ -140,7 +140,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ConvolutionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             IsNonDecreasing = false;
             if (((CurveExpression)e).IsNonNegative)

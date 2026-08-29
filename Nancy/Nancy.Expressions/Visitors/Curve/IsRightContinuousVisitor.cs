@@ -109,7 +109,7 @@ public class IsRightContinuousVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(MaxPlusConvolutionExpression expression)
     {
-        foreach (var e in expression.Expressions)
+        foreach (var e in expression.Operands)
         {
             IsRightContinuous = false;
             if (((CurveExpression)e).IsNonDecreasing)

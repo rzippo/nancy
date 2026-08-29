@@ -319,13 +319,13 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <summary>
     /// Creates a new expression composed of the addition between the current expression and the one passed as argument.
     /// </summary>
-    public RationalExpression Addition(RationalExpression expression, string expressionName = "",
+    public RationalExpression Addition(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(RationalAdditionExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(RationalAdditionExpression), this, operand) switch
         {
-            1 => ((RationalAdditionExpression)this).Append(expression, expressionName, settings),
-            2 => ((RationalAdditionExpression)expression).Append(this, expressionName, settings),
-            _ => new RationalAdditionExpression([this, expression], expressionName, settings),
+            1 => ((RationalAdditionExpression)this).Append(operand, expressionName, settings),
+            2 => ((RationalAdditionExpression)operand).Append(this, expressionName, settings),
+            _ => new RationalAdditionExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>
@@ -429,13 +429,13 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// Creates a new expression composed of the product between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public RationalExpression Product(RationalExpression expression, string expressionName = "",
+    public RationalExpression Product(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(RationalProductExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(RationalProductExpression), this, operand) switch
         {
-            1 => ((RationalProductExpression)this).Append(expression, expressionName, settings),
-            2 => ((RationalProductExpression)expression).Append(this, expressionName, settings),
-            _ => new RationalProductExpression([this, expression], expressionName, settings),
+            1 => ((RationalProductExpression)this).Append(operand, expressionName, settings),
+            2 => ((RationalProductExpression)operand).Append(this, expressionName, settings),
+            _ => new RationalProductExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>
@@ -610,13 +610,13 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// Creates a new expression composed of the l.c.m. between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public RationalExpression LeastCommonMultiple(RationalExpression expression, string expressionName = "",
+    public RationalExpression LeastCommonMultiple(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(RationalLeastCommonMultipleExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(RationalLeastCommonMultipleExpression), this, operand) switch
         {
-            1 => ((RationalLeastCommonMultipleExpression)this).Append(expression, expressionName, settings),
-            2 => ((RationalLeastCommonMultipleExpression)expression).Append(this, expressionName, settings),
-            _ => new RationalLeastCommonMultipleExpression([this, expression], expressionName, settings),
+            1 => ((RationalLeastCommonMultipleExpression)this).Append(operand, expressionName, settings),
+            2 => ((RationalLeastCommonMultipleExpression)operand).Append(this, expressionName, settings),
+            _ => new RationalLeastCommonMultipleExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>
@@ -657,13 +657,13 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// Creates a new expression composed of the g.c.d. between the current expression and the one passed as
     /// argument.
     /// </summary>
-    public RationalExpression GreatestCommonDivisor(RationalExpression expression, string expressionName = "",
+    public RationalExpression GreatestCommonDivisor(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(RationalGreatestCommonDivisorExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(RationalGreatestCommonDivisorExpression), this, operand) switch
         {
-            1 => ((RationalGreatestCommonDivisorExpression)this).Append(expression, expressionName, settings),
-            2 => ((RationalGreatestCommonDivisorExpression)expression).Append(this, expressionName, settings),
-            _ => new RationalGreatestCommonDivisorExpression([this, expression], expressionName, settings),
+            1 => ((RationalGreatestCommonDivisorExpression)this).Append(operand, expressionName, settings),
+            2 => ((RationalGreatestCommonDivisorExpression)operand).Append(this, expressionName, settings),
+            _ => new RationalGreatestCommonDivisorExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>
@@ -703,13 +703,13 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <summary>
     /// Creates a new expression that computes the minimum between the current expression and the one passed as argument.
     /// </summary>
-    public RationalExpression Min(RationalExpression expression, string expressionName = "",
+    public RationalExpression Min(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(RationalMinimumExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(RationalMinimumExpression), this, operand) switch
         {
-            1 => ((RationalMinimumExpression)this).Append(expression, expressionName, settings),
-            2 => ((RationalMinimumExpression)expression).Append(this, expressionName, settings),
-            _ => new RationalMinimumExpression([this, expression], expressionName, settings),
+            1 => ((RationalMinimumExpression)this).Append(operand, expressionName, settings),
+            2 => ((RationalMinimumExpression)operand).Append(this, expressionName, settings),
+            _ => new RationalMinimumExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>
@@ -763,13 +763,13 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <summary>
     /// Creates a new expression that computes the maximum between the current expression and the one passed as argument.
     /// </summary>
-    public RationalExpression Max(RationalExpression expression, string expressionName = "",
+    public RationalExpression Max(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => CheckNAryExpressionTypes(typeof(RationalMaximumExpression), this, expression) switch
+        => CheckNAryExpressionTypes(typeof(RationalMaximumExpression), this, operand) switch
         {
-            1 => ((RationalMaximumExpression)this).Append(expression, expressionName, settings),
-            2 => ((RationalMaximumExpression)expression).Append(this, expressionName, settings),
-            _ => new RationalMaximumExpression([this, expression], expressionName, settings),
+            1 => ((RationalMaximumExpression)this).Append(operand, expressionName, settings),
+            2 => ((RationalMaximumExpression)operand).Append(this, expressionName, settings),
+            _ => new RationalMaximumExpression([this, operand], expressionName, settings),
         };
 
     /// <summary>

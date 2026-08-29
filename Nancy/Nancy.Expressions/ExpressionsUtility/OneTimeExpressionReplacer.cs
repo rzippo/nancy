@@ -118,17 +118,17 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     {
         var result = new MatchPatternNAryResult();
         
-        if (!patternRoot && pattern.Expressions.Count != expression.Expressions.Count) 
+        if (!patternRoot && pattern.Operands.Count != expression.Operands.Count) 
             return result with { IsMatch = false };
-        if (patternRoot && pattern.Expressions.Count > expression.Expressions.Count) 
+        if (patternRoot && pattern.Operands.Count > expression.Operands.Count) 
             return result with { IsMatch = false };
         
         result.IsMatch = true;
         
         List<int> alreadyMatchedIndexes = [];
-        var operands = expression.Expressions.ToArray();
+        var operands = expression.Operands.ToArray();
         // For each operand o1 of pattern Expression
-        foreach (var ePattern in pattern.Expressions)
+        foreach (var ePattern in pattern.Operands)
         {
             var temp = false;
             // For each operand o2 of real expression
@@ -366,7 +366,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
             {
                 List<CurveExpression> tempList = [];
                 var matchInOperands = false;
-                foreach (var e in c.Expressions)
+                foreach (var e in c.Operands)
                 {
                     var innerReplaceResult = ReplaceByValue(expressionPattern, e); 
                     switch (innerReplaceResult.Code)
@@ -410,7 +410,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
             {
                 List<RationalExpression> rationalTempList = [];
                 var rationalMatchInOperands = false;
-                foreach (var e in c.Expressions)
+                foreach (var e in c.Operands)
                 {
                     var innerReplaceResult = ReplaceByValue(expressionPattern, e);
                     switch (innerReplaceResult.Code)
@@ -702,12 +702,12 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 switch (expression)
                 {
                     case CurveNAryExpression c:
-                        if (number >= c.Expressions.Count)
+                        if (number >= c.Operands.Count)
                             throw new ArgumentException("Wrong position path! Out of range for the number of operands!",
                                 nameof(positionPath));
                         List<CurveExpression> tempList = [];
                         var i = 0;
-                        foreach (var e in c.Expressions)
+                        foreach (var e in c.Operands)
                         {
                             if (i == number)
                             {
@@ -732,12 +732,12 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                                 [tempList, c.Name, c.Settings]) as IGenericExpression<Curve>;
                         return 2;
                     case RationalNAryExpression c:
-                        if (number >= c.Expressions.Count)
+                        if (number >= c.Operands.Count)
                             throw new ArgumentException("Wrong position path! Out of range for the number of operands!",
                                 nameof(positionPath));
                         List<RationalExpression> rationalTempList = [];
                         var j = 0;
-                        foreach (var e in c.Expressions)
+                        foreach (var e in c.Operands)
                         {
                             if (j == number)
                             {

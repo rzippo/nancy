@@ -13,5 +13,9 @@ public interface IGenericNAryExpression<out T1, out TResult> : IGenericExpressio
     /// <summary>
     /// The operands of the n-ary operator.
     /// </summary>
-    public IReadOnlyCollection<IGenericExpression<T1>> Expressions { get; }
+    public IReadOnlyCollection<IGenericExpression<T1>> Operands { get; }
+
+    /// <inheritdoc cref="Operands"/>
+    [Obsolete("Renamed to Operands.")]
+    public IReadOnlyCollection<IGenericExpression<T1>> Expressions => Operands;
 }

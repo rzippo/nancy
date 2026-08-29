@@ -219,13 +219,13 @@ public class OneTimeEquivalenceApplier
     {
         var result = new MatchPatternNAryResult();
 
-        if (!patternRoot && pattern.Expressions.Count != expression.Expressions.Count)
+        if (!patternRoot && pattern.Operands.Count != expression.Operands.Count)
             return result with { IsMatch = false };
-        if (patternRoot && pattern.Expressions.Count > expression.Expressions.Count)
+        if (patternRoot && pattern.Operands.Count > expression.Operands.Count)
             return result with { IsMatch = false };
-        var array = Enumerable.Range(0, expression.Expressions.Count);
-        var indexesComb = array.GetCombinations(pattern.Expressions.Count);
-        var operands = expression.Expressions.ToArray();
+        var array = Enumerable.Range(0, expression.Operands.Count);
+        var indexesComb = array.GetCombinations(pattern.Operands.Count);
+        var operands = expression.Operands.ToArray();
         foreach (var indexes in indexesComb)
         {
             var indexesList = indexes.ToList();
@@ -236,7 +236,7 @@ public class OneTimeEquivalenceApplier
             result.IsMatch = true;
             List<int> alreadyMatchedIndexes = [];
             // For each operand o1 of pattern Expression
-            foreach (var ePattern in pattern.Expressions)
+            foreach (var ePattern in pattern.Operands)
             {
                 var temp = false;
                 // For each operand o2 of real expression
