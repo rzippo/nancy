@@ -163,4 +163,16 @@ public class SystemJsonTests
         var ex = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Rational>("null"));
         Assert.Equal("Rational cannot be deserialized: JSON value is null.", ex.Message);
     }
+
+    [Fact]
+    public void DeserializeNumberBeyondDecimalRangeThrowsJsonException()
+    {
+        // 400 significant digits, too large for int/long/decimal, so every TryGet* in the Number branch fails and the fallback message path is what is under test here.
+        var overflowing = "1" + new string('0', 400);
+
+        var ex = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Rational>(overflowing));
+
+        Assert.Contains("Could not parse Rational from:", ex.Message);
+        Assert.Contains(overflowing, ex.Message);
+    }
 }
