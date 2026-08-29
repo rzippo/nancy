@@ -23,7 +23,7 @@ public class IsConcaveVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(NegateExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (IsConcave)
             IsConcave = !IsConcave;
         else

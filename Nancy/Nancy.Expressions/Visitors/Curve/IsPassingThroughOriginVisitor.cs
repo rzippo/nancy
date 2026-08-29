@@ -29,20 +29,20 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(NegateExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression)
-        => IsPassingThroughOrigin = expression.Expression.Compute().ValueAt(Rational.Zero) <= Rational.Zero;
+        => IsPassingThroughOrigin = expression.Operand.Compute().ValueAt(Rational.Zero) <= Rational.Zero;
 
     /// <inheritdoc />
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
         // The SAC is 0 in 0 only if the argument is >= 0 in 0
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsPassingThroughOrigin)
         {
-            IsPassingThroughOrigin = expression.Expression.Value.ValueAt(Rational.Zero) > Rational.Zero;
+            IsPassingThroughOrigin = expression.Operand.Value.ValueAt(Rational.Zero) > Rational.Zero;
         }
     }
 
@@ -192,7 +192,7 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
     /// <remarks>$\lfloor 0 \rfloor = 0$.</remarks>
     public virtual void Visit(FloorExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
     }
 
@@ -200,7 +200,7 @@ public class IsPassingThroughOriginVisitor : ICurveExpressionVisitor
     /// <remarks>$\lceil 0 \rceil = 0$.</remarks>
     public virtual void Visit(CeilExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsPassingThroughOrigin) _throughCurveComputation(expression);
     }
 }

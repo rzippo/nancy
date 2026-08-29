@@ -72,9 +72,9 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
             case (ConcreteCurveExpression p, ConcreteCurveExpression e):
                 return new MatchPatternResult { IsMatch = p.Name.Equals(e.Name) && p.Value.Equivalent(e.Value) };
             case (IGenericUnaryExpression<Curve, T> p, IGenericUnaryExpression<Curve, T> e):
-                return MatchPattern(p.Expression, e.Expression, false);
+                return MatchPattern(p.Operand, e.Operand, false);
             case (IGenericUnaryExpression<Rational, T> p, IGenericUnaryExpression<Rational, T> e):
-                return MatchPattern(p.Expression, e.Expression, false);
+                return MatchPattern(p.Operand, e.Operand, false);
             case (IGenericBinaryExpression<Curve, Curve, T> p, IGenericBinaryExpression<Curve, Curve, T> e):
             {
                 var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
@@ -464,7 +464,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         IGenericUnaryExpression<TArg, T> unaryExpression)
     {
         var result = new ReplaceResult();
-        var innerReplaceResult = ReplaceByValue(expressionPattern, unaryExpression.Expression);
+        var innerReplaceResult = ReplaceByValue(expressionPattern, unaryExpression.Operand);
         object? temp;
         if (typeof(TArg) == typeof(Curve))
             temp = _tempCurveExpression;
@@ -771,7 +771,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         IEnumerator<string> positionPath,
         IGenericUnaryExpression<TArg, T> unaryExpression)
     {
-        var result = ReplaceByPosition(positionPath, unaryExpression.Expression);
+        var result = ReplaceByPosition(positionPath, unaryExpression.Operand);
         switch (result)
         {
             case 1 when typeof(T) == typeof(Curve):

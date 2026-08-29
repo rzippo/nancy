@@ -103,7 +103,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerUnicode, _) = GeneralizedAccept(expression.Expression);
+            var (innerUnicode, _) = GeneralizedAccept(expression.Operand);
 
             sb.Append(unicodeOperation);
             sb.Append('(');
@@ -127,7 +127,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerUnicode, needsParentheses) = GeneralizedAccept(expression.Expression);
+            var (innerUnicode, needsParentheses) = GeneralizedAccept(expression.Operand);
             if (forceParentheses || needsParentheses)
             {
                 sb.Append('(');
@@ -362,9 +362,9 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var needsSquareParentheses = expression.Expression is not ConcreteCurveExpression cce || !FormatName(cce.Name).ToString().Contains('_');
+            var needsSquareParentheses = expression.Operand is not ConcreteCurveExpression cce || !FormatName(cce.Name).ToString().Contains('_');
             if (needsSquareParentheses) sb.Append('[');
-            var (unicode, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            var (unicode, _) = expression.Operand.Accept<(StringBuilder, bool)>(this);
             sb.Append(unicode);
             if (needsSquareParentheses) sb.Append(']');
             sb.Append('⁺');
@@ -414,7 +414,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (unicode, needsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            var (unicode, needsParentheses) = expression.Operand.Accept<(StringBuilder, bool)>(this);
             if (needsParentheses)
             {
                 sb.Append('(');
@@ -440,7 +440,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (unicode, needsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            var (unicode, needsParentheses) = expression.Operand.Accept<(StringBuilder, bool)>(this);
             if (needsParentheses)
             {
                 sb.Append('(');
@@ -466,8 +466,8 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (unicode, innerNeedsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
-            var operationNeedsParentheses = expression.Expression is (
+            var (unicode, innerNeedsParentheses) = expression.Operand.Accept<(StringBuilder, bool)>(this);
+            var operationNeedsParentheses = expression.Operand is (
                 LowerPseudoInverseExpression or 
                 UpperPseudoInverseExpression or
                 ToLowerNonDecreasingExpression or
@@ -503,8 +503,8 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (unicode, innerNeedsParentheses) = expression.Expression.Accept<(StringBuilder, bool)>(this);
-            var operationNeedsParentheses = expression.Expression is (
+            var (unicode, innerNeedsParentheses) = expression.Operand.Accept<(StringBuilder, bool)>(this);
+            var operationNeedsParentheses = expression.Operand is (
                 LowerPseudoInverseExpression or 
                 UpperPseudoInverseExpression or
                 ToLowerNonDecreasingExpression or
@@ -597,7 +597,7 @@ public partial class UnicodeFormatterVisitor :
         {
             case NegateRationalExpression negate:
             {
-                var inner = negate.Expression;
+                var inner = negate.Operand;
                 var substitute = new VerticalShiftExpression(
                     (CurveExpression) expression.LeftOperand, 
                     (RationalExpression) inner);
@@ -625,7 +625,7 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
-        => VisitUnaryPostfix(expression, "\u207B" + "\u00B9", expression.Expression is RationalNumberExpression);
+        => VisitUnaryPostfix(expression, "\u207B" + "\u00B9", expression.Operand is RationalNumberExpression);
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalAbsoluteValueExpression expression)
@@ -640,7 +640,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (inner, _) = GeneralizedAccept(expression.Expression);
+            var (inner, _) = GeneralizedAccept(expression.Operand);
             sb.Append('⌊');
             sb.Append(inner);
             sb.Append('⌋');
@@ -658,7 +658,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (inner, _) = GeneralizedAccept(expression.Expression);
+            var (inner, _) = GeneralizedAccept(expression.Operand);
             sb.Append('⌈');
             sb.Append(inner);
             sb.Append('⌉');
@@ -821,7 +821,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (inner, _) = GeneralizedAccept(expression.Expression);
+            var (inner, _) = GeneralizedAccept(expression.Operand);
             sb.Append('⌊');
             sb.Append(inner);
             sb.Append('⌋');
@@ -839,7 +839,7 @@ public partial class UnicodeFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (inner, _) = GeneralizedAccept(expression.Expression);
+            var (inner, _) = GeneralizedAccept(expression.Operand);
             sb.Append('⌈');
             sb.Append(inner);
             sb.Append('⌉');

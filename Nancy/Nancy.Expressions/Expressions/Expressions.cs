@@ -29,9 +29,9 @@ public static class Expressions
     /// <summary>
     /// Adds the opposite operator to the expression passed as argument.
     /// </summary>
-    public static CurveExpression Negate(CurveExpression expression, string expressionName = "",
+    public static CurveExpression Negate(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.Negate(expressionName, settings);
+        => operand.Negate(expressionName, settings);
 
     /// <summary>
     /// Adds the opposite operator to the curve passed as argument (internally converted to
@@ -48,9 +48,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its non-negative version.
     /// </summary>
-    public static CurveExpression ToNonNegative(CurveExpression expression, string expressionName = "",
+    public static CurveExpression ToNonNegative(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.ToNonNegative(expressionName, settings);
+        => operand.ToNonNegative(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument the operation to compute its non-negative version.
@@ -66,9 +66,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its floor, $\lfloor f(t) \rfloor$.
     /// </summary>
-    public static CurveExpression Floor(CurveExpression expression, string expressionName = "",
+    public static CurveExpression Floor(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.Floor(expressionName, settings);
+        => operand.Floor(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument the operation to compute its floor, $\lfloor f(t) \rfloor$.
@@ -84,9 +84,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its ceiling, $\lceil f(t) \rceil$.
     /// </summary>
-    public static CurveExpression Ceil(CurveExpression expression, string expressionName = "",
+    public static CurveExpression Ceil(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.Ceil(expressionName, settings);
+        => operand.Ceil(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument the operation to compute its ceiling, $\lceil f(t) \rceil$.
@@ -102,9 +102,9 @@ public static class Expressions
     /// <summary>
     /// Adds the sub-additive closure operator to the expression passed as argument.
     /// </summary>
-    public static CurveExpression SubAdditiveClosure(CurveExpression expression, string expressionName = "",
+    public static CurveExpression SubAdditiveClosure(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.SubAdditiveClosure(expressionName, settings);
+        => operand.SubAdditiveClosure(expressionName, settings);
 
     /// <summary>
     /// Adds the sub-additive closure operator to the curve passed as argument
@@ -121,9 +121,9 @@ public static class Expressions
     /// <summary>
     /// Adds the super-additive closure operator to the expression passed as argument.
     /// </summary>
-    public static CurveExpression SuperAdditiveClosure(CurveExpression expression, string expressionName = "",
+    public static CurveExpression SuperAdditiveClosure(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.SuperAdditiveClosure(expressionName, settings);
+        => operand.SuperAdditiveClosure(expressionName, settings);
 
     /// <summary>
     /// Adds the super-additive closure operator to the curve passed as argument (internally converted
@@ -141,9 +141,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its upper non-decreasing version.
     /// </summary>
-    public static CurveExpression ToUpperNonDecreasing(CurveExpression expression, string expressionName = "",
+    public static CurveExpression ToUpperNonDecreasing(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.ToUpperNonDecreasing(expressionName, settings);
+        => operand.ToUpperNonDecreasing(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument the operation to compute its upper non-decreasing version.
@@ -160,9 +160,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its lower non-decreasing version.
     /// </summary>
-    public static CurveExpression ToLowerNonDecreasing(CurveExpression expression, string expressionName = "",
+    public static CurveExpression ToLowerNonDecreasing(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.ToLowerNonDecreasing(expressionName, settings);
+        => operand.ToLowerNonDecreasing(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
@@ -180,9 +180,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its upper non-increasing version.
     /// </summary>
-    public static CurveExpression ToUpperNonIncreasing(CurveExpression expression, string expressionName = "",
+    public static CurveExpression ToUpperNonIncreasing(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.ToUpperNonIncreasing(expressionName, settings);
+        => operand.ToUpperNonIncreasing(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
@@ -200,9 +200,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its lower non-increasing version.
     /// </summary>
-    public static CurveExpression ToLowerNonIncreasing(CurveExpression expression, string expressionName = "",
+    public static CurveExpression ToLowerNonIncreasing(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.ToLowerNonIncreasing(expressionName, settings);
+        => operand.ToLowerNonIncreasing(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
@@ -220,9 +220,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute a left continuous version of it.
     /// </summary>
-    public static CurveExpression ToLeftContinuous(CurveExpression expression, string expressionName = "",
+    public static CurveExpression ToLeftContinuous(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.ToLeftContinuous(expressionName, settings);
+        => operand.ToLeftContinuous(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
@@ -239,9 +239,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute a right continuous version of it.
     /// </summary>
-    public static CurveExpression ToRightContinuous(CurveExpression expression, string expressionName = "",
+    public static CurveExpression ToRightContinuous(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.ToRightContinuous(expressionName, settings);
+        => operand.ToRightContinuous(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
@@ -258,9 +258,9 @@ public static class Expressions
     /// <summary>
     /// Adds to the expression passed as argument an operation which enforces it to assume 0 at time 0.
     /// </summary>
-    public static CurveExpression WithZeroOrigin(CurveExpression expression, string expressionName = "",
+    public static CurveExpression WithZeroOrigin(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.WithZeroOrigin(expressionName, settings);
+        => operand.WithZeroOrigin(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/> an operation which
@@ -278,9 +278,9 @@ public static class Expressions
     /// Adds to the expression passed as argument the operation to compute the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
-    public static CurveExpression LowerPseudoInverse(CurveExpression expression, string expressionName = "",
+    public static CurveExpression LowerPseudoInverse(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.LowerPseudoInverse(expressionName, settings);
+        => operand.LowerPseudoInverse(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
@@ -299,9 +299,9 @@ public static class Expressions
     /// Adds to the expression passed as argument the operation to compute the upper pseudo-inverse function,
     /// $f^{-1}_\uparrow(x) = \inf\{ t : f(t) > x \} = \sup\{ t : f(t) \le x \}$.
     /// </summary>
-    public static CurveExpression UpperPseudoInverse(CurveExpression expression, string expressionName = "",
+    public static CurveExpression UpperPseudoInverse(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.UpperPseudoInverse(expressionName, settings);
+        => operand.UpperPseudoInverse(expressionName, settings);
 
     /// <summary>
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
@@ -787,10 +787,10 @@ public static class Expressions
     /// Creates a new expression composed of the horizontal deviation operation between the expression and the curve
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static RationalExpression HorizontalDeviation(CurveExpression expression, Curve curve,
+    public static RationalExpression HorizontalDeviation(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new HorizontalDeviationExpression(expression, new ConcreteCurveExpression(curve, name), expressionName,
+        => new HorizontalDeviationExpression(operand, new ConcreteCurveExpression(curve, name), expressionName,
             settings);
 
     /// <summary>
@@ -827,10 +827,10 @@ public static class Expressions
     /// Creates a new expression composed of the vertical deviation operation between the expression and the curve
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static RationalExpression VerticalDeviation(CurveExpression expression, Curve curve,
+    public static RationalExpression VerticalDeviation(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new VerticalDeviationExpression(expression, new ConcreteCurveExpression(curve, name), expressionName,
+        => new VerticalDeviationExpression(operand, new ConcreteCurveExpression(curve, name), expressionName,
             settings);
 
     /// <summary>
@@ -867,10 +867,10 @@ public static class Expressions
     /// Creates a new expression composed of the z-deviation operation between the expression and the curve
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
-    public static RationalExpression ZDeviation(CurveExpression expression, Curve curve,
+    public static RationalExpression ZDeviation(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => new ZDeviationExpression(expression, new ConcreteCurveExpression(curve, name), expressionName,
+        => new ZDeviationExpression(operand, new ConcreteCurveExpression(curve, name), expressionName,
             settings);
 
     /// <summary>
@@ -899,9 +899,9 @@ public static class Expressions
     /// <summary>
     /// Creates a new expression that computes the supremum value attained by the curve expression passed as argument.
     /// </summary>
-    public static RationalExpression SupValue(CurveExpression expression, string expressionName = "",
+    public static RationalExpression SupValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.SupValue(expressionName, settings);
+        => operand.SupValue(expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that computes the supremum value attained by the curve passed as argument (internally
@@ -918,9 +918,9 @@ public static class Expressions
     /// <summary>
     /// Creates a new expression that computes the infimum value attained by the curve expression passed as argument.
     /// </summary>
-    public static RationalExpression InfValue(CurveExpression expression, string expressionName = "",
+    public static RationalExpression InfValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.InfValue(expressionName, settings);
+        => operand.InfValue(expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that computes the infimum value attained by the curve passed as argument (internally
@@ -937,9 +937,9 @@ public static class Expressions
     /// <summary>
     /// Creates a new expression that computes the maximum value attained by the curve expression passed as argument.
     /// </summary>
-    public static RationalExpression MaxValue(CurveExpression expression, string expressionName = "",
+    public static RationalExpression MaxValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.MaxValue(expressionName, settings);
+        => operand.MaxValue(expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that computes the maximum value attained by the curve passed as argument (internally
@@ -956,9 +956,9 @@ public static class Expressions
     /// <summary>
     /// Creates a new expression that computes the minimum value attained by the curve expression passed as argument.
     /// </summary>
-    public static RationalExpression MinValue(CurveExpression expression, string expressionName = "",
+    public static RationalExpression MinValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.MinValue(expressionName, settings);
+        => operand.MinValue(expressionName, settings);
 
     /// <summary>
     /// Creates a new expression that computes the minimum value attained by the curve passed as argument (internally
@@ -1254,10 +1254,10 @@ public static class Expressions
     /// Creates a new expression composed of the addition between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
-    public static RationalExpression RationalAddition(RationalExpression expression, Rational number,
+    public static RationalExpression RationalAddition(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Addition(number, name, expressionName, settings);
+        => operand.Addition(number, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the addition between the expressions passed as arguments.
@@ -1310,10 +1310,10 @@ public static class Expressions
     /// Creates a new expression composed of the subtraction between the expression and the number (internally
     /// converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
-    public static RationalExpression RationalSubtraction(RationalExpression expression, Rational number,
+    public static RationalExpression RationalSubtraction(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Subtraction(number, name, expressionName, settings);
+        => operand.Subtraction(number, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two numbers (internally
@@ -1342,10 +1342,10 @@ public static class Expressions
     /// Creates a new expression composed of the minimum between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
-    public static RationalExpression RationalMinimum(RationalExpression expression, Rational number,
+    public static RationalExpression RationalMinimum(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Min(number, name, expressionName, settings);
+        => operand.Min(number, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the minimum between the expressions passed as arguments.
@@ -1398,10 +1398,10 @@ public static class Expressions
     /// Creates a new expression composed of the maximum between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
-    public static RationalExpression RationalMaximum(RationalExpression expression, Rational number,
+    public static RationalExpression RationalMaximum(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
-        => expression.Max(number, name, expressionName, settings);
+        => operand.Max(number, name, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the maximum between the expressions passed as arguments.
@@ -1639,9 +1639,9 @@ public static class Expressions
     /// <summary>
     /// Adds the negation operator to the expression passed as argument.
     /// </summary>
-    public static RationalExpression Negate(RationalExpression expression, string expressionName = "",
+    public static RationalExpression Negate(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.Negate(expressionName, settings);
+        => operand.Negate(expressionName, settings);
 
     /// <summary>
     /// Adds the negation operator to the number passed as argument (which is converted to
@@ -1658,9 +1658,9 @@ public static class Expressions
     /// <summary>
     /// Adds the inversion operator to the expression passed as argument.
     /// </summary>
-    public static RationalExpression Invert(RationalExpression expression, string expressionName = "",
+    public static RationalExpression Invert(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.Invert(expressionName, settings);
+        => operand.Invert(expressionName, settings);
 
     /// <summary>
     /// Adds the inversion operator to the number passed as argument (which is converted to
@@ -1677,9 +1677,9 @@ public static class Expressions
     /// <summary>
     /// Adds the absolute value operator to the expression passed as argument.
     /// </summary>
-    public static RationalExpression AbsoluteValue(RationalExpression expression, string expressionName = "",
+    public static RationalExpression AbsoluteValue(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.AbsoluteValue(expressionName, settings);
+        => operand.AbsoluteValue(expressionName, settings);
 
     /// <summary>
     /// Adds the absolute value operator to the number passed as argument (which is converted to
@@ -1696,9 +1696,9 @@ public static class Expressions
     /// <summary>
     /// Adds the floor operator to the expression passed as argument, $\lfloor x \rfloor$.
     /// </summary>
-    public static RationalExpression Floor(RationalExpression expression, string expressionName = "",
+    public static RationalExpression Floor(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.Floor(expressionName, settings);
+        => operand.Floor(expressionName, settings);
 
     /// <summary>
     /// Adds the floor operator to the number passed as argument (which is converted to
@@ -1715,9 +1715,9 @@ public static class Expressions
     /// <summary>
     /// Adds the ceiling operator to the expression passed as argument, $\lceil x \rceil$.
     /// </summary>
-    public static RationalExpression Ceil(RationalExpression expression, string expressionName = "",
+    public static RationalExpression Ceil(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
-        => expression.Ceil(expressionName, settings);
+        => operand.Ceil(expressionName, settings);
 
     /// <summary>
     /// Adds the ceiling operator to the number passed as argument (which is converted to

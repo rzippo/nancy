@@ -11,5 +11,9 @@ public interface IGenericUnaryExpression<out T, out TResult> : IGenericExpressio
     /// <summary>
     /// The single operand of the operator.
     /// </summary>
-    public IGenericExpression<T> Expression { get; }
+    public IGenericExpression<T> Operand { get; }
+
+    /// <inheritdoc cref="Operand"/>
+    [Obsolete("Renamed to Operand.")]
+    public IGenericExpression<T> Expression => Operand;
 }

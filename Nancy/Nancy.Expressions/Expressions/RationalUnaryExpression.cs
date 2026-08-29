@@ -15,14 +15,18 @@ public abstract record RationalUnaryExpression<TOperandResult> : RationalExpress
     /// object. 
     /// </summary>
     protected RationalUnaryExpression(
-        IGenericExpression<TOperandResult> expression,
+        IGenericExpression<TOperandResult> operand,
         string expressionName = "", 
         ExpressionSettings? settings = null)
         : base(expressionName, settings)
     {
-        Expression = expression;
+        Operand = operand;
     }
 
     /// <inheritdoc />
-    public IGenericExpression<TOperandResult> Expression { get; init; }
+    public IGenericExpression<TOperandResult> Operand { get; init; }
+
+    /// <inheritdoc cref="IGenericUnaryExpression{T,TResult}.Expression"/>
+    [Obsolete("Renamed to Operand.")]
+    public IGenericExpression<TOperandResult> Expression => Operand;
 }

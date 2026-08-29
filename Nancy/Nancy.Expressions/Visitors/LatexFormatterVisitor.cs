@@ -109,7 +109,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
 
             sb.Append(latexCommand);
             sb.Append('{');
@@ -132,7 +132,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
 
             sb.Append(operation);
             sb.Append(@"\left( ");
@@ -156,7 +156,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerLatex, innerNeedsParentheses) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, innerNeedsParentheses) = GeneralizedAccept(expression.Operand);
             var needsParentheses = innerNeedsParentheses || forceParentheses; 
             if (needsParentheses)
             {
@@ -180,7 +180,7 @@ public partial class LatexFormatterVisitor :
         string operation,
         Func<IGenericExpression<T1>, bool> parenthesesDeterminator
     )
-        => VisitUnaryPostfix(expression, operation, parenthesesDeterminator(expression.Expression));
+        => VisitUnaryPostfix(expression, operation, parenthesesDeterminator(expression.Operand));
 
     private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitBinaryCommand<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
@@ -429,11 +429,11 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var squareParenthesis = expression.Expression is not (ConcreteCurveExpression
+            var squareParenthesis = expression.Operand is not (ConcreteCurveExpression
                 or ToUpperNonDecreasingExpression
                 or ToLowerNonDecreasingExpression);
             if (squareParenthesis) sb.Append(@"\left[ ");
-            var (latex, _) = expression.Expression.Accept<(StringBuilder, bool)>(this);
+            var (latex, _) = expression.Operand.Accept<(StringBuilder, bool)>(this);
             sb.Append(latex);
             if (squareParenthesis) sb.Append(@" \right]");
             string resultToString = sb.ToString();
@@ -591,7 +591,7 @@ public partial class LatexFormatterVisitor :
         {
             case NegateRationalExpression negate:
             {
-                var inner = negate.Expression;
+                var inner = negate.Operand;
                 var substitute = new VerticalShiftExpression(
                     (CurveExpression) expression.LeftOperand, 
                     (RationalExpression) inner);
@@ -619,7 +619,7 @@ public partial class LatexFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
-        => VisitUnaryPostfix(expression, "^{-1}", expression.Expression is RationalNumberExpression);
+        => VisitUnaryPostfix(expression, "^{-1}", expression.Operand is RationalNumberExpression);
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalAbsoluteValueExpression expression)
@@ -634,7 +634,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
             sb.Append(@"\lfloor ");
             sb.Append(innerLatex);
             sb.Append(@" \rfloor");
@@ -652,7 +652,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
             sb.Append(@"\lceil ");
             sb.Append(innerLatex);
             sb.Append(@" \rceil");
@@ -815,7 +815,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
             sb.Append(@"\lfloor ");
             sb.Append(innerLatex);
             sb.Append(@" \rfloor");
@@ -833,7 +833,7 @@ public partial class LatexFormatterVisitor :
         {
             CurrentDepth++;
             var sb = new StringBuilder();
-            var (innerLatex, _) = GeneralizedAccept(expression.Expression);
+            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
             sb.Append(@"\lceil ");
             sb.Append(innerLatex);
             sb.Append(@" \rceil");

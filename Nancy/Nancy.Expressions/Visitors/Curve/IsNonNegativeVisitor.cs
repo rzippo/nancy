@@ -25,7 +25,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(NegateExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         // If the argument is "NonNegative" then the negation of it won't be "NonNegative"
         if (IsNonNegative) IsNonNegative = false;
         else _throughCurveComputation(expression);
@@ -38,9 +38,9 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
-        if (((CurveExpression)expression.Expression).IsNonDecreasing)
+        if (((CurveExpression)expression.Operand).IsNonDecreasing)
         {
-            expression.Expression.Accept(this);
+            expression.Operand.Accept(this);
             if (IsNonNegative) return;
         }
         _throughCurveComputation(expression);
@@ -53,7 +53,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ToUpperNonDecreasingExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if(!IsNonNegative) _throughCurveComputation(expression);
     }
 
@@ -64,7 +64,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ToUpperNonIncreasingExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if(!IsNonNegative) _throughCurveComputation(expression);
     }
 
@@ -75,28 +75,28 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if(!IsNonNegative) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
     public virtual void Visit(ToRightContinuousExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if(!IsNonNegative) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
     public virtual void Visit(WithZeroOriginExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if(!IsNonNegative) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
     public virtual void Visit(WithOriginAtExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if(!IsNonNegative) _throughCurveComputation(expression);
     }
 
@@ -230,7 +230,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <remarks>$\lfloor x \rfloor \ge 0$ whenever $x \ge 0$.</remarks>
     public virtual void Visit(FloorExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsNonNegative) _throughCurveComputation(expression);
     }
 
@@ -238,7 +238,7 @@ public class IsNonNegativeVisitor : ICurveExpressionVisitor
     /// <remarks>$\lceil x \rceil \ge x \ge 0$ whenever $x \ge 0$.</remarks>
     public virtual void Visit(CeilExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsNonNegative) _throughCurveComputation(expression);
     }
 }

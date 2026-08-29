@@ -24,7 +24,7 @@ public class IsUltimatelyFiniteVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>Negation does not change whether the tail is finite or infinite.</remarks>
     public virtual void Visit(NegateExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression)
@@ -65,12 +65,12 @@ public class IsUltimatelyFiniteVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>A vertical repositioning does not change whether the tail is finite or infinite.</remarks>
     public virtual void Visit(WithZeroOriginExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>A vertical repositioning does not change whether the tail is finite or infinite.</remarks>
     public virtual void Visit(WithOriginAtExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
@@ -150,10 +150,10 @@ public class IsUltimatelyFiniteVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>$\lfloor x \rfloor$ is finite iff $x$ is finite.</remarks>
     public virtual void Visit(FloorExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>$\lceil x \rceil$ is finite iff $x$ is finite.</remarks>
     public virtual void Visit(CeilExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 }

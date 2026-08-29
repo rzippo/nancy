@@ -24,7 +24,7 @@ public class IsUltimatelyPlainVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>Negation preserves finiteness, and preserves the sign of an ultimately-infinite tail.</remarks>
     public virtual void Visit(NegateExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression)
@@ -65,12 +65,12 @@ public class IsUltimatelyPlainVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>A vertical repositioning does not change ultimate plainness.</remarks>
     public virtual void Visit(WithZeroOriginExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>A vertical repositioning does not change ultimate plainness.</remarks>
     public virtual void Visit(WithOriginAtExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
@@ -150,10 +150,10 @@ public class IsUltimatelyPlainVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>Floor preserves finiteness and the sign of an infinite tail.</remarks>
     public virtual void Visit(FloorExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>Ceiling preserves finiteness and the sign of an infinite tail.</remarks>
     public virtual void Visit(CeilExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 }

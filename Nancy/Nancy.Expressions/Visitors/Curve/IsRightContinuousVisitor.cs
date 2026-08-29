@@ -26,7 +26,7 @@ public class IsRightContinuousVisitor : ICurveExpressionVisitor
     
     /// <inheritdoc />
     public virtual void Visit(NegateExpression expression) 
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression) 

@@ -220,7 +220,7 @@ public partial class MppgFormatterVisitor :
             var sb = new StringBuilder();
             sb.Append(mppgOperation);
             sb.Append('(');
-            sb.Append(Render(expression.Expression, MppgPrecedence.Sum));
+            sb.Append(Render(expression.Operand, MppgPrecedence.Sum));
             sb.Append(')');
             CurrentDepth--;
             return (sb, MppgPrecedence.Atom);
@@ -382,7 +382,7 @@ public partial class MppgFormatterVisitor :
             case NegateRationalExpression negate:
                 if (depth >= MaxDepth && IsValidMppgName(negate.Name))
                     return false;
-                return negate.Expression switch
+                return negate.Operand switch
                 {
                     RationalNumberExpression => true,
                     RationalDivisionExpression division => IsTightLiteral(division, depth + 1) && !StartsWithMinus(division),
@@ -413,14 +413,14 @@ public partial class MppgFormatterVisitor :
             new StringBuilder(number.Value.ToMppgString()),
             RationalLiteralPrecedence(number.Value)
         ),
-        NegateRationalExpression negate => negate.Expression switch
+        NegateRationalExpression negate => negate.Operand switch
         {
             RationalNumberExpression number => (
                 new StringBuilder((-number.Value).ToMppgString()),
                 RationalLiteralPrecedence(-number.Value)
             ),
             _ => (
-                new StringBuilder().Append('-').Append(RenderTightLiteral(negate.Expression).MppgBuilder),
+                new StringBuilder().Append('-').Append(RenderTightLiteral(negate.Operand).MppgBuilder),
                 MppgPrecedence.Product
             )
         },
@@ -441,7 +441,7 @@ public partial class MppgFormatterVisitor :
         => expression switch
         {
             RationalNumberExpression number => !number.Value.IsInfinite && number.Value.Denominator != 1,
-            NegateRationalExpression negate => TightFormHasDivision(negate.Expression),
+            NegateRationalExpression negate => TightFormHasDivision(negate.Operand),
             RationalDivisionExpression => true,
             _ => false
         };
@@ -453,7 +453,7 @@ public partial class MppgFormatterVisitor :
         => expression switch
         {
             RationalNumberExpression number => number.Value.IsNegative,
-            NegateRationalExpression negate => !StartsWithMinus(negate.Expression),
+            NegateRationalExpression negate => !StartsWithMinus(negate.Operand),
             RationalDivisionExpression division => StartsWithMinus(division.LeftOperand),
             _ => false
         };
@@ -522,7 +522,7 @@ public partial class MppgFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder()
                 .Append('-')
-                .Append(Render(expression.Expression, MppgPrecedence.Atom));
+                .Append(Render(expression.Operand, MppgPrecedence.Atom));
             CurrentDepth--;
             return (sb, MppgPrecedence.Atom);
         }
@@ -533,15 +533,15 @@ public partial class MppgFormatterVisitor :
     {
         if (TryFormatAsName(expression, out var named))
             return named;
-        else if (expression.Expression is ToUpperNonDecreasingExpression upper)
-            return VisitFusedNonNegativeClosure(upper.Expression, "nnupnondecclosure");
-        else if (expression.Expression is ToLowerNonDecreasingExpression lower)
-            return VisitFusedNonNegativeClosure(lower.Expression, "nnlownondecclosure");
+        else if (expression.Operand is ToUpperNonDecreasingExpression upper)
+            return VisitFusedNonNegativeClosure(upper.Operand, "nnupnondecclosure");
+        else if (expression.Operand is ToLowerNonDecreasingExpression lower)
+            return VisitFusedNonNegativeClosure(lower.Operand, "nnlownondecclosure");
         else
         {
             CurrentDepth++;
             var sb = new StringBuilder()
-                .Append(Render(expression.Expression, MppgPrecedence.Product))
+                .Append(Render(expression.Operand, MppgPrecedence.Product))
                 .Append(" \\/ 0");
             CurrentDepth--;
             return (sb, MppgPrecedence.Sum);
@@ -582,8 +582,8 @@ public partial class MppgFormatterVisitor :
     {
         if (TryFormatAsName(expression, out var named))
             return named;
-        else if (expression.Expression is ToNonNegativeExpression nonNegative)
-            return VisitFusedNonNegativeClosure(nonNegative.Expression, "nnupnondecclosure");
+        else if (expression.Operand is ToNonNegativeExpression nonNegative)
+            return VisitFusedNonNegativeClosure(nonNegative.Operand, "nnupnondecclosure");
         else
             return VisitUnaryCall(expression, "upnondecclosure");
     }
@@ -593,8 +593,8 @@ public partial class MppgFormatterVisitor :
     {
         if (TryFormatAsName(expression, out var named))
             return named;
-        else if (expression.Expression is ToNonNegativeExpression nonNegative)
-            return VisitFusedNonNegativeClosure(nonNegative.Expression, "nnlownondecclosure");
+        else if (expression.Operand is ToNonNegativeExpression nonNegative)
+            return VisitFusedNonNegativeClosure(nonNegative.Operand, "nnlownondecclosure");
         else
             return VisitUnaryCall(expression, "lownondecclosure");
     }
@@ -849,7 +849,7 @@ public partial class MppgFormatterVisitor :
         else
         {
             CurrentDepth++;
-            var negated = RenderNegated(expression.Expression);
+            var negated = RenderNegated(expression.Operand);
             CurrentDepth--;
             return negated;
         }
@@ -865,7 +865,7 @@ public partial class MppgFormatterVisitor :
             CurrentDepth++;
             var sb = new StringBuilder()
                 .Append("1/")
-                .Append(Render(expression.Expression, MppgPrecedence.Atom));
+                .Append(Render(expression.Operand, MppgPrecedence.Atom));
             CurrentDepth--;
             return (sb, MppgPrecedence.Product);
         }

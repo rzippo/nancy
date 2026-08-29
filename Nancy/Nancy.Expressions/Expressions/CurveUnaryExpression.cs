@@ -15,14 +15,18 @@ public abstract record CurveUnaryExpression<T> : CurveExpression, IGenericUnaryE
     /// object. 
     /// </summary>
     protected CurveUnaryExpression(
-        IGenericExpression<T> expression,
+        IGenericExpression<T> operand,
         string expressionName = "", 
         ExpressionSettings? settings = null) 
         : base(expressionName, settings)
     {
-        Expression = expression;
+        Operand = operand;
     }
 
     /// <inheritdoc />
-    public IGenericExpression<T> Expression { get; init; }
+    public IGenericExpression<T> Operand { get; init; }
+
+    /// <inheritdoc cref="IGenericUnaryExpression{T,TResult}.Expression"/>
+    [Obsolete("Renamed to Operand.")]
+    public IGenericExpression<T> Expression => Operand;
 }

@@ -26,7 +26,7 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
     public virtual void Visit(ConcreteCurveExpression expression) => _result = expression.Value;
 
     private void VisitUnary(CurveUnaryExpression<Curve> expression, Func<Curve, Curve> operation)
-        => _result = operation(expression.Expression.Value);
+        => _result = operation(expression.Operand.Value);
 
     private void VisitBinary(CurveBinaryExpression<Curve, Curve> expression,
         Func<Curve, Curve, Curve> operation)
@@ -156,7 +156,7 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(WithOriginAtExpression expression)
-        => _result = expression.Expression.Value.WithOriginAt(expression.OriginValue);
+        => _result = expression.Operand.Value.WithOriginAt(expression.OriginValue);
 
     /// <inheritdoc />
     public virtual void Visit(FloorExpression expression)

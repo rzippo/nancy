@@ -88,12 +88,12 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
     public virtual void Visit(RationalNumberExpression expression) => _result = expression.Value;
 
     /// <inheritdoc />
-    public virtual void Visit(NegateRationalExpression expression) => _result = Rational.Negate(expression.Expression.Value);
+    public virtual void Visit(NegateRationalExpression expression) => _result = Rational.Negate(expression.Operand.Value);
 
     /// <inheritdoc />
-    public virtual void Visit(InvertRationalExpression expression) => _result = Rational.Invert(expression.Expression.Value);
+    public virtual void Visit(InvertRationalExpression expression) => _result = Rational.Invert(expression.Operand.Value);
 
-    public virtual void Visit(RationalAbsoluteValueExpression expression) => _result = Rational.Abs(expression.Expression.Value);
+    public virtual void Visit(RationalAbsoluteValueExpression expression) => _result = Rational.Abs(expression.Operand.Value);
 
     public virtual void Visit(RationalModuloExpression expression) => _result = expression.LeftOperand.Value % expression.RightOperand.Value;
 
@@ -103,26 +103,26 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
         => throw new InvalidOperationException("Can't evaluate an expression with placeholders!");
 
     /// <inheritdoc />
-    public virtual void Visit(RationalFloorExpression expression) => _result = expression.Expression.Value.Floor();
+    public virtual void Visit(RationalFloorExpression expression) => _result = expression.Operand.Value.Floor();
 
     /// <inheritdoc />
-    public virtual void Visit(RationalCeilExpression expression) => _result = expression.Expression.Value.Ceil();
+    public virtual void Visit(RationalCeilExpression expression) => _result = expression.Operand.Value.Ceil();
 
     /// <inheritdoc />
-    public virtual void Visit(SupValueExpression expression) => _result = expression.Expression.Value.SupValue();
+    public virtual void Visit(SupValueExpression expression) => _result = expression.Operand.Value.SupValue();
 
     /// <inheritdoc />
-    public virtual void Visit(InfValueExpression expression) => _result = expression.Expression.Value.InfValue();
+    public virtual void Visit(InfValueExpression expression) => _result = expression.Operand.Value.InfValue();
 
     /// <inheritdoc />
     public virtual void Visit(MaxValueExpression expression)
-        => _result = expression.Expression.Value.MaxValue() ??
+        => _result = expression.Operand.Value.MaxValue() ??
                      throw new InvalidOperationException(
                          "The curve does not attain a maximum value (its supremum is not attained); use SupValue() instead.");
 
     /// <inheritdoc />
     public virtual void Visit(MinValueExpression expression)
-        => _result = expression.Expression.Value.MinValue() ??
+        => _result = expression.Operand.Value.MinValue() ??
                      throw new InvalidOperationException(
                          "The curve does not attain a minimum value (its infimum is not attained); use InfValue() instead.");
 }

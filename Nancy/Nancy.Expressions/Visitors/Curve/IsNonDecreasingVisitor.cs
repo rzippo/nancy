@@ -25,7 +25,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(NegateExpression expression)
     { 
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (IsNonDecreasing) IsNonDecreasing = false;
         else _throughCurveComputation(expression);
     }
@@ -37,9 +37,9 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
-        if (((CurveExpression)expression.Expression).IsNonNegative)
+        if (((CurveExpression)expression.Operand).IsNonNegative)
         {
-            expression.Expression.Accept(this);
+            expression.Operand.Accept(this);
             if (IsNonDecreasing) return;
         }
         _throughCurveComputation(expression);
@@ -84,14 +84,14 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsNonDecreasing) _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
     public virtual void Visit(UpperPseudoInverseExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsNonDecreasing) _throughCurveComputation(expression);
     }
 
@@ -216,7 +216,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// </remarks>
     public virtual void Visit(FloorExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsNonDecreasing) _throughCurveComputation(expression);
     }
 
@@ -226,7 +226,7 @@ public class IsNonDecreasingVisitor : ICurveExpressionVisitor
     /// </remarks>
     public virtual void Visit(CeilExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (!IsNonDecreasing) _throughCurveComputation(expression);
     }
 }

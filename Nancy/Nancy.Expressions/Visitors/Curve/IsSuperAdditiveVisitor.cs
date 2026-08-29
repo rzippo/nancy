@@ -25,7 +25,7 @@ public class IsSuperAdditiveVisitor : ICurveExpressionVisitor
     /// <remarks>If $f$ is subadditive, then $-f$ is superadditive.</remarks>
     public virtual void Visit(NegateExpression expression)
     {
-        if (((CurveExpression)expression.Expression).IsSubAdditive)
+        if (((CurveExpression)expression.Operand).IsSubAdditive)
             IsSuperAdditive = true;
         else
             _throughCurveComputation(expression);

@@ -24,7 +24,7 @@ public class IsUltimatelyAffineVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>Negating an affine tail of slope $m$ yields an affine tail of slope $-m$.</remarks>
     public virtual void Visit(NegateExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression)
@@ -65,12 +65,12 @@ public class IsUltimatelyAffineVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>A vertical repositioning of an affine tail is still affine, with the same slope.</remarks>
     public virtual void Visit(WithZeroOriginExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>A vertical repositioning of an affine tail is still affine, with the same slope.</remarks>
     public virtual void Visit(WithOriginAtExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)

@@ -24,7 +24,7 @@ public class IsIncreasingVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(NegateExpression expression)
     {
-        expression.Expression.Accept(this);
+        expression.Operand.Accept(this);
         if (IsIncreasing) IsIncreasing = false;
         else _throughCurveComputation(expression);
     }

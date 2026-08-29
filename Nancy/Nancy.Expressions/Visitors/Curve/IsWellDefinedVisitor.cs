@@ -21,17 +21,17 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     public virtual void Visit(ConcreteCurveExpression expression) => IsWellDefined = true;
 
     /// <inheritdoc />
-    public virtual void Visit(NegateExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(NegateExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
-    public virtual void Visit(ToNonNegativeExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(ToNonNegativeExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
-        if (expression.Expression.Value.IsFinite) IsWellDefined = true;
-        else if (expression.Expression.Value.SupValue() == Rational.PlusInfinity &&
-                 expression.Expression.Value.InfValue() == Rational.MinusInfinity) IsWellDefined = false;
+        if (expression.Operand.Value.IsFinite) IsWellDefined = true;
+        else if (expression.Operand.Value.SupValue() == Rational.PlusInfinity &&
+                 expression.Operand.Value.InfValue() == Rational.MinusInfinity) IsWellDefined = false;
     }
 
     /// <inheritdoc />
@@ -44,25 +44,25 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     public virtual void Visit(ToUpperNonDecreasingExpression expression) => IsWellDefined = true;
 
     /// <inheritdoc />
-    public virtual void Visit(ToLowerNonDecreasingExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(ToLowerNonDecreasingExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ToUpperNonIncreasingExpression expression) => IsWellDefined = true;
 
     /// <inheritdoc />
-    public virtual void Visit(ToLowerNonIncreasingExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(ToLowerNonIncreasingExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
-    public virtual void Visit(ToLeftContinuousExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(ToLeftContinuousExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
-    public virtual void Visit(ToRightContinuousExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(ToRightContinuousExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
-    public virtual void Visit(WithZeroOriginExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(WithZeroOriginExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
-    public virtual void Visit(WithOriginAtExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(WithOriginAtExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
@@ -191,8 +191,8 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     }
 
     /// <inheritdoc />
-    public virtual void Visit(FloorExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(FloorExpression expression) => expression.Operand.Accept(this);
 
     /// <inheritdoc />
-    public virtual void Visit(CeilExpression expression) => expression.Expression.Accept(this);
+    public virtual void Visit(CeilExpression expression) => expression.Operand.Accept(this);
 }

@@ -177,8 +177,8 @@ public partial class Equivalence
             RationalPlaceholderExpression => true,
             ConcreteCurveExpression => false,
             RationalNumberExpression => false,
-            IGenericUnaryExpression<Curve, T> e => _endWithPlaceholder(e.Expression),
-            IGenericUnaryExpression<Rational, T> e => _endWithPlaceholder(e.Expression),
+            IGenericUnaryExpression<Curve, T> e => _endWithPlaceholder(e.Operand),
+            IGenericUnaryExpression<Rational, T> e => _endWithPlaceholder(e.Operand),
             IGenericBinaryExpression<Curve, Curve, T> e => _endWithPlaceholder(e.LeftOperand) ||
                                                            _endWithPlaceholder(e.RightOperand),
             IGenericBinaryExpression<Rational, Curve, T> e => _endWithPlaceholder(e.LeftOperand) ||

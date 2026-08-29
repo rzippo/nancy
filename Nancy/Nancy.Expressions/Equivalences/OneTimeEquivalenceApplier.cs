@@ -171,9 +171,9 @@ public class OneTimeEquivalenceApplier
                     IsMatch = p.Name.Equals(e.Name) && p.Value.Equivalent(e.Value)
                 };
             case (IGenericUnaryExpression<Curve, T> p, IGenericUnaryExpression<Curve, T> e):
-                return MatchSideOfEquivalence(p.Expression, e.Expression, false);
+                return MatchSideOfEquivalence(p.Operand, e.Operand, false);
             case (IGenericUnaryExpression<Rational, T> p, IGenericUnaryExpression<Rational, T> e):
-                return MatchSideOfEquivalence(p.Expression, e.Expression, false);
+                return MatchSideOfEquivalence(p.Operand, e.Operand, false);
             case (IGenericBinaryExpression<Curve, Curve, T> p, IGenericBinaryExpression<Curve, Curve, T> e):
                 {
                     var leftMatchResult = MatchSideOfEquivalence(p.LeftOperand, e.LeftOperand, false);

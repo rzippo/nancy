@@ -24,7 +24,7 @@ public class IsUltimatelyConstantVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>Negating a constant tail yields a (different) constant tail.</remarks>
     public virtual void Visit(NegateExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression)
@@ -65,12 +65,12 @@ public class IsUltimatelyConstantVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>A vertical repositioning of a constant tail yields a (different) constant tail.</remarks>
     public virtual void Visit(WithZeroOriginExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>A vertical repositioning of a constant tail yields a (different) constant tail.</remarks>
     public virtual void Visit(WithOriginAtExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
@@ -148,10 +148,10 @@ public class IsUltimatelyConstantVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     /// <remarks>Floor of a constant tail is a (different) constant tail.</remarks>
     public virtual void Visit(FloorExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 
     /// <inheritdoc />
     /// <remarks>Ceiling of a constant tail is a (different) constant tail.</remarks>
     public virtual void Visit(CeilExpression expression)
-        => expression.Expression.Accept(this);
+        => expression.Operand.Accept(this);
 }
