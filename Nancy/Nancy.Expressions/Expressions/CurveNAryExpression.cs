@@ -48,7 +48,7 @@ public abstract record
     /// </summary>
     public CurveExpression Append(IGenericExpression<Curve> operand, string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (GetType() == operand.GetType())
+        if (GetType() == operand.GetType() && string.IsNullOrEmpty(operand.Name))
             return (CurveExpression)Activator.CreateInstance(GetType(),
                 (IReadOnlyCollection<IGenericExpression<Curve>>)
                 [.. Operands, .. ((CurveNAryExpression)operand).Operands], expressionName, settings)!;

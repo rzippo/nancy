@@ -49,7 +49,7 @@ public abstract record
     /// </summary>
     public RationalExpression Append(IGenericExpression<Rational> operand, string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (GetType() == operand.GetType())
+        if (GetType() == operand.GetType() && string.IsNullOrEmpty(operand.Name))
             return (RationalExpression)Activator.CreateInstance(GetType(),
                 (IReadOnlyCollection<IGenericExpression<Rational>>)
                 [.. Operands, .. ((RationalNAryExpression)operand).Operands], expressionName, settings)!;

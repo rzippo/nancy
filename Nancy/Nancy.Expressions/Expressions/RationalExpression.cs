@@ -349,7 +349,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression Addition(Rational rational, [CallerArgumentExpression("rational")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is RationalAdditionExpression e)
+        if (this is RationalAdditionExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new RationalNumberExpression(rational, name), expressionName, settings);
         return new RationalAdditionExpression([this, new RationalNumberExpression(rational, name)], expressionName,
             settings);
@@ -459,7 +459,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression Product(Rational rational, [CallerArgumentExpression("rational")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is RationalProductExpression e)
+        if (this is RationalProductExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new RationalNumberExpression(rational, name), expressionName, settings);
         return new RationalProductExpression([this, new RationalNumberExpression(rational, name)], expressionName,
             settings);
@@ -635,7 +635,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         [CallerArgumentExpression("rational")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is RationalLeastCommonMultipleExpression e)
+        if (this is RationalLeastCommonMultipleExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new RationalNumberExpression(rational, name), expressionName, settings);
         return new RationalLeastCommonMultipleExpression([this, new RationalNumberExpression(rational, name)],
             expressionName,
@@ -682,7 +682,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         [CallerArgumentExpression("rational")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is RationalGreatestCommonDivisorExpression e)
+        if (this is RationalGreatestCommonDivisorExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new RationalNumberExpression(rational, name), expressionName, settings);
         return new RationalGreatestCommonDivisorExpression([this, new RationalNumberExpression(rational, name)],
             expressionName,
@@ -726,7 +726,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression Min(Rational rational, [CallerArgumentExpression("rational")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is RationalMinimumExpression e)
+        if (this is RationalMinimumExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new RationalNumberExpression(rational, name), expressionName, settings);
         return new RationalMinimumExpression([this, new RationalNumberExpression(rational, name)], expressionName,
             settings);
@@ -786,7 +786,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression Max(Rational rational, [CallerArgumentExpression("rational")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is RationalMaximumExpression e)
+        if (this is RationalMaximumExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new RationalNumberExpression(rational, name), expressionName, settings);
         return new RationalMaximumExpression([this, new RationalNumberExpression(rational, name)], expressionName,
             settings);
@@ -832,11 +832,15 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// returns 2.
     /// The function returns 0 when the <paramref name="type"/> is different by the type of <paramref name="e1"/> and
     /// <paramref name="e2"/>.</returns>
+    /// <remarks>
+    /// A side whose <see cref="IExpression.Name"/> is already bound is never flattened into.
+    /// The caller has bound it as a value in its own right, and its internal structure stays its own.
+    /// </remarks>
     private static int CheckNAryExpressionTypes(Type type, RationalExpression e1, RationalExpression e2)
     {
-        if (e1.GetType() == type)
+        if (e1.GetType() == type && string.IsNullOrEmpty(e1.Name))
             return 1;
-        return e2.GetType() == type ? 2 : 0;
+        return e2.GetType() == type && string.IsNullOrEmpty(e2.Name) ? 2 : 0;
     }
 
     #region Equivalence

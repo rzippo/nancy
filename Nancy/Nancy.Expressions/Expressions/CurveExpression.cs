@@ -631,7 +631,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression Addition(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is AdditionExpression e)
+        if (this is AdditionExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new ConcreteCurveExpression(curve, name), expressionName, settings);
         return new AdditionExpression([this, new ConcreteCurveExpression(curve, name)], expressionName, settings);
     }
@@ -752,7 +752,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression Minimum(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is MinimumExpression e)
+        if (this is MinimumExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new ConcreteCurveExpression(curve, name), expressionName, settings);
         return new MinimumExpression([this, new ConcreteCurveExpression(curve, name)], expressionName, settings);
     }
@@ -781,7 +781,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression Maximum(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is MaximumExpression e)
+        if (this is MaximumExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new ConcreteCurveExpression(curve, name, settings));
         return new MaximumExpression([this, new ConcreteCurveExpression(curve, name)], expressionName, settings);
     }
@@ -810,7 +810,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression Convolution(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is ConvolutionExpression e)
+        if (this is ConvolutionExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new ConcreteCurveExpression(curve, name), expressionName, settings);
         return new ConvolutionExpression([this, new ConcreteCurveExpression(curve, name)], expressionName, settings);
     }
@@ -859,7 +859,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression MaxPlusConvolution(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (this is MaxPlusConvolutionExpression e)
+        if (this is MaxPlusConvolutionExpression e && string.IsNullOrEmpty(Name))
             return e.Append(new ConcreteCurveExpression(curve, name), expressionName, settings);
         return new MaxPlusConvolutionExpression([this, new ConcreteCurveExpression(curve, name)], expressionName,
             settings);
@@ -1443,11 +1443,15 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// returns 2.
     /// The function returns 0 when the <paramref name="type"/> is different by the type of <paramref name="e1"/> and
     /// <paramref name="e2"/>.</returns>
+    /// <remarks>
+    /// A side whose <see cref="IExpression.Name"/> is already bound is never flattened into.
+    /// The caller has bound it as a value in its own right, and its internal structure stays its own.
+    /// </remarks>
     private static int CheckNAryExpressionTypes(Type type, CurveExpression e1, CurveExpression e2)
     {
-        if (e1.GetType() == type)
+        if (e1.GetType() == type && string.IsNullOrEmpty(e1.Name))
             return 1;
-        return e2.GetType() == type ? 2 : 0;
+        return e2.GetType() == type && string.IsNullOrEmpty(e2.Name) ? 2 : 0;
     }
 
     /// <inheritdoc />
