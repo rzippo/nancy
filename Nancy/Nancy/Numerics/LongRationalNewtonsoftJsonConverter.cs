@@ -25,13 +25,15 @@ public class LongRationalNewtonsoftJsonConverter : JsonConverter
         JsonSerializer serializer)
     {
         var jt = JToken.Load(reader);
+        if (jt.Type == JTokenType.Null)
+            throw new JsonSerializationException("LongRational cannot be deserialized: JSON value is null.");
         if (jt.Type == JTokenType.Integer)
         {
             return new LongRational(jt.ToObject<int>());
         }
 
-        var numTkn = jt[NumeratorName]!;
-        var denTkn = jt[DenominatorName]!;
+        var numTkn = jt.RequireNonNull(NumeratorName, "LongRational");
+        var denTkn = jt.RequireNonNull(DenominatorName, "LongRational");
 
         long num, den;
         if (numTkn.Type == JTokenType.Integer)

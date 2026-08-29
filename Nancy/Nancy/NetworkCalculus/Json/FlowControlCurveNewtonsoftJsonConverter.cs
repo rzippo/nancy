@@ -30,9 +30,9 @@ public class FlowControlCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
-        Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
-        Rational height = jo[HeightName]!.ToObject<Rational>(serializer);
+        Rational latency = jo.RequireNonNull<Rational>(LatencyName, "FlowControlCurve", serializer);
+        Rational rate = jo.RequireNonNull<Rational>(RateName, "FlowControlCurve", serializer);
+        Rational height = jo.RequireNonNull<Rational>(HeightName, "FlowControlCurve", serializer);
 
         FlowControlCurve curve = new FlowControlCurve(
             latency,

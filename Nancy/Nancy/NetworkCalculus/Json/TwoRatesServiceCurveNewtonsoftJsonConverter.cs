@@ -31,10 +31,10 @@ public class TwoRatesServiceCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational delay = jo[DelayName]!.ToObject<Rational>(serializer);
-        Rational transientRate = jo[TransientRateName]!.ToObject<Rational>(serializer);
-        Rational transientEnd = jo[TransientEndName]!.ToObject<Rational>(serializer);
-        Rational steadyRate = jo[SteadyRateName]!.ToObject<Rational>(serializer);
+        Rational delay = jo.RequireNonNull<Rational>(DelayName, "TwoRatesServiceCurve", serializer);
+        Rational transientRate = jo.RequireNonNull<Rational>(TransientRateName, "TwoRatesServiceCurve", serializer);
+        Rational transientEnd = jo.RequireNonNull<Rational>(TransientEndName, "TwoRatesServiceCurve", serializer);
+        Rational steadyRate = jo.RequireNonNull<Rational>(SteadyRateName, "TwoRatesServiceCurve", serializer);
 
         TwoRatesServiceCurve curve = new TwoRatesServiceCurve(
             delay: delay,

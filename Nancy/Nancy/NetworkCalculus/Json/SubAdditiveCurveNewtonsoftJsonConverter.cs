@@ -28,12 +28,10 @@ public class SubAdditiveCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Sequence? sequence = jo[CurveNewtonsoftJsonConverter.BaseSequenceName]?.ToObject<Sequence>(serializer);
-        if (sequence == null)
-            throw new InvalidOperationException("Invalid JSON format.");
-        Rational periodStart = jo[CurveNewtonsoftJsonConverter.PseudoPeriodStartName]!.ToObject<Rational>(serializer);
-        Rational periodLength = jo[CurveNewtonsoftJsonConverter.PseudoPeriodLengthName]!.ToObject<Rational>(serializer);
-        Rational periodHeight = jo[CurveNewtonsoftJsonConverter.PseudoPeriodHeightName]!.ToObject<Rational>(serializer);
+        Sequence sequence = jo.RequireNonNull<Sequence>(CurveNewtonsoftJsonConverter.BaseSequenceName, "SubAdditiveCurve", serializer);
+        Rational periodStart = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodStartName, "SubAdditiveCurve", serializer);
+        Rational periodLength = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodLengthName, "SubAdditiveCurve", serializer);
+        Rational periodHeight = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodHeightName, "SubAdditiveCurve", serializer);
 
         // the property is not re-verified: the value was serialized from a SubAdditiveCurve, and the test is a convolution
         SubAdditiveCurve curve = new SubAdditiveCurve(

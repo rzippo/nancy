@@ -29,7 +29,7 @@ public class DelayServiceCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational delay = jo[DelayName]!.ToObject<Rational>(serializer);
+        Rational delay = jo.RequireNonNull<Rational>(DelayName, "DelayServiceCurve", serializer);
 
         DelayServiceCurve curve = new DelayServiceCurve(
             delay: delay

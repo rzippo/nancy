@@ -29,8 +29,8 @@ public class RateLatencyServiceCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
-        Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
+        Rational latency = jo.RequireNonNull<Rational>(LatencyName, "RateLatencyServiceCurve", serializer);
+        Rational rate = jo.RequireNonNull<Rational>(RateName, "RateLatencyServiceCurve", serializer);
 
         RateLatencyServiceCurve curve = new RateLatencyServiceCurve(rate: rate, latency: latency);
         return curve;

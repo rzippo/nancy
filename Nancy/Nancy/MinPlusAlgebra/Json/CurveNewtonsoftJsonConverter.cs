@@ -36,12 +36,10 @@ public class CurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Sequence? sequence = jo[BaseSequenceName]?.ToObject<Sequence>();
-        if (sequence == null)
-            throw new InvalidOperationException("Invalid JSON format.");
-        Rational periodStart = jo[PseudoPeriodStartName]!.ToObject<Rational>();
-        Rational periodLength = jo[PseudoPeriodLengthName]!.ToObject<Rational>();
-        Rational periodHeight = jo[PseudoPeriodHeightName]!.ToObject<Rational>();
+        Sequence sequence = jo.RequireNonNull<Sequence>(BaseSequenceName, "Curve");
+        Rational periodStart = jo.RequireNonNull<Rational>(PseudoPeriodStartName, "Curve");
+        Rational periodLength = jo.RequireNonNull<Rational>(PseudoPeriodLengthName, "Curve");
+        Rational periodHeight = jo.RequireNonNull<Rational>(PseudoPeriodHeightName, "Curve");
 
         Curve curve = new Curve(
             baseSequence: sequence,

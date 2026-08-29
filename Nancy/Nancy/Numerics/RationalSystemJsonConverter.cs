@@ -65,7 +65,7 @@ public class RationalSystemJsonConverter : JsonConverter<Rational>
             {
                 var plain = JsonSerializer.Deserialize(ref reader, NancyJsonSerializerContext.Default.PlainRational);
                 if (plain == null)
-                    throw new JsonException();
+                    throw new JsonException("Rational cannot be deserialized: JSON value is null.");
                 return new Rational(plain.num, plain.den);
             }
         }

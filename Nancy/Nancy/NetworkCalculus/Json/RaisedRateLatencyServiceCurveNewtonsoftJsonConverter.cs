@@ -31,9 +31,9 @@ public class RaisedRateLatencyServiceCurveNewtonsoftJsonConverter : JsonConverte
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational latency = jo[LatencyName]!.ToObject<Rational>(serializer);
-        Rational rate = jo[RateName]!.ToObject<Rational>(serializer);
-        Rational bufferShift = jo[BufferShiftName]!.ToObject<Rational>(serializer);
+        Rational latency = jo.RequireNonNull<Rational>(LatencyName, "RaisedRateLatencyServiceCurve", serializer);
+        Rational rate = jo.RequireNonNull<Rational>(RateName, "RaisedRateLatencyServiceCurve", serializer);
+        Rational bufferShift = jo.RequireNonNull<Rational>(BufferShiftName, "RaisedRateLatencyServiceCurve", serializer);
         // absent from values serialized before it was introduced, and false is how they were built
         bool withZeroOrigin = jo[WithZeroOriginName]?.ToObject<bool>(serializer) ?? false;
 

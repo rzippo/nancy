@@ -28,12 +28,10 @@ public class SuperAdditiveCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Sequence? sequence = jo[CurveNewtonsoftJsonConverter.BaseSequenceName]?.ToObject<Sequence>(serializer);
-        if (sequence == null)
-            throw new InvalidOperationException("Invalid JSON format.");
-        Rational periodStart = jo[CurveNewtonsoftJsonConverter.PseudoPeriodStartName]!.ToObject<Rational>(serializer);
-        Rational periodLength = jo[CurveNewtonsoftJsonConverter.PseudoPeriodLengthName]!.ToObject<Rational>(serializer);
-        Rational periodHeight = jo[CurveNewtonsoftJsonConverter.PseudoPeriodHeightName]!.ToObject<Rational>(serializer);
+        Sequence sequence = jo.RequireNonNull<Sequence>(CurveNewtonsoftJsonConverter.BaseSequenceName, "SuperAdditiveCurve", serializer);
+        Rational periodStart = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodStartName, "SuperAdditiveCurve", serializer);
+        Rational periodLength = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodLengthName, "SuperAdditiveCurve", serializer);
+        Rational periodHeight = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodHeightName, "SuperAdditiveCurve", serializer);
 
         SuperAdditiveCurve curve = new SuperAdditiveCurve(
             baseSequence: sequence,

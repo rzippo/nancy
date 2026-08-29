@@ -29,8 +29,8 @@ public class StairCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational a = jo[AName]!.ToObject<Rational>(serializer);
-        Rational b = jo[BName]!.ToObject<Rational>(serializer);
+        Rational a = jo.RequireNonNull<Rational>(AName, "StairCurve", serializer);
+        Rational b = jo.RequireNonNull<Rational>(BName, "StairCurve", serializer);
 
         StairCurve curve = new StairCurve(
             a: a,

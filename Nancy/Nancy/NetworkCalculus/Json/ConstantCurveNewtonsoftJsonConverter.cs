@@ -29,7 +29,7 @@ public class ConstantCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational value = jo[ValueName]!.ToObject<Rational>(serializer);
+        Rational value = jo.RequireNonNull<Rational>(ValueName, "ConstantCurve", serializer);
 
         ConstantCurve curve = new ConstantCurve(
             value: value

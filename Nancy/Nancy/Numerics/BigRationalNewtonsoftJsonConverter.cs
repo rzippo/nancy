@@ -25,6 +25,8 @@ public class BigRationalNewtonsoftJsonConverter : JsonConverter
         JsonSerializer serializer)
     {
         var jt = JToken.Load(reader);
+        if (jt.Type == JTokenType.Null)
+            throw new JsonSerializationException("BigRational cannot be deserialized: JSON value is null.");
         if (jt.Type == JTokenType.Integer)
         {
             return new BigRational(jt.ToObject<int>());
@@ -36,8 +38,8 @@ public class BigRationalNewtonsoftJsonConverter : JsonConverter
             return new BigRational(value);
         }
 
-        var numTkn = jt[NumeratorName]!;
-        var denTkn = jt[DenominatorName]!;
+        var numTkn = jt.RequireNonNull(NumeratorName, "BigRational");
+        var denTkn = jt.RequireNonNull(DenominatorName, "BigRational");
 
         BigInteger num, den;
         if (numTkn.Type == JTokenType.Integer)

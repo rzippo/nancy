@@ -29,8 +29,8 @@ public class SigmaRhoArrivalCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational sigma = jo[SigmaName]!.ToObject<Rational>(serializer);
-        Rational rho = jo[RhoName]!.ToObject<Rational>(serializer);
+        Rational sigma = jo.RequireNonNull<Rational>(SigmaName, "SigmaRhoArrivalCurve", serializer);
+        Rational rho = jo.RequireNonNull<Rational>(RhoName, "SigmaRhoArrivalCurve", serializer);
 
         SigmaRhoArrivalCurve curve = new SigmaRhoArrivalCurve(
             sigma: sigma,

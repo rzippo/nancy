@@ -29,8 +29,8 @@ public class StepCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Rational value = jo[ValueName]!.ToObject<Rational>(serializer);
-        Rational stepTime = jo[StepTimeName]!.ToObject<Rational>(serializer);
+        Rational value = jo.RequireNonNull<Rational>(ValueName, "StepCurve", serializer);
+        Rational stepTime = jo.RequireNonNull<Rational>(StepTimeName, "StepCurve", serializer);
 
         StepCurve curve = new StepCurve(
             value: value,

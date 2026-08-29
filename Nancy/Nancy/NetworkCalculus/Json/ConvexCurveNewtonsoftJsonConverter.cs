@@ -28,12 +28,10 @@ public class ConvexCurveNewtonsoftJsonConverter : JsonConverter
 
         serializer.Converters.Add(new RationalNewtonsoftJsonConverter());
 
-        Sequence? sequence = jo[CurveNewtonsoftJsonConverter.BaseSequenceName]?.ToObject<Sequence>();
-        if (sequence == null)
-            throw new InvalidOperationException("Invalid JSON format.");
-        Rational periodStart = jo[CurveNewtonsoftJsonConverter.PseudoPeriodStartName]!.ToObject<Rational>();
-        Rational periodLength = jo[CurveNewtonsoftJsonConverter.PseudoPeriodLengthName]!.ToObject<Rational>();
-        Rational periodHeight = jo[CurveNewtonsoftJsonConverter.PseudoPeriodHeightName]!.ToObject<Rational>();
+        Sequence sequence = jo.RequireNonNull<Sequence>(CurveNewtonsoftJsonConverter.BaseSequenceName, "ConvexCurve");
+        Rational periodStart = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodStartName, "ConvexCurve");
+        Rational periodLength = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodLengthName, "ConvexCurve");
+        Rational periodHeight = jo.RequireNonNull<Rational>(CurveNewtonsoftJsonConverter.PseudoPeriodHeightName, "ConvexCurve");
 
         ConvexCurve curve = new ConvexCurve(
             baseSequence: sequence,

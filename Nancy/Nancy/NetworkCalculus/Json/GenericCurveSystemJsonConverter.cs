@@ -29,7 +29,7 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
         var readerClone = reader;
         var success = JsonDocument.TryParseValue(ref readerClone, out JsonDocument? document);
         if (!success || document == null)
-            throw new JsonException();
+            throw new JsonException("Curve cannot be deserialized: could not parse the JSON value.");
         var type = document.RootElement.GetProperty(TypeName).GetString();
 
         switch (type)
@@ -76,8 +76,10 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
             case Curve.TypeCode:
             {
                 var plain = JsonSerializer.Deserialize<PlainCurve>(ref reader, NancyJsonSerializerContext.Default.PlainCurve);
-                if(plain == null || plain.baseSequence == null )
-                    throw new JsonException();
+                if (plain == null)
+                    throw new JsonException("Curve cannot be deserialized: JSON value is null.");
+                if (plain.baseSequence == null)
+                    throw new JsonException("Curve cannot be deserialized: baseSequence cannot be null.");
                 return new Curve(
                     plain.baseSequence, 
                     plain.pseudoPeriodStart, 
@@ -87,7 +89,7 @@ public class GenericCurveSystemJsonConverter : JsonConverter<Curve>
             }
             
             default:
-                throw new JsonException();
+                throw new JsonException($"Curve cannot be deserialized: unrecognized type '{type}'.");
         }
     }
 
