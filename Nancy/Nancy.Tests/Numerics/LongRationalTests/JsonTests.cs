@@ -73,4 +73,20 @@ public class JsonTests
         Assert.True(deserialized.IsInfinite);
         Assert.Equal(LongRational.MinusInfinity, deserialized);
     }
+
+    [Fact]
+    public void DeserializeExplicitNullThrowsWithName()
+    {
+        var ex = Assert.Throws<JsonSerializationException>(() =>
+            JsonConvert.DeserializeObject<LongRational>("null", new LongRationalNewtonsoftJsonConverter()));
+        Assert.Equal("LongRational cannot be deserialized: JSON value is null.", ex.Message);
+    }
+
+    [Fact]
+    public void DeserializeMissingNumeratorThrowsWithFieldName()
+    {
+        var ex = Assert.Throws<JsonSerializationException>(() =>
+            JsonConvert.DeserializeObject<LongRational>("{\"den\":2}", new LongRationalNewtonsoftJsonConverter()));
+        Assert.Equal("LongRational cannot be deserialized: num cannot be null.", ex.Message);
+    }
 }

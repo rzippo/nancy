@@ -156,4 +156,11 @@ public class SystemJsonTests
         var serialization = JsonSerializer.Serialize(value);
         Assert.Equal(expected, serialization);
     }
+
+    [Fact]
+    public void DeserializeExplicitNullThrowsWithName()
+    {
+        var ex = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Rational>("null"));
+        Assert.Equal("Rational cannot be deserialized: JSON value is null.", ex.Message);
+    }
 }

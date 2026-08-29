@@ -107,4 +107,32 @@ public class NewtonsoftJsonTests
         var serialization = JsonConvert.SerializeObject(value, new RationalNewtonsoftJsonConverter());
         Assert.Equal(expected, serialization);
     }
+
+    [Fact]
+    public void DeserializeExplicitNullThrowsWithName()
+    {
+        var ex = Assert.Throws<JsonSerializationException>(() =>
+            JsonConvert.DeserializeObject<Rational>("null", new RationalNewtonsoftJsonConverter()));
+        Assert.Equal("Rational cannot be deserialized: JSON value is null.", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("{\"num\":null,\"den\":2}")]
+    [InlineData("{\"den\":2}")]
+    public void DeserializeMissingNumeratorThrowsWithFieldName(string serialization)
+    {
+        var ex = Assert.Throws<JsonSerializationException>(() =>
+            JsonConvert.DeserializeObject<Rational>(serialization, new RationalNewtonsoftJsonConverter()));
+        Assert.Equal("Rational cannot be deserialized: num cannot be null.", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("{\"num\":1,\"den\":null}")]
+    [InlineData("{\"num\":1}")]
+    public void DeserializeMissingDenominatorThrowsWithFieldName(string serialization)
+    {
+        var ex = Assert.Throws<JsonSerializationException>(() =>
+            JsonConvert.DeserializeObject<Rational>(serialization, new RationalNewtonsoftJsonConverter()));
+        Assert.Equal("Rational cannot be deserialized: den cannot be null.", ex.Message);
+    }
 }

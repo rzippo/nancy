@@ -100,4 +100,44 @@ public class CurveNewtonsoftJson
         var deserialized = Curve.FromJson(serialization);
         Assert.Equal(curve, deserialized);
     }
+
+    private const string ValidSerialization =
+        "{\"type\":\"curve\",\"baseSequence\":{\"elements\":[{\"type\":\"point\",\"time\":0,\"value\":0},{\"type\":\"segment\",\"startTime\":0,\"endTime\":3,\"rightLimitAtStartTime\":0,\"slope\":0},{\"type\":\"point\",\"time\":3,\"value\":5},{\"type\":\"segment\",\"startTime\":3,\"endTime\":5,\"rightLimitAtStartTime\":5,\"slope\":0}]},\"pseudoPeriodStart\":3,\"pseudoPeriodLength\":2,\"pseudoPeriodHeight\":3}";
+
+    public static IEnumerable<object[]> NullFieldCases()
+    {
+        yield return new object[]
+        {
+            "{\"type\":\"curve\",\"baseSequence\":null,\"pseudoPeriodStart\":3,\"pseudoPeriodLength\":2,\"pseudoPeriodHeight\":3}",
+            "baseSequence"
+        };
+        yield return new object[]
+        {
+            ValidSerialization.Replace("\"pseudoPeriodStart\":3", "\"pseudoPeriodStart\":null"),
+            "pseudoPeriodStart"
+        };
+        yield return new object[]
+        {
+            ValidSerialization.Replace("\"pseudoPeriodLength\":2", "\"pseudoPeriodLength\":null"),
+            "pseudoPeriodLength"
+        };
+        yield return new object[]
+        {
+            ValidSerialization.Replace("\"pseudoPeriodHeight\":3", "\"pseudoPeriodHeight\":null"),
+            "pseudoPeriodHeight"
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(NullFieldCases))]
+    public void DeserializeNullFieldThrowsWithFieldName(string serialization, string field)
+    {
+        var settings = new JsonSerializerSettings {
+            Converters = new JsonConverter[] { new CurveNewtonsoftJsonConverter() }
+        };
+
+        var ex = Assert.Throws<JsonSerializationException>(() =>
+            JsonConvert.DeserializeObject<Curve>(serialization, settings));
+        Assert.Equal($"Curve cannot be deserialized: {field} cannot be null.", ex.Message);
+    }
 }

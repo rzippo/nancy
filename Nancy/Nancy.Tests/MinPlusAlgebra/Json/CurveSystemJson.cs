@@ -92,4 +92,24 @@ public class CurveSystemJson
         var deserialized = Curve.FromJson(serialization);
         Assert.Equal(curve, deserialized);
     }
+
+    [Fact]
+    public void DeserializeNullBaseSequenceThrowsWithFieldName()
+    {
+        var serialization = "{\"type\":\"curve\",\"baseSequence\":null,\"pseudoPeriodStart\":3,\"pseudoPeriodLength\":2,\"pseudoPeriodHeight\":3}";
+
+        var ex = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Curve>(serialization));
+
+        Assert.Equal("Curve cannot be deserialized: baseSequence cannot be null.", ex.Message);
+    }
+
+    [Fact]
+    public void DeserializeUnrecognizedTypeThrowsNamingIt()
+    {
+        var serialization = "{\"type\":\"notACurveType\"}";
+
+        var ex = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Curve>(serialization));
+
+        Assert.Equal("Curve cannot be deserialized: unrecognized type 'notACurveType'.", ex.Message);
+    }
 }
