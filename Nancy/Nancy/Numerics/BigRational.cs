@@ -94,12 +94,18 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// The numerator of the rational.
     /// </summary>
+    /// <remarks>
+    /// This property encodes infinity as well as finite values: check <see cref="IsPlusInfinite"/>/<see cref="IsMinusInfinite"/> before using it, or read the pair through <see cref="TryGetFinite"/>, which forces the check.
+    /// </remarks>
     [JsonProperty(PropertyName = "num")]
     public BigInteger Numerator { get; private set; }
 
     /// <summary>
     /// The denominator of the rational.
     /// </summary>
+    /// <remarks>
+    /// This property encodes infinity as well as finite values: check <see cref="IsPlusInfinite"/>/<see cref="IsMinusInfinite"/> before using it, or read the pair through <see cref="TryGetFinite"/>, which forces the check.
+    /// </remarks>
     [JsonProperty(PropertyName = "den")]
     public BigInteger Denominator { get; private set; }
 
@@ -122,6 +128,25 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// True if the number is $-\infty$.
     /// </summary>
     public readonly bool IsMinusInfinite => Denominator.IsZero && Numerator == -1;
+
+    /// <summary>
+    /// The numerator and denominator, if this value is finite.
+    /// </summary>
+    /// <returns>
+    /// <see langword="false"/> for either infinity, with both <paramref name="numerator"/> and <paramref name="denominator"/> left at their default; <see langword="true"/> otherwise.
+    /// </returns>
+    public readonly bool TryGetFinite(out BigInteger numerator, out BigInteger denominator)
+    {
+        if (IsInfinite)
+        {
+            numerator = default;
+            denominator = default;
+            return false;
+        }
+        numerator = Numerator;
+        denominator = Denominator;
+        return true;
+    }
 
     /// <summary>
     /// True if the number is 0.

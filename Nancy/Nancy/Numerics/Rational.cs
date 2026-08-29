@@ -124,11 +124,12 @@ namespace Unipi.Nancy.Numerics
             => Math.Sign(Numerator);
         #endif
 
-        #if BIG_RATIONAL
-        /// <inheritdoc cref="BigRational.Numerator"/>
-        #elif LONG_RATIONAL
-        /// <inheritdoc cref="LongRational.Numerator"/>
-        #endif
+        /// <summary>
+        /// The numerator of the rational.
+        /// </summary>
+        /// <remarks>
+        /// This property encodes infinity as well as finite values: check <see cref="IsPlusInfinite"/>/<see cref="IsMinusInfinite"/> before using it, or read the pair through <see cref="TryGetFinite"/>, which forces the check.
+        /// </remarks>
         [JsonProperty(PropertyName = "num")]
         [JsonPropertyName("num")]
         [System.Text.Json.Serialization.JsonConverter(typeof(BigIntegerSystemJsonConverter))]
@@ -138,11 +139,12 @@ namespace Unipi.Nancy.Numerics
         public long Numerator { get; private set; }
         #endif
 
-        #if BIG_RATIONAL
-        /// <inheritdoc cref="BigRational.Denominator"/>
-        #elif LONG_RATIONAL
-        /// <inheritdoc cref="LongRational.Denominator"/>
-        #endif
+        /// <summary>
+        /// The denominator of the rational.
+        /// </summary>
+        /// <remarks>
+        /// This property encodes infinity as well as finite values: check <see cref="IsPlusInfinite"/>/<see cref="IsMinusInfinite"/> before using it, or read the pair through <see cref="TryGetFinite"/>, which forces the check.
+        /// </remarks>
         [JsonProperty(PropertyName = "den")]
         [JsonPropertyName("den")]
         [System.Text.Json.Serialization.JsonConverter(typeof(BigIntegerSystemJsonConverter))]
@@ -203,6 +205,28 @@ namespace Unipi.Nancy.Numerics
         #elif LONG_RATIONAL
             => Denominator == 0 && Numerator == -1;
         #endif
+
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.TryGetFinite"/>
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational.TryGetFinite"/>
+        #endif
+        #if BIG_RATIONAL
+        public readonly bool TryGetFinite(out BigInteger numerator, out BigInteger denominator)
+        #elif LONG_RATIONAL
+        public readonly bool TryGetFinite(out long numerator, out long denominator)
+        #endif
+        {
+            if (IsInfinite)
+            {
+                numerator = default;
+                denominator = default;
+                return false;
+            }
+            numerator = Numerator;
+            denominator = Denominator;
+            return true;
+        }
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.IsZero"/>
