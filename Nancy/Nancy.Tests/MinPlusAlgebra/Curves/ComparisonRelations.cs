@@ -11,8 +11,7 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class ComparisonRelations
 {
-    // Every curve built through NetworkCalculus passes through the origin, so a pair drawn from those
-    // meets at t = 0 and the strict relations are false whatever the implementation does.
+    // Every curve built through NetworkCalculus passes through the origin, so a pair drawn from those meets at t = 0 and the strict relations are false whatever the implementation does.
     // AboveOrigin starts at 1 and rises, giving the strict relations a case they can be true for.
     private static Curve AboveOrigin(Rational start, Rational slope)
         => new Curve(
@@ -93,8 +92,7 @@ public class ComparisonRelations
         Assert.False(a.IsStrictUpperBoundOfExceptOrigin(b));
     }
 
-    // the ordering is over functions, so a re-encoding is not a proper bound of its original,
-    // even though == reports them as different
+    // A re-encoding is not a proper bound of its original, even though == reports the two as different.
     [Fact]
     public void ARepresentationChangeIsNotAProperBound()
     {
@@ -135,8 +133,21 @@ public class ComparisonRelations
     [MemberData(nameof(CrossingPairs))]
     public void NotBeingBelowDoesNotMakeACurveAnUpperBound(Curve a, Curve b)
     {
-        Assert.False(a.IsProperLowerBoundOf(b));
-        Assert.False(a.IsUpperBoundOf(b));
+        Assert.False(a < b);
+        Assert.False(a >= b);
+        Assert.False(a > b);
+        Assert.False(a <= b);
+    }
+
+    // The operators read the proper relation, so a re-encoding of one function is neither below nor above itself.
+    [Theory]
+    [MemberData(nameof(EquivalentPairs))]
+    public void EquivalentCurvesAreNeitherStrictlyBelowNorAbove(Curve a, Curve b)
+    {
+        Assert.True(a <= b);
+        Assert.True(a >= b);
+        Assert.False(a < b);
+        Assert.False(a > b);
     }
 
     [Theory]
@@ -163,7 +174,10 @@ public class ComparisonRelations
         Assert.Equal(a.IsUpperBoundOf(b), a >= b);
 
         Assert.Equal(a.IsProperLowerBoundOf(b), Curve.IsProperLowerBoundOf(a, b));
+        Assert.Equal(a.IsProperLowerBoundOf(b), a < b);
+
         Assert.Equal(a.IsProperUpperBoundOf(b), Curve.IsProperUpperBoundOf(a, b));
+        Assert.Equal(a.IsProperUpperBoundOf(b), a > b);
         Assert.Equal(a.IsStrictLowerBoundOf(b), Curve.IsStrictLowerBoundOf(a, b));
         Assert.Equal(a.IsStrictUpperBoundOf(b), Curve.IsStrictUpperBoundOf(a, b));
         Assert.Equal(a.IsStrictLowerBoundOfExceptOrigin(b), Curve.IsStrictLowerBoundOfExceptOrigin(a, b));
@@ -196,6 +210,8 @@ public class ComparisonRelations
 
         Assert.Equal(curve.IsBelow(point), curve <= point);
         Assert.Equal(curve.IsAbove(point), curve >= point);
+        Assert.Equal(curve.IsStrictlyBelow(point), curve < point);
+        Assert.Equal(curve.IsStrictlyAbove(point), curve > point);
     }
 
     // A relation added later without a case here fails this rather than going unexercised.
@@ -211,6 +227,15 @@ public class ComparisonRelations
             nameof(Curve.IsBelow), nameof(Curve.IsAbove),
             nameof(Curve.IsStrictlyBelow), nameof(Curve.IsStrictlyAbove),
         };
+
+        // every comparison operator is exercised through AssertEverySurfaceAgrees or the point theory
+        var operators = new[] { "op_LessThan", "op_GreaterThan", "op_LessThanOrEqual", "op_GreaterThanOrEqual" };
+        var declaredOperators = typeof(Curve)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Select(m => m.Name)
+            .Where(n => n.StartsWith("op_") && n.Contains("Than"))
+            .Distinct();
+        Assert.Empty(declaredOperators.Except(operators));
 
         var declared = typeof(Curve)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
