@@ -22,6 +22,8 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// They are piecewise affine and ultimately pseudo-periodic.
 /// Pseudo-periodic means that $f(t + d) = f(t) + c$, where $c$ is the step gained after each pseudo-period.
 /// Ultimately means that the function has such property for $t \ge T$.
+/// The sequence of elements over $[0, T + d)$, together with $T$, $d$ and $c$, is the curve's representation.
+/// One function has many representations, since $T$ may be raised and $d$ replaced by a multiple of itself, with $c$ scaled to match, without changing any value.
 /// </summary>
 /// <remarks>
 /// Implementation of data structure described in [BT08] Section 4.1
@@ -1272,20 +1274,116 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// True if the first curve is a lower bound for the second one.
+    /// True if this curve is a lower bound for <paramref name="curve"/>, i.e. $\forall t: f(t) \le g(t)$.
     /// </summary>
-    public static bool operator <=(Curve a, Curve b)
-    {
-        return a.Equivalent(Minimum(a, b));
-    }
+    /// <remarks>
+    /// The ordering of curves is partial: two curves that cross bound each other in neither direction, so <c>!(a &lt;= b)</c> does not imply <c>a &gt;= b</c>.
+    /// <c>a &lt;= b &amp;&amp; b &lt;= a</c> implies <see cref="Equivalent(Curve, ComputationSettings?)"/>, not <c>==</c>, since <c>a == b</c> holds only when the two have the same representation.
+    /// </remarks>
+    public bool IsLowerBoundOf(Curve curve, ComputationSettings? settings = null)
+        => IsLowerBoundOf(this, curve, settings);
+
+    /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)"/>
+    public static bool IsLowerBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
+        => Equivalent(a, Minimum(a, b, settings), settings);
 
     /// <summary>
-    /// True if the first curve is an upper bound for the second one.
+    /// True if this curve is an upper bound for <paramref name="curve"/>, i.e. $\forall t: f(t) \ge g(t)$.
     /// </summary>
+    /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)" path="/remarks"/>
+    public bool IsUpperBoundOf(Curve curve, ComputationSettings? settings = null)
+        => IsUpperBoundOf(this, curve, settings);
+
+    /// <inheritdoc cref="IsUpperBoundOf(Curve, ComputationSettings?)"/>
+    public static bool IsUpperBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
+        => IsLowerBoundOf(b, a, settings);
+
+    /// <summary>
+    /// True if this curve is a lower bound for <paramref name="curve"/> and the two are not equivalent.
+    /// </summary>
+    /// <remarks>
+    /// The two may still meet: they are equal wherever they touch, and this curve is strictly below elsewhere.
+    /// <see cref="IsStrictLowerBoundOf(Curve, ComputationSettings?)"/> is the reading that excludes touching.
+    /// </remarks>
+    /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)" path="/remarks"/>
+    public bool IsProperLowerBoundOf(Curve curve, ComputationSettings? settings = null)
+        => IsProperLowerBoundOf(this, curve, settings);
+
+    /// <inheritdoc cref="IsProperLowerBoundOf(Curve, ComputationSettings?)"/>
+    public static bool IsProperLowerBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
+        => IsLowerBoundOf(a, b, settings) && !Equivalent(a, b, settings);
+
+    /// <summary>
+    /// True if this curve is an upper bound for <paramref name="curve"/> and the two are not equivalent.
+    /// </summary>
+    /// <inheritdoc cref="IsProperLowerBoundOf(Curve, ComputationSettings?)" path="/remarks"/>
+    public bool IsProperUpperBoundOf(Curve curve, ComputationSettings? settings = null)
+        => IsProperUpperBoundOf(this, curve, settings);
+
+    /// <inheritdoc cref="IsProperUpperBoundOf(Curve, ComputationSettings?)"/>
+    public static bool IsProperUpperBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
+        => IsProperLowerBoundOf(b, a, settings);
+
+    /// <summary>
+    /// True if this curve is below <paramref name="curve"/> at every time, i.e. $\forall t: f(t) &lt; g(t)$.
+    /// </summary>
+    /// <remarks>
+    /// The two never meet, the origin included.
+    /// Every curve built through <see cref="NetworkCalculus"/> passes through the origin, so a pair of them meets at $t = 0$ and this is false for them.
+    /// <see cref="IsStrictLowerBoundOfExceptOrigin(Curve, ComputationSettings?)"/> is the reading that lets them touch there.
+    /// </remarks>
+    /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)" path="/remarks"/>
+    public bool IsStrictLowerBoundOf(Curve curve, ComputationSettings? settings = null)
+        => IsStrictLowerBoundOf(this, curve, settings);
+
+    /// <inheritdoc cref="IsStrictLowerBoundOf(Curve, ComputationSettings?)"/>
+    public static bool IsStrictLowerBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
+        => IsLowerBoundOf(a, b, settings) && a.GetIntersections(b, settings: settings).IsEmpty;
+
+    /// <summary>
+    /// True if this curve is above <paramref name="curve"/> at every time, i.e. $\forall t: f(t) > g(t)$.
+    /// </summary>
+    /// <inheritdoc cref="IsStrictLowerBoundOf(Curve, ComputationSettings?)" path="/remarks"/>
+    public bool IsStrictUpperBoundOf(Curve curve, ComputationSettings? settings = null)
+        => IsStrictUpperBoundOf(this, curve, settings);
+
+    /// <inheritdoc cref="IsStrictUpperBoundOf(Curve, ComputationSettings?)"/>
+    public static bool IsStrictUpperBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
+        => IsStrictLowerBoundOf(b, a, settings);
+
+    /// <summary>
+    /// True if this curve is below <paramref name="curve"/> at every time after the origin, i.e. $\forall t > 0: f(t) &lt; g(t)$.
+    /// </summary>
+    /// <remarks>
+    /// The two may meet at $t = 0$ and nowhere else, which is the common case for curves built through <see cref="NetworkCalculus"/>, all of which pass through the origin.
+    /// </remarks>
+    /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)" path="/remarks"/>
+    public bool IsStrictLowerBoundOfExceptOrigin(Curve curve, ComputationSettings? settings = null)
+        => IsStrictLowerBoundOfExceptOrigin(this, curve, settings);
+
+    /// <inheritdoc cref="IsStrictLowerBoundOfExceptOrigin(Curve, ComputationSettings?)"/>
+    public static bool IsStrictLowerBoundOfExceptOrigin(Curve a, Curve b, ComputationSettings? settings = null)
+        => IsLowerBoundOf(a, b, settings)
+           && a.GetIntersections(b, from: 0, isStartInclusive: false, settings: settings).IsEmpty;
+
+    /// <summary>
+    /// True if this curve is above <paramref name="curve"/> at every time after the origin, i.e. $\forall t > 0: f(t) > g(t)$.
+    /// </summary>
+    /// <inheritdoc cref="IsStrictLowerBoundOfExceptOrigin(Curve, ComputationSettings?)" path="/remarks"/>
+    public bool IsStrictUpperBoundOfExceptOrigin(Curve curve, ComputationSettings? settings = null)
+        => IsStrictUpperBoundOfExceptOrigin(this, curve, settings);
+
+    /// <inheritdoc cref="IsStrictUpperBoundOfExceptOrigin(Curve, ComputationSettings?)"/>
+    public static bool IsStrictUpperBoundOfExceptOrigin(Curve a, Curve b, ComputationSettings? settings = null)
+        => IsStrictLowerBoundOfExceptOrigin(b, a, settings);
+
+    /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)"/>
+    public static bool operator <=(Curve a, Curve b)
+        => IsLowerBoundOf(a, b);
+
+    /// <inheritdoc cref="IsUpperBoundOf(Curve, ComputationSettings?)"/>
     public static bool operator >=(Curve a, Curve b)
-    {
-        return b <= a;
-    }
+        => IsUpperBoundOf(a, b);
 
     /// <summary>
     /// Checks if there is dominance between the curves given and, if so, returns their order.
@@ -1328,20 +1426,52 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// True if the curve is below the point
+    /// True if the curve is at or below <paramref name="point"/>, i.e. $f(t) \le v$ for the point $(t, v)$.
     /// </summary>
-    public static bool operator <=(Curve c, Point p)
-    {
-        return c.ValueAt(p.Time) <= p.Value;
-    }
+    public bool IsBelow(Point point)
+        => IsBelow(this, point);
+
+    /// <inheritdoc cref="IsBelow(Point)"/>
+    public static bool IsBelow(Curve c, Point p)
+        => c.ValueAt(p.Time) <= p.Value;
 
     /// <summary>
-    /// True if the curve is above the point
+    /// True if the curve is at or above <paramref name="point"/>, i.e. $f(t) \ge v$ for the point $(t, v)$.
     /// </summary>
+    public bool IsAbove(Point point)
+        => IsAbove(this, point);
+
+    /// <inheritdoc cref="IsAbove(Point)"/>
+    public static bool IsAbove(Curve c, Point p)
+        => c.ValueAt(p.Time) >= p.Value;
+
+    /// <summary>
+    /// True if the curve is below <paramref name="point"/>, i.e. $f(t) &lt; v$ for the point $(t, v)$.
+    /// </summary>
+    public bool IsStrictlyBelow(Point point)
+        => IsStrictlyBelow(this, point);
+
+    /// <inheritdoc cref="IsStrictlyBelow(Point)"/>
+    public static bool IsStrictlyBelow(Curve c, Point p)
+        => c.ValueAt(p.Time) < p.Value;
+
+    /// <summary>
+    /// True if the curve is above <paramref name="point"/>, i.e. $f(t) > v$ for the point $(t, v)$.
+    /// </summary>
+    public bool IsStrictlyAbove(Point point)
+        => IsStrictlyAbove(this, point);
+
+    /// <inheritdoc cref="IsStrictlyAbove(Point)"/>
+    public static bool IsStrictlyAbove(Curve c, Point p)
+        => c.ValueAt(p.Time) > p.Value;
+
+    /// <inheritdoc cref="IsBelow(Point)"/>
+    public static bool operator <=(Curve c, Point p)
+        => IsBelow(c, p);
+
+    /// <inheritdoc cref="IsAbove(Point)"/>
     public static bool operator >=(Curve c, Point p)
-    {
-        return c.ValueAt(p.Time) >= p.Value;
-    }
+        => IsAbove(c, p);
 
     /// <summary>
     /// Returns the opposite function, $g(t) = -f(t)$.
