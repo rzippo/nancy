@@ -1393,6 +1393,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public static bool operator >=(Curve a, Curve b)
         => IsUpperBoundOf(a, b);
 
+    /// <inheritdoc cref="IsProperLowerBoundOf(Curve, ComputationSettings?)"/>
+    public static bool operator <(Curve a, Curve b)
+        => IsProperLowerBoundOf(a, b);
+
+    /// <inheritdoc cref="IsProperUpperBoundOf(Curve, ComputationSettings?)"/>
+    public static bool operator >(Curve a, Curve b)
+        => IsProperUpperBoundOf(a, b);
+
     /// <summary>
     /// Checks if there is dominance between the curves given and, if so, returns their order.
     /// </summary>
@@ -1480,6 +1488,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <inheritdoc cref="IsAbove(Point)"/>
     public static bool operator >=(Curve c, Point p)
         => IsAbove(c, p);
+
+    /// <inheritdoc cref="IsStrictlyBelow(Point)"/>
+    public static bool operator <(Curve c, Point p)
+        => IsStrictlyBelow(c, p);
+
+    /// <inheritdoc cref="IsStrictlyAbove(Point)"/>
+    public static bool operator >(Curve c, Point p)
+        => IsStrictlyAbove(c, p);
 
     /// <summary>
     /// Returns the opposite function, $g(t) = -f(t)$.
