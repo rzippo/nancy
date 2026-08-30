@@ -353,9 +353,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve is non-negative over the given interval, i.e. i.e. $f(t) \ge 0$ for any $t$ in the given interval.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
-    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="end">End of the interval.
+    /// If not specified, it is assumed $+\infty$.</param>
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
-    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.
+    /// If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     public bool IsNonNegativeOverInterval(
         Rational start,
@@ -481,9 +483,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if for any pair $t,s$ in the given interval, $t > s$, $f(t) \ge f(s)$.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
-    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="end">End of the interval.
+    /// If not specified, it is assumed $+\infty$.</param>
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
-    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.
+    /// If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     public bool IsNonDecreasingOverInterval(
         Rational start,
@@ -526,9 +530,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if for any $t_0$ interior (from the left) to the given interval, $lim_{t \to t_0^-}{f(t)} = f(t_0)$.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
-    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="end">End of the interval.
+    /// If not specified, it is assumed $+\infty$.</param>
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
-    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.
+    /// If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <remarks>See [Zippo23] Definition 14.4</remarks>
     public bool IsLeftContinuousOverInterval(
@@ -572,9 +578,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if for any $t_0$ interior (from the right) to the given interval, $lim_{t \to t_0^+}{f(t)} = f(t_0)$.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
-    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="end">End of the interval.
+    /// If not specified, it is assumed $+\infty$.</param>
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
-    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.
+    /// If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <remarks>See [Zippo23] Definition 14.5</remarks>
     public bool IsRightContinuousOverInterval(
@@ -1504,7 +1512,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="other">The curve to compare against.</param>
     /// <param name="from">The time to start from, null meaning 0.</param>
-    /// <param name="to">The time to stop at, included or not per <paramref name="isEndInclusive"/>; null meaning unbounded. A value of $+\infty$ is treated as unbounded, and its inclusivity is ignored.</param>
+    /// <param name="to">The time to stop at, included or not per <paramref name="isEndInclusive"/>; null meaning unbounded.
+    /// A value of $+\infty$ is treated as unbounded, and its inclusivity is ignored.</param>
     /// <param name="isStartInclusive">If true, <paramref name="from"/> is included in the search.</param>
     /// <param name="isEndInclusive">If true, <paramref name="to"/> is included in the search.</param>
     /// <param name="settings">Optional settings for the operation.</param>
@@ -1622,7 +1631,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="other">The curve to compare against.</param>
     /// <param name="from">The time to start from, null meaning 0.</param>
-    /// <param name="to">The time to stop at, included or not per <paramref name="isEndInclusive"/>; null meaning unbounded. A value of $+\infty$ is treated as unbounded, and its inclusivity is ignored.</param>
+    /// <param name="to">The time to stop at, included or not per <paramref name="isEndInclusive"/>; null meaning unbounded.
+    /// A value of $+\infty$ is treated as unbounded, and its inclusivity is ignored.</param>
     /// <param name="isStartInclusive">If true, <paramref name="from"/> is included in the search.</param>
     /// <param name="isEndInclusive">If true, <paramref name="to"/> is included in the search.</param>
     /// <param name="settings">Optional settings for the operation.</param>
@@ -2910,7 +2920,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// so that $f = f_t \wedge f_p$ (if <paramref name="minDecomposition"/> is true)
     /// or $f = f_t \vee f_p$ (if <paramref name="minDecomposition"/> is false).
     /// </summary>
-    /// <param name="splitTime">Time at which to split the curve. Defaults to <see cref="PseudoPeriodStart"/>.</param>
+    /// <param name="splitTime">Time at which to split the curve.
+    /// Defaults to <see cref="PseudoPeriodStart"/>.</param>
     /// <param name="leftIncludesEndPoint">
     /// If true, and <paramref name="splitTime"/> is $T > 0$, the support of $f_t$ will be $[0, T]$.
     /// If false, it will be $[0, T[$.
@@ -4178,9 +4189,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// If $0 \in I$, the support is extended to start from 0.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
-    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="end">End of the interval.
+    /// If not specified, it is assumed $+\infty$.</param>
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
-    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.
+    /// If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
@@ -4329,9 +4342,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The support of the result will be the interval $f(I)$, defined as the smallest interval containing all $f(x)$ for $x \in I$.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
-    /// <param name="end">End of the interval. If not specified, it is assumed $+\infty$.</param>
+    /// <param name="end">End of the interval.
+    /// If not specified, it is assumed $+\infty$.</param>
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
-    /// <param name="isEndIncluded">If true, the interval is right-closed. If <paramref name="end"/> is $+\infty$, it has no effect.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.
+    /// If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
     /// Defined and discussed in [ZNS23a].
