@@ -59,11 +59,12 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </summary>
     /// <param name="other">The other value.</param>
     /// <remarks>
-    /// This constructor was made explicit to *not* copy the private cache fields when using the with operator.
+    /// Made explicit so that the `with` operator carries what the caller set, the name and the settings, and leaves behind the cache fields, which the new expression has to earn again.
     /// </remarks>
     public RationalExpression(RationalExpression other)
     {
         Name = other.Name;
+        Settings = other.Settings;
     }
 
     #endregion Constructors
