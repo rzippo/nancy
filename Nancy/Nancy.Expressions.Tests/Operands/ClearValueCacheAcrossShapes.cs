@@ -11,7 +11,7 @@ namespace Unipi.Nancy.Expressions.Tests.Operands;
 public class ClearValueCacheAcrossShapes
 {
     private static readonly ExpressionSettings AlwaysNotCheap =
-        new() { CacheSettings = new CacheSettings { CheapCacheSegmentThreshold = -1 } };
+        new() { CacheSettings = new CacheSettings { CheapCacheElementThreshold = -1 } };
 
     private static CurveExpression Operand(int value, string name)
         => new ConcreteCurveExpression(new ConstantCurve(value), name);

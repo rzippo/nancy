@@ -8,9 +8,9 @@ namespace Unipi.Nancy.Expressions.Tests.Operands;
 public class ClearValueCacheTests
 {
     // A trivially small ConstantCurve is "cheap" under the default threshold.
-    // A negative threshold forces not-cheap whatever the actual size, count/2 never being negative, so the tests can observe clearing without a curve wide enough to cross the real default.
+    // A negative threshold forces not-cheap whatever the actual size, the element count never being negative, so the tests can observe clearing without a curve wide enough to cross the real default.
     private static readonly ExpressionSettings AlwaysNotCheap =
-        new() { CacheSettings = new CacheSettings { CheapCacheSegmentThreshold = -1 } };
+        new() { CacheSettings = new CacheSettings { CheapCacheElementThreshold = -1 } };
 
     // A named composite child.
     // N-ary Compute() goes through FlattenOperands, which recurses straight past a named intermediate to the true leaves beneath it.

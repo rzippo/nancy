@@ -37,8 +37,8 @@ public class ExpressionEquality
     [Fact]
     public void NAryExpressionsDifferingOnlyInSettingsAreEqual()
     {
-        var settingsA = new ExpressionSettings { CacheSettings = new CacheSettings { CheapCacheSegmentThreshold = 5 } };
-        var settingsB = new ExpressionSettings { CacheSettings = new CacheSettings { CheapCacheSegmentThreshold = 50 } };
+        var settingsA = new ExpressionSettings { CacheSettings = new CacheSettings { CheapCacheElementThreshold = 10 } };
+        var settingsB = new ExpressionSettings { CacheSettings = new CacheSettings { CheapCacheElementThreshold = 100 } };
         CurveExpression a = new AdditionExpression([CurveA.ToExpression("a"), CurveB.ToExpression("b")], "s", settingsA);
         CurveExpression b = new AdditionExpression([CurveA.ToExpression("a"), CurveB.ToExpression("b")], "s", settingsB);
 
