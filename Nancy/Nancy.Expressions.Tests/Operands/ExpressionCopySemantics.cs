@@ -52,6 +52,8 @@ public class ExpressionCopySemantics
     public void ADerivedExpressionStartsWithoutTheOriginalsCaches(
         string label, System.Func<(CurveExpression Original, CurveExpression Derived)> make)
     {
+        _ = label;
+
         var (original, derived) = make();
 
         Assert.True(original.IsComputed);
@@ -79,6 +81,8 @@ public class ExpressionCopySemantics
     public void ADerivedExpressionKeepsTheSettingsTheCallerSet(
         string label, System.Func<(CurveExpression Original, CurveExpression Derived)> make)
     {
+        _ = label;
+
         var (original, derived) = make();
 
         Assert.Same(Settings, original.Settings);
