@@ -2,18 +2,20 @@ name: Nancy.Expressions.Interactive.Local-test
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      - "Nancy/Nancy.Expressions/*"
-      - "Nancy/Nancy.Expressions.Interactive/*"
-  pull_request:
-    branches:
-      - master
-    paths:
-      - "Nancy/Nancy.Expressions/*"
-      - "Nancy/Nancy.Expressions.Interactive/*"
+  # The Interactive projects are on hold, parked out of the solution filters:
+  # the automatic triggers are off, so a run is a deliberate manual one.
+  # push:
+  #   branches:
+  #     - master
+  #   paths:
+  #     - "Nancy/Nancy.Expressions/*"
+  #     - "Nancy/Nancy.Expressions.Interactive/*"
+  # pull_request:
+  #   branches:
+  #     - master
+  #   paths:
+  #     - "Nancy/Nancy.Expressions/*"
+  #     - "Nancy/Nancy.Expressions.Interactive/*"
 
 jobs:
   Nancy-Expressions-Interactive-Local-test:
