@@ -6,11 +6,12 @@ namespace Unipi.Nancy.Expressions;
 public record CacheSettings
 {
     /// <summary>
-    /// The largest segment count a <see cref="CurveExpression"/>'s cached value can have while <see cref="CurveExpression.ValueCacheIsCheap"/> still counts it as cheap to keep.
+    /// The largest element count a <see cref="CurveExpression"/>'s cached value can have while <see cref="CurveExpression.ValueCacheIsCheap"/> still counts it as cheap to keep.
     /// </summary>
     /// <remarks>
-    /// The default of 20 is an arbitrary starting point, chosen without profiling; tune it to your own workload's curve sizes.
+    /// A curve of <c>m</c> segments has about <c>2m</c> elements, so the default of 40 corresponds to roughly 20 segments.
+    /// It is an arbitrary starting point, chosen without profiling; tune it to your own workload's curve sizes.
     /// Real data on typical sizes would settle it properly.
     /// </remarks>
-    public int CheapCacheSegmentThreshold { get; init; } = 20;
+    public int CheapCacheElementThreshold { get; init; } = 40;
 }

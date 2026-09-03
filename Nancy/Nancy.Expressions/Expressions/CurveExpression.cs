@@ -48,7 +48,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// True if this node's own cached <see cref="Value"/> is small enough to be worth keeping.
     /// </summary>
     /// <remarks>
-    /// The cached value's segment count is checked against <see cref="CacheSettings.CheapCacheSegmentThreshold"/>, taken from <see cref="ExpressionSettings.CacheSettings"/> on <see cref="Settings"/>, or from the default threshold when unset.
+    /// The cached value's element count is checked against <see cref="CacheSettings.CheapCacheElementThreshold"/>, taken from <see cref="ExpressionSettings.CacheSettings"/> on <see cref="Settings"/>, or from the default threshold when unset.
     /// A node with no cached value yet has nothing to clear, and reports <see langword="true"/>.
     /// </remarks>
     protected internal virtual bool ValueCacheIsCheap
@@ -57,9 +57,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         {
             if (_value is null)
                 return true;
-            var threshold = Settings?.CacheSettings?.CheapCacheSegmentThreshold
-                ?? new CacheSettings().CheapCacheSegmentThreshold;
-            return _value.BaseSequence.Elements.Count / 2 <= threshold;
+            var threshold = Settings?.CacheSettings?.CheapCacheElementThreshold
+                ?? new CacheSettings().CheapCacheElementThreshold;
+            return _value.BaseSequence.Elements.Count <= threshold;
         }
     }
 
