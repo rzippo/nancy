@@ -14,4 +14,18 @@ public record CacheSettings
     /// Real data on typical sizes would settle it properly.
     /// </remarks>
     public int CheapCacheElementThreshold { get; init; } = 40;
+
+    /// <inheritdoc cref="CheapCacheElementThreshold"/>
+    /// <remarks>
+    /// A curve of <c>m</c> segments has about <c>2m</c> elements, so a segment threshold of <c>n</c> is kept as an element threshold of <c>2n</c>.
+    /// </remarks>
+    [Obsolete("Renamed to CheapCacheElementThreshold, which counts elements rather than segments.")]
+    public int CheapCacheSegmentThreshold
+    {
+        // Both thresholds are plain counts, not measures: halving is meant to truncate.
+#pragma warning disable NANCY0005
+        get => CheapCacheElementThreshold / 2;
+#pragma warning restore NANCY0005
+        init => CheapCacheElementThreshold = 2 * value;
+    }
 }
