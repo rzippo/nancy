@@ -37,7 +37,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\Unipi.Nancy.xml</DocumentationFile>
+    <DocumentationFile>bin\Nancy\Release\Unipi.Nancy.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
