@@ -9,12 +9,19 @@
 
     <RootNamespace>Unipi.Nancy.Expressions.Tests</RootNamespace>
     <AssemblyName>Unipi.Nancy.Expressions.Tests.Local</AssemblyName>
+    <NoWarn>$(NoWarn);NANCY0004</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
 	  <ProjectReference Include="..\Nancy.Expressions\Nancy.Expressions.Local.csproj" />
   </ItemGroup>
 	
+  <ItemGroup>
+    <ProjectReference Include="..\Nancy.Analyzers\Nancy.Analyzers\Nancy.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Nancy.Analyzers\Nancy.Analyzers.CodeFixers\Nancy.Analyzers.CodeFixers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2024.2.0-eap1" />
     <PackageReference Include="xunit.v3.mtp-v2" Version="3.2.2" />
