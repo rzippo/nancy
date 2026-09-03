@@ -1,0 +1,11 @@
+{
+  "solution": {
+    "path": "Nancy.sln",
+    "projects": [
+      "Nancy.Analyzers\\Nancy.Analyzers.CodeFixers\\Nancy.Analyzers.CodeFixers.csproj",
+      "Nancy.Analyzers\\Nancy.Analyzers.Sample\\Nancy.Analyzers.Sample.csproj",
+      "Nancy.Analyzers\\Nancy.Analyzers\\Nancy.Analyzers.csproj",
+      "Nancy\\Nancy.csproj"
+    ]
+  }
+}
