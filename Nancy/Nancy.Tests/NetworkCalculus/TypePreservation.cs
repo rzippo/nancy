@@ -80,20 +80,29 @@ public class TypePreservation
             Assert.Equal(sigma + shift, Assert.IsType<SigmaRhoArrivalCurve>(shifted).Sigma);
     }
 
-    [Fact]
-    public void ShiftingByAnInfiniteFactorLeavesTheSpecializedTypes()
-    {
-        // the burst of an arrival curve cannot hold an infinite value, so the shortcut must not be taken for one
-        var subjects = new Curve[]
-        {
-            new SigmaRhoArrivalCurve(sigma: 3, rho: 2),
-            new ConstantCurve(5),
-            new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: 5),
-            new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: 5, withZeroOrigin: true),
-            new RateLatencyServiceCurve(rate: 2, latency: 3)
-        };
+    /// <summary>
+    /// Covers both operands with a zero or positive latency.
+    /// </summary>
+    public static List<Curve> InfiniteShiftOperands =
+    [
+        new SigmaRhoArrivalCurve(sigma: 3, rho: 2),
+        new ConstantCurve(5),
+        new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: 5),
+        new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: 5, withZeroOrigin: true),
+        new RaisedRateLatencyServiceCurve(rate: 2, latency: 0, bufferShift: 5),
+        new RaisedRateLatencyServiceCurve(rate: 2, latency: 0, bufferShift: 5, withZeroOrigin: true),
+        new RateLatencyServiceCurve(rate: 2, latency: 3),
+        new RateLatencyServiceCurve(rate: 2, latency: 0)
+    ];
 
-        foreach (var curve in subjects)
+    public static IEnumerable<object[]> GetInfiniteShiftOperands()
+        => InfiniteShiftOperands.ToXUnitTestCases();
+
+    // the burst of an arrival curve cannot hold an infinite value, so the shortcut must not be taken for one
+    [Theory]
+    [MemberData(nameof(GetInfiniteShiftOperands))]
+    public void ShiftingByAnInfiniteFactorLeavesTheSpecializedTypes(Curve curve)
+    {
         foreach (var shift in new[] { Rational.PlusInfinity, Rational.MinusInfinity })
         foreach (var exceptOrigin in new[] { true, false })
             Assert.True(
@@ -102,23 +111,42 @@ public class TypePreservation
             );
     }
 
+    /// <summary>
+    /// The buffer a shift lands on, covering both signs and a zero latency,
+    /// since the shape of the curve at the origin is where the latency and the buffer interact.
+    /// </summary>
+    public static List<(Rational latency, Rational bufferShift, Rational shift)> BufferShifts =
+    [
+        (3, 5, 4),
+        (3, 5, -9),
+        (0, 5, 4),
+        (0, 5, -5),
+        (0, 5, -9)
+    ];
+
+    public static IEnumerable<object[]> GetBufferShifts()
+        => BufferShifts.ToXUnitTestCases();
+
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void ShiftingARaisedRateLatencyRaisesItsBuffer(bool hasZeroOrigin)
+    [MemberData(nameof(GetBufferShifts))]
+    public void ShiftingARaisedRateLatencyRaisesItsBuffer(Rational latency, Rational bufferShift, Rational shift)
     {
-        var curve = new RaisedRateLatencyServiceCurve(rate: 2, latency: 3, bufferShift: 5, withZeroOrigin: hasZeroOrigin);
-
-        foreach (var exceptOrigin in new[] { true, false })
+        foreach (var hasZeroOrigin in new[] { true, false })
         {
-            var shifted = curve.VerticalShift(4, exceptOrigin);
+            var curve = new RaisedRateLatencyServiceCurve(rate: 2, latency: latency, bufferShift: bufferShift, withZeroOrigin: hasZeroOrigin);
 
-            Assert.True(Curve.Equivalent(Erased(curve).VerticalShift(4, exceptOrigin), shifted));
-            // the origin lands where this type puts it only when the two agree
-            if (exceptOrigin == hasZeroOrigin)
-                Assert.Equal(9, Assert.IsType<RaisedRateLatencyServiceCurve>(shifted).BufferShift);
-            else
-                Assert.IsType<Curve>(shifted);
+            foreach (var exceptOrigin in new[] { true, false })
+            {
+                var shifted = curve.VerticalShift(shift, exceptOrigin);
+                var because = $"withZeroOrigin: {hasZeroOrigin}, exceptOrigin: {exceptOrigin}";
+
+                Assert.True(Curve.Equivalent(Erased(curve).VerticalShift(shift, exceptOrigin), shifted), because);
+                // the origin lands where this type puts it only when the two agree
+                if (exceptOrigin == hasZeroOrigin)
+                    Assert.Equal(bufferShift + shift, Assert.IsType<RaisedRateLatencyServiceCurve>(shifted).BufferShift);
+                else
+                    Assert.IsType<Curve>(shifted);
+            }
         }
     }
 

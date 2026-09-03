@@ -41,6 +41,23 @@ public class WithOriginAt
         Assert.True(Curve.EquivalentExceptOrigin(result, curve));
     }
     
+    /// <summary>
+    /// $f^\circ = \min(f, \delta_0)$ only lowers the origin, so a curve already at or below 0 there is
+    /// returned as it is.
+    /// <see cref="WithZeroOriginTest"/> cannot see this, since a forced origin would satisfy $f(0) \le 0$ too.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(WithZeroOriginTestCases))]
+    public void WithZeroOriginLeavesANonPositiveOriginAlone(Curve curve)
+    {
+        var result = curve.WithZeroOrigin();
+
+        if (curve.ValueAt(0) <= 0)
+            Assert.Same(curve, result);
+        else
+            Assert.Equal(0, result.ValueAt(0));
+    }
+
     [Theory]
     [MemberData(nameof(WithOriginAtTestCases))]
     public void WithOriginAtTest(Curve curve, Rational value)

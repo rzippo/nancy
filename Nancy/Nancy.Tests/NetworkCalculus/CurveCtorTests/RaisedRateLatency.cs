@@ -21,8 +21,25 @@ public class RaisedRateLatency
     public static IEnumerable<object[]> GetRaisedRateLatencyCtorCases()
         => RaisedRateLatencyCtorCases.ToXUnitTestCases();
 
+    /// <summary>
+    /// A downward shift produces a negative buffer, at any latency.
+    /// These cases are kept apart from <see cref="RaisedRateLatencyCtorCases"/> because such a curve is negative at the origin and so does have not a finite subadditive closure.
+    /// </summary>
+    public static List<(Rational latency, Rational rate, Rational bufferShift)> NegativeBufferShiftCases =
+    [
+        (0, 5, -5),
+        (0, 5, -1),
+        (0, new Rational(20, 3), -14.5m),
+        (5, 10, -8),
+        (14.5m, new Rational(20, 3), -4)
+    ];
+
+    public static IEnumerable<object[]> GetNegativeBufferShiftCases()
+        => NegativeBufferShiftCases.ToXUnitTestCases();
+
     [Theory]
     [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
+    [MemberData(nameof(GetNegativeBufferShiftCases))]
     public void RaisedRateLatencyCtor(Rational latency, Rational rate, Rational bufferShift)
     {
         RaisedRateLatencyServiceCurve curve = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift);
@@ -213,6 +230,7 @@ public class RaisedRateLatency
 
     [Theory]
     [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
+    [MemberData(nameof(GetNegativeBufferShiftCases))]
     public void SumWithConstantCurve_MatchesTheDefinition(Rational latency, Rational rate, Rational bufferShift)
     {
         var rateLatency = new RateLatencyServiceCurve(rate, latency);
@@ -229,6 +247,7 @@ public class RaisedRateLatency
 
     [Theory]
     [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
+    [MemberData(nameof(GetNegativeBufferShiftCases))]
     public void VerticalShift_MatchesTheDefinition(Rational latency, Rational rate, Rational bufferShift)
     {
         var rateLatency = new RateLatencyServiceCurve(rate, latency);
@@ -241,6 +260,30 @@ public class RaisedRateLatency
             Assert.True(Curve.Equivalent(byDefinition.VerticalShift(bufferShift, exceptOrigin), typed));
             if (bufferShift > 0)
                 Assert.IsType<RaisedRateLatencyServiceCurve>(typed);
+        }
+    }
+
+    /// <summary>
+    /// The constructor's two origin variants, based on the flag <see cref="RaisedRateLatencyCtor_WithZeroOrigin"/>, differ at the origin and nowhere else, for a buffer of either sign.
+    /// The flag lowers a positive origin and leaves any other alone.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetRaisedRateLatencyCtorCases))]
+    [MemberData(nameof(GetNegativeBufferShiftCases))]
+    public void BothOrigins_DifferOnlyAtTheOrigin(Rational latency, Rational rate, Rational bufferShift)
+    {
+        var raised = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift, withZeroOrigin: false);
+        var zeroOrigin = new RaisedRateLatencyServiceCurve(rate, latency, bufferShift, withZeroOrigin: true);
+
+        Assert.Equal(bufferShift, raised.ValueAt(0));
+        Assert.Equal(0, zeroOrigin.ValueAt(0));
+        Assert.True(Curve.EquivalentExceptOrigin(raised, zeroOrigin));
+
+        foreach (var curve in new[] { raised, zeroOrigin })
+        {
+            Assert.Equal(bufferShift, curve.RightLimitAt(latency));
+            Assert.Equal(bufferShift + rate, curve.ValueAt(latency + 1));
+            Assert.Equal(bufferShift + 110 * rate, curve.ValueAt(latency + 110));
         }
     }
 
