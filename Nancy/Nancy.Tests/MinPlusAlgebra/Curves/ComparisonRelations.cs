@@ -154,6 +154,9 @@ public class ComparisonRelations
     [MemberData(nameof(OrderedPairs))]
     public void SettingsReachTheComputation(Curve lower, Curve upper, bool touchesAnywhere, bool touchesAfterOrigin)
     {
+        _ = touchesAnywhere;
+        _ = touchesAfterOrigin;
+
         var settings = new ComputationSettings { UseParallelism = false };
 
         Assert.Equal(lower.IsLowerBoundOf(upper), Curve.IsLowerBoundOf(lower, upper, settings));
