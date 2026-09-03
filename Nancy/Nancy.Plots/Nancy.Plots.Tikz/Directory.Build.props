@@ -1,0 +1,13 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- The two projects in this directory compile the same sources against different libraries.
+         Give each its own obj/bin, or their project.assets.json and generated files collide. -->
+    <BaseIntermediateOutputPath>obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\$(MSBuildProjectName)\</BaseOutputPath>
+
+    <!-- Keep the sibling project's generated sources out of the default globs. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**;bin\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

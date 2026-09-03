@@ -25,7 +25,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-        <DocumentationFile>bin\Release\Unipi.Nancy.Plots.XPlot.Plotly.xml</DocumentationFile>
+        <DocumentationFile>bin\Nancy.Plots.XPlot.Plotly\Release\Unipi.Nancy.Plots.XPlot.Plotly.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
