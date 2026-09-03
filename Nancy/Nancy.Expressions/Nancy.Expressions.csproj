@@ -26,7 +26,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <DocumentationFile>bin\Release\Unipi.Nancy.Expressions.xml</DocumentationFile>
+      <DocumentationFile>bin\Nancy.Expressions\Release\Unipi.Nancy.Expressions.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
