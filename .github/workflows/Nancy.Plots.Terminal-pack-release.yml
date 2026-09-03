@@ -19,7 +19,7 @@ jobs:
       NANCY_PLOTS_TERMINAL: "Nancy/Nancy.Plots/Nancy.Plots.Terminal/Nancy.Plots.Terminal.csproj"
       NANCY_PLOTS_TERMINAL_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.Terminal.Tests/Nancy.Plots.Terminal.Tests.csproj"
       NANCY_PLOTS_TERMINAL_SAMPLE: "Nancy/Nancy.Plots/Nancy.Plots.Terminal.Sample/Nancy.Plots.Terminal.Sample.csproj"
-      NANCY_PLOTS_TERMINAL_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.Terminal/bin/Release/**/*.nupkg"
+      NANCY_PLOTS_TERMINAL_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.Terminal/bin/Nancy.Plots.Terminal/Release/**/*.nupkg"
 
     steps:
       - uses: actions/checkout@v6

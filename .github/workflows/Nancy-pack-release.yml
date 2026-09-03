@@ -22,7 +22,7 @@ jobs:
       SOLUTION: "Nancy/Nancy.sln"
       NANCY: "Nancy/Nancy/Nancy${{ matrix.nancy-release }}.csproj"
       NANCY_TESTS: "Nancy/Nancy.Tests/Nancy.Tests${{ matrix.nancy-release }}.csproj"
-      NANCY_PACKS: "Nancy/Nancy/bin/Release/**/*.nupkg"
+      NANCY_PACKS: "Nancy/Nancy/bin/Nancy${{ matrix.nancy-release }}/Release/**/*.nupkg"
 
     steps:
       - uses: actions/checkout@v6

@@ -17,7 +17,7 @@ jobs:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.sln"
       NANCY_EXPRESSIONS_INTERACTIVE: "Nancy/Nancy.Expressions.Interactive/Nancy.Expressions.Interactive.csproj"
-      NANCY_EXPRESSIONS_INTERACTIVE_PACKS: "Nancy/Nancy.Expressions.Interactive/bin/Release/**/*.nupkg"
+      NANCY_EXPRESSIONS_INTERACTIVE_PACKS: "Nancy/Nancy.Expressions.Interactive/bin/Nancy.Expressions.Interactive/Release/**/*.nupkg"
 
     steps:
       - uses: actions/checkout@v6

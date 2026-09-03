@@ -18,7 +18,7 @@ jobs:
       SOLUTION: "Nancy/Nancy.Plots/Nancy.Plots.sln"
       NANCY_PLOTS_TIKZ: "Nancy/Nancy.Plots/Nancy.Plots.Tikz/Nancy.Plots.Tikz.csproj"
       NANCY_PLOTS_TIKZ_TESTS: "Nancy/Nancy.Plots/Nancy.Plots.Tikz.Tests/Nancy.Plots.Tikz.Tests.csproj"
-      NANCY_PLOTS_TIKZ_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.Tikz/bin/Release/**/*.nupkg"
+      NANCY_PLOTS_TIKZ_PACKS: "Nancy/Nancy.Plots/Nancy.Plots.Tikz/bin/Nancy.Plots.Tikz/Release/**/*.nupkg"
 
     steps:
       - uses: actions/checkout@v6
