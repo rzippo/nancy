@@ -537,7 +537,7 @@ public class TikzPlot
     /// <param name="axisLimits">The limits of the plot, which reserved the room for the areas.</param>
     /// <param name="continuesPastEnd">True if the sequences are cuts of curves that go on past them.</param>
     /// <remarks>
-    /// These are drawn with plain TikZ rather than <c>ddplot</c>, so that they take no part in the legend or the color cycle.
+    /// These are drawn with plain TikZ rather than <c>\addplot</c>, so that they take no part in the legend or the color cycle.
     /// No border is drawn: at a curve's weight it would read as a segment of the curve itself.
     /// The label is staggered per sequence, so that overlapping areas do not write over each other.
     /// </remarks>
@@ -675,6 +675,7 @@ public class TikzPlot
     /// <param name="names">The names to use.</param>
     /// <param name="colors">The colors to use.</param>
     /// <param name="lineStyles">The line styles to use.</param>
+    /// <param name="continuations">For each sequence, how the curve is drawn past the plot end.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="includeLegend">Whether to include the legend.</param>
     // ReSharper disable once MemberCanBePrivate.Global
@@ -778,6 +779,7 @@ static class ToTikzExtensions
     /// <param name="color">The color to use.</param>
     /// <param name="lineStyle">The line style to use.</param>
     /// <param name="settings">Optional settings for the operation.</param>
+    /// <param name="continuation">How the curve is drawn past the plot end.</param>
     /// <returns>The result.</returns>
     public static IEnumerable<string> ToTikzLines(
         this Sequence sequence, 

@@ -158,9 +158,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
             return (areas, annotations);
         }
 
-        /// <summary>
-        /// Maps a line style to the matching plotly dash.
-        /// </summary>
+        // Maps a line style to the matching plotly dash.
         static string ToPlotlyDash(PlotLineStyle style)
             => style switch
             {
