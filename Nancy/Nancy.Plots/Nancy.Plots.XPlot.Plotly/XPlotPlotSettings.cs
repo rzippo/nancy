@@ -5,13 +5,10 @@ namespace Unipi.Nancy.Plots.XPlot.Plotly;
 /// </summary>
 /// <remarks>
 /// Plotly has no fill pattern for a filled area, so <see cref="PlotSettings.FillPatterns"/> is accepted and ignored: overlapping areas are told apart by color, at <see cref="InfinityAreaOpacity"/>.
+/// <see cref="PlotSettings.SameScaleAxes"/> is ignored too: the axes are adapted to the render size.
 /// </remarks>
 public record XPlotPlotSettings : PlotSettings
 {
-    /// If true, the plot is forced to have the x and y axes to have the same scale.
-    /// If false, they are adapted to the render size.
-    public bool SameScaleAxes { get; set; } = false;
-
     /// <summary>
     /// Output width in pixels.
     /// </summary>
