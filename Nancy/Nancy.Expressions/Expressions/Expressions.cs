@@ -989,7 +989,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that delays the curve expression
-    /// <paramref name="expression"/> by the rational <paramref name="delay"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
+    /// <paramref name="operand"/> by the rational <paramref name="delay"/>, i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -1055,7 +1055,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that forwards the curve expression
-    /// <paramref name="expression"/> by the rational <paramref name="time"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
+    /// <paramref name="operand"/> by the rational <paramref name="time"/>, i.e., computing $f(t + T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
@@ -1122,7 +1122,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
-    /// <paramref name="expression"/> horizontally to the right by the rational <paramref name="time"/>,
+    /// <paramref name="operand"/> horizontally to the right by the rational <paramref name="time"/>,
     /// i.e., computing $f(t - T)$.
     /// </summary>
     /// <remarks>
@@ -1184,7 +1184,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that shifts the curve expression
-    /// <paramref name="expression"/> by the rational <paramref name="time"/>, i.e., computing $f(t) + K$.
+    /// <paramref name="operand"/> by the rational <paramref name="time"/>, i.e., computing $f(t) + K$.
     /// </summary>
     public static CurveExpression VerticalShift(CurveExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1222,7 +1222,7 @@ public static class Expressions
 
     /// <summary>
     /// Creates a new expression that scales the curve expression
-    /// <paramref name="expression"/> by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
+    /// <paramref name="operand"/> by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
     public static CurveExpression Scale(CurveExpression operand, Rational scaleFactor,
         string expressionName = "", ExpressionSettings? settings = null)

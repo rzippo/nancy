@@ -1096,7 +1096,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region DelayBy
     
     /// <summary>
-    /// Creates a new expression that delays the current expression by the rational <paramref name="expression"/>,
+    /// Creates a new expression that delays the current expression by the rational <paramref name="operand"/>,
     /// i.e., computing $f(t - T)$, with $T \ge 0$.
     /// </summary>
     /// <remarks>
@@ -1129,7 +1129,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region ForwardBy
 
     /// <summary>
-    /// Creates a new expression that forwards the current expression by the rational <paramref name="expression"/>,
+    /// Creates a new expression that forwards the current expression by the rational <paramref name="operand"/>,
     /// i.e., computing $f(t + T)$, with $T \ge 0$. 
     /// </summary>
     /// <remarks>
@@ -1162,7 +1162,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #region HorizontalShift
 
     /// <summary>
-    /// Creates a new expression that shifts the current expression by the rational <paramref name="expression"/>,
+    /// Creates a new expression that shifts the current expression by the rational <paramref name="operand"/>,
     /// i.e., computing $f(t - T)$. 
     /// </summary>
     /// <remarks>
@@ -1196,7 +1196,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     /// <summary>
     /// Creates a new expression that shifts the current
-    /// expression by the rational <paramref name="expression"/>, i.e., computing $f(t) + K$. 
+    /// expression by the rational <paramref name="operand"/>, i.e., computing $f(t) + K$. 
     /// </summary>
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
@@ -1221,7 +1221,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     
     /// <summary>
     /// Creates a new expression composed of the operation to scale the curve corresponding to the current expression
-    /// by the rational number described by the argument <paramref name="expression"/> of type
+    /// by the rational number described by the argument <paramref name="operand"/> of type
     /// <see cref="RationalExpression"/>. </summary>
     public CurveExpression Scale(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)

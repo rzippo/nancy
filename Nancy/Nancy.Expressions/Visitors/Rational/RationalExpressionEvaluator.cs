@@ -93,12 +93,16 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(InvertRationalExpression expression) => _result = Rational.Invert(expression.Operand.Value);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalAbsoluteValueExpression expression) => _result = Rational.Abs(expression.Operand.Value);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalModuloExpression expression) => _result = expression.LeftOperand.Value % expression.RightOperand.Value;
 
+    /// <inheritdoc />
     public virtual void Visit(RationalPowerExpression expression) => _result = Rational.Pow(expression.LeftOperand.Value, (System.Numerics.BigInteger)expression.RightOperand.Value);
 
+    /// <inheritdoc />
     public virtual void Visit(RationalPlaceholderExpression expression)
         => throw new InvalidOperationException("Can't evaluate an expression with placeholders!");
 

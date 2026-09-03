@@ -4,8 +4,14 @@ using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Expressions.Internals;
 
+/// <summary>
+/// Class representing an expression whose root operation is the operation which enforces a curve to assume a given value at time 0.
+/// </summary>
 public record WithOriginAtExpression : CurveUnaryExpression<Curve>
 {
+    /// <summary>
+    /// Creates the "with-origin-at" expression.
+    /// </summary>
     public WithOriginAtExpression(
         Curve curve,
         string name,
@@ -16,6 +22,9 @@ public record WithOriginAtExpression : CurveUnaryExpression<Curve>
     {
     }
 
+    /// <summary>
+    /// Creates the "with-origin-at" expression.
+    /// </summary>
     public WithOriginAtExpression(
         CurveExpression expression,
         Rational value,
@@ -26,11 +35,16 @@ public record WithOriginAtExpression : CurveUnaryExpression<Curve>
         OriginValue = value;
     }
 
+    /// <summary>
+    /// The value enforced at time 0.
+    /// </summary>
     public Rational OriginValue { get; }
 
+    /// <inheritdoc />
     public override void Accept(ICurveExpressionVisitor visitor)
         => visitor.Visit(this);
 
+    /// <inheritdoc />
     public override TResult Accept<TResult>(ICurveExpressionVisitor<TResult> visitor)
         => visitor.Visit(this);
 }
