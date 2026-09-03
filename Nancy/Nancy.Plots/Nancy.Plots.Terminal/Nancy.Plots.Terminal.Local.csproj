@@ -9,6 +9,10 @@
         <RootNamespace>Unipi.Nancy.Plots.Terminal</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DocumentationFile>bin\Nancy.Plots.Terminal.Local\Release\Unipi.Nancy.Plots.Terminal.xml</DocumentationFile>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="Spectre.Console" Version="0.55.2" />
     </ItemGroup>

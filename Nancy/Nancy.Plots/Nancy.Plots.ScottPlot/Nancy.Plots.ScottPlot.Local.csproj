@@ -9,6 +9,10 @@
         <RootNamespace>Unipi.Nancy.Plots.ScottPlot</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DocumentationFile>bin\Nancy.Plots.ScottPlot.Local\Release\Unipi.Nancy.Plots.ScottPlot.xml</DocumentationFile>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\..\Nancy\Nancy.csproj" />
     </ItemGroup>

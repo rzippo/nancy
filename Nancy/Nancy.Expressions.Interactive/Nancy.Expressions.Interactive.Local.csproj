@@ -16,6 +16,10 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Nancy.Expressions.Interactive.Local\Release\Unipi.Nancy.Expressions.Interactive.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Nancy.Expressions\Nancy.Expressions.Local.csproj" />
   </ItemGroup>

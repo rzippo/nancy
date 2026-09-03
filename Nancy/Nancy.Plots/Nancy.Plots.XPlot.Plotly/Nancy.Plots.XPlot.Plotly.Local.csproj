@@ -9,6 +9,10 @@
         <RootNamespace>Unipi.Nancy.Plots.XPlot.Plotly</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DocumentationFile>bin\Nancy.Plots.XPlot.Plotly.Local\Release\Unipi.Nancy.Plots.XPlot.Plotly.xml</DocumentationFile>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\..\Nancy\Nancy.csproj" />
     </ItemGroup>

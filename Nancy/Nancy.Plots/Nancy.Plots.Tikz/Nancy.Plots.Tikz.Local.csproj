@@ -9,6 +9,10 @@
         <RootNamespace>Unipi.Nancy.Plots.Tikz</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DocumentationFile>bin\Nancy.Plots.Tikz.Local\Release\Unipi.Nancy.Plots.Tikz.xml</DocumentationFile>
+    </PropertyGroup>
+
     <ItemGroup>
       <ProjectReference Include="..\..\Nancy\Nancy.csproj" />
     </ItemGroup>
