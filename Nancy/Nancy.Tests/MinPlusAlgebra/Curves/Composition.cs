@@ -8,6 +8,20 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class Composition
 {
+    /// <summary>
+    /// A curve with the same value over any $t$, the origin included.
+    /// <see cref="ConstantCurve"/> cannot express this, since it is 0 at the origin.
+    /// </summary>
+    private static Curve Constant(Rational value) => new Curve(
+        baseSequence: new Sequence([
+            new Point(0, value),
+            Segment.Constant(0, 1, value)
+        ]),
+        pseudoPeriodStart: 0,
+        pseudoPeriodLength: 1,
+        pseudoPeriodHeight: 0
+    );
+
     public static List<(Curve f, Curve g, Curve expected)> KnownTuples =
     [
         (
@@ -384,6 +398,35 @@ public class Composition
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
             )
+        ),
+        // a constant inner function has a single point as its range,
+        // so the composition is the constant $f(g(0))$ over any $t$
+        (
+            f: Constant(5),
+            g: Constant(3),
+            expected: Constant(5)
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(sigma: 3, rho: 2),
+            g: Constant(3),
+            expected: Constant(9)
+        ),
+        (
+            f: new RateLatencyServiceCurve(rate: 2, latency: 1),
+            g: Constant(3),
+            expected: Constant(4)
+        ),
+        // the constant 0 is the one case the general algorithm already handles,
+        // since the cut of $f$ it asks for starts at 0
+        (
+            f: Constant(5),
+            g: Curve.Zero(),
+            expected: Constant(5)
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(sigma: 3, rho: 2),
+            g: Curve.Zero(),
+            expected: Constant(0)
         )
     ];
 

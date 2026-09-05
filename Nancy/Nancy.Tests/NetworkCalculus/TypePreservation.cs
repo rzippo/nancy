@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -148,6 +149,94 @@ public class TypePreservation
                     Assert.IsType<Curve>(shifted);
             }
         }
+    }
+
+    /// <summary>
+    /// Scaling factors, including the ones the specialized types cannot hold:
+    /// a negative factor turns an arrival curve concave-side-down and a service curve convex-side-down,
+    /// and an infinite one is neither a burst nor a rate.
+    /// </summary>
+    public static List<Rational> ScalingFactors =
+    [
+        2, 1, new Rational(1, 2), 0, -1, -4, Rational.PlusInfinity, Rational.MinusInfinity
+    ];
+
+    public static IEnumerable<object[]> GetScalingFactors()
+        => ScalingFactors.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetScalingFactors))]
+    public void ScalingAnArrivalCurveScalesItsBurstAndRate(Rational scaling)
+    {
+        var arrival = new SigmaRhoArrivalCurve(sigma: 3, rho: 2);
+
+        var scaled = arrival.Scale(scaling);
+
+        Assert.True(Curve.Equivalent(Erased(arrival).Scale(scaling), scaled));
+        // the burst and the rate must stay finite and non-negative for the result to be an arrival curve of this kind
+        if (scaling.IsFinite && !scaling.IsNegative)
+        {
+            var typed = Assert.IsType<SigmaRhoArrivalCurve>(scaled);
+            Assert.Equal(3 * scaling, typed.Sigma);
+            Assert.Equal(2 * scaling, typed.Rho);
+        }
+        else
+            Assert.IsType<Curve>(scaled);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetScalingFactors))]
+    public void ScalingARateLatencyScalesItsRate(Rational scaling)
+    {
+        var service = new RateLatencyServiceCurve(rate: 2, latency: 3);
+
+        var scaled = service.Scale(scaling);
+
+        Assert.True(Curve.Equivalent(Erased(service).Scale(scaling), scaled));
+        // the rate must stay finite and non-negative for the result to be a service curve of this kind
+        if (scaling.IsFinite && !scaling.IsNegative)
+        {
+            var typed = Assert.IsType<RateLatencyServiceCurve>(scaled);
+            Assert.Equal(2 * scaling, typed.Rate);
+            Assert.Equal(3, typed.Latency);
+        }
+        else
+            Assert.IsType<Curve>(scaled);
+    }
+
+    /// <summary>
+    /// Delays, including the ones <see cref="Curve.DelayBy"/> documents as invalid.
+    /// </summary>
+    public static List<Rational> Delays =
+    [
+        0, 1, 5, -1, -5, Rational.PlusInfinity, Rational.MinusInfinity
+    ];
+
+    public static IEnumerable<object[]> GetDelays()
+        => Delays.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetDelays))]
+    public void DelayingARateLatencyRaisesItsLatency(Rational delay)
+    {
+        var service = new RateLatencyServiceCurve(rate: 2, latency: 3);
+
+        // the delay must be non-negative and finite, which the optimized path must enforce as the base one does
+        if (!delay.IsFinite || delay.IsNegative)
+        {
+            // the message must be the one the base method gives, not one from further down the shortcut
+            var fromBase = Assert.Throws<ArgumentException>(() => Erased(service).DelayBy(delay));
+            var fromOptimized = Assert.Throws<ArgumentException>(() => service.DelayBy(delay));
+            Assert.Equal(fromBase.Message, fromOptimized.Message);
+            return;
+        }
+
+        var delayed = service.DelayBy(delay);
+
+        Assert.True(Curve.Equivalent(Erased(service).DelayBy(delay), delayed));
+        var typed = Assert.IsType<RateLatencyServiceCurve>(delayed);
+        Assert.Equal(2, typed.Rate);
+        Assert.Equal(3 + delay, typed.Latency);
     }
 
     [Fact]
