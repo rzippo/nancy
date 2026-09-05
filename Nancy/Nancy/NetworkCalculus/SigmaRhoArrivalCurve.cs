@@ -106,10 +106,17 @@ public class SigmaRhoArrivalCurve : ConcaveCurve
     /// <inheritdoc cref="Curve.Scale(Rational)"/>
     public override Curve Scale(Rational scaling)
     {
-        #if DO_LOG
-        logger.Trace("Optimized SR Scale");
-        #endif
-        return new SigmaRhoArrivalCurve(sigma: scaling * Sigma, rho: scaling * Rho);
+        // scaling by a negative factor turns the curve concave-side-down, and an infinite one is neither
+        // a burst nor a rate, so the shortcut holds only for the factors this type can represent
+        if (scaling.IsFinite && !scaling.IsNegative)
+        {
+            #if DO_LOG
+            logger.Trace("Optimized SR Scale");
+            #endif
+            return new SigmaRhoArrivalCurve(sigma: scaling * Sigma, rho: scaling * Rho);
+        }
+
+        return base.Scale(scaling);
     }
 
     /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>

@@ -137,15 +137,27 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// <inheritdoc cref="Curve.Scale(Rational)"/>
     public override Curve Scale(Rational scaling)
     {
-        #if DO_LOG
-        logger.Trace("Optimized RL Scale");
-        #endif
-        return new RateLatencyServiceCurve(rate: scaling * Rate, latency: Latency);
+        // scaling by a negative factor turns the curve convex-side-down, and an infinite one is not a rate,
+        // so the shortcut holds only for the factors this type can represent
+        if (scaling.IsFinite && !scaling.IsNegative)
+        {
+            #if DO_LOG
+            logger.Trace("Optimized RL Scale");
+            #endif
+            return new RateLatencyServiceCurve(rate: scaling * Rate, latency: Latency);
+        }
+
+        return base.Scale(scaling);
     }
 
     /// <inheritdoc cref="Curve.DelayBy(Rational)"/>
     public override Curve DelayBy(Rational delay)
     {
+        // a negative or infinite delay is rejected by the base method, and adding it to the latency
+        // would instead be a shift this type can silently represent, so the check must be made here too
+        if (delay.IsNegative || delay.IsInfinite)
+            return base.DelayBy(delay);
+
         #if DO_LOG
         logger.Trace("Optimized RL DelayBy");
         #endif

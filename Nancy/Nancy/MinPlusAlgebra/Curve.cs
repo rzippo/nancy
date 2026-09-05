@@ -7997,6 +7997,23 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (!g.IsNonDecreasing)
             throw new ArgumentException("g must be non-decreasing");
 
+        // since g is non-decreasing, matching its value at 0 and at the start of its pseudo-period
+        // means it is constant over any t, hence its range is the single point g(0).
+        // the general algorithm cannot cut f over such a range, but the composition is then the constant f(g(0))
+        if (g.IsUltimatelyConstant && g.ValueAt(0) == g.ValueAt(g.PseudoPeriodStart))
+        {
+            var constantValue = f.ValueAt(g.ValueAt(0));
+            return new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, constantValue),
+                    Segment.Constant(0, 1, constantValue)
+                ]),
+                pseudoPeriodStart: 0,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            );
+        }
+
         var T_due_g = g.PseudoPeriodStart;
         var T_due_f = g.LowerPseudoInverse()
             .ValueAt(f.PseudoPeriodStart);
