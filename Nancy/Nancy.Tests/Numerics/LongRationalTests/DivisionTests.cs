@@ -64,4 +64,53 @@ public class DivisionTests
     {
         Assert.Throws<UndeterminedResultException>(() => LongRational.Zero / LongRational.Zero);
     }
+
+    /// <summary>
+    /// The undetermined cases must say which one they are.
+    /// A parameterless <see cref="UndeterminedResultException"/> reaches the caller as .NET's placeholder,
+    /// which is a bare type name, and every consumer that reports a message reports that instead.
+    /// </summary>
+    [Fact]
+    public void ZeroOverZero_SaysWhy()
+    {
+        var thrown = Assert.Throws<UndeterminedResultException>(() => LongRational.Zero / LongRational.Zero);
+        Assert.Equal("Zero over zero", thrown.Message);
+    }
+
+    [Fact]
+    public void InfiniteOverInfinite_SaysWhy()
+    {
+        LongRational[] infinities = [LongRational.PlusInfinity, LongRational.MinusInfinity];
+        foreach (var x in infinities)
+        foreach (var y in infinities)
+        {
+            var thrown = Assert.Throws<UndeterminedResultException>(() => x / y);
+            Assert.Equal("Infinity over infinity", thrown.Message);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="LongRational.Divide"/> forwards to the operator, so it carries whatever the operator throws.
+    /// </summary>
+    [Fact]
+    public void NamedDivideSaysWhyToo()
+    {
+        Assert.Equal(
+            "Zero over zero",
+            Assert.Throws<UndeterminedResultException>(() => LongRational.Divide(LongRational.Zero, LongRational.Zero)).Message);
+        Assert.Equal(
+            "Infinity over infinity",
+            Assert.Throws<UndeterminedResultException>(() => LongRational.Divide(LongRational.PlusInfinity, LongRational.PlusInfinity)).Message);
+    }
+
+    /// <summary>
+    /// The constructor already worded its own zero-over-zero, and is the wording the division follows.
+    /// </summary>
+    [Fact]
+    public void ConstructorSaysWhy()
+    {
+        Assert.Equal(
+            "Zero over zero",
+            Assert.Throws<UndeterminedResultException>(() => new LongRational(0, 0)).Message);
+    }
 }
