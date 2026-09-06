@@ -210,10 +210,10 @@ public class InfinityFraming
     /// <summary>
     /// Records what the modeler reports about the sequences it is asked to plot.
     /// </summary>
-    private sealed class ProvenanceProbe : NancyPlotModeler<PlotSettings, bool>
+    private sealed class ProvenanceProbe : NancyPlotModeler<PlotSettings, PlotXWindow>
     {
-        public override bool GetPlot(IEnumerable<Sequence> sequences, IEnumerable<string> names)
-            => SequencesContinuePastCut;
+        public override PlotXWindow GetPlot(IEnumerable<Sequence> sequences, IEnumerable<string> names)
+            => WindowFor(sequences.ToList());
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class InfinityFraming
             (IReadOnlyCollection<Curve>)new List<Curve> { new RateLatencyServiceCurve(1, 3) },
             (IEnumerable<string>)new List<string> { "f" });
 
-        Assert.True(fromCurves);
+        Assert.True(fromCurves.DataContinuesPastSamples);
     }
 
     [Fact]
@@ -237,11 +237,11 @@ public class InfinityFraming
             (IEnumerable<Sequence>)new List<Sequence> { DelaySequence(10, 40) },
             (IEnumerable<string>)new List<string> { "f" });
 
-        Assert.False(fromSequences);
+        Assert.False(fromSequences.DataContinuesPastSamples);
     }
 
     [Fact]
-    public void PlottingCurvesDoesNotLeaveTheFlagSetForLaterSequences()
+    public void PlottingCurvesDoesNotLeaveTheWindowSetForLaterSequences()
     {
         var probe = new ProvenanceProbe();
 
@@ -249,12 +249,13 @@ public class InfinityFraming
             (IReadOnlyCollection<Curve>)new List<Curve> { new RateLatencyServiceCurve(1, 3) },
             (IEnumerable<string>)new List<string> { "f" });
 
-        // the same modeler reused: a sequence must never inherit the provenance of an earlier curve
+        // the same modeler reused: a sequence must never inherit the window of an earlier curve
         var fromSequences = probe.GetPlot(
             (IEnumerable<Sequence>)new List<Sequence> { DelaySequence(10, 40) },
             (IEnumerable<string>)new List<string> { "f" });
 
-        Assert.False(fromSequences);
+        Assert.False(fromSequences.DataContinuesPastSamples);
+        Assert.Equal(fromSequences.Sampling, PlotXWindow.ForSequences([DelaySequence(10, 40)], new PlotSettings()).Sampling);
     }
 
     #endregion
