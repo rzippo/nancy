@@ -1152,7 +1152,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         if (x.IsZero)
         {
             if (y.IsZero)
-                throw new UndeterminedResultException();
+                throw new UndeterminedResultException("Zero over zero");
             else
                 return BigRational.Zero;
         }
@@ -1165,7 +1165,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         if (x.IsInfinite)
         {
             if (y.IsInfinite)
-                throw new UndeterminedResultException();
+                throw new UndeterminedResultException("Infinity over infinity");
             else
                 return y.Numerator.Sign > 0 ? x : -x;
         }

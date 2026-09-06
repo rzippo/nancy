@@ -1371,7 +1371,7 @@ namespace Unipi.Nancy.Numerics
             if (x.IsZero)
             {
                 if (y.IsZero)
-                    throw new UndeterminedResultException();
+                    throw new UndeterminedResultException("Zero over zero");
                 else
                     return Rational.Zero;
             }
@@ -1384,7 +1384,7 @@ namespace Unipi.Nancy.Numerics
             if (x.IsInfinite)
             {
                 if (y.IsInfinite)
-                    throw new UndeterminedResultException();
+                    throw new UndeterminedResultException("Infinity over infinity");
                 else
                     return y.Numerator.Sign > 0 ? x : -x;
             }
@@ -1497,7 +1497,7 @@ namespace Unipi.Nancy.Numerics
             {
                 if (x.IsZero && y.IsZero)
                 {
-                    throw new UndeterminedResultException();
+                    throw new UndeterminedResultException("Zero over zero");
                 }
                 else if (x.IsZero)
                 {
@@ -1512,7 +1512,7 @@ namespace Unipi.Nancy.Numerics
             {
                 if (x.IsInfinite && y.IsInfinite)
                 {
-                    throw new UndeterminedResultException();
+                    throw new UndeterminedResultException("Infinity over infinity");
                 }
                 else if (x.IsInfinite)
                 {

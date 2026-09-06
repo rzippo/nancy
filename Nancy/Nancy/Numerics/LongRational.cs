@@ -960,7 +960,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         {
             if (r1.IsZero && r2.IsZero)
             {
-                throw new UndeterminedResultException();
+                throw new UndeterminedResultException("Zero over zero");
             }
             else if (r1.IsZero)
             {
@@ -975,7 +975,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         {
             if (r1.IsInfinite && r2.IsInfinite)
             {
-                throw new UndeterminedResultException();
+                throw new UndeterminedResultException("Infinity over infinity");
             }
             else if (r1.IsInfinite)
             {
