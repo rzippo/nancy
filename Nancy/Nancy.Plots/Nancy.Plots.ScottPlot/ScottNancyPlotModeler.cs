@@ -53,8 +53,9 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         if(PlotSettings.SameScaleAxes)
             plot.Axes.SquareUnits();
         
+        var window = WindowFor(sequencesList);
         var axisLimits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
-            sequencesList, PlotSettings, SequencesContinuePastCut);
+            sequencesList, PlotSettings, window);
 
         // set the axes limits
         plot.Axes.SetLimitsX(
@@ -77,7 +78,7 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
                 var color = palette.GetColor(idx);
                 var pattern = PlotStyleCycles.Pick(idx, fillPatterns);
                 foreach (var region in sequence.EnumerateVisibleInfiniteRegions(
-                             axisLimits.XFramingLimit, SequencesContinuePastCut))
+                             axisLimits.XFramingLimit, window.DataContinuesPastSamples))
                     AddInfinityArea(
                         plot, region, axisLimits, color, pattern, position, withInfinities.Count);
             }
@@ -89,7 +90,8 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
             var linePattern = ToLinePattern(PlotStyleCycles.Pick(idx, lineStyles));
             var sequenceTrace = new SequenceTraces(
                 sequence,
-                sequence.GetTrailingContinuation(axisLimits.XFramingLimit, SequencesContinuePastCut));
+                sequence.GetTrailingContinuation(axisLimits.XFramingLimit, window.DataContinuesPastSamples),
+                samplesReachTheFrame: window.SamplesReachTheFrame);
 
             if (sequenceTrace.Points.Any())
             {
@@ -263,7 +265,13 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
         
         public List<(double x, double y)> Discontinuities { get; } = [];
         
-        public SequenceTraces(Sequence sequence, TrailingContinuation? continuation)
+        /// <param name="sequence">The sequence to draw.</param>
+        /// <param name="continuation">Where to carry the last line, when the samples stop short of the frame.</param>
+        /// <param name="samplesReachTheFrame">
+        /// True when the samples run to the frame, so the last point is the frame rather than an end of the data
+        /// and carries no mark of its own.
+        /// </param>
+        public SequenceTraces(Sequence sequence, TrailingContinuation? continuation, bool samplesReachTheFrame = false)
         {
             var currentLine = new List<(double x, double y)>();
             if (sequence.IsLeftOpen)
@@ -349,6 +357,32 @@ public class ScottNancyPlotModeler : NancyPlotModeler<ScottPlotSettings, Plot>
 
             if (continuation is { } trailing)
                 ExtendToRightEdge(trailing);
+            else if (samplesReachTheFrame)
+                DropEndMarkAtFrame(sequence.DefinedUntil);
+        }
+
+        /// <summary>
+        /// Drops the dot at the last sample, which sits at the frame and is not an end of the curve.
+        /// </summary>
+        /// <param name="definedUntil">Where the samples stop, which is the frame when this is called.</param>
+        /// <remarks>
+        /// Only the run that reaches the samples' end is at the frame.
+        /// A finite run ending earlier, where the curve goes infinite for instance, ends because the curve does
+        /// and keeps the mark that says so.
+        /// </remarks>
+        private void DropEndMarkAtFrame(Rational definedUntil)
+        {
+            if (ContinuousLines.Count == 0 || ContinuousLines[^1].Count == 0)
+                return;
+
+            var end = ContinuousLines[^1][^1];
+            // compared as the double the coordinate was built from, since converting one back to a rational
+            // only recovers it when the value has a terminating decimal expansion
+            if (end.x != (double)definedUntil)
+                return;
+
+            Points.RemoveAll(p => p.x == end.x && p.y == end.y);
+            Discontinuities.RemoveAll(p => p.x == end.x && p.y == end.y);
         }
 
         /// <summary>

@@ -18,7 +18,7 @@ public class TikzNancyPlotModeler : NancyPlotModeler<TikzPlotSettings, TikzPlot>
             PlotSettings
         )
         {
-            SequencesContinuePastEnd = SequencesContinuePastCut
+            Window = WindowFor(sequences.ToList())
         };
         return tikzPlot;
     }

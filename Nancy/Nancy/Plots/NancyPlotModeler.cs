@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -26,13 +27,35 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
     public TSettings PlotSettings { get; init; } = new();
 
     /// <summary>
+    /// The window the sequences about to be plotted were sampled over, while plotting curves; null while plotting sequences as given.
+    /// </summary>
+    /// <remarks>
+    /// Use <see cref="WindowFor"/> rather than reading this: it answers for both paths.
+    /// </remarks>
+    private PlotXWindow? CurveWindow { get; set; }
+
+    /// <summary>
+    /// The window the given sequences are to be plotted in.
+    /// </summary>
+    /// <param name="sequences">The sequences being plotted.</param>
+    /// <remarks>
+    /// Every renderer asks this rather than working the ranges out from the sequences it holds.
+    /// Sampling a curve for a plot deliberately reaches past the range the plot is framed at,
+    /// so the extent of the samples is not the range the reader asked for,
+    /// and deriving the frame from it would margin the plot twice.
+    /// </remarks>
+    protected PlotXWindow WindowFor(IReadOnlyCollection<Sequence> sequences)
+        => CurveWindow ?? PlotXWindow.ForSequences(sequences, PlotSettings);
+
+    /// <summary>
     /// True while plotting sequences obtained by cutting curves, which are known to continue past the cut.
     /// </summary>
     /// <remarks>
-    /// A plot may then carry a curve on to its edge, rather than marking the cut as if the curve ended there.
+    /// A plot may then draw an infinite run as reaching its edge, rather than as stopping at the cut.
     /// It is false whenever sequences are plotted directly: a sequence ends where it ends, and nothing is known past it.
     /// </remarks>
-    protected bool SequencesContinuePastCut { get; private set; }
+    [Obsolete("Use WindowFor(sequences) instead, which also says where the samples end.")]
+    protected bool SequencesContinuePastCut => CurveWindow is { DataContinuesPastSamples: true };
 
     /// <summary>
     /// Plots a set of sequences.
@@ -57,13 +80,15 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
         IEnumerable<string> names
     )
     {
-        var xi = PlotAxisLimitAlgorithms.GetCurveSamplingXLimit(curves, PlotSettings);
+        var window = PlotXWindow.ForCurves(curves, PlotSettings);
 
+        // sampled over the frame rather than over the data range, so that the margin the frame adds
+        // shows the curve where it goes rather than a line projected from where the data range ended
         var cuts = curves
-            .Select(c => c.Cut(xi))
+            .Select(c => c.Cut(window.Sampling))
             .ToList();
 
-        SequencesContinuePastCut = true;
+        CurveWindow = window;
         try
         {
             return GetPlot(cuts, names);
@@ -71,7 +96,7 @@ public abstract class NancyPlotModeler<TSettings, TPlot>
         finally
         {
             // reset, so that plotting sequences directly on the same modeler is never taken as a cut
-            SequencesContinuePastCut = false;
+            CurveWindow = null;
         }
     }
 

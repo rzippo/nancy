@@ -83,9 +83,48 @@ public readonly record struct PlotDataLimits(
 public static class PlotAxisLimitAlgorithms
 {
     /// <summary>
-    /// Computes the interval used to sample curves before plotting them as sequences.
+    /// The range of <see cref="GetCurveDataXLimit"/>, clamped to where curves are defined.
     /// </summary>
+    /// <remarks>
+    /// A plot samples over its frame rather than over this range, so that the margin holds the curve rather than a projection of it.
+    /// <see cref="PlotXWindow.ForCurves"/> is what a renderer wants.
+    /// </remarks>
     public static Interval GetCurveSamplingXLimit(
+        IReadOnlyCollection<Curve> curves,
+        PlotSettings settings)
+    {
+        var data = GetCurveDataXLimit(curves, settings);
+
+        return new Interval(
+            Rational.Max(0, data.Lower),
+            data.Upper,
+            isLowerIncluded: true,
+            isUpperIncluded: data.IsUpperIncluded);
+    }
+
+    /// <summary>
+    /// Computes the range the frame is drawn at for a given data range: the range opened up if it is a single value, then given its margin.
+    /// </summary>
+    /// <param name="data">The range the plot is asked to show.</param>
+    /// <param name="settings">The settings of the plot.</param>
+    /// <remarks>
+    /// The one framing step every renderer needs, kept here so that the range curves are sampled over
+    /// and the range the frame is drawn at cannot drift apart by being composed twice.
+    /// </remarks>
+    public static Interval GetFramingXLimit(Interval data, PlotSettings settings)
+        => ApplySignedMargin(
+            EnsureNonDegenerate(data, Rational.One, prefersRoomBelow: false),
+            settings.RelativeXAxisMargin);
+
+    /// <summary>
+    /// Computes the x range a plot of the given curves is asked to show.
+    /// </summary>
+    /// <remarks>
+    /// This is what the frame and the tick marks are derived from, and it is not the range the curves can be sampled over:
+    /// an explicit limit reaching below 0 is a window the reader asked for, while a curve has no values there.
+    /// <see cref="GetCurveSamplingXLimit"/> is the same range clamped to where the curves are defined.
+    /// </remarks>
+    public static Interval GetCurveDataXLimit(
         IReadOnlyCollection<Curve> curves,
         PlotSettings settings)
     {
@@ -94,7 +133,8 @@ public static class PlotAxisLimitAlgorithms
 
         if (settings.XLimit is { Upper.IsFinite: true } xLimit && xLimit.Upper >= 0)
         {
-            return xLimit.Lower >= 0
+            // a lower bound that is not finite says nothing about where to start, so the curves' own start is used
+            return xLimit.Lower.IsFinite
                 ? xLimit
                 : new Interval(
                     0,
@@ -105,6 +145,30 @@ public static class PlotAxisLimitAlgorithms
 
         var rightEdge = GetPlotEnd(curves, settings.PlotEndStrategy);
         return new Interval(0, rightEdge, isLowerIncluded: true, isUpperIncluded: true);
+    }
+
+    /// <summary>
+    /// Computes the x range a plot of the given sequences is asked to show.
+    /// </summary>
+    public static Interval GetSequenceDataXLimit(
+        IReadOnlyCollection<Sequence> sequences,
+        PlotSettings settings)
+    {
+        if (sequences.Count == 0)
+            throw new ArgumentException("Empty sequence collection.", nameof(sequences));
+
+        return GetFiniteLimit(settings.XLimit) ?? GetDefaultSequenceXLimit(sequences);
+    }
+
+    /// <summary>
+    /// The x range the given sequences occupy, which is as far as anything is known about them.
+    /// </summary>
+    public static Interval GetSequenceExtent(IReadOnlyCollection<Sequence> sequences)
+    {
+        if (sequences.Count == 0)
+            throw new ArgumentException("Empty sequence collection.", nameof(sequences));
+
+        return GetDefaultSequenceXLimit(sequences);
     }
 
     /// <summary>
@@ -214,6 +278,28 @@ public static class PlotAxisLimitAlgorithms
         if (sequences.Count == 0)
             throw new ArgumentException("Empty sequence collection.", nameof(sequences));
 
+        var xDataLimit = GetSequenceDataXLimit(sequences, settings);
+
+        return SuggestDataLimits(
+            sequences,
+            settings,
+            new PlotXWindow(
+                xDataLimit,
+                xFrameLimit ?? xDataLimit,
+                GetSequenceExtent(sequences),
+                continuesPastEnd));
+    }
+
+    /// <inheritdoc cref="SuggestDataLimits(IReadOnlyCollection{Sequence},PlotSettings,bool,Interval?)"/>
+    /// <param name="window">The window the sequences were sampled over, which says what the data range is rather than leaving it to be guessed from them.</param>
+    public static PlotDataLimits SuggestDataLimits(
+        IReadOnlyCollection<Sequence> sequences,
+        PlotSettings settings,
+        PlotXWindow window)
+    {
+        if (sequences.Count == 0)
+            throw new ArgumentException("Empty sequence collection.", nameof(sequences));
+
         var hasPlusInfinity = false;
         var hasMinusInfinity = false;
         foreach (var sequence in sequences)
@@ -226,8 +312,9 @@ public static class PlotAxisLimitAlgorithms
         // which is the only hint available when every finite value is 0
         var prefersRoomBelow = hasMinusInfinity && !hasPlusInfinity;
 
-        var xDataLimit = GetFiniteLimit(settings.XLimit) ?? GetDefaultSequenceXLimit(sequences);
-        var xCarryLimit = xFrameLimit ?? xDataLimit;
+        var xDataLimit = window.Data;
+        var xCarryLimit = window.Frame;
+        var continuesPastEnd = window.DataContinuesPastSamples;
 
         var yDataLimit = GetFiniteLimit(settings.YLimit) ?? GetAutoYDataLimit();
 
@@ -274,13 +361,34 @@ public static class PlotAxisLimitAlgorithms
         if (sequences.Count == 0)
             throw new ArgumentException("Empty sequence collection.", nameof(sequences));
 
-        var xDataLimit = GetFiniteLimit(settings.XLimit) ?? GetDefaultSequenceXLimit(sequences);
-        var xFramingLimit = ApplySignedMargin(
-            EnsureNonDegenerate(xDataLimit, Rational.One, prefersRoomBelow: false),
-            settings.RelativeXAxisMargin);
+        var xDataLimit = GetSequenceDataXLimit(sequences, settings);
 
-        var dataLimits = SuggestDataLimits(
-            sequences, settings, continuesPastEnd, xFrameLimit: xFramingLimit);
+        return SuggestFramingLimits(
+            sequences,
+            settings,
+            new PlotXWindow(
+                xDataLimit,
+                GetFramingXLimit(xDataLimit, settings),
+                GetSequenceExtent(sequences),
+                continuesPastEnd));
+    }
+
+    /// <inheritdoc cref="SuggestFramingLimits(IReadOnlyCollection{Sequence},PlotSettings,bool)"/>
+    /// <param name="window">
+    /// The window the sequences were sampled over.
+    /// The frame comes from <see cref="PlotXWindow.Data"/>, never from the extent of the samples, which may reach past it by the margin.
+    /// </param>
+    public static PlotAxisLimits SuggestFramingLimits(
+        IReadOnlyCollection<Sequence> sequences,
+        PlotSettings settings,
+        PlotXWindow window)
+    {
+        if (sequences.Count == 0)
+            throw new ArgumentException("Empty sequence collection.", nameof(sequences));
+
+        var xFramingLimit = window.Frame;
+
+        var dataLimits = SuggestDataLimits(sequences, settings, window);
 
         var hasPlusInfinity = false;
         var hasMinusInfinity = false;

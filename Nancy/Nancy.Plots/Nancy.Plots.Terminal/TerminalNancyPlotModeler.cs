@@ -18,7 +18,7 @@ public class TerminalNancyPlotModeler : NancyPlotModeler<TerminalPlotSettings, T
             PlotSettings
         )
         {
-            SequencesContinuePastEnd = SequencesContinuePastCut
+            Window = WindowFor(sequences.ToList())
         };
     }
 }

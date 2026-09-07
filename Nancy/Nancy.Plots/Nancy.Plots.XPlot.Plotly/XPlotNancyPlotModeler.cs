@@ -17,8 +17,9 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
     {
         var sequencesList = sequences.ToList();
         var namesList = names.ToList();
+        var window = WindowFor(sequencesList);
         var axisLimits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
-            sequencesList, PlotSettings, SequencesContinuePastCut);
+            sequencesList, PlotSettings, window);
 
         // todo: move colors to settings
         var colors = new List<string>
@@ -39,7 +40,7 @@ public class XPlotNancyPlotModeler : NancyPlotModeler<XPlotPlotSettings, PlotlyC
             ? PlotSettings.LineStyles ?? PlotStyleCycles.DefaultLineStyles
             : [ PlotLineStyle.Solid ];
 
-        var areas = GetInfinityAreas(sequencesList, colors, axisLimits, SequencesContinuePastCut);
+        var areas = GetInfinityAreas(sequencesList, colors, axisLimits, window.DataContinuesPastSamples);
 
         // the areas go first, so that plotly draws them under the curves:
         // a layout shape would have gone over them, having no layer of its own

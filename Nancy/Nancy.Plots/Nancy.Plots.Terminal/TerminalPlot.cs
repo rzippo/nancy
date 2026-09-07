@@ -37,7 +37,22 @@ public class TerminalPlot
     /// <remarks>
     /// The areas marking infinite values then reach the edge of the plot, rather than stopping at the cut as if the value ended there.
     /// </remarks>
+    /// <remarks>
+    /// Ignored when <see cref="Window"/> is set, which says the same thing and more.
+    /// </remarks>
     public bool SequencesContinuePastEnd { get; set; }
+
+    /// <summary>
+    /// The window the sequences were sampled over. When unset, it is worked out from the sequences as given.
+    /// </summary>
+    /// <remarks>
+    /// The frame and the tick marks come from <see cref="PlotXWindow.Data"/>: sampling a curve reaches past it,
+    /// so the extent of the sequences is not the range the reader asked for.
+    /// </remarks>
+    public PlotXWindow? Window { get; set; }
+
+    private PlotXWindow WindowFor(IReadOnlyCollection<Sequence> sequences)
+        => Window ?? PlotXWindow.ForSequences(sequences, Settings, SequencesContinuePastEnd);
 
     /// <summary>
     /// Builds a terminal plot from the given sequences.
@@ -118,8 +133,9 @@ public class TerminalPlot
     public string ToMarkup()
     {
         var sequences = SequencesToPlot.Select(stp => stp.Sequence).ToList();
+        var window = WindowFor(sequences);
         var axisLimits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
-            sequences, Settings, SequencesContinuePastEnd);
+            sequences, Settings, window);
         var grid = BuildGrid(axisLimits);
         var sb = new StringBuilder();
 
@@ -200,7 +216,7 @@ public class TerminalPlot
         {
             var character = characters[index % characters.Count];
             foreach (var region in sequenceToPlot.Sequence.EnumerateVisibleInfiniteRegions(
-                         axisLimits.XFramingLimit, SequencesContinuePastEnd))
+                         axisLimits.XFramingLimit, Window?.DataContinuesPastSamples ?? SequencesContinuePastEnd))
             {
                 var band = region.IsPlusInfinite
                     ? axisLimits.PlusInfinityBand
@@ -517,9 +533,11 @@ public class TerminalPlot
 
     private IEnumerable<Rational> GetPreferredXAxisTickValues(PlotAxisLimits axisLimits)
     {
+        // the ticks index the data the reader asked for; a sample taken only to fill the margin is not one of its breakpoints
+        var data = axisLimits.DataLimits.XDataLimit;
         return SequencesToPlot
             .SelectMany(sequenceToPlot => sequenceToPlot.Sequence.Elements.SelectMany(GetElementBoundaryTimes))
-            .Where(time => time.IsFinite && axisLimits.XFramingLimit.Contains(time));
+            .Where(time => time.IsFinite && data.Contains(time));
     }
 
     private IEnumerable<Rational> GetPreferredYAxisTickValues(PlotAxisLimits axisLimits)

@@ -30,7 +30,22 @@ public class TikzPlot
     /// The areas marking infinite values then reach the edge of the plot, rather than stopping at the cut as if the value ended there.
     /// It is false for sequences plotted directly, whose values past their end are not known.
     /// </remarks>
+    /// <remarks>
+    /// Ignored when <see cref="Window"/> is set, which says the same thing and more.
+    /// </remarks>
     public bool SequencesContinuePastEnd { get; set; }
+
+    /// <summary>
+    /// The window the sequences were sampled over. When unset, it is worked out from the sequences as given.
+    /// </summary>
+    /// <remarks>
+    /// Sampling a curve reaches past the range the plot is framed at, so the extent of the sequences is not the range
+    /// the reader asked for: the frame and the tick marks come from <see cref="PlotXWindow.Data"/> and not from the samples.
+    /// </remarks>
+    public PlotXWindow? Window { get; set; }
+
+    private PlotXWindow WindowFor(IReadOnlyCollection<Sequence> sequences)
+        => Window ?? PlotXWindow.ForSequences(sequences, Settings, SequencesContinuePastEnd);
 
     private sealed record UppMarksAnnotation(
         string Name,
@@ -170,15 +185,17 @@ public class TikzPlot
         var lineStyles = GetLineStyles(Settings, sequences.Count, DefaultColorList.Count);
         var fillPatterns = Settings.FillPatterns ?? PlotStyleCycles.DefaultFillPatterns;
 
+        var window = WindowFor(sequences);
         var axisLimits = PlotAxisLimitAlgorithms.SuggestFramingLimits(
-            sequences, Settings, SequencesContinuePastEnd);
+            sequences, Settings, window);
 
+        // the ticks index the data the reader asked for; a sample taken only to fill the margin is not one of its breakpoints
         var xmarks = sequences
             .SelectMany(s => s
                 .EnumerateBreakpoints()
                 .Select(bp => bp.center.Time))
             .Where(x => x.IsFinite)
-            .Where(axisLimits.XFramingLimit.Contains)
+            .Where(window.Data.Contains)
             .OrderBy(x => x)
             .Distinct()
             .ToList();
@@ -199,7 +216,7 @@ public class TikzPlot
         // the areas go first, so that the curves are drawn over them
         if (Settings.InfinityStrategy == InfinityStrategy.Areas)
             sb.AppendLines(GetInfinityAreaLines(
-                sequences, colors, fillPatterns, axisLimits, SequencesContinuePastEnd));
+                sequences, colors, fillPatterns, axisLimits, window.DataContinuesPastSamples));
 
         var includeLegend = Settings.LegendStrategy switch
         {
@@ -212,11 +229,12 @@ public class TikzPlot
         };
         
         var continuations = sequences
-            .Select(s => s.GetTrailingContinuation(axisLimits.XFramingLimit, SequencesContinuePastEnd))
+            .Select(s => s.GetTrailingContinuation(window.Frame, window.DataContinuesPastSamples))
             .ToList();
 
         sb.AppendLines(GetTikzContent(
-            sequences, names, colors, lineStyles, continuations, Settings, includeLegend));
+            sequences, names, colors, lineStyles, continuations, Settings, includeLegend,
+            window.SamplesReachTheFrame));
 
         foreach (var annotation in _uppMarks.Values)
             sb.AppendLines(GetUppMarksLines(annotation));
@@ -678,6 +696,7 @@ public class TikzPlot
     /// <param name="continuations">For each sequence, how the curve is drawn past the plot end.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="includeLegend">Whether to include the legend.</param>
+    /// <param name="samplesReachTheFrame">True when the samples run to the frame, so their last point is not an end of the data.</param>
     // ReSharper disable once MemberCanBePrivate.Global
     private static IEnumerable<string> GetTikzContent(
         IReadOnlyList<Sequence> sequences, 
@@ -686,7 +705,8 @@ public class TikzPlot
         IReadOnlyList<string> lineStyles,
         IReadOnlyList<TrailingContinuation?> continuations,
         TikzPlotSettings settings,
-        bool includeLegend
+        bool includeLegend,
+        bool samplesReachTheFrame = false
     )
     {
         if (sequences.Count != names.Count || sequences.Count != colors.Count)
@@ -696,7 +716,7 @@ public class TikzPlot
 
         var plots = sequences
             .Select((s, i) => ToTikzExtensions
-                .ToTikzLines(s, colors[i], lineStyles[i], settings, continuations[i])
+                .ToTikzLines(s, colors[i], lineStyles[i], settings, continuations[i], samplesReachTheFrame)
                 .ToList())
             .ToList();
 
@@ -780,13 +800,18 @@ static class ToTikzExtensions
     /// <param name="lineStyle">The line style to use.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <param name="continuation">How the curve is drawn past the plot end.</param>
+    /// <param name="samplesReachTheFrame">
+    /// True when the sequence was sampled all the way to the frame, so its last point is where the plot stops
+    /// rather than where the data does, and carries none of the marks that say a function ended.
+    /// </param>
     /// <returns>The result.</returns>
     public static IEnumerable<string> ToTikzLines(
         this Sequence sequence, 
         string color, 
         string? lineStyle = null,
         TikzPlotSettings? settings = null,
-        TrailingContinuation? continuation = null
+        TrailingContinuation? continuation = null,
+        bool samplesReachTheFrame = false
     )
     {
         settings ??= new TikzPlotSettings();
@@ -881,13 +906,18 @@ static class ToTikzExtensions
                         }
                     }
 
-                    // the last run of a cut curve is carried on to the edge of the plot,
-                    // since the cut is not where the curve ends
-                    if (!keepLooping && continuation is { } trailing && breakpoints.Count > 1 &&
-                        breakpoints[^1].time == sequence.DefinedUntil)
+                    // the last run reaches where the samples stop, which is not where the function ends
+                    if (!keepLooping && breakpoints.Count > 0 && breakpoints[^1].time == sequence.DefinedUntil)
                     {
-                        breakpoints.Add((trailing.Time, trailing.Value));
-                        carriesOn = true;
+                        // a cut curve is carried on to the edge of the plot;
+                        // samples that already reach the frame have nothing to carry there
+                        if (continuation is { } trailing && breakpoints.Count > 1)
+                        {
+                            breakpoints.Add((trailing.Time, trailing.Value));
+                            carriesOn = true;
+                        }
+                        else if (samplesReachTheFrame)
+                            carriesOn = true;
                     }
 
                     // the plotting step, after the inner loop ends
