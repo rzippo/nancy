@@ -55,7 +55,7 @@ public partial class ConvolutionIsomorphismOverInterval
         // This does not require any extra hypothesis since the information loss (in case of constant segments at the start)
         // is the same for both left- and right-hand side.
 
-        // todo: add reference to the formal theorem
+        // This is [ZNS26] Theorem 31, Equation (53).
 
         output.WriteLine(f.ToCodeString());
         output.WriteLine(g.ToCodeString());
@@ -104,9 +104,10 @@ public partial class ConvolutionIsomorphismOverInterval
 
         // In this test, we do not alter anything and verify the information loss.
 
-        // todo: add reference to the formal theorem
-        // With reference to Theorem XXX, this test verifies that the reconstruction operator is needed,
-        // and the missing pieces are indeed those that would be addressed by said operator.
+        // With reference to [ZNS26] Equation (55), 
+        // this test verifies that the reconstruction operator ([ZNS26] Definition 24) is needed, 
+        // and the missing pieces are indeed those that would be addressed by said operator, 
+        // as described in [ZNS26] Proposition 23 and Proposition 25.
 
         output.WriteLine(f.ToCodeString());
         output.WriteLine(g.ToCodeString());
@@ -174,9 +175,10 @@ public partial class ConvolutionIsomorphismOverInterval
 
         // The above is avoided by delaying T_f and T_g into T_f' and T_g'.
 
-        // todo: add reference to the formal theorem
-        // With reference to Theorem XXX, this test is avoiding the use of the reconstruction operator,
-        // using instead the delaying of pseudo-period starts so that a = a'
+        // With reference to [ZNS26] Equation (55), 
+        // this test is avoiding the use of the reconstruction operator ([ZNS26] Definition 24), 
+        // using instead the delaying of pseudo-period starts so that a = a',
+        // i.e. the degenerate case of [ZNS26] Proposition 23
 
         output.WriteLine(f.ToCodeString());
         output.WriteLine(g.ToCodeString());

@@ -17,8 +17,9 @@ public partial class ConvolutionIsomorphism
             var tstar_f = cf.BaseSequence.LastPlateauStart;
             var tstar_g = cg.BaseSequence.LastPlateauStart;
             
-            // todo: fill in reference
-            // If Lemma X does not apply, workaround according to Remark Y in [TBP23]
+            // If [ZNS26] Lemma 21 does not apply, 
+            // workaround according to [ZNS26] Remark 39,
+            // i.e. use T_f** as the pseudo-period start instead of T_f
             var fpstarCut = cf
                 .CutAsEnumerable(cf.PseudoPeriodStart, tstar_f + cf.PseudoPeriodLength)
                 .Fill(0, cf.PseudoPeriodStart, fillWith: Rational.MinusInfinity)
@@ -41,8 +42,7 @@ public partial class ConvolutionIsomorphism
                 cg.PseudoPeriodHeight
             );
             
-            // todo: fill in reference
-            // from here on, f and g satisfy Lemma X 
+            // from here on, f and g satisfy [ZNS26] Lemma 21
             
             var d_f = f.PseudoPeriodLength;
             var d_g = g.PseudoPeriodLength;
