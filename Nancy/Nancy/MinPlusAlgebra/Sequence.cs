@@ -2229,10 +2229,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             if (useIsomorphism)
             #endif
             {
-                // todo: fill in reference
                 // the following heuristic roughly computes how many elementary convolutions would be involved
                 // using direct or inverse method to choose which one to perform
-                // discussed in [TBP]
+                // discussed in [ZNS23a], refined in [ZNS26] Section 5, Equation (38) and Algorithm 7
 
                 var aConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: true});
                 var aNonConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: false});
@@ -2843,10 +2842,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             if (useIsomorphism)
             #endif
             {
-                // todo: fill in reference
                 // the following heuristic roughly computes how many elementary convolutions would be involved
                 // using direct or inverse method to choose which one to perform
-                // discussed in [TBP]
+                // discussed in [ZNS23a], refined in [ZNS26] Section 5.2, adapting Equation (38) and Algorithm 7
 
                 var aConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: true});
                 var aNonConstantSegments = f.Elements.Count(e => e is Segment {IsConstant: false});

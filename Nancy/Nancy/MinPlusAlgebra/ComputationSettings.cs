@@ -212,11 +212,11 @@ public record ComputationSettings
 
     /// <exclude/>
     /// <summary>
-    /// If true, the additional isomorphism properties from [TBP] are used as well to optimize     
+    /// If true, the additional isomorphism properties from [ZNS26] are used as well to optimize     
     /// <see cref="Curve.Convolution(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> and
     /// <see cref="Curve.MaxPlusConvolution(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
     /// </summary>
-    /// <remarks>Optimization discussed in [TBP].</remarks>
+    /// <remarks>Optimization discussed in [ZNS26].</remarks>
     public bool UseConvolutionSuperIsospeedOptimization { get; set; } = true;
 
     /// <exclude/>
@@ -225,7 +225,7 @@ public record ComputationSettings
     /// <see cref="Sequence.Convolution(Unipi.Nancy.MinPlusAlgebra.Sequence,Unipi.Nancy.MinPlusAlgebra.Sequence,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?,System.Nullable{Unipi.Nancy.Numerics.Rational},System.Nullable{Unipi.Nancy.Numerics.Rational},bool,bool,bool)"/> and
     /// <see cref="Sequence.MaxPlusConvolution(Unipi.Nancy.MinPlusAlgebra.Sequence,Unipi.Nancy.MinPlusAlgebra.Sequence,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?,System.Nullable{Unipi.Nancy.Numerics.Rational},System.Nullable{Unipi.Nancy.Numerics.Rational},bool,bool,bool)"/>.
     /// </summary>
-    /// <remarks>Optimization discussed in [ZNS23a].</remarks>
+    /// <remarks>Optimization discussed in [ZNS23a], refined in [ZNS26].</remarks>
     public bool UseBySequenceConvolutionIsospeedOptimization { get; set; } = true;
 
     /// <summary>

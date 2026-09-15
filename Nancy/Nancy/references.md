@@ -19,3 +19,4 @@ Within the source we reference the following works.
  * [Zippo23] - [Analysis of Algorithmic and Computational Aspects of Deterministic Network Calculus](https://flore.unifi.it/handle/2158/1320671), Raffaele Zippo, PhD Thesis, 2023
  * [Gui24] - [Evaluation of worst-case performances of systems in Network Calculus](https://theses.fr/2024ESAE0041), Damien Guidolin--Pina, PhD Thesis, 2024
  * [HCS24] - [Extending Network Calculus to Deal with Min-Plus Service Curves in Multiple Flow Scenarios](https://doi.org/10.1109/RTAS61025.2024.00016), Anja Hamscher and Vlad-Cristian Constantin and Jens B. Schmitt, 2024
+ * [ZNS26] - [Exploiting (min,+)/(max,+) Isomorphism to Speed Up Convolutions](https://doi.org/10.1145/3793250), Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2026

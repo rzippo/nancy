@@ -6116,7 +6116,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the convolution.</returns>
     /// <remarks>
-    /// Base algorithm derived from [BT08] Section 4.4, with isospeed optimizations described in [ZNS23a] and [TBP]
+    /// Base algorithm derived from [BT08] Section 4.4, with isospeed optimizations described in [ZNS23a] and [ZNS26]
     /// </remarks>
     /// <exception cref="UndeterminedResultException">If one operand reaches $+\infty$ and the other $-\infty$, since their sum is undefined.</exception>
     public virtual Curve Convolution(Curve curve, ComputationSettings? settings = null)
@@ -6450,7 +6450,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
             {
-                // super-isospeed algorithm, discussed in [TBP]
+                // super-isospeed algorithm, discussed in [ZNS26].
+                // The pseudo-period length is that of [ZNS26] Theorems 33 and 35,
+                // the operand cuts are from [ZNS26] Corollary 36 and Theorem 38, 
+                // and the vertical filter is from [ZNS23a], formally proved in [ZNS26] Proposition 37.
                 var d_f = f.PseudoPeriodLength;
                 var d_g = g.PseudoPeriodLength;
                 var lcm_d = Rational.LeastCommonMultiple(d_f, d_g);
@@ -6801,8 +6804,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             #if DO_LOG
             logger.Trace("Convolution: same slope, single pass");
             #endif
-            // As discussed in [TBP], there is no improvement on the UPP parameters to be gained using isomorphisms.
-            // The optimization lies instead in the use of a vertical filter (cutCeiling), in addition to the horizontal one (cutEnd)
+            // Since the two operands have the same slope, [ZNS26] Theorem 33 and Corollary 36 degenerate to the parameters and cuts of the direct algorithm of [BT08], 
+            // hence there is no improvement on the UPP parameters to be gained using isomorphisms.
+            // The optimization lies instead in the use of a vertical filter [ZNS26] Proposition 37
 
             var d = Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var T = f.PseudoPeriodStart + g.PseudoPeriodStart + d;
@@ -6907,7 +6911,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
             {
-                // todo: update this estimate with super-isospeed [TBP]
+                // todo: update this estimate with super-isospeed [ZNS26]
 
                 // Optimized algorithm discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
@@ -7237,7 +7241,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curve">The curve to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the max-plus convolution.</returns>
-    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 4.4</remarks>
+    /// <remarks>Adapted from the min-plus convolution algorithm described in [BT08] Section 4.4, with isospeed optimizations described in [ZNS23a] and [ZNS26]</remarks>
     /// <exception cref="UndeterminedResultException">If one operand reaches $+\infty$ and the other $-\infty$, since their sum is undefined.</exception>
     public virtual Curve MaxPlusConvolution(Curve curve, ComputationSettings? settings = null)
     {
@@ -7597,10 +7601,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                  f.IsNonDecreasingOverInterval(f.PseudoPeriodStart) && g.IsNonDecreasingOverInterval(g.PseudoPeriodStart)
             )
             {
-                // todo: fill in references
-                // super-isospeed algorithm discussed in [TBP]
+                // super-isospeed algorithm, discussed in [ZNS26].
+                // The pseudo-period length is that of [ZNS26] Theorems 40 and 35,
+                // the operand cuts are from [ZNS26] Corollary 41 and Theorem 43, 
+                // and the vertical filter is from [ZNS23a], formally proved in [ZNS26] Proposition 42.
 
-                // Check for Lemma X in [TBP]
+                // Check for the hypotheses of [ZNS26] Lemma 21, i.e. that T_f** = T_f* + d_f
                 #if false
                 // expression as in theory
                 var tstar_f = f.LowerPseudoInverseOverInterval(f.PseudoPeriodStart)
@@ -7620,8 +7626,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (tstar_f < f.FirstPseudoPeriodEnd ||
                     tstar_g < g.FirstPseudoPeriodEnd)
                 {
-                    // todo: fill in reference
-                    // If Lemma X does not apply, workaround according to Remark Y in [TBP]
+                    // If [ZNS26] Lemma 21 does not apply, workaround according to [ZNS26] Remark 39,
+                    // i.e. use T_f** as the pseudo-period start instead of T_f
                     var fpstarCut = f
                         .CutAsEnumerable(f.PseudoPeriodStart, tstar_f + f.PseudoPeriodLength)
                         .Fill(0, f.PseudoPeriodStart, fillWith: Rational.MinusInfinity)
