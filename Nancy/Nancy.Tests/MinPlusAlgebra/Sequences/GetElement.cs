@@ -248,4 +248,69 @@ public class GetElement
         });
         Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(2, startingIndex: 2));
     }
+
+    /// <summary>
+    /// A sequence left-open at its start, and one right-open at its end.
+    /// These are the cases where a time is outside the support, yet the sequence is defined after it
+    /// (respectively, before it), so the segment either method is asked for does exist.
+    /// </summary>
+    public static Sequence LeftOpenSequence = new Sequence([
+        new Segment(2, 4, 1, 1),
+        new Point(4, 3),
+        new Segment(4, 6, 3, new Rational(1, 2)),
+        new Point(6, 4)
+    ]);
+
+    public static Sequence RightOpenSequence = new Sequence([
+        new Point(2, 1),
+        new Segment(2, 4, 1, 1),
+        new Point(4, 3),
+        new Segment(4, 6, 3, new Rational(1, 2))
+    ]);
+
+    public static List<(Sequence s, Rational time, Segment expected)> KnownSegmentsAfter =
+    [
+        // the open start: not in the support, but the sequence is defined after it
+        (LeftOpenSequence, 2, new Segment(2, 4, 1, 1)),
+        (LeftOpenSequence, 3, new Segment(2, 4, 1, 1)),
+        (LeftOpenSequence, 4, new Segment(4, 6, 3, new Rational(1, 2))),
+        (RightOpenSequence, 2, new Segment(2, 4, 1, 1)),
+        (RightOpenSequence, 4, new Segment(4, 6, 3, new Rational(1, 2))),
+    ];
+
+    public static List<(Sequence s, Rational time, Segment expected)> KnownSegmentsBefore =
+    [
+        // the open end: not in the support, but the sequence is defined before it
+        (RightOpenSequence, 6, new Segment(4, 6, 3, new Rational(1, 2))),
+        (RightOpenSequence, 4, new Segment(2, 4, 1, 1)),
+        (RightOpenSequence, 3, new Segment(2, 4, 1, 1)),
+        (LeftOpenSequence, 6, new Segment(4, 6, 3, new Rational(1, 2))),
+        (LeftOpenSequence, 4, new Segment(2, 4, 1, 1)),
+    ];
+
+    public static IEnumerable<object[]> KnownSegmentsAfterTestCases
+        => KnownSegmentsAfter.ToXUnitTestCases();
+
+    public static IEnumerable<object[]> KnownSegmentsBeforeTestCases
+        => KnownSegmentsBefore.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(KnownSegmentsAfterTestCases))]
+    public void KnownSegmentAfter(Sequence s, Rational time, Segment expected)
+    {
+        Assert.True(s.IsDefinedAfter(time));
+        Assert.Equal(expected, s.GetSegmentAfter(time));
+        var (viaLinearSearch, _) = s.GetSegmentAfter_Linear(time);
+        Assert.Equal(expected, viaLinearSearch);
+    }
+
+    [Theory]
+    [MemberData(nameof(KnownSegmentsBeforeTestCases))]
+    public void KnownSegmentBefore(Sequence s, Rational time, Segment expected)
+    {
+        Assert.True(s.IsDefinedBefore(time));
+        Assert.Equal(expected, s.GetSegmentBefore(time));
+        var (viaLinearSearch, _) = s.GetSegmentBefore_Linear(time);
+        Assert.Equal(expected, viaLinearSearch);
+    }
 }
