@@ -4590,6 +4590,22 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Computes the horizontal deviation functions between the two curves, $hDev(f, g, t) = \inf\{ d \ge 0 \mid f(t) \le g(t+d) \}$.
+    /// </summary>
+    /// <param name="f">Must be non-decreasing.</param>
+    /// <param name="g">Must be non-decreasing.</param>
+    /// <param name="settings"></param>
+    /// <returns>A non-negative horizontal deviation function.</returns>
+    public static Curve HorizontalDeviationFunction(Curve f, Curve g, ComputationSettings? settings = null)
+    {
+        var hDevF = g.LowerPseudoInverse()
+            .Composition(f, settings)
+            .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
+            .ToNonNegative();
+        return hDevF;
+    }
+
+    /// <summary>
     /// Computes the vertical deviation between the two curves, $vDev(f, g) = \sup_{u \ge 0}\{ f(u) - g(u) \}$.
     /// If <paramref name="f"/> is an arrival curve and <paramref name="g"/> a service curve, the result will be the worst-case backlog.
     /// </summary>

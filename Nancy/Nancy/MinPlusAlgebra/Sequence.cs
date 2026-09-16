@@ -1849,6 +1849,173 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
+    /// Computes the horizontal deviation between the two sequences, $hDev(f, g)$.
+    /// The two sequences must have an overlapping image, and the deviation is measured between points in that overlap. 
+    /// </summary>
+    /// <param name="f">Must be non-negative and non-decreasing.</param>
+    /// <param name="g">Must be non-negative and non-decreasing.</param>
+    /// <param name="settings"></param>
+    /// <returns>A non-negative horizontal deviation.</returns>
+    /// <remarks>
+    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D2, as the counterpart for sequences of <see cref="Curve.HorizontalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// The two agree, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-T1 and EB-FRTC-SEQ-T2, whenever the curves the operands were cut from
+    /// had not already attained the value each operand starts from before that cut begins.
+    /// Equivalently, whenever the lower pseudo-inverse of the curve, at that value, is the time the cut begins.
+    /// Where that does not hold, the earlier time is not visible in the operands and the result is larger than the curves' own.
+    /// </remarks>
+    public static Rational HorizontalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
+    {
+        var hdev_t = HorizontalDeviationFunction(f, g, settings);
+        return hdev_t.SupValue();
+    }
+    
+    /// <summary>
+    /// Computes the vertical deviation between the two sequences, $vDev(f, g)$.
+    /// The two sequences must have an overlapping domain, and the deviation is measured between points in that overlap. 
+    /// </summary>
+    /// <param name="f">Must be non-negative and non-decreasing.</param>
+    /// <param name="g">Must be non-negative and non-decreasing.</param>
+    /// <param name="settings"></param>
+    /// <returns>A non-negative horizontal deviation.</returns>
+    /// <remarks>
+    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>, of which this computes the non-negative part.
+    /// </remarks>
+    public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
+    {
+        var vdev_t = VerticalDeviationFunction(f, g, settings);
+        return vdev_t.SupValue();
+    }
+
+    /// <summary>
+    /// Computes the horizontal deviation function between the two sequences, $hDev(f, g, t)$.
+    /// The two sequences must have an overlapping image, and the deviation is measured between points in that overlap. 
+    /// </summary>
+    /// <param name="f">Must be non-negative and non-decreasing.</param>
+    /// <param name="g">Must be non-negative and non-decreasing.</param>
+    /// <param name="settings"></param>
+    /// <returns>A non-negative horizontal deviation.</returns>
+    /// <remarks>
+    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D2, as the counterpart for sequences of <see cref="Curve.HorizontalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// The two agree, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-T1 and EB-FRTC-SEQ-T2, whenever the curves the operands were cut from
+    /// had not already attained the value each operand starts from before that cut begins.
+    /// Equivalently, whenever the lower pseudo-inverse of the curve, at that value, is the time the cut begins.
+    /// Where that does not hold, the earlier time is not visible in the operands and the result is larger than the curves' own.
+    /// </remarks>
+    public static Sequence HorizontalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
+    {
+        if (!f.IsNonNegative || !g.IsNonNegative)
+            throw new ArgumentException("The arguments must be non-negative.");
+        if (!f.IsNonDecreasing || !g.IsNonDecreasing)
+             throw new ArgumentException("The arguments must be non-decreasing.");
+
+        var imageOverlapNullable = Interval.Intersection(f.Image, g.Image);
+        if(!imageOverlapNullable.HasValue)
+            throw new ArgumentException("The two sequences do not have an overlapping image.");
+        var imageOverlap = imageOverlapNullable.Value;
+
+        Sequence fCut;
+        var fCutStart = imageOverlap.Lower == f.InfValue()
+            ? f.DefinedFrom
+            : f.LowerPseudoInverse().ValueAt(imageOverlap.Lower);
+        var fCutEnd = imageOverlap.Upper == f.SupValue()
+            ? f.DefinedUntil
+            : f.UpperPseudoInverse().ValueAt(imageOverlap.Upper);
+        if (fCutEnd > fCutStart)
+        {
+            // this is $\hat{f}$: note that the start and endpoint are included only if they match the overlap interval
+            var isStartIncluded = f.IsDefinedAt(fCutStart) && f.ValueAt(fCutStart) == imageOverlap.Lower;
+            var isEndIncluded = f.IsDefinedAt(fCutEnd) && f.ValueAt(fCutEnd) == imageOverlap.Upper;
+            fCut = f.CutAsEnumerable(fCutStart, fCutEnd, isStartIncluded, isEndIncluded)
+                .ToSequence();
+        }
+        else
+        {
+            // matching endpoints imply that f jumps over the overlap interval
+            fCut = new Sequence([new Point(fCutEnd, imageOverlap.Upper)]);
+        }
+
+        var gCutStart = imageOverlap.Lower == g.InfValue()
+            ? g.DefinedFrom
+            : g.LowerPseudoInverse().ValueAt(imageOverlap.Lower);
+        var gCutEnd = imageOverlap.Upper == g.SupValue()
+            ? g.DefinedUntil
+            : g.UpperPseudoInverse().ValueAt(imageOverlap.Upper);
+        Sequence hdev_t;
+        if (gCutEnd > gCutStart)
+        {
+            // image of $\hat{g}$ matches the image overlap => can use the composition method
+            // The following is $\hat{g}$: note that the start and endpoint are forced to match the overlap interval
+            var gCut = g.CutAsEnumerable(gCutStart, gCutEnd, false, false)
+                .Prepend(new Point(gCutStart, imageOverlap.Lower))
+                .Append(new Point(gCutEnd, imageOverlap.Upper))
+                .ToSequence();
+            var gCutLpi = gCut.LowerPseudoInverse();
+            var comp = Sequence.Composition(gCutLpi, fCut);
+            var identity = fCutStart < fCutEnd ? 
+                new Sequence([
+                    new Point(fCutStart, fCutStart),
+                    new Segment(fCutStart, fCutEnd, fCutStart, 1),
+                    new Point(fCutEnd, fCutEnd)
+                ]) :
+                new Sequence([new Point(fCutEnd, fCutEnd)]);
+            hdev_t = Subtraction(comp, identity).ToNonNegative();
+        }
+        else
+        {
+            // matching endpoints imply that g jumps over the overlap interval
+            // image of $\hat{g}$ is just a point => cannot use composition method, but can use closed expression
+            var constant = Sequence.Constant(gCutEnd, fCutStart, fCutEnd, true, true);
+            // todo: add a Sequence.Identity constructor
+            var identity = fCutStart < fCutEnd ? 
+                new Sequence([
+                    new Point(fCutStart, fCutStart),
+                    new Segment(fCutStart, fCutEnd, fCutStart, 1),
+                    new Point(fCutEnd, fCutEnd)
+                ]) :
+                new Sequence([new Point(fCutEnd, fCutEnd)]);
+            hdev_t = Subtraction(constant, identity).ToNonNegative();
+        }
+
+        return hdev_t;
+    }
+    
+    
+        /// <summary>
+    /// Computes the vertical deviation function between the two sequences, $vDev(f, g, t)$.
+    /// The two sequences must have an overlapping support, and the deviation is measured between points in that overlap. 
+    /// </summary>
+    /// <param name="f">Must be non-negative and non-decreasing.</param>
+    /// <param name="g">Must be non-negative and non-decreasing.</param>
+    /// <param name="settings"></param>
+    /// <returns>A non-negative vertical deviation.</returns>
+    /// <remarks>
+    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>, of which this computes the non-negative part.
+    /// </remarks>
+    public static Sequence VerticalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
+    {
+        if (!f.IsNonNegative || !g.IsNonNegative)
+            throw new ArgumentException("The arguments must be non-negative.");
+        if (!f.IsNonDecreasing || !g.IsNonDecreasing)
+            throw new ArgumentException("The arguments must be non-decreasing.");
+
+        var supportOverlapNullable = Interval.Intersection(f.Support, g.Support);
+        if(!supportOverlapNullable.HasValue)
+            throw new ArgumentException("The two sequences do not have an overlapping image.");
+        var supportOverlap = supportOverlapNullable.Value;
+
+        var fCut = f.CutAsEnumerable(
+            supportOverlap.Lower, supportOverlap.Upper, supportOverlap.IsLowerIncluded, supportOverlap.IsUpperIncluded)
+            .ToSequence();
+        var gCut = g.CutAsEnumerable(
+            supportOverlap.Lower, supportOverlap.Upper, supportOverlap.IsLowerIncluded, supportOverlap.IsUpperIncluded)
+            .ToSequence();
+        
+        var vdev_t = Subtraction(fCut, gCut).ToNonNegative(); 
+
+        return vdev_t;
+    }
+
+    /// <summary>
     /// Computes the floor function, $\lfloor f(t) \rfloor$.
     /// </summary>
     /// <remarks>
