@@ -1876,9 +1876,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="f">Must be non-negative and non-decreasing.</param>
     /// <param name="g">Must be non-negative and non-decreasing.</param>
     /// <param name="settings"></param>
-    /// <returns>A non-negative horizontal deviation.</returns>
+    /// <returns>A vertical deviation, which may be negative.</returns>
     /// <remarks>
-    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>, of which this computes the non-negative part.
+    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
+    /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1,
+    /// with no condition beyond the operands being restrictions of the curves.
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -1987,9 +1990,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="f">Must be non-negative and non-decreasing.</param>
     /// <param name="g">Must be non-negative and non-decreasing.</param>
     /// <param name="settings"></param>
-    /// <returns>A non-negative vertical deviation.</returns>
+    /// <returns>A vertical deviation function, whose values may be negative.</returns>
     /// <remarks>
-    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>, of which this computes the non-negative part.
+    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
+    /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1,
+    /// with no condition beyond the operands being restrictions of the curves.
     /// </remarks>
     public static Sequence VerticalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2010,7 +2016,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             supportOverlap.Lower, supportOverlap.Upper, supportOverlap.IsLowerIncluded, supportOverlap.IsUpperIncluded)
             .ToSequence();
         
-        var vdev_t = Subtraction(fCut, gCut).ToNonNegative(); 
+        var vdev_t = Subtraction(fCut, gCut);
 
         return vdev_t;
     }
@@ -3407,8 +3413,6 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     #endregion Max-plus operators
 
     #region Composition
-
-    // todo: write down extensions from [ZNS23b], and add reference
     
     /// <summary>
     /// Compute the composition $f(g(t))$, over a limited interval.
@@ -3421,7 +3425,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// If the operands are not defined as expected, i.e. if there are values attained by <paramref name="g"/> that are not in the support of <paramref name="f"/>.
     /// </exception>
     /// <returns>The result of the composition. Has the same support as <paramref name="g"/>.</returns>
-    /// <remarks>Algorithmic properties discussed in [ZNS23b].</remarks>
+    /// <remarks>
+    /// Algorithmic properties discussed in [ZNS23b], which covers the right boundary of <paramref name="g"/>.
+    /// The left boundary, and the sequences of a single element, are covered in [TBP-COMP-SEQ-EXT],
+    /// whose case codes name the checks below.
+    /// </remarks>
     public static Sequence Composition(Sequence f, Sequence g)
     {
         if (!g.IsNonNegative)
@@ -3438,7 +3446,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             if (gElement is Point pg)
             {
                 if(!f.IsDefinedAt(pg.Value))
-                    throw new ArgumentException("Outer sequence of composition must be defined over image of inner sequence (case gP)");
+                    throw new ArgumentException("Outer sequence of composition must be defined over image of inner sequence (case gP)"); // [TBP-COMP-SEQ-EXT] gP
                 return new Sequence([
                     new Point(pg.Time, f.ValueAt(pg.Value))
                 ]);
@@ -3448,7 +3456,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 if (sg.IsConstant)
                 {
                     if(!f.IsDefinedAt(sg.RightLimitAtStartTime))
-                        throw new ArgumentException("Outer sequence of composition must be defined over image of inner sequence (case gSc)");
+                        throw new ArgumentException("Outer sequence of composition must be defined over image of inner sequence (case gSc)"); // [TBP-COMP-SEQ-EXT] gSc
                     return new Sequence([
                         Segment.Constant(sg.StartTime, sg.EndTime, f.ValueAt(sg.RightLimitAtStartTime))
                     ]);
@@ -3456,9 +3464,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 else
                 {
                     if(!f.IsDefinedAfter(sg.RightLimitAtStartTime))
-                        throw new ArgumentException("Outer sequence of composition must be defined over image of inner sequence (case gSiL)");
+                        throw new ArgumentException("Outer sequence of composition must be defined over image of inner sequence (case gSiL)"); // [TBP-COMP-SEQ-EXT] gSiL
                     if(!f.IsDefinedBefore(sg.LeftLimitAtEndTime))
-                        throw new ArgumentException("Outer sequence of composition must be defined over image of inner sequence (case gSiR)");
+                        throw new ArgumentException("Outer sequence of composition must be defined over image of inner sequence (case gSiR)"); // [TBP-COMP-SEQ-EXT] gSiR
                     var fCut = f.CutAsEnumerable(sg.RightLimitAtStartTime, sg.LeftLimitAtEndTime, false, false);
                     var sequence = fCut.Select<Element, Element>(ef =>
                     {
@@ -3493,6 +3501,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 g.ValueAt(g.DefinedUntil) :
                 g.LeftLimitAt(g.DefinedUntil);
             
+            // The six boundary rules of [TBP-COMP-SEQ-EXT], cases gLC, gLOc, gLOi, gRC, gROc and gROi:
+            // which of defined-at, defined-after and defined-before is required of f depends on
+            // whether the boundary of g is open, and on whether the segment there is constant.
             if (g.IsLeftClosed)
             {
                 if (!f.IsDefinedAt(gImageStart))
