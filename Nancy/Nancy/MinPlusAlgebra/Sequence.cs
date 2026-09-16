@@ -1006,8 +1006,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     internal (Segment segment, int index) GetSegmentBefore_Linear(Rational time, int startingIndex = 0)
     {
-        if(!IsDefinedAt(time))
-            throw new ArgumentException("The given time is out of sequence support.");
+        if(!IsDefinedBefore(time))
+            throw new ArgumentException("The sequence is not defined before the given time.");
 
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
@@ -1043,8 +1043,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     internal (Segment segment, int index) GetSegmentAfter_Linear(Rational time, int startingIndex = 0)
     {
-        if(!IsDefinedAt(time))
-            throw new ArgumentException("The given time is out of sequence support.");
+        if(!IsDefinedAfter(time))
+            throw new ArgumentException("The sequence is not defined after the given time.");
 
         if (startingIndex < 0 || startingIndex >= Count)
             throw new ArgumentException($"Invalid startingIndex: {startingIndex}");
