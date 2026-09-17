@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -387,5 +389,125 @@ public class Composition
     {
         var result = Sequence.Composition(f, g);
         Assert.True(Sequence.Equivalent(result, expected));
+    }
+
+    /// <summary>
+    /// A well-behaved outer operand over [0, 6], left-continuous at its jump at 2.
+    /// </summary>
+    public static Sequence OuterOperand = new Sequence([
+        Point.Origin(),
+        new Segment(0, 2, 0, new Rational(1, 2)),
+        new Point(2, 1),
+        new Segment(2, 6, 3, new Rational(1, 2)),
+        new Point(6, 5)
+    ]);
+
+    /// <summary>
+    /// Pairs on which the composition is defined, covering the shapes the operands can take
+    /// at and between the boundaries of the inner one's domain.
+    /// </summary>
+    public static List<(Sequence f, Sequence g)> WellDefinedPairs =
+    [
+        // the boundary cases: closed, open with a constant element, open with an increasing one
+        (OuterOperand, new Sequence([ new Point(1, 2), new Segment(1, 3, 2, 1), new Point(3, 4) ])),
+        (OuterOperand, new Sequence([ new Segment(1, 3, 2, 1), new Point(3, 4) ])),
+        (OuterOperand, new Sequence([ new Point(1, 0), new Segment(1, 3, 0, 1) ])),
+        (OuterOperand, new Sequence([ new Segment(1, 2, 2, 0), new Point(2, 2), new Segment(2, 3, 2, 1), new Point(3, 3) ])),
+        (OuterOperand, new Sequence([ new Point(1, 0), new Segment(1, 2, 0, 2), new Point(2, 2), new Segment(2, 3, 2, 0) ])),
+
+        // the inner operand jumps inside its domain, so its image has a gap
+        (OuterOperand, new Sequence([ new Point(1, 1), new Segment(1, 2, 1, 0), new Point(2, 4), new Segment(2, 3, 4, 0), new Point(3, 4) ])),
+        // and jumps over a breakpoint of the outer operand, which is therefore never read
+        (OuterOperand, new Sequence([ new Point(1, 1), new Segment(1, 2, 1, 0), new Point(2, 3), new Segment(2, 3, 3, 0), new Point(3, 3) ])),
+
+        // the image is exactly the outer operand's domain
+        (OuterOperand, new Sequence([ new Point(1, 0), new Segment(1, 3, 0, 3), new Point(3, 6) ])),
+        // the image ends exactly at the outer operand's right end
+        (OuterOperand, new Sequence([ new Point(1, 3), new Segment(1, 3, 3, new Rational(3, 2)), new Point(3, 6) ])),
+
+        // the outer operand is not monotone, which the operation does not require
+        (
+            new Sequence([
+                Point.Origin(), new Segment(0, 2, 0, 2), new Point(2, 4),
+                new Segment(2, 4, 4, -1), new Point(4, 2), new Segment(4, 6, 2, 1), new Point(6, 4)
+            ]),
+            new Sequence([ new Point(1, 1), new Segment(1, 3, 1, 2), new Point(3, 5) ])
+        ),
+        // the outer operand is infinite over part of its domain
+        (
+            new Sequence([
+                Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 2),
+                new Segment(2, 4, Rational.PlusInfinity, 0), new Point(4, Rational.PlusInfinity),
+                new Segment(4, 6, 4, 1), new Point(6, 6)
+            ]),
+            new Sequence([ new Point(1, 1), new Segment(1, 3, 1, 2), new Point(3, 5) ])
+        ),
+
+        // a constant inner operand: the image is a single value, however many elements it takes
+        (OuterOperand, new Sequence([ new Point(1, 2) ])),
+        (OuterOperand, new Sequence([ new Segment(1, 3, 2, 0) ])),
+        (OuterOperand, new Sequence([ new Segment(1, 3, 2, 0), new Point(3, 2) ])),
+        (OuterOperand, new Sequence([ new Point(1, 2), new Segment(1, 3, 2, 0) ])),
+        (OuterOperand, new Sequence([ new Point(1, 2), new Segment(1, 3, 2, 0), new Point(3, 2) ])),
+        (OuterOperand, new Sequence([ new Point(1, 2), new Segment(1, 2, 2, 0), new Point(2, 2), new Segment(2, 3, 2, 0), new Point(3, 2) ])),
+        // and one that is constant against an outer operand of a single point
+        (new Sequence([ new Point(2, 7) ]), new Sequence([ new Point(1, 2), new Segment(1, 3, 2, 0), new Point(3, 2) ])),
+
+        // barely increasing, for contrast with the constant ones above
+        (OuterOperand, new Sequence([ new Point(1, 2), new Segment(1, 3, 2, new Rational(1, 1000)), new Point(3, new Rational(2002, 1000)) ])),
+    ];
+
+    public static IEnumerable<object[]> WellDefinedPairsTestCases => WellDefinedPairs.ToXUnitTestCases();
+
+    /// <summary>
+    /// The composition must agree pointwise with $t \mapsto f(g(t))$, and be defined exactly
+    /// where the inner operand is.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(WellDefinedPairsTestCases))]
+    public void CompositionAgreesWithPointwiseEvaluation(Sequence f, Sequence g)
+    {
+        var h = Sequence.Composition(f, g);
+
+        Assert.Equal(g.DefinedFrom, h.DefinedFrom);
+        Assert.Equal(g.DefinedUntil, h.DefinedUntil);
+        Assert.Equal(g.IsLeftClosed, h.IsLeftClosed);
+        Assert.Equal(g.IsRightClosed, h.IsRightClosed);
+
+        var times = new List<Rational>();
+        for (var i = 0; i <= 40; i++)
+            times.Add(g.DefinedFrom + (g.DefinedUntil - g.DefinedFrom) * new Rational(i, 40));
+        times.AddRange(g.EnumerateBreakpoints().Select(bp => bp.center.Time));
+        times.AddRange(h.EnumerateBreakpoints().Select(bp => bp.center.Time));
+
+        foreach (var t in times.Distinct().Where(g.IsDefinedAt))
+        {
+            Assert.True(h.IsDefinedAt(t));
+            Assert.Equal(f.ValueAt(g.ValueAt(t)), h.ValueAt(t));
+        }
+    }
+
+    /// <summary>
+    /// Inner operands the operation does not accept.
+    /// </summary>
+    public static List<(Sequence f, Sequence g)> RejectedPairs =
+    [
+        // negative
+        (OuterOperand, new Sequence([ new Point(1, -1), new Segment(1, 3, -1, 1), new Point(3, 1) ])),
+        // infinite
+        (OuterOperand, new Sequence([ new Point(1, 2), new Segment(1, 3, 2, 1), new Point(3, Rational.PlusInfinity) ])),
+        // decreasing
+        (OuterOperand, new Sequence([ new Point(1, 4), new Segment(1, 3, 4, -1), new Point(3, 2) ])),
+        // the image leaves the outer operand's domain
+        (OuterOperand, new Sequence([ new Point(1, 4), new Segment(1, 3, 4, 2), new Point(3, 8) ])),
+    ];
+
+    public static IEnumerable<object[]> RejectedPairsTestCases => RejectedPairs.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(RejectedPairsTestCases))]
+    public void UnsupportedOperandsAreRejected(Sequence f, Sequence g)
+    {
+        Assert.Throws<ArgumentException>(() => Sequence.Composition(f, g));
     }
 }
