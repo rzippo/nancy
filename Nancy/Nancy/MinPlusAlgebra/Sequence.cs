@@ -3556,9 +3556,20 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 gTimes = gTimes.Prepend(g.DefinedFrom);
             if(g.IsRightOpen)
                 gTimes = gTimes.Append(g.DefinedUntil);
-            var gInverse = g.LowerPseudoInverse();
-            var fTimes = f.Cut(gImageStart, gImageEnd, false, false).EnumerateBreakpoints()
+            // Where the image of g is a single value, the result is constant and the outer
+            // sequence contributes no breakpoint of its own, so there is nothing to cut.
+            // [TBP-COMP-SEQ-EXT], constant inner operand.
+            IEnumerable<Rational> fTimes;
+            if (gImageStart < gImageEnd)
+            {
+                var gInverse = g.LowerPseudoInverse();
+                fTimes = f.Cut(gImageStart, gImageEnd, false, false).EnumerateBreakpoints()
                     .Select(bp => gInverse.ValueAt(bp.center.Time));
+            }
+            else
+            {
+                fTimes = [];
+            }
 
             var times = gTimes.Concat(fTimes)
                 .OrderBy(t => t)
