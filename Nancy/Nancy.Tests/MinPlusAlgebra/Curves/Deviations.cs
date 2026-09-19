@@ -25,6 +25,40 @@ public class Deviations
             hDev: 4,
             0
         ),
+        // A right-continuous staircase arrival curve, as a request bound function RBF(t) = (1 + floor(t/T)) * C is.
+        // The deviation is attained on the first step, where it is lpi(g)(C).
+        (
+            f: new StairCurve(30, 100).DelayBy(0).ToRightContinuous(),
+            g: new RateLatencyServiceCurve(1, 0),
+            hDev: 30,
+            0
+        ),
+        (
+            f: new StairCurve(30, 100).DelayBy(0).ToRightContinuous(),
+            g: new RateLatencyServiceCurve(2, 5),
+            hDev: 20,
+            0
+        ),
+        (
+            f: new StairCurve(30, 100).DelayBy(0).ToRightContinuous(),
+            g: new DelayServiceCurve(3),
+            hDev: 3,
+            0
+        ),
+        (
+            // a service curve with an infinite rate at the origin, which serves the first step at once
+            f: new StairCurve(30, 100).DelayBy(0).ToRightContinuous(),
+            g: new SigmaRhoArrivalCurve(35, 1),
+            hDev: 0,
+            0
+        ),
+        (
+            // the left-continuous staircase, for contrast, is not constant over its first period, being 0 at the origin
+            f: new StairCurve(30, 100).DelayBy(0),
+            g: new RateLatencyServiceCurve(1, 0),
+            hDev: 30,
+            0
+        ),
         (
             f: new SigmaRhoArrivalCurve(4, 5),
             g: new RateLatencyServiceCurve(4, 3),

@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -187,8 +189,111 @@ public class Cut
             {
                 Point.Origin()
             })
+        ),
+        // [t, t] past the end of the base sequence, where the cut must extend the curve.
+        // For an ultimately affine curve the extension is built as a single segment, which a zero-width window cannot be.
+        (
+            curve: new SigmaRhoArrivalCurve(5, 3),
+            cutStart: 7,
+            cutEnd: 7,
+            isStartIncluded: true,
+            isEndIncluded: true,
+            expected: new Sequence(new Element[]
+            {
+                new Point(7, 26)
+            })
+        ),
+        (
+            curve: new RateLatencyServiceCurve(5, 2),
+            cutStart: 10,
+            cutEnd: 10,
+            isStartIncluded: true,
+            isEndIncluded: true,
+            expected: new Sequence(new Element[]
+            {
+                new Point(10, 40)
+            })
+        ),
+        (
+            // the lower pseudo-inverse of a rate-latency curve, cut over the image of a constant arrival curve
+            curve: new RateLatencyServiceCurve(1, 0).LowerPseudoInverse(),
+            cutStart: 30,
+            cutEnd: 30,
+            isStartIncluded: true,
+            isEndIncluded: true,
+            expected: new Sequence(new Element[]
+            {
+                new Point(30, 30)
+            })
+        ),
+        (
+            // not ultimately affine: the extension is built by periods, and already worked
+            curve: new StairCurve(30, 100).DelayBy(0).ToRightContinuous(),
+            cutStart: 250,
+            cutEnd: 250,
+            isStartIncluded: true,
+            isEndIncluded: true,
+            expected: new Sequence(new Element[]
+            {
+                new Point(250, 90)
+            })
         )
     ];
+
+    public static List<(Curve curve, Rational time)> DegenerateCutTuples =
+    [
+        (new SigmaRhoArrivalCurve(5, 3), 0),
+        (new SigmaRhoArrivalCurve(5, 3), 1),
+        (new SigmaRhoArrivalCurve(5, 3), new Rational(15, 2)),
+        (new SigmaRhoArrivalCurve(5, 3), 250),
+        (new RateLatencyServiceCurve(5, 2), 0),
+        (new RateLatencyServiceCurve(5, 2), 3),
+        (new RateLatencyServiceCurve(5, 2), 100),
+        (new RateLatencyServiceCurve(1, 0).LowerPseudoInverse(), 0),
+        (new RateLatencyServiceCurve(1, 0).LowerPseudoInverse(), 30),
+        (new DelayServiceCurve(3), 0),
+        (new DelayServiceCurve(3), 3),
+        (new DelayServiceCurve(3), new Rational(15, 2)),
+        (new FlowControlCurve(3, 5, 2), 1),
+        (new FlowControlCurve(3, 5, 2), 100),
+        (new StairCurve(30, 100).DelayBy(0), 250),
+        (new StairCurve(30, 100).DelayBy(0).ToRightContinuous(), 250),
+    ];
+
+    public static IEnumerable<object[]> DegenerateCutTestCases()
+        => DegenerateCutTuples.ToXUnitTestCases();
+
+    /// <summary>
+    /// A zero-width, closed window is the single point of the curve at that time, wherever it lies:
+    /// inside the base sequence or in the extension.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(DegenerateCutTestCases))]
+    public void DegenerateCutIsThePoint(Curve curve, Rational time)
+    {
+        var expected = new Sequence([new Point(time, curve.ValueAt(time))]);
+
+        Assert.Equal(expected, curve.Cut(time, time, true, true));
+        Assert.Equal(expected, curve.Cut(new Interval(time, time, true, true)));
+        Assert.Equal(expected, curve.CutAsEnumerable(time, time, true, true).ToSequence());
+        Assert.Equal(expected, curve.CutAsEnumerable(new Interval(time, time, true, true)).ToSequence());
+        Assert.Equal(1, curve.Count(time, time, true, true));
+    }
+
+    /// <summary>
+    /// A zero-width window that does not include both of its endpoints describes nothing, and is rejected.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(DegenerateCutTestCases))]
+    public void DegenerateCutRequiresBothEndpoints(Curve curve, Rational time)
+    {
+        foreach (var (isStartIncluded, isEndIncluded) in new[] { (true, false), (false, true), (false, false) })
+        {
+            Assert.Throws<ArgumentException>(() => curve.Cut(time, time, isStartIncluded, isEndIncluded));
+            Assert.Throws<ArgumentException>(() =>
+                curve.CutAsEnumerable(time, time, isStartIncluded, isEndIncluded).ToList());
+        }
+    }
     
     public static IEnumerable<object[]> CutTestCases()
         => CutKnownTuples.ToXUnitTestCases();

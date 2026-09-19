@@ -22,8 +22,35 @@ public class Composition
         pseudoPeriodHeight: 0
     );
 
+    /// <summary>
+    /// A right-continuous staircase, $g(t) = (1 + \lfloor t / T \rfloor) \cdot C$, as a request bound function is.
+    /// It is constant over the whole of its first pseudo-period, so the outer operand is cut over a single value.
+    /// </summary>
+    private static Curve RightContinuousStair(Rational height, Rational period)
+        => new StairCurve(height, period).DelayBy(0).ToRightContinuous();
+
     public static List<(Curve f, Curve g, Curve expected)> KnownTuples =
     [
+        (
+            // the identity composed with anything is that thing, and here the inner operand is constant over the cut window
+            f: new RateLatencyServiceCurve(1, 0).LowerPseudoInverse(),
+            g: RightContinuousStair(30, 100),
+            expected: RightContinuousStair(30, 100)
+        ),
+        (
+            // an affine outer operand over the same inner one: constant per step, 4 + 3 * g(t)
+            f: new SigmaRhoArrivalCurve(4, 3),
+            g: RightContinuousStair(30, 100),
+            expected: new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, 94),
+                    Segment.Constant(0, 100, 94)
+                ]),
+                pseudoPeriodStart: 0,
+                pseudoPeriodLength: 100,
+                pseudoPeriodHeight: 90
+            )
+        ),
         (
             f: new Curve(
                 baseSequence: new Sequence([
