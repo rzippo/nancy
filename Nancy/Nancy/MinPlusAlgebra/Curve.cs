@@ -2497,6 +2497,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>A sequence equivalently defined within the given interval.</returns>
     /// <remarks>
     /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
+    /// If the two endpoints coincide they must both be included, and the result is the single point of the curve at that time.
     /// </remarks>
     public Sequence Cut(
         Rational cutStart,
@@ -2516,6 +2517,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw new ArgumentException("Cut start cannot be after end.");
 
         settings ??= ComputationSettings.Default();
+
+        // A zero-width window describes a single point of the curve, and the branches that follow build the cut out of segments.
+        // Past the end of the base sequence the extension is built here, and for an ultimately affine curve it is a single segment.
+        if (cutStart == cutEnd)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Cut endpoints, if equal, must be both inclusive.");
+            return new Sequence([new Point(cutStart, ValueAt(cutStart, settings))]);
+        }
 
         Sequence result;
         if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
@@ -2654,7 +2664,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A list of elements equivalently defined within the given interval.</returns>
-    /// <remarks>Optimized for minimal allocations.</remarks>
+    /// <remarks>
+    /// Optimized for minimal allocations.
+    /// If the two endpoints coincide they must both be included, and the result is the single point of the curve at that time.
+    /// </remarks>
     public IEnumerable<Element> CutAsEnumerable(
         Rational cutStart,
         Rational cutEnd,
@@ -2664,6 +2677,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     )
     {
         settings ??= ComputationSettings.Default();
+
+        // A zero-width window describes a single point of the curve, and the branches that follow build the cut out of segments.
+        // Past the end of the base sequence the extension is built here, and for an ultimately affine curve it is a single segment.
+        if (cutStart == cutEnd)
+        {
+            if (!(isStartIncluded && isEndIncluded))
+                throw new ArgumentException("Cut endpoints, if equal, must be both inclusive.");
+            return [new Point(cutStart, ValueAt(cutStart, settings))];
+        }
 
         if (cutEnd > BaseSequence.DefinedUntil || (isEndIncluded && cutEnd == BaseSequence.DefinedUntil))
         {
