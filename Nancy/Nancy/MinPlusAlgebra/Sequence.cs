@@ -1862,6 +1862,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// had not already attained the value each operand starts from before that cut begins.
     /// Equivalently, whenever the lower pseudo-inverse of the curve, at that value, is the time the cut begins.
     /// Where that does not hold, the earlier time is not visible in the operands and the result is larger than the curves' own.
+    /// Note that the deviation is measured over the overlap of the operands' images, so a change to either operand that moves its image
+    /// also moves the set over which the deviation is taken: unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
     /// </remarks>
     public static Rational HorizontalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -1903,6 +1905,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// had not already attained the value each operand starts from before that cut begins.
     /// Equivalently, whenever the lower pseudo-inverse of the curve, at that value, is the time the cut begins.
     /// Where that does not hold, the earlier time is not visible in the operands and the result is larger than the curves' own.
+    /// Note that the deviation is measured over the overlap of the operands' images, so a change to either operand that moves its image
+    /// also moves the set over which the deviation is taken: unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
     /// </remarks>
     public static Sequence HorizontalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
