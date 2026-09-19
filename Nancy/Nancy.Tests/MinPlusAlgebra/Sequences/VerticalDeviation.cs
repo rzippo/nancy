@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -108,5 +109,65 @@ public class VerticalDeviation
         Assert.Equal(overlap.Lower, vdevFunctionSequence.DefinedFrom);
         Assert.Equal(overlap.Upper, vdevFunctionSequence.DefinedUntil);
         Assert.True(vdevFunctionCurves.Match(vdevFunctionSequence));
+    }
+
+    /// <summary>
+    /// Non-negative, non-decreasing sequences over assorted domains and shapes, used by the property tests below.
+    /// </summary>
+    public static List<Sequence> PropertySequences =
+    [
+        new Sequence([ Point.Origin(), new Segment(0, 6, 0, 1), new Point(6, 6) ]),
+        new Sequence([ Point.Origin(), new Segment(0, 6, 0, 2), new Point(6, 12) ]),
+        new Sequence([
+            Point.Origin(), new Segment(0, 2, 0, 2), new Point(2, 4), new Segment(2, 4, 4, 0),
+            new Point(4, 4), new Segment(4, 6, 4, 1), new Point(6, 6) ]),
+        new Sequence([
+            Point.Origin(), new Segment(0, 3, 0, 1), new Point(3, 3), new Segment(3, 6, 5, 1),
+            new Point(6, 8) ]),
+        new Sequence([ new Point(2, 1), new Segment(2, 6, 1, 1), new Point(6, 5) ]),
+        new Sequence([ new Segment(1, 5, 2, 1), new Point(5, 6) ]),
+    ];
+
+    public static IEnumerable<object[]> PropertySequencePairs =>
+        PropertySequences.SelectMany(a => PropertySequences.Select(b => new object[] { a, b }));
+
+    private static IEnumerable<Rational> SampleTimes(Sequence s)
+    {
+        var times = new List<Rational>();
+        for (var i = 0; i <= 20; i++)
+            times.Add(s.DefinedFrom + (s.DefinedUntil - s.DefinedFrom) * new Rational(i, 20));
+        times.AddRange(s.EnumerateBreakpoints().Select(bp => bp.center.Time));
+        return times.Distinct().Where(s.IsDefinedAt);
+    }
+
+    /// <summary>
+    /// $vDev(a, b, t) = -vDev(b, a, t)$, since the definition subtracts without a positive part.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(PropertySequencePairs))]
+    public void VerticalDeviationIsAntisymmetric(Sequence a, Sequence b)
+    {
+        if (Interval.Intersection(a.Support, b.Support) is null) return;
+
+        var v = Sequence.VerticalDeviationFunction(a, b);
+        var w = Sequence.VerticalDeviationFunction(b, a);
+        foreach (var t in SampleTimes(v))
+            Assert.Equal(-w.ValueAt(t), v.ValueAt(t));
+    }
+
+    /// <summary>
+    /// Raising the first operand raises the deviation by as much.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(PropertySequencePairs))]
+    public void RaisingTheFirstOperandRaisesTheDeviation(Sequence a, Sequence b)
+    {
+        if (Interval.Intersection(a.Support, b.Support) is null) return;
+
+        var shift = new Rational(7, 2);
+        var v = Sequence.VerticalDeviationFunction(a, b);
+        var raised = Sequence.VerticalDeviationFunction(a + shift, b);
+        foreach (var t in SampleTimes(v))
+            Assert.Equal(v.ValueAt(t) + shift, raised.ValueAt(t));
     }
 }
