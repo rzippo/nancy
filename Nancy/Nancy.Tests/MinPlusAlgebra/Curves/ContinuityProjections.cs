@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
@@ -180,5 +182,214 @@ public class ContinuityProjections
         var fp_r_conv_g = Curve.Convolution(fp_r, g);
         
         Assert.True(Curve.Equivalent(fg_r, fp_r_conv_g));
+    }
+
+    /// <summary>
+    /// Property 4.4 in [Gui24]:
+    /// the projections of a non-decreasing curve are non-decreasing, and land in the left- and right-continuous sets respectively.
+    /// </summary>
+    /// <param name="f">A non-decreasing curve.</param>
+    [Theory]
+    [MemberData(nameof(MonotonyTestCases_2))]
+    public void StabilityOfNonDecreasingSubsets(Curve f)
+    {
+        var f_l = f.ToLeftContinuous();
+        var f_r = f.ToRightContinuous();
+
+        Assert.True(f_l.IsNonDecreasing);
+        Assert.True(f_l.IsLeftContinuous);
+        Assert.True(f_r.IsNonDecreasing);
+        Assert.True(f_r.IsRightContinuous);
+    }
+
+    /// <summary>
+    /// Property 4.5, equation 4.4, in [Gui24]: the "overdot" set is stable under both projections.
+    /// </summary>
+    /// <param name="f">An "overdot" curve.</param>
+    [Theory]
+    [MemberData(nameof(CompositionTestCases))]
+    public void StabilityOfOverdotSubsets(Curve f)
+    {
+        foreach (var projection in new[] { f.ToLeftContinuous(), f.ToRightContinuous() })
+        {
+            Assert.Equal(0, projection.ValueAt(0));
+            Assert.Equal(0, projection.RightLimitAt(0));
+        }
+    }
+
+    public static IEnumerable<Curve> ZeroAtOriginCurves =
+        NonDecreasingCurves.Where(f => f.ValueAt(0) == 0);
+
+    public static IEnumerable<object[]> ZeroAtOriginTestCases =
+        ZeroAtOriginCurves.ToXUnitTestCases();
+
+    /// <summary>
+    /// Property 4.5, equation 4.5, in [Gui24]:
+    /// the left projection keeps a curve zero at the origin, while the right projection carries the right limit there instead.
+    /// </summary>
+    /// <param name="f">A non-decreasing curve, zero at the origin.</param>
+    [Theory]
+    [MemberData(nameof(ZeroAtOriginTestCases))]
+    public void StabilityOfZeroAtOriginSubsets(Curve f)
+    {
+        Assert.Equal(0, f.ToLeftContinuous().ValueAt(0));
+        Assert.Equal(f.RightLimitAt(0), f.ToRightContinuous().ValueAt(0));
+    }
+
+    /// <summary>
+    /// The right projection of a curve zero at the origin need not be zero there, which is the non-inclusion of Property 4.5, equation 4.5, in [Gui24].
+    /// </summary>
+    [Fact]
+    public void RightProjectionOfACurveZeroAtTheOriginCanBePositiveThere()
+    {
+        var f = new SigmaRhoArrivalCurve(3, 1);
+
+        Assert.Equal(0, f.ValueAt(0));
+        Assert.Equal(3, f.ToRightContinuous().ValueAt(0));
+    }
+
+    public static IEnumerable<(Curve f, Curve g)> DeviationPairs =
+        NonDecreasingCurves.SelectMany(f =>
+            NonDecreasingCurves.Select(g => (f, g))
+                .Where(pair => pair.g <= pair.f)
+        );
+
+    public static IEnumerable<object[]> DeviationTestCases =
+        DeviationPairs.ToXUnitTestCases();
+
+    /// <summary>
+    /// Equation 4.17 in [Gui24], the stronger form of the earlier result it reports:
+    /// the horizontal deviation is the same as that of either projection of both operands.
+    /// </summary>
+    /// <param name="f">A non-decreasing curve, lower-bounded by <paramref name="g"/>.</param>
+    /// <param name="g">A non-decreasing curve, upper-bounded by <paramref name="f"/>.</param>
+    [Theory]
+    [MemberData(nameof(DeviationTestCases))]
+    public void HorizontalDeviationIsTheSameUnderEitherProjection(Curve f, Curve g)
+    {
+        var hDev = Curve.HorizontalDeviation(f, g);
+
+        Assert.Equal(hDev, Curve.HorizontalDeviation(f.ToLeftContinuous(), g.ToLeftContinuous()));
+        Assert.Equal(hDev, Curve.HorizontalDeviation(f.ToRightContinuous(), g.ToRightContinuous()));
+    }
+
+    public static IEnumerable<(Curve f, Curve g)> OverdotDeviationPairs =
+        OverdotCurves.SelectMany(f =>
+            OverdotCurves.Select(g => (f, g))
+                .Where(pair => pair.g <= pair.f)
+        );
+
+    public static IEnumerable<object[]> OverdotDeviationTestCases =
+        OverdotDeviationPairs.ToXUnitTestCases();
+
+    /// <summary>
+    /// Equation 4.16 in [Gui24]:
+    /// the vertical deviation is the same under either projection, as long as both operands are projected the same way.
+    /// </summary>
+    /// <param name="f">An "overdot" curve, lower-bounded by <paramref name="g"/>.</param>
+    /// <param name="g">An "overdot" curve, upper-bounded by <paramref name="f"/>.</param>
+    [Theory]
+    [MemberData(nameof(OverdotDeviationTestCases))]
+    public void VerticalDeviationIsTheSameUnderMatchedProjections(Curve f, Curve g)
+    {
+        Assert.Equal(
+            Curve.VerticalDeviation(f.ToLeftContinuous(), g.ToLeftContinuous()),
+            Curve.VerticalDeviation(f.ToRightContinuous(), g.ToRightContinuous())
+        );
+    }
+
+    /// <summary>
+    /// The example of Figure 4.7 in [Gui24], where the arrival curve is right-continuous and the departure curve left-continuous:
+    /// the backlog is then 1.5, against the 0.5 both curves give when read with the same continuity.
+    /// </summary>
+    [Fact]
+    public void MixedContinuityChangesTheVerticalDeviation()
+    {
+        // all the data arrives at once at t = 1, and the curve carries that instant's value
+        var a = new Curve(
+            baseSequence: new Sequence([
+                Point.Origin(), Segment.Zero(0, 1),
+                new Point(1, new Rational(3, 2)), Segment.Constant(1, 2, new Rational(3, 2))
+            ]),
+            pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 0
+        );
+        // it leaves between t = 1 and t = 2, and the curve is still 0 at the instant it starts
+        var d = new Curve(
+            baseSequence: new Sequence([
+                Point.Origin(), Segment.Zero(0, 1), Point.Zero(1),
+                new Segment(1, 2, 1, new Rational(1, 2)),
+                new Point(2, new Rational(3, 2)), Segment.Constant(2, 3, new Rational(3, 2))
+            ]),
+            pseudoPeriodStart: 2, pseudoPeriodLength: 1, pseudoPeriodHeight: 0
+        );
+
+        Assert.True(a.IsRightContinuous);
+        Assert.True(d.IsLeftContinuous);
+        Assert.True(d <= a);
+
+        Assert.Equal(new Rational(3, 2), Curve.VerticalDeviation(a, d));
+        Assert.Equal(new Rational(1, 2), Curve.VerticalDeviation(a, d.ToRightContinuous()));
+        Assert.Equal(new Rational(1, 2), Curve.VerticalDeviation(a.ToLeftContinuous(), d));
+    }
+
+    /// <summary>
+    /// Equation 4.16 in [Gui24] is stated over the "overdot" set, and the restriction carries its weight:
+    /// two staircases that differ only in their continuity at the origin are outside it, and their projections give 30 on one side and 0 on the other.
+    /// </summary>
+    [Fact]
+    public void VerticalDeviationUnderProjectionsDependsOnTheValueAtTheOrigin()
+    {
+        var f = new StairCurve(30, 100).DelayBy(0).ToRightContinuous();
+        var g = new StairCurve(30, 100).DelayBy(0);
+
+        Assert.True(g <= f);
+        Assert.NotEqual(0, f.ValueAt(0));       // f is outside the "overdot" set
+        Assert.NotEqual(0, g.RightLimitAt(0));  // and so is g
+
+        Assert.Equal(30, Curve.VerticalDeviation(f.ToLeftContinuous(), g.ToLeftContinuous()));
+        Assert.Equal(0, Curve.VerticalDeviation(f.ToRightContinuous(), g.ToRightContinuous()));
+
+        // the horizontal deviation, by contrast, is the same either way, as 4.17 has it
+        var hDev = Curve.HorizontalDeviation(f, g);
+        Assert.Equal(hDev, Curve.HorizontalDeviation(f.ToLeftContinuous(), g.ToLeftContinuous()));
+        Assert.Equal(hDev, Curve.HorizontalDeviation(f.ToRightContinuous(), g.ToRightContinuous()));
+    }
+
+    public static IEnumerable<(Curve f, Curve g)> BoundPairs =
+        NonDecreasingCurves.Where(f => f.IsNonNegative)
+            .SelectMany(f => NonDecreasingCurves.Select(g => (f, g)));
+
+    public static IEnumerable<object[]> BoundTestCases =
+        BoundPairs.ToXUnitTestCases();
+
+    /// <summary>
+    /// Section 4.6 in [Gui24]:
+    /// left-projecting the service curve leaves the delay bound where it was, since by 4.17 the deviation is that of both projections.
+    /// </summary>
+    /// <param name="f">A non-negative, non-decreasing curve.</param>
+    /// <param name="g">A non-decreasing curve.</param>
+    [Theory]
+    [MemberData(nameof(BoundTestCases))]
+    public void LeftProjectingTheSecondOperandKeepsTheHorizontalDeviation(Curve f, Curve g)
+    {
+        Assert.Equal(
+            Curve.HorizontalDeviation(f, g),
+            Curve.HorizontalDeviation(f, g.ToLeftContinuous())
+        );
+    }
+
+    /// <summary>
+    /// Section 4.6 in [Gui24]:
+    /// left-projecting the service curve can only raise the backlog bound, since the projection lowers the curve it is subtracted from.
+    /// </summary>
+    /// <param name="f">A non-negative, non-decreasing curve.</param>
+    /// <param name="g">A non-decreasing curve.</param>
+    [Theory]
+    [MemberData(nameof(BoundTestCases))]
+    public void LeftProjectingTheSecondOperandDoesNotDecreaseTheVerticalDeviation(Curve f, Curve g)
+    {
+        Assert.True(
+            Curve.VerticalDeviation(f, g.ToLeftContinuous()) >= Curve.VerticalDeviation(f, g)
+        );
     }
 }
