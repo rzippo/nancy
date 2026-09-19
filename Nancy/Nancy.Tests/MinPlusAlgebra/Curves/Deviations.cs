@@ -604,4 +604,121 @@ public class Deviations
         var dominated_vdev = Curve.VerticalDeviation(ac, dominated_sc);
         Assert.True(dominated_vdev >= dominant_vdev);
     }
+
+    /// <summary>
+    /// Curves used to check <see cref="Curve.HorizontalDeviationFunction"/> against
+    /// independent computations of the same quantity.
+    /// </summary>
+    public static List<Curve> PropertyCurves =
+    [
+        new SigmaRhoArrivalCurve(3, 1),
+        new SigmaRhoArrivalCurve(0, 2),
+        new RateLatencyServiceCurve(2, 3),
+        new RateLatencyServiceCurve(1, 1),
+        new Curve(
+            new Sequence([
+                Point.Origin(), Segment.Zero(0, 2), new Point(2, 0), new Segment(2, 3, 0, 2),
+                new Point(3, 2), Segment.Constant(3, 5, 2), new Point(5, 2), new Segment(5, 6, 2, 2)
+            ]), 3, 3, 4),
+        new Curve(
+            new Sequence([
+                Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 4), new Segment(2, 4, 4, 1)
+            ]), 2, 2, 2),
+    ];
+
+    public static IEnumerable<object[]> PropertyCurvePairs =>
+        PropertyCurves.SelectMany(f => PropertyCurves.Select(g => new object[] { f, g }));
+
+    public static IEnumerable<object[]> PropertyCurveTestCases => PropertyCurves.Select(f => new object[] { f });
+
+    /// <summary>
+    /// $\inf\{ x : g(x) \ge v \}$, found by walking the elements of $g$ and solving within each.
+    /// Deliberately independent of the pseudo-inverse and composition the operator is built from.
+    /// </summary>
+    private static Rational? FirstCrossing(Curve g, Rational v, Rational horizon)
+    {
+        foreach (var e in g.Cut(0, horizon, true, true).Elements)
+        {
+            switch (e)
+            {
+                case Point p:
+                    if (p.Value >= v) return p.Time;
+                    break;
+
+                case Segment seg:
+                    if (seg.LeftLimitAtEndTime < v) break;
+                    if (seg.Slope == 0) return seg.StartTime;
+                    var x = seg.StartTime + (v - seg.RightLimitAtStartTime) / seg.Slope;
+                    return x <= seg.StartTime ? seg.StartTime : x;
+            }
+        }
+        return null;
+    }
+
+    [Theory]
+    [MemberData(nameof(PropertyCurvePairs))]
+    public void HorizontalDeviationFunctionMatchesTheCrossing(Curve f, Curve g)
+    {
+        var horizon = new Rational(200);
+        var h = Curve.HorizontalDeviationFunction(f, g);
+
+        for (var i = 0; i <= 24; i++)
+        {
+            var t = new Rational(i, 2);
+            var crossing = FirstCrossing(g, f.ValueAt(t), horizon);
+            if (crossing is null)
+                continue;   // g does not reach f(t) below the horizon
+
+            var expected = crossing.Value - t;
+            if (expected < 0) expected = 0;
+            Assert.Equal(expected, h.ValueAt(t));
+        }
+    }
+
+    /// <summary>
+    /// For a token bucket against a rate-latency curve the deviation has a closed form,
+    /// whose supremum is the familiar delay bound $T + \sigma / R$.
+    /// </summary>
+    [Theory]
+    [InlineData(3, 1, 2, 3)]
+    [InlineData(5, 2, 4, 1)]
+    [InlineData(0, 1, 3, 2)]
+    public void HorizontalDeviationFunctionOfATokenBucketIsKnown(int sigma, int rho, int rate, int latency)
+    {
+        var a = new SigmaRhoArrivalCurve(sigma, rho);
+        var b = new RateLatencyServiceCurve(rate, latency);
+        var h = Curve.HorizontalDeviationFunction(a, b);
+
+        for (var i = 1; i <= 8; i++)
+        {
+            var t = new Rational(i, 2);
+            var expected = latency + (sigma + rho * t) / rate - t;
+            if (expected < 0) expected = 0;
+            Assert.Equal(expected, h.ValueAt(t));
+        }
+
+        Assert.Equal(latency + new Rational(sigma, rate), Curve.HorizontalDeviation(a, b));
+    }
+
+    [Theory]
+    [MemberData(nameof(PropertyCurveTestCases))]
+    public void HorizontalDeviationFunctionOfACurveFromItselfIsZero(Curve f)
+    {
+        Assert.True(Curve.HorizontalDeviationFunction(f, f).IsZero);
+    }
+
+    /// <summary>
+    /// Raising or delaying the second operand moves every crossing in the direction the
+    /// deviation follows. Unlike the deviation between sequences, this one is monotone in $g$:
+    /// there is no overlap of images to move.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(PropertyCurvePairs))]
+    public void HorizontalDeviationFunctionIsMonotoneInItsSecondOperand(Curve f, Curve g)
+    {
+        var h = Curve.HorizontalDeviationFunction(f, g);
+        Assert.True(h.IsNonNegative);
+        Assert.True(Curve.HorizontalDeviationFunction(f, g + 1) <= h);
+        Assert.True(Curve.HorizontalDeviationFunction(f, g.DelayBy(new Rational(3, 2))) >= h);
+    }
 }
