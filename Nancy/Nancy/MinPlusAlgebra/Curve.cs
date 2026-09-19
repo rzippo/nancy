@@ -4534,7 +4534,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Computes the horizontal deviation between the two curves, $hDev(f, g)$.
     /// If <paramref name="f"/> is an arrival curve and <paramref name="g"/> a service curve, the result will be the worst-case delay.
     /// </summary>
-    /// <param name="f">Must be non-decreasing.</param>
+    /// <param name="f">Must be non-decreasing and non-negative.</param>
     /// <param name="g">Must be non-decreasing.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A non-negative horizontal deviation.</returns>
@@ -4542,6 +4542,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         if (!f.IsNonDecreasing || !g.IsNonDecreasing)
             throw new ArgumentException("The arguments must be non-decreasing.");
+        if (!f.IsNonNegative)
+            throw new ArgumentException("The first argument must be non-negative.");
 
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve rl)
         {
@@ -4583,7 +4585,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// computes the first time around which $hDev(f, g, t)$ gets close to the horizontal deviation between the two curves, $hDev(f, g)$
     /// (i.e., either it attains the value or has it as a limit).
     /// </summary>
-    /// <param name="f">Must be non-decreasing.</param>
+    /// <param name="f">Must be non-decreasing and non-negative.</param>
     /// <param name="g">Must be non-decreasing.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
@@ -4593,6 +4595,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         if (!f.IsNonDecreasing || !g.IsNonDecreasing)
             throw new ArgumentException("The arguments must be non-decreasing.");
+        if (!f.IsNonNegative)
+            throw new ArgumentException("The first argument must be non-negative.");
 
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve rl)
         {
@@ -4614,12 +4618,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the horizontal deviation functions between the two curves, $hDev(f, g, t) = \inf\{ d \ge 0 \mid f(t) \le g(t+d) \}$.
     /// </summary>
-    /// <param name="f">Must be non-decreasing.</param>
+    /// <param name="f">Must be non-decreasing and non-negative.</param>
     /// <param name="g">Must be non-decreasing.</param>
     /// <param name="settings"></param>
     /// <returns>A non-negative horizontal deviation function.</returns>
     public static Curve HorizontalDeviationFunction(Curve f, Curve g, ComputationSettings? settings = null)
     {
+        if (!f.IsNonDecreasing || !g.IsNonDecreasing)
+            throw new ArgumentException("The arguments must be non-decreasing.");
+        if (!f.IsNonNegative)
+            throw new ArgumentException("The first argument must be non-negative.");
+
         var hDevF = g.LowerPseudoInverse()
             .Composition(f, settings)
             .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
