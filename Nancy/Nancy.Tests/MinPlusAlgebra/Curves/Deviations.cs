@@ -559,6 +559,74 @@ public class Deviations
         Assert.Equal(expected, result);
     }
 
+    public static List<(Curve f, Curve g)> NegativeFirstOperandTuples =
+    [
+        (
+            // negative at the origin alone, where the minimum with a shaper is 0 and the vertical shift takes it below zero
+            Curve.Minimum(
+                new StairCurve(30, 100).DelayBy(0) + new StairCurve(10, 100).DelayBy(0),
+                new SigmaRhoArrivalCurve(35, 1)
+            ).VerticalShift(-30),
+            new RateLatencyServiceCurve(1, 0)
+        ),
+        (
+            // negative over an interval
+            new SigmaRhoArrivalCurve(0, 2) - 7,
+            new RateLatencyServiceCurve(2, 5)
+        ),
+        (
+            new StairCurve(30, 100).DelayBy(0).ToRightContinuous() - 50,
+            new RateLatencyServiceCurve(1, 0)
+        ),
+    ];
+
+    public static IEnumerable<object[]> GetNegativeFirstOperandTestCases()
+        => NegativeFirstOperandTuples.ToXUnitTestCases();
+
+    /// <summary>
+    /// The first operand must be non-negative, and the check is at every point.
+    /// The rejection must name that first argument, the one the caller wrote.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetNegativeFirstOperandTestCases))]
+    public void HorizontalDeviationRejectsANegativeFirstOperand(Curve f, Curve g)
+    {
+        Assert.False(f.IsNonNegative);
+
+        foreach (var call in new Func<object>[]
+                 {
+                     () => Curve.HorizontalDeviation(f, g),
+                     () => Curve.HorizontalDeviationMeasuredAt(f, g),
+                     () => Curve.HorizontalDeviationFunction(f, g)
+                 })
+        {
+            var thrown = Assert.Throws<ArgumentException>(() => call());
+            Assert.Contains("first argument", thrown.Message);
+        }
+    }
+
+    /// <summary>
+    /// Clamping the first operand at zero does not change the horizontal deviation:
+    /// for any $g \ge 0$ and any $t$ where $f(t) &lt; 0$, both $f(t)$ and $0$ lie below $g(t)$ and the infimum is 0 either way.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetNegativeFirstOperandTestCases))]
+    public void ClampingTheFirstOperandPreservesTheHorizontalDeviation(Curve f, Curve g)
+    {
+        var clamped = f.ToNonNegative();
+        Assert.True(clamped.IsNonNegative);
+        Assert.Equal(f.IsNonDecreasing, clamped.IsNonDecreasing);
+
+        var hDev = Curve.HorizontalDeviation(clamped, g);
+
+        // where f is already non-negative the two operands agree, so they ask the same crossing of g
+        foreach (var t in new Rational[] { 1, 2, new Rational(7, 2), 10, 100, 250 })
+            if (f.ValueAt(t) >= 0)
+                Assert.Equal(f.ValueAt(t), clamped.ValueAt(t));
+
+        Assert.True(hDev >= 0);
+    }
+
     public static IEnumerable<object[]> GetDominanceTestCases()
     {
         var testcases = new List<(Curve ac, Curve sc_a, Curve sc_b)>
