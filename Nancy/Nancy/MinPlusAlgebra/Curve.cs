@@ -2783,6 +2783,40 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Returns a cut of the curve over a neighbourhood of $[a, b]$, i.e. one whose interior contains it.
+    /// </summary>
+    /// <param name="cutStart">Left endpoint $a$ of the interval.</param>
+    /// <param name="cutEnd">Right endpoint $b$ of the interval.</param>
+    /// <param name="leftNeighbourhood">If true, the cut extends before $a$.</param>
+    /// <param name="rightNeighbourhood">If true, the cut extends past $b$.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>A sequence equivalently defined over a neighbourhood of $[a, b]$.</returns>
+    /// <remarks>
+    /// The interval is closed, and the result contains it:
+    /// a neighbourhood of a set is one whose interior contains that set, so there is nothing to decide about the endpoints.
+    /// A plain <see cref="Cut(Rational, Rational, bool, bool, ComputationSettings)"/> over $[a, b]$ cannot answer for the one-sided limits at $a$ and $b$, which lie outside it.
+    /// This one extends by the element beyond each endpoint, so that <see cref="Sequence.LeftLimitAt"/> and <see cref="Sequence.RightLimitAt"/> are answerable there.
+    /// The neighbourhood is relative to the curve's own domain:
+    /// at $a = 0$ there is nothing to the left, and none is added.
+    /// </remarks>
+    public Sequence CutToNeighbourhood(
+        Rational cutStart,
+        Rational cutEnd,
+        bool leftNeighbourhood = true,
+        bool rightNeighbourhood = true,
+        ComputationSettings? settings = null
+    )
+    {
+        if (leftNeighbourhood && cutStart > 0)
+            cutStart = GetSegmentBefore(cutStart).StartTime;
+
+        if (rightNeighbourhood)
+            cutEnd = GetSegmentAfter(cutEnd).EndTime;
+
+        return Cut(cutStart, cutEnd, true, true, settings);
+    }
+
+    /// <summary>
     /// Returns a cut of the curve limited to the given interval.
     /// </summary>
     /// <param name="interval">The interval to use.</param>

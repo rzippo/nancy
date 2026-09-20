@@ -1221,6 +1221,47 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
+    /// Returns a cut of the sequence over a neighbourhood of $[a, b]$, i.e. one whose interior contains it.
+    /// </summary>
+    /// <param name="cutStart">Left endpoint $a$ of the new support.</param>
+    /// <param name="cutEnd">Right endpoint $b$ of the new support.</param>
+    /// <param name="leftNeighbourhood">If true, the cut extends before $a$.</param>
+    /// <param name="rightNeighbourhood">If true, the cut extends past $b$.</param>
+    /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
+    /// <remarks>
+    /// The interval is closed, and the result contains it:
+    /// a neighbourhood of a set is one whose interior contains that set, so there is nothing to decide about the endpoints.
+    /// A plain <see cref="Cut(Rational, Rational, bool, bool)"/> over $[a, b]$ cannot answer for the one-sided limits at $a$ and $b$, which lie outside it.
+    /// This one extends by the element beyond each endpoint, so that <see cref="LeftLimitAt"/> and <see cref="RightLimitAt"/> are answerable there.
+    /// The neighbourhood is relative to the sequence's own support:
+    /// where the sequence is not defined beyond an endpoint there is nothing to add, and none is added.
+    /// </remarks>
+    public Sequence CutToNeighbourhood(
+        Rational cutStart,
+        Rational cutEnd,
+        bool leftNeighbourhood = true,
+        bool rightNeighbourhood = true
+    )
+    {
+        var isStartIncluded = true;
+        var isEndIncluded = true;
+
+        if (leftNeighbourhood && IsDefinedBefore(cutStart))
+        {
+            cutStart = GetSegmentBefore(cutStart).StartTime;
+            isStartIncluded = IsDefinedAt(cutStart);
+        }
+
+        if (rightNeighbourhood && IsDefinedAfter(cutEnd))
+        {
+            cutEnd = GetSegmentAfter(cutEnd).EndTime;
+            isEndIncluded = IsDefinedAt(cutEnd);
+        }
+
+        return Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
     /// Returns a cut of the sequence for a smaller support.
     /// </summary>
     /// <param name="interval">The new support.</param>
