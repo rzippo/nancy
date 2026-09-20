@@ -203,18 +203,93 @@ public class ContinuityProjections
     }
 
     /// <summary>
+    /// Times worth sampling a projection at:
+    /// every breakpoint of the curve and of both its projections, the midpoints between them, and a grid reaching past the second pseudo-period.
+    /// </summary>
+    public static IEnumerable<Rational> SampleTimes(Curve f)
+    {
+        var horizon = f.PseudoPeriodStart + 2 * f.PseudoPeriodLength + 1;
+        var times = new List<Rational>();
+        foreach (var c in new[] { f, f.ToLeftContinuous(), f.ToRightContinuous() })
+            times.AddRange(c.Cut(0, horizon, true, true).EnumerateBreakpoints().Select(bp => bp.center.Time));
+
+        var breakpoints = times.Distinct().OrderBy(x => x).ToList();
+        for (var i = 0; i + 1 < breakpoints.Count; i++)
+            times.Add((breakpoints[i] + breakpoints[i + 1]) / 2);
+        for (var i = 0; i <= 20; i++)
+            times.Add(horizon * new Rational(i, 20));
+
+        return times.Distinct().Where(x => x >= 0);
+    }
+
+    /// <summary>
+    /// Definition 4.1 and Remark 4.2 in [Gui24], which the rest of this file rests on:
+    /// the left projection carries the left limit, except at the origin where it carries the value, and the right projection carries the right limit.
+    /// </summary>
+    /// <param name="f">Any curve of the corpus.</param>
+    [Theory]
+    [MemberData(nameof(Testcases))]
+    public void ProjectionsAreTheOneSidedLimits(Curve f)
+    {
+        var f_l = f.ToLeftContinuous();
+        var f_r = f.ToRightContinuous();
+
+        Assert.Equal(f.ValueAt(0), f_l.ValueAt(0));
+
+        foreach (var time in SampleTimes(f))
+        {
+            if (time > 0)
+                Assert.Equal(f.LeftLimitAt(time), f_l.ValueAt(time));
+            Assert.Equal(f.RightLimitAt(time), f_r.ValueAt(time));
+        }
+    }
+
+    /// <summary>
+    /// A projection moves the value at a time, and leaves both one-sided limits where they were.
+    /// This is what lets Property 4.2 and Property 4.3 in [Gui24] compose the two operators.
+    /// </summary>
+    /// <param name="f">Any curve of the corpus.</param>
+    [Theory]
+    [MemberData(nameof(Testcases))]
+    public void ProjectionsKeepTheOneSidedLimits(Curve f)
+    {
+        var f_l = f.ToLeftContinuous();
+        var f_r = f.ToRightContinuous();
+
+        foreach (var time in SampleTimes(f))
+        {
+            if (time > 0)
+            {
+                Assert.Equal(f.LeftLimitAt(time), f_l.LeftLimitAt(time));
+                Assert.Equal(f.LeftLimitAt(time), f_r.LeftLimitAt(time));
+            }
+            Assert.Equal(f.RightLimitAt(time), f_l.RightLimitAt(time));
+            Assert.Equal(f.RightLimitAt(time), f_r.RightLimitAt(time));
+        }
+    }
+
+    /// <summary>
     /// Property 4.5, equation 4.4, in [Gui24]: the "overdot" set is stable under both projections.
+    /// Membership is four conditions, and the origin is only two of them:
+    /// the projection must also be non-decreasing and continuous from its own side.
     /// </summary>
     /// <param name="f">An "overdot" curve.</param>
     [Theory]
     [MemberData(nameof(CompositionTestCases))]
     public void StabilityOfOverdotSubsets(Curve f)
     {
-        foreach (var projection in new[] { f.ToLeftContinuous(), f.ToRightContinuous() })
+        var f_l = f.ToLeftContinuous();
+        var f_r = f.ToRightContinuous();
+
+        foreach (var projection in new[] { f_l, f_r })
         {
             Assert.Equal(0, projection.ValueAt(0));
             Assert.Equal(0, projection.RightLimitAt(0));
+            Assert.True(projection.IsNonDecreasing);
         }
+
+        Assert.True(f_l.IsLeftContinuous);
+        Assert.True(f_r.IsRightContinuous);
     }
 
     public static IEnumerable<Curve> ZeroAtOriginCurves =
@@ -232,8 +307,13 @@ public class ContinuityProjections
     [MemberData(nameof(ZeroAtOriginTestCases))]
     public void StabilityOfZeroAtOriginSubsets(Curve f)
     {
-        Assert.Equal(0, f.ToLeftContinuous().ValueAt(0));
-        Assert.Equal(f.RightLimitAt(0), f.ToRightContinuous().ValueAt(0));
+        var f_l = f.ToLeftContinuous();
+        Assert.Equal(0, f_l.ValueAt(0));
+        Assert.True(f_l.IsNonDecreasing);
+        Assert.True(f_l.IsLeftContinuous);
+
+        var f_r = f.ToRightContinuous();
+        Assert.Equal(f.RightLimitAt(0), f_r.ValueAt(0));
     }
 
     /// <summary>
@@ -243,9 +323,14 @@ public class ContinuityProjections
     public void RightProjectionOfACurveZeroAtTheOriginCanBePositiveThere()
     {
         var f = new SigmaRhoArrivalCurve(3, 1);
+        var f_r = f.ToRightContinuous();
 
         Assert.Equal(0, f.ValueAt(0));
-        Assert.Equal(3, f.ToRightContinuous().ValueAt(0));
+        Assert.Equal(3, f_r.ValueAt(0));
+
+        // the value at the origin is the only condition that fails: the rest of R0^ still holds
+        Assert.True(f_r.IsNonDecreasing);
+        Assert.True(f_r.IsRightContinuous);
     }
 
     public static IEnumerable<(Curve f, Curve g)> DeviationPairs =
