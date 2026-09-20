@@ -356,4 +356,106 @@ public class Cut
         var curveCount = curve.Count(interval);
         Assert.Equal(expected.Count, curveCount);
     }
+
+    public static List<(Curve curve, Rational cutStart, Rational cutEnd)> NeighbourhoodTuples =
+    [
+        (new SigmaRhoArrivalCurve(5, 3), 0, 4),
+        (new SigmaRhoArrivalCurve(5, 3), 1, 7),
+        (new SigmaRhoArrivalCurve(5, 3), 100, 250),
+        (new RateLatencyServiceCurve(5, 2), 0, 2),
+        (new RateLatencyServiceCurve(5, 2), 2, 10),
+        (new RateLatencyServiceCurve(1, 0).LowerPseudoInverse(), 0, 30),
+        (new DelayServiceCurve(3), 0, 3),
+        (new DelayServiceCurve(3), 3, 9),
+        (new FlowControlCurve(3, 5, 2), 1, 8),
+        (new FlowControlCurve(3, 5, 2), 100, 130),
+        (new StairCurve(30, 100).DelayBy(0), 0, 100),
+        (new StairCurve(30, 100).DelayBy(0), 100, 300),
+        (new StairCurve(30, 100).DelayBy(0).ToRightContinuous(), 0, 100),
+        (new StairCurve(30, 100).DelayBy(0).ToRightContinuous(), 100, 300),
+    ];
+
+    public static IEnumerable<object[]> NeighbourhoodTestCases()
+        => NeighbourhoodTuples.ToXUnitTestCases();
+
+    /// <summary>
+    /// The interval is contained in the cut, and the cut agrees with the curve over it.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(NeighbourhoodTestCases))]
+    public void NeighbourhoodCutContainsTheInterval(Curve curve, Rational cutStart, Rational cutEnd)
+    {
+        var cut = curve.CutToNeighbourhood(cutStart, cutEnd);
+
+        Assert.True(cut.IsDefinedAt(cutStart));
+        Assert.True(cut.IsDefinedAt(cutEnd));
+        foreach (var breakpoint in cut.EnumerateBreakpoints())
+            Assert.Equal(curve.ValueAt(breakpoint.center.Time), breakpoint.center.Value);
+    }
+
+    /// <summary>
+    /// The one-sided limits at the endpoints, which a plain cut cannot answer for, are answerable on the result and are the curve's own.
+    /// The curve is defined over $[0, +\infty[$, so the only endpoint with nothing beyond it is the origin.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(NeighbourhoodTestCases))]
+    public void NeighbourhoodCutAnswersTheOneSidedLimits(Curve curve, Rational cutStart, Rational cutEnd)
+    {
+        var cut = curve.CutToNeighbourhood(cutStart, cutEnd);
+
+        Assert.Equal(curve.RightLimitAt(cutEnd), cut.RightLimitAt(cutEnd));
+        if (cutStart > 0)
+            Assert.Equal(curve.LeftLimitAt(cutStart), cut.LeftLimitAt(cutStart));
+        else
+            Assert.Equal(0, cut.DefinedFrom);
+    }
+
+    /// <summary>
+    /// With neither side asked for, it is the plain cut over the closed interval.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(NeighbourhoodTestCases))]
+    public void NeighbourhoodCutWithoutEitherSideIsThePlainCut(Curve curve, Rational cutStart, Rational cutEnd)
+    {
+        var cut = curve.CutToNeighbourhood(cutStart, cutEnd, leftNeighbourhood: false, rightNeighbourhood: false);
+
+        Assert.Equal(curve.Cut(cutStart, cutEnd, true, true), cut);
+    }
+
+    /// <summary>
+    /// Each flag extends its own side and leaves the other where the plain cut left it.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(NeighbourhoodTestCases))]
+    public void NeighbourhoodCutFlagsSelectTheSide(Curve curve, Rational cutStart, Rational cutEnd)
+    {
+        var leftOnly = curve.CutToNeighbourhood(cutStart, cutEnd, leftNeighbourhood: true, rightNeighbourhood: false);
+        Assert.Equal(cutEnd, leftOnly.DefinedUntil);
+        if (cutStart > 0)
+            Assert.True(leftOnly.DefinedFrom < cutStart);
+
+        var rightOnly = curve.CutToNeighbourhood(cutStart, cutEnd, leftNeighbourhood: false, rightNeighbourhood: true);
+        Assert.Equal(cutStart, rightOnly.DefinedFrom);
+        Assert.True(rightOnly.DefinedUntil > cutEnd);
+    }
+
+    /// <summary>
+    /// A staircase cut over one of its steps, where the plain cut ends at the jump and loses the value the next step starts from.
+    /// </summary>
+    [Fact]
+    public void NeighbourhoodCutOfAStaircaseIsKnown()
+    {
+        var f = new StairCurve(30, 100).DelayBy(0);
+        Assert.Equal(30, f.ValueAt(100));
+        Assert.Equal(60, f.RightLimitAt(100));
+
+        var plain = f.Cut(0, 100, true, true);
+        Assert.Equal(100, plain.DefinedUntil);
+        Assert.Throws<ArgumentException>(() => plain.RightLimitAt(100));
+
+        var neighbourhood = f.CutToNeighbourhood(0, 100);
+        Assert.Equal(0, neighbourhood.DefinedFrom);
+        Assert.Equal(200, neighbourhood.DefinedUntil);
+        Assert.Equal(60, neighbourhood.RightLimitAt(100));
+    }
 }
