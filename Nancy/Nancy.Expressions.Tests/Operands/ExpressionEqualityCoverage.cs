@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Unipi.Nancy.Expressions.Tests.Operands;
 
-// Coverage sweep: every concrete CurveExpression/RationalExpression subclass gets one direct Equals/GetHashCode case here.
+// Coverage sweep: every concrete CurveExpression/RationalExpression/SequenceExpression subclass gets one direct Equals/GetHashCode case here.
 // A reflection count confirms the list is complete, so a class added later without a matching case fails loudly.
 public class ExpressionEqualityCoverage
 {
@@ -20,6 +20,14 @@ public class ExpressionEqualityCoverage
     private static readonly Rational Rational1 = new(1, 2);
     private static readonly Rational Rational2 = new(1, 3);
     private static readonly Rational Rational3 = new(2, 5);
+    private static readonly Sequence Sequence1 = new Sequence([Point.Origin(), new Segment(0, 6, 0, 1), new Point(6, 6)]);
+    private static readonly Sequence Sequence2 = new Sequence([Point.Origin(), new Segment(0, 6, 0, 2), new Point(6, 12)]);
+    private static readonly Sequence Sequence3 = new Sequence([Point.Origin(), new Segment(0, 6, 0, 3), new Point(6, 18)]);
+    private static readonly Interval Interval1 = new Interval(1, 4, true, true);
+    private static readonly Interval Interval2 = new Interval(2, 5, true, true);
+    // maps [0,3] onto [0,6], which is the domain of Sequence1, so the composition is well defined
+    private static readonly Sequence Inner1 = new Sequence([Point.Origin(), new Segment(0, 3, 0, 2), new Point(3, 6)]);
+    private static readonly Sequence Inner2 = new Sequence([Point.Origin(), new Segment(0, 6, 0, 1), new Point(6, 6)]);
 
     public static IEnumerable<object[]> OneOfEachConcreteType()
     {
@@ -152,6 +160,107 @@ public class ExpressionEqualityCoverage
 
         static object[] Case(Func<object> make, Func<object> makeDifferent)
             => new object[] { make, makeDifferent };
+
+        // Sequence, unary (operand: Sequence)
+        yield return Case(() => new SequenceToNonNegativeExpression(Sequence1, "a"), () => new SequenceToNonNegativeExpression(Sequence2, "a"));
+        yield return Case(
+            () => new SequenceCutExpression(Sequence1, "a", Interval1),
+            () => new SequenceCutExpression(Sequence1, "a", Interval2));
+        yield return Case(
+            () => new SequenceCutToNeighbourhoodExpression(Sequence1, "a", 1, 4),
+            () => new SequenceCutToNeighbourhoodExpression(Sequence1, "a", 2, 5));
+
+        // Sequence, unary (operand: Curve)
+        yield return Case(
+            () => new CurveCutExpression(Curve1, "a", Interval1),
+            () => new CurveCutExpression(Curve1, "a", Interval2));
+        yield return Case(
+            () => new CurveCutToNeighbourhoodExpression(Curve1, "a", 1, 4),
+            () => new CurveCutToNeighbourhoodExpression(Curve1, "a", 2, 5));
+
+        // Sequence, binary (Sequence, Sequence)
+        yield return Case(
+            () => new SequenceSubtractionExpression(Sequence1, "a", Sequence2, "b"),
+            () => new SequenceSubtractionExpression(Sequence1, "a", Sequence3, "b"));
+        yield return Case(
+            () => new SequenceDeconvolutionExpression(Sequence1, "a", Sequence2, "b"),
+            () => new SequenceDeconvolutionExpression(Sequence1, "a", Sequence3, "b"));
+        yield return Case(
+            () => new SequenceMaxPlusDeconvolutionExpression(Sequence1, "a", Sequence2, "b"),
+            () => new SequenceMaxPlusDeconvolutionExpression(Sequence1, "a", Sequence3, "b"));
+
+        // Sequence, n-ary
+        yield return Case(
+            () => new SequenceAdditionExpression([Sequence1.ToExpression("a"), Sequence2.ToExpression("b")], "s"),
+            () => new SequenceAdditionExpression([Sequence1.ToExpression("a"), Sequence3.ToExpression("b")], "s"));
+        yield return Case(
+            () => new SequenceMinimumExpression([Sequence1.ToExpression("a"), Sequence2.ToExpression("b")], "s"),
+            () => new SequenceMinimumExpression([Sequence1.ToExpression("a"), Sequence3.ToExpression("b")], "s"));
+        yield return Case(
+            () => new SequenceMaximumExpression([Sequence1.ToExpression("a"), Sequence2.ToExpression("b")], "s"),
+            () => new SequenceMaximumExpression([Sequence1.ToExpression("a"), Sequence3.ToExpression("b")], "s"));
+        yield return Case(
+            () => new SequenceConvolutionExpression([Sequence1.ToExpression("a"), Sequence2.ToExpression("b")], "s"),
+            () => new SequenceConvolutionExpression([Sequence1.ToExpression("a"), Sequence3.ToExpression("b")], "s"));
+        yield return Case(
+            () => new SequenceMaxPlusConvolutionExpression([Sequence1.ToExpression("a"), Sequence2.ToExpression("b")], "s"),
+            () => new SequenceMaxPlusConvolutionExpression([Sequence1.ToExpression("a"), Sequence3.ToExpression("b")], "s"));
+
+        // Sequence, leaf
+        yield return Case(() => new ConcreteSequenceExpression(Sequence1, "a"), () => new ConcreteSequenceExpression(Sequence2, "a"));
+
+        // Rational, from sequences
+        yield return Case(
+            () => new SequenceHorizontalDeviationExpression(Sequence1, "a", Sequence2, "b"),
+            () => new SequenceHorizontalDeviationExpression(Sequence1, "a", Sequence3, "b"));
+        yield return Case(
+            () => new SequenceVerticalDeviationExpression(Sequence1, "a", Sequence2, "b"),
+            () => new SequenceVerticalDeviationExpression(Sequence1, "a", Sequence3, "b"));
+
+        // Sequence, unary (operand: Sequence), no parameter
+        yield return Case(() => new SequenceNegateExpression(Sequence1, "a"), () => new SequenceNegateExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceFloorExpression(Sequence1, "a"), () => new SequenceFloorExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceCeilExpression(Sequence1, "a"), () => new SequenceCeilExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceToLeftContinuousExpression(Sequence1, "a"), () => new SequenceToLeftContinuousExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceToRightContinuousExpression(Sequence1, "a"), () => new SequenceToRightContinuousExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceLowerPseudoInverseExpression(Sequence1, "a"), () => new SequenceLowerPseudoInverseExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceUpperPseudoInverseExpression(Sequence1, "a"), () => new SequenceUpperPseudoInverseExpression(Sequence2, "a"));
+
+        // Sequence, binary (Sequence, Rational)
+        yield return Case(
+            () => new SequenceScaleExpression(Sequence1, "a", Rational1),
+            () => new SequenceScaleExpression(Sequence1, "a", Rational2));
+        yield return Case(
+            () => new SequenceDelayExpression(Sequence1, "a", Rational1),
+            () => new SequenceDelayExpression(Sequence1, "a", Rational2));
+        yield return Case(
+            () => new SequenceForwardExpression(Sequence1, "a", Rational1),
+            () => new SequenceForwardExpression(Sequence1, "a", Rational2));
+        yield return Case(
+            () => new SequenceHorizontalShiftExpression(Sequence1, "a", Rational1),
+            () => new SequenceHorizontalShiftExpression(Sequence1, "a", Rational2));
+        yield return Case(
+            () => new SequenceVerticalShiftExpression(Sequence1, "a", Rational1),
+            () => new SequenceVerticalShiftExpression(Sequence1, "a", Rational2));
+
+        // Sequence, binary (Sequence, Sequence)
+        yield return Case(
+            () => new SequenceCompositionExpression(Sequence1, "a", Inner1, "g"),
+            () => new SequenceCompositionExpression(Sequence1, "a", Inner2, "g"));
+
+        // Sequence, leaf placeholder
+        yield return Case(() => new SequencePlaceholderExpression("a"), () => new SequencePlaceholderExpression("b"));
+
+        // Rational, sampling a sequence
+        yield return Case(
+            () => new SequenceValueAtExpression(Sequence1, "a", Rational1),
+            () => new SequenceValueAtExpression(Sequence1, "a", Rational2));
+        yield return Case(
+            () => new SequenceLeftLimitAtExpression(Sequence1, "a", Rational1),
+            () => new SequenceLeftLimitAtExpression(Sequence1, "a", Rational2));
+        yield return Case(
+            () => new SequenceRightLimitAtExpression(Sequence1, "a", Rational1),
+            () => new SequenceRightLimitAtExpression(Sequence1, "a", Rational2));
     }
 
     [Theory]
@@ -179,7 +288,8 @@ public class ExpressionEqualityCoverage
             .GetTypes()
             .Count(t => !t.IsAbstract && t.IsClass &&
                         (typeof(Unipi.Nancy.Expressions.CurveExpression).IsAssignableFrom(t) ||
-                         typeof(Unipi.Nancy.Expressions.RationalExpression).IsAssignableFrom(t)));
+                         typeof(Unipi.Nancy.Expressions.RationalExpression).IsAssignableFrom(t) ||
+                         typeof(Unipi.Nancy.Expressions.SequenceExpression).IsAssignableFrom(t)));
 
         Assert.Equal(concreteTypeCount, caseCount);
     }
