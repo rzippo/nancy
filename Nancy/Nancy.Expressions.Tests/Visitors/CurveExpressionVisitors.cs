@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;

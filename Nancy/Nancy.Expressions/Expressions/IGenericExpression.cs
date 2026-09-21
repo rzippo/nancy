@@ -1,10 +1,10 @@
 using Unipi.Nancy.Expressions.Equivalences;
-using Unipi.Nancy.Expressions.ExpressionsUtility;
+using Unipi.Nancy.Expressions.Utility;
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions;
 
 /// <summary>
 /// Interface which defines the rules each Nancy expression must follow.

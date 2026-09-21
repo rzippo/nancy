@@ -1,4 +1,4 @@
-namespace Unipi.Nancy.Expressions.ExpressionsUtility.Internals;
+namespace Unipi.Nancy.Expressions.Utility;
 
 /// <summary>
 /// Dispatches <c>ClearValueCache</c> onto a child of either expression hierarchy.

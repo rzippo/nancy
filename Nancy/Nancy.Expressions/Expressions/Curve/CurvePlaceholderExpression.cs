@@ -1,6 +1,6 @@
 using Unipi.Nancy.Expressions.Visitors;
 
-namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions.Nodes;
 
 /// <summary>
 /// Class describing a placeholder for any curve expression (used for equivalences)

@@ -1,6 +1,6 @@
 using Microsoft.DotNet.Interactive.Formatting;
-using Unipi.Nancy.Expressions.ExpressionsUtility;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Utility;
+using Unipi.Nancy.Expressions.Nodes;
 
 namespace Unipi.Nancy.Expressions.Interactive;
 

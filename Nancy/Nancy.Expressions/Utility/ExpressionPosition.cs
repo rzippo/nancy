@@ -1,6 +1,6 @@
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 
-namespace Unipi.Nancy.Expressions.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Utility;
 
 /// <summary>
 /// Class which models the position of a sub-expression inside a DNC expression. The position is obtained by

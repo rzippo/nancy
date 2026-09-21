@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.Numerics;
 using Xunit;
 

@@ -1,9 +1,8 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using Unipi.Nancy.Expressions.Equivalences;
-using Unipi.Nancy.Expressions.ExpressionsUtility;
-using Unipi.Nancy.Expressions.ExpressionsUtility.Internals;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Utility;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;

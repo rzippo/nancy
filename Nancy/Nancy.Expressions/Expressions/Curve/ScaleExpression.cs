@@ -2,7 +2,7 @@ using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions.Nodes;
 
 /// <summary>
 /// Class representing an expression whose root operation is the operation to scale a curve by a certain rational number

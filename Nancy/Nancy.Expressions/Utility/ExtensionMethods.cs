@@ -1,4 +1,4 @@
-namespace Unipi.Nancy.Expressions.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Utility;
 
 /// <summary>
 /// Class containing extension methods

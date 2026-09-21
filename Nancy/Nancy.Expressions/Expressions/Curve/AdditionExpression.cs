@@ -1,7 +1,7 @@
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.MinPlusAlgebra;
 
-namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions.Nodes;
 
 /// <summary>
 /// Class representing an expression which computes the addition (n-ary operation)

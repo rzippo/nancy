@@ -1,7 +1,7 @@
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions.Nodes;
 
 /// <summary>
 /// Class representing an expression whose root operation is the division between rational numbers

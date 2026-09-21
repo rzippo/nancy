@@ -1,9 +1,9 @@
 using Unipi.Nancy.Expressions.Equivalences;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.ExpressionsUtility.Internals;
+namespace Unipi.Nancy.Expressions.Utility;
 
 /// <summary>
 /// Class which allows to manipulate DNC expressions.

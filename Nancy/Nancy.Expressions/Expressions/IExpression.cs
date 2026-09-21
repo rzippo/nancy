@@ -1,5 +1,5 @@
-using Unipi.Nancy.Expressions.ExpressionsUtility;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Utility;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.Expressions.Visitors;
 
 namespace Unipi.Nancy.Expressions;

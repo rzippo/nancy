@@ -1,4 +1,4 @@
-using Unipi.Nancy.Expressions.ExpressionsUtility;
+using Unipi.Nancy.Expressions.Utility;
 using Xunit;
 
 namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;

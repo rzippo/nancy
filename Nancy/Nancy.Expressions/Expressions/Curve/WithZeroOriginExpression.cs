@@ -1,7 +1,7 @@
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.MinPlusAlgebra;
 
-namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions.Nodes;
 
 /// <summary>
 /// Class representing an expression whose root operation is the operation which enforces a curve to assume 0 at time 0.

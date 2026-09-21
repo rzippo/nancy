@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Unipi.Nancy.Expressions.ExpressionsUtility;
+using Unipi.Nancy.Expressions.Utility;
 using Unipi.Nancy.MinPlusAlgebra;
 using Xunit;
 using Unipi.Nancy.NetworkCalculus;

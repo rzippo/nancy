@@ -1,6 +1,6 @@
 using Unipi.Nancy.Expressions.Visitors;
 
-namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions.Nodes;
 
 /// <summary>
 /// Class describing a placeholder for any rational expression (used for equivalences)

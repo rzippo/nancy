@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
-using Unipi.Nancy.Expressions.ExpressionsUtility;
+using Unipi.Nancy.Expressions.Utility;
 using Xunit;
 
 namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;

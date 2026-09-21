@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 using Xunit;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.NetworkCalculus;
 

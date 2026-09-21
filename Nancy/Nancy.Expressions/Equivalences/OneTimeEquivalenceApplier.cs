@@ -1,6 +1,5 @@
-using Unipi.Nancy.Expressions.ExpressionsUtility;
-using Unipi.Nancy.Expressions.ExpressionsUtility.Internals;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Utility;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 

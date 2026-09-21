@@ -1,5 +1,5 @@
 using System;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 using Xunit;
 
 namespace Unipi.Nancy.Expressions.Tests.Compute;

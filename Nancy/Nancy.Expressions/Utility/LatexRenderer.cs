@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using System.Text;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Utility;
 
 /// <summary>
 /// Static class for the rendering of Latex commands.

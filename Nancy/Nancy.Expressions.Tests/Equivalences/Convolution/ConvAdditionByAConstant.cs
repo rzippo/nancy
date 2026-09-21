@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 using Xunit;
 using Unipi.Nancy.NetworkCalculus;
 

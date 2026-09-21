@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
-using Unipi.Nancy.Expressions.Internals;
+using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 

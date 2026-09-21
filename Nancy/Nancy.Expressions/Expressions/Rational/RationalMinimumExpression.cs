@@ -1,7 +1,7 @@
 using Unipi.Nancy.Expressions.Visitors;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.Internals;
+namespace Unipi.Nancy.Expressions.Nodes;
 
 /// <summary>
 /// An expression that computes the minimum between rational numbers.
