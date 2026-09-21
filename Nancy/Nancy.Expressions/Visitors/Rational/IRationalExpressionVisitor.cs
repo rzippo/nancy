@@ -1,3 +1,4 @@
+using System;
 using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.Numerics;
 
@@ -16,6 +17,66 @@ public interface IRationalExpressionVisitor : IExpressionVisitor<Rational>
     /// Visit method for the type <see cref="HorizontalDeviationExpression"/>
     /// </summary>
     public void Visit(HorizontalDeviationExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceHorizontalDeviationExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceHorizontalDeviationExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceVerticalDeviationExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceVerticalDeviationExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceValueAtExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceValueAtExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceLeftLimitAtExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceLeftLimitAtExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceRightLimitAtExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceRightLimitAtExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
     /// <summary>
     /// Visit method for the type <see cref="VerticalDeviationExpression"/>
     /// </summary>
@@ -137,6 +198,66 @@ public interface IRationalExpressionVisitor<out TResult> : IExpressionVisitor<Ra
     /// Visit method for the type <see cref="HorizontalDeviationExpression"/>
     /// </summary>
     public TResult Visit(HorizontalDeviationExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceHorizontalDeviationExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceHorizontalDeviationExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceVerticalDeviationExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceVerticalDeviationExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceValueAtExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceValueAtExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceLeftLimitAtExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceLeftLimitAtExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceRightLimitAtExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor which does not reach into the sequence tree need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceRightLimitAtExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
     /// <summary>
     /// Visit method for the type <see cref="VerticalDeviationExpression"/>
     /// </summary>

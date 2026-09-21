@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Expressions;
 /// <summary>
 /// Static class with functions to build NetCal expressions
 /// </summary>
-public static class Expressions
+public static partial class Expressions
 {
     /// <summary>
     /// Creates a <see cref="ConcreteCurveExpression"/> object from a <see cref="Curve"/> object.

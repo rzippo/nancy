@@ -53,6 +53,26 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
         => CommonVisit(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(SequenceHorizontalDeviationExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceVerticalDeviationExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceValueAtExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceLeftLimitAtExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceRightLimitAtExpression expression)
+        => CommonVisit(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(VerticalDeviationExpression expression)
         => CommonVisit(expression);
 

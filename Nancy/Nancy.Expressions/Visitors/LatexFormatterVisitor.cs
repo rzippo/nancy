@@ -94,6 +94,8 @@ public partial class LatexFormatterVisitor :
             return curveExpression.Accept<(StringBuilder, bool)>(this);
         else if (expression is IGenericExpression<Rational> rationalExpression)
             return rationalExpression.Accept<(StringBuilder, bool)>(this);
+        else if (expression is IGenericExpression<Sequence> sequenceExpression)
+            return sequenceExpression.Accept<(StringBuilder, bool)>(this);
         else
             throw new NotImplementedException();
     }

@@ -33,6 +33,26 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
         => _result = Curve.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
 
     /// <inheritdoc />
+    public virtual void Visit(SequenceHorizontalDeviationExpression expression)
+        => _result = Sequence.HorizontalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceVerticalDeviationExpression expression)
+        => _result = Sequence.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceValueAtExpression expression)
+        => _result = expression.LeftOperand.Value.ValueAt(expression.RightOperand.Value);
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceLeftLimitAtExpression expression)
+        => _result = expression.LeftOperand.Value.LeftLimitAt(expression.RightOperand.Value);
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceRightLimitAtExpression expression)
+        => _result = expression.LeftOperand.Value.RightLimitAt(expression.RightOperand.Value);
+
+    /// <inheritdoc />
     public virtual void Visit(ZDeviationExpression expression)
         => _result = Curve.ZDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
 

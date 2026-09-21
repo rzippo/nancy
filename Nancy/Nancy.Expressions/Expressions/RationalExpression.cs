@@ -94,6 +94,14 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
             case IGenericUnaryExpression<Rational, Rational> u:
                 yield return u.Operand;
                 break;
+            case IGenericBinaryExpression<Sequence, Sequence, Rational> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
+            case IGenericBinaryExpression<Sequence, Rational, Rational> b:
+                yield return b.LeftOperand;
+                yield return b.RightOperand;
+                break;
             case IGenericBinaryExpression<Curve, Curve, Rational> b:
                 yield return b.LeftOperand;
                 yield return b.RightOperand;

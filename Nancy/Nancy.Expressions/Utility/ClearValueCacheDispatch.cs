@@ -1,7 +1,7 @@
 namespace Unipi.Nancy.Expressions.Utility;
 
 /// <summary>
-/// Dispatches <c>ClearValueCache</c> onto a child of either expression hierarchy.
+/// Dispatches <c>ClearValueCache</c> onto a child of any of the three expression hierarchies.
 /// </summary>
 /// <remarks>
 /// A <see cref="CurveExpression"/> can embed a <see cref="RationalExpression"/> operand, a scale factor for instance, and a <see cref="RationalExpression"/> can embed curve operands, as a horizontal deviation does.
@@ -18,6 +18,9 @@ internal static class ClearValueCacheDispatch
                 break;
             case RationalExpression rationalChild:
                 rationalChild.ClearValueCache(scope);
+                break;
+            case SequenceExpression sequenceChild:
+                sequenceChild.ClearValueCache(scope);
                 break;
         }
     }
