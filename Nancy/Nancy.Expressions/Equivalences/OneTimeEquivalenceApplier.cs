@@ -279,6 +279,7 @@ public class OneTimeEquivalenceApplier
                         result.NaryTypePartialMatch = expression.GetType();
                         result.NaryNamePartialMatch = expression.Name;
                         result.NarySettingsPartialMatch = expression.Settings;
+                        result.NaryPartialMatchSource = expression;
                     }
                 }
 

@@ -13,7 +13,7 @@ public abstract record
     /// <summary>
     /// The operands of this operator.
     /// </summary>
-    public IReadOnlyCollection<IGenericExpression<Rational>> Operands { get; }
+    public IReadOnlyCollection<IGenericExpression<Rational>> Operands { get; init; }
 
     /// <inheritdoc cref="IGenericNAryExpression{T1,TResult}.Expressions"/>
     [Obsolete("Renamed to Operands.")]
@@ -85,13 +85,23 @@ public abstract record
     /// </summary>
     public RationalExpression Append(IGenericExpression<Rational> operand, string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (GetType() == operand.GetType() && string.IsNullOrEmpty(operand.Name))
-            return (RationalExpression)Activator.CreateInstance(GetType(),
-                (IReadOnlyCollection<IGenericExpression<Rational>>)
-                [.. Operands, .. ((RationalNAryExpression)operand).Operands], expressionName, settings)!;
-        return (RationalExpression)Activator.CreateInstance(GetType(),
-            (IReadOnlyCollection<IGenericExpression<Rational>>) [.. Operands, operand], expressionName, settings)!;
+        IReadOnlyCollection<IGenericExpression<Rational>> operands =
+            GetType() == operand.GetType() && string.IsNullOrEmpty(operand.Name)
+                ? [.. Operands, .. ((RationalNAryExpression)operand).Operands]
+                : [.. Operands, operand];
+        return this with { Operands = operands, Name = expressionName, Settings = settings, Generation = 0 };
     }
+
+    /// <summary>
+    /// Returns a copy of this node with the given operands in place of its own.
+    /// </summary>
+    /// <param name="operands">The new operands.</param>
+    /// <remarks>
+    /// The copy carries <see cref="RationalExpression.Name"/>, <see cref="RationalExpression.Generation"/> and <see cref="RationalExpression.Settings"/>, and leaves the computed-value caches behind.
+    /// It is the concrete node's own type that is copied, so a node with state beyond its operands keeps that state.
+    /// </remarks>
+    public virtual IGenericExpression<Rational> WithOperands(IReadOnlyCollection<IGenericExpression<Rational>> operands)
+        => this with { Operands = operands };
 
     /// <summary>
     /// The widest possible operand list for this operator, descending into a child of the same concrete operator type whether or not it carries a bound <see cref="IExpression.Name"/>.

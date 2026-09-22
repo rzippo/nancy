@@ -25,4 +25,15 @@ public abstract record SequenceUnaryExpression<T> : SequenceExpression, IGeneric
 
     /// <inheritdoc />
     public IGenericExpression<T> Operand { get; init; }
+
+    /// <summary>
+    /// Returns a copy of this node with <paramref name="operand"/> in place of its operand.
+    /// </summary>
+    /// <param name="operand">The new operand.</param>
+    /// <remarks>
+    /// The copy carries <see cref="SequenceExpression.Name"/>, <see cref="SequenceExpression.Generation"/> and <see cref="SequenceExpression.Settings"/>, and leaves the computed-value caches behind.
+    /// It is the concrete node's own type that is copied, so a node with state beyond its operands keeps that state.
+    /// </remarks>
+    public virtual IGenericExpression<Sequence> WithOperand(IGenericExpression<T> operand)
+        => this with { Operand = operand };
 }

@@ -12,7 +12,7 @@ public abstract record
     SequenceNAryExpression : SequenceExpression, IGenericNAryExpression<Sequence, Sequence> // For operators on sequences that are commutative and associative
 {
     /// <inheritdoc />
-    public IReadOnlyCollection<IGenericExpression<Sequence>> Operands { get; }
+    public IReadOnlyCollection<IGenericExpression<Sequence>> Operands { get; init; }
 
     /// <summary>
     /// Creates the n-ary expression starting from a collection of expression operands.
@@ -44,13 +44,23 @@ public abstract record
     /// </summary>
     public SequenceExpression Append(IGenericExpression<Sequence> expression, string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (GetType() == expression.GetType() && string.IsNullOrEmpty(expression.Name))
-            return (SequenceExpression)Activator.CreateInstance(GetType(),
-                (IReadOnlyCollection<IGenericExpression<Sequence>>)
-                [.. Operands, .. ((SequenceNAryExpression)expression).Operands], expressionName, settings)!;
-        return (SequenceExpression)Activator.CreateInstance(GetType(),
-            (IReadOnlyCollection<IGenericExpression<Sequence>>) [.. Operands, expression], expressionName, settings)!;
+        IReadOnlyCollection<IGenericExpression<Sequence>> operands =
+            GetType() == expression.GetType() && string.IsNullOrEmpty(expression.Name)
+                ? [.. Operands, .. ((SequenceNAryExpression)expression).Operands]
+                : [.. Operands, expression];
+        return this with { Operands = operands, Name = expressionName, Settings = settings, Generation = 0 };
     }
+
+    /// <summary>
+    /// Returns a copy of this node with the given operands in place of its own.
+    /// </summary>
+    /// <param name="operands">The new operands.</param>
+    /// <remarks>
+    /// The copy carries <see cref="SequenceExpression.Name"/>, <see cref="SequenceExpression.Generation"/> and <see cref="SequenceExpression.Settings"/>, and leaves the computed-value caches behind.
+    /// It is the concrete node's own type that is copied, so a node with state beyond its operands keeps that state.
+    /// </remarks>
+    public virtual IGenericExpression<Sequence> WithOperands(IReadOnlyCollection<IGenericExpression<Sequence>> operands)
+        => this with { Operands = operands };
 
     /// <summary>
     /// True if <paramref name="other"/> is the same operator over the same operands, as an unordered multiset.

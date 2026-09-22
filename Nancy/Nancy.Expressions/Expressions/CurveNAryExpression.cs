@@ -11,7 +11,7 @@ public abstract record
     CurveNAryExpression : CurveExpression, IGenericNAryExpression<Curve, Curve> // For operators on curves that are commutative and associative
 {
     /// <inheritdoc />
-    public IReadOnlyCollection<IGenericExpression<Curve>> Operands { get; }
+    public IReadOnlyCollection<IGenericExpression<Curve>> Operands { get; init; }
 
     /// <inheritdoc cref="IGenericNAryExpression{T1,TResult}.Expressions"/>
     [Obsolete("Renamed to Operands.")]
@@ -84,13 +84,23 @@ public abstract record
     /// </summary>
     public CurveExpression Append(IGenericExpression<Curve> operand, string expressionName = "", ExpressionSettings? settings = null)
     {
-        if (GetType() == operand.GetType() && string.IsNullOrEmpty(operand.Name))
-            return (CurveExpression)Activator.CreateInstance(GetType(),
-                (IReadOnlyCollection<IGenericExpression<Curve>>)
-                [.. Operands, .. ((CurveNAryExpression)operand).Operands], expressionName, settings)!;
-        return (CurveExpression)Activator.CreateInstance(GetType(),
-            (IReadOnlyCollection<IGenericExpression<Curve>>) [.. Operands, operand], expressionName, settings)!;
+        IReadOnlyCollection<IGenericExpression<Curve>> operands =
+            GetType() == operand.GetType() && string.IsNullOrEmpty(operand.Name)
+                ? [.. Operands, .. ((CurveNAryExpression)operand).Operands]
+                : [.. Operands, operand];
+        return this with { Operands = operands, Name = expressionName, Settings = settings, Generation = 0 };
     }
+
+    /// <summary>
+    /// Returns a copy of this node with the given operands in place of its own.
+    /// </summary>
+    /// <param name="operands">The new operands.</param>
+    /// <remarks>
+    /// The copy carries <see cref="CurveExpression.Name"/>, <see cref="CurveExpression.Generation"/> and <see cref="CurveExpression.Settings"/>, and leaves the computed-value caches behind.
+    /// It is the concrete node's own type that is copied, so a node with state beyond its operands keeps that state.
+    /// </remarks>
+    public virtual IGenericExpression<Curve> WithOperands(IReadOnlyCollection<IGenericExpression<Curve>> operands)
+        => this with { Operands = operands };
 
     /// <summary>
     /// The widest possible operand list for this operator, descending into a child of the same concrete operator type whether or not it carries a bound <see cref="IExpression.Name"/>.

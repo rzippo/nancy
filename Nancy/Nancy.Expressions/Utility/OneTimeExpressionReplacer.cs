@@ -170,6 +170,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 result.NaryTypePartialMatch = expression.GetType();
                 result.NaryNamePartialMatch = expression.Name;
                 result.NarySettingsPartialMatch = expression.Settings;
+                result.NaryPartialMatchSource = expression;
             }
         }
 
@@ -197,8 +198,9 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 {
                     var operandsList = matchNAryResult.NotMatchedExpressionsCurve;
                     operandsList.Add(e);
-                    ret = Activator.CreateInstance(matchNAryResult.NaryTypePartialMatch!,
-                        [operandsList, matchNAryResult.NaryNamePartialMatch, matchNAryResult.NarySettingsPartialMatch]) as IGenericExpression<T> ?? throw new InvalidOperationException();
+                    if (matchNAryResult.NaryPartialMatchSource is not CurveNAryExpression partialMatchSource)
+                        throw new InvalidOperationException("Missing curve n-ary node for a partial match");
+                    ret = partialMatchSource.WithOperands(operandsList) as IGenericExpression<T> ?? throw new InvalidOperationException();
                 }
                 else
                 {
@@ -219,9 +221,9 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                 {
                     var operandsList = matchNAryResult.NotMatchedExpressionsRational;
                     operandsList.Add(e);
-                    ret = Activator.CreateInstance(matchNAryResult.NaryTypePartialMatch!,
-                        [operandsList, matchNAryResult.NaryNamePartialMatch, matchNAryResult.NarySettingsPartialMatch]) as IGenericExpression<T> ?? throw new
-                        InvalidOperationException();
+                    if (matchNAryResult.NaryPartialMatchSource is not RationalNAryExpression partialMatchSource)
+                        throw new InvalidOperationException("Missing rational n-ary node for a partial match");
+                    ret = partialMatchSource.WithOperands(operandsList) as IGenericExpression<T> ?? throw new InvalidOperationException();
                 }
                 else
                 {
@@ -394,9 +396,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
 
                 if (matchInOperands)
                 {
-                    _tempCurveExpression =
-                        Activator.CreateInstance(c.GetType(),
-                            [tempList, c.Name, c.Settings]) as IGenericExpression<Curve>;
+                    _tempCurveExpression = c.WithOperands(tempList);
                     replaceResult.Code = 2;
                     return replaceResult;
                 }
@@ -438,9 +438,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
 
                 if (rationalMatchInOperands)
                 {
-                    _tempRationalExpression =
-                        Activator.CreateInstance(c.GetType(),
-                            [rationalTempList, c.Name, c.Settings]) as IGenericExpression<Rational>;
+                    _tempRationalExpression = c.WithOperands(rationalTempList);
                     replaceResult.Code = 2;
                     return replaceResult;
                 }
@@ -465,51 +463,21 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     {
         var result = new ReplaceResult();
         var innerReplaceResult = ReplaceByValue(expressionPattern, unaryExpression.Operand);
-        object? temp;
-        if (typeof(TArg) == typeof(Curve))
-            temp = _tempCurveExpression;
-        else
-            temp = _tempRationalExpression;
         switch (innerReplaceResult.Code)
         {
             case 1:
             {
                 var innerMatchResult = innerReplaceResult.MatchPatternResult;
-                if (typeof(T) == typeof(Curve))
-                    _tempCurveExpression =
-                        Activator.CreateInstance(unaryExpression.GetType(),
-                            [
-                                getNewExpressionToReplace(NewExpressionToReplace, innerMatchResult),
-                                ((CurveExpression)unaryExpression).Name,
-                                unaryExpression.Settings
-                            ]) as
-                            IGenericExpression<Curve>;
-                else
-                    _tempRationalExpression =
-                        Activator.CreateInstance(unaryExpression.GetType(),
-                            [
-                                getNewExpressionToReplace(NewExpressionToReplace, innerMatchResult),
-                                ((CurveExpression)unaryExpression).Name,
-                                unaryExpression.Settings
-                            ]) as
-                            IGenericExpression<Rational>;
-
+                var newOperand = (IGenericExpression<TArg>)(object)getNewExpressionToReplace(
+                    NewExpressionToReplace, innerMatchResult);
+                RebuildUnary(unaryExpression, newOperand);
                 result.Code = 2; 
                 return result;
             }
             case 2:
             {
-                if (typeof(T) == typeof(Curve))
-                    _tempCurveExpression =
-                        Activator.CreateInstance(unaryExpression.GetType(),
-                                [temp, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings]) as
-                            IGenericExpression<Curve>;
-                else
-                    _tempRationalExpression =
-                        Activator.CreateInstance(unaryExpression.GetType(),
-                                [temp, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings]) as
-                            IGenericExpression<Rational>;
-
+                var newOperand = RebuiltOperand<TArg>();
+                RebuildUnary(unaryExpression, newOperand);
                 result.Code = 2; 
                 return result;
             }
@@ -520,6 +488,28 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
             }
         }
     }
+
+    private void RebuildUnary<TArg, T>(
+        IGenericUnaryExpression<TArg, T> unaryExpression,
+        IGenericExpression<TArg> newOperand)
+    {
+        switch (unaryExpression)
+        {
+            case CurveUnaryExpression<TArg> curveUnary:
+                _tempCurveExpression = curveUnary.WithOperand(newOperand);
+                break;
+            case RationalUnaryExpression<TArg> rationalUnary:
+                _tempRationalExpression = rationalUnary.WithOperand(newOperand);
+                break;
+            default:
+                throw new InvalidOperationException($"Cannot rebuild unary node of type {unaryExpression.GetType()}");
+        }
+    }
+
+    private IGenericExpression<T> RebuiltOperand<T>()
+        => (IGenericExpression<T>)(typeof(T) == typeof(Curve)
+            ? (object?)_tempCurveExpression
+            : _tempRationalExpression)!;
 
     private ReplaceResult ReplaceByValueBinaryExpression<TLeft, TRight, T>(IGenericExpression<TReplacedOperand> expressionPattern,
         IGenericBinaryExpression<TLeft, TRight, T> binaryExpression)
@@ -581,28 +571,30 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
             return result;
         }
 
-        if (typeof(T) == typeof(Curve))
-        {
-            if (binaryExpression is SubtractionExpression se)
-            {
-                _tempCurveExpression = Activator.CreateInstance(typeof(SubtractionExpression),
-                        [tempL, tempR, se.NonNegative, se.Name, se.Settings])
-                    as IGenericExpression<Curve>;
-            }
-            else
-            {
-                _tempCurveExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                        [tempL, tempR, ((CurveExpression)binaryExpression).Name, binaryExpression.Settings])
-                    as IGenericExpression<Curve>;    
-            }
-        }
-        else
-            _tempRationalExpression = Activator.CreateInstance(binaryExpression.GetType(),
-                    [tempL, tempR, ((CurveExpression)binaryExpression).Name, binaryExpression.Settings])
-                as IGenericExpression<Rational>;
-        
+        var newLeftOperand = (IGenericExpression<TLeft>)tempL!;
+        var newRightOperand = (IGenericExpression<TRight>)tempR!;
+        RebuildBinary(binaryExpression, newLeftOperand, newRightOperand);
+
         result.Code = 2; 
         return result;
+    }
+
+    private void RebuildBinary<TLeft, TRight, T>(
+        IGenericBinaryExpression<TLeft, TRight, T> binaryExpression,
+        IGenericExpression<TLeft> leftOperand,
+        IGenericExpression<TRight> rightOperand)
+    {
+        switch (binaryExpression)
+        {
+            case CurveBinaryExpression<TLeft, TRight> curveBinary:
+                _tempCurveExpression = curveBinary.WithOperands(leftOperand, rightOperand);
+                break;
+            case RationalBinaryExpression<TLeft, TRight> rationalBinary:
+                _tempRationalExpression = rationalBinary.WithOperands(leftOperand, rightOperand);
+                break;
+            default:
+                throw new InvalidOperationException($"Cannot rebuild binary node of type {binaryExpression.GetType()}");
+        }
     }
 
     public IGenericExpression<TExpressionResult> ReplaceByPosition(
@@ -724,9 +716,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                             i++;
                         }
 
-                        _tempCurveExpression =
-                            Activator.CreateInstance(c.GetType(),
-                                [tempList, c.Name, c.Settings]) as IGenericExpression<Curve>;
+                        _tempCurveExpression = c.WithOperands(tempList);
                         return 2;
                     case RationalNAryExpression c:
                         if (number >= c.Operands.Count)
@@ -753,9 +743,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                             j++;
                         }
 
-                        _tempRationalExpression =
-                            Activator.CreateInstance(c.GetType(),
-                                [rationalTempList, c.Name, c.Settings]) as IGenericExpression<Rational>;
+                        _tempRationalExpression = c.WithOperands(rationalTempList);
                         return 2;
                     default:
                         throw StepDoesNotFit(current, expression);
@@ -800,31 +788,18 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         var result = ReplaceByPosition(positionPath, unaryExpression.Operand);
         switch (result)
         {
-            case 1 when typeof(T) == typeof(Curve):
-                _tempCurveExpression =
-                    Activator.CreateInstance(unaryExpression.GetType(),
-                            [NewExpressionToReplace, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings])
-                        as IGenericExpression<Curve>;
-                break;
             case 1:
-                _tempRationalExpression =
-                    Activator.CreateInstance(unaryExpression.GetType(),
-                            [NewExpressionToReplace, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings])
-                        as IGenericExpression<Rational>;
+            {
+                var newOperand = (IGenericExpression<TArg>)(object)NewExpressionToReplace;
+                RebuildUnary(unaryExpression, newOperand);
                 break;
-            case 2 when typeof(T) == typeof(Curve):
-                _tempCurveExpression = Activator.CreateInstance(unaryExpression.GetType(),
-                        [_tempCurveExpression, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings])
-                    as IGenericExpression<Curve>;
-                break;
+            }
             case 2:
-                _tempRationalExpression =
-                    Activator.CreateInstance(unaryExpression.GetType(),
-                        [
-                            _tempRationalExpression, ((CurveExpression)unaryExpression).Name, unaryExpression.Settings
-                        ])
-                        as IGenericExpression<Rational>;
+            {
+                var newOperand = RebuiltOperand<TArg>();
+                RebuildUnary(unaryExpression, newOperand);
                 break;
+            }
             case -1:
                 return -1;
         }
@@ -856,44 +831,16 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         var result = ReplaceByPosition(positionPath, binaryExpression.LeftOperand);
         switch (result)
         {
-            case 1 when typeof(TResult) == typeof(Curve):
+            case 1:
             {
-                var curveBinaryExpression = (CurveBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
-                _tempCurveExpression = curveBinaryExpression with
-                {
-                    LeftOperand = NewExpressionToReplace
-                };
-                break;
-            }
-            case 1 when typeof(TResult) == typeof(Rational):
-            {
-                var rationalBinaryExpression = (RationalBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
-                _tempRationalExpression = rationalBinaryExpression with
-                {
-                    LeftOperand = NewExpressionToReplace
-                };
-                break;
-            }
-            case 2 when typeof(TResult) == typeof(Curve):
-            {
-                var curveBinaryExpression = (CurveBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
-                _tempCurveExpression = curveBinaryExpression with
-                {
-                    LeftOperand = (typeof(TReplacedOperand) == typeof(Curve)) ?
-                        (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
-                        (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
-                };
+                var newLeftOperand = (IGenericExpression<TLeft>)(object)NewExpressionToReplace;
+                RebuildBinary(binaryExpression, newLeftOperand, binaryExpression.RightOperand);
                 break;
             }
             case 2:
             {
-                var rationalBinaryExpression = (RationalBinaryExpression<TReplacedOperand, TRight>)binaryExpression;
-                _tempRationalExpression = rationalBinaryExpression with
-                {
-                    LeftOperand = (typeof(TReplacedOperand) == typeof(Curve)) ? 
-                        (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
-                        (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
-                };
+                var newLeftOperand = RebuiltOperand<TLeft>();
+                RebuildBinary(binaryExpression, newLeftOperand, binaryExpression.RightOperand);
                 break;
             }
             default:
@@ -926,44 +873,16 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         var result = ReplaceByPosition(positionPath, binaryExpression.RightOperand);
         switch (result)
         {
-            case 1 when typeof(TResult) == typeof(Curve):
+            case 1:
             {
-                var curveBinaryExpression = (CurveBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
-                _tempCurveExpression = curveBinaryExpression with
-                {
-                    RightOperand = NewExpressionToReplace
-                };
+                var newRightOperand = (IGenericExpression<TRight>)(object)NewExpressionToReplace;
+                RebuildBinary(binaryExpression, binaryExpression.LeftOperand, newRightOperand);
                 break;
             }
-            case 1 when typeof(TResult) == typeof(Rational):
+            case 2:
             {
-                var rationalBinaryExpression = (RationalBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
-                _tempRationalExpression = rationalBinaryExpression with
-                {
-                    RightOperand = NewExpressionToReplace
-                };
-                break;
-            }
-            case 2 when typeof(TResult) == typeof(Curve):
-            {
-                var curveBinaryExpression = (CurveBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
-                _tempCurveExpression = curveBinaryExpression with
-                {
-                    RightOperand = (typeof(TReplacedOperand) == typeof(Curve)) ?
-                        (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
-                        (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
-                };
-                break;
-            }
-            case 2 when typeof(TResult) == typeof(Rational):
-            {
-                var rationalBinaryExpression = (RationalBinaryExpression<TLeft, TReplacedOperand>)binaryExpression;
-                _tempRationalExpression = rationalBinaryExpression with
-                {
-                    RightOperand = (typeof(TReplacedOperand) == typeof(Curve)) ?
-                        (IGenericExpression<TReplacedOperand>) _tempCurveExpression! :
-                        (IGenericExpression<TReplacedOperand>) _tempRationalExpression!
-                };
+                var newRightOperand = RebuiltOperand<TRight>();
+                RebuildBinary(binaryExpression, binaryExpression.LeftOperand, newRightOperand);
                 break;
             }
             default:
@@ -1016,6 +935,11 @@ public record MatchPatternNAryResult : MatchPatternResult
     /// todo: document 
     /// </summary>
     public ExpressionSettings? NarySettingsPartialMatch { get; set; } = null;
+
+    /// <summary>
+    /// The n-ary node whose operands matched only in part, kept so that the leftover can be reattached by asking that node to rebuild itself.
+    /// </summary>
+    public IExpression? NaryPartialMatchSource { get; set; } = null;
 }
 
 /// <summary>

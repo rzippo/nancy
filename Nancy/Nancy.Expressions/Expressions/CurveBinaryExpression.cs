@@ -35,4 +35,16 @@ public abstract record CurveBinaryExpression<T1, T2> : CurveExpression, IGeneric
     /// <inheritdoc cref="IGenericBinaryExpression{T1,T2,TResult}.RightExpression"/>
     [Obsolete("Renamed to RightOperand.")]
     public IGenericExpression<T2> RightExpression => RightOperand;
+
+    /// <summary>
+    /// Returns a copy of this node with the given operands in place of its own.
+    /// </summary>
+    /// <param name="leftOperand">The new left operand.</param>
+    /// <param name="rightOperand">The new right operand.</param>
+    /// <remarks>
+    /// The copy carries <see cref="CurveExpression.Name"/>, <see cref="CurveExpression.Generation"/> and <see cref="CurveExpression.Settings"/>, and leaves the computed-value caches behind.
+    /// It is the concrete node's own type that is copied, so a node with state beyond its operands keeps that state.
+    /// </remarks>
+    public virtual IGenericExpression<Curve> WithOperands(IGenericExpression<T1> leftOperand, IGenericExpression<T2> rightOperand)
+        => this with { LeftOperand = leftOperand, RightOperand = rightOperand };
 }
