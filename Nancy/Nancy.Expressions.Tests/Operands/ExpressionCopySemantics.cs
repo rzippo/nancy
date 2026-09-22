@@ -60,16 +60,14 @@ public class ExpressionCopySemantics
         Assert.False(derived.IsComputed);
     }
 
-    // `with` goes through the copy constructor, which carries the generation.
-    // ReplaceByPosition rebuilds each node through its constructor instead, and no constructor takes a generation, so the rebuilt expression keeps its name and loses which binding produced it.
-    // Left as it stands rather than fixed here, since carrying it means touching every reconstruction site in OneTimeExpressionReplacer; the divergence is what this test records.
+    // `with` and the rebuild each node performs for a rewrite both go through the copy constructor, which carries the generation.
+    // `ReplaceByPosition` rebuilds every node on the path by asking the node for a copy with its new operands, so it keeps which binding produced the expression.
     [Theory]
     [MemberData(nameof(Derivations))]
     public void ADerivationThroughWithKeepsTheGenerationTheCallerSet(
         string label, System.Func<(CurveExpression Original, CurveExpression Derived)> make)
     {
-        if (label.StartsWith("ReplaceByPosition"))
-            return;
+        _ = label;
 
         var (original, derived) = make();
 
