@@ -7,7 +7,7 @@ namespace Unipi.Nancy.Expressions.Nodes;
 /// <summary>
 /// Class describing an expression composed of a rational (<see cref="Rational"/>) number
 /// </summary>
-public record RationalNumberExpression : RationalExpression
+public record RationalNumberExpression : RationalExpression, IExpressionLeaf
 {
     /// <summary>
     /// Creates a rational number expression starting from a <see cref="Rational"/> object
@@ -42,6 +42,10 @@ public record RationalNumberExpression : RationalExpression
     /// </summary>
     public virtual bool Equals(RationalNumberExpression? other)
         => other is not null && base.Equals(other) && Value.Equals(other.Value);
+
+    /// <inheritdoc />
+    bool IExpressionLeaf.ValueMatches(IExpression other)
+        => other is RationalNumberExpression number && Value.Equals(number.Value);
 
     /// <inheritdoc />
     public override int GetHashCode()

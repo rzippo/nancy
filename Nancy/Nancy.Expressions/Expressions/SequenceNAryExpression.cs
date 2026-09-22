@@ -9,7 +9,7 @@ namespace Unipi.Nancy.Expressions;
 /// Class representing expressions whose value is a <see cref="Sequence"/> object and the root is an operation which accepts n (n >= 2) operands (which are sequence expressions) and is commutative and associative.
 /// </summary>
 public abstract record
-    SequenceNAryExpression : SequenceExpression, IGenericNAryExpression<Sequence, Sequence> // For operators on sequences that are commutative and associative
+    SequenceNAryExpression : SequenceExpression, IGenericNAryExpression<Sequence, Sequence>, IExpressionNode // For operators on sequences that are commutative and associative
 {
     /// <inheritdoc />
     public IReadOnlyCollection<IGenericExpression<Sequence>> Operands { get; init; }
@@ -61,6 +61,16 @@ public abstract record
     /// </remarks>
     public virtual IGenericExpression<Sequence> WithOperands(IReadOnlyCollection<IGenericExpression<Sequence>> operands)
         => this with { Operands = operands };
+
+    /// <inheritdoc />
+    NodeArity IExpressionNode.Arity => NodeArity.NAry;
+
+    /// <inheritdoc />
+    IReadOnlyList<IExpression> IExpressionNode.Children => Operands.ToList();
+
+    /// <inheritdoc />
+    IExpression IExpressionNode.Rebuild(IReadOnlyList<IExpression> children)
+        => WithOperands(children.Cast<IGenericExpression<Sequence>>().ToList());
 
     /// <summary>
     /// True if <paramref name="other"/> is the same operator over the same operands, as an unordered multiset.

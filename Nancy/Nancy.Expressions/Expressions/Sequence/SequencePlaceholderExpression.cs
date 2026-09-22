@@ -6,7 +6,7 @@ namespace Unipi.Nancy.Expressions.Nodes;
 /// <summary>
 /// Class describing a placeholder for any sequence expression (used for equivalences).
 /// </summary>
-public record SequencePlaceholderExpression : SequenceExpression
+public record SequencePlaceholderExpression : SequenceExpression, IPlaceholderExpression
 {
     /// <summary>
     /// Class describing a placeholder for any sequence expression (used for equivalences).

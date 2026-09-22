@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.Expressions.Equivalences;
 using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -6,959 +9,737 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Utility;
 
 /// <summary>
-/// Class which allows to manipulate DNC expressions.
-/// It manages replacement by-value and by-position.
-/// The features are also reused for applying equivalence by-value and by-position.
+/// The outcome of a rewrite:
+/// the new expression, how many replacements were made, where, and the bindings of an equivalence if one was applied.
 /// </summary>
-/// <remarks>Each instance is safe to use only once.</remarks>
-/// <typeparam name="TExpressionResult">Value type of <see cref="OriginalExpression"/> (Curve or Rational)</typeparam>
-/// <typeparam name="TReplacedOperand">Value type of <see cref="NewExpressionToReplace"/> (Curve or Rational)</typeparam>
-internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
+/// <param name="Expression">The expression the rewrite produced.</param>
+/// <param name="ReplacementCount">How many sites were replaced.</param>
+/// <param name="Positions">The positions of the replaced sites, in the order they were visited.</param>
+/// <param name="CurveBindings">The curve bindings of the last equivalence applied, or <see langword="null"/>.</param>
+/// <param name="RationalBindings">The rational bindings of the last equivalence applied, or <see langword="null"/>.</param>
+internal sealed record ExpressionRewriteResult(
+    IExpression Expression,
+    int ReplacementCount,
+    IReadOnlyList<ExpressionPosition> Positions,
+    IReadOnlyDictionary<string, CurveExpression>? CurveBindings,
+    IReadOnlyDictionary<string, RationalExpression>? RationalBindings)
 {
-    private IGenericExpression<Curve>? _tempCurveExpression;
-    private IGenericExpression<Rational>? _tempRationalExpression;
+    /// <summary>
+    /// True if at least one site was replaced.
+    /// </summary>
+    public bool Matched => ReplacementCount > 0;
+}
 
-    public bool AlreadyUsed { get; private set; } = false;
-    
-    public Equivalence? Equivalence { get; init; }
-    public CheckType CheckType { get; init; }
-    
-    public IGenericExpression<TExpressionResult> OriginalExpression { get; init; }
-    public IGenericExpression<TReplacedOperand> NewExpressionToReplace { get; private set; }
-
-    public OneTimeExpressionReplacer(IGenericExpression<TExpressionResult> originalExpression,
-        Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly) : this(originalExpression,
-        (IGenericExpression<TReplacedOperand>)Expressions.FromCurve(Curve.Zero()))
+/// <summary>
+/// Rewrites an expression by walking every node and asking a <see cref="RewriteRule"/> to replace it.
+/// </summary>
+/// <remarks>
+/// The traversal names no value type: it walks the node shapes through <see cref="IExpressionNode"/> and lets each node rebuild itself.
+/// Adding a value type therefore adds no arm here.
+/// Replacement is a pure function of the expression, the pattern and the replacement, so calling it twice on the same inputs gives the same answer.
+/// There is no instance state to reset.
+/// </remarks>
+internal static class OneTimeExpressionReplacer
+{
+    /// <summary>
+    /// Replaces every occurrence of <paramref name="pattern"/> by <paramref name="replacement"/>.
+    /// </summary>
+    /// <param name="original">The expression to rewrite.</param>
+    /// <param name="pattern">The sub-expression to look for.</param>
+    /// <param name="replacement">The sub-expression to put in its place.</param>
+    /// <param name="ignoreNotMatchedExpressions">Whether the unmatched operands of a partial n-ary match are dropped.</param>
+    /// <param name="replaceAll">Whether to replace every match or stop at the first one.</param>
+    public static ExpressionRewriteResult ReplaceByValue(
+        IExpression original,
+        IExpression pattern,
+        IExpression replacement,
+        bool ignoreNotMatchedExpressions = false,
+        bool replaceAll = true)
     {
-        Equivalence = equivalence;
-        CheckType = checkType;
+        var rule = new SubstitutionRule(pattern, replacement, ignoreNotMatchedExpressions);
+        return Traverse(original, rule, replaceAll);
     }
 
     /// <summary>
-    /// Class which allows to manipulate DNC expressions. It manages replacement by-value and by-position. The features
-    /// are also reused for applying equivalence by-value and by-position.
+    /// Applies an equivalence at every site where it matches.
     /// </summary>
-    /// <param name="originalExpression">The main DNC expression, a sub-expression of it needs to be replaced.</param>
-    /// <param name="newExpressionToReplace">The new expression which must be "inserted" inside the main expression.</param>
-    public OneTimeExpressionReplacer(
-        IGenericExpression<TExpressionResult> originalExpression,
-        IGenericExpression<TReplacedOperand> newExpressionToReplace)
+    /// <param name="original">The expression to rewrite.</param>
+    /// <param name="equivalence">The law to apply.</param>
+    /// <param name="checkType">The direction in which the law is applied.</param>
+    /// <param name="replaceAll">Whether to apply the law at every match or stop at the first one.</param>
+    public static ExpressionRewriteResult ApplyEquivalence(
+        IExpression original,
+        Equivalence equivalence,
+        CheckType checkType = CheckType.CheckLeftOnly,
+        bool replaceAll = true)
     {
-        OriginalExpression = originalExpression;
-        NewExpressionToReplace = newExpressionToReplace;
+        var rule = new EquivalenceRule(equivalence, checkType);
+        return Traverse(original, rule, replaceAll);
     }
 
     /// <summary>
-    /// Verifies if an expression is equivalent to another (called pattern) by comparing their structure
+    /// Replaces the sub-expression at a position by <paramref name="replacement"/>.
     /// </summary>
-    /// <param name="pattern">The pattern expression</param>
-    /// <param name="expression">The expression checked against the pattern</param>
-    /// <param name="patternRoot">Indication of whether the match is at the root of the pattern or not</param>
-    /// <returns>True if the expression matches the pattern, False otherwise</returns>
-    public static MatchPatternResult MatchPattern<T>(
-        IGenericExpression<T> pattern, 
-        IGenericExpression<T> expression,
-        bool patternRoot)
+    /// <param name="original">The expression to rewrite.</param>
+    /// <param name="position">The steps from the root to the sub-expression.</param>
+    /// <param name="replacement">The sub-expression to put there.</param>
+    public static ExpressionRewriteResult ReplaceByPosition(
+        IExpression original,
+        IReadOnlyList<PathStep> position,
+        IExpression replacement)
     {
-        if (pattern.GetType() != expression.GetType()) 
-            return new MatchPatternResult { IsMatch = false };
-
-        switch (pattern, expression)
-        {
-            case (CurvePlaceholderExpression p, CurvePlaceholderExpression e):
-                return new MatchPatternResult { IsMatch = p.Name.Equals(e.Name) };
-            case (RationalPlaceholderExpression p, RationalPlaceholderExpression e):
-                return new MatchPatternResult { IsMatch = p.Name.Equals(e.Name) };
-            case (ConcreteCurveExpression p, ConcreteCurveExpression e):
-                return new MatchPatternResult { IsMatch = p.Name.Equals(e.Name) && p.Value.Equivalent(e.Value) };
-            case (IGenericUnaryExpression<Curve, T> p, IGenericUnaryExpression<Curve, T> e):
-                return MatchPattern(p.Operand, e.Operand, false);
-            case (IGenericUnaryExpression<Rational, T> p, IGenericUnaryExpression<Rational, T> e):
-                return MatchPattern(p.Operand, e.Operand, false);
-            case (IGenericBinaryExpression<Curve, Curve, T> p, IGenericBinaryExpression<Curve, Curve, T> e):
-            {
-                var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
-                var rightMatch = MatchPattern(p.RightOperand, e.RightOperand, false);
-                return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
-            }
-            case (IGenericBinaryExpression<Rational, Rational, T> p, IGenericBinaryExpression<Rational, Rational, T> e):
-            {
-                var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
-                var rightMatch = MatchPattern(p.RightOperand, e.RightOperand, false);
-                return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
-            }
-            case (IGenericBinaryExpression<Rational, Curve, T> p, IGenericBinaryExpression<Rational, Curve, T> e):
-            {
-                var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
-                var rightMatch = MatchPattern(p.RightOperand, e.RightOperand, false);
-                return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
-            }
-            case (IGenericBinaryExpression<Curve, Rational, T> p, IGenericBinaryExpression<Curve, Rational, T> e):
-            {
-                var leftMatch = MatchPattern(p.LeftOperand, e.LeftOperand, false);
-                var rightMatch = MatchPattern(p.RightOperand, e.RightOperand, false);
-                return new MatchPatternResult { IsMatch = leftMatch.IsMatch && rightMatch.IsMatch };
-            }
-            case (CurveNAryExpression p, CurveNAryExpression e):
-                return MatchPatternNAry(p, e, patternRoot);
-            case (RationalNAryExpression p, RationalNAryExpression e):
-                return MatchPatternNAry(p, e, patternRoot);
-            case (RationalNumberExpression p, RationalNumberExpression e):
-                return new MatchPatternResult { IsMatch = p.Value.Equals(e.Value) && p.Name.Equals(e.Name) };
-            default:
-                throw new InvalidOperationException("Missing type " + pattern.GetType());
-        }
-    }
-
-    private static MatchPatternNAryResult MatchPatternNAry<T, TResult>(
-        IGenericNAryExpression<T, TResult> pattern,
-        IGenericNAryExpression<T, TResult> expression, 
-        bool patternRoot
-    )
-    {
-        var result = new MatchPatternNAryResult();
-        
-        if (!patternRoot && pattern.Operands.Count != expression.Operands.Count) 
-            return result with { IsMatch = false };
-        if (patternRoot && pattern.Operands.Count > expression.Operands.Count) 
-            return result with { IsMatch = false };
-        
-        result.IsMatch = true;
-        
-        List<int> alreadyMatchedIndexes = [];
-        var operands = expression.Operands.ToArray();
-        // For each operand o1 of pattern Expression
-        foreach (var ePattern in pattern.Operands)
-        {
-            var temp = false;
-            // For each operand o2 of real expression
-            for (int i = 0; i < operands.Length; i++)
-            {
-                if (alreadyMatchedIndexes.Contains(i)) continue;
-                var operand = operands[i];
-                temp = MatchPattern(ePattern, operand, false).IsMatch;
-                if (temp) // If o2 matches o1 --> move to next operand o1 (and don't consider anymore o2)
-                {
-                    alreadyMatchedIndexes.Add(i);
-                    break;
-                }
-            }
-
-            result.IsMatch &= temp;
-            if (!result.IsMatch) 
-                return result;
-        }
-
-        if (patternRoot)
-        {
-            List<IGenericExpression<T>> notMatchedExpressions = [];
-            notMatchedExpressions.AddRange(operands.Where((t, i) => !alreadyMatchedIndexes.Contains(i)));
-
-            if (notMatchedExpressions.Count > 0)
-            {
-                // Save the operands which didn't match the pattern
-                switch (notMatchedExpressions)
-                {
-                    case List<IGenericExpression<Curve>> list:
-                        result.NotMatchedExpressionsCurve = list;
-                        break;
-                    case List<IGenericExpression<Rational>> list:
-                        result.NotMatchedExpressionsRational = list;
-                        break;
-                }
-
-                result.NaryTypePartialMatch = expression.GetType();
-                result.NaryNamePartialMatch = expression.Name;
-                result.NarySettingsPartialMatch = expression.Settings;
-                result.NaryPartialMatchSource = expression;
-            }
-        }
-
-        return result;
-    }
-    
-    private static IGenericExpression<T> getNewExpressionToReplace<T>(
-        IGenericExpression<T> newExpressionToReplace,
-        MatchPatternResult matchResult,
-        bool ignoreNotMatchedExpressions = false
-    )
-    {
-        if (ignoreNotMatchedExpressions) 
-            return newExpressionToReplace;
-        if (matchResult is not MatchPatternNAryResult matchNAryResult)
-            return newExpressionToReplace;
-        IGenericExpression<T> ret;
-        switch (newExpressionToReplace)
-        {
-            case IGenericExpression<Curve> e:
-                if (matchNAryResult.NotMatchedExpressionsCurve.Count == 0)
-                    return newExpressionToReplace;
-                // The pattern matched only some operands of n-ary expression, thus we need to keep the non-matched ones
-                if (newExpressionToReplace.GetType() != matchNAryResult.NaryTypePartialMatch)
-                {
-                    var operandsList = matchNAryResult.NotMatchedExpressionsCurve;
-                    operandsList.Add(e);
-                    if (matchNAryResult.NaryPartialMatchSource is not CurveNAryExpression partialMatchSource)
-                        throw new InvalidOperationException("Missing curve n-ary node for a partial match");
-                    ret = partialMatchSource.WithOperands(operandsList) as IGenericExpression<T> ?? throw new InvalidOperationException();
-                }
-                else
-                {
-                    var exprToReturn = newExpressionToReplace as CurveNAryExpression;
-                    exprToReturn = matchNAryResult.NotMatchedExpressionsCurve.Aggregate(exprToReturn,
-                        (current, operand) => (CurveNAryExpression)current!.Append(operand));
-
-                    ret = (exprToReturn as IGenericExpression<T>)!;
-                }
-
-                matchNAryResult.NotMatchedExpressionsCurve = [];
-                return ret;
-            case IGenericExpression<Rational> e:
-                if (matchNAryResult.NotMatchedExpressionsRational.Count == 0)
-                    return newExpressionToReplace;
-                // The pattern matched only some operands of n-ary expression, thus we need to keep the non-matched ones
-                if (newExpressionToReplace.GetType() != matchNAryResult.NaryTypePartialMatch)
-                {
-                    var operandsList = matchNAryResult.NotMatchedExpressionsRational;
-                    operandsList.Add(e);
-                    if (matchNAryResult.NaryPartialMatchSource is not RationalNAryExpression partialMatchSource)
-                        throw new InvalidOperationException("Missing rational n-ary node for a partial match");
-                    ret = partialMatchSource.WithOperands(operandsList) as IGenericExpression<T> ?? throw new InvalidOperationException();
-                }
-                else
-                {
-                    var exprToReturn = newExpressionToReplace as RationalNAryExpression;
-                    exprToReturn = matchNAryResult.NotMatchedExpressionsRational.Aggregate(exprToReturn,
-                        (current, operand) => (RationalNAryExpression)current!.Append(operand));
-
-                    ret = (exprToReturn as IGenericExpression<T>)!;
-                }
-                
-                matchNAryResult.NotMatchedExpressionsRational = [];
-                return ret;
-        }
-
-        return newExpressionToReplace;
-    }
-
-    public IGenericExpression<TExpressionResult> ReplaceByValue(
-        IGenericExpression<TReplacedOperand> expressionPattern,
-        bool ignoreNotMatchedExpressions = false
-    )
-    {
-        if(AlreadyUsed)
-            throw new InvalidOperationException("This replacer was already used.");
-        AlreadyUsed = true;
-        
-        switch (OriginalExpression)
-        {
-            case IGenericExpression<Curve> e:
-            {
-                var replaceResult = ReplaceByValue(expressionPattern, e);
-                if (replaceResult.Code == 1)
-                {
-                    var matchResult = replaceResult.MatchPatternResult;
-                    return (IGenericExpression<TExpressionResult>)getNewExpressionToReplace(
-                        NewExpressionToReplace, 
-                        matchResult, 
-                        ignoreNotMatchedExpressions
-                    );
-                }
-                if (_tempCurveExpression != null)
-                    return (IGenericExpression<TExpressionResult>)_tempCurveExpression;
-                break;
-            }
-            case IGenericExpression<Rational> e:
-            {
-                var replaceResult = ReplaceByValue(expressionPattern, e);
-                if (replaceResult.Code == 1)
-                {
-                    var matchResult = replaceResult.MatchPatternResult;
-                    return (IGenericExpression<TExpressionResult>)getNewExpressionToReplace(
-                        NewExpressionToReplace, 
-                        matchResult, 
-                        ignoreNotMatchedExpressions
-                    );
-                }
-                if (_tempRationalExpression != null)
-                    return (IGenericExpression<TExpressionResult>)_tempRationalExpression;
-                break;
-            }
-        }
-
-        return OriginalExpression;
-    }
-
-    private ReplaceResult ReplaceByValue<T>(
-        IGenericExpression<TReplacedOperand> expressionPattern,
-        IGenericExpression<T> expression) // Top-down match
-    {
-        var replaceResult = new ReplaceResult();
-        switch (expressionPattern, expression, _equivalence: Equivalence)
-        {
-            case (IGenericExpression<Curve> p, IGenericExpression<Curve> e, null):
-            {
-                replaceResult.MatchPatternResult = MatchPattern(p, e, true);
-                break;
-            }
-            case (IGenericExpression<Rational> p, IGenericExpression<Rational> e, null):
-            {
-                replaceResult.MatchPatternResult = MatchPattern(p, e, true);
-                break;
-            }
-            case (IGenericExpression<Curve>, IGenericExpression<Curve> e, _):
-            {
-                var equivalenceApplyResult = Equivalence.Apply(e, CheckType);
-                if (equivalenceApplyResult.NewExpression != null)
-                {
-                    NewExpressionToReplace = (IGenericExpression<TReplacedOperand>)equivalenceApplyResult.NewExpression;
-                    replaceResult.MatchPatternResult = equivalenceApplyResult.MatchPatternResult;
-                }
-                else
-                    replaceResult.MatchPatternResult.IsMatch = false;
-
-                break;
-            }
-            default:
-            {
-                replaceResult.MatchPatternResult.IsMatch = false;
-                break;
-            }
-        }
-
-        if (replaceResult.MatchPatternResult.IsMatch)
-        {
-            replaceResult.Code = 1;
-            return replaceResult;
-        }
-
-        switch (expression)
-        {
-            case IGenericUnaryExpression<Curve, T> c:
-            {
-                replaceResult.Code = ReplaceByValueUnaryExpression(expressionPattern, c).Code;
-                return replaceResult;
-            }
-            case IGenericUnaryExpression<Rational, T> c:
-            {
-                replaceResult.Code = ReplaceByValueUnaryExpression(expressionPattern, c).Code;
-                return replaceResult;
-            }
-            case IGenericBinaryExpression<Curve, Curve, T> c:
-            {
-                replaceResult.Code = ReplaceByValueBinaryExpression(expressionPattern, c).Code;
-                return replaceResult;
-            }
-            case IGenericBinaryExpression<Curve, Rational, T> c:
-            {
-                replaceResult.Code = ReplaceByValueBinaryExpression(expressionPattern, c).Code;
-                return replaceResult;
-            }
-            case IGenericBinaryExpression<Rational, Curve, T> c:
-            {
-                replaceResult.Code = ReplaceByValueBinaryExpression(expressionPattern, c).Code;
-                return replaceResult;
-            }
-            case IGenericBinaryExpression<Rational, Rational, T> c:
-            {
-                replaceResult.Code = ReplaceByValueBinaryExpression(expressionPattern, c).Code;
-                return replaceResult;
-            }
-            case CurveNAryExpression c:
-            {
-                List<CurveExpression> tempList = [];
-                var matchInOperands = false;
-                foreach (var e in c.Operands)
-                {
-                    var innerReplaceResult = ReplaceByValue(expressionPattern, e); 
-                    switch (innerReplaceResult.Code)
-                    {
-                        case 1:
-                        {
-                            matchInOperands = true;
-                            var innerMatchResult = innerReplaceResult.MatchPatternResult;
-                            tempList.Add((CurveExpression)getNewExpressionToReplace(NewExpressionToReplace, innerMatchResult));
-                            break;
-                        }
-                        case 2:
-                        {
-                            matchInOperands = true;
-                            tempList.Add((CurveExpression)_tempCurveExpression!);
-                            break;
-                        }
-                        default:
-                        {
-                            tempList.Add((CurveExpression)e);
-                            break;
-                        }
-                    }
-                }
-
-                if (matchInOperands)
-                {
-                    _tempCurveExpression = c.WithOperands(tempList);
-                    replaceResult.Code = 2;
-                    return replaceResult;
-                }
-                else
-                {
-                    replaceResult.Code = 0;
-                    return replaceResult;
-                }
-            }
-            case RationalNAryExpression c:
-            {
-                List<RationalExpression> rationalTempList = [];
-                var rationalMatchInOperands = false;
-                foreach (var e in c.Operands)
-                {
-                    var innerReplaceResult = ReplaceByValue(expressionPattern, e);
-                    switch (innerReplaceResult.Code)
-                    {
-                        case 1:
-                        {
-                            var innerMatchResult = (MatchPatternNAryResult) innerReplaceResult.MatchPatternResult;
-                            rationalMatchInOperands = true;
-                            rationalTempList.Add((RationalExpression)getNewExpressionToReplace(NewExpressionToReplace, innerMatchResult));
-                            break;
-                        }
-                        case 2:
-                        {
-                            rationalMatchInOperands = true;
-                            rationalTempList.Add((RationalExpression)_tempRationalExpression!);
-                            break;
-                        }
-                        default:
-                        {
-                            rationalTempList.Add((RationalExpression)e);
-                            break;
-                        }
-                    }
-                }
-
-                if (rationalMatchInOperands)
-                {
-                    _tempRationalExpression = c.WithOperands(rationalTempList);
-                    replaceResult.Code = 2;
-                    return replaceResult;
-                }
-                else
-                {
-                    replaceResult.Code = 0;
-                    return replaceResult;
-                }
-            }
-            default:
-            {
-                // No match
-                replaceResult.Code = 0;
-                return replaceResult; 
-            }
-        }
-    }
-
-    private ReplaceResult ReplaceByValueUnaryExpression<TArg, T>(
-        IGenericExpression<TReplacedOperand> expressionPattern,
-        IGenericUnaryExpression<TArg, T> unaryExpression)
-    {
-        var result = new ReplaceResult();
-        var innerReplaceResult = ReplaceByValue(expressionPattern, unaryExpression.Operand);
-        switch (innerReplaceResult.Code)
-        {
-            case 1:
-            {
-                var innerMatchResult = innerReplaceResult.MatchPatternResult;
-                var newOperand = (IGenericExpression<TArg>)(object)getNewExpressionToReplace(
-                    NewExpressionToReplace, innerMatchResult);
-                RebuildUnary(unaryExpression, newOperand);
-                result.Code = 2; 
-                return result;
-            }
-            case 2:
-            {
-                var newOperand = RebuiltOperand<TArg>();
-                RebuildUnary(unaryExpression, newOperand);
-                result.Code = 2; 
-                return result;
-            }
-            default:
-            {
-                result.Code = 0; 
-                return result;
-            }
-        }
-    }
-
-    private void RebuildUnary<TArg, T>(
-        IGenericUnaryExpression<TArg, T> unaryExpression,
-        IGenericExpression<TArg> newOperand)
-    {
-        switch (unaryExpression)
-        {
-            case CurveUnaryExpression<TArg> curveUnary:
-                _tempCurveExpression = curveUnary.WithOperand(newOperand);
-                break;
-            case RationalUnaryExpression<TArg> rationalUnary:
-                _tempRationalExpression = rationalUnary.WithOperand(newOperand);
-                break;
-            default:
-                throw new InvalidOperationException($"Cannot rebuild unary node of type {unaryExpression.GetType()}");
-        }
-    }
-
-    private IGenericExpression<T> RebuiltOperand<T>()
-        => (IGenericExpression<T>)(typeof(T) == typeof(Curve)
-            ? (object?)_tempCurveExpression
-            : _tempRationalExpression)!;
-
-    private ReplaceResult ReplaceByValueBinaryExpression<TLeft, TRight, T>(IGenericExpression<TReplacedOperand> expressionPattern,
-        IGenericBinaryExpression<TLeft, TRight, T> binaryExpression)
-    {
-        var result = new ReplaceResult();
-        var innerResultLeft = ReplaceByValue(expressionPattern, binaryExpression.LeftOperand);
-        object? tempL;
-        if (typeof(TLeft) == typeof(Curve))
-        {
-            tempL = innerResultLeft.Code switch
-            {
-                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(
-                    NewExpressionToReplace, 
-                    innerResultLeft.MatchPatternResult),
-                2 => _tempCurveExpression,
-                _ => binaryExpression.LeftOperand as IGenericExpression<Curve>
-            };
-        }
-        else
-        {
-            tempL = innerResultLeft.Code switch
-            {
-                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(
-                    NewExpressionToReplace,
-                    innerResultLeft.MatchPatternResult),
-                2 => _tempRationalExpression,
-                _ => binaryExpression.LeftOperand as IGenericExpression<Rational>
-            };
-        }
-
-        var innerResultRight = ReplaceByValue(expressionPattern, binaryExpression.RightOperand);
-        object? tempR;
-        if (typeof(TRight) == typeof(Curve))
-        {
-            tempR = innerResultRight.Code switch
-            {
-                1 => (IGenericExpression<Curve>?)getNewExpressionToReplace(
-                    NewExpressionToReplace,
-                    innerResultLeft.MatchPatternResult),
-                2 => _tempCurveExpression,
-                _ => binaryExpression.RightOperand as IGenericExpression<Curve>
-            };
-        }
-        else
-        {
-            tempR = innerResultRight.Code switch
-            {
-                1 => (IGenericExpression<Rational>?)getNewExpressionToReplace(
-                    NewExpressionToReplace,
-                    innerResultLeft.MatchPatternResult),
-                2 => _tempRationalExpression,
-                _ => binaryExpression.RightOperand as IGenericExpression<Rational>
-            };
-        }
-
-        if (innerResultLeft.Code == 0 && innerResultRight.Code == 0)
-        {
-            result.Code = 0; 
-            return result;
-        }
-
-        var newLeftOperand = (IGenericExpression<TLeft>)tempL!;
-        var newRightOperand = (IGenericExpression<TRight>)tempR!;
-        RebuildBinary(binaryExpression, newLeftOperand, newRightOperand);
-
-        result.Code = 2; 
-        return result;
-    }
-
-    private void RebuildBinary<TLeft, TRight, T>(
-        IGenericBinaryExpression<TLeft, TRight, T> binaryExpression,
-        IGenericExpression<TLeft> leftOperand,
-        IGenericExpression<TRight> rightOperand)
-    {
-        switch (binaryExpression)
-        {
-            case CurveBinaryExpression<TLeft, TRight> curveBinary:
-                _tempCurveExpression = curveBinary.WithOperands(leftOperand, rightOperand);
-                break;
-            case RationalBinaryExpression<TLeft, TRight> rationalBinary:
-                _tempRationalExpression = rationalBinary.WithOperands(leftOperand, rightOperand);
-                break;
-            default:
-                throw new InvalidOperationException($"Cannot rebuild binary node of type {binaryExpression.GetType()}");
-        }
-    }
-
-    public IGenericExpression<TExpressionResult> ReplaceByPosition(
-        IEnumerable<PathStep> expressionPosition)
-    {
-        if(AlreadyUsed)
-            throw new InvalidOperationException("This replacer was already used.");
-        AlreadyUsed = true;
-        
-        var positionPath = expressionPosition.ToList();
-
-        switch (OriginalExpression)
-        {
-            case IGenericExpression<Curve> e:
-                if (ReplaceByPosition(positionPath.GetEnumerator(), e) == 1)
-                    // replacement was at root, so the replacing expression is returned as it is
-                    return (IGenericExpression<TExpressionResult>)NewExpressionToReplace;
-                if (_tempCurveExpression != null)
-                    // replacement was deeper than root
-                    return (IGenericExpression<TExpressionResult>)_tempCurveExpression;
-                break;
-            case IGenericExpression<Rational> e:
-                if (ReplaceByPosition(positionPath.GetEnumerator(), e) == 1)
-                    // replacement was at root, so the replacing expression is returned as it is
-                    return (IGenericExpression<TExpressionResult>)NewExpressionToReplace;
-                if (_tempRationalExpression != null)
-                    // replacement was deeper than root
-                    return (IGenericExpression<TExpressionResult>)_tempRationalExpression;
-                break;
-        }
-
-        return OriginalExpression;
+        var planter = new PlainPositionPlanter(replacement);
+        return TraverseByPosition(original, position, planter);
     }
 
     /// <summary>
-    /// 
+    /// Applies an equivalence at a position, if it matches there.
     /// </summary>
-    /// <param name="positionPath">The expression position path.</param>
-    /// <param name="expression">The expression to process.</param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns>
-    /// Returns
-    /// <list type="bullet">
-    /// <item>1, if replacement happens at root</item>
-    /// <item>2, if replacement happens deeper in the expression</item>
-    /// <item>-1, if replacement did not happen</item>
-    /// </list>
-    /// </returns>
-    /// <exception cref="ArgumentException">If path is invalid</exception>
-    private int ReplaceByPosition<T>(IEnumerator<PathStep> positionPath, IGenericExpression<T> expression)
+    /// <param name="original">The expression to rewrite.</param>
+    /// <param name="position">The steps from the root to the sub-expression.</param>
+    /// <param name="equivalence">The law to apply.</param>
+    /// <param name="checkType">The direction in which the law is applied.</param>
+    public static ExpressionRewriteResult ApplyEquivalenceByPosition(
+        IExpression original,
+        IReadOnlyList<PathStep> position,
+        Equivalence equivalence,
+        CheckType checkType = CheckType.CheckLeftOnly)
     {
-        if (!positionPath.MoveNext())
+        var planter = new EquivalencePositionPlanter(equivalence, checkType);
+        return TraverseByPosition(original, position, planter);
+    }
+
+    #region By value
+
+    private static ExpressionRewriteResult Traverse(IExpression original, RewriteRule rule, bool replaceAll)
+    {
+        var state = new TraversalState(replaceAll);
+        var expression = Rewrite(original, rule, state, new ExpressionPosition());
+        return state.ToResult(expression);
+    }
+
+    private static IExpression Rewrite(
+        IExpression expression,
+        RewriteRule rule,
+        TraversalState state,
+        ExpressionPosition position)
+    {
+        if (rule.TryRewrite(expression, out var replacement, out var curveBindings, out var rationalBindings))
         {
-            if (Equivalence == null)
-                return 1;
-            if (expression is not CurveExpression curveExpression) return -1;
-            var result = Equivalence.Apply(curveExpression, CheckType);
-            if (result == null) return -1;
-            NewExpressionToReplace = (IGenericExpression<TReplacedOperand>)result;
-            return 1;
+            state.Record(position, curveBindings, rationalBindings);
+            return replacement;
         }
 
-        var current = positionPath.Current;
-        switch (current.Kind)
+        if (state.ShouldStop || expression is not IExpressionNode node)
+            return expression;
+
+        var children = node.Children;
+        var newChildren = new IExpression[children.Count];
+        var changed = false;
+        for (var i = 0; i < children.Count; i++)
         {
-            case StepKind.InnerOperand:
-                return expression switch
-                {
-                    IGenericUnaryExpression<Curve, T> c => ReplaceByPositionUnaryExpression(positionPath, c),
-                    IGenericUnaryExpression<Rational, T> c => ReplaceByPositionUnaryExpression(positionPath, c),
-                    _ => throw StepDoesNotFit(current, expression)
-                };
-            case StepKind.LeftOperand:
-                return expression switch
-                {
-                    IGenericBinaryExpression<Curve, Curve, T> c => ReplaceByPositionLeftExpression(positionPath, c),
-                    IGenericBinaryExpression<Rational, Curve, T> c => ReplaceByPositionLeftExpression(positionPath, c),
-                    IGenericBinaryExpression<Curve, Rational, T> c => ReplaceByPositionLeftExpression(positionPath, c),
-                    IGenericBinaryExpression<Rational, Rational, T> c => ReplaceByPositionLeftExpression(positionPath,
-                        c),
-                    _ => throw StepDoesNotFit(current, expression)
-                };
-            case StepKind.RightOperand:
-                return expression switch
-                {
-                    IGenericBinaryExpression<Curve, Curve, T> c => ReplaceByPositionRightExpression(positionPath, c),
-                    IGenericBinaryExpression<Rational, Curve, T> c => ReplaceByPositionRightExpression(positionPath, c),
-                    IGenericBinaryExpression<Curve, Rational, T> c => ReplaceByPositionRightExpression(positionPath, c),
-                    IGenericBinaryExpression<Rational, Rational, T> c => ReplaceByPositionRightExpression(positionPath,
-                        c),
-                    _ => throw StepDoesNotFit(current, expression)
-                };
-            case StepKind.IndexedOperand:
-                var number = current.Index;
-                switch (expression)
-                {
-                    case CurveNAryExpression c:
-                        if (number >= c.Operands.Count)
-                            throw OperandIndexOutOfRange(current, c.Operands.Count, expression);
-                        List<CurveExpression> tempList = [];
-                        var i = 0;
-                        foreach (var e in c.Operands)
-                        {
-                            if (i == number)
-                            {
-                                switch (ReplaceByPosition(positionPath, e))
-                                {
-                                    case 1:
-                                        tempList.Add((CurveExpression)NewExpressionToReplace);
-                                        break;
-                                    case 2:
-                                        tempList.Add((CurveExpression)_tempCurveExpression!);
-                                        break;
-                                }
-                            }
-                            else
-                                tempList.Add((CurveExpression)e);
+            if (state.ShouldStop)
+            {
+                for (var j = i; j < children.Count; j++)
+                    newChildren[j] = children[j];
+                break;
+            }
 
-                            i++;
-                        }
-
-                        _tempCurveExpression = c.WithOperands(tempList);
-                        return 2;
-                    case RationalNAryExpression c:
-                        if (number >= c.Operands.Count)
-                            throw OperandIndexOutOfRange(current, c.Operands.Count, expression);
-                        List<RationalExpression> rationalTempList = [];
-                        var j = 0;
-                        foreach (var e in c.Operands)
-                        {
-                            if (j == number)
-                            {
-                                switch (ReplaceByPosition(positionPath, e))
-                                {
-                                    case 1:
-                                        rationalTempList.Add((RationalExpression)NewExpressionToReplace);
-                                        break;
-                                    case 2:
-                                        rationalTempList.Add((RationalExpression)_tempRationalExpression!);
-                                        break;
-                                }
-                            }
-                            else
-                                rationalTempList.Add((RationalExpression)e);
-
-                            j++;
-                        }
-
-                        _tempRationalExpression = c.WithOperands(rationalTempList);
-                        return 2;
-                    default:
-                        throw StepDoesNotFit(current, expression);
-                }
-            default:
-                throw StepDoesNotFit(current, expression);
+            var child = Rewrite(children[i], rule, state, ChildPosition(position, node, i));
+            newChildren[i] = child;
+            if (!ReferenceEquals(child, children[i]))
+                changed = true;
         }
+
+        return changed ? node.Rebuild(newChildren) : expression;
+    }
+
+    #endregion By value
+
+    #region By position
+
+    private static ExpressionRewriteResult TraverseByPosition(
+        IExpression original,
+        IReadOnlyList<PathStep> position,
+        PositionPlanter planter)
+    {
+        var state = new TraversalState(replaceAll: true);
+        var expression = ReplaceAt(original, position, 0, new ExpressionPosition(), planter, state);
+        return state.ToResult(expression);
+    }
+
+    private static IExpression ReplaceAt(
+        IExpression expression,
+        IReadOnlyList<PathStep> steps,
+        int index,
+        ExpressionPosition position,
+        PositionPlanter planter,
+        TraversalState state)
+    {
+        if (index == steps.Count)
+        {
+            if (!planter.TryPlant(expression, out var replacement, out var curveBindings, out var rationalBindings))
+                return expression;
+            if (ExpressionValueType.Of(replacement) != ExpressionValueType.Of(expression))
+                throw ReplacementValueTypeDoesNotMatch(position, replacement, expression);
+            state.Record(position, curveBindings, rationalBindings);
+            return replacement;
+        }
+
+        if (expression is not IExpressionNode node)
+            throw StepDoesNotFit(steps[index], expression);
+
+        var step = steps[index];
+        var childIndex = step.Kind switch
+        {
+            StepKind.InnerOperand when node.Arity == NodeArity.Unary => 0,
+            StepKind.LeftOperand when node.Arity == NodeArity.Binary => 0,
+            StepKind.RightOperand when node.Arity == NodeArity.Binary => 1,
+            StepKind.IndexedOperand when node.Arity == NodeArity.NAry && step.Index < node.Children.Count => step.Index,
+            StepKind.IndexedOperand when node.Arity == NodeArity.NAry =>
+                throw OperandIndexOutOfRange(step, node.Children.Count, expression),
+            _ => throw StepDoesNotFit(step, expression)
+        };
+
+        var children = node.Children;
+        var newChild = ReplaceAt(
+            children[childIndex],
+            steps,
+            index + 1,
+            ChildPosition(position, node, childIndex),
+            planter,
+            state);
+        if (ReferenceEquals(newChild, children[childIndex]))
+            return expression;
+
+        var newChildren = children.ToArray();
+        newChildren[childIndex] = newChild;
+        return node.Rebuild(newChildren);
+    }
+
+    #endregion By position
+
+    #region Shared helpers
+
+    private static ExpressionPosition ChildPosition(ExpressionPosition position, IExpressionNode node, int index) =>
+        node.Arity switch
+        {
+            NodeArity.Unary => position.InnerOperand(),
+            NodeArity.Binary => index == 0 ? position.LeftOperand() : position.RightOperand(),
+            NodeArity.NAry => position.IndexedOperand(index),
+            _ => position
+        };
+
+    /// <summary>
+    /// Builds the expression a rule produces when a pattern covered part of an n-ary node's operands.
+    /// The unmatched operands are reattached to the replacement, which is what rewriting by a law means.
+    /// A replacement of the target's own operator is merged with them unless it carries a name, which makes it one operand.
+    /// </summary>
+    internal static IExpression CombineWithLeftover(
+        IExpression target,
+        IExpression replacement,
+        IReadOnlyList<IExpression>? leftover,
+        bool ignoreNotMatchedExpressions)
+    {
+        if (ignoreNotMatchedExpressions || leftover is null || leftover.Count == 0)
+            return replacement;
+
+        if (replacement.GetType() == target.GetType() && string.IsNullOrEmpty(replacement.Name))
+        {
+            var replacementNode = (IExpressionNode)replacement;
+            return replacementNode.Rebuild([.. replacementNode.Children, .. leftover]);
+        }
+
+        var targetNode = (IExpressionNode)target;
+        return targetNode.Rebuild([.. leftover, replacement]);
     }
 
     /// <summary>
     /// Builds the exception raised when a position step does not fit the node it lands on.
     /// </summary>
-    private static ArgumentException StepDoesNotFit<T>(PathStep step, IGenericExpression<T> expression)
+    private static ArgumentException StepDoesNotFit(PathStep step, IExpression expression)
         => new($"The position step \"{step}\" is not valid on the {DescribeNodeShape(expression)} node {expression.GetType().Name}.");
+
+    /// <summary>
+    /// Builds the exception raised when a replacement's value type differs from the expression it replaces.
+    /// </summary>
+    private static ArgumentException ReplacementValueTypeDoesNotMatch(ExpressionPosition position, IExpression replacement,
+        IExpression target)
+        => new($"The replacement at position \"{position}\" is a {ExpressionValueType.Of(replacement).Name} expression, where a {ExpressionValueType.Of(target).Name} expression is expected.");
 
     /// <summary>
     /// Builds the exception raised when an indexed position step is past the last operand of an n-ary node.
     /// </summary>
-    private static ArgumentException OperandIndexOutOfRange<T>(PathStep step, int operandCount, IGenericExpression<T> expression)
+    private static ArgumentException OperandIndexOutOfRange(PathStep step, int operandCount, IExpression expression)
         => new($"The position step \"{step}\" is out of range on the {DescribeNodeShape(expression)} node {expression.GetType().Name}, which has {operandCount} operands.");
 
     /// <summary>
     /// Names the shape of an expression node: unary, binary, n-ary, or leaf.
     /// </summary>
-    private static string DescribeNodeShape<T>(IGenericExpression<T> expression) => expression switch
-    {
-        IGenericUnaryExpression<Curve, T> => "unary",
-        IGenericUnaryExpression<Rational, T> => "unary",
-        IGenericBinaryExpression<Curve, Curve, T> => "binary",
-        IGenericBinaryExpression<Rational, Curve, T> => "binary",
-        IGenericBinaryExpression<Curve, Rational, T> => "binary",
-        IGenericBinaryExpression<Rational, Rational, T> => "binary",
-        IGenericNAryExpression<Curve, T> => "n-ary",
-        IGenericNAryExpression<Rational, T> => "n-ary",
-        _ => "leaf"
-    };
-
-    private int ReplaceByPositionUnaryExpression<TArg, T>(
-        IEnumerator<PathStep> positionPath,
-        IGenericUnaryExpression<TArg, T> unaryExpression)
-    {
-        var result = ReplaceByPosition(positionPath, unaryExpression.Operand);
-        switch (result)
+    private static string DescribeNodeShape(IExpression expression) => expression is IExpressionNode node
+        ? node.Arity switch
         {
-            case 1:
-            {
-                var newOperand = (IGenericExpression<TArg>)(object)NewExpressionToReplace;
-                RebuildUnary(unaryExpression, newOperand);
-                break;
-            }
-            case 2:
-            {
-                var newOperand = RebuiltOperand<TArg>();
-                RebuildUnary(unaryExpression, newOperand);
-                break;
-            }
-            case -1:
-                return -1;
+            NodeArity.Unary => "unary",
+            NodeArity.Binary => "binary",
+            NodeArity.NAry => "n-ary",
+            _ => "node"
+        }
+        : "leaf";
+
+    #endregion Shared helpers
+
+    #region State
+
+    private sealed class TraversalState
+    {
+        private readonly List<ExpressionPosition> _positions = [];
+        private Dictionary<string, CurveExpression>? _curveBindings;
+        private Dictionary<string, RationalExpression>? _rationalBindings;
+
+        public TraversalState(bool replaceAll)
+        {
+            ReplaceAll = replaceAll;
         }
 
-        return 2;
+        private bool ReplaceAll { get; }
+
+        private int Count { get; set; }
+
+        public bool ShouldStop => !ReplaceAll && Count > 0;
+
+        public void Record(
+            ExpressionPosition position,
+            IReadOnlyDictionary<string, CurveExpression>? curveBindings,
+            IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+        {
+            Count++;
+            _positions.Add(position);
+            if (curveBindings is not null)
+                _curveBindings = new Dictionary<string, CurveExpression>(curveBindings);
+            if (rationalBindings is not null)
+                _rationalBindings = new Dictionary<string, RationalExpression>(rationalBindings);
+        }
+
+        public ExpressionRewriteResult ToResult(IExpression expression)
+            => new(expression, Count, _positions, _curveBindings, _rationalBindings);
+    }
+
+    #endregion State
+
+    #region Rules
+
+    /// <summary>
+    /// Decides whether and how to replace a node.
+    /// </summary>
+    private abstract class RewriteRule
+    {
+        public abstract bool TryRewrite(
+            IExpression expression,
+            out IExpression replacement,
+            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
+            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings);
     }
 
     /// <summary>
-    /// 
+    /// A substitution: a concrete pattern, matched by name at its leaves, put in place of what it matches.
     /// </summary>
-    /// <param name="positionPath">The expression position path.</param>
-    /// <param name="binaryExpression">The binary expression.</param>
-    /// <typeparam name="TLeft">Type of the left operand</typeparam>
-    /// <typeparam name="TRight">Type of the right operand</typeparam>
-    /// <typeparam name="TResult">Type of the result, and therefore of the expression</typeparam>
-    /// <returns>
-    /// Returns
-    /// <list type="bullet">
-    /// <item>1, if replacement happens at root</item>
-    /// <item>2, if replacement happens deeper in the expression</item>
-    /// <item>-1, if replacement did not happen</item>
-    /// </list>
-    /// </returns>
-    private int ReplaceByPositionLeftExpression<TLeft, TRight, TResult>(
-        IEnumerator<PathStep> positionPath,
-        IGenericBinaryExpression<TLeft, TRight, TResult> binaryExpression
-    )
+    private sealed class SubstitutionRule : RewriteRule
     {
-        var result = ReplaceByPosition(positionPath, binaryExpression.LeftOperand);
-        switch (result)
+        private readonly IExpression _pattern;
+        private readonly IExpression _replacement;
+        private readonly bool _ignoreNotMatchedExpressions;
+
+        public SubstitutionRule(IExpression pattern, IExpression replacement, bool ignoreNotMatchedExpressions)
         {
-            case 1:
+            _pattern = pattern;
+            _replacement = replacement;
+            _ignoreNotMatchedExpressions = ignoreNotMatchedExpressions;
+        }
+
+        public override bool TryRewrite(
+            IExpression expression,
+            out IExpression replacement,
+            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
+            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+        {
+            curveBindings = null;
+            rationalBindings = null;
+            if (!ExpressionPatternMatcher.TryMatchSubstitution(_pattern, expression, true, out var leftover))
             {
-                var newLeftOperand = (IGenericExpression<TLeft>)(object)NewExpressionToReplace;
-                RebuildBinary(binaryExpression, newLeftOperand, binaryExpression.RightOperand);
-                break;
+                replacement = null!;
+                return false;
             }
-            case 2:
+
+            replacement = CombineWithLeftover(expression, _replacement, leftover, _ignoreNotMatchedExpressions);
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// An equivalence: a law whose placeholders bind, matched wherever its shape occurs.
+    /// </summary>
+    private sealed class EquivalenceRule(Equivalence equivalence, CheckType checkType) : RewriteRule
+    {
+        public override bool TryRewrite(
+            IExpression expression,
+            out IExpression replacement,
+            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
+            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+        {
+            var result = new OneTimeEquivalenceApplier { Equivalence = equivalence }.Apply(expression, checkType);
+            if (!result.IsMatch || result.NewExpression is null)
             {
-                var newLeftOperand = RebuiltOperand<TLeft>();
-                RebuildBinary(binaryExpression, newLeftOperand, binaryExpression.RightOperand);
-                break;
+                replacement = null!;
+                curveBindings = null;
+                rationalBindings = null;
+                return false;
             }
+
+            replacement = CombineWithLeftover(expression, result.NewExpression, result.NotMatchedExpressions, ignoreNotMatchedExpressions: false);
+            curveBindings = result.CurveBindings;
+            rationalBindings = result.RationalBindings;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Plants an expression at the target of a position.
+    /// </summary>
+    private abstract class PositionPlanter
+    {
+        public abstract bool TryPlant(
+            IExpression target,
+            out IExpression replacement,
+            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
+            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings);
+    }
+
+    private sealed class PlainPositionPlanter : PositionPlanter
+    {
+        private readonly IExpression _replacement;
+
+        public PlainPositionPlanter(IExpression replacement)
+        {
+            _replacement = replacement;
+        }
+
+        public override bool TryPlant(
+            IExpression target,
+            out IExpression replacement,
+            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
+            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+        {
+            replacement = _replacement;
+            curveBindings = null;
+            rationalBindings = null;
+            return true;
+        }
+    }
+
+    private sealed class EquivalencePositionPlanter(Equivalence equivalence, CheckType checkType) : PositionPlanter
+    {
+        public override bool TryPlant(
+            IExpression target,
+            out IExpression replacement,
+            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
+            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+        {
+            var result = new OneTimeEquivalenceApplier { Equivalence = equivalence }.Apply(target, checkType);
+            if (!result.IsMatch || result.NewExpression is null)
+            {
+                replacement = null!;
+                curveBindings = null;
+                rationalBindings = null;
+                return false;
+            }
+
+            replacement = CombineWithLeftover(target, result.NewExpression, result.NotMatchedExpressions, ignoreNotMatchedExpressions: false);
+            curveBindings = result.CurveBindings;
+            rationalBindings = result.RationalBindings;
+            return true;
+        }
+    }
+
+    #endregion Rules
+}
+
+/// <summary>
+/// Matches a pattern against an expression by walking the node shapes, without naming a value type.
+/// </summary>
+/// <remarks>
+/// There are two operations rather than one rule.
+/// Substitution identifies a leaf by its name, so a caller can say "replace what is called <c>f</c>".
+/// A law ignores the name, so <c>f ⊗ g</c> matches a convolution whatever its operands are called.
+/// Where a pattern covers only part of an n-ary node's operands, the match is chosen deterministically.
+/// Pattern operands are assigned in order, and each takes the first still-unmatched operand it matches.
+/// The assignment backtracks when a later operand has no candidate, and the first complete assignment in that order is the one returned.
+/// </remarks>
+internal static class ExpressionPatternMatcher
+{
+    private enum MatchKind
+    {
+        Substitution,
+        Law
+    }
+
+    /// <summary>
+    /// Matches a concrete pattern, whose leaves are identified by name.
+    /// </summary>
+    public static bool TryMatchSubstitution(
+        IExpression pattern,
+        IExpression expression,
+        bool patternRoot,
+        out List<IExpression>? leftover)
+        => Match(pattern, expression, patternRoot, MatchKind.Substitution, null, out leftover);
+
+    /// <summary>
+    /// Matches a law, whose placeholders bind and whose names are ignored.
+    /// </summary>
+    public static bool TryMatchLaw(
+        IExpression pattern,
+        IExpression expression,
+        bool patternRoot,
+        LawMatchContext context,
+        out List<IExpression>? leftover)
+        => Match(pattern, expression, patternRoot, MatchKind.Law, context, out leftover);
+
+    private static bool Match(
+        IExpression pattern,
+        IExpression expression,
+        bool patternRoot,
+        MatchKind kind,
+        LawMatchContext? law,
+        out List<IExpression>? leftover)
+    {
+        leftover = null;
+
+        if (kind == MatchKind.Law && pattern is IPlaceholderExpression)
+            return BindPlaceholder(pattern, expression, law!);
+
+        if (pattern.GetType() != expression.GetType())
+            return false;
+
+        if (pattern is not IExpressionNode patternNode)
+        {
+            var valueMatches = pattern is IExpressionLeaf leaf
+                ? leaf.ValueMatches(expression)
+                : pattern.Equals(expression);
+            return kind == MatchKind.Law
+                ? valueMatches
+                : pattern.Name == expression.Name && valueMatches;
+        }
+
+        var expressionNode = (IExpressionNode)expression;
+        if (patternNode.Arity == NodeArity.NAry)
+            return MatchNAry(patternNode, expressionNode, patternRoot, kind, law, out leftover);
+
+        var patternChildren = patternNode.Children;
+        var expressionChildren = expressionNode.Children;
+        if (patternChildren.Count != expressionChildren.Count)
+            return false;
+
+        for (var i = 0; i < patternChildren.Count; i++)
+        {
+            if (!Match(patternChildren[i], expressionChildren[i], false, kind, law, out _))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool MatchNAry(
+        IExpressionNode patternNode,
+        IExpressionNode expressionNode,
+        bool patternRoot,
+        MatchKind kind,
+        LawMatchContext? law,
+        out List<IExpression>? leftover)
+    {
+        leftover = null;
+        var patternOperands = patternNode.Children;
+        var expressionOperands = expressionNode.Children;
+
+        if (patternOperands.Count > expressionOperands.Count)
+            return false;
+        if (!patternRoot && patternOperands.Count != expressionOperands.Count)
+            return false;
+
+        var used = new bool[expressionOperands.Count];
+        if (!AssignOperands(0, patternOperands, expressionOperands, used, kind, law))
+            return false;
+
+        if (patternRoot)
+        {
+            var unmatched = new List<IExpression>();
+            for (var i = 0; i < expressionOperands.Count; i++)
+                if (!used[i])
+                    unmatched.Add(expressionOperands[i]);
+            if (unmatched.Count > 0)
+                leftover = unmatched;
+        }
+
+        return true;
+    }
+
+    private static bool AssignOperands(
+        int patternIndex,
+        IReadOnlyList<IExpression> patternOperands,
+        IReadOnlyList<IExpression> expressionOperands,
+        bool[] used,
+        MatchKind kind,
+        LawMatchContext? law)
+    {
+        if (patternIndex == patternOperands.Count)
+            return true;
+
+        for (var i = 0; i < expressionOperands.Count; i++)
+        {
+            if (used[i])
+                continue;
+
+            var snapshot = law?.Clone();
+            if (Match(patternOperands[patternIndex], expressionOperands[i], false, kind, law, out _))
+            {
+                used[i] = true;
+                if (AssignOperands(patternIndex + 1, patternOperands, expressionOperands, used, kind, law))
+                    return true;
+                used[i] = false;
+            }
+
+            if (snapshot is not null)
+                law!.Restore(snapshot);
+        }
+
+        return false;
+    }
+
+    private static bool BindPlaceholder(IExpression pattern, IExpression expression, LawMatchContext law)
+    {
+        switch (pattern)
+        {
+            case CurvePlaceholderExpression:
+                return expression is CurveExpression curve && law.BindCurve(pattern.Name, curve);
+            case RationalPlaceholderExpression:
+                return expression is RationalExpression rational && law.BindRational(pattern.Name, rational);
             default:
-                return -1;
+                return false;
         }
-
-        return 2;
     }
+}
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="positionPath">The expression position path.</param>
-    /// <param name="binaryExpression">The binary expression.</param>
-    /// <typeparam name="TLeft">Type of the left operand</typeparam>
-    /// <typeparam name="TRight">Type of the right operand</typeparam>
-    /// <typeparam name="TResult">Type of the result, and therefore of the expression</typeparam>
-    /// <returns>
-    /// Returns
-    /// <list type="bullet">
-    /// <item>1, if replacement happens at root</item>
-    /// <item>2, if replacement happens deeper in the expression</item>
-    /// <item>-1, if replacement did not happen</item>
-    /// </list>
-    /// </returns>
-    private int ReplaceByPositionRightExpression<TLeft, TRight, TResult>(
-        IEnumerator<PathStep> positionPath,
-        IGenericBinaryExpression<TLeft, TRight, TResult> binaryExpression)
+/// <summary>
+/// The bindings a law accumulates while matching, and the hypotheses that prune them.
+/// </summary>
+internal sealed class LawMatchContext
+{
+    public LawMatchContext(Equivalence equivalence)
     {
-        var result = ReplaceByPosition(positionPath, binaryExpression.RightOperand);
-        switch (result)
-        {
-            case 1:
-            {
-                var newRightOperand = (IGenericExpression<TRight>)(object)NewExpressionToReplace;
-                RebuildBinary(binaryExpression, binaryExpression.LeftOperand, newRightOperand);
-                break;
-            }
-            case 2:
-            {
-                var newRightOperand = RebuiltOperand<TRight>();
-                RebuildBinary(binaryExpression, binaryExpression.LeftOperand, newRightOperand);
-                break;
-            }
-            default:
-                return -1;
-        }
-
-        return 2;
+        Equivalence = equivalence;
     }
-}
 
+    private Equivalence Equivalence { get; }
 
-/// <summary>
-/// todo: document 
-/// </summary>
-public record MatchPatternResult
-{
-    /// <summary>
-    /// True if the match was successful.
-    /// </summary>
-    public bool IsMatch { get; set; } = false;
-}
+    public Dictionary<string, CurveExpression> Curves { get; } = new();
 
+    public Dictionary<string, RationalExpression> Rationals { get; } = new();
 
-/// <summary>
-/// todo: document 
-/// </summary>
-public record MatchPatternNAryResult : MatchPatternResult
-{
-    /// <summary>
-    /// todo: document 
-    /// </summary>
-    public List<IGenericExpression<Curve>> NotMatchedExpressionsCurve { get; set; } = [];
+    public LawMatchContext Clone()
+    {
+        var clone = new LawMatchContext(Equivalence);
+        foreach (var (key, value) in Curves)
+            clone.Curves[key] = value;
+        foreach (var (key, value) in Rationals)
+            clone.Rationals[key] = value;
+        return clone;
+    }
 
-    /// <summary>
-    /// todo: document 
-    /// </summary>
-    public List<IGenericExpression<Rational>> NotMatchedExpressionsRational { get; set; } = [];
+    public void Restore(LawMatchContext snapshot)
+    {
+        Curves.Clear();
+        foreach (var (key, value) in snapshot.Curves)
+            Curves[key] = value;
+        Rationals.Clear();
+        foreach (var (key, value) in snapshot.Rationals)
+            Rationals[key] = value;
+    }
 
-    /// <summary>
-    /// todo: document 
-    /// </summary>
-    public Type? NaryTypePartialMatch { get; set; } = null;
+    public bool BindCurve(string name, CurveExpression expression)
+    {
+        if (Curves.TryGetValue(name, out var existing))
+            return ExpressionPatternMatcher.TryMatchSubstitution(existing, expression, false, out _);
+        Curves[name] = expression;
+        return HypothesesHold();
+    }
 
-    /// <summary>
-    /// todo: document 
-    /// </summary>
-    public string? NaryNamePartialMatch { get; set; } = null;
-
-    /// <summary>
-    /// todo: document 
-    /// </summary>
-    public ExpressionSettings? NarySettingsPartialMatch { get; set; } = null;
+    public bool BindRational(string name, RationalExpression expression)
+    {
+        if (Rationals.TryGetValue(name, out var existing))
+            return ExpressionPatternMatcher.TryMatchSubstitution(existing, expression, false, out _);
+        Rationals[name] = expression;
+        return HypothesesHold();
+    }
 
     /// <summary>
-    /// The n-ary node whose operands matched only in part, kept so that the leftover can be reattached by asking that node to rebuild itself.
+    /// True if every hypothesis whose placeholders are all bound holds.
+    /// A hypothesis with an unbound placeholder is not evaluated yet.
     /// </summary>
-    public IExpression? NaryPartialMatchSource { get; set; } = null;
-}
+    private bool HypothesesHold()
+    {
+        foreach (var (name, hypotheses) in Equivalence.Hypothesis)
+            if (Curves.TryGetValue(name, out var expression) && !hypotheses.All(h => h(expression)))
+                return false;
 
-/// <summary>
-/// todo: document 
-/// </summary>
-public record ReplaceResult
-{
-    /// <summary>
-    /// Result of the replacement.
-    /// <list type="bullet">
-    /// <item>0 = No Replacement</item>
-    /// <item>1 = Replacement at the root</item>
-    /// <item>2 = Replacement deeper in the expression</item>
-    /// </list>
-    /// </summary>
-    public int Code { get; set; } = 0;
+        foreach (var (key, hypotheses) in Equivalence.HypothesisPair)
+            if (Curves.TryGetValue(key.Item1, out var first) && Curves.TryGetValue(key.Item2, out var second)
+                && !hypotheses.All(h => h(first, second)))
+                return false;
+
+        foreach (var (key, hypotheses) in Equivalence.HypothesisTriple)
+            if (Curves.TryGetValue(key.Item1, out var first) && Curves.TryGetValue(key.Item2, out var second)
+                && Curves.TryGetValue(key.Item3, out var third) && !hypotheses.All(h => h(first, second, third)))
+                return false;
+
+        foreach (var (name, hypotheses) in Equivalence.RationalHypothesis)
+            if (Rationals.TryGetValue(name, out var expression) && !hypotheses.All(h => h(expression)))
+                return false;
+
+        foreach (var (key, hypotheses) in Equivalence.RationalHypothesisPair)
+            if (Rationals.TryGetValue(key.Item1, out var first) && Rationals.TryGetValue(key.Item2, out var second)
+                && !hypotheses.All(h => h(first, second)))
+                return false;
+
+        foreach (var (key, hypotheses) in Equivalence.RationalHypothesisTriple)
+            if (Rationals.TryGetValue(key.Item1, out var first) && Rationals.TryGetValue(key.Item2, out var second)
+                && Rationals.TryGetValue(key.Item3, out var third) && !hypotheses.All(h => h(first, second, third)))
+                return false;
+
+        return true;
+    }
 
     /// <summary>
-    /// todo: document 
+    /// True if every hypothesis holds and every placeholder it names is bound.
     /// </summary>
-    public MatchPatternResult MatchPatternResult { get; set; } = new MatchPatternResult();
+    public bool AllHypothesesSatisfied()
+    {
+        foreach (var (name, _) in Equivalence.Hypothesis)
+            if (!Curves.ContainsKey(name))
+                return false;
+        foreach (var (key, _) in Equivalence.HypothesisPair)
+            if (!Curves.ContainsKey(key.Item1) || !Curves.ContainsKey(key.Item2))
+                return false;
+        foreach (var (key, _) in Equivalence.HypothesisTriple)
+            if (!Curves.ContainsKey(key.Item1) || !Curves.ContainsKey(key.Item2) || !Curves.ContainsKey(key.Item3))
+                return false;
+        foreach (var (name, _) in Equivalence.RationalHypothesis)
+            if (!Rationals.ContainsKey(name))
+                return false;
+        foreach (var (key, _) in Equivalence.RationalHypothesisPair)
+            if (!Rationals.ContainsKey(key.Item1) || !Rationals.ContainsKey(key.Item2))
+                return false;
+        foreach (var (key, _) in Equivalence.RationalHypothesisTriple)
+            if (!Rationals.ContainsKey(key.Item1) || !Rationals.ContainsKey(key.Item2) || !Rationals.ContainsKey(key.Item3))
+                return false;
+
+        return HypothesesHold();
+    }
 }

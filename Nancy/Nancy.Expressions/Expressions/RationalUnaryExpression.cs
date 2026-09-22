@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Expressions;
 /// object. 
 /// </summary>
 /// <typeparam name="TOperandResult">The type of the value of the operand expression.</typeparam>
-public abstract record RationalUnaryExpression<TOperandResult> : RationalExpression, IGenericUnaryExpression<TOperandResult, Rational>
+public abstract record RationalUnaryExpression<TOperandResult> : RationalExpression, IGenericUnaryExpression<TOperandResult, Rational>, IExpressionNode
 {
     /// <summary>
     /// Class which describes unary expressions (root operation has only one operand) whose value is a <see cref="Rational"/>
@@ -40,4 +40,14 @@ public abstract record RationalUnaryExpression<TOperandResult> : RationalExpress
     /// </remarks>
     public virtual IGenericExpression<Rational> WithOperand(IGenericExpression<TOperandResult> operand)
         => this with { Operand = operand };
+
+    /// <inheritdoc />
+    NodeArity IExpressionNode.Arity => NodeArity.Unary;
+
+    /// <inheritdoc />
+    IReadOnlyList<IExpression> IExpressionNode.Children => [Operand];
+
+    /// <inheritdoc />
+    IExpression IExpressionNode.Rebuild(IReadOnlyList<IExpression> children)
+        => WithOperand((IGenericExpression<TOperandResult>)children[0]);
 }

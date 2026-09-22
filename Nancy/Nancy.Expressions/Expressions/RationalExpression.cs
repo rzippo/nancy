@@ -254,11 +254,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         bool ignoreNotMatchedExpressions
     )
     {
-        var replacer = new OneTimeExpressionReplacer<Rational, T1>(this, newExpressionToReplace);
-        return (RationalExpression)replacer.ReplaceByValue(
-            expressionPattern,
-            ignoreNotMatchedExpressions
-        );
+        return (RationalExpression)OneTimeExpressionReplacer
+            .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions)
+            .Expression;
     }
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ReplaceByValue<T1>(
@@ -276,8 +274,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace)
     {
-        var replacer = new OneTimeExpressionReplacer<Rational, T1>(this, newExpressionToReplace);
-        return (RationalExpression)replacer.ReplaceByPosition(expressionPosition.Steps);
+        return (RationalExpression)OneTimeExpressionReplacer
+            .ReplaceByPosition(this, expressionPosition.Steps, newExpressionToReplace)
+            .Expression;
     }
 
     /// <summary>
@@ -329,8 +328,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression ReplaceByPosition<T1>(IEnumerable<string> positionPath,
         IGenericExpression<T1> newExpressionToReplace)
     {
-        var replacer = new OneTimeExpressionReplacer<Rational, T1>(this, newExpressionToReplace);
-        return (RationalExpression)replacer.ReplaceByPosition(new ExpressionPosition(positionPath).Steps);
+        return (RationalExpression)OneTimeExpressionReplacer
+            .ReplaceByPosition(this, new ExpressionPosition(positionPath).Steps, newExpressionToReplace)
+            .Expression;
     }
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ReplaceByPosition<T1>(IEnumerable<string> positionPath,
@@ -984,9 +984,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </returns>
     public RationalExpression ApplyEquivalence(Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new OneTimeExpressionReplacer<Rational, Curve>(this, equivalence, checkType);
-        // In the case of equivalences the argument of ReplaceByValue is not significant
-        return (RationalExpression)replacer.ReplaceByValue(equivalence.LeftSideExpression);
+        return (RationalExpression)OneTimeExpressionReplacer
+            .ApplyEquivalence(this, equivalence, checkType)
+            .Expression;
     }
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ApplyEquivalence(Equivalence equivalence,
@@ -1010,8 +1010,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new OneTimeExpressionReplacer<Rational, Curve>(this, equivalence, checkType);
-        return (RationalExpression)replacer.ReplaceByPosition(new ExpressionPosition(positionPath).Steps);
+        return (RationalExpression)OneTimeExpressionReplacer
+            .ApplyEquivalenceByPosition(this, new ExpressionPosition(positionPath).Steps, equivalence, checkType)
+            .Expression;
     }
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ApplyEquivalenceByPosition(
@@ -1033,8 +1034,9 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     public RationalExpression ApplyEquivalenceByPosition(ExpressionPosition expressionPosition, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new OneTimeExpressionReplacer<Rational, Curve>(this, equivalence, checkType);
-        return (RationalExpression)replacer.ReplaceByPosition(expressionPosition.Steps);
+        return (RationalExpression)OneTimeExpressionReplacer
+            .ApplyEquivalenceByPosition(this, expressionPosition.Steps, equivalence, checkType)
+            .Expression;
     }
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ApplyEquivalenceByPosition(

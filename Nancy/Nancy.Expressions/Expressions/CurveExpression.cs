@@ -1436,8 +1436,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         bool ignoreNotMatchedExpressions = false
     )
     {
-        var replacer = new OneTimeExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
-        return (CurveExpression)replacer.ReplaceByValue(expressionPattern, ignoreNotMatchedExpressions);
+        return (CurveExpression)OneTimeExpressionReplacer
+            .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions)
+            .Expression;
     }
 
     IGenericExpression<Curve> IGenericExpression<Curve>.ReplaceByValue<T1>(
@@ -1456,8 +1457,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace)
     {
-        var replacer = new OneTimeExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
-        return (CurveExpression)replacer.ReplaceByPosition(expressionPosition.Steps);
+        return (CurveExpression)OneTimeExpressionReplacer
+            .ReplaceByPosition(this, expressionPosition.Steps, newExpressionToReplace)
+            .Expression;
     }
 
     IGenericExpression<Curve> IGenericExpression<Curve>.ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
@@ -1477,8 +1479,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         IEnumerable<string> positionPath,
         IGenericExpression<T1> newExpressionToReplace)
     {
-        var replacer = new OneTimeExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
-        return (CurveExpression)replacer.ReplaceByPosition(new ExpressionPosition(positionPath).Steps);
+        return (CurveExpression)OneTimeExpressionReplacer
+            .ReplaceByPosition(this, new ExpressionPosition(positionPath).Steps, newExpressionToReplace)
+            .Expression;
     }
 
     /// <summary>
@@ -1525,9 +1528,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </returns>
     public CurveExpression ApplyEquivalence(Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new OneTimeExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
-        // In the case of equivalences the argument of ReplaceByValue is not significant
-        return (CurveExpression)replacer.ReplaceByValue(equivalence.LeftSideExpression);
+        return (CurveExpression)OneTimeExpressionReplacer
+            .ApplyEquivalence(this, equivalence, checkType)
+            .Expression;
     }
 
     IGenericExpression<Curve> IGenericExpression<Curve>.ApplyEquivalence(Equivalence equivalence, CheckType checkType)
@@ -1550,8 +1553,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new OneTimeExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
-        return (CurveExpression)replacer.ReplaceByPosition(new ExpressionPosition(positionPath).Steps);
+        return (CurveExpression)OneTimeExpressionReplacer
+            .ApplyEquivalenceByPosition(this, new ExpressionPosition(positionPath).Steps, equivalence, checkType)
+            .Expression;
     }
 
     IGenericExpression<Curve> IGenericExpression<Curve>.ApplyEquivalenceByPosition(IEnumerable<string> positionPath,
@@ -1573,8 +1577,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public CurveExpression ApplyEquivalenceByPosition(ExpressionPosition expressionPosition, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var replacer = new OneTimeExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
-        return (CurveExpression)replacer.ReplaceByPosition(expressionPosition.Steps);
+        return (CurveExpression)OneTimeExpressionReplacer
+            .ApplyEquivalenceByPosition(this, expressionPosition.Steps, equivalence, checkType)
+            .Expression;
     }
 
     /// <inheritdoc />

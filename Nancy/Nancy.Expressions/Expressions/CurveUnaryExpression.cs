@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Expressions;
 /// object. 
 /// </summary>
 /// <typeparam name="T">The type of the value of the operand expression.</typeparam>
-public abstract record CurveUnaryExpression<T> : CurveExpression, IGenericUnaryExpression<T, Curve>
+public abstract record CurveUnaryExpression<T> : CurveExpression, IGenericUnaryExpression<T, Curve>, IExpressionNode
 {
     /// <summary>
     /// Class which describes unary expressions (root operation has only one operand) whose value is a <see cref="Curve"/>
@@ -40,4 +40,14 @@ public abstract record CurveUnaryExpression<T> : CurveExpression, IGenericUnaryE
     /// </remarks>
     public virtual IGenericExpression<Curve> WithOperand(IGenericExpression<T> operand)
         => this with { Operand = operand };
+
+    /// <inheritdoc />
+    NodeArity IExpressionNode.Arity => NodeArity.Unary;
+
+    /// <inheritdoc />
+    IReadOnlyList<IExpression> IExpressionNode.Children => [Operand];
+
+    /// <inheritdoc />
+    IExpression IExpressionNode.Rebuild(IReadOnlyList<IExpression> children)
+        => WithOperand((IGenericExpression<T>)children[0]);
 }

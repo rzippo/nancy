@@ -5,7 +5,7 @@ namespace Unipi.Nancy.Expressions.Nodes;
 /// <summary>
 /// Class describing a placeholder for any rational expression (used for equivalences)
 /// </summary>
-public record RationalPlaceholderExpression : RationalExpression
+public record RationalPlaceholderExpression : RationalExpression, IPlaceholderExpression
 {
     /// <summary>
     /// Class describing a placeholder for any rational expression (used for equivalences)

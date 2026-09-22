@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Expressions;
 /// </summary>
 /// <typeparam name="TLeftOperand">The type of the value of the left operand.</typeparam>
 /// <typeparam name="TRightOperand">The type of the value of the right operand.</typeparam>
-public abstract record RationalBinaryExpression<TLeftOperand, TRightOperand> : RationalExpression, IGenericBinaryExpression<TLeftOperand, TRightOperand, Rational>
+public abstract record RationalBinaryExpression<TLeftOperand, TRightOperand> : RationalExpression, IGenericBinaryExpression<TLeftOperand, TRightOperand, Rational>, IExpressionNode
 {
     /// <summary>
     /// Class which describes binary (nor commutative or associative) expressions whose value is a <see cref="Unipi.Nancy.Numerics.Rational"/>
@@ -50,4 +50,14 @@ public abstract record RationalBinaryExpression<TLeftOperand, TRightOperand> : R
     /// </remarks>
     public virtual IGenericExpression<Rational> WithOperands(IGenericExpression<TLeftOperand> leftOperand, IGenericExpression<TRightOperand> rightOperand)
         => this with { LeftOperand = leftOperand, RightOperand = rightOperand };
+
+    /// <inheritdoc />
+    NodeArity IExpressionNode.Arity => NodeArity.Binary;
+
+    /// <inheritdoc />
+    IReadOnlyList<IExpression> IExpressionNode.Children => [LeftOperand, RightOperand];
+
+    /// <inheritdoc />
+    IExpression IExpressionNode.Rebuild(IReadOnlyList<IExpression> children)
+        => WithOperands((IGenericExpression<TLeftOperand>)children[0], (IGenericExpression<TRightOperand>)children[1]);
 }

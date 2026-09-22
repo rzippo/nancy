@@ -5,7 +5,7 @@ namespace Unipi.Nancy.Expressions.Nodes;
 /// <summary>
 /// Class describing a placeholder for any curve expression (used for equivalences)
 /// </summary>
-public record CurvePlaceholderExpression : CurveExpression
+public record CurvePlaceholderExpression : CurveExpression, IPlaceholderExpression
 {
     /// <summary>
     /// Class describing a placeholder for any curve expression (used for equivalences)

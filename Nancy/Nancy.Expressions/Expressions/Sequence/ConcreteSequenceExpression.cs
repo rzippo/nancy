@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Expressions.Nodes;
 /// <summary>
 /// Class describing an expression composed of a concrete curve.
 /// </summary>
-public record ConcreteSequenceExpression : SequenceExpression
+public record ConcreteSequenceExpression : SequenceExpression, IExpressionLeaf
 {
     /// <summary>
     /// Creates a concrete sequence expression with a default sequence.
@@ -49,6 +49,10 @@ public record ConcreteSequenceExpression : SequenceExpression
     /// </remarks>
     public virtual bool Equals(ConcreteSequenceExpression? other)
         => other is not null && base.Equals(other) && Value.Equals(other.Value);
+
+    /// <inheritdoc />
+    bool IExpressionLeaf.ValueMatches(IExpression other)
+        => other is ConcreteSequenceExpression sequence && Value.Equals(sequence.Value);
 
     /// <inheritdoc />
     public override int GetHashCode()

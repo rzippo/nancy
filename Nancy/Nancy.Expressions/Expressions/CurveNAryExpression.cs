@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Expressions;
 /// accepts n (n >= 2) operands (which are curve expressions) and is commutative and associative.
 /// </summary>
 public abstract record
-    CurveNAryExpression : CurveExpression, IGenericNAryExpression<Curve, Curve> // For operators on curves that are commutative and associative
+    CurveNAryExpression : CurveExpression, IGenericNAryExpression<Curve, Curve>, IExpressionNode // For operators on curves that are commutative and associative
 {
     /// <inheritdoc />
     public IReadOnlyCollection<IGenericExpression<Curve>> Operands { get; init; }
@@ -101,6 +101,16 @@ public abstract record
     /// </remarks>
     public virtual IGenericExpression<Curve> WithOperands(IReadOnlyCollection<IGenericExpression<Curve>> operands)
         => this with { Operands = operands };
+
+    /// <inheritdoc />
+    NodeArity IExpressionNode.Arity => NodeArity.NAry;
+
+    /// <inheritdoc />
+    IReadOnlyList<IExpression> IExpressionNode.Children => Operands.ToList();
+
+    /// <inheritdoc />
+    IExpression IExpressionNode.Rebuild(IReadOnlyList<IExpression> children)
+        => WithOperands(children.Cast<IGenericExpression<Curve>>().ToList());
 
     /// <summary>
     /// The widest possible operand list for this operator, descending into a child of the same concrete operator type whether or not it carries a bound <see cref="IExpression.Name"/>.

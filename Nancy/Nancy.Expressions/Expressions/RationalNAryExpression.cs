@@ -8,7 +8,7 @@ namespace Unipi.Nancy.Expressions;
 /// accepts n (n >= 2) operands (which are rational expressions) and is commutative and associative.
 /// </summary>
 public abstract record
-    RationalNAryExpression : RationalExpression, IGenericNAryExpression<Rational, Rational> // For operators on rationals that are commutative and associative
+    RationalNAryExpression : RationalExpression, IGenericNAryExpression<Rational, Rational>, IExpressionNode // For operators on rationals that are commutative and associative
 {
     /// <summary>
     /// The operands of this operator.
@@ -102,6 +102,16 @@ public abstract record
     /// </remarks>
     public virtual IGenericExpression<Rational> WithOperands(IReadOnlyCollection<IGenericExpression<Rational>> operands)
         => this with { Operands = operands };
+
+    /// <inheritdoc />
+    NodeArity IExpressionNode.Arity => NodeArity.NAry;
+
+    /// <inheritdoc />
+    IReadOnlyList<IExpression> IExpressionNode.Children => Operands.ToList();
+
+    /// <inheritdoc />
+    IExpression IExpressionNode.Rebuild(IReadOnlyList<IExpression> children)
+        => WithOperands(children.Cast<IGenericExpression<Rational>>().ToList());
 
     /// <summary>
     /// The widest possible operand list for this operator, descending into a child of the same concrete operator type whether or not it carries a bound <see cref="IExpression.Name"/>.

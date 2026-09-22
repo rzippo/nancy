@@ -9,7 +9,7 @@ namespace Unipi.Nancy.Expressions;
 /// </summary>
 /// <typeparam name="T1">The type of the value of the left operand</typeparam>
 /// <typeparam name="T2">The type of the value of the right operand</typeparam>
-public abstract record CurveBinaryExpression<T1, T2> : CurveExpression, IGenericBinaryExpression<T1, T2, Curve>
+public abstract record CurveBinaryExpression<T1, T2> : CurveExpression, IGenericBinaryExpression<T1, T2, Curve>, IExpressionNode
 {
     /// <inheritdoc/>
     protected CurveBinaryExpression(
@@ -47,4 +47,14 @@ public abstract record CurveBinaryExpression<T1, T2> : CurveExpression, IGeneric
     /// </remarks>
     public virtual IGenericExpression<Curve> WithOperands(IGenericExpression<T1> leftOperand, IGenericExpression<T2> rightOperand)
         => this with { LeftOperand = leftOperand, RightOperand = rightOperand };
+
+    /// <inheritdoc />
+    NodeArity IExpressionNode.Arity => NodeArity.Binary;
+
+    /// <inheritdoc />
+    IReadOnlyList<IExpression> IExpressionNode.Children => [LeftOperand, RightOperand];
+
+    /// <inheritdoc />
+    IExpression IExpressionNode.Rebuild(IReadOnlyList<IExpression> children)
+        => WithOperands((IGenericExpression<T1>)children[0], (IGenericExpression<T2>)children[1]);
 }

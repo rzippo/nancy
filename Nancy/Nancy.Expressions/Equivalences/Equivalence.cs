@@ -168,29 +168,9 @@ public partial class Equivalence
         return applier.Apply(expression, checkType);
     }
 
-    private static bool _endWithPlaceholder<T>(IGenericExpression<T> expression)
-    {
-        return expression switch
-        {
-            CurvePlaceholderExpression => true,
-            RationalPlaceholderExpression => true,
-            ConcreteCurveExpression => false,
-            RationalNumberExpression => false,
-            IGenericUnaryExpression<Curve, T> e => _endWithPlaceholder(e.Operand),
-            IGenericUnaryExpression<Rational, T> e => _endWithPlaceholder(e.Operand),
-            IGenericBinaryExpression<Curve, Curve, T> e => _endWithPlaceholder(e.LeftOperand) ||
-                                                           _endWithPlaceholder(e.RightOperand),
-            IGenericBinaryExpression<Rational, Curve, T> e => _endWithPlaceholder(e.LeftOperand) ||
-                                                              _endWithPlaceholder(e.RightOperand),
-            IGenericBinaryExpression<Curve, Rational, T> e => _endWithPlaceholder(e.LeftOperand) ||
-                                                              _endWithPlaceholder(e.RightOperand),
-            IGenericBinaryExpression<Rational, Rational, T> e => _endWithPlaceholder(e.LeftOperand) ||
-                                                                 _endWithPlaceholder(e.RightOperand),
-            IGenericNAryExpression<T, T> e => e.Operands.Any(_endWithPlaceholder),
-            _ => throw new InvalidOperationException(expression.GetType() +
-                                                     " case is missing in '_endWithPlaceholder' method")
-        };
-    }
+    private static bool _endWithPlaceholder(IExpression expression)
+        => expression is CurvePlaceholderExpression or RationalPlaceholderExpression
+           || expression is IExpressionNode node && node.Children.Any(_endWithPlaceholder);
 
     /// <inheritdoc />
     public override string ToString()
@@ -222,16 +202,34 @@ public enum CheckType
 }
 
 /// <summary>
-/// todo: document 
+/// The result of applying an equivalence.
 /// </summary>
 public record EquivalenceApplyResult
 {
     /// <summary>
-    /// todo: document 
+    /// The expression the equivalence produced, or <see langword="null"/> if it did not match.
     /// </summary>
     public IGenericExpression<Curve>? NewExpression { get; init; }
+
     /// <summary>
-    /// todo: document 
+    /// True if the equivalence matched.
     /// </summary>
-    public required MatchPatternResult MatchPatternResult { get; init; }
+    public bool IsMatch { get; init; }
+
+    /// <summary>
+    /// What the law's curve placeholders bound to.
+    /// </summary>
+    public IReadOnlyDictionary<string, CurveExpression> CurveBindings { get; init; }
+        = new Dictionary<string, CurveExpression>();
+
+    /// <summary>
+    /// What the law's rational placeholders bound to.
+    /// </summary>
+    public IReadOnlyDictionary<string, RationalExpression> RationalBindings { get; init; }
+        = new Dictionary<string, RationalExpression>();
+
+    /// <summary>
+    /// The unmatched operands of a partial n-ary match, to be reattached to the new expression.
+    /// </summary>
+    public IReadOnlyList<IExpression>? NotMatchedExpressions { get; init; }
 }

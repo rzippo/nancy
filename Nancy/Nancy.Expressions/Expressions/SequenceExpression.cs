@@ -716,8 +716,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         bool ignoreNotMatchedExpressions = false
     )
     {
-        var replacer = new OneTimeExpressionReplacer<Sequence, T1>(this, newExpressionToReplace);
-        return (SequenceExpression)replacer.ReplaceByValue(expressionPattern, ignoreNotMatchedExpressions);
+        return (SequenceExpression)OneTimeExpressionReplacer
+            .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions)
+            .Expression;
     }
 
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ReplaceByValue<T1>(
@@ -736,8 +737,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     public SequenceExpression ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace)
     {
-        var replacer = new OneTimeExpressionReplacer<Sequence, T1>(this, newExpressionToReplace);
-        return (SequenceExpression)replacer.ReplaceByPosition(expressionPosition.Steps);
+        return (SequenceExpression)OneTimeExpressionReplacer
+            .ReplaceByPosition(this, expressionPosition.Steps, newExpressionToReplace)
+            .Expression;
     }
 
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
