@@ -74,6 +74,7 @@ public interface IGenericExpression<out TExpressionResult> : IExpression
     /// for binary operators, "Operand(index)" for n-ary operators</param>
     /// <param name="newExpression">The new sub-expression</param>
     /// <returns>New expression object with replaced sub-expression</returns>
+    [Obsolete("Use the overload taking an ExpressionPosition instead.")]
     public IGenericExpression<TExpressionResult> ReplaceByPosition<T1>(
         IEnumerable<string> positionPath,
         IGenericExpression<T1> newExpression
@@ -124,6 +125,7 @@ public interface IGenericExpression<out TExpressionResult> : IExpression
     /// and substitution with the right side, or vice versa, or both).</param>
     /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
     /// </returns>
+    [Obsolete("Use the overload taking an ExpressionPosition instead.")]
     public IGenericExpression<TExpressionResult> ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly);
 

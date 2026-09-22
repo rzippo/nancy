@@ -1455,7 +1455,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <returns>New expression object (of type <see cref="CurveExpression"/>) with replaced sub-expression.</returns>
     public CurveExpression ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace)
-        => ReplaceByPosition(expressionPosition.GetPositionPath(), newExpressionToReplace);
+    {
+        var replacer = new OneTimeExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
+        return (CurveExpression)replacer.ReplaceByPosition(expressionPosition.Steps);
+    }
 
     IGenericExpression<Curve> IGenericExpression<Curve>.ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace) => ReplaceByPosition(expressionPosition, newExpressionToReplace);
@@ -1469,12 +1472,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
     /// <returns>New expression object (of type <see cref="CurveExpression"/>) with the replaced sub-expression.
     /// </returns>
+    [Obsolete("Use the overload taking an ExpressionPosition instead.")]
     public CurveExpression ReplaceByPosition<T1>(
         IEnumerable<string> positionPath,
         IGenericExpression<T1> newExpressionToReplace)
     {
         var replacer = new OneTimeExpressionReplacer<Curve, T1>(this, newExpressionToReplace);
-        return (CurveExpression)replacer.ReplaceByPosition(positionPath);
+        return (CurveExpression)replacer.ReplaceByPosition(new ExpressionPosition(positionPath).Steps);
     }
 
     /// <summary>
@@ -1488,7 +1492,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         Curve newValueToReplace,
         [CallerArgumentExpression("newValueToReplace")] string name = ""
     )
-        => ReplaceByPosition(expressionPosition.GetPositionPath(), newValueToReplace.ToExpression(name));
+        => ReplaceByPosition(expressionPosition, newValueToReplace.ToExpression(name));
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
@@ -1501,10 +1505,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         Rational newValueToReplace,
         [CallerArgumentExpression("newValueToReplace")] string name = ""
     )
-        => ReplaceByPosition(expressionPosition.GetPositionPath(), newValueToReplace.ToExpression(name));
+        => ReplaceByPosition(expressionPosition, newValueToReplace.ToExpression(name));
 
     IGenericExpression<Curve> IGenericExpression<Curve>.ReplaceByPosition<T1>(IEnumerable<string> positionPath,
-        IGenericExpression<T1> newExpressionToReplace) => ReplaceByPosition(positionPath, newExpressionToReplace);
+        IGenericExpression<T1> newExpressionToReplace) => ReplaceByPosition(new ExpressionPosition(positionPath), newExpressionToReplace);
 
     #endregion Replace
     
@@ -1542,17 +1546,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// and substitution with the right side, or vice versa, or both).</param>
     /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
     /// </returns>
+    [Obsolete("Use the overload taking an ExpressionPosition instead.")]
     public CurveExpression ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
         var replacer = new OneTimeExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
-        return (CurveExpression)replacer.ReplaceByPosition(positionPath);
+        return (CurveExpression)replacer.ReplaceByPosition(new ExpressionPosition(positionPath).Steps);
     }
 
     IGenericExpression<Curve> IGenericExpression<Curve>.ApplyEquivalenceByPosition(IEnumerable<string> positionPath,
         Equivalence equivalence,
         CheckType checkType)
-        => ApplyEquivalenceByPosition(positionPath, equivalence, checkType);
+        => ApplyEquivalenceByPosition(new ExpressionPosition(positionPath), equivalence, checkType);
 
     /// <summary>
     /// Applies an equivalence to the current expression, allowing the user to specify the position in the expression in
@@ -1567,7 +1572,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </returns>
     public CurveExpression ApplyEquivalenceByPosition(ExpressionPosition expressionPosition, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
-        => ApplyEquivalenceByPosition(expressionPosition.GetPositionPath(), equivalence, checkType);
+    {
+        var replacer = new OneTimeExpressionReplacer<Curve, Curve>(this, equivalence, checkType);
+        return (CurveExpression)replacer.ReplaceByPosition(expressionPosition.Steps);
+    }
 
     /// <inheritdoc />
     IGenericExpression<Curve> IGenericExpression<Curve>.ApplyEquivalenceByPosition(

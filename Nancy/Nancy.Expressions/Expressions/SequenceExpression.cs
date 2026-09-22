@@ -735,27 +735,13 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <returns>New expression object (of type <see cref="SequenceExpression"/>) with replaced sub-expression.</returns>
     public SequenceExpression ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace)
-        => ReplaceByPosition(expressionPosition.GetPositionPath(), newExpressionToReplace);
+    {
+        var replacer = new OneTimeExpressionReplacer<Sequence, T1>(this, newExpressionToReplace);
+        return (SequenceExpression)replacer.ReplaceByPosition(expressionPosition.Steps);
+    }
 
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace) => ReplaceByPosition(expressionPosition, newExpressionToReplace);
-
-    /// <summary>
-    /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
-    /// </summary>
-    /// <param name="positionPath">Position of the expression to be replaced. The position is expressed as a path from
-    /// the root of the expression by using a list of strings "Operand" for unary operators, "LeftOperand"/"RightOperand"
-    /// for binary operators, "Operand(index)" for n-ary operators.</param>
-    /// <param name="newExpressionToReplace">The new sub-expression.</param>
-    /// <returns>New expression object (of type <see cref="SequenceExpression"/>) with the replaced sub-expression.
-    /// </returns>
-    public SequenceExpression ReplaceByPosition<T1>(
-        IEnumerable<string> positionPath,
-        IGenericExpression<T1> newExpressionToReplace)
-    {
-        var replacer = new OneTimeExpressionReplacer<Sequence, T1>(this, newExpressionToReplace);
-        return (SequenceExpression)replacer.ReplaceByPosition(positionPath);
-    }
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
@@ -768,7 +754,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         Curve newValueToReplace,
         [CallerArgumentExpression("newValueToReplace")] string name = ""
     )
-        => ReplaceByPosition(expressionPosition.GetPositionPath(), newValueToReplace.ToExpression(name));
+        => ReplaceByPosition(expressionPosition, newValueToReplace.ToExpression(name));
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
@@ -781,10 +767,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         Rational newValueToReplace,
         [CallerArgumentExpression("newValueToReplace")] string name = ""
     )
-        => ReplaceByPosition(expressionPosition.GetPositionPath(), newValueToReplace.ToExpression(name));
+        => ReplaceByPosition(expressionPosition, newValueToReplace.ToExpression(name));
 
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ReplaceByPosition<T1>(IEnumerable<string> positionPath,
-        IGenericExpression<T1> newExpressionToReplace) => ReplaceByPosition(positionPath, newExpressionToReplace);
+        IGenericExpression<T1> newExpressionToReplace) => ReplaceByPosition(new ExpressionPosition(positionPath), newExpressionToReplace);
 
     #endregion Replace
 
@@ -806,29 +792,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ApplyEquivalence(Equivalence equivalence, CheckType checkType)
         => ApplyEquivalence(equivalence, checkType);
 
-    /// <summary>
-    /// Applies an equivalence to the current expression, allowing the user to specify the position in the expression in
-    /// which the equivalence should be applied.
-    /// </summary>
-    /// <param name="positionPath">Position of the sub-expression to be replaced with an equivalent one.
-    /// The position is expressed as a path from the root of the expression by using a list of strings "Operand" for
-    /// unary operators, "LeftOperand"/"RightOperand" for binary operators, "Operand(index)" for n-ary operators</param>
-    /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
-    /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side
-    /// expression, this parameter identifies the direction of application of the equivalence (match of the left side,
-    /// and substitution with the right side, or vice versa, or both).</param>
-    /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
-    /// </returns>
-    public SequenceExpression ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
-        CheckType checkType = CheckType.CheckLeftOnly)
-    {
-        throw new NotSupportedException("Equivalences are defined over curve expressions, so there is none to apply to a sequence expression.");
-    }
-
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ApplyEquivalenceByPosition(IEnumerable<string> positionPath,
         Equivalence equivalence,
         CheckType checkType)
-        => ApplyEquivalenceByPosition(positionPath, equivalence, checkType);
+        => ApplyEquivalenceByPosition(new ExpressionPosition(positionPath), equivalence, checkType);
 
     /// <summary>
     /// Applies an equivalence to the current expression, allowing the user to specify the position in the expression in which the equivalence should be applied.
@@ -840,7 +807,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// </returns>
     public SequenceExpression ApplyEquivalenceByPosition(ExpressionPosition expressionPosition, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
-        => ApplyEquivalenceByPosition(expressionPosition.GetPositionPath(), equivalence, checkType);
+        => throw new NotSupportedException("Equivalences are defined over curve expressions, so there is none to apply to a sequence expression.");
 
     /// <inheritdoc />
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ApplyEquivalenceByPosition(

@@ -606,15 +606,13 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     }
 
     public IGenericExpression<TExpressionResult> ReplaceByPosition(
-        IEnumerable<string> expressionPosition)
+        IEnumerable<PathStep> expressionPosition)
     {
         if(AlreadyUsed)
             throw new InvalidOperationException("This replacer was already used.");
         AlreadyUsed = true;
         
         var positionPath = expressionPosition.ToList();
-        if (!ExpressionPosition.ValidateExpressionPosition(positionPath))
-            throw new ArgumentException("Invalid position", nameof(expressionPosition));
 
         switch (OriginalExpression)
         {
@@ -654,7 +652,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// </list>
     /// </returns>
     /// <exception cref="ArgumentException">If path is invalid</exception>
-    private int ReplaceByPosition<T>(IEnumerator<string> positionPath, IGenericExpression<T> expression)
+    private int ReplaceByPosition<T>(IEnumerator<PathStep> positionPath, IGenericExpression<T> expression)
     {
         if (!positionPath.MoveNext())
         {
@@ -668,16 +666,16 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
         }
 
         var current = positionPath.Current;
-        switch (current)
+        switch (current.Kind)
         {
-            case Positions.InnerOperand:
+            case StepKind.InnerOperand:
                 return expression switch
                 {
                     IGenericUnaryExpression<Curve, T> c => ReplaceByPositionUnaryExpression(positionPath, c),
                     IGenericUnaryExpression<Rational, T> c => ReplaceByPositionUnaryExpression(positionPath, c),
-                    _ => throw new ArgumentException("Wrong position path!", nameof(positionPath))
+                    _ => throw StepDoesNotFit(current, expression)
                 };
-            case Positions.LeftOperand:
+            case StepKind.LeftOperand:
                 return expression switch
                 {
                     IGenericBinaryExpression<Curve, Curve, T> c => ReplaceByPositionLeftExpression(positionPath, c),
@@ -685,9 +683,9 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                     IGenericBinaryExpression<Curve, Rational, T> c => ReplaceByPositionLeftExpression(positionPath, c),
                     IGenericBinaryExpression<Rational, Rational, T> c => ReplaceByPositionLeftExpression(positionPath,
                         c),
-                    _ => throw new ArgumentException("Wrong position path!", nameof(positionPath))
+                    _ => throw StepDoesNotFit(current, expression)
                 };
-            case Positions.RightOperand:
+            case StepKind.RightOperand:
                 return expression switch
                 {
                     IGenericBinaryExpression<Curve, Curve, T> c => ReplaceByPositionRightExpression(positionPath, c),
@@ -695,16 +693,15 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                     IGenericBinaryExpression<Curve, Rational, T> c => ReplaceByPositionRightExpression(positionPath, c),
                     IGenericBinaryExpression<Rational, Rational, T> c => ReplaceByPositionRightExpression(positionPath,
                         c),
-                    _ => throw new ArgumentException("Wrong position path!", nameof(positionPath))
+                    _ => throw StepDoesNotFit(current, expression)
                 };
-            default:
-                var number = int.Parse(current);
+            case StepKind.IndexedOperand:
+                var number = current.Index;
                 switch (expression)
                 {
                     case CurveNAryExpression c:
                         if (number >= c.Operands.Count)
-                            throw new ArgumentException("Wrong position path! Out of range for the number of operands!",
-                                nameof(positionPath));
+                            throw OperandIndexOutOfRange(current, c.Operands.Count, expression);
                         List<CurveExpression> tempList = [];
                         var i = 0;
                         foreach (var e in c.Operands)
@@ -733,8 +730,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                         return 2;
                     case RationalNAryExpression c:
                         if (number >= c.Operands.Count)
-                            throw new ArgumentException("Wrong position path! Out of range for the number of operands!",
-                                nameof(positionPath));
+                            throw OperandIndexOutOfRange(current, c.Operands.Count, expression);
                         List<RationalExpression> rationalTempList = [];
                         var j = 0;
                         foreach (var e in c.Operands)
@@ -762,13 +758,43 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
                                 [rationalTempList, c.Name, c.Settings]) as IGenericExpression<Rational>;
                         return 2;
                     default:
-                        throw new ArgumentException("Wrong position path!", nameof(positionPath));
+                        throw StepDoesNotFit(current, expression);
                 }
+            default:
+                throw StepDoesNotFit(current, expression);
         }
     }
 
+    /// <summary>
+    /// Builds the exception raised when a position step does not fit the node it lands on.
+    /// </summary>
+    private static ArgumentException StepDoesNotFit<T>(PathStep step, IGenericExpression<T> expression)
+        => new($"The position step \"{step}\" is not valid on the {DescribeNodeShape(expression)} node {expression.GetType().Name}.");
+
+    /// <summary>
+    /// Builds the exception raised when an indexed position step is past the last operand of an n-ary node.
+    /// </summary>
+    private static ArgumentException OperandIndexOutOfRange<T>(PathStep step, int operandCount, IGenericExpression<T> expression)
+        => new($"The position step \"{step}\" is out of range on the {DescribeNodeShape(expression)} node {expression.GetType().Name}, which has {operandCount} operands.");
+
+    /// <summary>
+    /// Names the shape of an expression node: unary, binary, n-ary, or leaf.
+    /// </summary>
+    private static string DescribeNodeShape<T>(IGenericExpression<T> expression) => expression switch
+    {
+        IGenericUnaryExpression<Curve, T> => "unary",
+        IGenericUnaryExpression<Rational, T> => "unary",
+        IGenericBinaryExpression<Curve, Curve, T> => "binary",
+        IGenericBinaryExpression<Rational, Curve, T> => "binary",
+        IGenericBinaryExpression<Curve, Rational, T> => "binary",
+        IGenericBinaryExpression<Rational, Rational, T> => "binary",
+        IGenericNAryExpression<Curve, T> => "n-ary",
+        IGenericNAryExpression<Rational, T> => "n-ary",
+        _ => "leaf"
+    };
+
     private int ReplaceByPositionUnaryExpression<TArg, T>(
-        IEnumerator<string> positionPath,
+        IEnumerator<PathStep> positionPath,
         IGenericUnaryExpression<TArg, T> unaryExpression)
     {
         var result = ReplaceByPosition(positionPath, unaryExpression.Operand);
@@ -823,7 +849,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// </list>
     /// </returns>
     private int ReplaceByPositionLeftExpression<TLeft, TRight, TResult>(
-        IEnumerator<string> positionPath,
+        IEnumerator<PathStep> positionPath,
         IGenericBinaryExpression<TLeft, TRight, TResult> binaryExpression
     )
     {
@@ -894,7 +920,7 @@ internal class OneTimeExpressionReplacer<TExpressionResult, TReplacedOperand>
     /// </list>
     /// </returns>
     private int ReplaceByPositionRightExpression<TLeft, TRight, TResult>(
-        IEnumerator<string> positionPath,
+        IEnumerator<PathStep> positionPath,
         IGenericBinaryExpression<TLeft, TRight, TResult> binaryExpression)
     {
         var result = ReplaceByPosition(positionPath, binaryExpression.RightOperand);
