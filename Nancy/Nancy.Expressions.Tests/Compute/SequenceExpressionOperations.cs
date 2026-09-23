@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unipi.Nancy.Expressions;
+using Unipi.Nancy.Expressions.Equivalences;
 using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -225,14 +226,64 @@ public class SequenceExpressionOperations
     }
 
     /// <summary>
-    /// Equivalences relate curve expressions, so there is none to apply to a sequence expression.
+    /// A law applies at every matching subtree and the host's value type takes no part, so a curve law reaches the curve operand of a cut under a sequence expression.
     /// </summary>
     [Fact]
-    public void ApplyingAnEquivalenceToASequenceExpressionIsRefused()
+    public void ACurveLawAppliesAtTheCurveOperandOfACut()
+    {
+        var f = new RateLatencyServiceCurve(1, 2);
+        var g = new RateLatencyServiceCurve(2, 4);
+        var interval = new Interval(0, 5, true, true);
+        var cut = Expressions.SubAdditiveClosure(Expressions.Minimum(f, g)).Cut(interval);
+
+        var applied = cut.ApplyEquivalence(new SubAdditiveClosureOfMin());
+
+        Assert.NotEqual(cut.ToUnicodeString(), applied.ToUnicodeString());
+        Assert.True(cut.Compute().Equivalent(applied.Compute()));
+    }
+
+    /// <summary>
+    /// Where a law matches nothing, a sequence expression is returned unchanged, as it is on the other two trees.
+    /// </summary>
+    [Fact]
+    public void AnEquivalenceThatMatchesNothingLeavesTheSequenceExpressionUnchanged()
     {
         var sum = A.ToExpression("a").Addition(B.ToExpression("b"));
 
-        Assert.Throws<System.NotSupportedException>(() => sum.ApplyEquivalence(null!));
+        var applied = sum.ApplyEquivalence(new SubAdditiveClosureOfMin());
+
+        Assert.Equal(sum.ToUnicodeString(), applied.ToUnicodeString());
+    }
+
+    /// <summary>
+    /// A curve law rewrites the same curve subtree the same way whether it sits under a curve host, a sequence host, or a rational-over-sequence host.
+    /// </summary>
+    [Fact]
+    public void ACurveLawGivesTheSameCurveRewriteUnderEveryHost()
+    {
+        var f = new RateLatencyServiceCurve(1, 2);
+        var g = new RateLatencyServiceCurve(2, 4);
+        var interval = new Interval(0, 5, true, true);
+        var closureOfMin = Expressions.SubAdditiveClosure(Expressions.Minimum(f, g));
+        var law = new SubAdditiveClosureOfMin();
+
+        var underCurveHost = closureOfMin.ApplyEquivalence(law).ToUnicodeString();
+
+        var underSequenceHost = closureOfMin.Cut(interval).ApplyEquivalence(law);
+        Assert.Equal(
+            underCurveHost,
+            Assert.IsType<CurveCutExpression>(underSequenceHost).Operand.ToUnicodeString());
+
+        var underRationalOverSequenceHost = Expressions
+            .HorizontalDeviation(closureOfMin.Cut(interval), closureOfMin.Cut(interval))
+            .ApplyEquivalence(law);
+        var deviation = Assert.IsType<SequenceHorizontalDeviationExpression>(underRationalOverSequenceHost);
+        Assert.Equal(
+            underCurveHost,
+            Assert.IsType<CurveCutExpression>(deviation.LeftOperand).Operand.ToUnicodeString());
+        Assert.Equal(
+            underCurveHost,
+            Assert.IsType<CurveCutExpression>(deviation.RightOperand).Operand.ToUnicodeString());
     }
 
     /// <summary>
