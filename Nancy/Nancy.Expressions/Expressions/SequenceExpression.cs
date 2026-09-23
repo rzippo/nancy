@@ -704,22 +704,40 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     #region Replace
 
     /// <summary>
+    /// Replaces every occurrence of a sub-expression in the expression to which the method is applied, and returns what the rewrite did.
+    /// </summary>
+    /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
+    /// <param name="newExpressionToReplace">The new sub-expression.</param>
+    /// <param name="ignoreNotMatchedExpressions">Whether unmatched expressions should be ignored.</param>
+    /// <returns>
+    /// The result, carrying the new expression, how many sites were replaced, and where.
+    /// When the pattern matches nothing, the expression is the original, unchanged, and <see cref="ExpressionRewriteResult.Matched"/> is <see langword="false"/>.
+    /// </returns>
+    public ExpressionRewriteResult ReplaceByValueWithResult<T1>(
+        IGenericExpression<T1> expressionPattern,
+        IGenericExpression<T1> newExpressionToReplace,
+        bool ignoreNotMatchedExpressions = false
+    )
+        => OneTimeExpressionReplacer
+            .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
+
+    /// <summary>
     /// Replaces every occurrence of a sub-expression in the expression to which the method is applied.
     /// </summary>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
-    /// <param name="ignoreNotMatchedExpressions"></param>
-    /// <returns>New expression object (of type <see cref="SequenceExpression"/>) with replaced sub-expressions.</returns>
+    /// <param name="ignoreNotMatchedExpressions">Whether unmatched expressions should be ignored.</param>
+    /// <returns>
+    /// New expression object (of type <see cref="SequenceExpression"/>) with replaced sub-expressions.
+    /// When the pattern matches nothing, this is the original expression, unchanged.
+    /// Use <see cref="ReplaceByValueWithResult{T1}"/> to learn whether anything matched.
+    /// </returns>
     public SequenceExpression ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
         IGenericExpression<T1> newExpressionToReplace,
         bool ignoreNotMatchedExpressions = false
     )
-    {
-        return (SequenceExpression)OneTimeExpressionReplacer
-            .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions)
-            .Expression;
-    }
+        => (SequenceExpression)ReplaceByValueWithResult(expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions).Expression;
 
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
@@ -729,18 +747,31 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     => ReplaceByValue(expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
 
     /// <summary>
+    /// Replaces the sub-expression at a certain position in the expression to which the method is applied, and returns what the rewrite did.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced.</param>
+    /// <param name="newExpressionToReplace">The new sub-expression.</param>
+    /// <returns>
+    /// The result, carrying the new expression and the one position that was replaced.
+    /// A valid position is always replaced, so nothing is left unmatched; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
+    /// </returns>
+    public ExpressionRewriteResult ReplaceByPositionWithResult<T1>(ExpressionPosition expressionPosition,
+        IGenericExpression<T1> newExpressionToReplace)
+        => OneTimeExpressionReplacer
+            .ReplaceByPosition(this, expressionPosition.Steps, newExpressionToReplace);
+
+    /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
     /// </summary>
     /// <param name="expressionPosition">Position of the expression to be replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
-    /// <returns>New expression object (of type <see cref="SequenceExpression"/>) with replaced sub-expression.</returns>
+    /// <returns>
+    /// New expression object (of type <see cref="SequenceExpression"/>) with replaced sub-expression.
+    /// A valid position is always replaced, so nothing is left unmatched; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
+    /// </returns>
     public SequenceExpression ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace)
-    {
-        return (SequenceExpression)OneTimeExpressionReplacer
-            .ReplaceByPosition(this, expressionPosition.Steps, newExpressionToReplace)
-            .Expression;
-    }
+        => (SequenceExpression)ReplaceByPositionWithResult(expressionPosition, newExpressionToReplace).Expression;
 
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace) => ReplaceByPosition(expressionPosition, newExpressionToReplace);
@@ -750,8 +781,12 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// </summary>
     /// <param name="expressionPosition">Position of the expression to be replaced.</param>
     /// <param name="newValueToReplace">The new value to replace the sub-expression.</param>
-    /// /// <param name="name">The name of the new value.</param>
+    /// <param name="name">The name of the new value.</param>
     /// <returns>New expression object (of type <see cref="SequenceExpression"/>) with replaced sub-expression.</returns>
+    /// <remarks>
+    /// A <see cref="Curve"/> is hosted by the sequence nodes that take a curve operand, the cuts <see cref="CurveCutExpression"/> and <see cref="CurveCutToNeighbourhoodExpression"/>.
+    /// A valid position is always replaced; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
+    /// </remarks>
     public SequenceExpression ReplaceByPosition(ExpressionPosition expressionPosition,
         Curve newValueToReplace,
         [CallerArgumentExpression("newValueToReplace")] string name = ""
@@ -765,6 +800,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <param name="newValueToReplace">The new value to replace the sub-expression.</param>
     /// <param name="name">The name of the new value.</param>
     /// <returns>New expression object (of type <see cref="SequenceExpression"/>) with replaced sub-expression.</returns>
+    /// <remarks>
+    /// A <see cref="Rational"/> is hosted by the sequence nodes that take a rational operand, such as <see cref="SequenceScaleExpression"/>.
+    /// A valid position is always replaced; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
+    /// </remarks>
     public SequenceExpression ReplaceByPosition(ExpressionPosition expressionPosition,
         Rational newValueToReplace,
         [CallerArgumentExpression("newValueToReplace")] string name = ""
@@ -779,17 +818,34 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     #region Equivalence
 
     /// <summary>
+    /// Applies an equivalence to the current expression, at every site where it matches, and returns what the rewrite did.
+    /// </summary>
+    /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
+    /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side expression, this parameter identifies the direction of application of the equivalence (match of the left side, and substitution with the right side, or vice versa, or both).</param>
+    /// <returns>
+    /// The result, carrying the new expression, how many sites were rewritten, where, and what the law's placeholders bound to.
+    /// When the equivalence matches nothing, the expression is the original, unchanged, and <see cref="ExpressionRewriteResult.Matched"/> is <see langword="false"/>.
+    /// </returns>
+    /// <remarks>
+    /// The host's value type takes no part: a law applies at every matching subtree, so a curve law has sites under a sequence expression, reached through the cut nodes.
+    /// </remarks>
+    public ExpressionRewriteResult ApplyEquivalenceWithResult(Equivalence equivalence,
+        CheckType checkType = CheckType.CheckLeftOnly)
+        => OneTimeExpressionReplacer
+            .ApplyEquivalence(this, equivalence, checkType);
+
+    /// <summary>
     /// Applies an equivalence to the current expression.
     /// </summary>
     /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
     /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side expression, this parameter identifies the direction of application of the equivalence (match of the left side, and substitution with the right side, or vice versa, or both).</param>
-    /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// <returns>
+    /// The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// When the equivalence matches nothing, this is the original expression, unchanged.
+    /// Use <see cref="ApplyEquivalenceWithResult"/> to learn whether anything matched.
     /// </returns>
-    /// <exception cref="NotSupportedException">
-    /// Always: <see cref="Equivalence"/> relates curve expressions, and no equivalence is stated over sequence expressions.
-    /// </exception>
     public SequenceExpression ApplyEquivalence(Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
-        => throw new NotSupportedException("Equivalences are defined over curve expressions, so there is none to apply to a sequence expression.");
+        => (SequenceExpression)ApplyEquivalenceWithResult(equivalence, checkType).Expression;
 
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ApplyEquivalence(Equivalence equivalence, CheckType checkType)
         => ApplyEquivalence(equivalence, checkType);
@@ -800,16 +856,34 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         => ApplyEquivalenceByPosition(new ExpressionPosition(positionPath), equivalence, checkType);
 
     /// <summary>
+    /// Applies an equivalence to the current expression at a certain position, and returns what the rewrite did.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced</param>
+    /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
+    /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side expression, this parameter identifies the direction of application of the equivalence (match of the left side, and substitution with the right side, or vice versa, or both).</param>
+    /// <returns>
+    /// The result, carrying the new expression, the one position if it was rewritten, and what the law's placeholders bound to.
+    /// When the equivalence matches nothing at the position, the expression is the original, unchanged, and <see cref="ExpressionRewriteResult.Matched"/> is <see langword="false"/>.
+    /// </returns>
+    public ExpressionRewriteResult ApplyEquivalenceByPositionWithResult(ExpressionPosition expressionPosition,
+        Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
+        => OneTimeExpressionReplacer
+            .ApplyEquivalenceByPosition(this, expressionPosition.Steps, equivalence, checkType);
+
+    /// <summary>
     /// Applies an equivalence to the current expression, allowing the user to specify the position in the expression in which the equivalence should be applied.
     /// </summary>
     /// <param name="expressionPosition">Position of the expression to be replaced</param>
     /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
     /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side expression, this parameter identifies the direction of application of the equivalence (match of the left side, and substitution with the right side, or vice versa, or both).</param>
-    /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// <returns>
+    /// The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// When the equivalence matches nothing at the position, this is the original expression, unchanged.
+    /// Use <see cref="ApplyEquivalenceByPositionWithResult"/> to learn whether anything matched.
     /// </returns>
     public SequenceExpression ApplyEquivalenceByPosition(ExpressionPosition expressionPosition, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
-        => throw new NotSupportedException("Equivalences are defined over curve expressions, so there is none to apply to a sequence expression.");
+        => (SequenceExpression)ApplyEquivalenceByPositionWithResult(expressionPosition, equivalence, checkType).Expression;
 
     /// <inheritdoc />
     IGenericExpression<Sequence> IGenericExpression<Sequence>.ApplyEquivalenceByPosition(

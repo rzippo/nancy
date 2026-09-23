@@ -242,22 +242,40 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     #region Replace
 
     /// <summary>
+    /// Replaces every occurrence of a sub-expression in the expression to which the method is applied, and returns what the rewrite did.
+    /// </summary>
+    /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
+    /// <param name="newExpressionToReplace">The new sub-expression.</param>
+    /// <param name="ignoreNotMatchedExpressions">Whether unmatched expressions should be ignored.</param>
+    /// <returns>
+    /// The result, carrying the new expression, how many sites were replaced, and where.
+    /// When the pattern matches nothing, the expression is the original, unchanged, and <see cref="ExpressionRewriteResult.Matched"/> is <see langword="false"/>.
+    /// </returns>
+    public ExpressionRewriteResult ReplaceByValueWithResult<T1>(
+        IGenericExpression<T1> expressionPattern,
+        IGenericExpression<T1> newExpressionToReplace,
+        bool ignoreNotMatchedExpressions = false
+    )
+        => OneTimeExpressionReplacer
+            .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
+
+    /// <summary>
     /// Replaces every occurence of a sub-expression in the expression to which the method is applied.
     /// </summary>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
     /// <param name="ignoreNotMatchedExpressions">Whether unmatched expressions should be ignored.</param>
-    /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expressions.</returns>
+    /// <returns>
+    /// New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expressions.
+    /// When the pattern matches nothing, this is the original expression, unchanged.
+    /// Use <see cref="ReplaceByValueWithResult{T1}"/> to learn whether anything matched.
+    /// </returns>
     public RationalExpression ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
         IGenericExpression<T1> newExpressionToReplace,
         bool ignoreNotMatchedExpressions
     )
-    {
-        return (RationalExpression)OneTimeExpressionReplacer
-            .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions)
-            .Expression;
-    }
+        => (RationalExpression)ReplaceByValueWithResult(expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions).Expression;
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ReplaceByValue<T1>(
         IGenericExpression<T1> expressionPattern,
@@ -266,18 +284,31 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         => ReplaceByValue(expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
 
     /// <summary>
+    /// Replaces the sub-expression at a certain position in the expression to which the method is applied, and returns what the rewrite did.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced.</param>
+    /// <param name="newExpressionToReplace">The new sub-expression.</param>
+    /// <returns>
+    /// The result, carrying the new expression and the one position that was replaced.
+    /// A valid position is always replaced, so nothing is left unmatched; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
+    /// </returns>
+    public ExpressionRewriteResult ReplaceByPositionWithResult<T1>(ExpressionPosition expressionPosition,
+        IGenericExpression<T1> newExpressionToReplace)
+        => OneTimeExpressionReplacer
+            .ReplaceByPosition(this, expressionPosition.Steps, newExpressionToReplace);
+
+    /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
     /// </summary>
     /// <param name="expressionPosition">Position of the expression to be replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
-    /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expression.</returns>
+    /// <returns>
+    /// New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expression.
+    /// A valid position is always replaced, so nothing is left unmatched; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
+    /// </returns>
     public RationalExpression ReplaceByPosition<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace)
-    {
-        return (RationalExpression)OneTimeExpressionReplacer
-            .ReplaceByPosition(this, expressionPosition.Steps, newExpressionToReplace)
-            .Expression;
-    }
+        => (RationalExpression)ReplaceByPositionWithResult(expressionPosition, newExpressionToReplace).Expression;
 
     /// <summary>
     /// Replaces the sub-expression at a certain position in the expression to which the method is applied.
@@ -294,8 +325,12 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </summary>
     /// <param name="expressionPosition">Position of the expression to be replaced.</param>
     /// <param name="newValueToReplace">The new value to replace the sub-expression.</param>
-    /// /// <param name="name">The name of the new value.</param>
+    /// <param name="name">The name of the new value.</param>
     /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expression.</returns>
+    /// <remarks>
+    /// A <see cref="Curve"/> is hosted by the rational nodes that take a curve operand, such as <see cref="HorizontalDeviationExpression"/> and <see cref="MaxValueExpression"/>.
+    /// A valid position is always replaced; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
+    /// </remarks>
     public RationalExpression ReplaceByPosition(ExpressionPosition expressionPosition,
         Curve newValueToReplace,
         [CallerArgumentExpression("newValueToReplace")] string name = ""
@@ -309,6 +344,10 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <param name="newValueToReplace">The new value to replace the sub-expression.</param>
     /// <param name="name">The name of the new value.</param>
     /// <returns>New expression object (of type <see cref="RationalExpression"/>) with replaced sub-expression.</returns>
+    /// <remarks>
+    /// A <see cref="Rational"/> is hosted wherever a rational node is expected, which in this tree is any operand.
+    /// A valid position is always replaced; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
+    /// </remarks>
     public RationalExpression ReplaceByPosition(ExpressionPosition expressionPosition,
         Rational newValueToReplace,
         [CallerArgumentExpression("newValueToReplace")] string name = ""
@@ -323,6 +362,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// for binary operators, "Operand(index)" for n-ary operators.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
     /// <returns>New expression object (of type <see cref="RationalExpression"/>) with the replaced sub-expression.
+    /// A valid position is always replaced; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
     /// </returns>
     [Obsolete("Use the overload taking an ExpressionPosition instead.")]
     public RationalExpression ReplaceByPosition<T1>(IEnumerable<string> positionPath,
@@ -974,20 +1014,33 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     #region Equivalence
 
     /// <summary>
+    /// Applies an equivalence to the current expression, at every site where it matches, and returns what the rewrite did.
+    /// </summary>
+    /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
+    /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side expression, this parameter identifies the direction of application of the equivalence (match of the left side, and substitution with the right side, or vice versa, or both).</param>
+    /// <returns>
+    /// The result, carrying the new expression, how many sites were rewritten, where, and what the law's placeholders bound to.
+    /// When the equivalence matches nothing, the expression is the original, unchanged, and <see cref="ExpressionRewriteResult.Matched"/> is <see langword="false"/>.
+    /// </returns>
+    public ExpressionRewriteResult ApplyEquivalenceWithResult(Equivalence equivalence,
+        CheckType checkType = CheckType.CheckLeftOnly)
+        => OneTimeExpressionReplacer
+            .ApplyEquivalence(this, equivalence, checkType);
+
+    /// <summary>
     /// Applies an equivalence to the current expression.
     /// </summary>
     /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
     /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side
     /// expression, this parameter identifies the direction of application of the equivalence (match of the left side,
     /// and substitution with the right side, or vice versa, or both).</param>
-    /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// <returns>
+    /// The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// When the equivalence matches nothing, this is the original expression, unchanged.
+    /// Use <see cref="ApplyEquivalenceWithResult"/> to learn whether anything matched.
     /// </returns>
     public RationalExpression ApplyEquivalence(Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
-    {
-        return (RationalExpression)OneTimeExpressionReplacer
-            .ApplyEquivalence(this, equivalence, checkType)
-            .Expression;
-    }
+        => (RationalExpression)ApplyEquivalenceWithResult(equivalence, checkType).Expression;
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ApplyEquivalence(Equivalence equivalence,
         CheckType checkType)
@@ -1005,6 +1058,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// expression, this parameter identifies the direction of application of the equivalence (match of the left side,
     /// and substitution with the right side, or vice versa, or both).</param>
     /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// When the equivalence matches nothing at the position, this is the original expression, unchanged.
     /// </returns>
     [Obsolete("Use the overload taking an ExpressionPosition instead.")]
     public RationalExpression ApplyEquivalenceByPosition(IEnumerable<string> positionPath, Equivalence equivalence,
@@ -1021,6 +1075,21 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         => ApplyEquivalenceByPosition(new ExpressionPosition(positionPath), equivalence, checkType);
 
     /// <summary>
+    /// Applies an equivalence to the current expression at a certain position, and returns what the rewrite did.
+    /// </summary>
+    /// <param name="expressionPosition">Position of the expression to be replaced</param>
+    /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
+    /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side expression, this parameter identifies the direction of application of the equivalence (match of the left side, and substitution with the right side, or vice versa, or both).</param>
+    /// <returns>
+    /// The result, carrying the new expression, the one position if it was rewritten, and what the law's placeholders bound to.
+    /// When the equivalence matches nothing at the position, the expression is the original, unchanged, and <see cref="ExpressionRewriteResult.Matched"/> is <see langword="false"/>.
+    /// </returns>
+    public ExpressionRewriteResult ApplyEquivalenceByPositionWithResult(ExpressionPosition expressionPosition,
+        Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
+        => OneTimeExpressionReplacer
+            .ApplyEquivalenceByPosition(this, expressionPosition.Steps, equivalence, checkType);
+
+    /// <summary>
     /// Applies an equivalence to the current expression, allowing the user to specify the position in the expression in
     /// which the equivalence should be applied.
     /// </summary>
@@ -1029,15 +1098,14 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side
     /// expression, this parameter identifies the direction of application of the equivalence (match of the left side,
     /// and substitution with the right side, or vice versa, or both).</param>
-    /// <returns>The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// <returns>
+    /// The new equivalent expression if the equivalence can be applied, the original expression otherwise.
+    /// When the equivalence matches nothing at the position, this is the original expression, unchanged.
+    /// Use <see cref="ApplyEquivalenceByPositionWithResult"/> to learn whether anything matched.
     /// </returns>
     public RationalExpression ApplyEquivalenceByPosition(ExpressionPosition expressionPosition, Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
-    {
-        return (RationalExpression)OneTimeExpressionReplacer
-            .ApplyEquivalenceByPosition(this, expressionPosition.Steps, equivalence, checkType)
-            .Expression;
-    }
+        => (RationalExpression)ApplyEquivalenceByPositionWithResult(expressionPosition, equivalence, checkType).Expression;
 
     IGenericExpression<Rational> IGenericExpression<Rational>.ApplyEquivalenceByPosition(
         ExpressionPosition expressionPosition, Equivalence equivalence,

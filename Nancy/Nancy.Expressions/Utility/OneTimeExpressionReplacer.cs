@@ -12,18 +12,34 @@ namespace Unipi.Nancy.Expressions.Utility;
 /// The outcome of a rewrite:
 /// the new expression, how many replacements were made, where, and the bindings of an equivalence if one was applied.
 /// </summary>
-/// <param name="Expression">The expression the rewrite produced.</param>
-/// <param name="ReplacementCount">How many sites were replaced.</param>
-/// <param name="Positions">The positions of the replaced sites, in the order they were visited.</param>
-/// <param name="CurveBindings">The curve bindings of the last equivalence applied, or <see langword="null"/>.</param>
-/// <param name="RationalBindings">The rational bindings of the last equivalence applied, or <see langword="null"/>.</param>
-internal sealed record ExpressionRewriteResult(
-    IExpression Expression,
-    int ReplacementCount,
-    IReadOnlyList<ExpressionPosition> Positions,
-    IReadOnlyDictionary<string, CurveExpression>? CurveBindings,
-    IReadOnlyDictionary<string, RationalExpression>? RationalBindings)
+public sealed record ExpressionRewriteResult
 {
+    /// <summary>
+    /// The expression the rewrite produced.
+    /// When nothing matched, this is the expression the rewrite was called on, unchanged.
+    /// </summary>
+    public required IExpression Expression { get; init; }
+
+    /// <summary>
+    /// How many sites were replaced.
+    /// </summary>
+    public int ReplacementCount { get; init; }
+
+    /// <summary>
+    /// The positions of the replaced sites, in the order they were visited.
+    /// </summary>
+    public IReadOnlyList<ExpressionPosition> Positions { get; init; } = [];
+
+    /// <summary>
+    /// The curve bindings of the last equivalence applied, or <see langword="null"/>.
+    /// </summary>
+    public IReadOnlyDictionary<string, CurveExpression>? CurveBindings { get; init; }
+
+    /// <summary>
+    /// The rational bindings of the last equivalence applied, or <see langword="null"/>.
+    /// </summary>
+    public IReadOnlyDictionary<string, RationalExpression>? RationalBindings { get; init; }
+
     /// <summary>
     /// True if at least one site was replaced.
     /// </summary>
@@ -321,7 +337,14 @@ internal static class OneTimeExpressionReplacer
         }
 
         public ExpressionRewriteResult ToResult(IExpression expression)
-            => new(expression, Count, _positions, _curveBindings, _rationalBindings);
+            => new()
+            {
+                Expression = expression,
+                ReplacementCount = Count,
+                Positions = _positions,
+                CurveBindings = _curveBindings,
+                RationalBindings = _rationalBindings
+            };
     }
 
     #endregion State
