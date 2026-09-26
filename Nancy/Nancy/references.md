@@ -20,5 +20,5 @@ Within the source we reference the following works.
  * [Gui24] - [Evaluation of worst-case performances of systems in Network Calculus](https://theses.fr/2024ESAE0041), Damien Guidolin--Pina, PhD Thesis, 2024
  * [HCS24] - [Extending Network Calculus to Deal with Min-Plus Service Curves in Multiple Flow Scenarios](https://doi.org/10.1109/RTAS61025.2024.00016), Anja Hamscher and Vlad-Cristian Constantin and Jens B. Schmitt, 2024
  * [ZNS26] - [Exploiting (min,+)/(max,+) Isomorphism to Speed Up Convolutions](https://doi.org/10.1145/3793250), Raffaele Zippo and Paul Nikolaus and Giovanni Stea, 2026
- * [TBP-EB-FRTC] - Expression-Based Finitary RTC, to be published. Until it is, its results are cited by code rather than by number, e.g. EB-FRTC-SEQ-D2; the codes resolve in the project workbooks.
+ * [TBP-EB-FRTC] - Expression-Based Finitary RTC, to be published. Until it is, its results are cited by code rather than by number, e.g. EB-FRTC-SEQ-D2.
  * [TBP-COMP-SEQ-EXT] - Extending the Composition Algorithm for Piecewise Affine Sequences, Raffaele Zippo, April 2026, to be published. Its cases are cited by the codes it defines, e.g. gLOi.
