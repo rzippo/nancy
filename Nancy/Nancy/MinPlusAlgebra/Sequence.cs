@@ -1921,7 +1921,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="settings"></param>
     /// <returns>A vertical deviation, which may be negative.</returns>
     /// <remarks>
-    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve)"/>.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
     /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1,
     /// with no condition beyond the operands being restrictions of the curves.
@@ -2037,7 +2037,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="settings"></param>
     /// <returns>A vertical deviation function, whose values may be negative.</returns>
     /// <remarks>
-    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve)"/>.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
     /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1,
     /// with no condition beyond the operands being restrictions of the curves.
