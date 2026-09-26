@@ -59,6 +59,24 @@ public class VerticalDeviation
             new Sequence([ new Point(2, 5), new Segment(2, 4, 5, 1), new Point(4, 7) ]),
             -3
         ),
+        // a decreasing, so the supremum is attained at the left end
+        (
+            new Sequence([ new Point(0, 4), new Segment(0, 4, 4, -1), new Point(4, 0) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 4, 0, 0), new Point(4, 0) ]),
+            4
+        ),
+        // a negative throughout
+        (
+            new Sequence([ new Point(0, -2), new Segment(0, 4, -2, 0), new Point(4, -2) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 4, 0, 1), new Point(4, 4) ]),
+            -2
+        ),
+        // both negative and decreasing, b faster, so the difference grows towards the right end
+        (
+            new Sequence([ new Point(0, -1), new Segment(0, 4, -1, -1), new Point(4, -5) ]),
+            new Sequence([ new Point(0, -3), new Segment(0, 4, -3, -2), new Point(4, -11) ]),
+            6
+        ),
     ];
 
     public static IEnumerable<object[]> KnownVDevsTestCases => KnownVDevs.ToXUnitTestCases();
