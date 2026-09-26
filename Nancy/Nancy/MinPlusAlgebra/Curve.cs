@@ -4676,11 +4676,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="f">The first operand.</param>
     /// <param name="g">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A vertical deviation.</returns>
     /// <remarks>
     /// Following from the definition in [DNC18] p.100, the result may be negative.
     /// </remarks>
-    public static Rational VerticalDeviation(Curve f, Curve g)
+    public static Rational VerticalDeviation(Curve f, Curve g, ComputationSettings? settings = null)
     {
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve dr)
         {
@@ -4691,8 +4692,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else
         {
-            var diff = f - g;
-            return diff.SupValue();
+            var diff = f.Subtraction(g, settings);
+            return diff.SupValue(settings);
         }
     }
 
@@ -4702,7 +4703,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="f">The first operand.</param>
     /// <param name="g">The second operand.</param>
-    public static Rational VerticalDeviationMeasuredAt(Curve f, Curve g)
+    /// <param name="settings">Optional settings for the operation.</param>
+    public static Rational VerticalDeviationMeasuredAt(Curve f, Curve g, ComputationSettings? settings = null)
     {
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve dr)
         {
@@ -4716,8 +4718,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else
         {
-            var diff = f - g;
-            return diff.SupArg();
+            var diff = f.Subtraction(g, settings);
+            return diff.SupArg(settings);
         }
     }
 
