@@ -26,19 +26,23 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(HorizontalDeviationExpression expression)
-        => _result = Curve.HorizontalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
+        => _result = Curve.HorizontalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
+            expression.Settings?.ComputationSettings);
 
     /// <inheritdoc />
     public virtual void Visit(VerticalDeviationExpression expression)
-        => _result = Curve.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
+        => _result = Curve.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
+            expression.Settings?.ComputationSettings);
 
     /// <inheritdoc />
     public virtual void Visit(SequenceHorizontalDeviationExpression expression)
-        => _result = Sequence.HorizontalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
+        => _result = Sequence.HorizontalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
+            expression.Settings?.ComputationSettings);
 
     /// <inheritdoc />
     public virtual void Visit(SequenceVerticalDeviationExpression expression)
-        => _result = Sequence.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
+        => _result = Sequence.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
+            expression.Settings?.ComputationSettings);
 
     /// <inheritdoc />
     public virtual void Visit(SequenceValueAtExpression expression)
@@ -54,11 +58,13 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(ZDeviationExpression expression)
-        => _result = Curve.ZDeviation(expression.LeftOperand.Value, expression.RightOperand.Value);
+        => _result = Curve.ZDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
+            expression.Settings?.ComputationSettings);
 
     /// <inheritdoc />
     public virtual void Visit(ValueAtExpression expression)
-        => _result = expression.LeftOperand.Value.ValueAt(expression.RightOperand.Value);
+        => _result = expression.LeftOperand.Value.ValueAt(expression.RightOperand.Value,
+            expression.Settings?.ComputationSettings);
 
     /// <inheritdoc />
     public virtual void Visit(LeftLimitAtExpression expression)
@@ -133,20 +139,22 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
     public virtual void Visit(RationalCeilExpression expression) => _result = expression.Operand.Value.Ceil();
 
     /// <inheritdoc />
-    public virtual void Visit(SupValueExpression expression) => _result = expression.Operand.Value.SupValue();
+    public virtual void Visit(SupValueExpression expression)
+        => _result = expression.Operand.Value.SupValue(expression.Settings?.ComputationSettings);
 
     /// <inheritdoc />
-    public virtual void Visit(InfValueExpression expression) => _result = expression.Operand.Value.InfValue();
+    public virtual void Visit(InfValueExpression expression)
+        => _result = expression.Operand.Value.InfValue(expression.Settings?.ComputationSettings);
 
     /// <inheritdoc />
     public virtual void Visit(MaxValueExpression expression)
-        => _result = expression.Operand.Value.MaxValue() ??
+        => _result = expression.Operand.Value.MaxValue(expression.Settings?.ComputationSettings) ??
                      throw new InvalidOperationException(
                          "The curve does not attain a maximum value (its supremum is not attained); use SupValue() instead.");
 
     /// <inheritdoc />
     public virtual void Visit(MinValueExpression expression)
-        => _result = expression.Operand.Value.MinValue() ??
+        => _result = expression.Operand.Value.MinValue(expression.Settings?.ComputationSettings) ??
                      throw new InvalidOperationException(
                          "The curve does not attain a minimum value (its infimum is not attained); use InfValue() instead.");
 }

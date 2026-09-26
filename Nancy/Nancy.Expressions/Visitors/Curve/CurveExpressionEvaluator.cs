@@ -58,19 +58,19 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(ToUpperNonDecreasingExpression expression)
-        => VisitUnary(expression, curve => curve.ToUpperNonDecreasing());
+        => VisitUnary(expression, curve => curve.ToUpperNonDecreasing(expression.Settings?.ComputationSettings));
 
     /// <inheritdoc />
     public virtual void Visit(ToLowerNonDecreasingExpression expression)
-        => VisitUnary(expression, curve => curve.ToLowerNonDecreasing());
+        => VisitUnary(expression, curve => curve.ToLowerNonDecreasing(expression.Settings?.ComputationSettings));
 
     /// <inheritdoc />
     public virtual void Visit(ToUpperNonIncreasingExpression expression)
-        => VisitUnary(expression, curve => curve.ToUpperNonIncreasing());
+        => VisitUnary(expression, curve => curve.ToUpperNonIncreasing(expression.Settings?.ComputationSettings));
 
     /// <inheritdoc />
     public virtual void Visit(ToLowerNonIncreasingExpression expression)
-        => VisitUnary(expression, curve => curve.ToLowerNonIncreasing());
+        => VisitUnary(expression, curve => curve.ToLowerNonIncreasing(expression.Settings?.ComputationSettings));
 
     /// <inheritdoc />
     public virtual void Visit(ToLeftContinuousExpression expression)
@@ -99,7 +99,8 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(SubtractionExpression expression)
 #pragma warning disable CS0618 // Type or member is obsolete
-        => VisitBinary(expression, (leftCurve, rightCurve) => Curve.Subtraction(leftCurve, rightCurve, expression.NonNegative));
+        => VisitBinary(expression, (leftCurve, rightCurve) => Curve.Subtraction(leftCurve, rightCurve,
+            expression.NonNegative, expression.Settings?.ComputationSettings));
 #pragma warning restore CS0618 // Type or member is obsolete
 
     /// <inheritdoc />

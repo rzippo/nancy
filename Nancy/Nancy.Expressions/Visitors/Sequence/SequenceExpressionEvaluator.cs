@@ -33,12 +33,12 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     {
         // compute, then cut
         var curve = expression.Operand.Value;
-                var cs = expression.Interval.Lower;
+        var cs = expression.Interval.Lower;
         var ce = expression.Interval.Upper;
         var csi = expression.Interval.IsLowerIncluded;
         var cei = expression.Interval.IsUpperIncluded;
-        
-        var cut = curve.Cut(cs, ce, csi, cei);
+
+        var cut = curve.Cut(cs, ce, csi, cei, expression.Settings?.ComputationSettings);
         _result = cut;
     }
     
@@ -47,7 +47,8 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     {
         // compute, then cut
         var curve = expression.Operand.Value;
-        var cut = curve.CutToNeighbourhood(expression.CutStart, expression.CutEnd);
+        var cut = curve.CutToNeighbourhood(expression.CutStart, expression.CutEnd,
+            settings: expression.Settings?.ComputationSettings);
         _result = cut;
     }
     
@@ -56,7 +57,7 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     {
         // compute, then cut
         var sequence = expression.Operand.Value;
-                var cs = expression.Interval.Lower;
+        var cs = expression.Interval.Lower;
         var ce = expression.Interval.Upper;
         var csi = expression.Interval.IsLowerIncluded;
         var cei = expression.Interval.IsUpperIncluded;
