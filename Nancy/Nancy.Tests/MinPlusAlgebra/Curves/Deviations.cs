@@ -551,6 +551,34 @@ public class Deviations
         Assert.Equal(expected, result);
     }
 
+    /// <summary>
+    /// The settings are parallelism switches, so they change how the deviation is computed and not what it is.
+    /// The cases cover both branches:
+    /// the closed form for a sigma-rho against a rate-latency, and the general one over the difference of the two curves, which is where the settings reach.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetVerticalDeviationTestCases))]
+    public void VerticalDeviationIsTheSameWithSettingsAsWithout(Curve a, Curve b, Rational expected)
+    {
+        var sequential = Curve.VerticalDeviation(a, b, new ComputationSettings { UseParallelism = false });
+        var parallel = Curve.VerticalDeviation(a, b, new ComputationSettings { UseParallelism = true });
+
+        Assert.Equal(expected, sequential);
+        Assert.Equal(expected, parallel);
+    }
+
+    /// <inheritdoc cref="VerticalDeviationIsTheSameWithSettingsAsWithout"/>
+    [Theory]
+    [MemberData(nameof(GetVerticalDeviationArgTestCases))]
+    public void VerticalDeviationMeasuredAtIsTheSameWithSettingsAsWithout(Curve a, Curve b, Rational expected)
+    {
+        var sequential = Curve.VerticalDeviationMeasuredAt(a, b, new ComputationSettings { UseParallelism = false });
+        var parallel = Curve.VerticalDeviationMeasuredAt(a, b, new ComputationSettings { UseParallelism = true });
+
+        Assert.Equal(expected, sequential);
+        Assert.Equal(expected, parallel);
+    }
+
     [Theory]
     [MemberData(nameof(GetZDeviationTestCases))]
     public void ZDeviationTest(Curve f, Curve g, Rational expected)
