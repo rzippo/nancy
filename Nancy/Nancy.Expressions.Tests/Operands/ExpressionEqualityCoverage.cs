@@ -183,6 +183,9 @@ public class ExpressionEqualityCoverage
             () => new SequenceSubtractionExpression(Sequence1, "a", Sequence2, "b"),
             () => new SequenceSubtractionExpression(Sequence1, "a", Sequence3, "b"));
         yield return Case(
+            () => new SequenceConcatExpression(Sequence1, "a", Sequence2, "b"),
+            () => new SequenceConcatExpression(Sequence1, "a", Sequence3, "b"));
+        yield return Case(
             () => new SequenceDeconvolutionExpression(Sequence1, "a", Sequence2, "b"),
             () => new SequenceDeconvolutionExpression(Sequence1, "a", Sequence3, "b"));
         yield return Case(
