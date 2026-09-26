@@ -226,10 +226,10 @@ public class SequenceExpressionOperations
     }
 
     /// <summary>
-    /// A law applies at every matching subtree and the host's value type takes no part, so a curve law reaches the curve operand of a cut under a sequence expression.
+    /// An equivalence applies at every matching subtree and the host's value type takes no part, so a curve equivalence reaches the curve operand of a cut under a sequence expression.
     /// </summary>
     [Fact]
-    public void ACurveLawAppliesAtTheCurveOperandOfACut()
+    public void ACurveEquivalenceAppliesAtTheCurveOperandOfACut()
     {
         var f = new RateLatencyServiceCurve(1, 2);
         var g = new RateLatencyServiceCurve(2, 4);
@@ -243,7 +243,7 @@ public class SequenceExpressionOperations
     }
 
     /// <summary>
-    /// Where a law matches nothing, a sequence expression is returned unchanged, as it is on the other two trees.
+    /// Where an equivalence matches nothing, a sequence expression is returned unchanged, as it is on the other two trees.
     /// </summary>
     [Fact]
     public void AnEquivalenceThatMatchesNothingLeavesTheSequenceExpressionUnchanged()
@@ -256,27 +256,27 @@ public class SequenceExpressionOperations
     }
 
     /// <summary>
-    /// A curve law rewrites the same curve subtree the same way whether it sits under a curve host, a sequence host, or a rational-over-sequence host.
+    /// A curve equivalence rewrites the same curve subtree the same way whether it sits under a curve host, a sequence host, or a rational-over-sequence host.
     /// </summary>
     [Fact]
-    public void ACurveLawGivesTheSameCurveRewriteUnderEveryHost()
+    public void ACurveEquivalenceGivesTheSameCurveRewriteUnderEveryHost()
     {
         var f = new RateLatencyServiceCurve(1, 2);
         var g = new RateLatencyServiceCurve(2, 4);
         var interval = new Interval(0, 5, true, true);
         var closureOfMin = Expressions.SubAdditiveClosure(Expressions.Minimum(f, g));
-        var law = new SubAdditiveClosureOfMin();
+        var equivalence = new SubAdditiveClosureOfMin();
 
-        var underCurveHost = closureOfMin.ApplyEquivalence(law).ToUnicodeString();
+        var underCurveHost = closureOfMin.ApplyEquivalence(equivalence).ToUnicodeString();
 
-        var underSequenceHost = closureOfMin.Cut(interval).ApplyEquivalence(law);
+        var underSequenceHost = closureOfMin.Cut(interval).ApplyEquivalence(equivalence);
         Assert.Equal(
             underCurveHost,
             Assert.IsType<CurveCutExpression>(underSequenceHost).Operand.ToUnicodeString());
 
         var underRationalOverSequenceHost = Expressions
             .HorizontalDeviation(closureOfMin.Cut(interval), closureOfMin.Cut(interval))
-            .ApplyEquivalence(law);
+            .ApplyEquivalence(equivalence);
         var deviation = Assert.IsType<SequenceHorizontalDeviationExpression>(underRationalOverSequenceHost);
         Assert.Equal(
             underCurveHost,

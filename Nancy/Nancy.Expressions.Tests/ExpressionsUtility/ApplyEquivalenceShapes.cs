@@ -14,7 +14,7 @@ namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
 /// Covers the two equivalence operations over the shapes that can host the curve node they rewrite.
 /// The tests under <c>Equivalences/</c> apply each equivalence at the root of a curve expression.
 /// This covers the equivalence reached through a traversal, and reached inside a rational expression.
-/// A law applies wherever it matches, so the host's value type takes no part.
+/// An equivalence applies wherever it matches, so the host's value type takes no part.
 /// </summary>
 public class ApplyEquivalenceShapes
 {
@@ -76,7 +76,7 @@ public class ApplyEquivalenceShapes
                 new SubAdditiveClosureOfMin(), CheckType.CheckRightOnly),
             () => ConvolutionOfClosures);
 
-        // A law applies wherever it matches, so a curve site under a sequence host is reached the same way.
+        // An equivalence applies wherever it matches, so a curve site under a sequence host is reached the same way.
 
         yield return Case("by value, at a curve cut under a sequence root",
             () => ClosureOfMin.Cut(CutWindow).ApplyEquivalence(new SubAdditiveClosureOfMin()),

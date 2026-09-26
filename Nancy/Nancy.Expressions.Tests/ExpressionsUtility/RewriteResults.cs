@@ -10,7 +10,7 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
 
 /// <summary>
-/// Each rewriting operation comes in two forms: the value-returning one hands back the expression alone, and the result-returning one also says whether anything matched, how many sites, where, and what a law bound.
+/// Each rewriting operation comes in two forms: the value-returning one hands back the expression alone, and the result-returning one also says whether anything matched, how many sites, where, and what an equivalence bound.
 /// The result is what lets a caller tell a rewrite that changed something from one that did not.
 /// </summary>
 public class RewriteResults
@@ -104,7 +104,7 @@ public class RewriteResults
     }
 
     [Fact]
-    public void ACurveLawUnderASequenceHostReportsTheSiteAndTheBindings()
+    public void ACurveEquivalenceUnderASequenceHostReportsTheSiteAndTheBindings()
     {
         var f = new RateLatencyServiceCurve(1, 2);
         var g = new RateLatencyServiceCurve(2, 4);
