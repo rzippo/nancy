@@ -115,8 +115,9 @@ public class RewriteResults
         Assert.True(result.Matched);
         Assert.Equal(1, result.ReplacementCount);
         Assert.Equal(new ExpressionPosition().InnerOperand(), Assert.Single(result.Positions));
-        Assert.NotNull(result.CurveBindings);
-        Assert.True(result.CurveBindings!.ContainsKey("f"));
-        Assert.True(result.CurveBindings!.ContainsKey("g"));
+        Assert.NotNull(result.Bindings);
+        // one map whatever the placeholders stand for, so the caller casts where it knows what it asked for
+        Assert.IsAssignableFrom<CurveExpression>(result.Bindings!["f"]);
+        Assert.IsAssignableFrom<CurveExpression>(result.Bindings!["g"]);
     }
 }
