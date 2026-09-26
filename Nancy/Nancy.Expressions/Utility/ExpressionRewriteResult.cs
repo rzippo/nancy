@@ -1,10 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unipi.Nancy.Expressions.Equivalences;
-using Unipi.Nancy.Expressions.Nodes;
-using Unipi.Nancy.MinPlusAlgebra;
-using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Expressions.Utility;
 
@@ -12,6 +6,9 @@ namespace Unipi.Nancy.Expressions.Utility;
 /// The outcome of a rewrite:
 /// the new expression, how many replacements were made, where, and the bindings of an equivalence if one was applied.
 /// </summary>
+/// <remarks>
+/// Each rewriting operation comes in two forms: the plain one returns the expression alone and is what most call sites want, while the <c>WithResult</c> one returns this, for a caller that has to tell a rewrite that changed something from one that did not.
+/// </remarks>
 public sealed record ExpressionRewriteResult
 {
     /// <summary>
