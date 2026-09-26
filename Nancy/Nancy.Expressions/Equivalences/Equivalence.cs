@@ -164,8 +164,7 @@ public partial class Equivalence
         CheckType checkType = CheckType.CheckLeftOnly
     )
     {
-        var applier = new OneTimeEquivalenceApplier { Equivalence = this };
-        return applier.Apply(expression, checkType);
+        return EquivalenceApplier.Apply(this, expression, checkType);
     }
 
     private static bool _endWithPlaceholder(IExpression expression)
@@ -183,20 +182,21 @@ public partial class Equivalence
 }
 
 /// <summary>
-/// todo: document 
+/// Which side of an equivalence is matched against the expression.
+/// The other side is what replaces it, so the choice is the direction in which the equivalence is read.
 /// </summary>
 public enum CheckType
 {
     /// <summary>
-    /// todo: document 
+    /// Match the left side and substitute the right one.
     /// </summary>
     CheckLeftOnly,
     /// <summary>
-    /// todo: document 
+    /// Match the right side and substitute the left one.
     /// </summary>
     CheckRightOnly,
     /// <summary>
-    /// todo: document 
+    /// Try the left side first, then the right one, and use whichever matches.
     /// </summary>
     CheckBothSides
 }

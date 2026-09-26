@@ -389,7 +389,7 @@ internal static class ExpressionRewriter
             out IExpression replacement,
             out IReadOnlyDictionary<string, IExpression>? bindings)
         {
-            var result = new OneTimeEquivalenceApplier { Equivalence = equivalence }.Apply(expression, checkType);
+            var result = EquivalenceApplier.Apply(equivalence, expression, checkType);
             if (!result.IsMatch || result.NewExpression is null)
             {
                 replacement = null!;
@@ -441,7 +441,7 @@ internal static class ExpressionRewriter
             out IExpression replacement,
             out IReadOnlyDictionary<string, IExpression>? bindings)
         {
-            var result = new OneTimeEquivalenceApplier { Equivalence = equivalence }.Apply(target, checkType);
+            var result = EquivalenceApplier.Apply(equivalence, target, checkType);
             if (!result.IsMatch || result.NewExpression is null)
             {
                 replacement = null!;
