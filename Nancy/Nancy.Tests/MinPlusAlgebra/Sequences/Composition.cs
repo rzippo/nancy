@@ -243,8 +243,8 @@ public class Composition
 			new Sequence(new List<Element>{ new Point(0,0), new Segment(0,3,0,4), new Point(3,12), new Segment(3,4,12,0) }),
 			new Sequence(new List<Element>{ new Point(0,0), new Segment(0,3,3,new Rational(4, 3)), new Point(3,7), new Segment(3,4,7,0) })
 		),
-		// new tests for new algorithm with relaxed assumptions
-        // f domain must be a superset of g image
+		// new tests for new algorithm with relaxed assumptions.
+        // f domain must be a superset of g image.
         // single point
         (
             f: new Sequence([
@@ -403,8 +403,7 @@ public class Composition
     ]);
 
     /// <summary>
-    /// Pairs on which the composition is defined, covering the shapes the operands can take
-    /// at and between the boundaries of the inner one's domain.
+    /// Pairs on which the composition is defined, covering the shapes the operands can take at and between the boundaries of the inner one's domain.
     /// </summary>
     public static List<(Sequence f, Sequence g)> WellDefinedPairs =
     [
@@ -460,8 +459,7 @@ public class Composition
     public static IEnumerable<object[]> WellDefinedPairsTestCases => WellDefinedPairs.ToXUnitTestCases();
 
     /// <summary>
-    /// The composition must agree pointwise with $t \mapsto f(g(t))$, and be defined exactly
-    /// where the inner operand is.
+    /// The composition must agree pointwise with $t \mapsto f(g(t))$, and be defined exactly where the inner operand is.
     /// </summary>
     [Theory]
     [MemberData(nameof(WellDefinedPairsTestCases))]

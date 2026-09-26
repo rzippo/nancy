@@ -9,16 +9,14 @@ using Xunit;
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Sequences;
 
 /// <summary>
-/// Tests for the vertical deviation between sequences, [TBP-EB-FRTC] EB-FRTC-SEQ-D1,
-/// and for its agreeing with the deviation between the curves the operands are restrictions of,
-/// [TBP-EB-FRTC] EB-FRTC-SEQ-V1.
+/// Tests for the vertical deviation between sequences, [TBP-EB-FRTC] EB-FRTC-SEQ-D1.
+/// And for its agreeing with the deviation between the curves the operands are restrictions of, [TBP-EB-FRTC] EB-FRTC-SEQ-V1.
 /// </summary>
 public class VerticalDeviation
 {
     /// <summary>
     /// Pairs of sequences and the value of $vDev$ over them.
-    /// The definition subtracts without a positive part, so a sequence below the other gives a negative result,
-    /// as it does for curves.
+    /// The definition subtracts without a positive part, so a sequence below the other gives a negative result, as it does for curves.
     /// </summary>
     public static List<(Sequence a, Sequence b, Rational expected)> KnownVDevs =
     [
@@ -110,8 +108,8 @@ public class VerticalDeviation
     public static IEnumerable<object[]> ValidityCasesTestCases => ValidityCases.ToXUnitTestCases();
 
     /// <summary>
-    /// [TBP-EB-FRTC] EB-FRTC-SEQ-V1: over the intersection of the two domains, the deviation between the
-    /// restrictions is the deviation between the curves, with no further hypothesis.
+    /// [TBP-EB-FRTC] EB-FRTC-SEQ-V1:
+    /// over the intersection of the two domains, the deviation between the restrictions is the deviation between the curves, with no further hypothesis.
     /// </summary>
     [Theory]
     [MemberData(nameof(ValidityCasesTestCases))]

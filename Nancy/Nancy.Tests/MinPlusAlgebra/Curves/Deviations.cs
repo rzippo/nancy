@@ -736,8 +736,7 @@ public class Deviations
     }
 
     /// <summary>
-    /// Curves used to check <see cref="Curve.HorizontalDeviationFunction"/> against
-    /// independent computations of the same quantity.
+    /// Curves used to check <see cref="Curve.HorizontalDeviationFunction"/> against independent computations of the same quantity.
     /// </summary>
     public static List<Curve> PropertyCurves =
     [
@@ -806,8 +805,7 @@ public class Deviations
     }
 
     /// <summary>
-    /// For a token bucket against a rate-latency curve the deviation has a closed form,
-    /// whose supremum is the familiar delay bound $T + \sigma / R$.
+    /// For a token bucket against a rate-latency curve the deviation has a closed form, whose supremum is the familiar delay bound $T + \sigma / R$.
     /// </summary>
     [Theory]
     [InlineData(3, 1, 2, 3)]
@@ -838,8 +836,8 @@ public class Deviations
     }
 
     /// <summary>
-    /// Raising or delaying the second operand moves every crossing in the direction the
-    /// deviation follows. Unlike the deviation between sequences, this one is monotone in $g$:
+    /// Raising or delaying the second operand moves every crossing in the direction the deviation follows.
+    /// Unlike the deviation between sequences, this one is monotone in $g$:
     /// there is no overlap of images to move.
     /// </summary>
     [Theory]

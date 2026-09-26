@@ -967,8 +967,7 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// Curves and cuts for which the cut of g opens where g first attains the value it starts from,
-    /// i.e. the hypothesis of the equivalence, [TBP-EB-FRTC] EB-FRTC-SEQ-T2, holds.
+    /// Curves and cuts for which the cut of g opens where g first attains the value it starts from, i.e. the hypothesis of the equivalence, [TBP-EB-FRTC] EB-FRTC-SEQ-T2, holds.
     /// </summary>
     public static List<(Curve f, Curve g, Interval xF, Interval xG)> HDevFunctionCutsWithHypothesis =
     [
@@ -1025,8 +1024,7 @@ public class HorizontalDeviation
     ];
 
     /// <summary>
-    /// Curves and cuts for which g had already attained that value before the cut of g opens,
-    /// i.e. the hypothesis of the equivalence, [TBP-EB-FRTC] EB-FRTC-SEQ-T2, does not hold.
+    /// Curves and cuts for which g had already attained that value before the cut of g opens, i.e. the hypothesis of the equivalence, [TBP-EB-FRTC] EB-FRTC-SEQ-T2, does not hold.
     /// The two cases differ only in how far into the same plateau the cut opens.
     /// </summary>
     public static List<(Curve f, Curve g, Interval xF, Interval xG)> HDevFunctionCutsWithoutHypothesis =
@@ -1191,9 +1189,8 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// Delaying the second operand delays every crossing by the same amount, so the deviation
-    /// cannot decrease; and once it is strictly positive, so that the positive part of
-    /// [TBP-EB-FRTC] EB-FRTC-SEQ-D2 is inactive, a further delay adds exactly itself.
+    /// Delaying the second operand delays every crossing by the same amount, so the deviation cannot decrease.
+    /// Once it is strictly positive, so that the positive part of [TBP-EB-FRTC] EB-FRTC-SEQ-D2 is inactive, a further delay adds exactly itself.
     /// </summary>
     [Theory]
     [MemberData(nameof(PropertySequencePairs))]
