@@ -24,20 +24,21 @@ public static class EquivalenceApplier
         IExpression expression,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
+        // one side of the equivalence is the pattern to match, the other is what replaces it
         foreach (var (pattern, substitute) in SidesToTry(equivalence, checkType))
         {
-            var law = new LawMatchContext(equivalence);
-            if (!ExpressionPatternMatcher.TryMatchLaw(pattern, expression, true, law, out var leftover))
+            var context = new PatternMatchContext(equivalence);
+            if (!ExpressionPatternMatcher.TryMatchPattern(pattern, expression, true, context, out var leftover))
                 continue;
-            if (!law.AllHypothesesSatisfied())
+            if (!context.AllHypothesesSatisfied())
                 continue;
 
-            var newExpression = (IGenericExpression<Curve>)ExpressionRewriter.Instantiate(substitute, law.Bindings);
+            var newExpression = (IGenericExpression<Curve>)ExpressionRewriter.Instantiate(substitute, context.Bindings);
             return new EquivalenceApplyResult
             {
                 NewExpression = newExpression,
                 IsMatch = true,
-                Bindings = law.Bindings,
+                Bindings = context.Bindings,
                 NotMatchedExpressions = leftover
             };
         }

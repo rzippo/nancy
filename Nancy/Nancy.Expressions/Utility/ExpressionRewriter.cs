@@ -40,9 +40,9 @@ internal static class ExpressionRewriter
     /// Applies an equivalence at every site where it matches.
     /// </summary>
     /// <param name="original">The expression to rewrite.</param>
-    /// <param name="equivalence">The law to apply.</param>
-    /// <param name="checkType">The direction in which the law is applied.</param>
-    /// <param name="replaceAll">Whether to apply the law at every match or stop at the first one.</param>
+    /// <param name="equivalence">The equivalence to apply.</param>
+    /// <param name="checkType">The direction in which the equivalence is applied.</param>
+    /// <param name="replaceAll">Whether to apply the equivalence at every match or stop at the first one.</param>
     public static ExpressionRewriteResult ApplyEquivalence(
         IExpression original,
         Equivalence equivalence,
@@ -73,8 +73,8 @@ internal static class ExpressionRewriter
     /// </summary>
     /// <param name="original">The expression to rewrite.</param>
     /// <param name="position">The steps from the root to the sub-expression.</param>
-    /// <param name="equivalence">The law to apply.</param>
-    /// <param name="checkType">The direction in which the law is applied.</param>
+    /// <param name="equivalence">The equivalence to apply.</param>
+    /// <param name="checkType">The direction in which the equivalence is applied.</param>
     public static ExpressionRewriteResult ApplyEquivalenceByPosition(
         IExpression original,
         IReadOnlyList<PathStep> position,
@@ -217,7 +217,7 @@ internal static class ExpressionRewriter
 
     /// <summary>
     /// Builds the expression a rule produces when a pattern covered part of an n-ary node's operands.
-    /// The unmatched operands are reattached to the replacement, which is what rewriting by a law means.
+    /// The unmatched operands are reattached to the replacement, which is what rewriting by an equivalence means.
     /// A replacement of the target's own operator is merged with them unless it carries a name, which makes it one operand.
     /// </summary>
     internal static IExpression CombineWithLeftover(
@@ -380,7 +380,7 @@ internal static class ExpressionRewriter
     }
 
     /// <summary>
-    /// An equivalence: a law whose placeholders bind, matched wherever its shape occurs.
+    /// An equivalence, whose placeholders bind, matched wherever its shape occurs.
     /// </summary>
     private sealed class EquivalenceRule(Equivalence equivalence, CheckType checkType) : RewriteRule
     {
@@ -464,7 +464,7 @@ internal static class ExpressionRewriter
 /// <remarks>
 /// There are two operations rather than one rule.
 /// Substitution identifies a leaf by its name, so a caller can say "replace what is called <c>f</c>".
-/// A law ignores the name, so <c>f ⊗ g</c> matches a convolution whatever its operands are called.
+/// A side of an equivalence ignores the name, so <c>f ⊗ g</c> matches a convolution whatever its operands are called.
 /// Where a pattern covers only part of an n-ary node's operands, the match is chosen deterministically.
 /// Pattern operands are assigned in order, and each takes the first still-unmatched operand it matches.
 /// The assignment backtracks when a later operand has no candidate, and the first complete assignment in that order is the one returned.
@@ -473,8 +473,11 @@ internal static class ExpressionPatternMatcher
 {
     private enum MatchKind
     {
+        /// <summary>A concrete expression, whose leaves are identified by name.</summary>
         Substitution,
-        Law
+
+        /// <summary>One side of an equivalence: placeholders bind, and names are ignored.</summary>
+        Pattern
     }
 
     /// <summary>
@@ -488,28 +491,28 @@ internal static class ExpressionPatternMatcher
         => Match(pattern, expression, patternRoot, MatchKind.Substitution, null, out leftover);
 
     /// <summary>
-    /// Matches a law, whose placeholders bind and whose names are ignored.
+    /// Matches one side of an equivalence, whose placeholders bind and whose names are ignored.
     /// </summary>
-    public static bool TryMatchLaw(
+    public static bool TryMatchPattern(
         IExpression pattern,
         IExpression expression,
         bool patternRoot,
-        LawMatchContext context,
+        PatternMatchContext context,
         out List<IExpression>? leftover)
-        => Match(pattern, expression, patternRoot, MatchKind.Law, context, out leftover);
+        => Match(pattern, expression, patternRoot, MatchKind.Pattern, context, out leftover);
 
     private static bool Match(
         IExpression pattern,
         IExpression expression,
         bool patternRoot,
         MatchKind kind,
-        LawMatchContext? law,
+        PatternMatchContext? context,
         out List<IExpression>? leftover)
     {
         leftover = null;
 
-        if (kind == MatchKind.Law && pattern is IPlaceholderExpression)
-            return BindPlaceholder(pattern, expression, law!);
+        if (kind == MatchKind.Pattern && pattern is IPlaceholderExpression)
+            return BindPlaceholder(pattern, expression, context!);
 
         if (pattern.GetType() != expression.GetType())
             return false;
@@ -519,14 +522,14 @@ internal static class ExpressionPatternMatcher
             var valueMatches = pattern is IExpressionLeaf leaf
                 ? leaf.ValueMatches(expression)
                 : pattern.Equals(expression);
-            return kind == MatchKind.Law
+            return kind == MatchKind.Pattern
                 ? valueMatches
                 : pattern.Name == expression.Name && valueMatches;
         }
 
         var expressionNode = (IExpressionNode)expression;
         if (patternNode.Arity == NodeArity.NAry)
-            return MatchNAry(patternNode, expressionNode, patternRoot, kind, law, out leftover);
+            return MatchNAry(patternNode, expressionNode, patternRoot, kind, context, out leftover);
 
         var patternChildren = patternNode.Children;
         var expressionChildren = expressionNode.Children;
@@ -535,7 +538,7 @@ internal static class ExpressionPatternMatcher
 
         for (var i = 0; i < patternChildren.Count; i++)
         {
-            if (!Match(patternChildren[i], expressionChildren[i], false, kind, law, out _))
+            if (!Match(patternChildren[i], expressionChildren[i], false, kind, context, out _))
                 return false;
         }
 
@@ -547,7 +550,7 @@ internal static class ExpressionPatternMatcher
         IExpressionNode expressionNode,
         bool patternRoot,
         MatchKind kind,
-        LawMatchContext? law,
+        PatternMatchContext? context,
         out List<IExpression>? leftover)
     {
         leftover = null;
@@ -560,7 +563,7 @@ internal static class ExpressionPatternMatcher
             return false;
 
         var used = new bool[expressionOperands.Count];
-        if (!AssignOperands(0, patternOperands, expressionOperands, used, kind, law))
+        if (!AssignOperands(0, patternOperands, expressionOperands, used, kind, context))
             return false;
 
         if (patternRoot)
@@ -582,7 +585,7 @@ internal static class ExpressionPatternMatcher
         IReadOnlyList<IExpression> expressionOperands,
         bool[] used,
         MatchKind kind,
-        LawMatchContext? law)
+        PatternMatchContext? context)
     {
         if (patternIndex == patternOperands.Count)
             return true;
@@ -592,34 +595,34 @@ internal static class ExpressionPatternMatcher
             if (used[i])
                 continue;
 
-            var snapshot = law?.Clone();
-            if (Match(patternOperands[patternIndex], expressionOperands[i], false, kind, law, out _))
+            var snapshot = context?.Clone();
+            if (Match(patternOperands[patternIndex], expressionOperands[i], false, kind, context, out _))
             {
                 used[i] = true;
-                if (AssignOperands(patternIndex + 1, patternOperands, expressionOperands, used, kind, law))
+                if (AssignOperands(patternIndex + 1, patternOperands, expressionOperands, used, kind, context))
                     return true;
                 used[i] = false;
             }
 
             if (snapshot is not null)
-                law!.Restore(snapshot);
+                context!.Restore(snapshot);
         }
 
         return false;
     }
 
-    private static bool BindPlaceholder(IExpression pattern, IExpression expression, LawMatchContext law)
+    private static bool BindPlaceholder(IExpression pattern, IExpression expression, PatternMatchContext context)
         => pattern is IPlaceholderExpression placeholder
            && placeholder.Accepts(expression)
-           && law.Bind(pattern.Name, expression);
+           && context.Bind(pattern.Name, expression);
 }
 
 /// <summary>
-/// The bindings a law accumulates while matching, and the hypotheses that prune them.
+/// The bindings a match against one side of an equivalence accumulates, and the hypotheses that prune them.
 /// </summary>
-internal sealed class LawMatchContext
+internal sealed class PatternMatchContext
 {
-    public LawMatchContext(Equivalence equivalence)
+    public PatternMatchContext(Equivalence equivalence)
     {
         Equivalence = equivalence;
     }
@@ -634,15 +637,15 @@ internal sealed class LawMatchContext
     /// </remarks>
     public Dictionary<string, IExpression> Bindings { get; } = new();
 
-    public LawMatchContext Clone()
+    public PatternMatchContext Clone()
     {
-        var clone = new LawMatchContext(Equivalence);
+        var clone = new PatternMatchContext(Equivalence);
         foreach (var (key, value) in Bindings)
             clone.Bindings[key] = value;
         return clone;
     }
 
-    public void Restore(LawMatchContext snapshot)
+    public void Restore(PatternMatchContext snapshot)
     {
         Bindings.Clear();
         foreach (var (key, value) in snapshot.Bindings)

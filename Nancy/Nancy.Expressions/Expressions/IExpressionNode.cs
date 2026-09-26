@@ -48,7 +48,7 @@ internal interface IExpressionNode : IExpression
 }
 
 /// <summary>
-/// A placeholder expression, standing for whatever a law binds it to.
+/// A placeholder expression, standing for whatever an equivalence binds it to.
 /// </summary>
 /// <remarks>
 /// The marker exists so a matcher can tell a pattern variable from a concrete leaf without naming any value type.

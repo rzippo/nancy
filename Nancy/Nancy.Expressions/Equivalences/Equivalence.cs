@@ -217,7 +217,7 @@ public record EquivalenceApplyResult
     public bool IsMatch { get; init; }
 
     /// <summary>
-    /// What the law's placeholders bound to, by name.
+    /// What the equivalence's placeholders bound to, by name.
     /// </summary>
     public IReadOnlyDictionary<string, IExpression> Bindings { get; init; }
         = new Dictionary<string, IExpression>();

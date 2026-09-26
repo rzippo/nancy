@@ -1019,7 +1019,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
     /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side expression, this parameter identifies the direction of application of the equivalence (match of the left side, and substitution with the right side, or vice versa, or both).</param>
     /// <returns>
-    /// The result, carrying the new expression, how many sites were rewritten, where, and what the law's placeholders bound to.
+    /// The result, carrying the new expression, how many sites were rewritten, where, and what the equivalence's placeholders bound to.
     /// When the equivalence matches nothing, the expression is the original, unchanged, and <see cref="ExpressionRewriteResult.Matched"/> is <see langword="false"/>.
     /// </returns>
     public ExpressionRewriteResult ApplyEquivalenceWithResult(Equivalence equivalence,
@@ -1081,7 +1081,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
     /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side expression, this parameter identifies the direction of application of the equivalence (match of the left side, and substitution with the right side, or vice versa, or both).</param>
     /// <returns>
-    /// The result, carrying the new expression, the one position if it was rewritten, and what the law's placeholders bound to.
+    /// The result, carrying the new expression, the one position if it was rewritten, and what the equivalence's placeholders bound to.
     /// When the equivalence matches nothing at the position, the expression is the original, unchanged, and <see cref="ExpressionRewriteResult.Matched"/> is <see langword="false"/>.
     /// </returns>
     public ExpressionRewriteResult ApplyEquivalenceByPositionWithResult(ExpressionPosition expressionPosition,
