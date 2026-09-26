@@ -27,6 +27,10 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
         => VisitBinaryInfix(expression, " - ");
 
     /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceConcatExpression expression)
+        => VisitBinaryInfix(expression, " \\frown ");
+
+    /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceMinimumExpression expression)
         => VisitNAryInfix(expression, @" \wedge ");
 

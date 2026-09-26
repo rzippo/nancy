@@ -95,6 +95,14 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     }
     
     /// <inheritdoc />
+    public void Visit(SequenceConcatExpression expression)
+    {
+        var a = expression.LeftOperand.Value;
+        var b = expression.RightOperand.Value;
+        _result = Sequence.Concat(a, b, expression.PreserveDelay, expression.PreserveShift);
+    }
+
+    /// <inheritdoc />
     public void Visit(SequenceToNonNegativeExpression expression)
     {
         var sequence = expression.Operand.Value;

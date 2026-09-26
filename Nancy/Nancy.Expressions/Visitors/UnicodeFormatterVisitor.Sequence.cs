@@ -27,6 +27,10 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
         => VisitBinaryInfix(expression, " - ");
 
     /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceConcatExpression expression)
+        => VisitBinaryInfix(expression, " ⌢ ");
+
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceMinimumExpression expression)
         => VisitNAryInfix(expression, " ∧ ");
 

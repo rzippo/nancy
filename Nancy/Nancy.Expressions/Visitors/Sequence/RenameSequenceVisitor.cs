@@ -72,6 +72,9 @@ public class RenameSequenceVisitor : ISequenceExpressionVisitor
     public virtual void Visit(SequenceSubtractionExpression expression) => CommonVisit(expression);
 
     /// <inheritdoc />
+    public virtual void Visit(SequenceConcatExpression expression) => CommonVisit(expression);
+
+    /// <inheritdoc />
     public virtual void Visit(SequenceToNonNegativeExpression expression) => CommonVisit(expression);
 
     /// <inheritdoc />

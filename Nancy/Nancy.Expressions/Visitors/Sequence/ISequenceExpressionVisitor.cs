@@ -118,6 +118,11 @@ public interface ISequenceExpressionVisitor : IExpressionVisitor<MinPlusAlgebra.
     public void Visit(SequenceSubtractionExpression expression);
     
     /// <summary>
+    /// Visit method for the type <see cref="SequenceConcatExpression"/>
+    /// </summary>
+    public void Visit(SequenceConcatExpression expression);
+    
+    /// <summary>
     /// Visit method for the type <see cref="SequenceSubtractionExpression"/>
     /// </summary>
     public void Visit(SequenceToNonNegativeExpression expression);
@@ -188,6 +193,11 @@ public interface ISequenceExpressionVisitor<out TResult> : IExpressionVisitor<Mi
     /// Visit method for the type <see cref="SequenceSubtractionExpression"/>
     /// </summary>
     public TResult Visit(SequenceSubtractionExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceConcatExpression"/>
+    /// </summary>
+    public TResult Visit(SequenceConcatExpression expression);
 
     /// <summary>
     /// Visit method for the type <see cref="SequenceToNonNegativeExpression"/>

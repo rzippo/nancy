@@ -294,6 +294,41 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         string expressionName = "", ExpressionSettings? settings = null)
         => Subtraction(new ConcreteSequenceExpression(sequence, name), expressionName, settings);
 
+    /// <summary>
+    /// Creates an expression that concatenates <paramref name="expression"/> after this one.
+    /// </summary>
+    /// <param name="expression">The sequence that follows this one.</param>
+    /// <param name="preserveDelay">If true, the delay of <paramref name="expression"/> is kept as a gap between the two.</param>
+    /// <param name="preserveShift">If true, the value <paramref name="expression"/> starts from is kept as a jump at the join.</param>
+    /// <param name="expressionName">The name of the resulting expression.</param>
+    /// <param name="settings">Settings for the resulting expression.</param>
+    /// <remarks>
+    /// The order matters, so this is not the same expression as concatenating the two the other way round.
+    /// </remarks>
+    public SequenceExpression Concat(
+        SequenceExpression expression,
+        bool preserveDelay = false,
+        bool preserveShift = false,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceConcatExpression(this, expression, preserveDelay, preserveShift, expressionName, settings);
+
+    /// <inheritdoc cref="Concat(SequenceExpression,bool,bool,string,ExpressionSettings)"/>
+    /// <param name="sequence">The sequence that follows this one.</param>
+    /// <param name="name">The name of <paramref name="sequence"/>.</param>
+    /// <param name="preserveDelay">If true, the delay of <paramref name="sequence"/> is kept as a gap between the two.</param>
+    /// <param name="preserveShift">If true, the value <paramref name="sequence"/> starts from is kept as a jump at the join.</param>
+    /// <param name="expressionName">The name of the resulting expression.</param>
+    /// <param name="settings">Settings for the resulting expression.</param>
+    public SequenceExpression Concat(
+        Sequence sequence,
+        [CallerArgumentExpression("sequence")] string name = "",
+        bool preserveDelay = false,
+        bool preserveShift = false,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => Concat(new ConcreteSequenceExpression(sequence, name), preserveDelay, preserveShift, expressionName, settings);
+
     #endregion Subtraction
 
     #region Minimum
