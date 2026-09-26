@@ -48,6 +48,23 @@ public class ReplacerDeterminism
     }
 
     [Fact]
+    public void OneEquivalenceAppliesToTwoExpressions()
+    {
+        var equivalence = new SubAdditiveClosureOfMin();
+        var first = Expressions.SubAdditiveClosure(Expressions.Minimum(A, B));
+        var second = Expressions.SubAdditiveClosure(Expressions.Minimum(Ce, Ae));
+
+        var firstResult = EquivalenceApplier.Apply(equivalence, first);
+        var secondResult = EquivalenceApplier.Apply(equivalence, second);
+
+        Assert.True(firstResult.IsMatch);
+        Assert.True(secondResult.IsMatch);
+        Assert.NotEqual(
+            firstResult.NewExpression!.ToUnicodeString(),
+            secondResult.NewExpression!.ToUnicodeString());
+    }
+
+    [Fact]
     public void ARewriteLeavesTheOriginalExpressionUnchanged()
     {
         var expression = Expressions.Subtraction(Ae, Be);

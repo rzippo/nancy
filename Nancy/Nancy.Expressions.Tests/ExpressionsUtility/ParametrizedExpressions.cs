@@ -11,7 +11,7 @@ namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
 /// <summary>
 /// An expression built over placeholders is a parametrized expression, and <c>ReplaceByValue</c> is how it is instantiated.
 /// Each placeholder is replaced by the expression standing in for it.
-/// <see cref="Nancy.Expressions.Equivalences.OneTimeEquivalenceApplier"/> instantiates the side of an
+/// <see cref="Nancy.Expressions.Equivalences.EquivalenceApplier"/> instantiates the side of an
 /// equivalence it substitutes in exactly this way, so every equivalence runs through this path.
 /// </summary>
 public class ParametrizedExpressions
