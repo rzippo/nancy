@@ -272,6 +272,157 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitToNonNegative<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var concreteName = expression.Operand switch
+            {
+                ConcreteCurveExpression cce => cce.Name,
+                ConcreteSequenceExpression cse => cse.Name,
+                _ => null
+            };
+            var needsSquareParentheses = concreteName == null || !FormatName(concreteName).ToString().Contains('_');
+            if (needsSquareParentheses) sb.Append('[');
+            var (unicode, _) = GeneralizedAccept(expression.Operand);
+            sb.Append(unicode);
+            if (needsSquareParentheses) sb.Append(']');
+            sb.Append('⁺');
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitEnclosing<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        char left,
+        char right
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (inner, _) = GeneralizedAccept(expression.Operand);
+            sb.Append(left);
+            sb.Append(inner);
+            sb.Append(right);
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitPseudoInverse<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        char arrow
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (unicode, innerNeedsParentheses) = GeneralizedAccept(expression.Operand);
+            var operationNeedsParentheses = expression.Operand is (
+                LowerPseudoInverseExpression or
+                UpperPseudoInverseExpression or
+                SequenceLowerPseudoInverseExpression or
+                SequenceUpperPseudoInverseExpression or
+                ToLowerNonDecreasingExpression or
+                ToUpperNonDecreasingExpression or
+                ToNonNegativeExpression or
+                SequenceToNonNegativeExpression
+            );
+            var needsParentheses = innerNeedsParentheses || operationNeedsParentheses;
+            if (needsParentheses)
+            {
+                sb.Append('(');
+                sb.Append(unicode);
+                sb.Append(')');
+            }
+            else
+                sb.Append(unicode);
+            sb.Append(arrow);
+            sb.Append("\u207B\u00B9");
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitValueAt<T1, TResult>(
+        IGenericBinaryExpression<T1, Rational, TResult> expression
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (curveUnicode, curveNeedsParentheses) = GeneralizedAccept(expression.LeftOperand);
+            if (curveNeedsParentheses)
+            {
+                sb.Append('(');
+                sb.Append(curveUnicode);
+                sb.Append(')');
+            }
+            else
+                sb.Append(curveUnicode);
+            var (timeUnicode, _) = GeneralizedAccept(expression.RightOperand);
+            sb.Append('(');
+            sb.Append(timeUnicode);
+            sb.Append(')');
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitLimitAt<T1, TResult>(
+        IGenericBinaryExpression<T1, Rational, TResult> expression,
+        string limitMarker
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (curveUnicode, curveNeedsParentheses) = GeneralizedAccept(expression.LeftOperand);
+            if (curveNeedsParentheses)
+            {
+                sb.Append('(');
+                sb.Append(curveUnicode);
+                sb.Append(')');
+            }
+            else
+                sb.Append(curveUnicode);
+            var (timeUnicode, timeNeedsParentheses) = GeneralizedAccept(expression.RightOperand);
+            sb.Append('(');
+            if (timeNeedsParentheses)
+            {
+                sb.Append('(');
+                sb.Append(timeUnicode);
+                sb.Append(limitMarker);
+                sb.Append(')');
+            }
+            else
+                sb.Append(timeUnicode);
+            sb.Append(')');
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
     /// <summary>
     /// Formats the name of an expression substituting a greek letter using the correspondent symbol
     /// </summary>
@@ -357,23 +508,7 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ToNonNegativeExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var needsSquareParentheses = expression.Operand is not ConcreteCurveExpression cce || !FormatName(cce.Name).ToString().Contains('_');
-            if (needsSquareParentheses) sb.Append('[');
-            var (unicode, _) = expression.Operand.Accept<(StringBuilder, bool)>(this);
-            sb.Append(unicode);
-            if (needsSquareParentheses) sb.Append(']');
-            sb.Append('⁺');
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitToNonNegative(expression);
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SubAdditiveClosureExpression expression)
@@ -461,77 +596,11 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LowerPseudoInverseExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (unicode, innerNeedsParentheses) = expression.Operand.Accept<(StringBuilder, bool)>(this);
-            var operationNeedsParentheses = expression.Operand is (
-                LowerPseudoInverseExpression or 
-                UpperPseudoInverseExpression or
-                ToLowerNonDecreasingExpression or
-                ToUpperNonDecreasingExpression or
-                ToNonNegativeExpression
-            );
-            var needsParentheses = innerNeedsParentheses || operationNeedsParentheses;
-            if (needsParentheses)
-            {
-                sb.Append('(');
-                sb.Append(unicode);
-                sb.Append(')');
-                sb.Append('↓');
-                sb.Append("\u207B" + "\u00B9");
-            }
-            else
-            {
-                sb.Append(unicode);
-                sb.Append('↓');
-                sb.Append("\u207B" + "\u00B9");
-            }
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitPseudoInverse(expression, '↓');
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(UpperPseudoInverseExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (unicode, innerNeedsParentheses) = expression.Operand.Accept<(StringBuilder, bool)>(this);
-            var operationNeedsParentheses = expression.Operand is (
-                LowerPseudoInverseExpression or 
-                UpperPseudoInverseExpression or
-                ToLowerNonDecreasingExpression or
-                ToUpperNonDecreasingExpression or
-                ToNonNegativeExpression
-                );
-            var needsParentheses = innerNeedsParentheses || operationNeedsParentheses;
-            if (needsParentheses)
-            {
-                sb.Append('(');
-                sb.Append(unicode);
-                sb.Append(')');
-                sb.Append('↑');
-                sb.Append("\u207B\u00B9");
-            }
-            else
-            {
-                sb.Append(unicode);
-                sb.Append('↑');
-                sb.Append("\u207B\u00B9");
-            }
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitPseudoInverse(expression, '↑');
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(AdditionExpression expression)
@@ -707,100 +776,15 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
-            if (curveNeedsParentheses)
-            {
-                sb.Append('(');
-                sb.Append(curveUnicode);
-                sb.Append(')');
-            }
-            else
-                sb.Append(curveUnicode);
-            var (timeUnicode, _) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
-            sb.Append('(');
-            sb.Append(timeUnicode);
-            sb.Append(')');
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitValueAt(expression);
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
-            if (curveNeedsParentheses)
-            {
-                sb.Append('(');
-                sb.Append(curveUnicode);
-                sb.Append(')');
-            }
-            else
-                sb.Append(curveUnicode);
-            var (timeUnicode, timeNeedsParentheses) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
-            sb.Append('(');
-            if (timeNeedsParentheses)
-            {
-                sb.Append('(');
-                sb.Append(timeUnicode);
-                sb.Append("^-");
-                sb.Append(')');
-            }
-            else
-                sb.Append(timeUnicode);
-            sb.Append(')');
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitLimitAt(expression, "^-");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (curveUnicode, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
-            if (curveNeedsParentheses)
-            {
-                sb.Append('(');
-                sb.Append(curveUnicode);
-                sb.Append(')');
-            }
-            else
-                sb.Append(curveUnicode);
-            var (timeUnicode, timeNeedsParentheses) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
-            sb.Append('(');
-            if (timeNeedsParentheses)
-            {
-                sb.Append('(');
-                sb.Append(timeUnicode);
-                sb.Append("^+");
-                sb.Append(')');
-            }
-            else
-                sb.Append(timeUnicode);
-            sb.Append(')');
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitLimitAt(expression, "^+");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)
@@ -816,39 +800,11 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(FloorExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (inner, _) = GeneralizedAccept(expression.Operand);
-            sb.Append('⌊');
-            sb.Append(inner);
-            sb.Append('⌋');
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitEnclosing(expression, '⌊', '⌋');
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CeilExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (inner, _) = GeneralizedAccept(expression.Operand);
-            sb.Append('⌈');
-            sb.Append(inner);
-            sb.Append('⌉');
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitEnclosing(expression, '⌈', '⌉');
 
     /// <summary>
     /// Regular expression to detect strings which terminate with digits

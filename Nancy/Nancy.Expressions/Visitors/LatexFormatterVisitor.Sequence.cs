@@ -64,19 +64,44 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceDelayExpression expression)
-        => VisitBinaryPrefix(expression, " delay");
+        => VisitBinaryPrefix(expression, "delay");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceForwardExpression expression)
-        => VisitBinaryPrefix(expression, " forward");
+        => VisitBinaryPrefix(expression, "forward");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceHorizontalShiftExpression expression)
-        => VisitBinaryPrefix(expression, " hShift");
+        => VisitBinaryPrefix(expression, "hShift");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceVerticalShiftExpression expression)
-        => VisitBinaryPrefix(expression, " vShift");
+    {
+        switch (expression.RightOperand)
+        {
+            case NegateRationalExpression negate:
+            {
+                var inner = negate.Operand;
+                var substitute = new SequenceVerticalShiftExpression(
+                    (SequenceExpression)expression.LeftOperand,
+                    (RationalExpression)inner);
+                return VisitBinaryInfix(substitute, " - ");
+            }
+
+            case RationalNumberExpression rex when rex.Value.IsNegative:
+            {
+                var substitute = new SequenceVerticalShiftExpression(
+                    (SequenceExpression)expression.LeftOperand,
+                    new RationalNumberExpression(-rex.Value));
+                return VisitBinaryInfix(substitute, " - ");
+            }
+
+            default:
+            {
+                return VisitBinaryInfix(expression, " + ");
+            }
+        }
+    }
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceNegateExpression expression)
@@ -84,23 +109,31 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceToNonNegativeExpression expression)
-        => VisitUnaryPostfix(expression, "^{+}");
+        => VisitToNonNegative(expression);
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceToLeftContinuousExpression expression)
-        => VisitUnaryPostfix(expression, "_{l}");
+        => VisitUnaryPostfix(expression, "_{l}",
+            innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
+        );
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceToRightContinuousExpression expression)
-        => VisitUnaryPostfix(expression, "_{r}");
+        => VisitUnaryPostfix(expression, "_{r}",
+            innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
+        );
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceLowerPseudoInverseExpression expression)
-        => VisitUnaryPostfix(expression, @"^{\underline{-1}}");
+        => VisitUnaryPostfix(expression, @"^{\underline{-1}}",
+            innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
+        );
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceUpperPseudoInverseExpression expression)
-        => VisitUnaryPostfix(expression, @"^{\overline{-1}}");
+        => VisitUnaryPostfix(expression, @"^{\overline{-1}}",
+            innerExpression => ContainsSubscriptOrSuperscript(innerExpression)
+        );
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceCutExpression expression)
@@ -112,11 +145,12 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
         var (inner, _) = GeneralizedAccept(expression.Operand);
         CurrentDepth--;
 
-        var sb = new StringBuilder("cut(");
+        var sb = new StringBuilder("cut");
+        sb.Append(@"\left( ");
         sb.Append(inner);
         sb.Append(", ");
         sb.Append(expression.Interval);
-        sb.Append(')');
+        sb.Append(@" \right)");
 
         return (sb, false);
     }
@@ -131,11 +165,12 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
         var (inner, _) = GeneralizedAccept(expression.Operand);
         CurrentDepth--;
 
-        var sb = new StringBuilder("cutToNeighbourhood(");
+        var sb = new StringBuilder("cutToNeighbourhood");
+        sb.Append(@"\left( ");
         sb.Append(inner);
         sb.Append(", ");
         sb.Append($"[{expression.CutStart}, {expression.CutEnd}]");
-        sb.Append(')');
+        sb.Append(@" \right)");
 
         return (sb, false);
     }
@@ -150,11 +185,12 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
         var (inner, _) = GeneralizedAccept(expression.Operand);
         CurrentDepth--;
 
-        var sb = new StringBuilder("cut(");
+        var sb = new StringBuilder("cut");
+        sb.Append(@"\left( ");
         sb.Append(inner);
         sb.Append(", ");
         sb.Append(expression.Interval);
-        sb.Append(')');
+        sb.Append(@" \right)");
 
         return (sb, false);
     }
@@ -169,40 +205,41 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
         var (inner, _) = GeneralizedAccept(expression.Operand);
         CurrentDepth--;
 
-        var sb = new StringBuilder("cutToNeighbourhood(");
+        var sb = new StringBuilder("cutToNeighbourhood");
+        sb.Append(@"\left( ");
         sb.Append(inner);
         sb.Append(", ");
         sb.Append($"[{expression.CutStart}, {expression.CutEnd}]");
-        sb.Append(')');
+        sb.Append(@" \right)");
 
         return (sb, false);
     }
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceValueAtExpression expression)
-        => VisitBinaryPrefix(expression, " value");
+        => VisitValueAt(expression);
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceLeftLimitAtExpression expression)
-        => VisitBinaryPrefix(expression, " leftLimit");
+        => VisitLimitAt(expression, "^-");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceRightLimitAtExpression expression)
-        => VisitBinaryPrefix(expression, " rightLimit");
+        => VisitLimitAt(expression, "^+");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceHorizontalDeviationExpression expression)
-        => VisitBinaryPrefix(expression, @" hdev");
+        => VisitBinaryPrefix(expression, "hdev");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceVerticalDeviationExpression expression)
-        => VisitBinaryPrefix(expression, @" vdev");
+        => VisitBinaryPrefix(expression, "vdev");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceFloorExpression expression)
-        => VisitUnaryPrefix(expression, "floor");
+        => VisitEnclosing(expression, @"\lfloor ", @" \rfloor");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceCeilExpression expression)
-        => VisitUnaryPrefix(expression, "ceil");
+        => VisitEnclosing(expression, @"\lceil ", @" \rceil");
 }

@@ -77,7 +77,12 @@ public partial class LatexFormatterVisitor :
                 ToUpperNonDecreasingExpression or
                 ToNonNegativeExpression or
                 ToLeftContinuousExpression or
-                ToRightContinuousExpression
+                ToRightContinuousExpression or
+                SequenceLowerPseudoInverseExpression or
+                SequenceUpperPseudoInverseExpression or
+                SequenceToNonNegativeExpression or
+                SequenceToLeftContinuousExpression or
+                SequenceToRightContinuousExpression
         ))
             return true;
         else
@@ -333,6 +338,125 @@ public partial class LatexFormatterVisitor :
         }
     }
 
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitToNonNegative<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var squareParenthesis = expression.Operand is not (
+                ConcreteCurveExpression
+                or ConcreteSequenceExpression
+                or ToUpperNonDecreasingExpression
+                or ToLowerNonDecreasingExpression);
+            if (squareParenthesis) sb.Append(@"\left[ ");
+            var (latex, _) = GeneralizedAccept(expression.Operand);
+            sb.Append(latex);
+            if (squareParenthesis) sb.Append(@" \right]");
+            string resultToString = sb.ToString();
+            if (resultToString.EndsWith(@"_{\uparrow}") || resultToString.EndsWith(@"_{\downarrow}"))
+            {
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append("^{+}}");
+            }
+            else
+                sb.Append("^{+}");
+
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitEnclosing<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        string left,
+        string right
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
+            sb.Append(left);
+            sb.Append(innerLatex);
+            sb.Append(right);
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitValueAt<T1, TResult>(
+        IGenericBinaryExpression<T1, Rational, TResult> expression
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (curveLatex, curveNeedsParentheses) = GeneralizedAccept(expression.LeftOperand);
+            if (curveNeedsParentheses)
+            {
+                sb.Append(@"\left(");
+                sb.Append(curveLatex);
+                sb.Append(@"\right)");
+            }
+            else
+                sb.Append(curveLatex);
+            var (timeLatex, _) = GeneralizedAccept(expression.RightOperand);
+            sb.Append(@"\left(");
+            sb.Append(timeLatex);
+            sb.Append(@"\right)");
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitLimitAt<T1, TResult>(
+        IGenericBinaryExpression<T1, Rational, TResult> expression,
+        string superscript
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+        else
+        {
+            CurrentDepth++;
+            var sb = new StringBuilder();
+            var (curveLatex, curveNeedsParentheses) = GeneralizedAccept(expression.LeftOperand);
+            if (curveNeedsParentheses)
+            {
+                sb.Append(@"\left(");
+                sb.Append(curveLatex);
+                sb.Append(@"\right)");
+            }
+            else
+                sb.Append(curveLatex);
+            var (timeLatex, timeNeedsParentheses) = GeneralizedAccept(expression.RightOperand);
+            sb.Append(@"\left(");
+            if (timeNeedsParentheses)
+            {
+                sb.Append(@"\left(");
+                sb.Append(timeLatex);
+                sb.Append(superscript);
+                sb.Append(@"\right)");
+            }
+            else
+                sb.Append(timeLatex);
+            sb.Append(@"\right)");
+            CurrentDepth--;
+            return (sb, false);
+        }
+    }
+
     /// <summary>
     /// Formats the name of an expression putting as subscript the ending digits and substituting a greek letter using
     /// the correspondent Latex command
@@ -424,35 +548,7 @@ public partial class LatexFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ToNonNegativeExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var squareParenthesis = expression.Operand is not (ConcreteCurveExpression
-                or ToUpperNonDecreasingExpression
-                or ToLowerNonDecreasingExpression);
-            if (squareParenthesis) sb.Append(@"\left[ ");
-            var (latex, _) = expression.Operand.Accept<(StringBuilder, bool)>(this);
-            sb.Append(latex);
-            if (squareParenthesis) sb.Append(@" \right]");
-            string resultToString = sb.ToString();
-            // Usually ToNonNegative is used together with ToUpperNonDecreasing or ToLowerNonDecreasing
-            // The following instructions are used to obtain the proper Latex formatting
-            if (resultToString.EndsWith(@"_{\uparrow}") || resultToString.EndsWith(@"_{\downarrow}"))
-            {
-                sb.Remove(sb.Length - 1, 1);
-                sb.Append("^{+}}");
-            }
-            else
-                sb.Append("^{+}");
-
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitToNonNegative(expression);
 
     // todo: review notation for subAdditive and superAdditive closures
     /// <inheritdoc />
@@ -576,15 +672,15 @@ public partial class LatexFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(DelayByExpression expression)
-        => VisitBinaryPrefix(expression, " delayBy");
+        => VisitBinaryPrefix(expression, "delayBy");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ForwardByExpression expression)
-        => VisitBinaryPrefix(expression, " forwardBy");
-    
+        => VisitBinaryPrefix(expression, "forwardBy");
+
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(HorizontalShiftExpression expression)
-        => VisitBinaryPrefix(expression, " hShift");
+        => VisitBinaryPrefix(expression, "hShift");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(VerticalShiftExpression expression)
@@ -701,100 +797,15 @@ public partial class LatexFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(ValueAtExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (curveLatex, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
-            if (curveNeedsParentheses)
-            {
-                sb.Append(@"\left(");
-                sb.Append(curveLatex);
-                sb.Append(@"\right)");
-            }
-            else
-                sb.Append(curveLatex);
-            var (timeLatex, _) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
-            sb.Append(@"\left(");
-            sb.Append(timeLatex);
-            sb.Append(@"\right)");
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitValueAt(expression);
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (curveLatex, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
-            if (curveNeedsParentheses)
-            {
-                sb.Append(@"\left(");
-                sb.Append(curveLatex);
-                sb.Append(@"\right)");
-            }
-            else
-                sb.Append(curveLatex);
-            var (timeLatex, timeNeedsParentheses) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
-            sb.Append(@"\left(");
-            if (timeNeedsParentheses)
-            {
-                sb.Append(@"\left(");
-                sb.Append(timeLatex);
-                sb.Append("^-");
-                sb.Append(@"\right)");
-            }
-            else
-                sb.Append(timeLatex);
-            sb.Append(@"\right)");
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitLimitAt(expression, "^-");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (curveLatex, curveNeedsParentheses) = expression.LeftOperand.Accept<(StringBuilder, bool)>(this);
-            if (curveNeedsParentheses)
-            {
-                sb.Append(@"\left(");
-                sb.Append(curveLatex);
-                sb.Append(@"\right)");
-            }
-            else
-                sb.Append(curveLatex);
-            var (timeLatex, timeNeedsParentheses) = expression.RightOperand.Accept<(StringBuilder, bool)>(this);
-            sb.Append(@"\left(");
-            if (timeNeedsParentheses)
-            {
-                sb.Append(@"\left(");
-                sb.Append(timeLatex);
-                sb.Append("^+");
-                sb.Append(@"\right)");
-            }
-            else
-                sb.Append(timeLatex);
-            sb.Append(@"\right)");
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitLimitAt(expression, "^+");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)
@@ -810,39 +821,11 @@ public partial class LatexFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(FloorExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
-            sb.Append(@"\lfloor ");
-            sb.Append(innerLatex);
-            sb.Append(@" \rfloor");
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitEnclosing(expression, @"\lfloor ", @" \rfloor");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(CeilExpression expression)
-    {
-        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
-            return (FormatName(expression.Name), false);
-        else
-        {
-            CurrentDepth++;
-            var sb = new StringBuilder();
-            var (innerLatex, _) = GeneralizedAccept(expression.Operand);
-            sb.Append(@"\lceil ");
-            sb.Append(innerLatex);
-            sb.Append(@" \rceil");
-            CurrentDepth--;
-            return (sb, false);
-        }
-    }
+        => VisitEnclosing(expression, @"\lceil ", @" \rceil");
 
     /// <summary>
     /// Regular expression to detect strings which terminate with digits

@@ -44,7 +44,7 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceMaxPlusConvolutionExpression expression)
-        => VisitNAryInfix(expression, " ⊗̅ ");
+        => VisitNAryInfix(expression, " \u0305⊗ ");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceDeconvolutionExpression expression)
@@ -52,7 +52,7 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceMaxPlusDeconvolutionExpression expression)
-        => VisitBinaryInfix(expression, " ⊘̅ ");
+        => VisitBinaryInfix(expression, " \u0305⊘ ");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceCompositionExpression expression)
@@ -60,7 +60,7 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceScaleExpression expression)
-        => VisitBinaryInfix(expression, " · ");
+        => VisitBinaryInfix(expression, "·");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceDelayExpression expression)
@@ -76,7 +76,32 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceVerticalShiftExpression expression)
-        => VisitBinaryPrefix(expression, "vShift");
+    {
+        switch (expression.RightOperand)
+        {
+            case NegateRationalExpression negate:
+            {
+                var inner = negate.Operand;
+                var substitute = new SequenceVerticalShiftExpression(
+                    (SequenceExpression)expression.LeftOperand,
+                    (RationalExpression)inner);
+                return VisitBinaryInfix(substitute, " - ");
+            }
+
+            case RationalNumberExpression rex when rex.Value.IsNegative:
+            {
+                var substitute = new SequenceVerticalShiftExpression(
+                    (SequenceExpression)expression.LeftOperand,
+                    new RationalNumberExpression(-rex.Value));
+                return VisitBinaryInfix(substitute, " - ");
+            }
+
+            default:
+            {
+                return VisitBinaryInfix(expression, " + ");
+            }
+        }
+    }
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceNegateExpression expression)
@@ -84,23 +109,23 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceToNonNegativeExpression expression)
-        => VisitUnaryPostfix(expression, "⁺");
+        => VisitToNonNegative(expression);
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceToLeftContinuousExpression expression)
-        => VisitUnaryPostfix(expression, "_l");
+        => VisitUnaryPrefix(expression, "toLeftContinuous");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceToRightContinuousExpression expression)
-        => VisitUnaryPostfix(expression, "_r");
+        => VisitUnaryPrefix(expression, "toRightContinuous");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceLowerPseudoInverseExpression expression)
-        => VisitUnaryPostfix(expression, "↓-1");
+        => VisitPseudoInverse(expression, '↓');
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceUpperPseudoInverseExpression expression)
-        => VisitUnaryPostfix(expression, "↑-1");
+        => VisitPseudoInverse(expression, '↑');
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceCutExpression expression)
@@ -180,15 +205,15 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceValueAtExpression expression)
-        => VisitBinaryPrefix(expression, "value");
+        => VisitValueAt(expression);
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceLeftLimitAtExpression expression)
-        => VisitBinaryPrefix(expression, "leftLimit");
+        => VisitLimitAt(expression, "^-");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceRightLimitAtExpression expression)
-        => VisitBinaryPrefix(expression, "rightLimit");
+        => VisitLimitAt(expression, "^+");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceHorizontalDeviationExpression expression)
@@ -200,9 +225,9 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceFloorExpression expression)
-        => VisitUnaryPrefix(expression, "floor");
+        => VisitEnclosing(expression, '⌊', '⌋');
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceCeilExpression expression)
-        => VisitUnaryPrefix(expression, "ceil");
+        => VisitEnclosing(expression, '⌈', '⌉');
 }
