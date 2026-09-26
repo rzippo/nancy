@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using Unipi.Nancy.Expressions.Utility;
 using Xunit;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 [TestSubject(typeof(ExtensionMethods))]
 public class ExtensionMethodsTest

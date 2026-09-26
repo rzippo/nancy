@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using Unipi.Nancy.NetworkCalculus;
 using Xunit;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 public class Renaming
 {

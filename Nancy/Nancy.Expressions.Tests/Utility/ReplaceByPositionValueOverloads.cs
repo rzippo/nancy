@@ -7,7 +7,7 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 /// <summary>
 /// Each tree carries <c>ReplaceByPosition</c> overloads taking a bare <see cref="Curve"/> or <see cref="Rational"/> rather than an expression.

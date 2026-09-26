@@ -5,7 +5,7 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Xunit;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 /// <summary>
 /// Covers the path step value and the position built from it: construction, rendering, parsing and equality.

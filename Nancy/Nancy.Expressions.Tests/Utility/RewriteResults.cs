@@ -7,7 +7,7 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 /// <summary>
 /// Each rewriting operation comes in two forms: the value-returning one hands back the expression alone, and the result-returning one also says whether anything matched, how many sites, where, and what an equivalence bound.

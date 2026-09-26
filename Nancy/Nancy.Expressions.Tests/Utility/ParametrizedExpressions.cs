@@ -6,7 +6,7 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 /// <summary>
 /// An expression built over placeholders is a parametrized expression, and <c>ReplaceByValue</c> is how it is instantiated.

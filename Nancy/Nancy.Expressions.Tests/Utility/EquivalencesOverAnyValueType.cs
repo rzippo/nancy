@@ -4,7 +4,7 @@ using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 /// <summary>
 /// An equivalence is stated over expressions of one value type, and nothing in the machinery is written for a particular one.

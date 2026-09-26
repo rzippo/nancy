@@ -4,13 +4,13 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Xunit;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 /// <summary>
 /// Replacement is a pure function of the expression, what to find and what to put there.
 /// The same inputs give the same answer however many times the operation is called, and the original is left untouched.
 /// </summary>
-public class ReplacerDeterminism
+public class RewriteDeterminism
 {
     private static readonly Curve A = new SigmaRhoArrivalCurve(1, 1);
     private static readonly Curve B = new SigmaRhoArrivalCurve(2, 2);

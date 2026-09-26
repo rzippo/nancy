@@ -6,14 +6,14 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 
-namespace Unipi.Nancy.Expressions.Tests.ExpressionsUtility;
+namespace Unipi.Nancy.Expressions.Tests.Utility;
 
 
-public class ExpressionReplacer
+public class ExpressionRewriting
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
-    public ExpressionReplacer(ITestOutputHelper testOutputHelper)
+    public ExpressionRewriting(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }
