@@ -192,6 +192,12 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         => new SequenceNegateExpression(this, expressionName, settings);
 
     /// <summary>
+    /// Implementation of the unary - operator as the negation of a <see cref="SequenceExpression"/>.
+    /// </summary>
+    public static SequenceExpression operator -(SequenceExpression expression)
+        => expression.Negate();
+
+    /// <summary>
     /// Creates a new expression composed of the floor of the current expression.
     /// </summary>
     public SequenceExpression Floor(string expressionName = "", ExpressionSettings? settings = null)
@@ -276,6 +282,12 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     public static SequenceExpression operator +(SequenceExpression left, Sequence right)
         => Addition(left, right);
 
+    /// <summary>
+    /// Implementation of the + operator as the addition between <see cref="SequenceExpression"/> objects.
+    /// </summary>
+    public static SequenceExpression operator +(SequenceExpression left, SequenceExpression right)
+        => left.Addition(right);
+
     #endregion Addition
 
     #region Subtraction
@@ -293,6 +305,18 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     public SequenceExpression Subtraction(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => Subtraction(new ConcreteSequenceExpression(sequence, name), expressionName, settings);
+
+    /// <summary>
+    /// Implementation of the - operator as the subtraction between <see cref="SequenceExpression"/> objects.
+    /// </summary>
+    public static SequenceExpression operator -(SequenceExpression left, SequenceExpression right)
+        => left.Subtraction(right);
+
+    /// <summary>
+    /// Implementation of the - operator as the subtraction between <see cref="SequenceExpression"/> objects.
+    /// </summary>
+    public static SequenceExpression operator -(SequenceExpression left, Sequence right)
+        => left.Subtraction(right);
 
     /// <summary>
     /// Creates an expression that concatenates <paramref name="expression"/> after this one.
@@ -612,6 +636,48 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// </summary>
     public SequenceExpression Scale(Rational scaleFactor, string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceScaleExpression(this, new RationalNumberExpression(scaleFactor), expressionName, settings);
+
+    /// <summary>
+    /// Implementation of the * operator to scale a sequence expression by a rational number.
+    /// Computes $g(t) = k \cdot f(t)$.
+    /// </summary>
+    public static SequenceExpression operator *(SequenceExpression sequence, Rational scaleFactor)
+        => sequence.Scale(scaleFactor);
+
+    /// <summary>
+    /// Implementation of the * operator to scale a sequence expression by a rational number.
+    /// Computes $g(t) = k \cdot f(t)$.
+    /// </summary>
+    public static SequenceExpression operator *(Rational scaleFactor, SequenceExpression sequence)
+        => sequence.Scale(scaleFactor);
+
+    /// <summary>
+    /// Implementation of the * operator to scale a sequence expression by a rational expression.
+    /// Computes $g(t) = k \cdot f(t)$.
+    /// </summary>
+    public static SequenceExpression operator *(SequenceExpression sequence, RationalExpression scaleFactor)
+        => sequence.Scale(scaleFactor);
+
+    /// <summary>
+    /// Implementation of the * operator to scale a sequence expression by a rational expression.
+    /// Computes $g(t) = k \cdot f(t)$.
+    /// </summary>
+    public static SequenceExpression operator *(RationalExpression scaleFactor, SequenceExpression sequence)
+        => sequence.Scale(scaleFactor);
+
+    /// <summary>
+    /// Implementation of the / operator to scale down a sequence expression by a rational number.
+    /// Computes $g(t) = f(t) / k$.
+    /// </summary>
+    public static SequenceExpression operator /(SequenceExpression sequence, Rational scaleFactor)
+        => sequence.Scale(1 / scaleFactor);
+
+    /// <summary>
+    /// Implementation of the / operator to scale down a sequence expression by a rational expression.
+    /// Computes $g(t) = f(t) / k$.
+    /// </summary>
+    public static SequenceExpression operator /(SequenceExpression sequence, RationalExpression scaleFactor)
+        => sequence.Scale(scaleFactor.Invert());
 
     #endregion Scale
 
@@ -1065,6 +1131,58 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
     public static SequenceExpression operator +(SequenceExpression sequenceExpression, Rational rational)
+        => sequenceExpression.VerticalShift(rational);
+
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="SequenceExpression"/>
+    /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) - K$.
+    /// </summary>
+    /// <param name="sequenceExpression">The sequence expression.</param>
+    /// <param name="rationalExpression">The rational expression.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// The shift moves every element, including a point at the origin where the sequence has one.
+    /// </remarks>
+    public static SequenceExpression operator -(SequenceExpression sequenceExpression, RationalExpression rationalExpression)
+        => sequenceExpression.VerticalShift(rationalExpression.Negate());
+
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="SequenceExpression"/>
+    /// by <paramref name="rational"/>, i.e., computing $f(t) - K$.
+    /// </summary>
+    /// <param name="sequenceExpression">The sequence expression.</param>
+    /// <param name="rational">The rational value.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// The shift moves every element, including a point at the origin where the sequence has one.
+    /// </remarks>
+    public static SequenceExpression operator -(SequenceExpression sequenceExpression, Rational rational)
+        => sequenceExpression.VerticalShift(-rational);
+
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="SequenceExpression"/>
+    /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) + K$.
+    /// </summary>
+    /// <param name="sequenceExpression">The sequence expression.</param>
+    /// <param name="rationalExpression">The rational expression.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// The shift moves every element, including a point at the origin where the sequence has one.
+    /// </remarks>
+    public static SequenceExpression operator +(RationalExpression rationalExpression, SequenceExpression sequenceExpression)
+        => sequenceExpression.VerticalShift(rationalExpression);
+
+    /// <summary>
+    /// Creates a new expression that shifts the <see cref="SequenceExpression"/>
+    /// by <paramref name="rational"/>, i.e., computing $f(t) + K$.
+    /// </summary>
+    /// <param name="sequenceExpression">The sequence expression.</param>
+    /// <param name="rational">The rational value.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// The shift moves every element, including a point at the origin where the sequence has one.
+    /// </remarks>
+    public static SequenceExpression operator +(Rational rational, SequenceExpression sequenceExpression)
         => sequenceExpression.VerticalShift(rational);
 
     #endregion Methods
