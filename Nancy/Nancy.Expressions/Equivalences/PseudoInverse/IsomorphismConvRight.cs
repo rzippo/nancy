@@ -23,9 +23,9 @@ public class IsomorphismConvRight : Equivalence
                     Expressions.Placeholder("g"))
             ))
     {
-        AddHypothesis("f", f => f.IsNonDecreasing);
-        AddHypothesis("f", f => f.IsRightContinuous);
-        AddHypothesis("g", g => g.IsNonDecreasing);
-        AddHypothesis("g", g => g.IsRightContinuous);
+        AddHypothesis<CurveExpression>("f", f => f.IsNonDecreasing);
+        AddHypothesis<CurveExpression>("f", f => f.IsRightContinuous);
+        AddHypothesis<CurveExpression>("g", g => g.IsNonDecreasing);
+        AddHypothesis<CurveExpression>("g", g => g.IsRightContinuous);
     }
 }

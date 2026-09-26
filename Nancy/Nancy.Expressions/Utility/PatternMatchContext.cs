@@ -37,24 +37,6 @@ internal sealed class PatternMatchContext
             Bindings[key] = value;
     }
 
-    /// <summary>
-    /// The binding of <paramref name="name"/>, if there is one and it is a <typeparamref name="T"/>.
-    /// </summary>
-    /// <remarks>
-    /// The bindings are one map of <see cref="IExpression"/>, so a caller that knows what it asked for says so here.
-    /// </remarks>
-    private bool TryGetBinding<T>(string name, out T value) where T : class, IExpression
-    {
-        if (Bindings.TryGetValue(name, out var bound) && bound is T typed)
-        {
-            value = typed;
-            return true;
-        }
-
-        value = null!;
-        return false;
-    }
-
     public bool Bind(string name, IExpression expression)
     {
         if (Bindings.TryGetValue(name, out var existing))
@@ -65,36 +47,12 @@ internal sealed class PatternMatchContext
 
     /// <summary>
     /// True if every hypothesis whose placeholders are all bound holds.
-    /// A hypothesis with an unbound placeholder is not evaluated yet.
+    /// A hypothesis naming a placeholder that is not bound yet cannot be decided, and is not evaluated.
     /// </summary>
     private bool HypothesesHold()
     {
-        foreach (var (name, hypotheses) in Equivalence.Hypothesis)
-            if (TryGetBinding<CurveExpression>(name, out var expression) && !hypotheses.All(h => h(expression)))
-                return false;
-
-        foreach (var (key, hypotheses) in Equivalence.HypothesisPair)
-            if (TryGetBinding<CurveExpression>(key.Item1, out var first) && TryGetBinding<CurveExpression>(key.Item2, out var second)
-                && !hypotheses.All(h => h(first, second)))
-                return false;
-
-        foreach (var (key, hypotheses) in Equivalence.HypothesisTriple)
-            if (TryGetBinding<CurveExpression>(key.Item1, out var first) && TryGetBinding<CurveExpression>(key.Item2, out var second)
-                && TryGetBinding<CurveExpression>(key.Item3, out var third) && !hypotheses.All(h => h(first, second, third)))
-                return false;
-
-        foreach (var (name, hypotheses) in Equivalence.RationalHypothesis)
-            if (TryGetBinding<RationalExpression>(name, out var expression) && !hypotheses.All(h => h(expression)))
-                return false;
-
-        foreach (var (key, hypotheses) in Equivalence.RationalHypothesisPair)
-            if (TryGetBinding<RationalExpression>(key.Item1, out var first) && TryGetBinding<RationalExpression>(key.Item2, out var second)
-                && !hypotheses.All(h => h(first, second)))
-                return false;
-
-        foreach (var (key, hypotheses) in Equivalence.RationalHypothesisTriple)
-            if (TryGetBinding<RationalExpression>(key.Item1, out var first) && TryGetBinding<RationalExpression>(key.Item2, out var second)
-                && TryGetBinding<RationalExpression>(key.Item3, out var third) && !hypotheses.All(h => h(first, second, third)))
+        foreach (var hypothesis in Equivalence.Hypotheses)
+            if (TryGetBindings(hypothesis.Placeholders, out var bound) && !hypothesis.Holds(bound))
                 return false;
 
         return true;
@@ -105,25 +63,30 @@ internal sealed class PatternMatchContext
     /// </summary>
     public bool AllHypothesesSatisfied()
     {
-        foreach (var (name, _) in Equivalence.Hypothesis)
-            if (!TryGetBinding<CurveExpression>(name, out _))
-                return false;
-        foreach (var (key, _) in Equivalence.HypothesisPair)
-            if (!TryGetBinding<CurveExpression>(key.Item1, out _) || !TryGetBinding<CurveExpression>(key.Item2, out _))
-                return false;
-        foreach (var (key, _) in Equivalence.HypothesisTriple)
-            if (!TryGetBinding<CurveExpression>(key.Item1, out _) || !TryGetBinding<CurveExpression>(key.Item2, out _) || !TryGetBinding<CurveExpression>(key.Item3, out _))
-                return false;
-        foreach (var (name, _) in Equivalence.RationalHypothesis)
-            if (!TryGetBinding<RationalExpression>(name, out _))
-                return false;
-        foreach (var (key, _) in Equivalence.RationalHypothesisPair)
-            if (!TryGetBinding<RationalExpression>(key.Item1, out _) || !TryGetBinding<RationalExpression>(key.Item2, out _))
-                return false;
-        foreach (var (key, _) in Equivalence.RationalHypothesisTriple)
-            if (!TryGetBinding<RationalExpression>(key.Item1, out _) || !TryGetBinding<RationalExpression>(key.Item2, out _) || !TryGetBinding<RationalExpression>(key.Item3, out _))
+        foreach (var hypothesis in Equivalence.Hypotheses)
+            if (!TryGetBindings(hypothesis.Placeholders, out var bound) || !hypothesis.Holds(bound))
                 return false;
 
-        return HypothesesHold();
+        return true;
+    }
+
+    /// <summary>
+    /// What <paramref name="names"/> are bound to, in the same order, if all of them are bound.
+    /// </summary>
+    /// <remarks>
+    /// The value type is not consulted here: a hypothesis written for one value type is false of a binding of another, which the hypothesis itself decides.
+    /// </remarks>
+    private bool TryGetBindings(IReadOnlyList<string> names, out IReadOnlyList<IExpression> bound)
+    {
+        var operands = new IExpression[names.Count];
+        for (var i = 0; i < names.Count; i++)
+            if (!Bindings.TryGetValue(names[i], out operands[i]!))
+            {
+                bound = [];
+                return false;
+            }
+
+        bound = operands;
+        return true;
     }
 }

@@ -15,9 +15,9 @@ public class ConvolutionWithConcaveFunctions : Equivalence
                 Expressions.Placeholder("f"), 
                 Expressions.Placeholder("g")))
     {
-        AddHypothesis("f", f => f.IsConcave);
-        AddHypothesis("g", g => g.IsConcave);
-        AddHypothesis("f", f => f.IsPassingThroughOrigin);
-        AddHypothesis("g", g => g.IsPassingThroughOrigin);
+        AddHypothesis<CurveExpression>("f", f => f.IsConcave);
+        AddHypothesis<CurveExpression>("g", g => g.IsConcave);
+        AddHypothesis<CurveExpression>("f", f => f.IsPassingThroughOrigin);
+        AddHypothesis<CurveExpression>("g", g => g.IsPassingThroughOrigin);
     }
 }

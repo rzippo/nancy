@@ -15,9 +15,9 @@ public class ConvolutionSubAdditiveWithDominance : Equivalence
         base(Expressions.Convolution(Expressions.Placeholder("f"), Expressions.Placeholder("g")),
             Expressions.Placeholder("f"))
     {
-        AddHypothesis("f", f => f.IsSubAdditive);
-        AddHypothesis("g", g => g.IsPassingThroughOrigin);
-        AddHypothesis("f", "g", (CurveExpression f, CurveExpression g) => f <= g);
-        AddHypothesis("f", "g", (f, g) => f.Convolution(g).IsWellDefined);
+        AddHypothesis<CurveExpression>("f", f => f.IsSubAdditive);
+        AddHypothesis<CurveExpression>("g", g => g.IsPassingThroughOrigin);
+        AddHypothesis<CurveExpression>("f", "g", (CurveExpression f, CurveExpression g) => f <= g);
+        AddHypothesis<CurveExpression>("f", "g", (f, g) => f.Convolution(g).IsWellDefined);
     }
 }

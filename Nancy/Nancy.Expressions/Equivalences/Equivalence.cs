@@ -1,10 +1,5 @@
 using System.Text;
-using Antlr4.Runtime;
 using Unipi.Nancy.Expressions.Utility;
-using Unipi.Nancy.Expressions.Grammar;
-using Unipi.Nancy.Expressions.Nodes;
-using Unipi.Nancy.MinPlusAlgebra;
-using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.Expressions.Equivalences;
 
@@ -14,144 +9,83 @@ namespace Unipi.Nancy.Expressions.Equivalences;
 public partial class Equivalence
 {
     /// <summary>
-    /// Left side of the equivalence
+    /// Left side of the equivalence.
     /// </summary>
-    public CurveExpression LeftSideExpression { get; init; }
-    
-    /// <summary>
-    /// Right side of the equivalence
-    /// </summary>
-    public CurveExpression RightSideExpression { get; init; }
+    public IExpression LeftSideExpression { get; init; }
 
     /// <summary>
-    /// Hypotheses on a single curve operand.
+    /// Right side of the equivalence.
     /// </summary>
-    internal readonly Dictionary<string, IEnumerable<Predicate<CurveExpression>>> Hypothesis = new();
+    public IExpression RightSideExpression { get; init; }
 
     /// <summary>
-    /// Hypotheses on a two curve operands.
+    /// The conditions the equivalence places on what its placeholders bind to.
     /// </summary>
-    internal readonly Dictionary<Tuple<string, string>, IEnumerable<Func<CurveExpression, CurveExpression, bool>>>
-        HypothesisPair = new();
-
-    /// <summary>
-    /// Hypotheses on a three curve operands.
-    /// </summary>
-    internal readonly
-        Dictionary<Tuple<string, string, string>,
-            IEnumerable<Func<CurveExpression, CurveExpression, CurveExpression, bool>>>
-        HypothesisTriple = new();
-
-    /// <summary>
-    /// Hypotheses on a single rational operand.
-    /// </summary>
-    internal readonly Dictionary<string, IEnumerable<Predicate<RationalExpression>>> RationalHypothesis = new();
-
-    /// <summary>
-    /// Hypotheses on two rational operands.
-    /// </summary>
-    internal readonly Dictionary<Tuple<string, string>, IEnumerable<Func<RationalExpression, RationalExpression, bool>>>
-        RationalHypothesisPair = new();
-
-    /// <summary>
-    /// Hypotheses on three rational operands.
-    /// </summary>
-    internal readonly
-        Dictionary<Tuple<string, string, string>,
-            IEnumerable<Func<RationalExpression, RationalExpression, RationalExpression, bool>>>
-        RationalHypothesisTriple = new();
+    /// <remarks>
+    /// The value type a condition speaks about is tested inside the condition, not here.
+    /// </remarks>
+    internal readonly List<Hypothesis> Hypotheses = [];
 
     /// <summary>
     /// Equivalence constructor
     /// </summary>
     /// <param name="leftSideExpression">The left side of the equivalence</param>
     /// <param name="rightSideExpression">The right side of the equivalence</param>
-    /// <exception cref="Exception">Exception raised if left or right side don't contain placeholders</exception>
+    /// <exception cref="InvalidOperationException">Exception raised if left or right side don't contain placeholders</exception>
+    /// <exception cref="ArgumentException">If the two sides are written over different value types.</exception>
+    /// <exception cref="ArgumentException">If a placeholder name is used with two different value types across the two sides.</exception>
     public Equivalence(
-        CurveExpression leftSideExpression,
-        CurveExpression rightSideExpression)
+        IExpression leftSideExpression,
+        IExpression rightSideExpression)
     {
         if (!_endWithPlaceholder(leftSideExpression) || !_endWithPlaceholder(rightSideExpression))
             throw new InvalidOperationException(
                 "Can't instantiate Equivalence: both sides must end with a placeholder in at least one branch!");
+
+        var leftValueType = ExpressionValueType.Of(leftSideExpression);
+        var rightValueType = ExpressionValueType.Of(rightSideExpression);
+        if (leftValueType != rightValueType)
+            throw new ArgumentException(
+                $"The two sides of the equivalence have different value types: {leftValueType.Name} and {rightValueType.Name}.");
+
+        _throwIfAPlaceholderNameHasTwoValueTypes(leftSideExpression, rightSideExpression);
 
         LeftSideExpression = leftSideExpression;
         RightSideExpression = rightSideExpression;
     }
 
     /// <summary>
-    /// Add an hypothesis on a single curve operand.
+    /// Add an hypothesis on a single operand of value type <typeparamref name="T"/>.
     /// </summary>
-    public void AddHypothesis(string placeholder, Predicate<CurveExpression> h)
-    {
-        if (Hypothesis.TryGetValue(placeholder, out var hypothesisList))
-            Hypothesis[placeholder] = hypothesisList.Append(h);
-        else
-            Hypothesis[placeholder] = [h];
-    }
+    /// <remarks>
+    /// The condition is false where <paramref name="placeholder"/> is bound to an expression of another value type.
+    /// <typeparamref name="T"/> is given explicitly, since it cannot be inferred from a lambda whose parameter type is left out.
+    /// </remarks>
+    public void AddHypothesis<T>(string placeholder, Predicate<T> h)
+        where T : class, IExpression
+        => Hypotheses.Add(new Hypothesis(
+            [placeholder],
+            bound => bound[0] is T operand && h(operand)));
 
     /// <summary>
-    /// Add an hypothesis on a two curve operands.
+    /// Add an hypothesis on two operands of value type <typeparamref name="T"/>.
     /// </summary>
-    public void AddHypothesis(string placeholder1, string placeholder2,
-        Func<CurveExpression, CurveExpression, bool> h)
-    {
-        var key = Tuple.Create(placeholder1, placeholder2);
-        if (HypothesisPair.TryGetValue(key, out var hypothesisList))
-            HypothesisPair[key] = hypothesisList.Append(h);
-        else
-            HypothesisPair[key] = [h];
-    }
+    public void AddHypothesis<T>(string placeholder1, string placeholder2, Func<T, T, bool> h)
+        where T : class, IExpression
+        => Hypotheses.Add(new Hypothesis(
+            [placeholder1, placeholder2],
+            bound => bound[0] is T first && bound[1] is T second && h(first, second)));
 
     /// <summary>
-    /// Add an hypothesis on a three curve operands.
+    /// Add an hypothesis on three operands of value type <typeparamref name="T"/>.
     /// </summary>
-    public void AddHypothesis(string placeholder1, string placeholder2, string placeholder3,
-        Func<CurveExpression, CurveExpression, CurveExpression, bool> h)
-    {
-        var key = Tuple.Create(placeholder1, placeholder2, placeholder3);
-        if (HypothesisTriple.TryGetValue(key, out var hypothesisList))
-            HypothesisTriple[key] = hypothesisList.Append(h);
-        else
-            HypothesisTriple[key] = [h];
-    }
-
-    /// <summary>
-    /// Add an hypothesis on a single rational operand.
-    /// </summary>
-    public void AddHypothesis(string placeholder, Predicate<RationalExpression> h)
-    {
-        if (RationalHypothesis.TryGetValue(placeholder, out var hypothesisList))
-            RationalHypothesis[placeholder] = hypothesisList.Append(h);
-        else
-            RationalHypothesis[placeholder] = [h];
-    }
-
-    /// <summary>
-    /// Add an hypothesis on two rational operands.
-    /// </summary>
-    public void AddHypothesis(string placeholder1, string placeholder2,
-        Func<RationalExpression, RationalExpression, bool> h)
-    {
-        var key = Tuple.Create(placeholder1, placeholder2);
-        if (RationalHypothesisPair.TryGetValue(key, out var hypothesisList))
-            RationalHypothesisPair[key] = hypothesisList.Append(h);
-        else
-            RationalHypothesisPair[key] = [h];
-    }
-
-    /// <summary>
-    /// Add an hypothesis on three rational operands.
-    /// </summary>
-    public void AddHypothesis(string placeholder1, string placeholder2, string placeholder3,
-        Func<RationalExpression, RationalExpression, RationalExpression, bool> h)
-    {
-        var key = Tuple.Create(placeholder1, placeholder2, placeholder3);
-        if (RationalHypothesisTriple.TryGetValue(key, out var hypothesisList))
-            RationalHypothesisTriple[key] = hypothesisList.Append(h);
-        else
-            RationalHypothesisTriple[key] = [h];
-    }
+    public void AddHypothesis<T>(string placeholder1, string placeholder2, string placeholder3,
+        Func<T, T, T, bool> h)
+        where T : class, IExpression
+        => Hypotheses.Add(new Hypothesis(
+            [placeholder1, placeholder2, placeholder3],
+            bound => bound[0] is T first && bound[1] is T second && bound[2] is T third
+                     && h(first, second, third)));
 
     /// <summary>
     /// Check and apply the equivalence.
@@ -160,7 +94,7 @@ public partial class Equivalence
     /// <param name="checkType">The type-checking mode to use.</param>
     /// <returns>The result.</returns>
     public EquivalenceApplyResult Apply(
-        IGenericExpression<Curve> expression,
+        IExpression expression,
         CheckType checkType = CheckType.CheckLeftOnly
     )
     {
@@ -168,8 +102,40 @@ public partial class Equivalence
     }
 
     private static bool _endWithPlaceholder(IExpression expression)
-        => expression is CurvePlaceholderExpression or RationalPlaceholderExpression
+        => expression is IPlaceholderExpression
            || expression is IExpressionNode node && node.Children.Any(_endWithPlaceholder);
+
+    private static void _throwIfAPlaceholderNameHasTwoValueTypes(IExpression leftSideExpression,
+        IExpression rightSideExpression)
+    {
+        var valueTypes = new Dictionary<string, Type>();
+        _collectPlaceholderValueTypes(leftSideExpression, valueTypes);
+        _collectPlaceholderValueTypes(rightSideExpression, valueTypes);
+    }
+
+    private static void _collectPlaceholderValueTypes(IExpression expression, Dictionary<string, Type> valueTypes)
+    {
+        if (expression is IPlaceholderExpression)
+        {
+            var valueType = ExpressionValueType.Of(expression);
+            if (valueTypes.TryGetValue(expression.Name, out var existing))
+            {
+                if (existing != valueType)
+                    throw new ArgumentException(
+                        $"The placeholder \"{expression.Name}\" is used with two different value types: {existing.Name} and {valueType.Name}.");
+            }
+            else
+            {
+                valueTypes.Add(expression.Name, valueType);
+            }
+
+            return;
+        }
+
+        if (expression is IExpressionNode node)
+            foreach (var child in node.Children)
+                _collectPlaceholderValueTypes(child, valueTypes);
+    }
 
     /// <inheritdoc />
     public override string ToString()

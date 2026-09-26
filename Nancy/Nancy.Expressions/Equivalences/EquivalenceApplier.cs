@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using Unipi.Nancy.Expressions.Utility;
-using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Expressions.Equivalences;
 
@@ -33,7 +31,7 @@ public static class EquivalenceApplier
             if (!context.AllHypothesesSatisfied())
                 continue;
 
-            var newExpression = (IGenericExpression<Curve>)ExpressionRewriter.Instantiate(substitute, context.Bindings);
+            var newExpression = ExpressionRewriter.Instantiate(substitute, context.Bindings);
             return new EquivalenceApplyResult
             {
                 NewExpression = newExpression,

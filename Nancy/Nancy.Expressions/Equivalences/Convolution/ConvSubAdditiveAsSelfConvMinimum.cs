@@ -15,10 +15,10 @@ public class ConvSubAdditiveAsSelfConvMinimum : Equivalence
             Expressions.Minimum(Expressions.Placeholder("f"), Expressions.Placeholder("g")),
             Expressions.Minimum(Expressions.Placeholder("f"), Expressions.Placeholder("g"))))
     {
-        AddHypothesis("f", f => f.IsSubAdditive);
-        AddHypothesis("g", g => g.IsSubAdditive);
-        AddHypothesis("f", f => f.IsPassingThroughOrigin);
-        AddHypothesis("g", g => g.IsPassingThroughOrigin);
-        AddHypothesis("f", "g", (f, g) => f.Convolution(g).IsWellDefined);
+        AddHypothesis<CurveExpression>("f", f => f.IsSubAdditive);
+        AddHypothesis<CurveExpression>("g", g => g.IsSubAdditive);
+        AddHypothesis<CurveExpression>("f", f => f.IsPassingThroughOrigin);
+        AddHypothesis<CurveExpression>("g", g => g.IsPassingThroughOrigin);
+        AddHypothesis<CurveExpression>("f", "g", (f, g) => f.Convolution(g).IsWellDefined);
     }
 }

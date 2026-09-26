@@ -1,4 +1,3 @@
-using Unipi.Nancy.MinPlusAlgebra;
 
 namespace Unipi.Nancy.Expressions.Equivalences;
 
@@ -10,7 +9,10 @@ public record EquivalenceApplyResult
     /// <summary>
     /// The expression the equivalence produced, or <see langword="null"/> if it did not match.
     /// </summary>
-    public IGenericExpression<Curve>? NewExpression { get; init; }
+    /// <remarks>
+    /// Its value type is the one the equivalence's own sides are written over, so a caller casts where it knows what it asked for.
+    /// </remarks>
+    public IExpression? NewExpression { get; init; }
 
     /// <summary>
     /// True if the equivalence matched.

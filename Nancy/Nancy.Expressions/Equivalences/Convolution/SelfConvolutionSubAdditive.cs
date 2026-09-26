@@ -13,7 +13,7 @@ public class SelfConvolutionSubAdditive : Equivalence
         Expressions.Convolution(Expressions.Placeholder("f"), Expressions.Placeholder("f")),
         new CurvePlaceholderExpression("f"))
     {
-        AddHypothesis("f", f => f.IsSubAdditive);
-        AddHypothesis("f", f => f.IsPassingThroughOrigin);
+        AddHypothesis<CurveExpression>("f", f => f.IsSubAdditive);
+        AddHypothesis<CurveExpression>("f", f => f.IsPassingThroughOrigin);
     }
 }

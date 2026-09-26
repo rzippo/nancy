@@ -40,7 +40,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
                         var parsedProperty = prop.Accept(this);
                         if (parsedProperty is Predicate<CurveExpression> predicate)
                         {
-                            equivalence.AddHypothesis(placeholder, predicate);
+                            equivalence.AddHypothesis<CurveExpression>(placeholder, predicate);
                         }
                     }
                 }
@@ -57,7 +57,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
                 if (!_placeholders.Contains(placeholder1) || !_placeholders.Contains(placeholder2))
                     throw new InvalidOperationException("Well defined property contains the wrong placeholders!");
 
-                equivalence.AddHypothesis(placeholder1, placeholder2, Property);
+                equivalence.AddHypothesis<CurveExpression>(placeholder1, placeholder2, Property);
 
                 bool Property(CurveExpression f, CurveExpression g) => Expressions.Convolution(f, g).IsWellDefined;
             }
@@ -70,7 +70,7 @@ public class EquivalenceGrammarVisitor : NetCalGBaseVisitor<object>
                 if (!_placeholders.Contains(placeholder1) || !_placeholders.Contains(placeholder2))
                     throw new InvalidOperationException("Relational operator contains the wrong placeholders!");
 
-                equivalence.AddHypothesis(placeholder1, placeholder2,
+                equivalence.AddHypothesis<CurveExpression>(placeholder1, placeholder2,
                     (Func<CurveExpression, CurveExpression, bool>)hyp.relationalOperator().Accept(this));
             }
         }

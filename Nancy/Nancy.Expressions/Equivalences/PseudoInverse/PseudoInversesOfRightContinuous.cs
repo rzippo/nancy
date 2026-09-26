@@ -14,7 +14,7 @@ public class PseudoInversesOfRightContinuous : Equivalence
         base(Expressions.UpperPseudoInverse(Expressions.LowerPseudoInverse(Expressions.Placeholder("f"))),
             Expressions.Placeholder("f"))
     {
-        AddHypothesis("f", f => f.IsNonDecreasing);
-        AddHypothesis("f", f => f.IsRightContinuous);
+        AddHypothesis<CurveExpression>("f", f => f.IsNonDecreasing);
+        AddHypothesis<CurveExpression>("f", f => f.IsRightContinuous);
     }
 }
