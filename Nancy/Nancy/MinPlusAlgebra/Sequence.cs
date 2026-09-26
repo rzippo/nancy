@@ -1925,8 +1925,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes the vertical deviation between the two sequences, $vDev(f, g)$.
     /// The two sequences must have an overlapping domain, and the deviation is measured between points in that overlap. 
     /// </summary>
-    /// <param name="f">Must be non-negative and non-decreasing.</param>
-    /// <param name="g">Must be non-negative and non-decreasing.</param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="g">The second operand.</param>
     /// <param name="settings"></param>
     /// <returns>A vertical deviation, which may be negative.</returns>
     /// <remarks>
@@ -2032,8 +2032,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes the vertical deviation function between the two sequences, $vDev(f, g, t)$.
     /// The two sequences must have an overlapping support, and the deviation is measured between points in that overlap. 
     /// </summary>
-    /// <param name="f">Must be non-negative and non-decreasing.</param>
-    /// <param name="g">Must be non-negative and non-decreasing.</param>
+    /// <param name="f">The first operand.</param>
+    /// <param name="g">The second operand.</param>
     /// <param name="settings"></param>
     /// <returns>A vertical deviation function, whose values may be negative.</returns>
     /// <remarks>
@@ -2044,11 +2044,6 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     public static Sequence VerticalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
-        if (!f.IsNonNegative || !g.IsNonNegative)
-            throw new ArgumentException("The arguments must be non-negative.");
-        if (!f.IsNonDecreasing || !g.IsNonDecreasing)
-            throw new ArgumentException("The arguments must be non-decreasing.");
-
         var supportOverlapNullable = Interval.Intersection(f.Support, g.Support);
         if(!supportOverlapNullable.HasValue)
             throw new ArgumentException("The two sequences do not have an overlapping support.");
