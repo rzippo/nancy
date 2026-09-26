@@ -1749,16 +1749,25 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         var displacedB = preserveDelay ? b.Delay(a.DefinedUntil, prependWithZero: false) : b.Delay(a.DefinedUntil - b.DefinedFrom, prependWithZero: false);
         displacedB = preserveShift ? displacedB.VerticalShift(aEndingValue) : displacedB.VerticalShift(aEndingValue - bStartingValue);
 
-        IEnumerable<Element> elements;
-        if (a.IsRightOpen && b.IsLeftOpen)
-            elements = a.Elements
-                .Append(new Point(time: a.DefinedUntil, value: aEndingValue))
-                .Concat(displacedB.Elements);
-        else
-            elements = a.Elements
-                .Concat(displacedB.Elements);
+        IEnumerable<Element> elements = a.Elements;
+        if (displacedB.DefinedFrom > a.DefinedUntil)
+        {
+            // The delay was preserved, so the two operands do not meet and the concatenation is infinite between them.
+            // The infinite part is the open interval: each endpoint belongs to the operand that defines it.
+            if (a.IsRightOpen)
+                elements = elements.Append(new Point(time: a.DefinedUntil, value: aEndingValue));
 
-        var sequence = new Sequence(elements);
+            elements = elements.Append(Segment.PlusInfinite(a.DefinedUntil, displacedB.DefinedFrom));
+
+            if (displacedB.IsLeftOpen)
+                elements = elements.Append(Point.PlusInfinite(displacedB.DefinedFrom));
+        }
+        else if (a.IsRightOpen && b.IsLeftOpen)
+        {
+            elements = elements.Append(new Point(time: a.DefinedUntil, value: aEndingValue));
+        }
+
+        var sequence = new Sequence(elements.Concat(displacedB.Elements));
         return sequence;
     }
 
