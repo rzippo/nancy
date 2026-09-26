@@ -1409,7 +1409,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
             .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
 
     /// <summary>
-    /// Replaces every occurence of a sub-expression in the expression to which the method is applied.
+    /// Replaces every occurrence of a sub-expression in the expression to which the method is applied.
     /// </summary>
     /// <param name="expressionPattern">The sub-expression to look for in the main expression for being replaced.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
@@ -1468,7 +1468,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </summary>
     /// <param name="positionPath">Position of the expression to be replaced. The position is expressed as a path from
     /// the root of the expression by using a list of strings "Operand" for unary operators, "LeftOperand"/"RightOperand"
-    /// for binary operators, "Operand(index)" for n-ary operators.</param>
+    /// for binary operators, the operand's index, from 0, for n-ary operators.</param>
     /// <param name="newExpressionToReplace">The new sub-expression.</param>
     /// <returns>New expression object (of type <see cref="CurveExpression"/>) with the replaced sub-expression.
     /// A valid position is always replaced; a position that does not fit the expression is rejected with an <see cref="ArgumentException"/>.
@@ -1562,7 +1562,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </summary>
     /// <param name="positionPath">Position of the sub-expression to be replaced with an equivalent one.
     /// The position is expressed as a path from the root of the expression by using a list of strings "Operand" for
-    /// unary operators, "LeftOperand"/"RightOperand" for binary operators, "Operand(index)" for n-ary operators</param>
+    /// unary operators, "LeftOperand"/"RightOperand" for binary operators, the operand's index, from 0, for n-ary operators</param>
     /// <param name="equivalence">The equivalence to be applied to (a sub-part of) the expression.</param>
     /// <param name="checkType">Since the equivalence is described by a left-side expression and a right-side
     /// expression, this parameter identifies the direction of application of the equivalence (match of the left side,
