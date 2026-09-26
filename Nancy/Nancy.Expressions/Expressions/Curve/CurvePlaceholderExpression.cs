@@ -19,6 +19,9 @@ public record CurvePlaceholderExpression : CurveExpression, IPlaceholderExpressi
     }
 
     /// <inheritdoc />
+    public bool Accepts(IExpression candidate) => candidate is CurveExpression;
+
+    /// <inheritdoc />
     public override void Accept(ICurveExpressionVisitor visitor)
         => visitor.Visit(this);
 

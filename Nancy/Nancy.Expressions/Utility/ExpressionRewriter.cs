@@ -9,53 +9,13 @@ using Unipi.Nancy.Numerics;
 namespace Unipi.Nancy.Expressions.Utility;
 
 /// <summary>
-/// The outcome of a rewrite:
-/// the new expression, how many replacements were made, where, and the bindings of an equivalence if one was applied.
-/// </summary>
-public sealed record ExpressionRewriteResult
-{
-    /// <summary>
-    /// The expression the rewrite produced.
-    /// When nothing matched, this is the expression the rewrite was called on, unchanged.
-    /// </summary>
-    public required IExpression Expression { get; init; }
-
-    /// <summary>
-    /// How many sites were replaced.
-    /// </summary>
-    public int ReplacementCount { get; init; }
-
-    /// <summary>
-    /// The positions of the replaced sites, in the order they were visited.
-    /// </summary>
-    public IReadOnlyList<ExpressionPosition> Positions { get; init; } = [];
-
-    /// <summary>
-    /// The curve bindings of the last equivalence applied, or <see langword="null"/>.
-    /// </summary>
-    public IReadOnlyDictionary<string, CurveExpression>? CurveBindings { get; init; }
-
-    /// <summary>
-    /// The rational bindings of the last equivalence applied, or <see langword="null"/>.
-    /// </summary>
-    public IReadOnlyDictionary<string, RationalExpression>? RationalBindings { get; init; }
-
-    /// <summary>
-    /// True if at least one site was replaced.
-    /// </summary>
-    public bool Matched => ReplacementCount > 0;
-}
-
-/// <summary>
 /// Rewrites an expression by walking every node and asking a <see cref="RewriteRule"/> to replace it.
 /// </summary>
 /// <remarks>
-/// The traversal names no value type: it walks the node shapes through <see cref="IExpressionNode"/> and lets each node rebuild itself.
-/// Adding a value type therefore adds no arm here.
+/// The traversal walks the node shapes through <see cref="IExpressionNode"/> and lets each node rebuild itself.
 /// Replacement is a pure function of the expression, the pattern and the replacement, so calling it twice on the same inputs gives the same answer.
-/// There is no instance state to reset.
 /// </remarks>
-internal static class OneTimeExpressionReplacer
+internal static class ExpressionRewriter
 {
     /// <summary>
     /// Replaces every occurrence of <paramref name="pattern"/> by <paramref name="replacement"/>.
@@ -125,6 +85,15 @@ internal static class OneTimeExpressionReplacer
         return TraverseByPosition(original, position, planter);
     }
 
+    /// <summary>
+    /// Replaces every placeholder in <paramref name="substitute"/> by what the match bound its name to.
+    /// </summary>
+    /// <remarks>
+    /// The substitute is walked once, and each placeholder answers to its own name.
+    /// </remarks>
+    internal static IExpression Instantiate(IExpression substitute, IReadOnlyDictionary<string, IExpression> bindings)
+        => Traverse(substitute, new PlaceholderInstantiationRule(bindings), replaceAll: true).Expression;
+
     #region By value
 
     private static ExpressionRewriteResult Traverse(IExpression original, RewriteRule rule, bool replaceAll)
@@ -140,9 +109,9 @@ internal static class OneTimeExpressionReplacer
         TraversalState state,
         ExpressionPosition position)
     {
-        if (rule.TryRewrite(expression, out var replacement, out var curveBindings, out var rationalBindings))
+        if (rule.TryRewrite(expression, out var replacement, out var bindings))
         {
-            state.Record(position, curveBindings, rationalBindings);
+            state.Record(position, bindings);
             return replacement;
         }
 
@@ -194,11 +163,11 @@ internal static class OneTimeExpressionReplacer
     {
         if (index == steps.Count)
         {
-            if (!planter.TryPlant(expression, out var replacement, out var curveBindings, out var rationalBindings))
+            if (!planter.TryPlant(expression, out var replacement, out var bindings))
                 return expression;
             if (ExpressionValueType.Of(replacement) != ExpressionValueType.Of(expression))
                 throw ReplacementValueTypeDoesNotMatch(position, replacement, expression);
-            state.Record(position, curveBindings, rationalBindings);
+            state.Record(position, bindings);
             return replacement;
         }
 
@@ -309,8 +278,7 @@ internal static class OneTimeExpressionReplacer
     private sealed class TraversalState
     {
         private readonly List<ExpressionPosition> _positions = [];
-        private Dictionary<string, CurveExpression>? _curveBindings;
-        private Dictionary<string, RationalExpression>? _rationalBindings;
+        private Dictionary<string, IExpression>? _bindings;
 
         public TraversalState(bool replaceAll)
         {
@@ -323,17 +291,12 @@ internal static class OneTimeExpressionReplacer
 
         public bool ShouldStop => !ReplaceAll && Count > 0;
 
-        public void Record(
-            ExpressionPosition position,
-            IReadOnlyDictionary<string, CurveExpression>? curveBindings,
-            IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+        public void Record(ExpressionPosition position, IReadOnlyDictionary<string, IExpression>? bindings)
         {
             Count++;
             _positions.Add(position);
-            if (curveBindings is not null)
-                _curveBindings = new Dictionary<string, CurveExpression>(curveBindings);
-            if (rationalBindings is not null)
-                _rationalBindings = new Dictionary<string, RationalExpression>(rationalBindings);
+            if (bindings is not null)
+                _bindings = new Dictionary<string, IExpression>(bindings);
         }
 
         public ExpressionRewriteResult ToResult(IExpression expression)
@@ -342,8 +305,7 @@ internal static class OneTimeExpressionReplacer
                 Expression = expression,
                 ReplacementCount = Count,
                 Positions = _positions,
-                CurveBindings = _curveBindings,
-                RationalBindings = _rationalBindings
+                Bindings = _bindings
             };
     }
 
@@ -359,8 +321,7 @@ internal static class OneTimeExpressionReplacer
         public abstract bool TryRewrite(
             IExpression expression,
             out IExpression replacement,
-            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
-            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings);
+            out IReadOnlyDictionary<string, IExpression>? bindings);
     }
 
     /// <summary>
@@ -382,11 +343,9 @@ internal static class OneTimeExpressionReplacer
         public override bool TryRewrite(
             IExpression expression,
             out IExpression replacement,
-            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
-            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+            out IReadOnlyDictionary<string, IExpression>? bindings)
         {
-            curveBindings = null;
-            rationalBindings = null;
+            bindings = null;
             if (!ExpressionPatternMatcher.TryMatchSubstitution(_pattern, expression, true, out var leftover))
             {
                 replacement = null!;
@@ -399,6 +358,28 @@ internal static class OneTimeExpressionReplacer
     }
 
     /// <summary>
+    /// Puts a match's bindings in place of the placeholders that produced them.
+    /// </summary>
+    private sealed class PlaceholderInstantiationRule(IReadOnlyDictionary<string, IExpression> bindings) : RewriteRule
+    {
+        public override bool TryRewrite(
+            IExpression expression,
+            out IExpression replacement,
+            out IReadOnlyDictionary<string, IExpression>? boundHere)
+        {
+            boundHere = null;
+            if (expression is IPlaceholderExpression && bindings.TryGetValue(expression.Name, out var bound))
+            {
+                replacement = bound;
+                return true;
+            }
+
+            replacement = null!;
+            return false;
+        }
+    }
+
+    /// <summary>
     /// An equivalence: a law whose placeholders bind, matched wherever its shape occurs.
     /// </summary>
     private sealed class EquivalenceRule(Equivalence equivalence, CheckType checkType) : RewriteRule
@@ -406,21 +387,18 @@ internal static class OneTimeExpressionReplacer
         public override bool TryRewrite(
             IExpression expression,
             out IExpression replacement,
-            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
-            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+            out IReadOnlyDictionary<string, IExpression>? bindings)
         {
             var result = new OneTimeEquivalenceApplier { Equivalence = equivalence }.Apply(expression, checkType);
             if (!result.IsMatch || result.NewExpression is null)
             {
                 replacement = null!;
-                curveBindings = null;
-                rationalBindings = null;
+                bindings = null;
                 return false;
             }
 
             replacement = CombineWithLeftover(expression, result.NewExpression, result.NotMatchedExpressions, ignoreNotMatchedExpressions: false);
-            curveBindings = result.CurveBindings;
-            rationalBindings = result.RationalBindings;
+            bindings = result.Bindings;
             return true;
         }
     }
@@ -433,8 +411,7 @@ internal static class OneTimeExpressionReplacer
         public abstract bool TryPlant(
             IExpression target,
             out IExpression replacement,
-            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
-            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings);
+            out IReadOnlyDictionary<string, IExpression>? bindings);
     }
 
     private sealed class PlainPositionPlanter : PositionPlanter
@@ -449,12 +426,10 @@ internal static class OneTimeExpressionReplacer
         public override bool TryPlant(
             IExpression target,
             out IExpression replacement,
-            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
-            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+            out IReadOnlyDictionary<string, IExpression>? bindings)
         {
             replacement = _replacement;
-            curveBindings = null;
-            rationalBindings = null;
+            bindings = null;
             return true;
         }
     }
@@ -464,21 +439,18 @@ internal static class OneTimeExpressionReplacer
         public override bool TryPlant(
             IExpression target,
             out IExpression replacement,
-            out IReadOnlyDictionary<string, CurveExpression>? curveBindings,
-            out IReadOnlyDictionary<string, RationalExpression>? rationalBindings)
+            out IReadOnlyDictionary<string, IExpression>? bindings)
         {
             var result = new OneTimeEquivalenceApplier { Equivalence = equivalence }.Apply(target, checkType);
             if (!result.IsMatch || result.NewExpression is null)
             {
                 replacement = null!;
-                curveBindings = null;
-                rationalBindings = null;
+                bindings = null;
                 return false;
             }
 
             replacement = CombineWithLeftover(target, result.NewExpression, result.NotMatchedExpressions, ignoreNotMatchedExpressions: false);
-            curveBindings = result.CurveBindings;
-            rationalBindings = result.RationalBindings;
+            bindings = result.Bindings;
             return true;
         }
     }
@@ -637,17 +609,9 @@ internal static class ExpressionPatternMatcher
     }
 
     private static bool BindPlaceholder(IExpression pattern, IExpression expression, LawMatchContext law)
-    {
-        switch (pattern)
-        {
-            case CurvePlaceholderExpression:
-                return expression is CurveExpression curve && law.BindCurve(pattern.Name, curve);
-            case RationalPlaceholderExpression:
-                return expression is RationalExpression rational && law.BindRational(pattern.Name, rational);
-            default:
-                return false;
-        }
-    }
+        => pattern is IPlaceholderExpression placeholder
+           && placeholder.Accepts(expression)
+           && law.Bind(pattern.Name, expression);
 }
 
 /// <summary>
@@ -662,43 +626,52 @@ internal sealed class LawMatchContext
 
     private Equivalence Equivalence { get; }
 
-    public Dictionary<string, CurveExpression> Curves { get; } = new();
-
-    public Dictionary<string, RationalExpression> Rationals { get; } = new();
+    /// <summary>
+    /// What each placeholder has bound to, by the placeholder's name.
+    /// </summary>
+    /// <remarks>
+    /// One map, not one per value type: a name denotes one thing, whatever kind of expression it stands for.
+    /// </remarks>
+    public Dictionary<string, IExpression> Bindings { get; } = new();
 
     public LawMatchContext Clone()
     {
         var clone = new LawMatchContext(Equivalence);
-        foreach (var (key, value) in Curves)
-            clone.Curves[key] = value;
-        foreach (var (key, value) in Rationals)
-            clone.Rationals[key] = value;
+        foreach (var (key, value) in Bindings)
+            clone.Bindings[key] = value;
         return clone;
     }
 
     public void Restore(LawMatchContext snapshot)
     {
-        Curves.Clear();
-        foreach (var (key, value) in snapshot.Curves)
-            Curves[key] = value;
-        Rationals.Clear();
-        foreach (var (key, value) in snapshot.Rationals)
-            Rationals[key] = value;
+        Bindings.Clear();
+        foreach (var (key, value) in snapshot.Bindings)
+            Bindings[key] = value;
     }
 
-    public bool BindCurve(string name, CurveExpression expression)
+    /// <summary>
+    /// The binding of <paramref name="name"/>, if there is one and it is a <typeparamref name="T"/>.
+    /// </summary>
+    /// <remarks>
+    /// The bindings are one map of <see cref="IExpression"/>, so a caller that knows what it asked for says so here.
+    /// </remarks>
+    private bool TryGetBinding<T>(string name, out T value) where T : class, IExpression
     {
-        if (Curves.TryGetValue(name, out var existing))
-            return ExpressionPatternMatcher.TryMatchSubstitution(existing, expression, false, out _);
-        Curves[name] = expression;
-        return HypothesesHold();
+        if (Bindings.TryGetValue(name, out var bound) && bound is T typed)
+        {
+            value = typed;
+            return true;
+        }
+
+        value = null!;
+        return false;
     }
 
-    public bool BindRational(string name, RationalExpression expression)
+    public bool Bind(string name, IExpression expression)
     {
-        if (Rationals.TryGetValue(name, out var existing))
+        if (Bindings.TryGetValue(name, out var existing))
             return ExpressionPatternMatcher.TryMatchSubstitution(existing, expression, false, out _);
-        Rationals[name] = expression;
+        Bindings[name] = expression;
         return HypothesesHold();
     }
 
@@ -709,31 +682,31 @@ internal sealed class LawMatchContext
     private bool HypothesesHold()
     {
         foreach (var (name, hypotheses) in Equivalence.Hypothesis)
-            if (Curves.TryGetValue(name, out var expression) && !hypotheses.All(h => h(expression)))
+            if (TryGetBinding<CurveExpression>(name, out var expression) && !hypotheses.All(h => h(expression)))
                 return false;
 
         foreach (var (key, hypotheses) in Equivalence.HypothesisPair)
-            if (Curves.TryGetValue(key.Item1, out var first) && Curves.TryGetValue(key.Item2, out var second)
+            if (TryGetBinding<CurveExpression>(key.Item1, out var first) && TryGetBinding<CurveExpression>(key.Item2, out var second)
                 && !hypotheses.All(h => h(first, second)))
                 return false;
 
         foreach (var (key, hypotheses) in Equivalence.HypothesisTriple)
-            if (Curves.TryGetValue(key.Item1, out var first) && Curves.TryGetValue(key.Item2, out var second)
-                && Curves.TryGetValue(key.Item3, out var third) && !hypotheses.All(h => h(first, second, third)))
+            if (TryGetBinding<CurveExpression>(key.Item1, out var first) && TryGetBinding<CurveExpression>(key.Item2, out var second)
+                && TryGetBinding<CurveExpression>(key.Item3, out var third) && !hypotheses.All(h => h(first, second, third)))
                 return false;
 
         foreach (var (name, hypotheses) in Equivalence.RationalHypothesis)
-            if (Rationals.TryGetValue(name, out var expression) && !hypotheses.All(h => h(expression)))
+            if (TryGetBinding<RationalExpression>(name, out var expression) && !hypotheses.All(h => h(expression)))
                 return false;
 
         foreach (var (key, hypotheses) in Equivalence.RationalHypothesisPair)
-            if (Rationals.TryGetValue(key.Item1, out var first) && Rationals.TryGetValue(key.Item2, out var second)
+            if (TryGetBinding<RationalExpression>(key.Item1, out var first) && TryGetBinding<RationalExpression>(key.Item2, out var second)
                 && !hypotheses.All(h => h(first, second)))
                 return false;
 
         foreach (var (key, hypotheses) in Equivalence.RationalHypothesisTriple)
-            if (Rationals.TryGetValue(key.Item1, out var first) && Rationals.TryGetValue(key.Item2, out var second)
-                && Rationals.TryGetValue(key.Item3, out var third) && !hypotheses.All(h => h(first, second, third)))
+            if (TryGetBinding<RationalExpression>(key.Item1, out var first) && TryGetBinding<RationalExpression>(key.Item2, out var second)
+                && TryGetBinding<RationalExpression>(key.Item3, out var third) && !hypotheses.All(h => h(first, second, third)))
                 return false;
 
         return true;
@@ -745,22 +718,22 @@ internal sealed class LawMatchContext
     public bool AllHypothesesSatisfied()
     {
         foreach (var (name, _) in Equivalence.Hypothesis)
-            if (!Curves.ContainsKey(name))
+            if (!TryGetBinding<CurveExpression>(name, out _))
                 return false;
         foreach (var (key, _) in Equivalence.HypothesisPair)
-            if (!Curves.ContainsKey(key.Item1) || !Curves.ContainsKey(key.Item2))
+            if (!TryGetBinding<CurveExpression>(key.Item1, out _) || !TryGetBinding<CurveExpression>(key.Item2, out _))
                 return false;
         foreach (var (key, _) in Equivalence.HypothesisTriple)
-            if (!Curves.ContainsKey(key.Item1) || !Curves.ContainsKey(key.Item2) || !Curves.ContainsKey(key.Item3))
+            if (!TryGetBinding<CurveExpression>(key.Item1, out _) || !TryGetBinding<CurveExpression>(key.Item2, out _) || !TryGetBinding<CurveExpression>(key.Item3, out _))
                 return false;
         foreach (var (name, _) in Equivalence.RationalHypothesis)
-            if (!Rationals.ContainsKey(name))
+            if (!TryGetBinding<RationalExpression>(name, out _))
                 return false;
         foreach (var (key, _) in Equivalence.RationalHypothesisPair)
-            if (!Rationals.ContainsKey(key.Item1) || !Rationals.ContainsKey(key.Item2))
+            if (!TryGetBinding<RationalExpression>(key.Item1, out _) || !TryGetBinding<RationalExpression>(key.Item2, out _))
                 return false;
         foreach (var (key, _) in Equivalence.RationalHypothesisTriple)
-            if (!Rationals.ContainsKey(key.Item1) || !Rationals.ContainsKey(key.Item2) || !Rationals.ContainsKey(key.Item3))
+            if (!TryGetBinding<RationalExpression>(key.Item1, out _) || !TryGetBinding<RationalExpression>(key.Item2, out _) || !TryGetBinding<RationalExpression>(key.Item3, out _))
                 return false;
 
         return HypothesesHold();

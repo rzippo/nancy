@@ -55,6 +55,14 @@ internal interface IExpressionNode : IExpression
 /// </remarks>
 internal interface IPlaceholderExpression : IExpression
 {
+    /// <summary>
+    /// True if <paramref name="candidate"/> is something this placeholder may stand for.
+    /// </summary>
+    /// <remarks>
+    /// The placeholder answers, rather than the matcher asking what value type it is:
+    /// a placeholder for a new value type arrives with its own answer and adds no arm anywhere else.
+    /// </remarks>
+    bool Accepts(IExpression candidate);
 }
 
 /// <summary>

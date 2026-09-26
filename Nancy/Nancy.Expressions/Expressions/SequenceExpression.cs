@@ -718,7 +718,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         IGenericExpression<T1> newExpressionToReplace,
         bool ignoreNotMatchedExpressions = false
     )
-        => OneTimeExpressionReplacer
+        => ExpressionRewriter
             .ReplaceByValue(this, expressionPattern, newExpressionToReplace, ignoreNotMatchedExpressions);
 
     /// <summary>
@@ -757,7 +757,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// </returns>
     public ExpressionRewriteResult ReplaceByPositionWithResult<T1>(ExpressionPosition expressionPosition,
         IGenericExpression<T1> newExpressionToReplace)
-        => OneTimeExpressionReplacer
+        => ExpressionRewriter
             .ReplaceByPosition(this, expressionPosition.Steps, newExpressionToReplace);
 
     /// <summary>
@@ -831,7 +831,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// </remarks>
     public ExpressionRewriteResult ApplyEquivalenceWithResult(Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
-        => OneTimeExpressionReplacer
+        => ExpressionRewriter
             .ApplyEquivalence(this, equivalence, checkType);
 
     /// <summary>
@@ -867,7 +867,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// </returns>
     public ExpressionRewriteResult ApplyEquivalenceByPositionWithResult(ExpressionPosition expressionPosition,
         Equivalence equivalence, CheckType checkType = CheckType.CheckLeftOnly)
-        => OneTimeExpressionReplacer
+        => ExpressionRewriter
             .ApplyEquivalenceByPosition(this, expressionPosition.Steps, equivalence, checkType);
 
     /// <summary>

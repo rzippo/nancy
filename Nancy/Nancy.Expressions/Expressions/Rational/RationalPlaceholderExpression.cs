@@ -19,6 +19,9 @@ public record RationalPlaceholderExpression : RationalExpression, IPlaceholderEx
     }
 
     /// <inheritdoc />
+    public bool Accepts(IExpression candidate) => candidate is RationalExpression;
+
+    /// <inheritdoc />
     public override void Accept(IRationalExpressionVisitor visitor)
         => visitor.Visit(this);
 

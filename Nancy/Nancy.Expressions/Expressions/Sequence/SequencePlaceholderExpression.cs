@@ -20,6 +20,9 @@ public record SequencePlaceholderExpression : SequenceExpression, IPlaceholderEx
     }
 
     /// <inheritdoc />
+    public bool Accepts(IExpression candidate) => candidate is SequenceExpression;
+
+    /// <inheritdoc />
     public override void Accept(ISequenceExpressionVisitor visitor)
         => visitor.Visit(this);
 

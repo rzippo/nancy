@@ -217,16 +217,10 @@ public record EquivalenceApplyResult
     public bool IsMatch { get; init; }
 
     /// <summary>
-    /// What the law's curve placeholders bound to.
+    /// What the law's placeholders bound to, by name.
     /// </summary>
-    public IReadOnlyDictionary<string, CurveExpression> CurveBindings { get; init; }
-        = new Dictionary<string, CurveExpression>();
-
-    /// <summary>
-    /// What the law's rational placeholders bound to.
-    /// </summary>
-    public IReadOnlyDictionary<string, RationalExpression> RationalBindings { get; init; }
-        = new Dictionary<string, RationalExpression>();
+    public IReadOnlyDictionary<string, IExpression> Bindings { get; init; }
+        = new Dictionary<string, IExpression>();
 
     /// <summary>
     /// The unmatched operands of a partial n-ary match, to be reattached to the new expression.

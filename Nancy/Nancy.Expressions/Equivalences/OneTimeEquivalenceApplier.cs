@@ -44,8 +44,7 @@ public class OneTimeEquivalenceApplier
             {
                 NewExpression = newExpression,
                 IsMatch = true,
-                CurveBindings = bindings.Curves,
-                RationalBindings = bindings.Rationals,
+                Bindings = bindings.Bindings,
                 NotMatchedExpressions = leftover
             };
         }
@@ -70,27 +69,6 @@ public class OneTimeEquivalenceApplier
         }
     }
 
-    private static IExpression Instantiate(IExpression substitute, LawMatchContext bindings)
-    {
-        var result = substitute;
-        foreach (var name in bindings.Curves.Keys.OrderBy(name => name, System.StringComparer.Ordinal))
-        {
-            if (!bindings.Curves.TryGetValue(name, out var value))
-                continue;
-            result = OneTimeExpressionReplacer
-                .ReplaceByValue(result, Expressions.Placeholder(name), value, ignoreNotMatchedExpressions: true)
-                .Expression;
-        }
-
-        foreach (var name in bindings.Rationals.Keys.OrderBy(name => name, System.StringComparer.Ordinal))
-        {
-            if (!bindings.Rationals.TryGetValue(name, out var value))
-                continue;
-            result = OneTimeExpressionReplacer
-                .ReplaceByValue(result, Expressions.RationalPlaceholder(name), value, ignoreNotMatchedExpressions: true)
-                .Expression;
-        }
-
-        return result;
-    }
+    private static IExpression Instantiate(IExpression substitute, LawMatchContext law)
+        => ExpressionRewriter.Instantiate(substitute, law.Bindings);
 }
