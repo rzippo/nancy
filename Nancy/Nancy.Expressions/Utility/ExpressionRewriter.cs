@@ -58,8 +58,8 @@ internal static class ExpressionRewriter
         IReadOnlyList<PathStep> position,
         IExpression replacement)
     {
-        var planter = new PlainPositionPlanter(replacement);
-        return TraverseByPosition(original, position, planter);
+        var rule = new ConstantRule(replacement);
+        return TraverseByPosition(original, position, rule);
     }
 
     /// <summary>
@@ -75,8 +75,8 @@ internal static class ExpressionRewriter
         Equivalence equivalence,
         CheckType checkType = CheckType.CheckLeftOnly)
     {
-        var planter = new EquivalencePositionPlanter(equivalence, checkType);
-        return TraverseByPosition(original, position, planter);
+        var rule = new EquivalenceRule(equivalence, checkType);
+        return TraverseByPosition(original, position, rule);
     }
 
     /// <summary>
@@ -140,10 +140,10 @@ internal static class ExpressionRewriter
     private static ExpressionRewriteResult TraverseByPosition(
         IExpression original,
         IReadOnlyList<PathStep> position,
-        PositionPlanter planter)
+        RewriteRule rule)
     {
         var state = new TraversalState(replaceAll: true);
-        var expression = ReplaceAt(original, position, 0, new ExpressionPosition(), planter, state);
+        var expression = ReplaceAt(original, position, 0, new ExpressionPosition(), rule, state);
         return state.ToResult(expression);
     }
 
@@ -152,12 +152,12 @@ internal static class ExpressionRewriter
         IReadOnlyList<PathStep> steps,
         int index,
         ExpressionPosition position,
-        PositionPlanter planter,
+        RewriteRule rule,
         TraversalState state)
     {
         if (index == steps.Count)
         {
-            if (!planter.TryPlant(expression, out var replacement, out var bindings))
+            if (!rule.TryRewrite(expression, out var replacement, out var bindings))
                 return expression;
             if (ExpressionValueType.Of(replacement) != ExpressionValueType.Of(expression))
                 throw ReplacementValueTypeDoesNotMatch(position, replacement, expression);
@@ -186,7 +186,7 @@ internal static class ExpressionRewriter
             steps,
             index + 1,
             ChildPosition(position, node, childIndex),
-            planter,
+            rule,
             state);
         if (ReferenceEquals(newChild, children[childIndex]))
             return expression;
@@ -314,39 +314,28 @@ internal static class ExpressionRewriter
     {
         public abstract bool TryRewrite(
             IExpression expression,
-            out IExpression replacement,
+            out IExpression rewritten,
             out IReadOnlyDictionary<string, IExpression>? bindings);
     }
 
     /// <summary>
     /// A substitution: a concrete pattern, matched by name at its leaves, put in place of what it matches.
     /// </summary>
-    private sealed class SubstitutionRule : RewriteRule
+    private sealed class SubstitutionRule(IExpression pattern, IExpression replacement, bool ignoreNotMatchedExpressions) : RewriteRule
     {
-        private readonly IExpression _pattern;
-        private readonly IExpression _replacement;
-        private readonly bool _ignoreNotMatchedExpressions;
-
-        public SubstitutionRule(IExpression pattern, IExpression replacement, bool ignoreNotMatchedExpressions)
-        {
-            _pattern = pattern;
-            _replacement = replacement;
-            _ignoreNotMatchedExpressions = ignoreNotMatchedExpressions;
-        }
-
         public override bool TryRewrite(
             IExpression expression,
-            out IExpression replacement,
+            out IExpression rewritten,
             out IReadOnlyDictionary<string, IExpression>? bindings)
         {
             bindings = null;
-            if (!ExpressionPatternMatcher.TryMatchSubstitution(_pattern, expression, true, out var leftover))
+            if (!ExpressionPatternMatcher.TryMatchSubstitution(pattern, expression, true, out var leftover))
             {
-                replacement = null!;
+                rewritten = null!;
                 return false;
             }
 
-            replacement = CombineWithLeftover(expression, _replacement, leftover, _ignoreNotMatchedExpressions);
+            rewritten = CombineWithLeftover(expression, replacement, leftover, ignoreNotMatchedExpressions);
             return true;
         }
     }
@@ -354,21 +343,21 @@ internal static class ExpressionRewriter
     /// <summary>
     /// Puts a match's bindings in place of the placeholders that produced them.
     /// </summary>
-    private sealed class PlaceholderInstantiationRule(IReadOnlyDictionary<string, IExpression> bindings) : RewriteRule
+    private sealed class PlaceholderInstantiationRule(IReadOnlyDictionary<string, IExpression> boundValues) : RewriteRule
     {
         public override bool TryRewrite(
             IExpression expression,
-            out IExpression replacement,
-            out IReadOnlyDictionary<string, IExpression>? boundHere)
+            out IExpression rewritten,
+            out IReadOnlyDictionary<string, IExpression>? bindings)
         {
-            boundHere = null;
-            if (expression is IPlaceholderExpression && bindings.TryGetValue(expression.Name, out var bound))
+            bindings = null;
+            if (expression is IPlaceholderExpression && boundValues.TryGetValue(expression.Name, out var bound))
             {
-                replacement = bound;
+                rewritten = bound;
                 return true;
             }
 
-            replacement = null!;
+            rewritten = null!;
             return false;
         }
     }
@@ -380,71 +369,35 @@ internal static class ExpressionRewriter
     {
         public override bool TryRewrite(
             IExpression expression,
-            out IExpression replacement,
+            out IExpression rewritten,
             out IReadOnlyDictionary<string, IExpression>? bindings)
         {
             var result = EquivalenceApplier.Apply(equivalence, expression, checkType);
             if (!result.IsMatch || result.NewExpression is null)
             {
-                replacement = null!;
+                rewritten = null!;
                 bindings = null;
                 return false;
             }
 
-            replacement = CombineWithLeftover(expression, result.NewExpression, result.NotMatchedExpressions, ignoreNotMatchedExpressions: false);
+            rewritten = CombineWithLeftover(expression, result.NewExpression, result.NotMatchedExpressions, ignoreNotMatchedExpressions: false);
             bindings = result.Bindings;
             return true;
         }
     }
 
     /// <summary>
-    /// Plants an expression at the target of a position.
+    /// Always rewrites to a fixed replacement.
     /// </summary>
-    private abstract class PositionPlanter
+    private sealed class ConstantRule(IExpression replacement) : RewriteRule
     {
-        public abstract bool TryPlant(
-            IExpression target,
-            out IExpression replacement,
-            out IReadOnlyDictionary<string, IExpression>? bindings);
-    }
-
-    private sealed class PlainPositionPlanter : PositionPlanter
-    {
-        private readonly IExpression _replacement;
-
-        public PlainPositionPlanter(IExpression replacement)
-        {
-            _replacement = replacement;
-        }
-
-        public override bool TryPlant(
-            IExpression target,
-            out IExpression replacement,
+        public override bool TryRewrite(
+            IExpression expression,
+            out IExpression rewritten,
             out IReadOnlyDictionary<string, IExpression>? bindings)
         {
-            replacement = _replacement;
+            rewritten = replacement;
             bindings = null;
-            return true;
-        }
-    }
-
-    private sealed class EquivalencePositionPlanter(Equivalence equivalence, CheckType checkType) : PositionPlanter
-    {
-        public override bool TryPlant(
-            IExpression target,
-            out IExpression replacement,
-            out IReadOnlyDictionary<string, IExpression>? bindings)
-        {
-            var result = EquivalenceApplier.Apply(equivalence, target, checkType);
-            if (!result.IsMatch || result.NewExpression is null)
-            {
-                replacement = null!;
-                bindings = null;
-                return false;
-            }
-
-            replacement = CombineWithLeftover(target, result.NewExpression, result.NotMatchedExpressions, ignoreNotMatchedExpressions: false);
-            bindings = result.Bindings;
             return true;
         }
     }
