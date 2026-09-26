@@ -152,40 +152,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         if (scope == CacheClearScope.SelfOnly)
             return;
 
-        foreach (var child in EnumerateChildren())
+        foreach (var child in (this as IExpressionNode)?.Children ?? [])
         {
             if (scope == CacheClearScope.SubtreeUntilNamed && !string.IsNullOrEmpty(child.Name))
                 continue;
-            ClearValueCacheDispatch.Clear(child, scope);
-        }
-    }
-
-    private IEnumerable<IExpression> EnumerateChildren()
-    {
-        switch (this)
-        {
-            case IGenericUnaryExpression<Sequence, Sequence> u:
-                yield return u.Operand;
-                break;
-            case IGenericUnaryExpression<Curve, Sequence> u:
-                yield return u.Operand;
-                break;
-            case IGenericBinaryExpression<Sequence, Sequence, Sequence> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case IGenericBinaryExpression<Sequence, Rational, Sequence> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case IGenericBinaryExpression<Curve, Rational, Sequence> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case IGenericNAryExpression<Sequence, Sequence> n:
-                foreach (var operand in n.Operands)
-                    yield return operand;
-                break;
+            child.ClearValueCache(scope);
         }
     }
 

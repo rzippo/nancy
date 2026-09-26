@@ -76,52 +76,11 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         if (scope == CacheClearScope.SelfOnly)
             return;
 
-        foreach (var child in EnumerateChildren())
+        foreach (var child in (this as IExpressionNode)?.Children ?? [])
         {
             if (scope == CacheClearScope.SubtreeUntilNamed && !string.IsNullOrEmpty(child.Name))
                 continue;
-            ClearValueCacheDispatch.Clear(child, scope);
-        }
-    }
-
-    private IEnumerable<IExpression> EnumerateChildren()
-    {
-        switch (this)
-        {
-            case IGenericUnaryExpression<Curve, Rational> u:
-                yield return u.Operand;
-                break;
-            case IGenericUnaryExpression<Rational, Rational> u:
-                yield return u.Operand;
-                break;
-            case IGenericBinaryExpression<Sequence, Sequence, Rational> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case IGenericBinaryExpression<Sequence, Rational, Rational> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case IGenericBinaryExpression<Curve, Curve, Rational> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case IGenericBinaryExpression<Curve, Rational, Rational> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case IGenericBinaryExpression<Rational, Curve, Rational> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case IGenericBinaryExpression<Rational, Rational, Rational> b:
-                yield return b.LeftOperand;
-                yield return b.RightOperand;
-                break;
-            case RationalNAryExpression n:
-                foreach (var operand in n.Operands)
-                    yield return operand;
-                break;
+            child.ClearValueCache(scope);
         }
     }
 

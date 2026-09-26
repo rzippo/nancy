@@ -86,6 +86,15 @@ public interface IExpression
     public bool IsComputed { get; }
 
     /// <summary>
+    /// Discards the value this expression remembers, and the values of its subtree where <paramref name="scope"/> says so.
+    /// </summary>
+    /// <param name="scope">How far down the expression the cached values are discarded.</param>
+    /// <remarks>
+    /// An expression's operands can belong to another hierarchy, as a horizontal deviation's curve operands do, so a node clearing its subtree reaches children whose value type it does not name.
+    /// </remarks>
+    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree);
+
+    /// <summary>
     /// Computes the expression, without returning its result.
     /// </summary>
     /// <remarks>
