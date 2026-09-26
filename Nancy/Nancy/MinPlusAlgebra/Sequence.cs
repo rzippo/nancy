@@ -1917,8 +1917,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     public static Rational HorizontalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
-        var hdev_t = HorizontalDeviationFunction(f, g, settings);
-        return hdev_t.SupValue();
+        var hdevT = HorizontalDeviationFunction(f, g, settings);
+        return hdevT.SupValue();
     }
     
     /// <summary>
@@ -1937,8 +1937,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
-        var vdev_t = VerticalDeviationFunction(f, g, settings);
-        return vdev_t.SupValue();
+        var vdevT = VerticalDeviationFunction(f, g, settings);
+        return vdevT.SupValue();
     }
 
     /// <summary>
@@ -1997,7 +1997,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         var gCutEnd = imageOverlap.Upper == g.SupValue()
             ? g.DefinedUntil
             : g.UpperPseudoInverse().ValueAt(imageOverlap.Upper);
-        Sequence hdev_t;
+        var identity = fCutStart < fCutEnd ?
+            new Sequence([
+                new Point(fCutStart, fCutStart),
+                new Segment(fCutStart, fCutEnd, fCutStart, 1),
+                new Point(fCutEnd, fCutEnd)
+            ]) :
+            new Sequence([new Point(fCutEnd, fCutEnd)]);
+        Sequence hdevT;
         if (gCutEnd > gCutStart)
         {
             // image of $\hat{g}$ matches the image overlap => can use the composition method
@@ -2008,36 +2015,20 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 .ToSequence();
             var gCutLpi = gCut.LowerPseudoInverse();
             var comp = Sequence.Composition(gCutLpi, fCut);
-            var identity = fCutStart < fCutEnd ? 
-                new Sequence([
-                    new Point(fCutStart, fCutStart),
-                    new Segment(fCutStart, fCutEnd, fCutStart, 1),
-                    new Point(fCutEnd, fCutEnd)
-                ]) :
-                new Sequence([new Point(fCutEnd, fCutEnd)]);
-            hdev_t = Subtraction(comp, identity).ToNonNegative();
+            hdevT = Subtraction(comp, identity).ToNonNegative();
         }
         else
         {
             // matching endpoints imply that g jumps over the overlap interval
             // image of $\hat{g}$ is just a point => cannot use composition method, but can use closed expression
             var constant = Sequence.Constant(gCutEnd, fCutStart, fCutEnd, true, true);
-            // todo: add a Sequence.Identity constructor
-            var identity = fCutStart < fCutEnd ? 
-                new Sequence([
-                    new Point(fCutStart, fCutStart),
-                    new Segment(fCutStart, fCutEnd, fCutStart, 1),
-                    new Point(fCutEnd, fCutEnd)
-                ]) :
-                new Sequence([new Point(fCutEnd, fCutEnd)]);
-            hdev_t = Subtraction(constant, identity).ToNonNegative();
+            hdevT = Subtraction(constant, identity).ToNonNegative();
         }
 
-        return hdev_t;
+        return hdevT;
     }
-    
-    
-        /// <summary>
+
+    /// <summary>
     /// Computes the vertical deviation function between the two sequences, $vDev(f, g, t)$.
     /// The two sequences must have an overlapping support, and the deviation is measured between points in that overlap. 
     /// </summary>
@@ -2060,7 +2051,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
         var supportOverlapNullable = Interval.Intersection(f.Support, g.Support);
         if(!supportOverlapNullable.HasValue)
-            throw new ArgumentException("The two sequences do not have an overlapping image.");
+            throw new ArgumentException("The two sequences do not have an overlapping support.");
         var supportOverlap = supportOverlapNullable.Value;
 
         var fCut = f.CutAsEnumerable(
@@ -2070,9 +2061,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             supportOverlap.Lower, supportOverlap.Upper, supportOverlap.IsLowerIncluded, supportOverlap.IsUpperIncluded)
             .ToSequence();
         
-        var vdev_t = Subtraction(fCut, gCut);
+        var vdevT = Subtraction(fCut, gCut);
 
-        return vdev_t;
+        return vdevT;
     }
 
     /// <summary>
