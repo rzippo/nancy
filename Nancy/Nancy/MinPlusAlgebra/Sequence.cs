@@ -1904,16 +1904,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="f">Must be non-negative and non-decreasing.</param>
     /// <param name="g">Must be non-negative and non-decreasing.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Settings for the computation.</param>
     /// <returns>A non-negative horizontal deviation.</returns>
     /// <remarks>
     /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D2, as the counterpart for sequences of <see cref="Curve.HorizontalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
-    /// The two agree, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-T1 and EB-FRTC-SEQ-T2, whenever the curves the operands were cut from
-    /// had not already attained the value each operand starts from before that cut begins.
+    /// The two agree, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-T1 and EB-FRTC-SEQ-T2, whenever each operand starts from a value its curve had not attained before the cut.
     /// Equivalently, whenever the lower pseudo-inverse of the curve, at that value, is the time the cut begins.
     /// Where that does not hold, the earlier time is not visible in the operands and the result is larger than the curves' own.
-    /// Note that the deviation is measured over the overlap of the operands' images, so a change to either operand that moves its image
-    /// also moves the set over which the deviation is taken: unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
+    /// The deviation is measured over the overlap of the operands' images, so moving either operand's image moves the set it is taken over:
+    /// unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
     /// </remarks>
     public static Rational HorizontalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -1927,13 +1926,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="f">The first operand.</param>
     /// <param name="g">The second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Settings for the computation.</param>
     /// <returns>A vertical deviation, which may be negative.</returns>
     /// <remarks>
     /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
-    /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1,
-    /// with no condition beyond the operands being restrictions of the curves.
+    /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1, with no condition beyond the operands being restrictions of the curves.
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -1947,16 +1945,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="f">Must be non-negative and non-decreasing.</param>
     /// <param name="g">Must be non-negative and non-decreasing.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Settings for the computation.</param>
     /// <returns>A non-negative horizontal deviation.</returns>
     /// <remarks>
     /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D2, as the counterpart for sequences of <see cref="Curve.HorizontalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
-    /// The two agree, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-T1 and EB-FRTC-SEQ-T2, whenever the curves the operands were cut from
-    /// had not already attained the value each operand starts from before that cut begins.
+    /// The two agree, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-T1 and EB-FRTC-SEQ-T2, whenever each operand starts from a value its curve had not attained before the cut.
     /// Equivalently, whenever the lower pseudo-inverse of the curve, at that value, is the time the cut begins.
     /// Where that does not hold, the earlier time is not visible in the operands and the result is larger than the curves' own.
-    /// Note that the deviation is measured over the overlap of the operands' images, so a change to either operand that moves its image
-    /// also moves the set over which the deviation is taken: unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
+    /// The deviation is measured over the overlap of the operands' images, so moving either operand's image moves the set it is taken over:
+    /// unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
     /// </remarks>
     public static Sequence HorizontalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2007,7 +2004,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         Sequence hdevT;
         if (gCutEnd > gCutStart)
         {
-            // image of $\hat{g}$ matches the image overlap => can use the composition method
+            // image of $\hat{g}$ matches the image overlap => can use the composition method.
             // The following is $\hat{g}$: note that the start and endpoint are forced to match the overlap interval
             var gCut = g.CutAsEnumerable(gCutStart, gCutEnd, false, false)
                 .Prepend(new Point(gCutStart, imageOverlap.Lower))
@@ -2019,7 +2016,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         }
         else
         {
-            // matching endpoints imply that g jumps over the overlap interval
+            // matching endpoints imply that g jumps over the overlap interval.
             // image of $\hat{g}$ is just a point => cannot use composition method, but can use closed expression
             var constant = Sequence.Constant(gCutEnd, fCutStart, fCutEnd, true, true);
             hdevT = Subtraction(constant, identity).ToNonNegative();
@@ -2034,13 +2031,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="f">The first operand.</param>
     /// <param name="g">The second operand.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Settings for the computation.</param>
     /// <returns>A vertical deviation function, whose values may be negative.</returns>
     /// <remarks>
     /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
-    /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1,
-    /// with no condition beyond the operands being restrictions of the curves.
+    /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1, with no condition beyond the operands being restrictions of the curves.
     /// </remarks>
     public static Sequence VerticalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -3464,11 +3460,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">
     /// If the operands are not defined as expected, i.e. if there are values attained by <paramref name="g"/> that are not in the support of <paramref name="f"/>.
     /// </exception>
-    /// <returns>The result of the composition. Has the same support as <paramref name="g"/>.</returns>
+    /// <returns>
+    /// The result of the composition.
+    /// Has the same support as <paramref name="g"/>.
+    /// </returns>
     /// <remarks>
     /// Algorithmic properties discussed in [ZNS23b], which covers the right boundary of <paramref name="g"/>.
-    /// The left boundary, and the sequences of a single element, are covered in [TBP-COMP-SEQ-EXT],
-    /// whose case codes name the checks below.
+    /// The left boundary, and the sequences of a single element, are covered in [TBP-COMP-SEQ-EXT].
+    /// Its case codes name the checks below.
     /// </remarks>
     public static Sequence Composition(Sequence f, Sequence g)
     {
@@ -3542,8 +3541,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 g.LeftLimitAt(g.DefinedUntil);
             
             // The six boundary rules of [TBP-COMP-SEQ-EXT], cases gLC, gLOc, gLOi, gRC, gROc and gROi:
-            // which of defined-at, defined-after and defined-before is required of f depends on
-            // whether the boundary of g is open, and on whether the segment there is constant.
+            // which of defined-at, defined-after and defined-before is required of f depends on two things:
+            // whether the boundary of g is open, and whether the segment there is constant.
             if (g.IsLeftClosed)
             {
                 if (!f.IsDefinedAt(gImageStart))
@@ -3596,8 +3595,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 gTimes = gTimes.Prepend(g.DefinedFrom);
             if(g.IsRightOpen)
                 gTimes = gTimes.Append(g.DefinedUntil);
-            // Where the image of g is a single value, the result is constant and the outer
-            // sequence contributes no breakpoint of its own, so there is nothing to cut.
+            // Where the image of g is a single value, the result is constant.
+            // The outer sequence contributes no breakpoint of its own, so there is nothing to cut.
             // [TBP-COMP-SEQ-EXT], constant inner operand.
             IEnumerable<Rational> fTimes;
             if (gImageStart < gImageEnd)
@@ -3627,8 +3626,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
             IEnumerable<Element> EnumerateComposition(IEnumerable<Rational> times)
             {
-                // The following loop works between two different breakpoints, 
-                // computing the composition between those
+                // The following loop works between two different breakpoints, computing the composition between those.
                 Rational? prevTime = null;
                 int lastIndexF = 0, lastIndexG = 0;
                 foreach (var time in times)

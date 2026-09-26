@@ -4690,7 +4690,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="f">Must be non-decreasing and non-negative.</param>
     /// <param name="g">Must be non-decreasing.</param>
-    /// <param name="settings"></param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A non-negative horizontal deviation function.</returns>
     public static Curve HorizontalDeviationFunction(Curve f, Curve g, ComputationSettings? settings = null)
     {
