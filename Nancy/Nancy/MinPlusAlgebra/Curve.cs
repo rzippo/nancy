@@ -5677,6 +5677,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             d = ultimatelyLower.PseudoPeriodLength;
             c = ultimatelyLower.PseudoPeriodHeight;
 
+            // The minimum is -inf wherever the higher operand is, so where that holds over part of its period only,
+            // the result repeats that part with the higher operand's period, and the lower operand's values elsewhere.
+            if (!ultimatelyHigher.IsUltimatelyInfinite && ultimatelyHigher.PseudoPeriodicElements.Any(e => e.IsMinusInfinite))
+            {
+                d = Rational.LeastCommonMultiple(ultimatelyLower.PseudoPeriodLength, ultimatelyHigher.PseudoPeriodLength);
+                c = d * ultimatelyLower.PseudoPeriodSlope;
+            }
+
             if (!ultimatelyHigher.IsUltimatelyInfinite && !ultimatelyLower.IsUltimatelyInfinite)
             {
                 Rational boundsIntersection = BoundsIntersection(ultimatelyLower: ultimatelyLower, ultimatelyHigher: ultimatelyHigher);
@@ -5957,6 +5965,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
             d = ultimatelyHigher.PseudoPeriodLength;
             c = ultimatelyHigher.PseudoPeriodHeight;
+
+            // The maximum is +inf wherever the lower operand is, so where that holds over part of its period only,
+            // the result repeats that part with the lower operand's period, and the higher operand's values elsewhere.
+            if (!ultimatelyLower.IsUltimatelyInfinite && ultimatelyLower.PseudoPeriodicElements.Any(e => e.IsPlusInfinite))
+            {
+                d = Rational.LeastCommonMultiple(ultimatelyLower.PseudoPeriodLength, ultimatelyHigher.PseudoPeriodLength);
+                c = d * ultimatelyHigher.PseudoPeriodSlope;
+            }
 
             if (!ultimatelyHigher.IsUltimatelyInfinite && !ultimatelyLower.IsUltimatelyInfinite)
             {
