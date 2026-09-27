@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
@@ -277,5 +278,27 @@ public class UpperPseudoInverseOverInterval
         var f_upi_D = f.UpperPseudoInverseOverInterval(0, Rational.PlusInfinity);
 
         Assert.True(Curve.Equivalent(f_upi, f_upi_D));
+    }
+
+    /// <summary>
+    /// The non-negative cases of <see cref="UpperPseudoInverse.JumpIntoConstantCases"/>, over $[s, +\infty[$ for each $s$ before the jump with $f(s) = f(0)$, where the inverse over the interval equals the inverse over $[0, +\infty[$.
+    /// </summary>
+    public static List<(Curve operand, Rational start, Curve expected)> JumpIntoConstantCases =
+        UpperPseudoInverse.JumpIntoConstantCases
+            .Where(c => c.operand.IsNonNegative)
+            .SelectMany(c => new Rational[] { 0, 1 }
+                .Where(start => start < c.operand.PseudoPeriodStartInfimum && c.operand.ValueAt(start) == c.operand.ValueAt(0))
+                .Select(start => (c.operand, start, c.expected)))
+            .ToList();
+
+    public static IEnumerable<object[]> JumpIntoConstantTestCases()
+        => JumpIntoConstantCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(JumpIntoConstantTestCases))]
+    public void JumpIntoConstant(Curve operand, Rational start, Curve expected)
+    {
+        var result = operand.UpperPseudoInverseOverInterval(start);
+        Assert.True(Curve.Equivalent(expected, result));
     }
 }

@@ -696,4 +696,91 @@ public class UpperPseudoInverse
         Assert.True(result.IsRightContinuous);
         Assert.True(Curve.Equivalent(expected, result));
     }
+
+    /// <summary>
+    /// A curve equal to <paramref name="before"/> over $[0, t[$, to <paramref name="atJump"/> at $t$, and to <paramref name="after"/> from then on.
+    /// </summary>
+    internal static Curve StepInto(Rational before, Rational atJump, Rational after, Rational t)
+    {
+        var elements = t == 0
+            ? new Element[] { new Point(0, atJump), new Segment(0, 1, after, 0), new Point(1, after), new Segment(1, 2, after, 0) }
+            : new Element[] { new Point(0, before), new Segment(0, t, before, 0), new Point(t, atJump), new Segment(t, t + 1, after, 0), new Point(t + 1, after), new Segment(t + 1, t + 2, after, 0) };
+        return new Curve(new Sequence(elements), t + 1, 1, 0);
+    }
+
+    /// <summary>2 over $[0, 1[$, $+\infty$ from 1.</summary>
+    private static readonly Curve TwoUpToOne = new Curve(
+        new Sequence(new Element[] { new Point(0, 2), Segment.Constant(0, 1, 2), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2) }),
+        1, 1, 0
+    );
+
+    /// <summary>$-\infty$ over $[0, 3[$, 2 over $[3, 5[$, $+\infty$ from 5.</summary>
+    private static readonly Curve TwoFromThreeUpToFive = new Curve(
+        new Sequence(new Element[] { Point.MinusInfinite(0), Segment.MinusInfinite(0, 3), new Point(3, 2), Segment.Constant(3, 5, 2), Point.PlusInfinite(5), Segment.PlusInfinite(5, 6) }),
+        5, 1, 0
+    );
+
+    /// <summary>0 over $[0, 1[$, $+\infty$ from 1.</summary>
+    private static readonly Curve ZeroUpToOne = new Curve(
+        new Sequence(new Element[] { Point.Origin(), Segment.Zero(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2) }),
+        1, 1, 0
+    );
+
+    public static List<(Curve operand, Curve expected)> JumpIntoConstantCases =
+    [
+        // the value at the jump is the constant, below it, or the value before the jump
+        (StepInto(0, 1, 1, 2), TwoUpToOne),
+        (StepInto(0, new Rational(1, 2), 1, 2), TwoUpToOne),
+        (StepInto(0, 0, 1, 2), TwoUpToOne),
+        // the same steps, starting above 0
+        (StepInto(3, 5, 5, 2), TwoFromThreeUpToFive),
+        (StepInto(3, 4, 5, 2), TwoFromThreeUpToFive),
+        (StepInto(3, 3, 5, 2), TwoFromThreeUpToFive),
+        // negative before the jump
+        (StepInto(-2, 1, 1, 2), TwoUpToOne),
+        (StepInto(-2, -1, 1, 2), TwoUpToOne),
+        // negative before the jump, reaching 0 only at it
+        (StepInto(-2, 0, 0, 2), Curve.PlusInfinite()),
+        // ultimately negative, or never above 0
+        (StepInto(-2, -1, -1, 2), Curve.PlusInfinite()),
+        (StepInto(-2, -1, 0, 2), Curve.PlusInfinite()),
+        // the jump at 0
+        (StepInto(0, 0, 1, 0), ZeroUpToOne),
+        (StepInto(0, -1, 1, 0), ZeroUpToOne),
+        (StepInto(0, 1, 1, 0), new Curve(
+            new Sequence(new Element[] { Point.MinusInfinite(0), Segment.MinusInfinite(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2) }),
+            1, 1, 0
+        )),
+        (
+            // rising into the jump
+            new Curve(
+                new Sequence(new Element[] { new Point(0, 1), new Segment(0, 2, 1, 1), new Point(2, 5), new Segment(2, 3, 5, 0), new Point(3, 5), new Segment(3, 4, 5, 0) }),
+                3, 1, 0
+            ),
+            new Curve(
+                new Sequence(new Element[] { Point.MinusInfinite(0), Segment.MinusInfinite(0, 1), new Point(1, 0), new Segment(1, 3, 0, 1), new Point(3, 2), Segment.Constant(3, 5, 2), Point.PlusInfinite(5), Segment.PlusInfinite(5, 6) }),
+                5, 1, 0
+            )
+        ),
+        (
+            // rising from below 0 into the jump, reaching 0 only at it
+            new Curve(
+                new Sequence(new Element[] { new Point(0, -2), new Segment(0, 2, -2, 1), new Point(2, 1), new Segment(2, 3, 1, 0), new Point(3, 1), new Segment(3, 4, 1, 0) }),
+                3, 1, 0
+            ),
+            TwoUpToOne
+        ),
+    ];
+
+    public static IEnumerable<object[]> JumpIntoConstantTestCases()
+        => JumpIntoConstantCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(JumpIntoConstantTestCases))]
+    public void JumpIntoConstant(Curve operand, Curve expected)
+    {
+        var result = operand.UpperPseudoInverse();
+        Assert.True(result.IsRightContinuous);
+        Assert.True(Curve.Equivalent(expected, result));
+    }
 }
