@@ -216,7 +216,12 @@ public class SubAdditiveCurve : Curve
             else
                 return curve;
         }
-        else 
+        else if (HasMinusInfinity || curve.HasMinusInfinity)
+        {
+            // [ZS23, Theorem 2] needs the dominated operand above -inf, and the specialized convolution pairs finite elements only
+            return new SubAdditiveCurve(base.Convolution(curve, settings), false);
+        }
+        else
         {
             if(
                 this.PseudoPeriodSlope != curve.PseudoPeriodSlope ||
@@ -614,7 +619,12 @@ public class SubAdditiveCurve : Curve
 
             return 0;
         }
-        else 
+        else if (HasMinusInfinity || curve.HasMinusInfinity)
+        {
+            // as in the convolution, an operand reaching -inf takes the general algorithm
+            return base.EstimateConvolution(curve, countElements, settings);
+        }
+        else
         {
             if(
                 this.PseudoPeriodSlope != curve.PseudoPeriodSlope ||
