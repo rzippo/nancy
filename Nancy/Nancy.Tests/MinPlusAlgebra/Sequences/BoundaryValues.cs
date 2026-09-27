@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -122,6 +123,31 @@ public class BoundaryValues
             0,
             0,
             0
+        ),
+        // the bounds take the one-sided limits at the ends of open segments, and an extremum that is not attained is null
+        (
+            // -1 + 2t on ]0, 1], so the infimum -1 is not attained
+            new Sequence([new Segment(0, 1, -1, 2), new Point(1, 1)]),
+            -1,
+            null,
+            1,
+            1
+        ),
+        (
+            // 5 - 4t on ]0, 1], so the supremum 5 is not attained
+            new Sequence([new Segment(0, 1, 5, -4), new Point(1, 1)]),
+            1,
+            1,
+            5,
+            null
+        ),
+        (
+            // 1 + t on ]0, 2[, a lone segment
+            new Sequence([new Segment(0, 2, 1, 1)]),
+            1,
+            null,
+            3,
+            null
         )
     ];
 
@@ -136,5 +162,18 @@ public class BoundaryValues
         Assert.Equal(min, sequence.MinValue());
         Assert.Equal(sup, sequence.SupValue());
         Assert.Equal(max, sequence.MaxValue());
+    }
+
+    public static IEnumerable<object[]> GetInfimumTestCases()
+        => SequencesAndBoundaries.Select(c => (c.sequence, c.inf)).ToXUnitTestCases();
+
+    /// <summary>
+    /// A sequence is non-negative exactly when its infimum is, attained or not.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetInfimumTestCases))]
+    public void IsNonNegativeFollowsTheInfimum(Sequence sequence, Rational inf)
+    {
+        Assert.Equal(inf >= 0, sequence.IsNonNegative);
     }
 }

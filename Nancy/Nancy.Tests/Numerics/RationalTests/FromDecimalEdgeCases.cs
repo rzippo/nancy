@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
@@ -119,4 +120,31 @@ public class FromDecimalEdgeCases
         var r = new Rational(0.500m);
         Assert.Equal(new Rational(1, 2), r);
     }
+
+    #if BIG_RATIONAL
+    /// <summary>
+    /// Decimals past the range of a long, each with its exact value.
+    /// </summary>
+    public static List<(decimal d, Rational expected)> DecimalsPastTheRangeOfALong =
+    [
+        // 2^63
+        (9223372036854775808m, new Rational(BigInteger.Pow(2, 63))),
+        // -2^63 - 1
+        (-9223372036854775809m, new Rational(-BigInteger.Pow(2, 63) - 1)),
+        // (2^64 + 1) / 2
+        (9223372036854775808.5m, new Rational(BigInteger.Pow(2, 64) + 1, 2)),
+        // 2^96 - 1
+        (decimal.MaxValue, new Rational(BigInteger.Pow(2, 96) - 1)),
+    ];
+
+    public static IEnumerable<object[]> GetDecimalsPastTheRangeOfALong()
+        => DecimalsPastTheRangeOfALong.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetDecimalsPastTheRangeOfALong))]
+    public void DecimalCtor_PastTheRangeOfALong(decimal d, Rational expected)
+    {
+        Assert.Equal(expected, new Rational(d));
+    }
+    #endif
 }

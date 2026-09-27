@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
@@ -426,5 +427,31 @@ public class ToUpperNonDecreasing
 
         Assert.True(result.IsNonDecreasing);
         Assert.True(Curve.Equivalent(result, expected));
+    }
+
+    /// <summary>$1 + 2t$ on $]0, 2[$, then 0 from 2 on.</summary>
+    private static readonly Curve DroppingIntoThePeriod = new Curve(new Sequence([Point.Origin(), new Segment(0, 2, 1, 2), new Point(2, 0), new Segment(2, 3, 0, 0)]), 2, 1, 0);
+
+    /// <summary>
+    /// The closure is the running supremum, including across the boundary where the transient drops into the pseudo-periodic part.
+    /// </summary>
+    public static List<(Curve operand, Rational time, Rational expected)> RunningSupremumValues =
+    [
+        (DroppingIntoThePeriod, 1, 3),
+        (DroppingIntoThePeriod, 2, 5),
+        (DroppingIntoThePeriod, 3, 5),
+        (DroppingIntoThePeriod, 100, 5),
+    ];
+
+    public static IEnumerable<object[]> RunningSupremumValuesTestCases()
+        => RunningSupremumValues.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(RunningSupremumValuesTestCases))]
+    public void TheClosureCarriesTheTransientSupremumIntoThePeriod(Curve operand, Rational time, Rational expected)
+    {
+        var closure = operand.ToUpperNonDecreasing();
+        Assert.True(closure.IsNonDecreasing);
+        Assert.Equal(expected, closure.ValueAt(time));
     }
 }

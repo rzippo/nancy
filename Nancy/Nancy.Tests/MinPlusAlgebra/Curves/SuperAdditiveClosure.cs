@@ -216,4 +216,28 @@ public class SuperAdditiveClosure
         var closure = curve.SuperAdditiveClosure();
         Assert.True(closure >= curve);
     }
+
+    /// <summary>10 over $]0, 10[$, then $10 + 2(t - 10)$.</summary>
+    private static readonly Curve PositiveRightLimitAtZero = new Curve(new Sequence([Point.Origin(), Segment.Constant(0, 10, 10), new Point(10, 10), new Segment(10, 11, 10, 2)]), 10, 1, 2);
+
+    /// <summary>
+    /// With $f(0^+) > 0$, sums of ever more small pieces grow without bound, so the closure is $+\infty$ at every $t > 0$.
+    /// </summary>
+    public static List<(Curve operand, Rational time, Rational expected)> UnboundedClosureValues =
+    [
+        (PositiveRightLimitAtZero, 0, 0),
+        (PositiveRightLimitAtZero, new Rational(1, 2), Rational.PlusInfinity),
+        (PositiveRightLimitAtZero, 1, Rational.PlusInfinity),
+        (PositiveRightLimitAtZero, 20, Rational.PlusInfinity),
+    ];
+
+    public static IEnumerable<object[]> UnboundedClosureValuesTestCases()
+        => UnboundedClosureValues.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(UnboundedClosureValuesTestCases))]
+    public void TheClosureIsUnboundedWhenTheRightLimitAtZeroIsPositive(Curve operand, Rational time, Rational expected)
+    {
+        Assert.Equal(expected, operand.SuperAdditiveClosure().ValueAt(time));
+    }
 }

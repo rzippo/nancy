@@ -411,4 +411,29 @@ public class SubAdditiveClosure
         output.WriteLine($"var result = {result.ToCodeString()};");
         Assert.True(Curve.Equivalent(expected, result));
     }
+
+    /// <summary>$f(5k) = 1 + 3k$, $+\infty$ elsewhere.</summary>
+    private static readonly Curve SparseCurve = new Curve(new Sequence([new Point(0, 1), Segment.PlusInfinite(0, 5), new Point(5, 4), Segment.PlusInfinite(5, 10)]), 5, 5, 3);
+
+    /// <summary>
+    /// The closure of a curve finite only at the multiples of 5 is finite only there as well, including at the period boundaries.
+    /// </summary>
+    public static List<(Curve operand, Rational time, Rational expected)> SparseClosureValues =
+    [
+        (SparseCurve, 0, 0),
+        (SparseCurve, 5, 4),
+        (SparseCurve, 10, 7),
+        (SparseCurve, new Rational(5, 2), Rational.PlusInfinity),
+        (SparseCurve, new Rational(15, 2), Rational.PlusInfinity),
+    ];
+
+    public static IEnumerable<object[]> SparseClosureValuesTestCases()
+        => SparseClosureValues.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(SparseClosureValuesTestCases))]
+    public void TheClosureOfASparseCurveStaysInfiniteBetweenItsPoints(Curve operand, Rational time, Rational expected)
+    {
+        Assert.Equal(expected, operand.SubAdditiveClosure().ValueAt(time));
+    }
 }
