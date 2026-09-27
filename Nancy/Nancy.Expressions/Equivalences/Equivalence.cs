@@ -11,12 +11,12 @@ public partial class Equivalence
     /// <summary>
     /// Left side of the equivalence.
     /// </summary>
-    public IExpression LeftSideExpression { get; init; }
+    public IExpression LeftSideExpression { get; }
 
     /// <summary>
     /// Right side of the equivalence.
     /// </summary>
-    public IExpression RightSideExpression { get; init; }
+    public IExpression RightSideExpression { get; }
 
     /// <summary>
     /// The conditions the equivalence places on what its placeholders bind to.
