@@ -4617,6 +4617,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve rl)
         {
+            if (sr.Sigma == 0 && sr.Rho == 0)
+                // f is 0 everywhere, so it never exceeds g
+                return 0;
             if(rl.Rate >= sr.Rho)
                 return rl.Latency + sr.Sigma / rl.Rate;
             else
