@@ -1,5 +1,3 @@
-using System;
-using Unipi.Nancy.Expressions;
 using Unipi.Nancy.Expressions.Nodes;
 using Unipi.Nancy.MinPlusAlgebra;
 
@@ -67,21 +65,13 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     /// <inheritdoc />
     public void Visit(CurveCutExpression expression)
     {
-        // compute, then cut
         var curve = Read(expression.Operand);
-        var cs = expression.Interval.Lower;
-        var ce = expression.Interval.Upper;
-        var csi = expression.Interval.IsLowerIncluded;
-        var cei = expression.Interval.IsUpperIncluded;
-
-        var cut = curve.Cut(cs, ce, csi, cei, ComputationSettingsOf(expression.Settings));
-        _result = cut;
+        _result = curve.Cut(expression.Interval, ComputationSettingsOf(expression.Settings));
     }
     
     /// <inheritdoc />
     public void Visit(CurveCutToNeighbourhoodExpression expression)
     {
-        // compute, then cut
         var curve = Read(expression.Operand);
         var cut = curve.CutToNeighbourhood(expression.CutStart, expression.CutEnd,
             settings: ComputationSettingsOf(expression.Settings));
@@ -91,21 +81,13 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     /// <inheritdoc />
     public void Visit(SequenceCutExpression expression)
     {
-        // compute, then cut
         var sequence = Read(expression.Operand);
-        var cs = expression.Interval.Lower;
-        var ce = expression.Interval.Upper;
-        var csi = expression.Interval.IsLowerIncluded;
-        var cei = expression.Interval.IsUpperIncluded;
-        
-        var cut = sequence.Cut(cs, ce, csi, cei);
-        _result = cut;
+        _result = sequence.Cut(expression.Interval);
     }
     
     /// <inheritdoc />
     public void Visit(SequenceCutToNeighbourhoodExpression expression)
     {
-        // compute, then cut
         var sequence = Read(expression.Operand);
         var cut = sequence.CutToNeighbourhood(expression.CutStart, expression.CutEnd);
         _result = cut;
