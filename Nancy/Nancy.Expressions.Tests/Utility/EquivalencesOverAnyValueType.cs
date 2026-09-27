@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unipi.Nancy.Expressions.Equivalences;
 using Xunit;
 using Unipi.Nancy.MinPlusAlgebra;
@@ -155,5 +156,20 @@ public class EquivalencesOverAnyValueType
         var exception = Record.Exception(() => new ConvAdditionByAConstant());
 
         Assert.Null(exception);
+    }
+
+    /// <summary>
+    /// The constructor checks the sides, so neither may be replaced once it has, which an object initializer could otherwise do.
+    /// </summary>
+    public static List<string> Sides = [nameof(Equivalence.LeftSideExpression), nameof(Equivalence.RightSideExpression)];
+
+    public static IEnumerable<object[]> SidesTestCases()
+        => Sides.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(SidesTestCases))]
+    public void ASideCannotBeReplacedAfterConstruction(string side)
+    {
+        Assert.Null(typeof(Equivalence).GetProperty(side)!.SetMethod);
     }
 }
