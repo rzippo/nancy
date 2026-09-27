@@ -446,11 +446,11 @@ public partial class LatexFormatterVisitor :
             {
                 sb.Append(@"\left(");
                 sb.Append(timeLatex);
-                sb.Append(superscript);
                 sb.Append(@"\right)");
             }
             else
                 sb.Append(timeLatex);
+            sb.Append(superscript);
             sb.Append(@"\right)");
             CurrentDepth--;
             return (sb, false);
@@ -801,11 +801,11 @@ public partial class LatexFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
-        => VisitLimitAt(expression, "^-");
+        => VisitLimitAt(expression, "^{-}");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
-        => VisitLimitAt(expression, "^+");
+        => VisitLimitAt(expression, "^{+}");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)

@@ -439,10 +439,10 @@ public class CurveExpressionVisitors
         Assert.Contains("(", curveArgument.ValueAt(new Rational(1)).ToUnicodeString());
 
         var timeArgument = Expressions.RationalSubtraction(new Rational(3), new Rational(1));
-        Assert.Contains("^-", arrival.LeftLimitAt(timeArgument).ToLatexString());
-        Assert.Contains("^+", arrival.RightLimitAt(timeArgument).ToLatexString());
-        Assert.Contains("^-", arrival.LeftLimitAt(timeArgument).ToUnicodeString());
-        Assert.Contains("^+", arrival.RightLimitAt(timeArgument).ToUnicodeString());
+        Assert.Contains("^{-}", arrival.LeftLimitAt(timeArgument).ToLatexString());
+        Assert.Contains("^{+}", arrival.RightLimitAt(timeArgument).ToLatexString());
+        Assert.Contains("⁻", arrival.LeftLimitAt(timeArgument).ToUnicodeString());
+        Assert.Contains("⁺", arrival.RightLimitAt(timeArgument).ToUnicodeString());
 
         var negativeConstantShiftLatex = arrival.VerticalShift(new Rational(-2)).ToLatexString();
         var negativeConstantShiftUnicode = arrival.VerticalShift(new Rational(-2)).ToUnicodeString();

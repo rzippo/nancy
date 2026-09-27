@@ -209,11 +209,11 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceLeftLimitAtExpression expression)
-        => VisitLimitAt(expression, "^-");
+        => VisitLimitAt(expression, "⁻");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceRightLimitAtExpression expression)
-        => VisitLimitAt(expression, "^+");
+        => VisitLimitAt(expression, "⁺");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceHorizontalDeviationExpression expression)

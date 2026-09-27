@@ -221,11 +221,11 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceLeftLimitAtExpression expression)
-        => VisitLimitAt(expression, "^-");
+        => VisitLimitAt(expression, "^{-}");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceRightLimitAtExpression expression)
-        => VisitLimitAt(expression, "^+");
+        => VisitLimitAt(expression, "^{+}");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceHorizontalDeviationExpression expression)

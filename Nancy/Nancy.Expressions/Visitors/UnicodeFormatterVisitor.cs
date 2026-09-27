@@ -412,11 +412,11 @@ public partial class UnicodeFormatterVisitor :
             {
                 sb.Append('(');
                 sb.Append(timeUnicode);
-                sb.Append(limitMarker);
                 sb.Append(')');
             }
             else
                 sb.Append(timeUnicode);
+            sb.Append(limitMarker);
             sb.Append(')');
             CurrentDepth--;
             return (sb, false);
@@ -780,11 +780,11 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(LeftLimitAtExpression expression)
-        => VisitLimitAt(expression, "^-");
+        => VisitLimitAt(expression, "⁻");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RightLimitAtExpression expression)
-        => VisitLimitAt(expression, "^+");
+        => VisitLimitAt(expression, "⁺");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(CurvePlaceholderExpression expression)
