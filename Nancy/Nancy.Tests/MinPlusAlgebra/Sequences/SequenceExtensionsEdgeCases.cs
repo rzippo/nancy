@@ -434,6 +434,116 @@ public class SequenceExtensionsEdgeCases
         Assert.Equal(isIncreasing, elements.IsIncreasing());
     }
 
+    public static List<(List<Element> elements, bool isNonDecreasing, bool isIncreasing)> MonotonicityCases =
+    [
+        (
+            [
+                new Segment(0, 2, 0, 1)
+            ],
+            true,
+            true
+        ),
+        (
+            [
+                Segment.Constant(0, 2, 5)
+            ],
+            true,
+            false
+        ),
+        (
+            [
+                new Segment(0, 2, 2, -1)
+            ],
+            false,
+            false
+        ),
+        (
+            [
+                new Segment(0, 1, 1, -1),
+                new Point(1, 0),
+                new Segment(1, 2, 0, 1),
+                new Point(2, 1)
+            ],
+            false,
+            false
+        ),
+        (
+            [
+                new Segment(0, 1, 0, 1),
+                new Point(1, 1),
+                new Segment(1, 2, 1, -1),
+                new Point(2, 0)
+            ],
+            false,
+            false
+        ),
+        (
+            [
+                Point.Origin(),
+                new Segment(0, 1, 0, 1),
+                new Point(1, 1),
+                Segment.Constant(1, 2, 1),
+                new Point(2, 1)
+            ],
+            true,
+            false
+        ),
+        (
+            [
+                Point.Origin(),
+                new Segment(0, 1, 0, 1),
+                new Point(1, 1),
+                new Segment(1, 2, 1, 1),
+                new Point(2, 2)
+            ],
+            true,
+            true
+        ),
+        (
+            [
+                Point.Origin(),
+                new Segment(0, 1, 2, -1),
+                new Point(1, 1)
+            ],
+            false,
+            false
+        ),
+        (
+            [
+                Point.Origin(),
+                new Segment(0, 2, 0, 1)
+            ],
+            true,
+            true
+        ),
+        (
+            [
+                new Segment(0, 2, 0, 1),
+                new Point(2, 2)
+            ],
+            true,
+            true
+        )
+    ];
+
+    public static IEnumerable<object[]> GetMonotonicityCases()
+        => MonotonicityCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetMonotonicityCases))]
+    public void MonotonicityPredicatesCheckEverySegment(
+        List<Element> elements,
+        bool isNonDecreasing,
+        bool isIncreasing)
+    {
+        Assert.Equal(isNonDecreasing, elements.IsNonDecreasing());
+        Assert.Equal(isIncreasing, elements.IsIncreasing());
+
+        var sequence = new Sequence(elements);
+        Assert.Equal(isNonDecreasing, sequence.IsNonDecreasing);
+        Assert.Equal(isIncreasing, sequence.IsIncreasing);
+    }
+
     public static List<(List<Element> elements, Rational supArg, Rational? maxArg, Rational infArg, Rational? minArg)> ExtremumArgumentCases =
     [
         (
