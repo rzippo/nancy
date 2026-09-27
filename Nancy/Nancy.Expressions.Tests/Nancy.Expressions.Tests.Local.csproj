@@ -9,7 +9,7 @@
 
     <RootNamespace>Unipi.Nancy.Expressions.Tests</RootNamespace>
     <AssemblyName>Unipi.Nancy.Expressions.Tests.Local</AssemblyName>
-    <NoWarn>$(NoWarn);NANCY0004</NoWarn>
+    <NoWarn>$(NoWarn);NANCY0003;NANCY0004</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
