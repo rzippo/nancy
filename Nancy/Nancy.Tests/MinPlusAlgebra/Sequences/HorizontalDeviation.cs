@@ -1112,9 +1112,8 @@ public class HorizontalDeviation
         _testOutputHelper.WriteLine($"var xF = {xF.ToCodeString()};");
         _testOutputHelper.WriteLine($"var xG = {xG.ToCodeString()};");
         var hdevFunctionCurves = Curve.HorizontalDeviationFunction(f, g);
-        // todo: implement Curve.Cut(Interval)
-        var fCut = f.Cut(xF.Lower, xF.Upper, xF.IsLowerIncluded, xF.IsUpperIncluded);
-        var gCut = g.Cut(xG.Lower, xG.Upper, xG.IsLowerIncluded, xG.IsUpperIncluded);
+        var fCut = f.Cut(xF);
+        var gCut = g.Cut(xG);
         var hdevFunctionSequence = Sequence.HorizontalDeviationFunction(fCut, gCut);
         _testOutputHelper.WriteLine($"var hdevFunctionCurves = {hdevFunctionCurves.ToCodeString()};");
         _testOutputHelper.WriteLine($"var hdevFunctionSequence = {hdevFunctionSequence.ToCodeString()};");
@@ -1132,8 +1131,8 @@ public class HorizontalDeviation
         _testOutputHelper.WriteLine($"var xF = {xF.ToCodeString()};");
         _testOutputHelper.WriteLine($"var xG = {xG.ToCodeString()};");
         var hdevFunctionCurves = Curve.HorizontalDeviationFunction(f, g);
-        var fCut = f.Cut(xF.Lower, xF.Upper, xF.IsLowerIncluded, xF.IsUpperIncluded);
-        var gCut = g.Cut(xG.Lower, xG.Upper, xG.IsLowerIncluded, xG.IsUpperIncluded);
+        var fCut = f.Cut(xF);
+        var gCut = g.Cut(xG);
         var hdevFunctionSequence = Sequence.HorizontalDeviationFunction(fCut, gCut);
         _testOutputHelper.WriteLine($"var hdevFunctionCurves = {hdevFunctionCurves.ToCodeString()};");
         _testOutputHelper.WriteLine($"var hdevFunctionSequence = {hdevFunctionSequence.ToCodeString()};");
