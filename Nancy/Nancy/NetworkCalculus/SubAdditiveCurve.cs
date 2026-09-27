@@ -369,8 +369,9 @@ public class SubAdditiveCurve : Curve
             {
                 return sa.Elements
                     .SelectMany((ea, ia) => sb.Elements
-                        .Where((_, ib) => colors[startIndexOfA + ia] != colors[ib] || colors[ib] == Color.Both)    // filter out same-color pairs [ZS23, Property 4]
-                        .Where(eb => ea.StartTime < eb.StartTime)   // filter out symmetric pairs [ZS23, Property 3]
+                        .Where((_, ib) =>
+                            (colors[startIndexOfA + ia] != colors[ib] || colors[ib] == Color.Both) &&    // filter out same-color pairs [ZS23, Property 4]
+                            startIndexOfA + ia <= ib)   // filter out symmetric pairs by position, since a point and the segment after it share a start time [ZS23, Property 3]
                         .Where(eb => ea.StartTime + eb.StartTime < cutEnd) // filter out pairs outside the cut boundary [ZNS23a, horizontal filtering]
                         .Select(eb => (a: ea, b: eb))
                     )
@@ -751,8 +752,9 @@ public class SubAdditiveCurve : Curve
             {
                 return sa.Elements
                     .SelectMany((ea, ia) => sb.Elements
-                        .Where((_, ib) => colors[startIndexOfA + ia] != colors[ib])    // filter out same-color pairs [ZS23, Property 4]
-                        .Where(eb => ea.StartTime < eb.StartTime)   // filter out symmetric pairs [ZS23, Property 3]
+                        .Where((_, ib) =>
+                            colors[startIndexOfA + ia] != colors[ib] &&    // filter out same-color pairs [ZS23, Property 4]
+                            startIndexOfA + ia <= ib)   // filter out symmetric pairs by position, since a point and the segment after it share a start time [ZS23, Property 3]
                         .Where(eb => ea.StartTime + eb.StartTime <= cutEnd) // filter out pairs outside the cut boundary [ZNS23a, horizontal filtering]
                         .Select(eb => (a: ea, b: eb))
                     )
