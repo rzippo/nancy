@@ -41,9 +41,24 @@ public class ConstantCurve : Curve
         )
     {
         Value = value;
+        SetKnownSubAdditivity();
+    }
+
+    /// <summary>
+    /// Records the sub-additivity that follows from the value alone.
+    /// </summary>
+    private void SetKnownSubAdditivity()
+    {
         // sub-additivity fails only for a finite negative value: at $-\infty$, $f(t+s)$ and $f(t) + f(s)$ are both $-\infty$
-        if (!(value.IsFinite && value.IsNegative))
+        if (!(Value.IsFinite && Value.IsNegative))
             _IsSubAdditive = true;
+    }
+
+    /// <inheritdoc />
+    public override void ResetCachedProperties()
+    {
+        base.ResetCachedProperties();
+        SetKnownSubAdditivity();
     }
 
     /// <summary>

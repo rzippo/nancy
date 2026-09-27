@@ -947,6 +947,30 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public IEnumerable<Element> PseudoPeriodicElements =>
         PseudoPeriodicSequence.Elements;
 
+    /// <summary>
+    /// Forgets every property this curve has cached, and those cached by its <see cref="BaseSequence"/>, so that each is computed again when next asked for.
+    /// </summary>
+    /// <remarks>
+    /// No result changes, only the work that produced the cached answers is lost.
+    /// This is for measuring that work, for instance timing an operation from a cold start on a curve already used.
+    /// A property the curve knows from how it was constructed is kept, being part of the curve rather than work done on it.
+    /// <see cref="BaseSequence"/> is shared with the curves copied from this one, which lose its cached properties too.
+    /// </remarks>
+    public virtual void ResetCachedProperties()
+    {
+        _hasPlusInfinity = null;
+        _hasMinusInfinity = null;
+        _isPassingThroughOrigin = null;
+        _isLeftContinuous = null;
+        _isRightContinuous = null;
+        _isNonNegative = null;
+        _isNonDecreasing = null;
+        _isIncreasing = null;
+        _IsSubAdditive = null;
+        _IsSuperAdditive = null;
+        BaseSequence.ResetCachedProperties();
+    }
+
     #endregion Properties
 
     #region Constructors

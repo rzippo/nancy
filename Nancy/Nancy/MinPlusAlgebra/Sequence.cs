@@ -458,6 +458,21 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         }
     }
 
+    /// <summary>
+    /// Forgets every property this sequence has cached, so that each is computed again when next asked for.
+    /// </summary>
+    /// <remarks>
+    /// No result changes, only the work that produced the cached answers is lost.
+    /// This is for measuring that work, for instance timing an operation from a cold start on a sequence already used.
+    /// </remarks>
+    public void ResetCachedProperties()
+    {
+        _isLeftContinuous = null;
+        _isRightContinuous = null;
+        _isNonDecreasing = null;
+        _isIncreasing = null;
+    }
+
     #endregion
 
     #region Constructors
