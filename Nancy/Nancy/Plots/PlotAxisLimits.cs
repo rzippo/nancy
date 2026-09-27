@@ -267,7 +267,7 @@ public static class PlotAxisLimitAlgorithms
     /// <remarks>
     /// An explicit finite limit in <paramref name="settings"/> is the data limit, as requested.
     /// Otherwise the data limit is the extent of the finite values, with the trailing continuation.
-    /// Reserving room for the areas marking infinite values, opening up degenerate ranges and margins are framing concerns, and belong to <see cref="SuggestFramingLimits"/>.
+    /// Reserving room for the areas marking infinite values, opening up degenerate ranges and margins are framing concerns, and belong to <see cref="SuggestFramingLimits(IReadOnlyCollection{Sequence},PlotSettings,bool)"/>.
     /// </remarks>
     public static PlotDataLimits SuggestDataLimits(
         IReadOnlyCollection<Sequence> sequences,
@@ -291,6 +291,8 @@ public static class PlotAxisLimitAlgorithms
     }
 
     /// <inheritdoc cref="SuggestDataLimits(IReadOnlyCollection{Sequence},PlotSettings,bool,Interval?)"/>
+    /// <param name="sequences">The sequences to be plotted.</param>
+    /// <param name="settings">The settings of the plot.</param>
     /// <param name="window">The window the sequences were sampled over, which says what the data range is rather than leaving it to be guessed from them.</param>
     public static PlotDataLimits SuggestDataLimits(
         IReadOnlyCollection<Sequence> sequences,
@@ -374,6 +376,8 @@ public static class PlotAxisLimitAlgorithms
     }
 
     /// <inheritdoc cref="SuggestFramingLimits(IReadOnlyCollection{Sequence},PlotSettings,bool)"/>
+    /// <param name="sequences">The sequences to be plotted.</param>
+    /// <param name="settings">The settings of the plot.</param>
     /// <param name="window">
     /// The window the sequences were sampled over.
     /// The frame comes from <see cref="PlotXWindow.Data"/>, never from the extent of the samples, which may reach past it by the margin.
@@ -430,7 +434,7 @@ public static class PlotAxisLimitAlgorithms
         };
     }
 
-    /// <inheritdoc cref="SuggestFramingLimits"/>
+    /// <inheritdoc cref="SuggestFramingLimits(IReadOnlyCollection{Sequence},PlotSettings,bool)"/>
     [Obsolete("Renamed to SuggestFramingLimits, which says that the renderer is free to frame otherwise.")]
     public static PlotAxisLimits GetSequenceAxisLimits(
         IReadOnlyCollection<Sequence> sequences,
