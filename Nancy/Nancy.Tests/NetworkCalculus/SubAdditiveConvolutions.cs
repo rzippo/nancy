@@ -228,4 +228,60 @@ public class SubAdditiveConvolutions
         Assert.True(Curve.Equivalent(optimizedConvolution, unoptimizedConvolution));
         Assert.True(Curve.Equivalent(optimizedConvolution, curve));
     }
+
+    /// <summary>Finite at the multiples of <paramref name="period"/>, where it grows by <paramref name="height"/>, and $+\infty$ between them.</summary>
+    private static SubAdditiveCurve PlusInfiniteBetweenPoints(Rational period, Rational height)
+        => new(new Curve(new Sequence([Point.Origin(), Segment.PlusInfinite(0, period)]), 0, period, height));
+
+    /// <summary>$b + r t$ on $]0, t_0[$, and $-\infty$ from <paramref name="t0"/> on.</summary>
+    private static SubAdditiveCurve UltimatelyMinusInfinite(Rational burst, Rational rate, Rational t0)
+        => new(new Curve(new Sequence([Point.Origin(), new Segment(0, t0, burst, rate), Point.MinusInfinite(t0), Segment.MinusInfinite(t0, t0 + 1)]), t0, 1, 0));
+
+    /// <summary>
+    /// Sub-additive operands reaching infinities, each taking a different path of the optimized convolution.
+    /// A sparse operand against a finite one of equal slope has its minimum self-convolved, an operand reaching $-\infty$ admits no asymptotic dominance, and sparse operands come with equal and different slopes.
+    /// </summary>
+    public static List<(SubAdditiveCurve a, SubAdditiveCurve b)> PairsWithInfinities =
+    [
+        (new SubAdditiveCurve(new StairCurve(1, 2)), PlusInfiniteBetweenPoints(3, new Rational(3, 2))),
+        (PlusInfiniteBetweenPoints(3, new Rational(3, 2)), new SubAdditiveCurve(new StairCurve(1, 2))),
+        (new SubAdditiveCurve(new SigmaRhoArrivalCurve(1, 1)), UltimatelyMinusInfinite(2, new Rational(1, 2), 5)),
+        (UltimatelyMinusInfinite(1, 1, 3), UltimatelyMinusInfinite(2, new Rational(1, 2), 5)),
+        (PlusInfiniteBetweenPoints(2, 2), new SubAdditiveCurve(new SigmaRhoArrivalCurve(1, new Rational(1, 2)))),
+        (PlusInfiniteBetweenPoints(2, 1), PlusInfiniteBetweenPoints(3, new Rational(3, 2))),
+        (new SubAdditiveCurve(new StairCurve(1, 2)), new SubAdditiveCurve(new StairCurve(2, 3))),
+    ];
+
+    public static IEnumerable<object[]> PairsWithInfinitiesTestCases()
+        => PairsWithInfinities.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(PairsWithInfinitiesTestCases))]
+    public void TheOptimizedConvolutionAgreesWithTheGeneralOneOverInfinities(SubAdditiveCurve a, SubAdditiveCurve b)
+    {
+        var optimized = Curve.Convolution(a, b);
+        var general = Curve.Convolution(new Curve(a), new Curve(b));
+
+        Assert.True(Curve.Equivalent(optimized, general));
+    }
+
+    /// <summary>
+    /// A convolution of a curve reaching $+\infty$ with one reaching $-\infty$ is undefined, and both algorithms say so, in either order.
+    /// </summary>
+    public static List<(SubAdditiveCurve a, SubAdditiveCurve b)> OppositeInfinitiesPairs =
+    [
+        (PlusInfiniteBetweenPoints(2, 1), UltimatelyMinusInfinite(1, 1, 3)),
+        (UltimatelyMinusInfinite(1, 1, 3), PlusInfiniteBetweenPoints(2, 1)),
+    ];
+
+    public static IEnumerable<object[]> OppositeInfinitiesPairsTestCases()
+        => OppositeInfinitiesPairs.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(OppositeInfinitiesPairsTestCases))]
+    public void AConvolutionOfOppositeInfinitiesIsUndefinedEitherWay(SubAdditiveCurve a, SubAdditiveCurve b)
+    {
+        Assert.Throws<UndeterminedResultException>(() => Curve.Convolution(a, b));
+        Assert.Throws<UndeterminedResultException>(() => Curve.Convolution(new Curve(a), new Curve(b)));
+    }
 }
