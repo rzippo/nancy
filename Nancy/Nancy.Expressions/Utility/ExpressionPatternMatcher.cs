@@ -70,6 +70,9 @@ internal static class ExpressionPatternMatcher
         }
 
         var expressionNode = (IExpressionNode)expression;
+        if (!ParametersAgree(patternNode, expressionNode))
+            return false;
+
         if (patternNode.Arity == NodeArity.NAry)
             return MatchNAry(patternNode, expressionNode, patternRoot, kind, context, out leftover);
 
@@ -152,6 +155,17 @@ internal static class ExpressionPatternMatcher
 
         return false;
     }
+
+    /// <summary>
+    /// True if the two nodes of the same operator hold the same parameters besides their operands, such as a cut's interval or a subtraction's non-negative flag.
+    /// </summary>
+    /// <remarks>
+    /// The candidate is rebuilt around the pattern's operands, so the equality that follows compares nothing but the parameters, and ignores the name as equality does.
+    /// Comparing on the pattern's side keeps the cost to the size of the pattern, which is small, rather than of the candidate's subtree.
+    /// A parameter is not an expression, so it cannot be a placeholder: an equivalence stated over a cut applies to cuts over that interval only.
+    /// </remarks>
+    private static bool ParametersAgree(IExpressionNode patternNode, IExpressionNode expressionNode)
+        => expressionNode.Rebuild(patternNode.Children).Equals(patternNode);
 
     private static bool BindPlaceholder(IExpression pattern, IExpression expression, PatternMatchContext context)
         => pattern is IPlaceholderExpression placeholder
