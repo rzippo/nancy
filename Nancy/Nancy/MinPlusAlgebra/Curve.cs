@@ -4074,14 +4074,22 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
-            var transient_lpi = CutAsEnumerable(0, constant_start, isEndIncluded: true).LowerPseudoInverse(startFromZero: true);
-            var lpi = IsRightContinuousAt(constant_start)
-                ? transient_lpi
-                    .Append(Segment.PlusInfinite(constant_value, constant_value + 2))
-                : transient_lpi
-                    .Append(Segment.Constant(ValueAt(constant_start), constant_value, constant_start))
-                    .Append(new Point(constant_value, constant_start))
-                    .Append(Segment.PlusInfinite(constant_value, constant_value + 2));
+            if (constant_value < 0)
+                // f(t) < 0 for every t, so no t reaches any y >= 0
+                return PlusInfinite();
+
+            // the transient includes constant_start, so its inverse covers [0, f(constant_start)] if f(constant_start) >= 0
+            var value_at_start = ValueAt(constant_start);
+            var lpi = value_at_start >= 0
+                ? CutAsEnumerable(0, constant_start, isEndIncluded: true).LowerPseudoInverse(startFromZero: true)
+                : [new Point(0, constant_start)];
+            // for any y above f(constant_start), up to the constant, f(t) >= y exactly for t > constant_start
+            var jump_start = Rational.Max(value_at_start, 0);
+            if (jump_start < constant_value)
+                lpi = lpi
+                    .Append(Segment.Constant(jump_start, constant_value, constant_start))
+                    .Append(new Point(constant_value, constant_start));
+            lpi = lpi.Append(Segment.PlusInfinite(constant_value, constant_value + 2));
 
             return new Curve(
                 baseSequence: lpi.ToSequence(),
@@ -4170,18 +4178,24 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
-            var transient_upi = constant_start > 0
-                ? CutAsEnumerable(0, constant_start).UpperPseudoInverse(startFromZero: true)
-                : Enumerable.Empty<Element>();
-            var upi = IsRightContinuousAt(constant_start)
-                ? transient_upi
-                    .Append(Point.PlusInfinite(constant_value))
-                    .Append(Segment.PlusInfinite(constant_value, constant_value + 1))
-                : transient_upi
-                    .Append(new Point(ValueAt(constant_start), constant_start))
-                    .Append(Segment.Constant(ValueAt(constant_start), constant_value, constant_start))
-                    .Append(Point.PlusInfinite(constant_value))
-                    .Append(Segment.PlusInfinite(constant_value, constant_value + 1));
+            if (constant_value < 0)
+                // f(t) < 0 for every t, so every t is below any y >= 0
+                return PlusInfinite();
+
+            // the transient excludes constant_start, so its inverse covers up to f(constant_start^-), if f(t) >= 0 for some t < constant_start
+            var upi = FirstNonNegativeTime < constant_start
+                ? CutAsEnumerable(0, constant_start).UpperPseudoInverse(startFromZero: true).ToList()
+                : [];
+            // for any y from f(constant_start^-), up to the constant, f(t) <= y for t < constant_start, and for no t > constant_start
+            var jump_start = Rational.Max(constant_start > 0 ? LeftLimitAt(constant_start) : ValueAt(0), 0);
+            if (jump_start < constant_value)
+            {
+                if (upi.LastOrDefault() is not Point last || last.Time != jump_start)
+                    upi.Add(new Point(jump_start, constant_start));
+                upi.Add(Segment.Constant(jump_start, constant_value, constant_start));
+            }
+            upi.Add(Point.PlusInfinite(constant_value));
+            upi.Add(Segment.PlusInfinite(constant_value, constant_value + 1));
 
             var valueAtZero = ValueAt(0);
             var sequence = valueAtZero > 0
@@ -4495,19 +4509,22 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 var constant_start = Rational.Max(PseudoPeriodStartInfimum, start);
                 var constant_value = ValueAt(PseudoPeriodStart);
-                var transient_upi = start < constant_start
+                // the transient excludes constant_start, so its inverse covers up to f(constant_start^-)
+                var upi = start < constant_start
                     ? CutAsEnumerable(start, constant_start)
                         .UpperPseudoInverse()
-                    : Enumerable.Empty<Element>();
-                var upi = IsRightContinuousAt(constant_start)
-                    ? transient_upi
-                        .Append(Point.PlusInfinite(constant_value))
-                        .Append(Segment.PlusInfinite(constant_value, constant_value + 1))
-                    : transient_upi
-                        .Append(new Point(ValueAt(constant_start), constant_start))
-                        .Append(Segment.Constant(ValueAt(constant_start), constant_value, constant_start))
-                        .Append(Point.PlusInfinite(constant_value))
-                        .Append(Segment.PlusInfinite(constant_value, constant_value + 1));
+                        .ToList()
+                    : [];
+                // for any y from f(constant_start^-), up to the constant, f(t) <= y for t < constant_start, and for no t > constant_start
+                var jump_start = start < constant_start ? LeftLimitAt(constant_start) : ValueAt(start);
+                if (jump_start < constant_value)
+                {
+                    if (upi.LastOrDefault() is not Point last || last.Time != jump_start)
+                        upi.Add(new Point(jump_start, constant_start));
+                    upi.Add(Segment.Constant(jump_start, constant_value, constant_start));
+                }
+                upi.Add(Point.PlusInfinite(constant_value));
+                upi.Add(Segment.PlusInfinite(constant_value, constant_value + 1));
 
                 var valueAtStart = ValueAt(start);
                 var sequence = valueAtStart > 0
