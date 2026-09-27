@@ -859,11 +859,19 @@ public static class SequenceExtensions
     /// </summary>
     public static bool IsNonDecreasing(this IEnumerable<Element> elements)
     {
-        foreach (var breakpoint in elements.EnumerateBreakpoints())
+        // Read twice below, so a lazy enumerable is materialized once.
+        var elementList = elements as IReadOnlyList<Element> ?? elements.ToList();
+        foreach (var element in elementList)
+        {
+            if (element is Segment s && s.Slope < 0)
+                return false;
+        }
+
+        foreach (var breakpoint in elementList.EnumerateBreakpoints())
         {
             if (
-                (breakpoint.left is Segment l && ( l.Slope < 0 || l.LeftLimitAtEndTime > breakpoint.center.Value )) ||
-                (breakpoint.right is Segment r && ( r.Slope < 0 || breakpoint.center.Value > r.RightLimitAtStartTime ))
+                (breakpoint.left is Segment l && l.LeftLimitAtEndTime > breakpoint.center.Value) ||
+                (breakpoint.right is Segment r && breakpoint.center.Value > r.RightLimitAtStartTime)
             )
                 return false;
         }
@@ -875,11 +883,19 @@ public static class SequenceExtensions
     /// </summary>
     public static bool IsIncreasing(this IEnumerable<Element> elements)
     {
-        foreach (var breakpoint in elements.EnumerateBreakpoints())
+        // Read twice below, so a lazy enumerable is materialized once.
+        var elementList = elements as IReadOnlyList<Element> ?? elements.ToList();
+        foreach (var element in elementList)
+        {
+            if (element is Segment s && s.Slope <= 0)
+                return false;
+        }
+
+        foreach (var breakpoint in elementList.EnumerateBreakpoints())
         {
             if (
-                (breakpoint.left is Segment l && ( l.Slope <= 0 || l.LeftLimitAtEndTime > breakpoint.center.Value )) ||
-                (breakpoint.right is Segment r && ( r.Slope <= 0 || breakpoint.center.Value > r.RightLimitAtStartTime ))
+                (breakpoint.left is Segment l && l.LeftLimitAtEndTime > breakpoint.center.Value) ||
+                (breakpoint.right is Segment r && breakpoint.center.Value > r.RightLimitAtStartTime)
             )
                 return false;
         }
