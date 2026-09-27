@@ -149,12 +149,32 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     }
 
     /// <summary>
+    /// Forgets every cached predicate.
+    /// </summary>
+    private void ClearPredicates()
+    {
+        _isLeftContinuous = null;
+        _isRightContinuous = null;
+        _isNonNegative = null;
+        _isNonDecreasing = null;
+        _isIncreasing = null;
+    }
+
+    /// <summary>
     /// Clears this node's own cached <see cref="Value"/>, and, per <paramref name="scope"/>, its descendants', mutating them in place.
     /// </summary>
-    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree)
+    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree, bool force = false)
     {
-        if (!ValueCacheIsCheap)
+        if (this is IExpressionLeaf leaf)
+        {
+            if (force)
+                leaf.ResetValueCaches();
+        }
+        else if (force || !ValueCacheIsCheap)
             _value = null;
+
+        if (force)
+            ClearPredicates();
 
         if (scope == CacheClearScope.SelfOnly)
             return;
@@ -163,7 +183,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         {
             if (scope == CacheClearScope.SubtreeUntilNamed && !string.IsNullOrEmpty(child.Name))
                 continue;
-            child.ClearValueCache(scope);
+            child.ClearValueCache(scope, force);
         }
     }
 

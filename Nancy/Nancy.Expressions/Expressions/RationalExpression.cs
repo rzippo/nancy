@@ -71,12 +71,17 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </summary>
     /// <remarks>
     /// Mutating in place is what makes this cheap: a shared node's memory is reclaimed while every ancestor holding a reference to it stays as it is.
-    /// <see cref="ValueCacheIsCheap"/> is always <see langword="true"/> here, so this node keeps its own cache.
+    /// <see cref="ValueCacheIsCheap"/> is always <see langword="true"/> here, so this node keeps its own cache unless the clearing is forced.
     /// Recursion still descends into its children, which can be <see cref="Curve"/>-typed and arbitrarily large.
     /// </remarks>
-    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree)
+    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree, bool force = false)
     {
-        if (!ValueCacheIsCheap)
+        if (this is IExpressionLeaf leaf)
+        {
+            if (force)
+                leaf.ResetValueCaches();
+        }
+        else if (force || !ValueCacheIsCheap)
             _value = null;
 
         if (scope == CacheClearScope.SelfOnly)
@@ -86,7 +91,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
         {
             if (scope == CacheClearScope.SubtreeUntilNamed && !string.IsNullOrEmpty(child.Name))
                 continue;
-            child.ClearValueCache(scope);
+            child.ClearValueCache(scope, force);
         }
     }
 

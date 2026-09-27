@@ -48,6 +48,12 @@ public record RationalNumberExpression : RationalExpression, IExpressionLeaf
         => other is RationalNumberExpression number && Value.Equals(number.Value);
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Does nothing: a <see cref="Rational"/> caches nothing.
+    /// </remarks>
+    void IExpressionLeaf.ResetValueCaches() { }
+
+    /// <inheritdoc />
     public override int GetHashCode()
         => HashCode.Combine(base.GetHashCode(), Value);
 }

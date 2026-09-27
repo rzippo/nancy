@@ -13,4 +13,9 @@ internal interface IExpressionLeaf : IExpression
     /// </summary>
     /// <param name="other">The expression to compare against.</param>
     bool ValueMatches(IExpression other);
+
+    /// <summary>
+    /// Forgets the properties the value this leaf holds has cached, keeping the value itself.
+    /// </summary>
+    void ResetValueCaches();
 }

@@ -55,6 +55,10 @@ public record ConcreteSequenceExpression : SequenceExpression, IExpressionLeaf
         => other is ConcreteSequenceExpression sequence && Value.Equals(sequence.Value);
 
     /// <inheritdoc />
+    void IExpressionLeaf.ResetValueCaches()
+        => Value.ResetCachedProperties();
+
+    /// <inheritdoc />
     public override int GetHashCode()
         => HashCode.Combine(base.GetHashCode(), Value);
 }

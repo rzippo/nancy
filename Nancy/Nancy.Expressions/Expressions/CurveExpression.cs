@@ -70,6 +70,29 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     }
 
     /// <summary>
+    /// Forgets every cached predicate.
+    /// </summary>
+    private void ClearPredicates()
+    {
+        _isSubAdditive = null;
+        _isSuperAdditive = null;
+        _isLeftContinuous = null;
+        _isRightContinuous = null;
+        _isNonNegative = null;
+        _isNonDecreasing = null;
+        _isIncreasing = null;
+        _isConcave = null;
+        _isConvex = null;
+        _isPassingThroughOrigin = null;
+        _isUltimatelyFinite = null;
+        _isPlain = null;
+        _isUltimatelyPlain = null;
+        _isUltimatelyAffine = null;
+        _isUltimatelyConstant = null;
+        _isWellDefined = null;
+    }
+
+    /// <summary>
     /// Clears this node's own cached <see cref="Value"/>, and, per <paramref name="scope"/>, its descendants', mutating them in place.
     /// </summary>
     /// <remarks>
@@ -77,10 +100,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// A node whose own <see cref="ValueCacheIsCheap"/> is <see langword="true"/> keeps its cache, and recursion still descends into its children, since a cheap node can have expensive descendants.
     /// A horizontal deviation is the case to have in mind: its own <see cref="Rational"/> result is two integers, while the curves it was computed from can be arbitrarily large.
     /// </remarks>
-    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree)
+    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree, bool force = false)
     {
-        if (!ValueCacheIsCheap)
+        if (this is IExpressionLeaf leaf)
+        {
+            if (force)
+                leaf.ResetValueCaches();
+        }
+        else if (force || !ValueCacheIsCheap)
             _value = null;
+
+        if (force)
+            ClearPredicates();
 
         if (scope == CacheClearScope.SelfOnly)
             return;
@@ -89,7 +120,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         {
             if (scope == CacheClearScope.SubtreeUntilNamed && !string.IsNullOrEmpty(child.Name))
                 continue;
-            child.ClearValueCache(scope);
+            child.ClearValueCache(scope, force);
         }
     }
 

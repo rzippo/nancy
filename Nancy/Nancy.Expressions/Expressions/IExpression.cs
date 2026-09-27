@@ -89,10 +89,15 @@ public interface IExpression
     /// Discards the value this expression remembers, and the values of its subtree where <paramref name="scope"/> says so.
     /// </summary>
     /// <param name="scope">How far down the expression the cached values are discarded.</param>
+    /// <param name="force">
+    /// If true, discards everything a computation left behind, so that computing again repeats all of its work:
+    /// every value but a leaf's, however cheap, every cached predicate, and the properties cached by the value a leaf holds.
+    /// For timing a computation from a cold start.
+    /// </param>
     /// <remarks>
     /// An expression's operands can belong to another hierarchy, as a horizontal deviation's curve operands do, so a node clearing its subtree reaches children whose value type it does not name.
     /// </remarks>
-    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree);
+    public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree, bool force = false);
 
     /// <summary>
     /// Computes the expression, without returning its result.
