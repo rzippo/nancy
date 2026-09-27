@@ -12,7 +12,7 @@ namespace Unipi.Nancy.Expressions;
 /// The class aims at providing the main methods to build, manipulate and print expressions which evaluate to rational
 /// numbers and are based on NetCal curves.
 /// </summary>
-public abstract record RationalExpression : IGenericExpression<Rational>, IVisitableRational
+public abstract record RationalExpression : IGenericExpression<Rational>, IVisitableRational, IValueCacheOwner
 {
     #region Properties
 
@@ -59,6 +59,12 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// A <see cref="Rational"/>'s cached value is a pair of integers, however expensive it was to compute, so clearing it frees nothing worth the recomputation.
     /// </remarks>
     protected internal virtual bool ValueCacheIsCheap => true;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Does nothing: a <see cref="Rational"/> is always cheap to keep, as <see cref="ValueCacheIsCheap"/> says.
+    /// </remarks>
+    void IValueCacheOwner.DropValueIfLargerThan(int threshold) { }
 
     /// <summary>
     /// Clears this node's own cached <see cref="Value"/>, and, per <paramref name="scope"/>, its descendants', mutating them in place.
@@ -129,7 +135,16 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     #region Methods
 
     /// <inheritdoc />
-    public Rational Compute(ExpressionSettings? settings = null) => _value ??= new RationalExpressionEvaluator(settings).GetResult(this);
+    public Rational Compute(ExpressionSettings? settings = null)
+    {
+        if (_value is { } value)
+            return value;
+        var evaluator = new RationalExpressionEvaluator(settings);
+        value = evaluator.GetResult(this);
+        _value = value;
+        evaluator.ReleaseOperands(ExpressionSettings.Resolve(settings, Settings)?.CacheSettings);
+        return value;
+    }
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
     public void ComputeWithoutResult()

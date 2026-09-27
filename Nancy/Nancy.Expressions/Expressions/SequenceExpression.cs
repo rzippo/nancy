@@ -12,7 +12,7 @@ namespace Unipi.Nancy.Expressions;
 /// Class which describes NetCal expressions that evaluate to sequences.
 /// The class aims at providing the main methods to build, manipulate and print network calculus expressions.
 /// </summary>
-public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisitableSequence
+public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisitableSequence, IValueCacheOwner
 {
     #region Properties
 
@@ -139,6 +139,13 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
                 ?? new CacheSettings().CheapCacheElementThreshold;
             return _value.Count <= threshold;
         }
+    }
+
+    /// <inheritdoc />
+    void IValueCacheOwner.DropValueIfLargerThan(int threshold)
+    {
+        if (_value is not null && _value.Count > threshold)
+            _value = null;
     }
 
     /// <summary>
@@ -765,7 +772,14 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
 
     /// <inheritdoc />
     public Sequence Compute(ExpressionSettings? settings = null)
-        => _value ??= new SequenceExpressionEvaluator(settings).GetResult(this);
+    {
+        if (_value is not null)
+            return _value;
+        var evaluator = new SequenceExpressionEvaluator(settings);
+        _value = evaluator.GetResult(this);
+        evaluator.ReleaseOperands(ExpressionSettings.Resolve(settings, Settings)?.CacheSettings);
+        return _value;
+    }
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
     public void ComputeWithoutResult()

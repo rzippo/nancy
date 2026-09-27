@@ -43,6 +43,13 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     /// </summary>
     private T Read<T>(IGenericExpression<T> operand)
         => _context.Read(operand);
+
+    /// <summary>
+    /// Clears the values of the operands read, if <paramref name="cacheSettings"/> asks for it.
+    /// </summary>
+    /// <inheritdoc cref="EvaluationContext.ReleaseOperands" path="/param"/>
+    internal void ReleaseOperands(CacheSettings? cacheSettings)
+        => _context.ReleaseOperands(cacheSettings);
     
     /// <summary>
     /// Visits the expression and returns its result.

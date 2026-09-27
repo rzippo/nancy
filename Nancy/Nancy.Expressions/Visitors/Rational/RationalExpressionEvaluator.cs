@@ -45,6 +45,13 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
         => _context.Read(operand);
 
     /// <summary>
+    /// Clears the values of the operands read, if <paramref name="cacheSettings"/> asks for it.
+    /// </summary>
+    /// <inheritdoc cref="EvaluationContext.ReleaseOperands" path="/param"/>
+    internal void ReleaseOperands(CacheSettings? cacheSettings)
+        => _context.ReleaseOperands(cacheSettings);
+
+    /// <summary>
     /// Visits the expression and returns tht result
     /// </summary>
     public Rational GetResult(RationalExpression expression)

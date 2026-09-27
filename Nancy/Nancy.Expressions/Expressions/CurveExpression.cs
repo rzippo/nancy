@@ -13,7 +13,7 @@ namespace Unipi.Nancy.Expressions;
 /// Class which describes NetCal expressions that evaluate to curves. The class aims at providing the main methods to
 /// build, manipulate and print network calculus expressions.
 /// </summary>
-public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCurve
+public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCurve, IValueCacheOwner
 {
     #region Properties
 
@@ -60,6 +60,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
                 ?? new CacheSettings().CheapCacheElementThreshold;
             return _value.BaseSequence.Elements.Count <= threshold;
         }
+    }
+
+    /// <inheritdoc />
+    void IValueCacheOwner.DropValueIfLargerThan(int threshold)
+    {
+        if (_value is not null && _value.BaseSequence.Elements.Count > threshold)
+            _value = null;
     }
 
     /// <summary>
@@ -1380,7 +1387,15 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #endregion Extrema
 
     /// <inheritdoc />
-    public Curve Compute(ExpressionSettings? settings = null) => _value ??= new CurveExpressionEvaluator(settings).GetResult(this);
+    public Curve Compute(ExpressionSettings? settings = null)
+    {
+        if (_value is not null)
+            return _value;
+        var evaluator = new CurveExpressionEvaluator(settings);
+        _value = evaluator.GetResult(this);
+        evaluator.ReleaseOperands(ExpressionSettings.Resolve(settings, Settings)?.CacheSettings);
+        return _value;
+    }
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
     public void ComputeWithoutResult()
