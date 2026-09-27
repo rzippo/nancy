@@ -16,6 +16,35 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
     private Rational _result = Rational.Zero;
 
     /// <summary>
+    /// The settings the computation was asked for with, carried down to every operand.
+    /// </summary>
+    private readonly EvaluationContext _context;
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="settings">
+    /// Settings to compute the whole expression under, as given to <see cref="IGenericExpression{TExpressionResult}.Compute"/>.
+    /// When omitted, each node computes under its own.
+    /// </param>
+    public RationalExpressionEvaluator(ExpressionSettings? settings = null)
+    {
+        _context = new EvaluationContext(settings);
+    }
+
+    /// <summary>
+    /// The computation settings for a node whose own settings are <paramref name="own"/>.
+    /// </summary>
+    private ComputationSettings? ComputationSettingsOf(ExpressionSettings? own)
+        => _context.ComputationSettingsOf(own);
+
+    /// <summary>
+    /// Computes <paramref name="operand"/> under the settings this computation was asked for with.
+    /// </summary>
+    private T Read<T>(IGenericExpression<T> operand)
+        => _context.Read(operand);
+
+    /// <summary>
     /// Visits the expression and returns tht result
     /// </summary>
     public Rational GetResult(RationalExpression expression)
@@ -26,135 +55,135 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(HorizontalDeviationExpression expression)
-        => _result = Curve.HorizontalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
-            expression.Settings?.ComputationSettings);
+        => _result = Curve.HorizontalDeviation(Read(expression.LeftOperand), Read(expression.RightOperand),
+            ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(VerticalDeviationExpression expression)
-        => _result = Curve.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
-            expression.Settings?.ComputationSettings);
+        => _result = Curve.VerticalDeviation(Read(expression.LeftOperand), Read(expression.RightOperand),
+            ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(SequenceHorizontalDeviationExpression expression)
-        => _result = Sequence.HorizontalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
-            expression.Settings?.ComputationSettings);
+        => _result = Sequence.HorizontalDeviation(Read(expression.LeftOperand), Read(expression.RightOperand),
+            ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(SequenceVerticalDeviationExpression expression)
-        => _result = Sequence.VerticalDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
-            expression.Settings?.ComputationSettings);
+        => _result = Sequence.VerticalDeviation(Read(expression.LeftOperand), Read(expression.RightOperand),
+            ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(SequenceValueAtExpression expression)
-        => _result = expression.LeftOperand.Value.ValueAt(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).ValueAt(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public virtual void Visit(SequenceLeftLimitAtExpression expression)
-        => _result = expression.LeftOperand.Value.LeftLimitAt(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).LeftLimitAt(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public virtual void Visit(SequenceRightLimitAtExpression expression)
-        => _result = expression.LeftOperand.Value.RightLimitAt(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).RightLimitAt(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public virtual void Visit(ZDeviationExpression expression)
-        => _result = Curve.ZDeviation(expression.LeftOperand.Value, expression.RightOperand.Value,
-            expression.Settings?.ComputationSettings);
+        => _result = Curve.ZDeviation(Read(expression.LeftOperand), Read(expression.RightOperand),
+            ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(ValueAtExpression expression)
-        => _result = expression.LeftOperand.Value.ValueAt(expression.RightOperand.Value,
-            expression.Settings?.ComputationSettings);
+        => _result = Read(expression.LeftOperand).ValueAt(Read(expression.RightOperand),
+            ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(LeftLimitAtExpression expression)
-        => _result = expression.LeftOperand.Value.LeftLimitAt(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).LeftLimitAt(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public virtual void Visit(RightLimitAtExpression expression)
-        => _result = expression.LeftOperand.Value.RightLimitAt(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).RightLimitAt(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public virtual void Visit(RationalAdditionExpression expression)
-        => _result = expression.FlattenOperands().Aggregate(Rational.Zero, (current, e) => current + e.Value);
+        => _result = expression.FlattenOperands().Aggregate(Rational.Zero, (current, e) => current + Read(e));
 
     /// <inheritdoc />
     public virtual void Visit(RationalSubtractionExpression expression)
-        => _result = expression.LeftOperand.Value - expression.RightOperand.Value;
+        => _result = Read(expression.LeftOperand) - Read(expression.RightOperand);
     
     /// <inheritdoc />
     public virtual void Visit(RationalProductExpression expression)
-        => _result = expression.FlattenOperands().Aggregate(Rational.One, (current, e) => current * e.Value);
+        => _result = expression.FlattenOperands().Aggregate(Rational.One, (current, e) => current * Read(e));
 
     /// <inheritdoc />
     public virtual void Visit(RationalDivisionExpression expression)
-        => _result = expression.LeftOperand.Value / expression.RightOperand.Value;
+        => _result = Read(expression.LeftOperand) / Read(expression.RightOperand);
 
     /// <inheritdoc />
     public virtual void Visit(RationalLeastCommonMultipleExpression expression)
         => _result = expression.FlattenOperands()
-            .Select(e => e.Value )
+            .Select(e => Read(e) )
             .Aggregate((current, next) => Rational.LeastCommonMultiple(current, next));
 
     /// <inheritdoc />
     public virtual void Visit(RationalGreatestCommonDivisorExpression expression)
         => _result = expression.FlattenOperands()
-            .Select(e => e.Value )
+            .Select(e => Read(e) )
             .Aggregate((current, next) => Rational.GreatestCommonDivisor(current, next));
 
     /// <inheritdoc />
     public virtual void Visit(RationalMinimumExpression expression)
-        => _result = expression.FlattenOperands().Aggregate(Rational.PlusInfinity, (current, e) => Rational.Min(current, e.Value));
+        => _result = expression.FlattenOperands().Aggregate(Rational.PlusInfinity, (current, e) => Rational.Min(current, Read(e)));
     
     /// <inheritdoc />
     public virtual void Visit(RationalMaximumExpression expression)
-        => _result = expression.FlattenOperands().Aggregate(Rational.MinusInfinity, (current, e) => Rational.Max(current, e.Value));
+        => _result = expression.FlattenOperands().Aggregate(Rational.MinusInfinity, (current, e) => Rational.Max(current, Read(e)));
     
     /// <inheritdoc />
     public virtual void Visit(RationalNumberExpression expression) => _result = expression.Value;
 
     /// <inheritdoc />
-    public virtual void Visit(NegateRationalExpression expression) => _result = Rational.Negate(expression.Operand.Value);
+    public virtual void Visit(NegateRationalExpression expression) => _result = Rational.Negate(Read(expression.Operand));
 
     /// <inheritdoc />
-    public virtual void Visit(InvertRationalExpression expression) => _result = Rational.Invert(expression.Operand.Value);
+    public virtual void Visit(InvertRationalExpression expression) => _result = Rational.Invert(Read(expression.Operand));
 
     /// <inheritdoc />
-    public virtual void Visit(RationalAbsoluteValueExpression expression) => _result = Rational.Abs(expression.Operand.Value);
+    public virtual void Visit(RationalAbsoluteValueExpression expression) => _result = Rational.Abs(Read(expression.Operand));
 
     /// <inheritdoc />
-    public virtual void Visit(RationalModuloExpression expression) => _result = expression.LeftOperand.Value % expression.RightOperand.Value;
+    public virtual void Visit(RationalModuloExpression expression) => _result = Read(expression.LeftOperand) % Read(expression.RightOperand);
 
     /// <inheritdoc />
-    public virtual void Visit(RationalPowerExpression expression) => _result = Rational.Pow(expression.LeftOperand.Value, (System.Numerics.BigInteger)expression.RightOperand.Value);
+    public virtual void Visit(RationalPowerExpression expression) => _result = Rational.Pow(Read(expression.LeftOperand), (System.Numerics.BigInteger)Read(expression.RightOperand));
 
     /// <inheritdoc />
     public virtual void Visit(RationalPlaceholderExpression expression)
         => throw new InvalidOperationException("Can't evaluate an expression with placeholders!");
 
     /// <inheritdoc />
-    public virtual void Visit(RationalFloorExpression expression) => _result = expression.Operand.Value.Floor();
+    public virtual void Visit(RationalFloorExpression expression) => _result = Read(expression.Operand).Floor();
 
     /// <inheritdoc />
-    public virtual void Visit(RationalCeilExpression expression) => _result = expression.Operand.Value.Ceil();
+    public virtual void Visit(RationalCeilExpression expression) => _result = Read(expression.Operand).Ceil();
 
     /// <inheritdoc />
     public virtual void Visit(SupValueExpression expression)
-        => _result = expression.Operand.Value.SupValue(expression.Settings?.ComputationSettings);
+        => _result = Read(expression.Operand).SupValue(ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(InfValueExpression expression)
-        => _result = expression.Operand.Value.InfValue(expression.Settings?.ComputationSettings);
+        => _result = Read(expression.Operand).InfValue(ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(MaxValueExpression expression)
-        => _result = expression.Operand.Value.MaxValue(expression.Settings?.ComputationSettings) ??
+        => _result = Read(expression.Operand).MaxValue(ComputationSettingsOf(expression.Settings)) ??
                      throw new InvalidOperationException(
                          "The curve does not attain a maximum value (its supremum is not attained); use SupValue() instead.");
 
     /// <inheritdoc />
     public virtual void Visit(MinValueExpression expression)
-        => _result = expression.Operand.Value.MinValue(expression.Settings?.ComputationSettings) ??
+        => _result = Read(expression.Operand).MinValue(ComputationSettingsOf(expression.Settings)) ??
                      throw new InvalidOperationException(
                          "The curve does not attain a minimum value (its infimum is not attained); use InfValue() instead.");
 }

@@ -1380,7 +1380,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     #endregion Extrema
 
     /// <inheritdoc />
-    public Curve Compute() => _value ??= new CurveExpressionEvaluator().GetResult(this);
+    public Curve Compute(ExpressionSettings? settings = null) => _value ??= new CurveExpressionEvaluator(settings).GetResult(this);
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
     public void ComputeWithoutResult()

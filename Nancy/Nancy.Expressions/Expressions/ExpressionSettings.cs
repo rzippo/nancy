@@ -19,4 +19,23 @@ public record ExpressionSettings
     /// Settings for how an expression's own caches are managed.
     /// </summary>
     public CacheSettings? CacheSettings;
+
+    /// <summary>
+    /// The settings a node computes under, given those passed to <see cref="IGenericExpression{TExpressionResult}.Compute"/> and its own.
+    /// </summary>
+    /// <remarks>
+    /// Each group is resolved on its own: a group <paramref name="argument"/> sets wins, and one it leaves <see langword="null"/> falls back to <paramref name="own"/>.
+    /// </remarks>
+    internal static ExpressionSettings? Resolve(ExpressionSettings? argument, ExpressionSettings? own)
+    {
+        if (argument is null)
+            return own;
+        if (own is null)
+            return argument;
+        return new ExpressionSettings
+        {
+            ComputationSettings = argument.ComputationSettings ?? own.ComputationSettings,
+            CacheSettings = argument.CacheSettings ?? own.CacheSettings
+        };
+    }
 }

@@ -27,7 +27,15 @@ public interface IGenericExpression<out TExpressionResult> : IExpression
     /// <summary>
     /// Computes the value the expression evaluates to.
     /// </summary>
-    public TExpressionResult Compute();
+    /// <param name="settings">
+    /// Settings to compute the whole expression under, passed on to every operand.
+    /// A group they set, <see cref="ExpressionSettings.ComputationSettings"/> or <see cref="ExpressionSettings.CacheSettings"/>, wins over the one each node carries; a group left <see langword="null"/> leaves each node its own.
+    /// When omitted, each node computes under its own <see cref="Settings"/>.
+    /// </param>
+    /// <remarks>
+    /// A node whose value is already cached returns it, whatever the settings, and none of its operands is visited.
+    /// </remarks>
+    public TExpressionResult Compute(ExpressionSettings? settings = null);
     
     /// <summary>
     /// Method used for implementing the Visitor design pattern: the visited object must "accept" the visitor object.

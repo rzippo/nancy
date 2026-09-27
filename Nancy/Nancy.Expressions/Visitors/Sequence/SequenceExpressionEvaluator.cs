@@ -14,6 +14,35 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     /// Field used as intermediate and final result of the visitor.
     /// </summary>
     private Sequence _result = Sequence.Zero(0, 1);
+
+    /// <summary>
+    /// The settings the computation was asked for with, carried down to every operand.
+    /// </summary>
+    private readonly EvaluationContext _context;
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="settings">
+    /// Settings to compute the whole expression under, as given to <see cref="IGenericExpression{TExpressionResult}.Compute"/>.
+    /// When omitted, each node computes under its own.
+    /// </param>
+    public SequenceExpressionEvaluator(ExpressionSettings? settings = null)
+    {
+        _context = new EvaluationContext(settings);
+    }
+
+    /// <summary>
+    /// The computation settings for a node whose own settings are <paramref name="own"/>.
+    /// </summary>
+    private ComputationSettings? ComputationSettingsOf(ExpressionSettings? own)
+        => _context.ComputationSettingsOf(own);
+
+    /// <summary>
+    /// Computes <paramref name="operand"/> under the settings this computation was asked for with.
+    /// </summary>
+    private T Read<T>(IGenericExpression<T> operand)
+        => _context.Read(operand);
     
     /// <summary>
     /// Visits the expression and returns its result.
@@ -32,13 +61,13 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(CurveCutExpression expression)
     {
         // compute, then cut
-        var curve = expression.Operand.Value;
+        var curve = Read(expression.Operand);
         var cs = expression.Interval.Lower;
         var ce = expression.Interval.Upper;
         var csi = expression.Interval.IsLowerIncluded;
         var cei = expression.Interval.IsUpperIncluded;
 
-        var cut = curve.Cut(cs, ce, csi, cei, expression.Settings?.ComputationSettings);
+        var cut = curve.Cut(cs, ce, csi, cei, ComputationSettingsOf(expression.Settings));
         _result = cut;
     }
     
@@ -46,9 +75,9 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(CurveCutToNeighbourhoodExpression expression)
     {
         // compute, then cut
-        var curve = expression.Operand.Value;
+        var curve = Read(expression.Operand);
         var cut = curve.CutToNeighbourhood(expression.CutStart, expression.CutEnd,
-            settings: expression.Settings?.ComputationSettings);
+            settings: ComputationSettingsOf(expression.Settings));
         _result = cut;
     }
     
@@ -56,7 +85,7 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(SequenceCutExpression expression)
     {
         // compute, then cut
-        var sequence = expression.Operand.Value;
+        var sequence = Read(expression.Operand);
         var cs = expression.Interval.Lower;
         var ce = expression.Interval.Upper;
         var csi = expression.Interval.IsLowerIncluded;
@@ -70,7 +99,7 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(SequenceCutToNeighbourhoodExpression expression)
     {
         // compute, then cut
-        var sequence = expression.Operand.Value;
+        var sequence = Read(expression.Operand);
         var cut = sequence.CutToNeighbourhood(expression.CutStart, expression.CutEnd);
         _result = cut;
     }
@@ -79,7 +108,7 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(SequenceAdditionExpression expression)
     {
         var sequences = expression.Operands
-            .Select(e => e.Value);
+            .Select(e => Read(e));
         var addition = sequences
             .Aggregate(Sequence.Addition);
         _result = addition;
@@ -88,8 +117,8 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     /// <inheritdoc />
     public void Visit(SequenceSubtractionExpression expression)
     {
-        var a = expression.LeftOperand.Value;
-        var b = expression.RightOperand.Value;
+        var a = Read(expression.LeftOperand);
+        var b = Read(expression.RightOperand);
         var subtraction = Sequence.Subtraction(a, b);
         _result = subtraction;
     }
@@ -97,15 +126,15 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     /// <inheritdoc />
     public void Visit(SequenceConcatExpression expression)
     {
-        var a = expression.LeftOperand.Value;
-        var b = expression.RightOperand.Value;
+        var a = Read(expression.LeftOperand);
+        var b = Read(expression.RightOperand);
         _result = Sequence.Concat(a, b, expression.PreserveDelay, expression.PreserveShift);
     }
 
     /// <inheritdoc />
     public void Visit(SequenceToNonNegativeExpression expression)
     {
-        var sequence = expression.Operand.Value;
+        var sequence = Read(expression.Operand);
         var nonNegative = sequence.ToNonNegative();
         _result = nonNegative;
     }
@@ -114,9 +143,9 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(SequenceMinimumExpression expression)
     {
         var sequences = expression.Operands
-            .Select(e => e.Value);
+            .Select(e => Read(e));
         var minimum = sequences
-            .Aggregate((a, b) => Sequence.Minimum(a, b, settings: expression.Settings?.ComputationSettings));
+            .Aggregate((a, b) => Sequence.Minimum(a, b, settings: ComputationSettingsOf(expression.Settings)));
         _result = minimum;
     }
     
@@ -124,9 +153,9 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(SequenceMaximumExpression expression)
     {
         var sequences = expression.Operands
-            .Select(e => e.Value);
+            .Select(e => Read(e));
         var maximum = sequences
-            .Aggregate((a, b) => Sequence.Maximum(a, b, settings: expression.Settings?.ComputationSettings));
+            .Aggregate((a, b) => Sequence.Maximum(a, b, settings: ComputationSettingsOf(expression.Settings)));
         _result = maximum;
     }
     
@@ -134,9 +163,9 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(SequenceConvolutionExpression expression)
     {
         var sequences = expression.Operands
-            .Select(e => e.Value);
+            .Select(e => Read(e));
         var convolution = sequences
-            .Aggregate((a, b) => Sequence.Convolution(a, b, expression.Settings?.ComputationSettings));
+            .Aggregate((a, b) => Sequence.Convolution(a, b, ComputationSettingsOf(expression.Settings)));
         _result = convolution;
     }
     
@@ -144,81 +173,81 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(SequenceMaxPlusConvolutionExpression expression)
     {
         var sequences = expression.Operands
-            .Select(e => e.Value);
+            .Select(e => Read(e));
         var convolution = sequences
-            .Aggregate((a, b) => Sequence.MaxPlusConvolution(a, b, expression.Settings?.ComputationSettings));
+            .Aggregate((a, b) => Sequence.MaxPlusConvolution(a, b, ComputationSettingsOf(expression.Settings)));
         _result = convolution;
     }
     
     /// <inheritdoc />
     public void Visit(SequenceDeconvolutionExpression expression)
     {
-        var a = expression.LeftOperand.Value;
-        var b = expression.RightOperand.Value;
-        var deconvolution = Sequence.Deconvolution(a, b, settings: expression.Settings?.ComputationSettings);
+        var a = Read(expression.LeftOperand);
+        var b = Read(expression.RightOperand);
+        var deconvolution = Sequence.Deconvolution(a, b, settings: ComputationSettingsOf(expression.Settings));
         _result = deconvolution;
     }
     
     /// <inheritdoc />
     public void Visit(SequenceMaxPlusDeconvolutionExpression expression)
     {
-        var a = expression.LeftOperand.Value;
-        var b = expression.RightOperand.Value;
-        var deconvolution = Sequence.MaxPlusDeconvolution(a, b, expression.Settings?.ComputationSettings);
+        var a = Read(expression.LeftOperand);
+        var b = Read(expression.RightOperand);
+        var deconvolution = Sequence.MaxPlusDeconvolution(a, b, ComputationSettingsOf(expression.Settings));
         _result = deconvolution;
     }
 
     /// <inheritdoc />
     public void Visit(SequenceNegateExpression expression)
-        => _result = expression.Operand.Value.Negate();
+        => _result = Read(expression.Operand).Negate();
 
     /// <inheritdoc />
     public void Visit(SequenceFloorExpression expression)
-        => _result = expression.Operand.Value.Floor();
+        => _result = Read(expression.Operand).Floor();
 
     /// <inheritdoc />
     public void Visit(SequenceCeilExpression expression)
-        => _result = expression.Operand.Value.Ceil();
+        => _result = Read(expression.Operand).Ceil();
 
     /// <inheritdoc />
     public void Visit(SequenceToLeftContinuousExpression expression)
-        => _result = expression.Operand.Value.ToLeftContinuous();
+        => _result = Read(expression.Operand).ToLeftContinuous();
 
     /// <inheritdoc />
     public void Visit(SequenceToRightContinuousExpression expression)
-        => _result = expression.Operand.Value.ToRightContinuous();
+        => _result = Read(expression.Operand).ToRightContinuous();
 
     /// <inheritdoc />
     public void Visit(SequenceLowerPseudoInverseExpression expression)
-        => _result = expression.Operand.Value.LowerPseudoInverse();
+        => _result = Read(expression.Operand).LowerPseudoInverse();
 
     /// <inheritdoc />
     public void Visit(SequenceUpperPseudoInverseExpression expression)
-        => _result = expression.Operand.Value.UpperPseudoInverse();
+        => _result = Read(expression.Operand).UpperPseudoInverse();
 
     /// <inheritdoc />
     public void Visit(SequenceScaleExpression expression)
-        => _result = expression.LeftOperand.Value.Scale(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).Scale(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public void Visit(SequenceDelayExpression expression)
-        => _result = expression.LeftOperand.Value.Delay(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).Delay(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public void Visit(SequenceForwardExpression expression)
-        => _result = expression.LeftOperand.Value.Forward(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).Forward(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public void Visit(SequenceHorizontalShiftExpression expression)
-        => _result = expression.LeftOperand.Value.HorizontalShift(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).HorizontalShift(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public void Visit(SequenceVerticalShiftExpression expression)
-        => _result = expression.LeftOperand.Value.VerticalShift(expression.RightOperand.Value);
+        => _result = Read(expression.LeftOperand).VerticalShift(Read(expression.RightOperand));
 
     /// <inheritdoc />
     public void Visit(SequenceCompositionExpression expression)
-        => _result = Sequence.Composition(expression.LeftOperand.Value, expression.RightOperand.Value);
+        => _result = Sequence.Composition(Read(expression.LeftOperand), Read(expression.RightOperand));
 
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Always: a placeholder stands for an expression and has no value.</exception>

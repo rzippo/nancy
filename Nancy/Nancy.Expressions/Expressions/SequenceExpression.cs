@@ -764,8 +764,8 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     #endregion Sampling
 
     /// <inheritdoc />
-    public Sequence Compute()
-        => _value ??= new SequenceExpressionEvaluator().GetResult(this);
+    public Sequence Compute(ExpressionSettings? settings = null)
+        => _value ??= new SequenceExpressionEvaluator(settings).GetResult(this);
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
     public void ComputeWithoutResult()

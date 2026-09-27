@@ -129,7 +129,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     #region Methods
 
     /// <inheritdoc />
-    public Rational Compute() => _value ??= new RationalExpressionEvaluator().GetResult(this);
+    public Rational Compute(ExpressionSettings? settings = null) => _value ??= new RationalExpressionEvaluator(settings).GetResult(this);
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>
     public void ComputeWithoutResult()
