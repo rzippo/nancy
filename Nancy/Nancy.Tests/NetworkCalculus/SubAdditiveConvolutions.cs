@@ -284,4 +284,41 @@ public class SubAdditiveConvolutions
         Assert.Throws<UndeterminedResultException>(() => Curve.Convolution(a, b));
         Assert.Throws<UndeterminedResultException>(() => Curve.Convolution(new Curve(a), new Curve(b)));
     }
+
+    /// <summary>
+    /// Sub-additive operands with $f(0) = 0$ of every kind that admits infinities: finite, $+\infty$ between points, and ultimately $-\infty$.
+    /// Every pair is convolved both ways, by the optimized algorithm and by the general one.
+    /// </summary>
+    private static readonly SubAdditiveCurve[] OperandKinds =
+    [
+        new(new SigmaRhoArrivalCurve(1, 1)), new(new SigmaRhoArrivalCurve(3, new Rational(1, 2))), new(new SigmaRhoArrivalCurve(2, 2)),
+        new(new StairCurve(1, 2)), new(new StairCurve(2, 3)),
+        new(new Curve(new Sequence([Point.Origin(), new Segment(0, 2, 1, 2), new Point(2, 5), new Segment(2, 3, 5, 1)]), 2, 1, 1)),
+        PlusInfiniteBetweenPoints(2, 1), PlusInfiniteBetweenPoints(3, 1), PlusInfiniteBetweenPoints(2, 2), PlusInfiniteBetweenPoints(3, new Rational(3, 2)),
+        UltimatelyMinusInfinite(1, 1, 3), UltimatelyMinusInfinite(2, new Rational(1, 2), 5)
+    ];
+
+    public static List<(SubAdditiveCurve a, SubAdditiveCurve b)> OperandKindPairs =
+        (from a in OperandKinds from b in OperandKinds select (a, b)).ToList();
+
+    public static IEnumerable<object[]> OperandKindPairsTestCases()
+        => OperandKindPairs.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(OperandKindPairsTestCases))]
+    public void TheOptimizedConvolutionAgreesWithTheGeneralOneOrBothAreUndefined(SubAdditiveCurve a, SubAdditiveCurve b)
+    {
+        Curve general;
+        try
+        {
+            general = Curve.Convolution(new Curve(a), new Curve(b));
+        }
+        catch (UndeterminedResultException)
+        {
+            Assert.Throws<UndeterminedResultException>(() => Curve.Convolution(a, b));
+            return;
+        }
+
+        Assert.True(Curve.Equivalent(Curve.Convolution(a, b), general));
+    }
 }
