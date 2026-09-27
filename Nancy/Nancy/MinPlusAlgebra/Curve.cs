@@ -382,7 +382,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             if (!(isStartIncluded && isEndIncluded))
                 throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
-            return true;
+            return ValueAt(start) >= 0;
         }
         else if(_end < Rational.PlusInfinity)
         {
@@ -391,8 +391,26 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else
         {
-            var cut = CutAsEnumerable(start, start + PseudoPeriodLength, isStartIncluded, true);
-            return cut.IsNonNegative();
+            if (PseudoPeriodHeight < 0)
+            {
+                // A negative pseudo-period height makes any finite periodic value eventually negative.
+                var periodStart = Rational.Max(start, PseudoPeriodStart);
+                var periodCut = CutAsEnumerable(periodStart, periodStart + PseudoPeriodLength, true, true);
+                if (!periodCut.IsPlusInfinite())
+                    return false;
+
+                // The periodic part is $+\infty$, so only the transient can violate non-negativity.
+                if (start < PseudoPeriodStart)
+                    return CutAsEnumerable(start, PseudoPeriodStart, isStartIncluded, true).IsNonNegative();
+                return true;
+            }
+            else
+            {
+                // With zero or positive height, the worst case is in the transient and the first period.
+                var cutEnd = Rational.Max(start + PseudoPeriodLength, PseudoPeriodStart + PseudoPeriodLength);
+                var cut = CutAsEnumerable(start, cutEnd, isStartIncluded, true);
+                return cut.IsNonNegative();
+            }
         }
     }
 
