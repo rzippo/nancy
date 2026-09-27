@@ -284,4 +284,69 @@ public class Max
             Assert.Equal(Rational.Max(a.ValueAt(t), b.ValueAt(t)), max.ValueAt(t));
         }
     }
+
+    /// <summary>
+    /// A curve finite only at the multiples of <paramref name="period"/>, and $+\infty$ elsewhere.
+    /// </summary>
+    private static Curve SparsePlusInfinite(Rational period, Rational first, Rational increment)
+        => new Curve(
+            new Sequence([new Point(0, first), Segment.PlusInfinite(0, period)]),
+            0, period, increment);
+
+    /// <summary>$1$ at 0, $1 - 7k$ at $5k$, $+\infty$ elsewhere.</summary>
+    private static readonly Curve SparseDifference =
+        new Curve(new Sequence([new Point(0, 1), Segment.PlusInfinite(0, 5), new Point(5, 4), Segment.PlusInfinite(5, 10)]), 5, 5, 3)
+        - new Curve(new Sequence([Point.Origin(), new Segment(0, 1, 0, 2)]), 0, 1, 2);
+
+    /// <summary>
+    /// The lower-slope operand is $+\infty$ between its points, so it is not bounded above by a line and does not fall below the other everywhere.
+    /// Past the point where its finite values fall below, the maximum is $+\infty$ where it is, and the other operand elsewhere.
+    /// </summary>
+    public static List<(Curve a, Curve b)> PartlyPlusInfiniteLowerOperandCases =
+    [
+        (SparseDifference, Curve.Zero()),
+        (SparsePlusInfinite(3, 0, -1), new Curve(new Sequence([Point.Origin(), new Segment(0, 1, 0, 2)]), 0, 1, 2)),
+        (SparsePlusInfinite(2, 0, 1), new Curve(new Sequence([Point.Origin(), new Segment(0, 1, 0, 1)]), 0, 1, 1)),
+    ];
+
+    public static IEnumerable<object[]> PartlyPlusInfiniteLowerOperandTestCases()
+        => PartlyPlusInfiniteLowerOperandCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(PartlyPlusInfiniteLowerOperandTestCases))]
+    public void APartlyPlusInfiniteLowerOperandKeepsItsInfinities(Curve a, Curve b)
+    {
+        var max = Curve.Maximum(a, b);
+        for (int quarter = 0; quarter <= 160; quarter++)
+        {
+            var t = new Rational(quarter, 4);
+            Assert.Equal(Rational.Max(a.ValueAt(t), b.ValueAt(t)), max.ValueAt(t));
+        }
+    }
+
+    /// <summary>
+    /// The non-negative closure of <see cref="SparseDifference"/> is 1 at 0, 0 at $5k$ for $k \ge 1$, and $+\infty$ elsewhere.
+    /// </summary>
+    public static List<(Curve operand, Rational time, Rational expected)> SparseNonNegativeClosureValues =
+    [
+        (SparseDifference, 0, 1),
+        (SparseDifference, 5, 0),
+        (SparseDifference, new Rational(15, 2), Rational.PlusInfinity),
+        (SparseDifference, 10, 0),
+        (SparseDifference, new Rational(25, 2), Rational.PlusInfinity),
+        (SparseDifference, 15, 0),
+        (SparseDifference, new Rational(35, 2), Rational.PlusInfinity),
+        (SparseDifference, 50, 0),
+        (SparseDifference, new Rational(105, 2), Rational.PlusInfinity),
+    ];
+
+    public static IEnumerable<object[]> SparseNonNegativeClosureValuesTestCases()
+        => SparseNonNegativeClosureValues.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(SparseNonNegativeClosureValuesTestCases))]
+    public void TheNonNegativeClosureOfASparseDifferenceIsZeroAtItsPoints(Curve operand, Rational time, Rational expected)
+    {
+        Assert.Equal(expected, operand.ToNonNegative().ValueAt(time));
+    }
 }

@@ -512,4 +512,29 @@ public class Min
             Assert.Equal(Rational.Min(a.ValueAt(t), b.ValueAt(t)), min.ValueAt(t));
         }
     }
+
+    /// <summary>
+    /// The mirror of the maximum's case: the higher-slope operand is $-\infty$ between its points, so it is not bounded below by a line.
+    /// Past the point where its finite values rise above, the minimum is $-\infty$ where it is, and the other operand elsewhere.
+    /// </summary>
+    public static List<(Curve a, Curve b)> PartlyMinusInfiniteHigherOperandCases =
+    [
+        (new Curve(new Sequence([Point.Origin(), Segment.MinusInfinite(0, 2)]), 0, 2, 3), Curve.Zero()),
+        (new Curve(new Sequence([new Point(0, 1), Segment.MinusInfinite(0, 3)]), 0, 3, 6), new Curve(new Sequence([Point.Origin(), new Segment(0, 1, 0, 1)]), 0, 1, 1)),
+    ];
+
+    public static IEnumerable<object[]> PartlyMinusInfiniteHigherOperandTestCases()
+        => PartlyMinusInfiniteHigherOperandCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(PartlyMinusInfiniteHigherOperandTestCases))]
+    public void APartlyMinusInfiniteHigherOperandKeepsItsInfinities(Curve a, Curve b)
+    {
+        var min = Curve.Minimum(a, b);
+        for (int quarter = 0; quarter <= 160; quarter++)
+        {
+            var t = new Rational(quarter, 4);
+            Assert.Equal(Rational.Min(a.ValueAt(t), b.ValueAt(t)), min.ValueAt(t));
+        }
+    }
 }
