@@ -3372,6 +3372,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <remarks>
     /// Implements the _non-negative closure_ defined in [DNC18] p. 45 .
+    /// It is the maximum with the zero curve, so it is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of this curve and <see cref="Zero"/>.
     /// </remarks>
     public Curve ToNonNegative()
         => Maximum(this, Curve.Zero());
@@ -5567,6 +5568,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the subtraction.</returns>
+    /// <remarks>
+    /// With <paramref name="nonNegative"/> set, the difference is closed through <see cref="ToNonNegative"/>, which is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of the difference and <see cref="Zero"/>.
+    /// </remarks>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static Curve Subtraction(Curve a, Curve b, bool nonNegative, ComputationSettings? settings = null)
         => a.Subtraction(b, nonNegative, settings);
@@ -5589,15 +5593,26 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     #region Minimum and maximum operators
 
     /// <summary>
-    /// True if $f \wedge g$ is known to be ultimately pseudo-periodic.
-    /// Tests the sufficient (but not necessary) conditions from [BT08].
+    /// True if <see cref="Minimum(Curve, ComputationSettings?)"/> of <paramref name="f"/> and <paramref name="g"/> is known to be correct.
     /// </summary>
+    /// <param name="f">First operand.</param>
+    /// <param name="g">Second operand.</param>
     /// <remarks>
-    /// If false, the result <see cref="Minimum(Curve, ComputationSettings?)"/> may be invalid.
+    /// The test is sufficient, not necessary: false means the result is not guaranteed, not that it is wrong.
+    /// It holds when both operands are ultimately plain, [BT08] Proposition 4.
+    /// It holds when their pseudo-periodic slopes are equal, since the proof of that proposition does not use plainness in that case, [BT08] p. 16.
+    /// It holds when the slopes differ and the operand of lower slope has no $+\infty$ in its pseudo-periodic part, since it is then bounded above by a line, which is what the proof requires of it.
+    /// Where the operand of higher slope is $-\infty$ over part of its period, the minimum is $-\infty$ there too, and the result repeats that part with the operand's period.
+    /// Otherwise the minimum takes the lower operand where it is finite and the higher one where it is $+\infty$, which in general is not ultimately pseudo-periodic.
     /// </remarks>
     public static bool IsMinimumUltimatelyPseudoPeriodic(Curve f, Curve g)
     {
-        return f.IsUltimatelyPlain && g.IsUltimatelyPlain;
+        if (f.IsUltimatelyPlain && g.IsUltimatelyPlain)
+            return true;
+        if (f.PseudoPeriodSlope == g.PseudoPeriodSlope)
+            return true;
+        var lower = f.PseudoPeriodSlope < g.PseudoPeriodSlope ? f : g;
+        return !lower.PseudoPeriodicElements.Any(e => e.IsPlusInfinite);
     }
 
     /// <summary>
@@ -5608,6 +5623,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The curve resulting from the minimum.</returns>
     /// <remarks>
     /// Algorithm defined in [BT08] Section 4.3
+    /// The result is computed whatever the operands, and is known to be correct when <see cref="IsMinimumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of them.
     /// </remarks>
     public virtual Curve Minimum(Curve curve, ComputationSettings? settings = null)
     {
@@ -5791,6 +5807,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The curve resulting from the minimum.</returns>
     /// <remarks>
     /// Algorithm defined in [BT08] Section 4.3
+    /// The result is computed whatever the operands, and is known to be correct when <see cref="IsMinimumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of them.
     /// </remarks>
     public static Curve Minimum(Curve? a, Curve? b, ComputationSettings? settings = null)
     {
@@ -5805,6 +5822,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The curves to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall minimum.</returns>
+    /// <remarks>
+    /// It combines two curves at a time, and is known to be correct when <see cref="IsMinimumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
+    /// </remarks>
     public static Curve Minimum(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -5860,6 +5880,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The curves to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall minimum.</returns>
+    /// <remarks>
+    /// It combines two curves at a time, and is known to be correct when <see cref="IsMinimumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
+    /// </remarks>
     public static Curve Minimum(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -5881,15 +5904,26 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// True if $f \vee g$ is known to be ultimately pseudo-periodic.
-    /// Tests the sufficient (but not necessary) conditions from [BT08].
+    /// True if <see cref="Maximum(Curve, ComputationSettings?)"/> of <paramref name="f"/> and <paramref name="g"/> is known to be correct.
     /// </summary>
+    /// <param name="f">First operand.</param>
+    /// <param name="g">Second operand.</param>
     /// <remarks>
-    /// If false, the result <see cref="Maximum(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/> may be invalid.
+    /// The test is sufficient, not necessary: false means the result is not guaranteed, not that it is wrong.
+    /// It holds when both operands are ultimately plain, [BT08] Proposition 4.
+    /// It holds when their pseudo-periodic slopes are equal, since the proof of that proposition does not use plainness in that case, [BT08] p. 16.
+    /// It holds when the slopes differ and the operand of higher slope has no $-\infty$ in its pseudo-periodic part, since it is then bounded below by a line, which is what the proof requires of it.
+    /// Where the operand of lower slope is $+\infty$ over part of its period, the maximum is $+\infty$ there too, and the result repeats that part with the operand's period.
+    /// Otherwise the maximum takes the higher operand where it is finite and the lower one where it is $-\infty$, which in general is not ultimately pseudo-periodic.
     /// </remarks>
     public static bool IsMaximumUltimatelyPseudoPeriodic(Curve f, Curve g)
     {
-        return f.IsUltimatelyPlain && g.IsUltimatelyPlain;
+        if (f.IsUltimatelyPlain && g.IsUltimatelyPlain)
+            return true;
+        if (f.PseudoPeriodSlope == g.PseudoPeriodSlope)
+            return true;
+        var higher = f.PseudoPeriodSlope > g.PseudoPeriodSlope ? f : g;
+        return !higher.PseudoPeriodicElements.Any(e => e.IsMinusInfinite);
     }
 
     /// <summary>
@@ -5898,6 +5932,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curve">Second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the maximum.</returns>
+    /// <remarks>
+    /// The result is computed whatever the operands, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of them.
+    /// </remarks>
     public virtual Curve Maximum(Curve curve, ComputationSettings? settings = null)
     {
         // Renaming for simmetry
@@ -6036,6 +6073,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="b">Second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the maximum.</returns>
+    /// <remarks>
+    /// The result is computed whatever the operands, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of them.
+    /// </remarks>
     public static Curve Maximum(Curve? a, Curve? b, ComputationSettings? settings = null)
     {
         a ??= MinusInfinite();
@@ -6049,6 +6089,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The curves to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall maximum.</returns>
+    /// <remarks>
+    /// It combines two curves at a time, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
+    /// </remarks>
     public static Curve Maximum(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -6104,6 +6147,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The curves to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall maximum.</returns>
+    /// <remarks>
+    /// It combines two curves at a time, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
+    /// </remarks>
     public static Curve Maximum(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
