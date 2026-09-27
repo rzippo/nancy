@@ -25,6 +25,20 @@ public class Deviations
             hDev: 4,
             0
         ),
+        // With no burst and no rate the arrival curve is 0 everywhere, so it never exceeds g.
+        (
+            f: new SigmaRhoArrivalCurve(0, 0),
+            g: new RateLatencyServiceCurve(2, 4),
+            hDev: 0,
+            0
+        ),
+        // With no burst the deviation approaches the latency as t goes to 0 from the right.
+        (
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(2, 4),
+            hDev: 4,
+            0
+        ),
         // A right-continuous staircase arrival curve, as a request bound function RBF(t) = (1 + floor(t/T)) * C is.
         // The deviation is attained on the first step, where it is lpi(g)(C).
         (
