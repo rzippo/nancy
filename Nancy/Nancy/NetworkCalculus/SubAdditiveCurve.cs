@@ -604,6 +604,12 @@ public class SubAdditiveCurve : Curve
     {
         settings ??= ComputationSettings.Default();
 
+        // as in the convolution, a pair reaching opposite infinities, or whose minimum is not vouched for, takes the general algorithm
+        if (HasPlusInfinity && curve.HasMinusInfinity ||
+            HasMinusInfinity && curve.HasPlusInfinity ||
+            !Curve.IsMinimumUltimatelyPseudoPeriodic(this, curve))
+            return base.EstimateConvolution(curve, countElements, settings);
+
         var minimum = Curve.Minimum(this, curve, settings with {UseRepresentationMinimization = false}).PeriodFactorization(); // we need a stable T for Theorem 2
         bool isThisLower = Curve.Equivalent(this, minimum, settings); // this <= curve
         bool isCurveLower = Curve.Equivalent(curve, minimum, settings); // curve <= this
