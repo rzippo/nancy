@@ -321,4 +321,30 @@ public class SubAdditiveConvolutions
 
         Assert.True(Curve.Equivalent(Curve.Convolution(a, b), general));
     }
+
+    /// <summary>
+    /// Pairs the optimized convolution leaves to the general algorithm: opposite infinities, and a minimum the predicate does not vouch for.
+    /// </summary>
+    public static List<(SubAdditiveCurve a, SubAdditiveCurve b)> PairsLeftToTheGeneralAlgorithm =
+    [
+        (PlusInfiniteBetweenPoints(2, 1), UltimatelyMinusInfinite(1, 1, 3)),
+        (UltimatelyMinusInfinite(1, 1, 3), PlusInfiniteBetweenPoints(2, 1)),
+        // +inf between points with the lower slope, so the minimum is not vouched for
+        (PlusInfiniteBetweenPoints(3, 1), new SubAdditiveCurve(new SigmaRhoArrivalCurve(1, 1))),
+        (new SubAdditiveCurve(new SigmaRhoArrivalCurve(1, 1)), PlusInfiniteBetweenPoints(3, 1)),
+    ];
+
+    public static IEnumerable<object[]> PairsLeftToTheGeneralAlgorithmTestCases()
+        => PairsLeftToTheGeneralAlgorithm.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(PairsLeftToTheGeneralAlgorithmTestCases))]
+    public void TheEstimateCountsTheGeneralAlgorithmWhereTheConvolutionTakesIt(SubAdditiveCurve a, SubAdditiveCurve b)
+    {
+        var generalA = new Curve(a);
+        var generalB = new Curve(b);
+
+        Assert.Equal(generalA.EstimateConvolution(generalB), a.EstimateConvolution(b));
+        Assert.Equal(generalA.EstimateConvolution(generalB, countElements: true), a.EstimateConvolution(b, countElements: true));
+    }
 }
