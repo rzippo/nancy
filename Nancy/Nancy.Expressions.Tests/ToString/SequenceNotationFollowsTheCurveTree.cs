@@ -100,6 +100,9 @@ public class SequenceNotationFollowsTheCurveTree
         yield return [a.ToLeftContinuous(), "toLeftContinuous(a)", "a_{l}"];
         yield return [a.ToRightContinuous(), "toRightContinuous(a)", "a_{r}"];
         yield return [a.ValueAt(two), "a(2)", @"a\left(2\right)"];
+        yield return [a.LeftLimitAt(two), "a(2⁻)", @"a\left(2^{-}\right)"];
+        yield return [a.RightLimitAt(two), "a(2⁺)", @"a\left(2^{+}\right)"];
+        yield return [a.LeftLimitAt(two.Addition(two)), "a((2 + 2)⁻)", @"a\left(\left(2 + 2\right)^{-}\right)"];
         yield return [a.DelayBy(two), "delayBy(a, 2)", @"delayBy\left( a, 2 \right)"];
         yield return [a.Scale(two), "a·2", @"a \cdot 2"];
         yield return [Expressions.HorizontalDeviation(a, b), "hdev(a, b)", @"hdev\left( a, b \right)"];
