@@ -25,6 +25,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>   
   </PropertyGroup>
 
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>bin\Nancy.Interactive\Release\Unipi.Nancy.Interactive.xml</DocumentationFile>
   </PropertyGroup>
