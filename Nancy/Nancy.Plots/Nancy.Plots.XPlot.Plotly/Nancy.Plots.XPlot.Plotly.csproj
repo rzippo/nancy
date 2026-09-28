@@ -24,6 +24,10 @@
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
         <DocumentationFile>bin\Nancy.Plots.XPlot.Plotly\Release\Unipi.Nancy.Plots.XPlot.Plotly.xml</DocumentationFile>
     </PropertyGroup>

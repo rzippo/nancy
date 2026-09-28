@@ -24,6 +24,10 @@
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
         <DocumentationFile>bin\Nancy.Plots.Tikz\Release\Unipi.Nancy.Plots.Tikz.xml</DocumentationFile>
     </PropertyGroup>
