@@ -1987,17 +1987,20 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     /// <summary>
     /// Computes the horizontal deviation between the two sequences, $hDev(f, g)$.
-    /// The two sequences must have an overlapping image, and the deviation is measured between points in that overlap. 
+    /// It is measured from the heights both sequences cover, the overlap of their images, and is undefined where the images do not overlap.
     /// </summary>
     /// <param name="f">Must be non-negative and non-decreasing.</param>
     /// <param name="g">Must be non-negative and non-decreasing.</param>
     /// <param name="settings">Settings for the computation.</param>
     /// <returns>A non-negative horizontal deviation.</returns>
+    /// <exception cref="ArgumentException">If either operand is negative or decreasing somewhere, or if their images do not overlap.</exception>
     /// <remarks>
-    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D2, as the counterpart for sequences of <see cref="Curve.HorizontalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
-    /// The two agree, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-T1 and EB-FRTC-SEQ-T2, whenever each operand starts from a value its curve had not attained before the cut.
-    /// Equivalently, whenever the lower pseudo-inverse of the curve, at that value, is the time the cut begins.
-    /// Where that does not hold, the earlier time is not visible in the operands and the result is larger than the curves' own.
+    /// Defined in [TBP-SEQ-DEV] § 4, over domains open or closed at either end, as the counterpart for sequences of <see cref="Curve.HorizontalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// Each jump of <paramref name="f"/> is read as a vertical segment of its graph, so the deviation is also measured from the heights a jump covers, and does not depend on the value <paramref name="f"/> takes at the jump.
+    /// It is the supremum, over the heights $y$ of the overlap, of $g^{-1}_\downarrow(y) - f^{-1}_\downarrow(y)$, and 0 if that is negative, [TBP-SEQ-DEV] § 4.3.
+    /// It agrees with the deviation between the curves the operands are restrictions of, taken over the same heights, [TBP-SEQ-DEV] § 4.4,
+    /// whenever neither curve reaches the lowest height of the overlap before its operand does; prefixes, restrictions to $[0, k]$, always satisfy this.
+    /// Where it does not hold, the earlier time is not visible in the operands.
     /// The deviation is measured over the overlap of the operands' images, so moving either operand's image moves the set it is taken over:
     /// unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
     /// </remarks>
@@ -2009,16 +2012,18 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     
     /// <summary>
     /// Computes the vertical deviation between the two sequences, $vDev(f, g)$.
-    /// The two sequences must have an overlapping domain, and the deviation is measured between points in that overlap. 
+    /// It is measured over the times both sequences are defined at, the intersection of their supports, and is undefined where the supports do not intersect.
     /// </summary>
     /// <param name="f">The first operand.</param>
     /// <param name="g">The second operand.</param>
     /// <param name="settings">Settings for the computation.</param>
     /// <returns>A vertical deviation, which may be negative.</returns>
+    /// <exception cref="ArgumentException">If the supports do not intersect, including when they only touch at a time one of them excludes.</exception>
     /// <remarks>
-    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>.
+    /// Defined in [TBP-SEQ-DEV] § 3, over supports open or closed at either end, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>;
+    /// over closed supports it is [TBP-EB-FRTC] EB-FRTC-SEQ-D1.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
-    /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1, with no condition beyond the operands being restrictions of the curves.
+    /// The two agree over the intersection of the operands' supports, with no condition beyond the operands being restrictions of the curves.
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2028,17 +2033,23 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     /// <summary>
     /// Computes the horizontal deviation function between the two sequences, $hDev(f, g, t)$.
-    /// The two sequences must have an overlapping image, and the deviation is measured between points in that overlap. 
+    /// It is measured from the heights both sequences cover, the overlap of their images, and is undefined where the images do not overlap.
     /// </summary>
     /// <param name="f">Must be non-negative and non-decreasing.</param>
     /// <param name="g">Must be non-negative and non-decreasing.</param>
     /// <param name="settings">Settings for the computation.</param>
-    /// <returns>A non-negative horizontal deviation.</returns>
+    /// <returns>
+    /// A non-negative horizontal deviation function, defined at the times where the vertical segment of <paramref name="f"/> meets the overlap of the images.
+    /// </returns>
+    /// <exception cref="ArgumentException">If either operand is negative or decreasing somewhere, or if their images do not overlap.</exception>
     /// <remarks>
-    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D2, as the counterpart for sequences of <see cref="Curve.HorizontalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
-    /// The two agree, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-T1 and EB-FRTC-SEQ-T2, whenever each operand starts from a value its curve had not attained before the cut.
-    /// Equivalently, whenever the lower pseudo-inverse of the curve, at that value, is the time the cut begins.
-    /// Where that does not hold, the earlier time is not visible in the operands and the result is larger than the curves' own.
+    /// Defined in [TBP-SEQ-DEV] § 4, over domains open or closed at either end, as the counterpart for sequences of <see cref="Curve.HorizontalDeviationFunction(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
+    /// Each jump of <paramref name="f"/> is read as a vertical segment of its graph, from its left to its right limit.
+    /// At each time, the result is how long after it <paramref name="g"/> first reaches the top of that segment within the overlap, and 0 if it already has.
+    /// So the result does not depend on the value <paramref name="f"/> takes at a jump, and a time where <paramref name="f"/> jumps across the overlap is measured, even if the value <paramref name="f"/> takes there is outside it.
+    /// Where <paramref name="f"/> is continuous, the result agrees with the deviation between the curves the operands are restrictions of, [TBP-SEQ-DEV] § 4.4,
+    /// except where <paramref name="f"/> is at the lowest height of the overlap and the curve of <paramref name="g"/> reaches that height before <paramref name="g"/> does.
+    /// Where <paramref name="f"/> jumps, the curves' deviation reads the value alone, and leaves the rest of the jump to the times after it, which the overlap may exclude.
     /// The deviation is measured over the overlap of the operands' images, so moving either operand's image moves the set it is taken over:
     /// unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
     /// </remarks>
@@ -2132,16 +2143,22 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     /// <summary>
     /// Computes the vertical deviation function between the two sequences, $vDev(f, g, t)$.
-    /// The two sequences must have an overlapping support, and the deviation is measured between points in that overlap. 
+    /// It is measured over the times both sequences are defined at, the intersection of their supports, and is undefined where the supports do not intersect.
     /// </summary>
     /// <param name="f">The first operand.</param>
     /// <param name="g">The second operand.</param>
     /// <param name="settings">Settings for the computation.</param>
-    /// <returns>A vertical deviation function, whose values may be negative.</returns>
+    /// <returns>
+    /// A vertical deviation function, whose values may be negative, defined over the intersection of the supports:
+    /// each end is included where every operand whose end it is includes it.
+    /// </returns>
+    /// <exception cref="ArgumentException">If the supports do not intersect, including when they only touch at a time one of them excludes.</exception>
     /// <remarks>
-    /// Defined in [TBP-EB-FRTC] EB-FRTC-SEQ-D1, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>.
+    /// Defined in [TBP-SEQ-DEV] § 3, over supports open or closed at either end, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>;
+    /// over closed supports it is [TBP-EB-FRTC] EB-FRTC-SEQ-D1.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
-    /// The two agree over the intersection of the operands' domains, shown in [TBP-EB-FRTC] EB-FRTC-SEQ-V1, with no condition beyond the operands being restrictions of the curves.
+    /// The two agree over the intersection of the operands' supports, with no condition beyond the operands being restrictions of the curves.
+    /// Unlike the horizontal deviation, it reads each operand's value at a jump, as the deviation between curves does.
     /// </remarks>
     public static Sequence VerticalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
