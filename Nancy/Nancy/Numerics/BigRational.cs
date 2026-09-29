@@ -492,32 +492,14 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </remarks>
     public BigRational(Decimal value)
     {
-        int[] bits = Decimal.GetBits(value);
-        if (bits == null || bits.Length != 4 || (bits[3] & ~(DecimalSignMask | DecimalScaleMask)) != 0 || (bits[3] & DecimalScaleMask) > (28 << 16))
-        {
-            throw new ArgumentException("invalid Decimal", nameof(value));
-        }
-
         if (value == Decimal.Zero)
         {
             this = BigRational.Zero;
             return;
         }
 
-        // build up the numerator
-        ulong ul = (((ulong)(uint)bits[2]) << 32) | ((ulong)(uint)bits[1]);   // (hi    << 32) | (mid)
-        Numerator = (new BigInteger(ul) << 32) | unchecked((uint)bits[0]);             // (hiMid << 32) | (low)
-
-        bool isNegative = (bits[3] & DecimalSignMask) != 0;
-        if (isNegative)
-        {
-            Numerator = BigInteger.Negate(Numerator);
-        }
-
-        // build up the denominator
-        int scale = (bits[3] & DecimalScaleMask) >> 16;     // 0-28, power of 10 to divide numerator by
-        Denominator = BigInteger.Pow(10, scale);
-
+        // the significand words are unsigned, so they are converted in an unchecked context
+        (Numerator, Denominator) = value.GetRationalParts();
         Simplify();
     }
 
