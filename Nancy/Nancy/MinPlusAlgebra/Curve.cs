@@ -285,6 +285,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     .IsContinuous)
                 return false;
 
+            // with the pseudo-period starting at 0, a jump right after 0 repeats right after the end of each pseudo-period
+            if (PseudoPeriodStart == 0 && !IsRightContinuousAt(0))
+                return false;
+
             Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
             Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
 
