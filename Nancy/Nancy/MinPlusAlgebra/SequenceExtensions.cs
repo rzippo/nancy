@@ -1115,8 +1115,16 @@ public static class SequenceExtensions
     /// </summary>
     public static IEnumerable<Element> ToLeftContinuous(this IEnumerable<Element> elements)
     {
+        var elementList = elements as IReadOnlyList<Element> ?? elements.ToList();
+        if (elementList is [Segment lone])
+        {
+            // a lone segment has no breakpoint, so there is nothing to project
+            yield return lone;
+            yield break;
+        }
+
         var isStart = true;
-        foreach (var (left, point, right) in elements.EnumerateBreakpoints())
+        foreach (var (left, point, right) in elementList.EnumerateBreakpoints())
         {
             if (left != null)
             {
@@ -1143,8 +1151,16 @@ public static class SequenceExtensions
     /// </summary>
     public static IEnumerable<Element> ToRightContinuous(this IEnumerable<Element> elements)
     {
+        var elementList = elements as IReadOnlyList<Element> ?? elements.ToList();
+        if (elementList is [Segment lone])
+        {
+            // a lone segment has no breakpoint, so there is nothing to project
+            yield return lone;
+            yield break;
+        }
+
         var isStart = true;
-        foreach (var (left, point, right) in elements.EnumerateBreakpoints())
+        foreach (var (left, point, right) in elementList.EnumerateBreakpoints())
         {
             if (isStart && left != null)
                 yield return left;
