@@ -1246,7 +1246,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         return Sequence.Equivalent(seqA, seqB);
     }
 
-    //todo: write tests
     /// <summary>
     /// Returns the first time around which the functions represented by the curves differ.
     /// Returns null if the two curves represent the same function.
@@ -1256,11 +1255,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="b">The second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
-    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static Rational? FindFirstInequivalence(Curve a, Curve b, ComputationSettings? settings = null)
         => FindFirstInequivalenceAfter(a, b, 0, true, settings);
 
-    //todo: write tests
     /// <summary>
     /// Returns the first time around which the functions represented by the curves differ.
     /// Returns null if the two curves represent the same function.
@@ -1271,52 +1268,43 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="time">The time value.</param>
     /// <param name="isStartIncluded">If true, <paramref name="time"/> is included in the comparison.</param>
     /// <param name="settings">Optional settings for the operation.</param>
-    /// <returns>The result.</returns>
-    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+    /// <returns>
+    /// The earliest time $t$ such that the curves differ at $t$ or right after it.
+    /// </returns>
     public static Rational? FindFirstInequivalenceAfter(Curve a, Curve b, Rational time, bool isStartIncluded = true, ComputationSettings? settings = null)
     {
         var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
                             + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
 
-        var seqA = a.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
-        var seqB = b.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
+        // sampled on the cuts, as sampling a curve past its first pseudo-period computes the extension of that period
+        var cutA = a.Cut(time, cutEnd, isStartIncluded, true, settings);
+        var cutB = b.Cut(time, cutEnd, isStartIncluded, true, settings);
 
-        var spotsA = GetSpots(seqA);
-        var spotsB = GetSpots(seqB);
-        var pairs = spotsA.Zip(spotsB);
+        // the breakpoints of both curves: between two consecutive ones, both are affine,
+        // so they agree there if and only if they agree at both limits
+        var breakpoints = cutA.Elements
+            .Concat(cutB.Elements)
+            .SelectMany(element => new[] { element.StartTime, element.EndTime })
+            .Append(time)
+            .Distinct()
+            .OrderBy(t => t)
+            .ToList();
 
-        foreach (var pair in pairs)
+        for (int i = 0; i < breakpoints.Count; i++)
         {
-            if (pair.First != pair.Second)
-                return Rational.Min(pair.First.Time, pair.Second.Time);
-        }
+            var t = breakpoints[i];
+            if ((t > time || isStartIncluded) && cutA.ValueAt(t) != cutB.ValueAt(t))
+                return t;
 
-        // multiple enumerations are preferred to materializing possibly long sequences
-        var spotsACount = spotsA.Count();
-        var spotsBCount = spotsB.Count();
-        if (spotsACount != spotsBCount)
-        {
-            if (spotsACount > spotsBCount)
-                return spotsA.ElementAt(spotsBCount).Time;
-            else
-                return spotsB.ElementAt(spotsACount).Time;
+            if (i + 1 < breakpoints.Count)
+            {
+                var next = breakpoints[i + 1];
+                if (cutA.RightLimitAt(t) != cutB.RightLimitAt(t) || cutA.LeftLimitAt(next) != cutB.LeftLimitAt(next))
+                    return t;
+            }
         }
 
         return null;
-
-        IEnumerable<Point> GetSpots(IEnumerable<Element> seq)
-        {
-            foreach (var element in seq)
-            {
-                if (element is Point p)
-                    yield return p;
-                else if (element is Segment s)
-                {
-                    yield return new Point(time: s.StartTime, value: s.RightLimitAtStartTime);
-                    yield return new Point(time: s.EndTime, value: s.LeftLimitAtEndTime);
-                }
-            }
-        }
     }
 
     /// <summary>
