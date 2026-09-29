@@ -194,4 +194,68 @@ public class Equivalence
         Assert.False(f.Equivalent(g));
         Assert.False(f.EquivalentExceptOrigin(g));
     }
+
+    [Theory]
+    [MemberData(nameof(GetSameCurveTestCases))]
+    public void SameCurvesHaveNoFirstInequivalence(Curve f, Curve g)
+    {
+        Assert.Null(Curve.FindFirstInequivalence(f, g));
+        Assert.Null(Curve.FindFirstInequivalence(g, f));
+    }
+
+    public static List<(Curve a, Curve b, Rational time, bool isStartIncluded, Rational? expected)> FirstInequivalenceCases =
+    [
+        // equal at 1, then 2 (t - 1) against 0 up to 2
+        (new RateLatencyServiceCurve(2, 1), new StepCurve(4, 2), 1, true, 1),
+        (new RateLatencyServiceCurve(2, 1), new StepCurve(4, 2), 1, false, 1),
+        (new RateLatencyServiceCurve(2, 1), new StepCurve(4, 2), 0, true, 1),
+        // equal but at 2
+        (
+            new RateLatencyServiceCurve(1, 0),
+            new Curve(
+                new Sequence([Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 5), new Segment(2, 3, 2, 1), new Point(3, 3), new Segment(3, 4, 3, 1)]),
+                pseudoPeriodStart: 3,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 1
+            ),
+            0, true, 2
+        ),
+        // equal after 2
+        (
+            new RateLatencyServiceCurve(1, 0),
+            new Curve(
+                new Sequence([Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 5), new Segment(2, 3, 2, 1), new Point(3, 3), new Segment(3, 4, 3, 1)]),
+                pseudoPeriodStart: 3,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 1
+            ),
+            2, false, null
+        ),
+        // the same staircase, over pseudo-periods of 2 and of 3
+        (StairOverPeriod(2), StairOverPeriod(3), 0, true, null),
+        // the same staircase, but 7 at 5, in the last period before the least common multiple of the two
+        (StairOverPeriod(2), StairOverPeriod(6, raisedPointAt: 5), 0, true, 5),
+    ];
+
+    /// <summary>
+    /// The staircase with steps of 1 every 1, as a curve whose pseudo-period starts at 0 and spans <paramref name="periods"/> steps,
+    /// optionally with the value at <paramref name="raisedPointAt"/> raised by 2.
+    /// </summary>
+    private static Curve StairOverPeriod(int periods, int? raisedPointAt = null)
+    {
+        var elements = new StairCurve(1, 1).Cut(0, periods).Elements
+            .Select(element => element is Point p && p.Time == raisedPointAt ? new Point(p.Time, p.Value + 2) : element);
+        return new Curve(new Sequence(elements), 0, periods, periods);
+    }
+
+    public static IEnumerable<object[]> GetFirstInequivalenceTestCases()
+        => FirstInequivalenceCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetFirstInequivalenceTestCases))]
+    public void FirstInequivalence(Curve a, Curve b, Rational time, bool isStartIncluded, Rational? expected)
+    {
+        Assert.Equal(expected, Curve.FindFirstInequivalenceAfter(a, b, time, isStartIncluded));
+        Assert.Equal(expected, Curve.FindFirstInequivalenceAfter(b, a, time, isStartIncluded));
+    }
 }
