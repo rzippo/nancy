@@ -2054,33 +2054,37 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The two sequences do not have an overlapping image.");
         var imageOverlap = imageOverlapNullable.Value;
 
-        Sequence fCut;
-        var fCutStart = imageOverlap.Lower == f.InfValue()
-            ? f.DefinedFrom
-            : f.LowerPseudoInverse().ValueAt(imageOverlap.Lower);
-        var fCutEnd = imageOverlap.Upper == f.SupValue()
-            ? f.DefinedUntil
-            : f.UpperPseudoInverse().ValueAt(imageOverlap.Upper);
-        if (fCutEnd > fCutStart)
-        {
-            // this is $\hat{f}$: note that the start and endpoint are included only if they match the overlap interval
-            var isStartIncluded = f.IsDefinedAt(fCutStart) && f.ValueAt(fCutStart) == imageOverlap.Lower;
-            var isEndIncluded = f.IsDefinedAt(fCutEnd) && f.ValueAt(fCutEnd) == imageOverlap.Upper;
-            fCut = f.CutAsEnumerable(fCutStart, fCutEnd, isStartIncluded, isEndIncluded)
-                .ToSequence();
-        }
-        else
-        {
-            // matching endpoints imply that f jumps over the overlap interval
-            fCut = new Sequence([new Point(fCutEnd, imageOverlap.Upper)]);
-        }
+        // The times whose vertical segment meets the image overlap, [TBP-SEQ-DEV] § 4.1.
+        // The first is where f reaches the lower end of the overlap, the last where f passes its upper end,
+        // each end reached or passed strictly where the overlap excludes it.
+        var fCutStart = imageOverlap.IsLowerIncluded
+            ? f.LowerPseudoInverseAt(imageOverlap.Lower)
+            : FirstTimeAbove(imageOverlap.Lower);
+        if (fCutStart.IsPlusInfinite)
+            throw new InvalidOperationException("The first operand does not reach the overlap of the images.");
+
+        var fCutEnd = imageOverlap.IsUpperIncluded
+            ? FirstTimeAbove(imageOverlap.Upper)
+            : f.LowerPseudoInverseAt(imageOverlap.Upper);
+        if (fCutEnd.IsPlusInfinite)
+            fCutEnd = f.DefinedUntil;
+        var isStartIncluded = VerticalSegmentMeets(fCutStart);
+        var isEndIncluded = VerticalSegmentMeets(fCutEnd);
+
+        // This is $\hat{f}$: at each point, the top of its vertical segment within the overlap, [TBP-SEQ-DEV] § 4.1,
+        // which does not depend on the value f takes at a jump.
+        var fCut = f.CutAsEnumerable(fCutStart, fCutEnd, isStartIncluded, isEndIncluded)
+            .Select(element => element is Point point
+                ? new Point(point.Time, Rational.Min(RightValue(point.Time), imageOverlap.Upper))
+                : element)
+            .ToSequence();
 
         var gCutStart = imageOverlap.Lower == g.InfValue()
             ? g.DefinedFrom
-            : g.LowerPseudoInverse().ValueAt(imageOverlap.Lower);
+            : g.LowerPseudoInverseAt(imageOverlap.Lower);
         var gCutEnd = imageOverlap.Upper == g.SupValue()
             ? g.DefinedUntil
-            : g.UpperPseudoInverse().ValueAt(imageOverlap.Upper);
+            : g.UpperPseudoInverseAt(imageOverlap.Upper);
         var identity = fCutStart < fCutEnd ?
             new Sequence([
                 new Point(fCutStart, fCutStart),
@@ -2105,11 +2109,25 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             // matching endpoints imply that g jumps over the overlap interval.
             // image of $\hat{g}$ is just a point => cannot use composition method, but can use closed expression
-            var constant = Sequence.Constant(gCutEnd, fCutStart, fCutEnd, true, true);
+            var constant = Sequence.Constant(gCutEnd, fCutStart, fCutEnd, isStartIncluded, isEndIncluded);
             hdevT = Subtraction(constant, identity).ToNonNegative();
         }
 
         return hdevT;
+
+        // the first time f is above y
+        Rational FirstTimeAbove(Rational y)
+        {
+            var time = f.UpperPseudoInverseAt(y);
+            return time.IsMinusInfinite ? f.DefinedFrom : time;
+        }
+
+        Rational LeftValue(Rational t) => t == f.DefinedFrom ? f.ValueAt(t) : f.LeftLimitAt(t);
+        Rational RightValue(Rational t) => t == f.DefinedUntil ? f.ValueAt(t) : f.RightLimitAt(t);
+
+        bool VerticalSegmentMeets(Rational t) =>
+            f.IsDefinedAt(t)
+            && Interval.Intersection(new Interval(LeftValue(t), RightValue(t), true, true), imageOverlap) is not null;
     }
 
     /// <summary>
