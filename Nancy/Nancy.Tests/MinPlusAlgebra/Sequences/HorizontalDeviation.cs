@@ -865,8 +865,12 @@ public class HorizontalDeviation
     ];
 
     /// <summary>
-    /// Known combinations of curves and cuts, such that $hdev(f, g) != hdev(Cut(f, kF), Cut(g, kG))$. 
+    /// Known combinations of curves and cuts, such that $hdev(f, g) != hdev(Cut(f, kF), Cut(g, kG))$.
     /// </summary>
+    /// <remarks>
+    /// In both, f jumps at 2 from 2 to 6, across the top of the shared image $[0, 5]$, which g reaches at 7:
+    /// the deviation between the cuts is measured from the jump, and is 5, against 6 between the curves.
+    /// </remarks>
     public static List<(Curve f, Curve g, Rational kF, Rational kG, Rational hdev)> KnownHDevInvalidCuts =
     [
         (
@@ -875,15 +879,15 @@ public class HorizontalDeviation
                     new Segment(0, 2, 0, 1),
                     new Point(2, 6),
                     new Segment(2, 3, 6, 1)
-                ]), 
-                pseudoPeriodStart: 2, 
-                pseudoPeriodLength: 1, 
+                ]),
+                pseudoPeriodStart: 2,
+                pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 1
             ),
             new RateLatencyServiceCurve(1, 2),
             4,
             7,
-            2
+            5
         ),
         (
             new Curve(baseSequence:new Sequence([
@@ -899,7 +903,7 @@ public class HorizontalDeviation
             new RateLatencyServiceCurve(1, 2),
             4,
             7,
-            2
+            5
         )
     ];
 
@@ -919,13 +923,45 @@ public class HorizontalDeviation
         _testOutputHelper.WriteLine($"var kF = {kF.ToCodeString()};");
         _testOutputHelper.WriteLine($"var kG = {kG.ToCodeString()};");
         _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()};");
-        var hdevFunctionCurves = Curve.HorizontalDeviationFunction(f, g);
         var fCut = f.Cut(0, kF, true, true);
         var gCut = g.Cut(0, kG, true, true);
         var hdevFunctionSequence = Sequence.HorizontalDeviationFunction(fCut, gCut);
-        _testOutputHelper.WriteLine($"var hdevFunctionCurves = {hdevFunctionCurves.ToCodeString()};");
         _testOutputHelper.WriteLine($"var hdevFunctionSequence = {hdevFunctionSequence.ToCodeString()};");
-        Assert.True(hdevFunctionCurves.Match(hdevFunctionSequence));
+        AssertMatchesTheCurvesPointwise(f, g, fCut, gCut, hdevFunctionSequence);
+    }
+
+    /// <summary>
+    /// [TBP-SEQ-DEV] § 4.4, the pointwise equivalence, for prefixes, where its hypothesis holds:
+    /// at each measured time, the deviation between the cuts is the curves' delay from the top, within the shared image, of the vertical segment of the first operand.
+    /// Where the first operand is continuous, that is the deviation between the curves at that time;
+    /// where it jumps, the curves' deviation reads its value alone, and the two may differ.
+    /// </summary>
+    private static void AssertMatchesTheCurvesPointwise(Curve f, Curve g, Sequence fCut, Sequence gCut, Sequence hdevFunctionSequence)
+    {
+        var imageOverlap = Interval.Intersection(fCut.Image, gCut.Image)!.Value;
+        var hdevFunctionCurves = Curve.HorizontalDeviationFunction(f, g);
+        var gLpi = g.LowerPseudoInverse();
+
+        var times = SampleTimes(hdevFunctionSequence)
+            .Concat(SampleTimes(fCut).Where(hdevFunctionSequence.IsDefinedAt))
+            .Distinct();
+        foreach (var t in times)
+        {
+            var left = t == fCut.DefinedFrom ? fCut.ValueAt(t) : fCut.LeftLimitAt(t);
+            var right = t == fCut.DefinedUntil ? fCut.ValueAt(t) : fCut.RightLimitAt(t);
+            Rational expected;
+            if (left == right)
+                expected = hdevFunctionCurves.ValueAt(t);
+            else
+            {
+                var top = Rational.Min(right, imageOverlap.Upper);
+                var reached = top == imageOverlap.Upper && !imageOverlap.IsUpperIncluded
+                    ? gLpi.LeftLimitAt(top)
+                    : gLpi.ValueAt(top);
+                expected = Rational.Max(0, reached - t);
+            }
+            Assert.True(expected == hdevFunctionSequence.ValueAt(t), $"{hdevFunctionSequence.ValueAt(t)} at {t}, not {expected}");
+        }
     }
     
     [Theory]
@@ -1139,6 +1175,196 @@ public class HorizontalDeviation
 
         Assert.True(HasReachedTheValueBeforeTheCut(g, fCut, gCut));
         Assert.False(hdevFunctionCurves.Match(hdevFunctionSequence));
+    }
+
+    private static Interval I(Rational lower, Rational upper, bool isLowerIncluded, bool isUpperIncluded)
+        => new(lower, upper, isLowerIncluded, isUpperIncluded);
+
+    /// <summary>
+    /// The sequence $a$ is $c$ on $[0, 1[$, then $v$ at 1, then the given segment on $]1, 2[$ and its end value at 2:
+    /// a jump at 1, whose value there, the spot $v$, is any value within the jump.
+    /// </summary>
+    private static Sequence JumpAtOne(Rational c, Rational v, Rational afterValue, Rational afterSlope)
+        => new([
+            new Point(0, c), new Segment(0, 1, c, 0), new Point(1, v),
+            new Segment(1, 2, afterValue, afterSlope), new Point(2, afterValue + afterSlope)
+        ]);
+
+    /// <summary>
+    /// Pairs of sequences named by the cases of [TBP-SEQ-DEV] § 5, with the measured times of $a$ that the result is defined over,
+    /// its value at some of them, and its supremum.
+    /// The values are computed by hand from [TBP-SEQ-DEV] § 4, reading each jump of $a$ as a vertical segment.
+    /// Where a case has a jump in $a$, it is repeated with the spot moved within the jump, and the expected result does not change.
+    /// </summary>
+    public static IEnumerable<object[]> HDevCases()
+    {
+        object[] Case(string id, Sequence a, Sequence b, Interval support, (Rational t, Rational v)[] values, Rational sup)
+            => [id, a, b, support, values, sup];
+        var half = new Rational(1, 2);
+
+        // HY-touch, HX-point-bound: Y = {1}, reached by a at the closed end of its domain
+        yield return Case("HY-touch",
+            new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, 1) ]),
+            new Sequence([ new Point(2, 1), new Segment(2, 3, 1, 1), new Point(3, 2) ]),
+            I(1, 1, true, true), [(1, 1)], 1);
+
+        // HY-overlap: Y = [2, 3], and b reaches each height 2 after a does
+        var tOn03 = new Sequence([ new Point(0, 0), new Segment(0, 3, 0, 1), new Point(3, 3) ]);
+        var tMinus2On47 = new Sequence([ new Point(4, 2), new Segment(4, 7, 2, 1), new Point(7, 5) ]);
+        yield return Case("HY-overlap", tOn03, tMinus2On47,
+            I(2, 3, true, true), [(2, 2), (new Rational(5, 2), 2), (3, 2)], 2);
+        // ... with a right-open, so that u_y = 3 is not attained: Y = [2, 3[
+        yield return Case("HY-overlap, u_y excluded",
+            new Sequence([ new Point(0, 0), new Segment(0, 3, 0, 1) ]), tMinus2On47,
+            I(2, 3, true, false), [(2, 2), (new Rational(5, 2), 2)], 2);
+        // ... with b left-open, so that l_y = 2 is not attained: Y = ]2, 3], and a is at 2 at a time that is not measured
+        yield return Case("HY-overlap, l_y excluded", tOn03,
+            new Sequence([ new Segment(4, 7, 2, 1), new Point(7, 5) ]),
+            I(2, 3, false, true), [(new Rational(5, 2), 2), (3, 2)], 2);
+
+        // HY-nested: Y = Y_b = [2, 3]
+        yield return Case("HY-nested",
+            new Sequence([ new Point(0, 0), new Segment(0, 5, 0, 1), new Point(5, 5) ]),
+            new Sequence([ new Point(3, 2), new Segment(3, 4, 2, 1), new Point(4, 3) ]),
+            I(2, 3, true, true), [(2, 1), (3, 1)], 1);
+
+        // HY-shared: Y = [0, 3], each end included where both operands attain it
+        var tMinus1On14 = new Sequence([ new Point(1, 0), new Segment(1, 4, 0, 1), new Point(4, 3) ]);
+        yield return Case("HY-shared", tOn03, tMinus1On14,
+            I(0, 3, true, true), [(0, 1), (3, 1)], 1);
+        // HX-dom-open: a is left-open, and the measured times with it
+        yield return Case("HY-shared, HX-dom-open",
+            new Sequence([ new Segment(0, 3, 0, 1), new Point(3, 3) ]), tMinus1On14,
+            I(0, 3, false, true), [(half, 1), (3, 1)], 1);
+        // HX-bound-open: b is left-open, so a at 0 is at a height that is not shared
+        yield return Case("HY-shared, HX-bound-open", tOn03,
+            new Sequence([ new Segment(1, 4, 0, 1), new Point(4, 3) ]),
+            I(0, 3, false, true), [(half, 1), (3, 1)], 1);
+
+        // HX-plateau: a is at l_y = 1 on ]0, 1], so the deviation tends to 1 at the open end, without attaining it
+        yield return Case("HX-plateau",
+            new Sequence([ new Segment(0, 1, 1, 0), new Point(1, 1), new Segment(1, 3, 1, 1), new Point(3, 3) ]),
+            new Sequence([ new Point(1, 1), new Segment(1, 4, 1, 1), new Point(4, 4) ]),
+            I(0, 3, false, true), [(half, half), (1, 0), (2, 0)], 1);
+
+        // HX-jump-across, at the right end of the measured times (P1): a jumps from 0 to 3 at 1, across u_y = 2.
+        // The jump covers [0, 2] of Y, and b reaches 2 at 4.
+        var tHalfOn04 = new Sequence([ new Point(0, 0), new Segment(0, 4, 0, half), new Point(4, 2) ]);
+        foreach (var spot in new Rational[] { 0, 1, 2, 3 })
+            yield return Case($"HX-jump-across, right end, spot {spot}", JumpAtOne(0, spot, 3, 0), tHalfOn04,
+                I(0, 1, true, true), [(half, 0), (1, 3)], 3);
+
+        // HX-jump-across, at the left end of the measured times: a jumps from 0 to 2 at 1, across l_y = 1.
+        // The jump covers [1, 2] of Y, and b reaches 2 at 3.
+        var tMinus1On25 = new Sequence([ new Point(2, 1), new Segment(2, 5, 1, 1), new Point(5, 4) ]);
+        foreach (var spot in new Rational[] { 0, half, 1, 2 })
+            yield return Case($"HX-jump-across, left end, spot {spot}", JumpAtOne(0, spot, 2, 1), tMinus1On25,
+                I(1, 2, true, true), [(1, 2), (new Rational(3, 2), 2), (2, 2)], 2);
+
+        // HX-jump-excluded-bound: a jumps from 2 to 5 at 2, and u_y = 2 is excluded, so the jump covers no shared height
+        var tHalfOn04Open = new Sequence([ new Point(0, 0), new Segment(0, 4, 0, half) ]);
+        foreach (var spot in new Rational[] { 2, 5 })
+            yield return Case($"HX-jump-excluded-bound, spot {spot}",
+                new Sequence([ new Point(0, 0), new Segment(0, 2, 0, 1), new Point(2, spot), new Segment(2, 3, 5, 0), new Point(3, 5) ]),
+                tHalfOn04Open,
+                I(0, 2, true, false), [(1, 1), (new Rational(3, 2), new Rational(3, 2))], 2);
+
+        // HX-jump-interior: a jumps from 1 to 2 at 1, both inside Y = [0, 3]; the deviation at 1 is measured from the top of the jump
+        var tOn03Again = new Sequence([ new Point(0, 0), new Segment(0, 3, 0, 1), new Point(3, 3) ]);
+        foreach (var spot in new Rational[] { 1, new Rational(3, 2), 2 })
+            yield return Case($"HX-jump-interior, spot {spot}",
+                new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, spot), new Segment(1, 2, 2, 1), new Point(2, 3) ]),
+                tOn03Again,
+                I(0, 2, true, true), [(half, 0), (1, 1), (new Rational(3, 2), 1)], 1);
+
+        // HX-point-inside (P3): a jumps from 0 to 3 at 1, over the whole of Y = [1/2, 2], which b reaches the top of at 2
+        var bP3 = new Sequence([
+            new Point(0, half), new Segment(0, half, half, 0), new Point(half, half), new Segment(half, 2, half, 1), new Point(2, 2)
+        ]);
+        foreach (var spot in new Rational[] { 0, 1, 3 })
+            yield return Case($"HX-point-inside, spot {spot}", JumpAtOne(0, spot, 3, 0), bP3,
+                I(1, 1, true, true), [(1, 1)], 1);
+
+        // HX-point-outside (H3): a jumps from 0 to 5 at 1, over the whole of Y = [1, 3], which b reaches the top of at 2
+        var bH3 = new Sequence([ new Point(0, 1), new Segment(0, 2, 1, 1), new Point(2, 3) ]);
+        foreach (var spot in new Rational[] { 0, 2, 5 })
+            yield return Case($"HX-point-outside, spot {spot}", JumpAtOne(0, spot, 5, 0), bH3,
+                I(1, 1, true, true), [(1, 1)], 1);
+
+        // HB-start-reach: b reaches l_y = 1 by a jump at 2, to 2, so every height in [1, 2] is first reached at 2
+        yield return Case("HB-start-reach",
+            new Sequence([ new Point(1, 1), new Segment(1, 3, 1, 1), new Point(3, 3) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 2, 0, 0), new Point(2, 2), new Segment(2, 4, 2, 1), new Point(4, 4) ]),
+            I(1, 3, true, true), [(1, 1), (new Rational(3, 2), half), (2, 0), (new Rational(5, 2), 0)], 1);
+
+        // HB-end-dom-open: b approaches u_y = 2 at its open end 2 without attaining it, and a jumps across it at 1
+        yield return Case("HB-end-dom-open",
+            new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, 1), new Segment(1, 2, 3, 0), new Point(2, 3) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 2, 0, 1) ]),
+            I(0, 1, true, true), [(half, 0), (1, 1)], 1);
+
+        // HB-end-jump (H1): b jumps above u_y = 2 right after 1, so every height in ]1, 2] is first reached at 1
+        yield return Case("HB-end-jump",
+            new Sequence([ new Point(0, 0), new Segment(0, 2, 0, 1), new Point(2, 2) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, 1), new Segment(1, 2, 3, 0), new Point(2, 3) ]),
+            I(0, 2, true, true), [(half, 0), (1, 0), (new Rational(3, 2), 0)], 0);
+
+        // HB-over (H1'): b jumps from 0 to 5 right after 1, over the whole of Y = [1, 3], so every shared height is first reached at 1
+        var bOver = new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 0), new Point(1, 0), new Segment(1, 2, 5, 0), new Point(2, 5) ]);
+        yield return Case("HB-over",
+            new Sequence([ new Point(0, 1), new Segment(0, 2, 1, 1), new Point(2, 3) ]), bOver,
+            I(0, 2, true, true), [(0, 1), (half, half), (new Rational(3, 2), 0)], 1);
+        // ... with a left-open (P4): Y = ]1, 3] is the whole of a's image, and the measured times are a's domain
+        yield return Case("HB-over, HX-dom-open",
+            new Sequence([ new Segment(0, 2, 1, 1), new Point(2, 3) ]), bOver,
+            I(0, 2, false, true), [(half, half), (1, 0)], 1);
+
+        // HT-holds-item9: prefixes, where b(ŝ_b) = 0 is attained before ŝ_b = 1 but l_y = 1 is not
+        yield return Case("HT-holds-item9",
+            new Sequence([ new Point(0, 1), new Segment(0, 2, 1, 1), new Point(2, 3) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 0), new Point(1, 0), new Segment(1, 3, 1, 1), new Point(3, 3) ]),
+            I(0, 2, true, true), [(0, 1), (1, 1), (2, 1)], 1);
+    }
+
+    /// <summary>
+    /// [TBP-SEQ-DEV] § 4: the result is defined over the measured times of $a$, with their ends, and takes the values the definition gives.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(HDevCases))]
+    public void HorizontalDeviationFunctionFollowsTheDefinition(string id, Sequence a, Sequence b, Interval support, (Rational t, Rational v)[] values, Rational sup)
+    {
+        var hdev = Sequence.HorizontalDeviationFunction(a, b);
+        _testOutputHelper.WriteLine($"{id}: {hdev.ToCodeString()}");
+
+        Assert.True(hdev.Support.SetEquals(support), $"{id}: defined over {hdev.Support}, not {support}");
+        foreach (var (t, v) in values)
+            Assert.True(hdev.ValueAt(t) == v, $"{id}: {hdev.ValueAt(t)} at {t}, not {v}");
+        Assert.True(Sequence.HorizontalDeviation(a, b) == sup, $"{id}: supremum {Sequence.HorizontalDeviation(a, b)}, not {sup}");
+    }
+
+    /// <summary>
+    /// Pairs of sequences whose images share no value, named by the cases of [TBP-SEQ-DEV] § 5.
+    /// </summary>
+    public static IEnumerable<object[]> HDevRejectedCases()
+    {
+        var tOn01 = new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, 1) ]);
+        yield return ["HY-gap", tOn01, new Sequence([ new Point(0, 2), new Segment(0, 1, 2, 1), new Point(1, 3) ])];
+        yield return ["HY-touch, a open",
+            new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 1) ]),
+            new Sequence([ new Point(2, 1), new Segment(2, 3, 1, 1), new Point(3, 2) ])];
+        yield return ["HY-touch, b open", tOn01, new Sequence([ new Segment(2, 3, 1, 1), new Point(3, 2) ])];
+    }
+
+    /// <summary>
+    /// [TBP-SEQ-DEV] § 4: where the images share no value, the deviation is undefined, and the methods throw.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(HDevRejectedCases))]
+    public void DisjointImagesAreRejected(string id, Sequence a, Sequence b)
+    {
+        _testOutputHelper.WriteLine(id);
+        Assert.Throws<ArgumentException>(() => Sequence.HorizontalDeviationFunction(a, b));
+        Assert.Throws<ArgumentException>(() => Sequence.HorizontalDeviation(a, b));
     }
 
     /// <summary>
