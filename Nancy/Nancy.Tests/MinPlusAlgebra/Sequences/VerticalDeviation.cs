@@ -86,12 +86,90 @@ public class VerticalDeviation
         Assert.Equal(expected, Sequence.VerticalDeviation(a, b));
     }
 
-    [Fact]
-    public void DisjointDomainsAreRejected()
+    private static Interval I(Rational lower, Rational upper, bool isLowerIncluded, bool isUpperIncluded)
+        => new(lower, upper, isLowerIncluded, isUpperIncluded);
+
+    private static readonly bool[] Ends = [true, false];
+
+    /// <summary>
+    /// The domains of the two operands, named by the cases of [TBP-SEQ-DEV] § 5, and the shared domain $I$ the result is defined over, or null where $I$ is empty.
+    /// The expected $I$ is written out, not computed: its lower end is the larger of the two lower ends, included where every operand whose end it is includes it, and likewise the upper end.
+    /// </summary>
+    public static IEnumerable<object?[]> SharedDomainCases()
     {
-        var a = new Sequence([ new Point(0, 0), new Segment(0, 2, 0, 1), new Point(2, 2) ]);
-        var b = new Sequence([ new Point(5, 5), new Segment(5, 7, 5, 1), new Point(7, 7) ]);
-        Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
+        // V-gap: disjoint, with a gap
+        yield return ["V-gap", I(0, 1, true, true), I(2, 3, true, true), null];
+        yield return ["V-gap, open", I(0, 1, false, false), I(2, 3, false, false), null];
+
+        // V-touch: the domains meet at 1, which is shared only if both include it
+        foreach (var ea in Ends)
+        foreach (var sb in Ends)
+            yield return [$"V-touch, e_a {ea}, s_b {sb}", I(0, 1, true, ea), I(1, 2, sb, true), ea && sb ? I(1, 1, true, true) : null];
+
+        // V-overlap: X runs from s_b to e_a, with their inclusions
+        foreach (var sb in Ends)
+        foreach (var ea in Ends)
+            yield return [$"V-overlap, s_b {sb}, e_a {ea}", I(0, 2, true, ea), I(1, 3, sb, true), I(1, 2, sb, ea)];
+        // ... and the two outer ends do not matter
+        yield return ["V-overlap, outer ends open", I(0, 2, false, true), I(1, 3, true, false), I(1, 2, true, true)];
+
+        // V-nested: X is the inner domain
+        foreach (var sb in Ends)
+        foreach (var eb in Ends)
+            yield return [$"V-nested, s_b {sb}, e_b {eb}", I(0, 4, true, true), I(1, 2, sb, eb), I(1, 2, sb, eb)];
+        yield return ["V-nested, outer open", I(0, 4, false, false), I(1, 2, true, true), I(1, 2, true, true)];
+
+        // V-shared-start: the common lower end is shared only if both include it
+        foreach (var sa in Ends)
+        foreach (var sb in Ends)
+        foreach (var ea in Ends)
+            yield return [$"V-shared-start, s_a {sa}, s_b {sb}, e_a {ea}", I(1, 2, sa, ea), I(1, 3, sb, true), I(1, 2, sa && sb, ea)];
+
+        // V-shared-end: symmetric
+        foreach (var sb in Ends)
+        foreach (var ea in Ends)
+        foreach (var eb in Ends)
+            yield return [$"V-shared-end, s_b {sb}, e_a {ea}, e_b {eb}", I(0, 3, true, ea), I(1, 3, sb, eb), I(1, 3, sb, ea && eb)];
+
+        // V-equal: the same bounds, each end shared only if both include it
+        foreach (var sa in Ends)
+        foreach (var ea in Ends)
+        foreach (var sb in Ends)
+        foreach (var eb in Ends)
+            yield return [$"V-equal, a {sa} {ea}, b {sb} {eb}", I(1, 3, sa, ea), I(1, 3, sb, eb), I(1, 3, sa && sb, ea && eb)];
+
+        // V-point: a single-point operand
+        yield return ["V-point, inside", I(2, 2, true, true), I(1, 3, true, true), I(2, 2, true, true)];
+        yield return ["V-point, at a closed end", I(2, 2, true, true), I(2, 3, true, true), I(2, 2, true, true)];
+        yield return ["V-point, at an open end", I(2, 2, true, true), I(2, 3, false, true), null];
+        yield return ["V-point, outside", I(2, 2, true, true), I(3, 4, true, true), null];
+    }
+
+    /// <summary>
+    /// [TBP-SEQ-DEV] § 3: the result is defined over the shared domain $I$, with its ends, and there agrees with the deviation between the curves;
+    /// where $I$ is empty the deviation is undefined, and the method throws.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(SharedDomainCases))]
+    public void VerticalDeviationFunctionIsDefinedOverTheSharedDomain(string id, Interval xA, Interval xB, Interval? expected)
+    {
+        var f = new SigmaRhoArrivalCurve(3, 2);
+        var g = new RateLatencyServiceCurve(1, 2);
+        var a = f.Cut(xA);
+        var b = g.Cut(xB);
+        Assert.True(a.Support.SetEquals(xA), $"{id}: a is over {a.Support}, not {xA}");
+        Assert.True(b.Support.SetEquals(xB), $"{id}: b is over {b.Support}, not {xB}");
+
+        if (expected is not { } x)
+        {
+            Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviationFunction(a, b));
+            Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
+            return;
+        }
+
+        var vdev = Sequence.VerticalDeviationFunction(a, b);
+        Assert.True(vdev.Support.SetEquals(x), $"{id}: defined over {vdev.Support}, not {x}");
+        Assert.True((f - g).Match(vdev), $"{id}: differs from the curves");
     }
 
     /// <summary>
