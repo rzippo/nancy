@@ -127,6 +127,63 @@ public class BoundaryValues
         Assert.Equal(max, curve.MaxValue());
     }
 
+    public static List<(Curve curve, Rational? min, Rational? minArg)> CurvesAndMinima =
+    [
+        // increasing: the minimum is attained at the origin
+        (new RateLatencyServiceCurve(1, 0), 0, 0),
+        // increasing after a plateau: the minimum is first attained at the origin
+        (new RateLatencyServiceCurve(5, 2), 0, 0),
+        // increasing with a burst: the minimum is attained at the origin only
+        (new SigmaRhoArrivalCurve(1, 1), 0, 0),
+        // constant after a dip
+        (
+            new Curve(
+                baseSequence: new Sequence([
+                    new Point(0, 2),
+                    new Segment(0, 1, 2, -1),
+                    new Point(1, 1),
+                    Segment.Constant(1, 2, 1)
+                ]),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0
+            ),
+            1,
+            1
+        ),
+        // decreasing without bound: there is no minimum
+        (
+            new Curve(
+                baseSequence: new Sequence([
+                    Point.Origin(),
+                    new Segment(0, 1, 0, -1)
+                ]),
+                pseudoPeriodStart: 0,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: -1
+            ),
+            null,
+            null
+        ),
+        // the difference of a token bucket and a faster rate-latency curve: decreasing without bound after the latency
+        (new SigmaRhoArrivalCurve(4, 1) - new RateLatencyServiceCurve(2, 3), null, null),
+    ];
+
+    public static IEnumerable<object[]> GetMinArgTestCases()
+        => CurvesAndMinima.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetMinArgTestCases))]
+    public void MinArgTest(Curve curve, Rational? min, Rational? minArg)
+    {
+        Assert.Equal(min, curve.MinValue());
+        Assert.Equal(minArg, curve.MinArg());
+        // for a finite curve, a minimum exists exactly when an argument attaining it does
+        Assert.Equal(curve.MinValue() is null, curve.MinArg() is null);
+        if (minArg is { } t)
+            Assert.Equal(min, curve.ValueAt(t));
+    }
+
     public static List<(
         Curve curve,
         Rational cutStart,
