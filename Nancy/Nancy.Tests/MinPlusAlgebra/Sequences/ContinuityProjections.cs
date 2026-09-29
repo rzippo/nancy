@@ -20,6 +20,11 @@ public class ContinuityProjections
                 new Point(1, 2),
                 Segment.Constant(1, 2, 4)
             ]
+        ),
+        (
+            // a lone segment has no point to project
+            [new Segment(0, 2, 2, -1)],
+            [new Segment(0, 2, 2, -1)]
         )
     ];
 
@@ -58,6 +63,11 @@ public class ContinuityProjections
                 Segment.Constant(0, 1, 2),
                 new Point(1, 9)
             ]
+        ),
+        (
+            // a lone segment has no point to project
+            [new Segment(0, 2, 2, -1)],
+            [new Segment(0, 2, 2, -1)]
         )
     ];
 
@@ -71,5 +81,13 @@ public class ContinuityProjections
         var result = elements.ToRightContinuous().ToList();
 
         Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void LoneSegmentSequenceIsLeftAndRightContinuous()
+    {
+        var sequence = new Sequence([new Segment(0, 2, 2, -1)]);
+        Assert.Equal(sequence, sequence.ToLeftContinuous());
+        Assert.Equal(sequence, sequence.ToRightContinuous());
     }
 }
