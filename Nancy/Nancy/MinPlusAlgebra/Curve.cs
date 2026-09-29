@@ -525,7 +525,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         var _end = end ?? Rational.PlusInfinity;
 
-        if(start == 0 && _end == Rational.PlusInfinity)
+        if(start == 0 && _end == Rational.PlusInfinity && isStartIncluded)
             return IsNonDecreasing;
         else if(start == _end)
         {
@@ -540,7 +540,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else
         {
-            var cut = CutAsEnumerable(start, start + PseudoPeriodLength, isStartIncluded, true);
+            // the transient from start, if any, then two pseudo-periods:
+            // the end of the first period repeats its start, which the interval may exclude;
+            // a decrease right after that end shows only in the second period
+            var periodStart = Rational.Max(start, PseudoPeriodStart);
+            var cut = CutAsEnumerable(start, periodStart + 2 * PseudoPeriodLength, isStartIncluded, false);
             return cut.IsNonDecreasing();
         }
     }
