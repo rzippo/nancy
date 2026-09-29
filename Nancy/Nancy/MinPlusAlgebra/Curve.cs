@@ -5166,7 +5166,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public Rational? MinArg(ComputationSettings? settings = null)
     {
-        if (PseudoPeriodSlope <= 0)
+        if (PseudoPeriodSlope >= 0)
         {
             var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
             return cut.MinArg();
