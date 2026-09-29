@@ -909,7 +909,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         switch (element)
         {
             case Point p:
-                return Point.Subtraction(point: p, segment: this);
+                return Subtraction(segment: this, point: p);
             case Segment s:
                 return Subtraction(a: this, b: s);
 
@@ -925,7 +925,15 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <returns>The point resulting from the subtraction.</returns>
     /// <remarks>The operation does not enforce non-negative values.</remarks>
     public static Point Subtraction(Segment segment, Point point)
-        =>  Point.Subtraction(point, segment);
+    {
+        if (!segment.IsDefinedFor(point.Time))
+            throw new ArgumentException("Point and segment do not overlap.");
+
+        return new Point(
+            time: point.Time,
+            value: segment.ValueAt(point.Time) - point.Value
+        );
+    }
 
     /// <summary>
     /// Subtracts the <see cref="Segment"/> with an overlapping <see cref="Point"/>.
@@ -934,7 +942,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <returns>The point resulting from the subtraction.</returns>
     /// <remarks>The operation does not enforce non-negative values.</remarks>
     public Point Subtraction(Point point)
-        => Point.Subtraction(point, segment: this);
+        => Subtraction(segment: this, point);
 
     /// <summary>
     /// Subtracts a <see cref="Segment"/> to an overlapping <see cref="Point"/>.
@@ -943,7 +951,7 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// <returns>The point resulting from the subtraction.</returns>
     /// <remarks>The operation does not enforce non-negative values.</remarks>
     public static Point operator -(Segment segment, Point point)
-        => Point.Subtraction(point, segment);
+        => Subtraction(segment, point);
 
     /// <summary>
     /// Subtracts two <see cref="Segment"/>s over their overlapping part.
