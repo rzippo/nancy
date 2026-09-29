@@ -931,7 +931,7 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// [TBP-SEQ-DEV] § 4.4, the pointwise equivalence, for prefixes, where its hypothesis holds:
+    /// [TBP-SEQ-DEV] § 4.4, the pointwise equivalence, for cuts where its hypothesis holds, as prefixes always do:
     /// at each measured time, the deviation between the cuts is the curves' delay from the top, within the shared image, of the vertical segment of the first operand.
     /// Where the first operand is continuous, that is the deviation between the curves at that time;
     /// where it jumps, the curves' deviation reads its value alone, and the two may differ.
@@ -1003,7 +1003,9 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// Curves and cuts for which the cut of g opens where g first attains the value it starts from, i.e. the hypothesis of the equivalence, [TBP-EB-FRTC] EB-FRTC-SEQ-T2, holds.
+    /// Curves and cuts for which the hypothesis of the equivalence, [TBP-SEQ-DEV] § 4.4, holds:
+    /// the curve of g does not reach the lowest height of the overlap before the cut of g does.
+    /// The last three cut at open ends, the last at an open end on a plateau of g at that height.
     /// </summary>
     public static List<(Curve f, Curve g, Interval xF, Interval xG)> HDevFunctionCutsWithHypothesis =
     [
@@ -1057,10 +1059,60 @@ public class HorizontalDeviation
             new Interval(1, 4),
             new Interval(6, 12)
         ),
+        (
+            new Curve(baseSequence:new Sequence([
+                    new Point(0, 0),
+                    new Segment(0, 2, 0, 1),
+                    new Point(2, 6),
+                    new Segment(2, 3, 6, 1)
+                ]),
+                pseudoPeriodStart: 2,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 1
+            ),
+            new RateLatencyServiceCurve(1, 2),
+            new Interval(1, 4, false, true),
+            new Interval(4, 9, true, false)
+        ),
+        (
+            new Curve(baseSequence:new Sequence([
+                    new Point(0, 0),
+                    new Segment(0, 2, 0, 1),
+                    new Point(2, 6),
+                    new Segment(2, 3, 6, 1)
+                ]),
+                pseudoPeriodStart: 2,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 1
+            ),
+            new RateLatencyServiceCurve(1, 2),
+            new Interval(1, 4, true, false),
+            new Interval(1, 9, false, true)
+        ),
+        (
+            new SigmaRhoArrivalCurve(0, 1),
+            new Curve(
+                new Sequence([
+                    Point.Origin(),
+                    Segment.Zero(0, 5),
+                    new Point(5, 0),
+                    new Segment(5, 6, 0, 2),
+                    new Point(6, 2),
+                    Segment.Constant(6, 10, 2),
+                    new Point(10, 2),
+                    new Segment(10, 11, 2, 2)
+                ]),
+                10,
+                1,
+                2
+            ),
+            new Interval(1, 4, false, false),
+            new Interval(6, 12, false, true)
+        ),
     ];
 
     /// <summary>
-    /// Curves and cuts for which g had already attained that value before the cut of g opens, i.e. the hypothesis of the equivalence, [TBP-EB-FRTC] EB-FRTC-SEQ-T2, does not hold.
+    /// Curves and cuts for which the curve of g reaches the lowest height of the overlap before the cut of g does, so the hypothesis of the equivalence, [TBP-SEQ-DEV] § 4.4, does not hold.
     /// The two cases differ only in how far into the same plateau the cut opens.
     /// </summary>
     public static List<(Curve f, Curve g, Interval xF, Interval xG)> HDevFunctionCutsWithoutHypothesis =
@@ -1126,17 +1178,17 @@ public class HorizontalDeviation
         => HDevFunctionCutsWithoutHypothesis.ToXUnitTestCases();
 
     /// <summary>
-    /// The hypothesis of [TBP-EB-FRTC] EB-FRTC-SEQ-T2, in the form that can be computed:
-    /// the lower pseudo-inverse of the curve, at the value the cut starts from, is where the cut starts.
+    /// The negation of the hypothesis of [TBP-SEQ-DEV] § 4.4 on the second operand:
+    /// the lowest height of the overlap is shared, and the curve reaches it before the cut does.
     /// </summary>
-    private static bool HasReachedTheValueBeforeTheCut(Curve g, Sequence fCut, Sequence gCut)
+    private static bool HasReachedTheLowestSharedHeightBeforeTheCut(Curve g, Sequence fCut, Sequence gCut)
     {
         var imageOverlap = Interval.Intersection(fCut.Image, gCut.Image)!.Value;
-        var gCutStart = imageOverlap.Lower == gCut.InfValue()
-            ? gCut.DefinedFrom
-            : gCut.LowerPseudoInverse().ValueAt(imageOverlap.Lower);
+        if (!imageOverlap.IsLowerIncluded)
+            return false;
 
-        return g.LowerPseudoInverse().ValueAt(gCut.ValueAt(gCutStart)) < gCutStart;
+        var lowest = imageOverlap.Lower;
+        return g.LowerPseudoInverseAt(lowest) < gCut.LowerPseudoInverseAt(lowest);
     }
 
     [Theory]
@@ -1147,15 +1199,13 @@ public class HorizontalDeviation
         _testOutputHelper.WriteLine($"var g = {g.ToCodeString()};");
         _testOutputHelper.WriteLine($"var xF = {xF.ToCodeString()};");
         _testOutputHelper.WriteLine($"var xG = {xG.ToCodeString()};");
-        var hdevFunctionCurves = Curve.HorizontalDeviationFunction(f, g);
         var fCut = f.Cut(xF);
         var gCut = g.Cut(xG);
         var hdevFunctionSequence = Sequence.HorizontalDeviationFunction(fCut, gCut);
-        _testOutputHelper.WriteLine($"var hdevFunctionCurves = {hdevFunctionCurves.ToCodeString()};");
         _testOutputHelper.WriteLine($"var hdevFunctionSequence = {hdevFunctionSequence.ToCodeString()};");
 
-        Assert.False(HasReachedTheValueBeforeTheCut(g, fCut, gCut));
-        Assert.True(hdevFunctionCurves.Match(hdevFunctionSequence));
+        Assert.False(HasReachedTheLowestSharedHeightBeforeTheCut(g, fCut, gCut));
+        AssertMatchesTheCurvesPointwise(f, g, fCut, gCut, hdevFunctionSequence);
     }
 
     [Theory]
@@ -1173,8 +1223,32 @@ public class HorizontalDeviation
         _testOutputHelper.WriteLine($"var hdevFunctionCurves = {hdevFunctionCurves.ToCodeString()};");
         _testOutputHelper.WriteLine($"var hdevFunctionSequence = {hdevFunctionSequence.ToCodeString()};");
 
-        Assert.True(HasReachedTheValueBeforeTheCut(g, fCut, gCut));
+        Assert.True(HasReachedTheLowestSharedHeightBeforeTheCut(g, fCut, gCut));
         Assert.False(hdevFunctionCurves.Match(hdevFunctionSequence));
+    }
+
+    /// <summary>
+    /// HT-fails-sup, [TBP-SEQ-DEV] § 5: without the hypothesis of § 4.4, the deviation between the cuts exceeds the one between the curves.
+    /// The curve of g reaches the lowest shared height 2 at 1, its cut only at 5, while f is at that height from 0.
+    /// </summary>
+    [Fact]
+    public void HorizontalDeviationOfCutsExceedsTheCurvesWithoutTheHypothesis()
+    {
+        var f = new Curve(
+            new Sequence([ new Point(0, 2), new Segment(0, 10, 2, 0), new Point(10, 2), new Segment(10, 11, 2, 1) ]),
+            10, 1, 1);
+        var g = new Curve(
+            new Sequence([
+                new Point(0, 0), new Segment(0, 1, 0, 2), new Point(1, 2), new Segment(1, 5, 2, 0),
+                new Point(5, 2), new Segment(5, 6, 2, 100)
+            ]),
+            5, 1, 100);
+        var fCut = f.Cut(0, 12, true, true);
+        var gCut = g.Cut(5, 6, true, true);
+
+        Assert.True(HasReachedTheLowestSharedHeightBeforeTheCut(g, fCut, gCut));
+        Assert.Equal(5, Sequence.HorizontalDeviation(fCut, gCut));
+        Assert.Equal(1, Curve.HorizontalDeviation(f, g));
     }
 
     private static Interval I(Rational lower, Rational upper, bool isLowerIncluded, bool isUpperIncluded)
