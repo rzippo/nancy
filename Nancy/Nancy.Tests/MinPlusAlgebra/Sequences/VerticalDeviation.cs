@@ -187,25 +187,17 @@ public class VerticalDeviation
 
     /// <summary>
     /// Operands taking the value $+\infty$, named by the cases of [TBP-SEQ-DEV] § 6, with the value of $vDev(a, b, t)$ at some times, and its supremum.
-    /// Where both are $+\infty$ the difference is $+\infty$, the convention of the deviation between curves, [TBP-SEQ-DEV] § 5.
     /// </summary>
     public static IEnumerable<object[]> InfiniteValueCases()
     {
-        var h1 = new DelayServiceCurve(1).Cut(0, 4, true, true);
         var h2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
         var w = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
         yield return ["VI-a-infinite", w, h2, new (Rational t, Rational v)[] { (1, 1), (3, Rational.MinusInfinity) }, (Rational) 2];
         yield return ["VI-b-infinite", h2, w, new (Rational t, Rational v)[] { (1, -1), (3, Rational.PlusInfinity) }, Rational.PlusInfinity];
-        yield return ["VI-both-infinite", h1, h2,
-            new (Rational t, Rational v)[] { (new Rational(1, 2), 0), (new Rational(3, 2), Rational.PlusInfinity), (3, Rational.PlusInfinity) },
-            Rational.PlusInfinity];
-        yield return ["VI-both-infinite, swapped", h2, h1,
-            new (Rational t, Rational v)[] { (new Rational(1, 2), 0), (new Rational(3, 2), Rational.MinusInfinity), (3, Rational.PlusInfinity) },
-            Rational.PlusInfinity];
     }
 
     /// <summary>
-    /// [TBP-SEQ-DEV] § 5: with infinite values, the deviation subtracts at each time as for finite ones, and is $+\infty$ where both operands are.
+    /// [TBP-SEQ-DEV] § 5: with infinite values, the deviation subtracts at each time as for finite ones.
     /// </summary>
     [Theory]
     [MemberData(nameof(InfiniteValueCases))]
@@ -215,6 +207,29 @@ public class VerticalDeviation
         foreach (var (t, v) in values)
             Assert.True(vdev.ValueAt(t) == v, $"{id}: {vdev.ValueAt(t)} at {t}, not {v}");
         Assert.True(Sequence.VerticalDeviation(a, b) == sup, $"{id}: supremum {Sequence.VerticalDeviation(a, b)}, not {sup}");
+    }
+
+    /// <summary>
+    /// Operands that are both $+\infty$ at some shared time, named by the cases of [TBP-SEQ-DEV] § 6.
+    /// </summary>
+    public static IEnumerable<object[]> BothInfiniteCases()
+    {
+        var h1 = new DelayServiceCurve(1).Cut(0, 4, true, true);
+        var h2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
+        yield return ["VI-both-infinite", h2, h1];
+        yield return ["VI-both-infinite, swapped", h1, h2];
+        yield return ["VI-both-infinite, at one time", new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 1), Point.PlusInfinite(1) ]), Sequence.PlusInfinite(1, 2, true, true)];
+    }
+
+    /// <summary>
+    /// [TBP-SEQ-DEV] § 5: where both operands are $+\infty$ at a shared time, their difference is undefined there, and so is the deviation: the methods throw.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(BothInfiniteCases))]
+    public void BothInfiniteAtASharedTimeIsRejected(string id, Sequence a, Sequence b)
+    {
+        Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviationFunction(a, b));
+        Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
     }
 
     /// <summary>
