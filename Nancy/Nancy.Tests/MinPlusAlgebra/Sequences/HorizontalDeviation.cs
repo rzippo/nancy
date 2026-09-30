@@ -1393,28 +1393,28 @@ public class HorizontalDeviation
             new Sequence([ new Segment(0, 2, 1, 1), new Point(2, 3) ]), bOver,
             I(0, 2, false, true), [(half, half), (1, 0)], 1);
 
-        // HT-holds-item9: prefixes, where b(ŝ_b) = 0 is attained before ŝ_b = 1 but l_y = 1 is not
-        yield return Case("HT-holds-item9",
+        // HT-holds-plateau-below: prefixes, where b stays on a plateau below the lowest shared height, 0 before 1, so b(ŝ_b) = 0 is attained before ŝ_b = 1 but l_y = 1 is not
+        yield return Case("HT-holds-plateau-below",
             new Sequence([ new Point(0, 1), new Segment(0, 2, 1, 1), new Point(2, 3) ]),
             new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 0), new Point(1, 0), new Segment(1, 3, 1, 1), new Point(3, 3) ]),
             I(0, 2, true, true), [(0, 1), (1, 1), (2, 1)], 1);
 
-        // Infinite values, [TBP-SEQ-DEV] § 5: r is the rate 1 and d_T the delay T, each cut to [0, 4];
+        // Infinite values, [TBP-SEQ-DEV] § 5: w is the rate 1 and h_1, h_2 the delays 1 and 2, each cut to [0, 4];
         // the shared heights are the finite ones.
-        var r = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
-        var d1 = new DelayServiceCurve(1).Cut(0, 4, true, true);
-        var d2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
+        var w = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
+        var h1 = new DelayServiceCurve(1).Cut(0, 4, true, true);
+        var h2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
 
-        // HI-b-infinite: Y = [0, 4], and d_2 first reaches every height above 0 at 2
-        yield return Case("HI-b-infinite", r, d2,
+        // HI-b-infinite: Y = [0, 4], and h_2 first reaches every height above 0 at 2
+        yield return Case("HI-b-infinite", w, h2,
             I(0, 4, true, true), [(0, 0), (1, 1), (3, 0)], 2);
 
         // HI-a-infinite: Y = [0, 4], the finite heights of [0, +inf]; a covers all of them at 1, and none after it
-        yield return Case("HI-a-infinite", d1, r,
+        yield return Case("HI-a-infinite", h1, w,
             I(0, 1, true, true), [(half, 0), (1, 3)], 3);
 
         // HI-both-infinite: Y = [0, +inf[, unbounded; every height above 0 is reached at 1 by a and at 2 by b
-        yield return Case("HI-both-infinite", d1, d2,
+        yield return Case("HI-both-infinite", h1, h2,
             I(0, 1, true, true), [(half, 0), (1, 1)], 1);
     }
 

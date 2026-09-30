@@ -191,15 +191,15 @@ public class VerticalDeviation
     /// </summary>
     public static IEnumerable<object[]> InfiniteValueCases()
     {
-        var d1 = new DelayServiceCurve(1).Cut(0, 4, true, true);
-        var d2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
-        var r = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
-        yield return ["VI-a-infinite", r, d2, new (Rational t, Rational v)[] { (1, 1), (3, Rational.MinusInfinity) }, (Rational) 2];
-        yield return ["VI-b-infinite", d2, r, new (Rational t, Rational v)[] { (1, -1), (3, Rational.PlusInfinity) }, Rational.PlusInfinity];
-        yield return ["VI-both-infinite", d1, d2,
+        var h1 = new DelayServiceCurve(1).Cut(0, 4, true, true);
+        var h2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
+        var w = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
+        yield return ["VI-a-infinite", w, h2, new (Rational t, Rational v)[] { (1, 1), (3, Rational.MinusInfinity) }, (Rational) 2];
+        yield return ["VI-b-infinite", h2, w, new (Rational t, Rational v)[] { (1, -1), (3, Rational.PlusInfinity) }, Rational.PlusInfinity];
+        yield return ["VI-both-infinite", h1, h2,
             new (Rational t, Rational v)[] { (new Rational(1, 2), 0), (new Rational(3, 2), Rational.PlusInfinity), (3, Rational.PlusInfinity) },
             Rational.PlusInfinity];
-        yield return ["VI-both-infinite, swapped", d2, d1,
+        yield return ["VI-both-infinite, swapped", h2, h1,
             new (Rational t, Rational v)[] { (new Rational(1, 2), 0), (new Rational(3, 2), Rational.MinusInfinity), (3, Rational.PlusInfinity) },
             Rational.PlusInfinity];
     }
