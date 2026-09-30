@@ -186,6 +186,38 @@ public class VerticalDeviation
     public static IEnumerable<object[]> ValidityCasesTestCases => ValidityCases.ToXUnitTestCases();
 
     /// <summary>
+    /// Operands taking the value $+\infty$, named by the cases of [TBP-SEQ-DEV] § 5, with the value of $vDev(a, b, t)$ at some times, and its supremum.
+    /// Where both are $+\infty$ the difference is $+\infty$, the convention of the deviation between curves, [TBP-SEQ-DEV] § 5.
+    /// </summary>
+    public static IEnumerable<object[]> InfiniteValueCases()
+    {
+        var d1 = new DelayServiceCurve(1).Cut(0, 4, true, true);
+        var d2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
+        var r = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
+        yield return ["VI-a-infinite", r, d2, new (Rational t, Rational v)[] { (1, 1), (3, Rational.MinusInfinity) }, (Rational) 2];
+        yield return ["VI-b-infinite", d2, r, new (Rational t, Rational v)[] { (1, -1), (3, Rational.PlusInfinity) }, Rational.PlusInfinity];
+        yield return ["VI-both-infinite", d1, d2,
+            new (Rational t, Rational v)[] { (new Rational(1, 2), 0), (new Rational(3, 2), Rational.PlusInfinity), (3, Rational.PlusInfinity) },
+            Rational.PlusInfinity];
+        yield return ["VI-both-infinite, swapped", d2, d1,
+            new (Rational t, Rational v)[] { (new Rational(1, 2), 0), (new Rational(3, 2), Rational.MinusInfinity), (3, Rational.PlusInfinity) },
+            Rational.PlusInfinity];
+    }
+
+    /// <summary>
+    /// [TBP-SEQ-DEV] § 5: with infinite values, the deviation subtracts at each time as for finite ones, and is $+\infty$ where both operands are.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(InfiniteValueCases))]
+    public void VerticalDeviationOverInfiniteValues(string id, Sequence a, Sequence b, (Rational t, Rational v)[] values, Rational sup)
+    {
+        var vdev = Sequence.VerticalDeviationFunction(a, b);
+        foreach (var (t, v) in values)
+            Assert.True(vdev.ValueAt(t) == v, $"{id}: {vdev.ValueAt(t)} at {t}, not {v}");
+        Assert.True(Sequence.VerticalDeviation(a, b) == sup, $"{id}: supremum {Sequence.VerticalDeviation(a, b)}, not {sup}");
+    }
+
+    /// <summary>
     /// [TBP-EB-FRTC] EB-FRTC-SEQ-V1:
     /// over the intersection of the two domains, the deviation between the restrictions is the deviation between the curves, with no further hypothesis.
     /// </summary>
