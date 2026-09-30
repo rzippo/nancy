@@ -2019,13 +2019,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="g">The second operand.</param>
     /// <param name="settings">Settings for the computation.</param>
     /// <returns>A vertical deviation, which may be negative.</returns>
-    /// <exception cref="ArgumentException">If the supports do not intersect, including when they only touch at a time one of them excludes.</exception>
+    /// <exception cref="ArgumentException">
+    /// If the supports do not intersect, including when they only touch at a time one of them excludes;
+    /// or if both operands are $+\infty$, or both $-\infty$, at a shared time, where their difference is undefined, [TBP-SEQ-DEV] § 5.
+    /// </exception>
     /// <remarks>
     /// Defined in [TBP-SEQ-DEV] § 3, over supports open or closed at either end, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>;
     /// over closed supports it is [TBP-EB-FRTC] EB-FRTC-SEQ-D1.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
     /// The two agree over the intersection of the operands' supports, with no condition beyond the operands being restrictions of the curves.
-    /// Where both operands are $+\infty$ at the same time, the difference there is $+\infty$, as for the deviation between curves, [TBP-SEQ-DEV] § 5.
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2197,14 +2199,17 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// A vertical deviation function, whose values may be negative, defined over the intersection of the supports:
     /// each end is included where every operand whose end it is includes it.
     /// </returns>
-    /// <exception cref="ArgumentException">If the supports do not intersect, including when they only touch at a time one of them excludes.</exception>
+    /// <exception cref="ArgumentException">
+    /// If the supports do not intersect, including when they only touch at a time one of them excludes;
+    /// or if both operands are $+\infty$, or both $-\infty$, at a shared time, where their difference is undefined.
+    /// </exception>
     /// <remarks>
     /// Defined in [TBP-SEQ-DEV] § 3, over supports open or closed at either end, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>;
     /// over closed supports it is [TBP-EB-FRTC] EB-FRTC-SEQ-D1.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
     /// The two agree over the intersection of the operands' supports, with no condition beyond the operands being restrictions of the curves.
     /// Unlike the horizontal deviation, it reads each operand's value at a jump, as the deviation between curves does.
-    /// Where both operands are $+\infty$ at the same time, the difference there is $+\infty$, as for the deviation between curves, [TBP-SEQ-DEV] § 5.
+    /// Where only one operand is infinite, the difference is that infinity, with its sign; where both are, it is undefined, [TBP-SEQ-DEV] § 5.
     /// </remarks>
     public static Sequence VerticalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2220,42 +2225,37 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             supportOverlap.Lower, supportOverlap.Upper, supportOverlap.IsLowerIncluded, supportOverlap.IsUpperIncluded)
             .ToSequence();
         
-        if (fCut.IsFinite && gCut.IsFinite)
-            return Subtraction(fCut, gCut);
+        // Where both operands are infinities of the same sign at a shared time, their difference has no value,
+        // and neither has the deviation, [TBP-SEQ-DEV] § 5.
+        if (!fCut.IsFinite && !gCut.IsFinite && HaveSameInfinityAtSomeTime(fCut, gCut))
+            throw new ArgumentException("The two sequences are both infinite at a shared time, where their difference is undefined.");
 
-        // With infinite values, subtract time by time: where the two terms are infinities of the same sign,
-        // the difference is +inf, as for the deviation between curves, [TBP-SEQ-DEV] § 5.
-        var times = fCut.Elements.Concat(gCut.Elements)
-            .SelectMany(element => new[] { element.StartTime, element.EndTime })
-            .Distinct()
-            .OrderBy(time => time)
-            .ToList();
-        var elements = new List<Element>();
-        for (var i = 0; i < times.Count; i++)
+        return Subtraction(fCut, gCut);
+
+        static bool HaveSameInfinityAtSomeTime(Sequence a, Sequence b)
         {
-            var time = times[i];
-            if (fCut.IsDefinedAt(time))
-                elements.Add(new Point(time, DualDifference(fCut.ValueAt(time), gCut.ValueAt(time))));
-            if (i + 1 < times.Count)
+            var times = a.Elements.Concat(b.Elements)
+                .SelectMany(element => new[] { element.StartTime, element.EndTime })
+                .Distinct()
+                .OrderBy(time => time)
+                .ToList();
+            for (var i = 0; i < times.Count; i++)
             {
-                var next = times[i + 1];
-                var fSegment = fCut.GetSegmentAfter(time).Cut(time, next);
-                var gSegment = gCut.GetSegmentAfter(time).Cut(time, next);
-                if (fSegment.IsPlusInfinite || gSegment.IsMinusInfinite)
-                    elements.Add(Segment.PlusInfinite(time, next));
-                else if (fSegment.IsMinusInfinite || gSegment.IsPlusInfinite)
-                    elements.Add(Segment.MinusInfinite(time, next));
-                else
-                    elements.Add(fSegment.Subtraction(gSegment));
+                var time = times[i];
+                if (a.IsDefinedAt(time) && SameInfinity(a.ValueAt(time), b.ValueAt(time)))
+                    return true;
+                if (i + 1 < times.Count)
+                {
+                    var middle = (time + times[i + 1]) / 2;
+                    if (SameInfinity(a.ValueAt(middle), b.ValueAt(middle)))
+                        return true;
+                }
             }
+            return false;
         }
 
-        return new Sequence(elements.Merge());
-
-        static Rational DualDifference(Rational x, Rational y)
-            => x.IsPlusInfinite || y.IsMinusInfinite ? Rational.PlusInfinity
-                : x.IsMinusInfinite || y.IsPlusInfinite ? Rational.MinusInfinity
-                : x - y;
+        static bool SameInfinity(Rational x, Rational y)
+            => (x.IsPlusInfinite && y.IsPlusInfinite) || (x.IsMinusInfinite && y.IsMinusInfinite);
     }
 
     /// <summary>
