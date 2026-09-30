@@ -1996,11 +1996,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">If either operand is negative or decreasing somewhere, or if their images do not overlap.</exception>
     /// <remarks>
     /// Defined in [TBP-SEQ-DEV] § 4, over domains open or closed at either end, as the counterpart for sequences of <see cref="Curve.HorizontalDeviation(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
-    /// Each jump of <paramref name="f"/> is read as a vertical segment of its graph, so the deviation is also measured from the heights a jump covers, and does not depend on the value <paramref name="f"/> takes at the jump.
+    /// Each jump of <paramref name="f"/> covers the range of values between its two sides, and the deviation is also measured from those heights, and does not depend on the value <paramref name="f"/> takes at the jump.
     /// It is the supremum, over the heights $y$ of the overlap, of $g^{-1}_\downarrow(y) - f^{-1}_\downarrow(y)$, and 0 if that is negative, [TBP-SEQ-DEV] § 4.3.
     /// It agrees with the deviation between the curves the operands are restrictions of, taken over the same heights, [TBP-SEQ-DEV] § 4.4,
     /// whenever neither curve reaches the lowest height of the overlap before its operand does; prefixes, restrictions to $[0, k]$, always satisfy this.
     /// Where it does not hold, the earlier time is not visible in the operands.
+    /// The operands may take the value $+\infty$, as cuts of a delay service curve do: the overlap is then taken over its finite heights, which may be unbounded above, [TBP-SEQ-DEV] § 5.
     /// The deviation is measured over the overlap of the operands' images, so moving either operand's image moves the set it is taken over:
     /// unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
     /// </remarks>
@@ -2024,6 +2025,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// over closed supports it is [TBP-EB-FRTC] EB-FRTC-SEQ-D1.
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
     /// The two agree over the intersection of the operands' supports, with no condition beyond the operands being restrictions of the curves.
+    /// Where both operands are $+\infty$ at the same time, the difference there is $+\infty$, as for the deviation between curves, [TBP-SEQ-DEV] § 5.
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2039,19 +2041,20 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="g">Must be non-negative and non-decreasing.</param>
     /// <param name="settings">Settings for the computation.</param>
     /// <returns>
-    /// A non-negative horizontal deviation function, defined at the times where the vertical segment of <paramref name="f"/> meets the overlap of the images.
+    /// A non-negative horizontal deviation function, defined at the times where the range of values <paramref name="f"/> covers meets the overlap of the images.
     /// </returns>
     /// <exception cref="ArgumentException">If either operand is negative or decreasing somewhere, or if their images do not overlap.</exception>
     /// <remarks>
     /// Defined in [TBP-SEQ-DEV] § 4, over domains open or closed at either end, as the counterpart for sequences of <see cref="Curve.HorizontalDeviationFunction(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.MinPlusAlgebra.ComputationSettings?)"/>.
-    /// Each jump of <paramref name="f"/> is read as a vertical segment of its graph, from its left to its right limit.
-    /// At each time, the result is how long after it <paramref name="g"/> first reaches the top of that segment within the overlap, and 0 if it already has.
+    /// Around each time, <paramref name="f"/> covers the range from its left to its right limit, which spans a jump.
+    /// At each time, the result is how long after it <paramref name="g"/> first reaches the top of that range within the overlap, and 0 if it already has.
     /// So the result does not depend on the value <paramref name="f"/> takes at a jump, and a time where <paramref name="f"/> jumps across the overlap is measured, even if the value <paramref name="f"/> takes there is outside it.
     /// Where <paramref name="f"/> is continuous, the result agrees with the deviation between the curves the operands are restrictions of, [TBP-SEQ-DEV] § 4.4,
     /// except where <paramref name="f"/> is at the lowest height of the overlap and the curve of <paramref name="g"/> reaches that height before <paramref name="g"/> does.
     /// Where <paramref name="f"/> jumps, the curves' deviation reads the value alone, and leaves the rest of the jump to the times after it, which the overlap may exclude.
     /// The deviation is measured over the overlap of the operands' images, so moving either operand's image moves the set it is taken over:
     /// unlike the deviation between curves, this one is not monotone in <paramref name="g"/>.
+    /// The operands may take the value $+\infty$: the overlap is then taken over its finite heights, and the times after <paramref name="f"/> becomes $+\infty$ are not measured, [TBP-SEQ-DEV] § 5.
     /// </remarks>
     public static Sequence HorizontalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2065,7 +2068,28 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The two sequences do not have an overlapping image.");
         var imageOverlap = imageOverlapNullable.Value;
 
-        // The times whose vertical segment meets the image overlap, [TBP-SEQ-DEV] § 4.1.
+        // The deviation is measured from the finite shared heights only, [TBP-SEQ-DEV] § 5.
+        if (imageOverlap.Lower.IsPlusInfinite)
+            throw new ArgumentException("The two sequences do not have a finite height in common.");
+        if (imageOverlap.Upper.IsPlusInfinite)
+        {
+            // Both operands reach +inf, so the shared heights are unbounded above.
+            // Above every finite value of either operand, each height is first reached where the operand jumps to +inf,
+            // so truncating both at a height M above those values, and measuring from the heights below M, gives the same result.
+            var m = Rational.Max(f.FiniteSupValue(), g.FiniteSupValue()) + 1;
+            var truncatedOverlap = new Interval(imageOverlap.Lower, m, imageOverlap.IsLowerIncluded, false);
+            return HorizontalDeviationFunction(f.Truncate(m), g.Truncate(m), truncatedOverlap);
+        }
+
+        return HorizontalDeviationFunction(f, g, imageOverlap);
+    }
+
+    /// <summary>
+    /// The horizontal deviation function between two non-negative, non-decreasing sequences, measured from the given shared heights, which must be finite.
+    /// </summary>
+    private static Sequence HorizontalDeviationFunction(Sequence f, Sequence g, Interval imageOverlap)
+    {
+        // The times whose covered range, from left to right limit, meets the image overlap, [TBP-SEQ-DEV] § 4.1.
         // The first is where f reaches the lower end of the overlap, the last where f passes its upper end,
         // each end reached or passed strictly where the overlap excludes it.
         var fCutStart = imageOverlap.IsLowerIncluded
@@ -2079,10 +2103,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             : f.LowerPseudoInverseAt(imageOverlap.Upper);
         if (fCutEnd.IsPlusInfinite)
             fCutEnd = f.DefinedUntil;
-        var isStartIncluded = VerticalSegmentMeets(fCutStart);
-        var isEndIncluded = VerticalSegmentMeets(fCutEnd);
+        var isStartIncluded = CoveredRangeMeets(fCutStart);
+        var isEndIncluded = CoveredRangeMeets(fCutEnd);
 
-        // This is $\hat{f}$: at each point, the top of its vertical segment within the overlap, [TBP-SEQ-DEV] § 4.1,
+        // This is $\hat{f}$: at each point, the top of its covered range within the overlap, [TBP-SEQ-DEV] § 4.1,
         // which does not depend on the value f takes at a jump.
         var fCut = f.CutAsEnumerable(fCutStart, fCutEnd, isStartIncluded, isEndIncluded)
             .Select(element => element is Point point
@@ -2136,10 +2160,31 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         Rational LeftValue(Rational t) => t == f.DefinedFrom ? f.ValueAt(t) : f.LeftLimitAt(t);
         Rational RightValue(Rational t) => t == f.DefinedUntil ? f.ValueAt(t) : f.RightLimitAt(t);
 
-        bool VerticalSegmentMeets(Rational t) =>
+        bool CoveredRangeMeets(Rational t) =>
             f.IsDefinedAt(t)
             && Interval.Intersection(new Interval(LeftValue(t), RightValue(t), true, true), imageOverlap) is not null;
     }
+
+    /// <summary>
+    /// The largest finite value this sequence takes or approaches, ignoring where it is $+\infty$.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">If the sequence is $+\infty$ everywhere.</exception>
+    private Rational FiniteSupValue()
+        => Elements
+            .Where(element => !element.IsPlusInfinite)
+            .Select(element => element switch
+            {
+                Point point => point.Value,
+                Segment segment => Rational.Max(segment.RightLimitAtStartTime, segment.LeftLimitAtEndTime),
+                _ => throw new InvalidCastException()
+            })
+            .Max();
+
+    /// <summary>
+    /// The truncation of this sequence at <paramref name="height"/>, $\min(f(t), M)$, over the same support.
+    /// </summary>
+    private Sequence Truncate(Rational height)
+        => Minimum(this, Constant(height, DefinedFrom, DefinedUntil, IsLeftClosed, IsRightClosed));
 
     /// <summary>
     /// Computes the vertical deviation function between the two sequences, $vDev(f, g, t)$.
@@ -2159,6 +2204,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// As for curves, and following from the definition in [DNC18] p.100, the result may be negative.
     /// The two agree over the intersection of the operands' supports, with no condition beyond the operands being restrictions of the curves.
     /// Unlike the horizontal deviation, it reads each operand's value at a jump, as the deviation between curves does.
+    /// Where both operands are $+\infty$ at the same time, the difference there is $+\infty$, as for the deviation between curves, [TBP-SEQ-DEV] § 5.
     /// </remarks>
     public static Sequence VerticalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2174,9 +2220,42 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             supportOverlap.Lower, supportOverlap.Upper, supportOverlap.IsLowerIncluded, supportOverlap.IsUpperIncluded)
             .ToSequence();
         
-        var vdevT = Subtraction(fCut, gCut);
+        if (fCut.IsFinite && gCut.IsFinite)
+            return Subtraction(fCut, gCut);
 
-        return vdevT;
+        // With infinite values, subtract time by time: where the two terms are infinities of the same sign,
+        // the difference is +inf, as for the deviation between curves, [TBP-SEQ-DEV] § 5.
+        var times = fCut.Elements.Concat(gCut.Elements)
+            .SelectMany(element => new[] { element.StartTime, element.EndTime })
+            .Distinct()
+            .OrderBy(time => time)
+            .ToList();
+        var elements = new List<Element>();
+        for (var i = 0; i < times.Count; i++)
+        {
+            var time = times[i];
+            if (fCut.IsDefinedAt(time))
+                elements.Add(new Point(time, DualDifference(fCut.ValueAt(time), gCut.ValueAt(time))));
+            if (i + 1 < times.Count)
+            {
+                var next = times[i + 1];
+                var fSegment = fCut.GetSegmentAfter(time).Cut(time, next);
+                var gSegment = gCut.GetSegmentAfter(time).Cut(time, next);
+                if (fSegment.IsPlusInfinite || gSegment.IsMinusInfinite)
+                    elements.Add(Segment.PlusInfinite(time, next));
+                else if (fSegment.IsMinusInfinite || gSegment.IsPlusInfinite)
+                    elements.Add(Segment.MinusInfinite(time, next));
+                else
+                    elements.Add(fSegment.Subtraction(gSegment));
+            }
+        }
+
+        return new Sequence(elements.Merge());
+
+        static Rational DualDifference(Rational x, Rational y)
+            => x.IsPlusInfinite || y.IsMinusInfinite ? Rational.PlusInfinity
+                : x.IsMinusInfinite || y.IsPlusInfinite ? Rational.MinusInfinity
+                : x - y;
     }
 
     /// <summary>
