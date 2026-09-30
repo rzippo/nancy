@@ -92,7 +92,7 @@ public class VerticalDeviation
     private static readonly bool[] Ends = [true, false];
 
     /// <summary>
-    /// The domains of the two operands, named by the cases of [TBP-SEQ-DEV] § 5, and the shared domain $I$ the result is defined over, or null where $I$ is empty.
+    /// The domains of the two operands, named by the cases of [TBP-SEQ-DEV] § 6, and the shared domain $I$ the result is defined over, or null where $I$ is empty.
     /// The expected $I$ is written out, not computed: its lower end is the larger of the two lower ends, included where every operand whose end it is includes it, and likewise the upper end.
     /// </summary>
     public static IEnumerable<object?[]> SharedDomainCases()
@@ -186,7 +186,7 @@ public class VerticalDeviation
     public static IEnumerable<object[]> ValidityCasesTestCases => ValidityCases.ToXUnitTestCases();
 
     /// <summary>
-    /// Operands taking the value $+\infty$, named by the cases of [TBP-SEQ-DEV] § 5, with the value of $vDev(a, b, t)$ at some times, and its supremum.
+    /// Operands taking the value $+\infty$, named by the cases of [TBP-SEQ-DEV] § 6, with the value of $vDev(a, b, t)$ at some times, and its supremum.
     /// Where both are $+\infty$ the difference is $+\infty$, the convention of the deviation between curves, [TBP-SEQ-DEV] § 5.
     /// </summary>
     public static IEnumerable<object[]> InfiniteValueCases()

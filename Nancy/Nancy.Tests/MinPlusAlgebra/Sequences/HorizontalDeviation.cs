@@ -932,7 +932,7 @@ public class HorizontalDeviation
 
     /// <summary>
     /// [TBP-SEQ-DEV] § 4.4, the pointwise equivalence, for cuts where its hypothesis holds, as prefixes always do:
-    /// at each measured time, the deviation between the cuts is the curves' delay from the top, within the shared image, of the vertical segment of the first operand.
+    /// at each measured time, the deviation between the cuts is the curves' delay from the top, within the shared image, of the range of values the first operand covers around that time.
     /// Where the first operand is continuous, that is the deviation between the curves at that time;
     /// where it jumps, the curves' deviation reads its value alone, and the two may differ.
     /// </summary>
@@ -1228,7 +1228,7 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// HT-fails-sup, [TBP-SEQ-DEV] § 5: without the hypothesis of § 4.4, the deviation between the cuts exceeds the one between the curves.
+    /// HT-fails-sup, [TBP-SEQ-DEV] § 6: without the hypothesis of § 4.4, the deviation between the cuts exceeds the one between the curves.
     /// The curve of g reaches the lowest shared height 2 at 1, its cut only at 5, while f is at that height from 0.
     /// </summary>
     [Fact]
@@ -1265,9 +1265,9 @@ public class HorizontalDeviation
         ]);
 
     /// <summary>
-    /// Pairs of sequences named by the cases of [TBP-SEQ-DEV] § 5, with the measured times of $a$ that the result is defined over,
+    /// Pairs of sequences named by the cases of [TBP-SEQ-DEV] § 6, with the measured times of $a$ that the result is defined over,
     /// its value at some of them, and its supremum.
-    /// The values are computed by hand from [TBP-SEQ-DEV] § 4, reading each jump of $a$ as a vertical segment.
+    /// The values are computed by hand from [TBP-SEQ-DEV] § 4, reading each jump of $a$ as covering the range between its two sides.
     /// Where a case has a jump in $a$, it is repeated with the spot moved within the jump, and the expected result does not change.
     /// </summary>
     public static IEnumerable<object[]> HDevCases()
@@ -1435,7 +1435,7 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// Pairs of sequences whose images share no value, named by the cases of [TBP-SEQ-DEV] § 5.
+    /// Pairs of sequences whose images share no value, named by the cases of [TBP-SEQ-DEV] § 6.
     /// </summary>
     public static IEnumerable<object[]> HDevRejectedCases()
     {
