@@ -187,13 +187,14 @@ public class VerticalDeviation
 
     /// <summary>
     /// Operands taking the value $+\infty$, named by the cases of [TBP-SEQ-DEV] § 6, with the value of $vDev(a, b, t)$ at some times, and its supremum.
+    /// The letter in a name is the operand that takes the value $+\infty$.
     /// </summary>
     public static IEnumerable<object[]> InfiniteValueCases()
     {
         var h2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
         var w = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
-        yield return ["VI-a-infinite", w, h2, new (Rational t, Rational v)[] { (1, 1), (3, Rational.MinusInfinity) }, (Rational) 2];
-        yield return ["VI-b-infinite", h2, w, new (Rational t, Rational v)[] { (1, -1), (3, Rational.PlusInfinity) }, Rational.PlusInfinity];
+        yield return ["VI-a-infinite", h2, w, new (Rational t, Rational v)[] { (1, -1), (3, Rational.PlusInfinity) }, Rational.PlusInfinity];
+        yield return ["VI-b-infinite", w, h2, new (Rational t, Rational v)[] { (1, 1), (3, Rational.MinusInfinity) }, (Rational) 2];
     }
 
     /// <summary>
