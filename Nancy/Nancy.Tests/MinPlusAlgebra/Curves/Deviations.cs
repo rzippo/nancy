@@ -540,6 +540,66 @@ public class Deviations
         Assert.Equal(expected, result);
     }
 
+    /// <summary>
+    /// First operands that become $+\infty$, as delay service curves and curves computed from them do,
+    /// with $hDev(f, g)$, the time it is measured at, and $hDev(f, g, t)$ at some times, computed by hand from
+    /// $hDev(f, g, t) = \inf\{ d \ge 0 \mid f(t) \le g(t + d) \}$:
+    /// where $f(t) = +\infty$, that is the time $g$ takes to become $+\infty$, or $+\infty$ if it never does.
+    /// </summary>
+    public static IEnumerable<object[]> InfiniteFirstOperandCases()
+    {
+        var d1 = new DelayServiceCurve(1);
+        var d2 = new DelayServiceCurve(2);
+        var d5 = new DelayServiceCurve(5);
+        var rate = new RateLatencyServiceCurve(1, 0);
+        // 2 + t over ]0, 3], then +inf
+        var srUntil3 = Curve.Maximum(new SigmaRhoArrivalCurve(2, 1), new DelayServiceCurve(3));
+        // 2 on [0, 2[, then +inf
+        var twoUntil2 = new Curve(
+            new Sequence([ new Point(0, 2), Segment.Constant(0, 2, 2), Point.PlusInfinite(2), Segment.PlusInfinite(2, 3) ]), 2, 1, 0);
+        // 1 at 0, 3 on ]0, 2], then +inf
+        var oneThenThreeUntil2 = new Curve(
+            new Sequence([ new Point(0, 1), Segment.Constant(0, 2, 3), new Point(2, 3), Segment.PlusInfinite(2, 3), Point.PlusInfinite(3), Segment.PlusInfinite(3, 4) ]), 3, 1, 0);
+        // 4t up to 2, then 8
+        var rampTo8 = new Curve(
+            new Sequence([ Point.Origin(), new Segment(0, 2, 0, 4), new Point(2, 8), Segment.Constant(2, 3, 8) ]), 2, 1, 0);
+        var half = new Rational(1, 2);
+        var cases = new List<(string id, Curve f, Curve g, Rational hdev, Rational at, (Rational t, Rational v)[] values)>
+        {
+            // after 1, f is +inf and the rate never is
+            ("delay, rate", d1, rate, Rational.PlusInfinity, 1, [(half, 0), (2, Rational.PlusInfinity)]),
+            // after 1, f is +inf, and g becomes so after 2
+            ("delay, longer delay", d1, d2, 1, 1, [(half, 0), (new Rational(3, 2), half), (3, 0)]),
+            ("delay, shorter delay", d2, d1, 0, 0, [(half, 0), (new Rational(3, 2), 0), (3, 0)]),
+            ("delay, same delay", d1, d1, 0, 0, [(half, 0), (2, 0)]),
+            // before 3, g = delta_5 takes 5 - t to reach f; after it, f is +inf and g takes 5 - t too
+            ("finite then infinite, delay", srUntil3, d5, 5, 0, [(1, 4), (4, 1), (6, 0)]),
+            // f(0) = 2, then 2 on ]0, 2[, then +inf: at 0, g = delta_4 takes 4 to reach 2
+            ("positive at 0, then infinite", twoUntil2, new DelayServiceCurve(4), 4, 0, [(0, 4), (1, 3), (3, 1), (5, 0)]),
+            // f(0) = 1 below the 3 it takes on ]0, 2[, then +inf: g = 4t takes 1/4 to reach 1, and never becomes +inf
+            ("below its limit at 0, then infinite", oneThenThreeUntil2, rampTo8, Rational.PlusInfinity, 2, [(0, new Rational(1, 4)), (1, 0), (3, Rational.PlusInfinity)]),
+        };
+        foreach (var (id, f, g, hdev, at, values) in cases)
+        {
+            yield return [id, f, g, hdev, at, values];
+            yield return [$"{id}, as generic curves", new Curve(f), new Curve(g), hdev, at, values];
+        }
+    }
+
+    /// <summary>
+    /// Checks the horizontal deviation of curves whose first operand becomes $+\infty$ against known values.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(InfiniteFirstOperandCases))]
+    public void HorizontalDeviationWithAnInfiniteFirstOperand(string id, Curve f, Curve g, Rational hdev, Rational at, (Rational t, Rational v)[] values)
+    {
+        Assert.True(Curve.HorizontalDeviation(f, g) == hdev, $"{id}: hDev {Curve.HorizontalDeviation(f, g)}, not {hdev}");
+        Assert.True(Curve.HorizontalDeviationMeasuredAt(f, g) == at, $"{id}: measured at {Curve.HorizontalDeviationMeasuredAt(f, g)}, not {at}");
+        var function = Curve.HorizontalDeviationFunction(f, g);
+        foreach (var (t, v) in values)
+            Assert.True(function.ValueAt(t) == v, $"{id}: {function.ValueAt(t)} at {t}, not {v}");
+    }
+
     [Theory]
     [MemberData(nameof(GetVerticalDeviationTestCases))]
     public void VerticalDeviationTest(Curve a, Curve b, Rational expected)
