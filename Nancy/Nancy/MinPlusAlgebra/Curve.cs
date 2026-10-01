@@ -4778,6 +4778,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 .ValueAt(0);
             #elif true
             // Derived from [DNC18] Lemma 5.2 and similar, in principle, to [DNC18] Proposition 5.14
+            if (!f.IsFinite)
+                return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings).SupValue();
             var hDev = g.LowerPseudoInverse()
                 .Composition(f, settings)
                 .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
@@ -4797,6 +4799,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// The definition of $hDev(f, g, t)$ is based on [DNC18] Lemma 5.1.
+    /// Where the deviation is $+\infty$ over an interval, because <paramref name="f"/> takes the value $+\infty$ there, the result is the start of the first such interval.
     /// </remarks>
     public static Rational HorizontalDeviationMeasuredAt(Curve f, Curve g, ComputationSettings? settings = null)
     {
@@ -4814,6 +4817,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else
         {
+            if (!f.IsFinite)
+            {
+                var hDevF = HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings);
+                // where the deviation is +inf over an interval, it is reached at the start of the first one
+                var firstInfinite = hDevF.BaseSequence.Elements.FirstOrDefault(e => e.IsPlusInfinite);
+                return firstInfinite is not null ? firstInfinite.StartTime : hDevF.SupArg();
+            }
             var hDevArg = g.LowerPseudoInverse()
                 .Composition(f, settings)
                 .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
@@ -4829,6 +4839,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="g">Must be non-decreasing.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A non-negative horizontal deviation function.</returns>
+    /// <remarks>
+    /// <paramref name="f"/> may take the value $+\infty$: where it does, the deviation is the time <paramref name="g"/> takes after $t$ to become $+\infty$, or $+\infty$ if it never does.
+    /// </remarks>
     public static Curve HorizontalDeviationFunction(Curve f, Curve g, ComputationSettings? settings = null)
     {
         if (!f.IsNonDecreasing || !g.IsNonDecreasing)
@@ -4836,11 +4849,84 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (!f.IsNonNegative)
             throw new ArgumentException("The first argument must be non-negative.");
 
+        if (!f.IsFinite)
+            return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings);
+
         var hDevF = g.LowerPseudoInverse()
             .Composition(f, settings)
             .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
             .ToNonNegative();
         return hDevF;
+    }
+
+    /// <summary>
+    /// The horizontal deviation function for a non-negative, non-decreasing <paramref name="f"/> that becomes $+\infty$.
+    /// </summary>
+    /// <remarks>
+    /// A composition needs a finite inner function, so the result is computed in two parts.
+    /// Before $f$ becomes $+\infty$, it is the composition with $f$ capped at its largest finite value.
+    /// Where $f(t) = +\infty$, it is the time <paramref name="g"/> takes to become $+\infty$, or $+\infty$ if it never does.
+    /// The result is the maximum of the two.
+    /// </remarks>
+    private static Curve HorizontalDeviationFunctionWithInfiniteFirstOperand(Curve f, Curve g, ComputationSettings? settings)
+    {
+        var (fInfiniteFrom, fInfiniteAtStart) = FirstPlusInfiniteTime(f);
+
+        // where f is +inf: the time g takes to become +inf, and 0 before f is
+        Curve whereInfinite;
+        if (g.IsFinite)
+            whereInfinite = fInfiniteAtStart
+                ? new DelayServiceCurve(fInfiniteFrom).WithRightContinuousAt(fInfiniteFrom)
+                : new DelayServiceCurve(fInfiniteFrom);
+        else
+        {
+            var gInfiniteFrom = FirstPlusInfiniteTime(g).time;
+            whereInfinite = gInfiniteFrom > fInfiniteFrom
+                ? ZeroThenCountdownTo(fInfiniteFrom, fInfiniteAtStart, gInfiniteFrom)
+                : new ConstantCurve(0);
+        }
+
+        if (fInfiniteFrom == 0 && fInfiniteAtStart)
+            // f is +inf everywhere
+            return whereInfinite;
+
+        // before f becomes +inf: f capped at its largest finite value
+        var largestFiniteValue = f.Cut(0, fInfiniteFrom, isStartIncluded: true, isEndIncluded: !fInfiniteAtStart, settings).SupValue();
+        // the cap is its value from 0 on, as a constant curve is 0 at the origin
+        var capped = Minimum(f, new ConstantCurve(largestFiniteValue).ToRightContinuous(), settings);
+        var whereFinite = g.LowerPseudoInverse()
+            .Composition(capped, settings)
+            .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
+            .ToNonNegative();
+
+        return Maximum(whereFinite, whereInfinite, settings);
+
+        // 0 up to time, then the time left until deadline, then 0; at time itself, the time left if isTimeIncluded
+        static Curve ZeroThenCountdownTo(Rational time, bool isTimeIncluded, Rational deadline)
+        {
+            var elements = new List<Element>();
+            if (time > 0)
+                elements.AddRange([Point.Origin(), Segment.Zero(0, time)]);
+            elements.Add(new Point(time, isTimeIncluded ? deadline - time : 0));
+            elements.AddRange([
+                new Segment(time, deadline, deadline - time, -1), new Point(deadline, 0),
+                Segment.Zero(deadline, deadline + 1)
+            ]);
+            return new Curve(new Sequence(elements), deadline, 1, 0);
+        }
+    }
+
+    /// <summary>
+    /// The first time at which a non-decreasing curve that is not finite is $+\infty$, and whether it is $+\infty$ at that time or only after it.
+    /// </summary>
+    private static (Rational time, bool isIncluded) FirstPlusInfiniteTime(Curve curve)
+    {
+        foreach (var element in curve.BaseSequence.Elements)
+        {
+            if (element.IsPlusInfinite)
+                return element is Point point ? (point.Time, true) : (element.StartTime, false);
+        }
+        throw new InvalidOperationException("The curve takes no infinite value.");
     }
 
     /// <summary>
