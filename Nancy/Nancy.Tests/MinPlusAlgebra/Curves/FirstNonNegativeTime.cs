@@ -40,8 +40,49 @@ public class FirstNonNegativeTime
         )
     };
 
+    /// <summary>
+    /// Curves whose pseudo-periods rise above their end value and drop back, so that a period reaches 0 before the one that ends above it.
+    /// </summary>
+    public static List<(Curve curve, Rational expected)> NonMonotonePeriodPairs = new()
+    {
+        (
+            // in [k, k + 1[: -10 + k at k, rising with slope 15 to -5/2 + k, then -19/2 + k;
+            // the period starting at 3 is the first to reach 0, at 3 + 7/15, while the values at the period ends are non-negative only from 9
+            curve: new Curve(baseSequence: new Sequence(new List<Element>{
+                new Point(0, -10), new Segment(0, new Rational(1, 2), -10, 15),
+                new Point(new Rational(1, 2), new Rational(-19, 2)), Segment.Constant(new Rational(1, 2), 1, new Rational(-19, 2))
+            }), pseudoPeriodStart: 0, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+            expected: new Rational(52, 15)
+        ),
+        (
+            // the same periods after a transient of -20 over [0, 2[
+            curve: new Curve(baseSequence: new Sequence(new List<Element>{
+                new Point(0, -20), Segment.Constant(0, 2, -20),
+                new Point(2, -10), new Segment(2, new Rational(5, 2), -10, 15),
+                new Point(new Rational(5, 2), new Rational(-19, 2)), Segment.Constant(new Rational(5, 2), 3, new Rational(-19, 2))
+            }), pseudoPeriodStart: 2, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+            expected: new Rational(82, 15)
+        ),
+        (
+            // the period rises to -1 only as a limit, so the period starting at 1 approaches 0 without reaching it, and the next one reaches it right after its start
+            curve: new Curve(baseSequence: new Sequence(new List<Element>{
+                new Point(0, -3), new Segment(0, new Rational(1, 2), -3, 4),
+                new Point(new Rational(1, 2), -3), Segment.Constant(new Rational(1, 2), 1, -3)
+            }), pseudoPeriodStart: 0, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+            expected: new Rational(9, 4)
+        ),
+        (
+            // the transient rises to 0 only as a limit at 1, where the curve is -5, then the period is constant from -5, rising 1 per period
+            curve: new Curve(baseSequence: new Sequence(new List<Element>{
+                new Point(0, -2), new Segment(0, 1, -2, 2),
+                new Point(1, -5), Segment.Constant(1, 2, -5)
+            }), pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+            expected: 6
+        ),
+    };
+
     public static IEnumerable<object[]> KnownResultsTestCases = 
-        KnownPairs.ToXUnitTestCases();
+        KnownPairs.Concat(NonMonotonePeriodPairs).ToXUnitTestCases();
 
     [Theory]
     [MemberData(nameof(KnownResultsTestCases))]
