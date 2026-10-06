@@ -4170,16 +4170,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (lastFiniteTime == 0)
                 return Zero();
             var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
-                lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
+            var leftLimit = LeftLimitAt(lastFiniteTime);
+            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : leftLimit; // L
             var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
             var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).LowerPseudoInverse(startFromZero: true);
+            // f(T_I) can be above the left limit: the heights in between are first reached at T_I too
             var lpi = isLastFiniteConstant
                 ? transient_lpi
-                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 2, lastFiniteTime))
+                    .Append(Segment.Constant(leftLimit, lastFiniteValue + 2, lastFiniteTime))
                 : transient_lpi
-                    .Append(new Point(lastFiniteValue, lastFiniteTime))
-                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
+                    .Append(new Point(leftLimit, lastFiniteTime))
+                    .Append(Segment.Constant(leftLimit, lastFiniteValue + 1, lastFiniteTime));
 
             return new Curve(
                 baseSequence: lpi.ToSequence(),
