@@ -437,9 +437,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 return Rational.PlusInfinity;
             else
             {
-                var k = (-ValueAt(PseudoPeriodStart) / PseudoPeriodHeight).Floor();
+                // the values in a period do not exceed the one at its end, so the first non-negative one is in the period before the first that starts non-negative, or in it
+                var k = Rational.Max(0, (-ValueAt(PseudoPeriodStart) / PseudoPeriodHeight).Ceil() - 1);
                 return FindFirstNonNegativeInSequence(
-                    CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 1) * PseudoPeriodLength, isEndIncluded: true)
+                    CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 2) * PseudoPeriodLength, isEndIncluded: true)
                 );
             }
 
