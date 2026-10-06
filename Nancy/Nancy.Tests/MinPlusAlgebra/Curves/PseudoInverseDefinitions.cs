@@ -190,19 +190,36 @@ public class PseudoInverseDefinitions
                 Point.Origin(), new Segment(0, 2, 0, 1), Point.PlusInfinite(2), Segment.PlusInfinite(2, 3)
             ]),
             2, 1, 0));
+
+        // $+\infty$ everywhere
+        yield return ("+inf from 0", Curve.PlusInfinite());
+
+        // 1 at 0, $+\infty$ after
+        yield return ("1 at 0, then +inf", new Curve(
+            new Sequence([
+                new Point(0, 1), Segment.PlusInfinite(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)
+            ]),
+            1, 1, 0));
+
+        // 0 at 0, $+\infty$ after
+        yield return ("0 at 0, then +inf", new Curve(
+            new Sequence([
+                Point.Origin(), Segment.PlusInfinite(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)
+            ]),
+            1, 1, 0));
     }
 
     public static IEnumerable<object[]> NamedCurveCases()
         => NamedCurves().Select(c => new object[] { c.id, c.f });
 
     /// <summary>
-    /// The named curves over a set of intervals, those starting at 0 and 1 and unbounded.
+    /// The named curves over a set of intervals, those starting at 0, 1 and 2 and unbounded.
     /// Only the intervals over which the curve is non-negative are used.
     /// </summary>
     public static IEnumerable<object[]> NamedCurveIntervalCases()
     {
         foreach (var (id, f) in NamedCurves())
-        foreach (var start in new[] { 0, 1 })
+        foreach (var start in new[] { 0, 1, 2 })
         foreach (var isStartIncluded in new[] { true })
         foreach (var length in new[] { -1 })
         foreach (var isEndIncluded in new[] { true })
