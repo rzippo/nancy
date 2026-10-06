@@ -267,9 +267,73 @@ public class SuperIsospeedFormalResults
         )
     ];
 
+    /// <summary>
+    /// Triples of such curves, of any continuity.
+    /// </summary>
+    private static readonly (Curve f, Curve g, Curve h)[] Triples =
+    [
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,0,1), new Point(1,1), new Segment(1,2,1,1) }), pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,0,2), new Point(1,2), new Segment(1,2,2,2) }), pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 2),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,new Rational(1, 4),0,new Rational(1, 3)), new Point(new Rational(1, 4),new Rational(13, 12)), new Segment(new Rational(1, 4),new Rational(1, 2),new Rational(25, 12),new Rational(1, 3)) }), pseudoPeriodStart: 0, pseudoPeriodLength: new Rational(1, 2), pseudoPeriodHeight: new Rational(19, 6))
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,1), new Segment(0,1,1,2), new Point(1,3), new Segment(1,2,3,2) }), pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 2),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,1,1), new Point(1,2), new Segment(1,2,2,1) }), pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,new Rational(3, 2),0,new Rational(3, 2)), new Point(new Rational(3, 2),new Rational(13, 4)), new Segment(new Rational(3, 2),new Rational(7, 4),new Rational(17, 4),new Rational(1, 3)), new Point(new Rational(7, 4),new Rational(16, 3)), new Segment(new Rational(7, 4),2,new Rational(19, 3),0) }), pseudoPeriodStart: new Rational(3, 2), pseudoPeriodLength: new Rational(1, 2), pseudoPeriodHeight: new Rational(49, 12))
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,1), new Segment(0,1,1,1), new Point(1,2), new Segment(1,2,2,1) }), pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,new Rational(5, 4),1,new Rational(3, 2)), new Point(new Rational(5, 4),new Rational(31, 8)), new Segment(new Rational(5, 4),new Rational(5, 2),new Rational(31, 8),new Rational(1, 2)) }), pseudoPeriodStart: 0, pseudoPeriodLength: new Rational(5, 2), pseudoPeriodHeight: new Rational(9, 2)),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,2), new Segment(0,new Rational(1, 2),3,new Rational(3, 2)), new Point(new Rational(1, 2),new Rational(15, 4)), new Segment(new Rational(1, 2),new Rational(5, 2),new Rational(15, 4),new Rational(1, 2)), new Point(new Rational(5, 2),new Rational(19, 4)), new Segment(new Rational(5, 2),new Rational(11, 2),new Rational(19, 4),0) }), pseudoPeriodStart: new Rational(5, 2), pseudoPeriodLength: 3, pseudoPeriodHeight: 1)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,new Rational(3, 2),0,0), new Point(new Rational(3, 2),1), new Segment(new Rational(3, 2),3,2,0) }), pseudoPeriodStart: 0, pseudoPeriodLength: 3, pseudoPeriodHeight: 3),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,2,1,new Rational(3, 2)), new Point(2,5), new Segment(2,3,5,0), new Point(3,6), new Segment(3,4,6,0) }), pseudoPeriodStart: 2, pseudoPeriodLength: 2, pseudoPeriodHeight: 1),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,1,0), new Point(1,1), new Segment(1,2,1,new Rational(1, 3)), new Point(2,new Rational(4, 3)), new Segment(2,3,new Rational(4, 3),1) }), pseudoPeriodStart: 1, pseudoPeriodLength: 2, pseudoPeriodHeight: new Rational(4, 3))
+        )
+    ];
+
     private static IEnumerable<object[]> Rows(IEnumerable<Curve> curves) => curves.Select(c => new object[] { c });
 
     private static IEnumerable<object[]> Rows(IEnumerable<(Curve f, Curve g)> pairs) => pairs.Select(p => new object[] { p.f, p.g });
+
+    public static IEnumerable<object[]> TripleTestCases() => Triples.Select(t => new object[] { t.f, t.g, t.h });
+
+    /// <summary>
+    /// [ZNS26] Proposition 10 (1): the convolutions distribute over the minimum and the maximum, $f \otimes (g \wedge h) = (f \otimes g) \wedge (f \otimes h)$ and $f \overline{\otimes} (g \vee h) = (f \overline{\otimes} g) \vee (f \overline{\otimes} h)$.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(TripleTestCases))]
+    public void ConvolutionsDistributeOverTheMinimumAndTheMaximum(Curve f, Curve g, Curve h)
+    {
+        Assert.True(Curve.Equivalent(
+            Curve.Convolution(f, Curve.Minimum(g, h)),
+            Curve.Minimum(Curve.Convolution(f, g), Curve.Convolution(f, h))));
+        Assert.True(Curve.Equivalent(
+            Curve.MaxPlusConvolution(f, Curve.Maximum(g, h)),
+            Curve.Maximum(Curve.MaxPlusConvolution(f, g), Curve.MaxPlusConvolution(f, h))));
+    }
+
+    /// <summary>
+    /// [ZNS26] Proposition 10 (2) to (4): the convolutions of left-continuous operands are left-continuous, those of right-continuous operands are right-continuous,
+    /// and those of non-decreasing operands are non-decreasing.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(PairTestCases))]
+    public void ConvolutionsKeepContinuityAndMonotonicity(Curve f, Curve g)
+    {
+        var (left_f, left_g) = (f.ToLeftContinuous(), g.ToLeftContinuous());
+        Assert.True(Curve.Convolution(left_f, left_g).IsLeftContinuous);
+        Assert.True(Curve.MaxPlusConvolution(left_f, left_g).IsLeftContinuous);
+
+        var (right_f, right_g) = (f.ToRightContinuous(), g.ToRightContinuous());
+        Assert.True(Curve.Convolution(right_f, right_g).IsRightContinuous);
+        Assert.True(Curve.MaxPlusConvolution(right_f, right_g).IsRightContinuous);
+
+        Assert.True(Curve.Convolution(f, g).IsNonDecreasing);
+        Assert.True(Curve.MaxPlusConvolution(f, g).IsNonDecreasing);
+    }
 
     public static IEnumerable<object[]> CurveTestCases() => Rows(MixedCurves);
     public static IEnumerable<object[]> LeftContinuousCurveTestCases() => Rows(LeftContinuousCurves);
