@@ -931,10 +931,9 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// [TBP-SEQ-DEV] § 4.4, the pointwise equivalence, for cuts where its hypothesis holds, as prefixes always do:
-    /// at each measured time, the deviation between the cuts is the curves' delay from the top, within the shared image, of the range of values the first operand covers around that time.
-    /// Where the first operand is continuous, that is the deviation between the curves at that time;
-    /// where it jumps, the curves' deviation reads its value alone, and the two may differ.
+    /// Asserts the pointwise equivalence of [TBP-SEQ-DEV] Theorem 33, for cuts that meet its condition.
+    /// Where the first cut is continuous, the deviation between the cuts is the deviation between the curves at that time.
+    /// Where it jumps, it is how long the second curve takes to reach the right limit of the first cut, or the top of the shared heights if that is lower.
     /// </summary>
     private static void AssertMatchesTheCurvesPointwise(Curve f, Curve g, Sequence fCut, Sequence gCut, Sequence hdevFunctionSequence)
     {
@@ -1003,7 +1002,7 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// Curves and cuts for which the hypothesis of the equivalence, [TBP-SEQ-DEV] § 4.4, holds:
+    /// Curves and cuts for which the hypothesis of the equivalence, [TBP-SEQ-DEV] § 4.6, holds:
     /// the curve of g does not reach the lowest height of the overlap before the cut of g does.
     /// The last three cut at open ends, the last at an open end on a plateau of g at that height.
     /// </summary>
@@ -1112,7 +1111,7 @@ public class HorizontalDeviation
     ];
 
     /// <summary>
-    /// Curves and cuts for which the curve of g reaches the lowest height of the overlap before the cut of g does, so the hypothesis of the equivalence, [TBP-SEQ-DEV] § 4.4, does not hold.
+    /// Curves and cuts for which the curve of g reaches the lowest height of the overlap before the cut of g does, so the hypothesis of the equivalence, [TBP-SEQ-DEV] § 4.6, does not hold.
     /// The two cases differ only in how far into the same plateau the cut opens.
     /// </summary>
     public static List<(Curve f, Curve g, Interval xF, Interval xG)> HDevFunctionCutsWithoutHypothesis =
@@ -1178,8 +1177,7 @@ public class HorizontalDeviation
         => HDevFunctionCutsWithoutHypothesis.ToXUnitTestCases();
 
     /// <summary>
-    /// The negation of the hypothesis of [TBP-SEQ-DEV] § 4.4 on the second operand:
-    /// the lowest height of the overlap is shared, and the curve reaches it before the cut does.
+    /// Whether the curve of the second operand reaches the lowest shared height before its cut does, which is where the condition of [TBP-SEQ-DEV] Theorem 33 fails.
     /// </summary>
     private static bool HasReachedTheLowestSharedHeightBeforeTheCut(Curve g, Sequence fCut, Sequence gCut)
     {
@@ -1228,7 +1226,7 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// HT-fails-sup, [TBP-SEQ-DEV] § 6: without the hypothesis of § 4.4, the deviation between the cuts exceeds the one between the curves.
+    /// HT-fails-sup, [TBP-SEQ-DEV] § 5: without the hypothesis of § 4.6, the deviation between the cuts exceeds the one between the curves.
     /// The curve of g reaches the lowest shared height 2 at 1, its cut only at 5, while f is at that height from 0.
     /// </summary>
     [Fact]
@@ -1265,7 +1263,7 @@ public class HorizontalDeviation
         ]);
 
     /// <summary>
-    /// Pairs of sequences named by the cases of [TBP-SEQ-DEV] § 6, with the measured times of $a$ that the result is defined over,
+    /// Pairs of sequences named by the cases of [TBP-SEQ-DEV] § 5, with the measured times of $a$ that the result is defined over,
     /// its value at some of them, and its supremum.
     /// The values are computed by hand from [TBP-SEQ-DEV] § 4, reading each jump of $a$ as covering the range between its two sides.
     /// Where a case has a jump in $a$, it is repeated with the spot moved within the jump, and the expected result does not change.
@@ -1399,8 +1397,8 @@ public class HorizontalDeviation
             new Sequence([ new Point(0, 0), new Segment(0, 1, 0, 0), new Point(1, 0), new Segment(1, 3, 1, 1), new Point(3, 3) ]),
             I(0, 2, true, true), [(0, 1), (1, 1), (2, 1)], 1);
 
-        // Infinite values, [TBP-SEQ-DEV] § 5: w is the rate 1 and h_1, h_2 the delays 1 and 2, each cut to [0, 4];
-        // the shared heights are the finite ones.
+        // Infinite values, [TBP-SEQ-DEV] § 4.7: w is the rate 1 and h_1, h_2 the delays 1 and 2, each cut to [0, 4].
+        // The shared heights are the finite ones.
         var w = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
         var h1 = new DelayServiceCurve(1).Cut(0, 4, true, true);
         var h2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
@@ -1435,7 +1433,7 @@ public class HorizontalDeviation
     }
 
     /// <summary>
-    /// Pairs of sequences whose images share no value, named by the cases of [TBP-SEQ-DEV] § 6.
+    /// Pairs of sequences whose images share no value, named by the cases of [TBP-SEQ-DEV] § 5.
     /// </summary>
     public static IEnumerable<object[]> HDevRejectedCases()
     {
@@ -1525,4 +1523,335 @@ public class HorizontalDeviation
         if (once > 0)
             Assert.Equal(delay, twice - once);
     }
+
+    #region Every strategy
+
+    private static readonly ComputationSettings ByPseudoInverses = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.PseudoInverseGap };
+    private static readonly ComputationSettings ByComposition = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.Composition };
+    private static readonly ComputationSettings[] EveryStrategy = Enum.GetValues<HorizontalDeviationStrategy>()
+        .Select(strategy => new ComputationSettings { HorizontalDeviationStrategy = strategy })
+        .ToArray();
+
+    /// <summary>
+    /// Every pair of sequences above whose deviation is known: the lists, the cuts of curves, and the cases of [TBP-SEQ-DEV] § 5.
+    /// </summary>
+    public static IEnumerable<object[]> AllKnownHDevs()
+    {
+        foreach (var (a, b, hdev) in KnownHDevs)
+            yield return ["known", a, b, hdev];
+        foreach (var (f, g, kF, kG, hdev) in KnownHDevValidCuts.Concat(KnownHDevInvalidCuts))
+            yield return [$"cuts at {kF}, {kG}", f.Cut(0, kF, true, true), g.Cut(0, kG, true, true), hdev];
+        foreach (var testCase in HDevCases())
+            yield return [testCase[0], testCase[1], testCase[2], testCase[5]];
+    }
+
+    /// <summary>
+    /// Cuts, with open and closed ends, of non-decreasing curves, some of which take the value $+\infty$, as cuts of a delay service curve do, whose images share a finite height, where the deviation is defined.
+    /// Chosen out of seeded random ones by covering, with the fewest and smallest, each kind of start and end, plateau, slope and infinite value of either operand.
+    /// </summary>
+    private static readonly (Sequence f, Sequence g)[] CutsWithInfiniteValuesPairs =
+    [
+        (
+            new Sequence(new List<Element>{ new Point(1,0), new Segment(1,3,0,0) }),
+            new Sequence(new List<Element>{ new Point(0,0), new Segment(0,7,0,1) })
+        ),
+        (
+            new Sequence(new List<Element>{ new Segment(0,4,0,0), new Point(4,0), new Segment(4,8,new Rational(1, 0),0) }),
+            new Sequence(new List<Element>{ new Segment(0,1,0,0) })
+        ),
+        (
+            new Sequence(new List<Element>{ new Segment(2,3,0,0), new Point(3,0), new Segment(3,4,1,new Rational(4, 3)), new Point(4,new Rational(7, 3)) }),
+            new Sequence(new List<Element>{ new Segment(4,5,new Rational(1, 2),new Rational(1, 2)), new Point(5,1), new Segment(5,6,1,0), new Point(6,1), new Segment(6,7,new Rational(1, 0),0), new Point(7,new Rational(1, 0)) })
+        )
+    ];
+
+    public static IEnumerable<object[]> CutsWithInfiniteValues()
+        => CutsWithInfiniteValuesPairs.Select(p => new object[] { p.f, p.g });
+
+    /// <summary>
+    /// Whether neither, one or both operands take the value $+\infty$, the gap between the lower pseudo-inverses and the composition give the same deviation.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(CutsWithInfiniteValues))]
+    public void HorizontalDeviationIsTheSameUnderEveryStrategyOnCutsWithInfiniteValues(Sequence f, Sequence g)
+    {
+        var expected = Sequence.HorizontalDeviation(f, g, ByPseudoInverses);
+        foreach (var settings in EveryStrategy)
+            Assert.Equal(expected, Sequence.HorizontalDeviation(f, g, settings));
+    }
+
+    /// <summary>
+    /// The height form with the upper pseudo-inverses of the operands over the shared heights, and 0 if it is negative.
+    /// </summary>
+    private static Rational HorizontalDeviationByUpperPseudoInverses(Sequence f, Sequence g)
+    {
+        var overlap = Interval.Intersection(f.Image, g.Image)!.Value;
+        var gaps = Sequence.Subtraction(g.UpperPseudoInverse().Cut(overlap), f.UpperPseudoInverse().Cut(overlap));
+        return Rational.Max(gaps.SupValue(), 0);
+    }
+
+    /// <summary>
+    /// The height form with the upper pseudo-inverses is not the deviation between sequences, [TBP-SEQ-DEV] § A.2:
+    /// $f = 1$ on $]0, 2[$ and $g(t) = t$ on $[0, 4]$ have deviation 1, under every strategy,
+    /// but the upper pseudo-inverse of $f$ at 1 is the end of its domain, 2, so the gap is $1 - 2 < 0$.
+    /// </summary>
+    [Fact]
+    public void UpperPseudoInverseFormDiffersOnAPlateauAtAnEndOfTheDomain()
+    {
+        var f = new Sequence([ new Segment(0, 2, 1, 0) ]);
+        var g = new Sequence([ new Point(0, 0), new Segment(0, 4, 0, 1), new Point(4, 4) ]);
+
+        foreach (var settings in EveryStrategy)
+            Assert.Equal(1, Sequence.HorizontalDeviation(f, g, settings));
+        Assert.Equal(0, HorizontalDeviationByUpperPseudoInverses(f, g));
+    }
+
+    /// <summary>
+    /// Every strategy gives the known value, see <see cref="HorizontalDeviationStrategy"/>.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(AllKnownHDevs))]
+    public void HorizontalDeviationIsTheSameUnderEveryStrategy(string id, Sequence a, Sequence b, Rational expected)
+    {
+        foreach (var settings in EveryStrategy)
+        {
+            var result = Sequence.HorizontalDeviation(a, b, settings);
+            Assert.True(result == expected, $"{id}: {result} by {settings.HorizontalDeviationStrategy}, not {expected}");
+        }
+    }
+
+    /// <summary>
+    /// Pairs whose deviation is not written out: the property pairs, and the cuts with and without the hypothesis of the equivalence.
+    /// </summary>
+    public static IEnumerable<object[]> PairsWithoutAKnownHDev()
+    {
+        foreach (var pair in PropertySequencePairs)
+        {
+            var (a, b) = ((Sequence) pair[0], (Sequence) pair[1]);
+            if (Interval.Intersection(a.Image, b.Image) is not null)
+                yield return [a, b];
+        }
+        foreach (var (f, g, xF, xG) in HDevFunctionCutsWithHypothesis.Concat(HDevFunctionCutsWithoutHypothesis))
+            yield return [f.Cut(xF), g.Cut(xG)];
+    }
+
+    [Theory]
+    [MemberData(nameof(PairsWithoutAKnownHDev))]
+    public void HorizontalDeviationStrategiesAgree(Sequence a, Sequence b)
+    {
+        var expected = Sequence.HorizontalDeviation(a, b, ByPseudoInverses);
+        foreach (var settings in EveryStrategy)
+            Assert.Equal(expected, Sequence.HorizontalDeviation(a, b, settings));
+    }
+
+    /// <summary>
+    /// Where the images share no finite height, every strategy throws.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(HDevRejectedCases))]
+    public void DisjointImagesAreRejectedUnderEveryStrategy(string id, Sequence a, Sequence b)
+    {
+        _testOutputHelper.WriteLine(id);
+        foreach (var settings in EveryStrategy)
+            Assert.Throws<ArgumentException>(() => Sequence.HorizontalDeviation(a, b, settings));
+    }
+
+    /// <summary>
+    /// Operands that take the value $-\infty$.
+    /// The results of [TBP-SEQ-DEV] on the horizontal deviation are for operands that never do, and Nancy takes non-negative operands only.
+    /// </summary>
+    public static IEnumerable<object[]> MinusInfiniteOperands()
+    {
+        var t = new Sequence([ new Point(0, 0), new Segment(0, 2, 0, 1), new Point(2, 2) ]);
+        var minusThenT = new Sequence([ Point.MinusInfinite(0), Segment.MinusInfinite(0, 1), new Point(1, 1), new Segment(1, 2, 1, 1), new Point(2, 2) ]);
+        yield return ["a is -inf at first", minusThenT, t];
+        yield return ["b is -inf at first", t, minusThenT];
+        yield return ["both are -inf at first", minusThenT, minusThenT];
+    }
+
+    [Theory]
+    [MemberData(nameof(MinusInfiniteOperands))]
+    public void MinusInfiniteOperandsAreRejected(string id, Sequence a, Sequence b)
+    {
+        _testOutputHelper.WriteLine(id);
+        Assert.Throws<ArgumentException>(() => Sequence.HorizontalDeviationFunction(a, b));
+        foreach (var settings in EveryStrategy)
+            Assert.Throws<ArgumentException>(() => Sequence.HorizontalDeviation(a, b, settings));
+    }
+
+    #endregion Every strategy
+
+    #region Equivalence with the curves
+
+    /// <summary>
+    /// A curve the sequence is the restriction of.
+    /// Before the domain of the sequence it is 0, or the first value of the sequence if <paramref name="holdFirstValue"/>: its value at its start, or the limit there if the start is open.
+    /// After the domain it is the value at its end, or the limit there if the end is open.
+    /// </summary>
+    private static Curve ExtendToCurve(Sequence s, bool holdFirstValue)
+    {
+        var start = s.DefinedFrom;
+        var before = holdFirstValue ? (s.IsLeftClosed ? s.ValueAt(start) : s.RightLimitAt(start)) : 0;
+        var elements = new List<Element>();
+        if (start > 0)
+            elements.AddRange([ new Point(0, before), Segment.Constant(0, start, before) ]);
+        if (!s.IsLeftClosed)
+            elements.Add(new Point(start, before));
+        elements.AddRange(s.Elements);
+        var end = s.DefinedUntil;
+        var last = s.IsRightClosed ? s.ValueAt(end) : s.LeftLimitAt(end);
+        if (!s.IsRightClosed)
+            elements.Add(new Point(end, last));
+        elements.Add(last.IsPlusInfinite ? Segment.PlusInfinite(end, end + 1) : Segment.Constant(end, end + 1, last));
+        return new Curve(new Sequence(elements), end, 1, 0);
+    }
+
+    /// <summary>
+    /// The finite heights both images share, $Y$; where both operands reach $+\infty$, cut at a height above every finite value of either.
+    /// </summary>
+    private static Interval SharedHeights(Sequence a, Sequence b)
+    {
+        var y = Interval.Intersection(a.Image, b.Image)!.Value;
+        if (!y.Upper.IsPlusInfinite)
+            return y;
+
+        var aboveFinite = a.Elements.Concat(b.Elements)
+            .Where(e => !e.IsPlusInfinite)
+            .Select(FiniteTop)
+            .Max() + 1;
+        return new Interval(y.Lower, aboveFinite, y.IsLowerIncluded, true);
+
+        static Rational FiniteTop(Element e) => e switch
+        {
+            Point p => p.Value,
+            Segment s => Rational.Max(s.RightLimitAtStartTime, s.LeftLimitAtEndTime),
+            _ => throw new InvalidCastException()
+        };
+    }
+
+    /// <summary>
+    /// The hypotheses of the equivalence on the lowest shared height, [TBP-SEQ-DEV] § 4.6:
+    /// the curve does not reach it before the sequence does, and each holds where $Y$ excludes its lower end.
+    /// </summary>
+    private static bool LowestSharedHeightReachedTogether(Curve curve, Sequence restriction, Interval sharedHeights)
+        => !sharedHeights.IsLowerIncluded
+           || curve.LowerPseudoInverseAt(sharedHeights.Lower) == restriction.LowerPseudoInverseAt(sharedHeights.Lower);
+
+    /// <summary>
+    /// The supremum over the heights of $Y$ of $(B^{-1}_\downarrow(y) - A^{-1}_\downarrow(y))^+$, the right side of the equivalence.
+    /// </summary>
+    private static Rational SupOfTheCurvesGaps(Curve f, Curve g, Interval sharedHeights)
+    {
+        var gaps = Sequence.Subtraction(g.LowerPseudoInverse().Cut(sharedHeights), f.LowerPseudoInverse().Cut(sharedHeights));
+        return Rational.Max(gaps.SupValue(), 0);
+    }
+
+    /// <summary>
+    /// The cases of the catalogue, each against two pairs of curves its operands are restrictions of: extended by 0 before their domains, or by their first values.
+    /// </summary>
+    public static IEnumerable<object[]> CatalogueCasesAndTheirCurves()
+    {
+        foreach (var testCase in HDevCases())
+        foreach (var holdFirstValue in new[] { false, true })
+            yield return [
+                $"{testCase[0]}, {(holdFirstValue ? "first value" : "zero")} before",
+                ExtendToCurve((Sequence) testCase[1], holdFirstValue), ExtendToCurve((Sequence) testCase[2], holdFirstValue),
+                testCase[1], testCase[2], testCase[4], testCase[5]
+            ];
+    }
+
+    /// <summary>
+    /// The cases of the catalogue of [TBP-SEQ-DEV] § 5 against the curves they are restrictions of, as the equivalence of § 4.6 states.
+    /// Under $(H_b)$, $hDev(a, b) \le hDev(A, B)$.
+    /// Under $(H_a)$ as well, $hDev(a, b)$ is the curves' gap over $Y$, and prefixes satisfy each.
+    /// At a measured time where $a$ is continuous and finite, at a height other than the lowest shared one or under $(H_b)$, $hDev(a, b, t) = hDev(A, B, t)$.
+    /// Where a domain starts after 0, at the lowest shared height, either extension makes the hypothesis on that operand fail,
+    /// so the catalogue exercises the statements both with and without the hypotheses.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(CatalogueCasesAndTheirCurves))]
+    public void CatalogueCasesMatchTheirCurvesAsTheEquivalenceStates(string id, Curve f, Curve g, Sequence a, Sequence b, (Rational t, Rational v)[] values, Rational sup)
+    {
+        Assert.True(f.Cut(a.Support).Equivalent(a), $"{id}: a is not the restriction of its curve");
+        Assert.True(g.Cut(b.Support).Equivalent(b), $"{id}: b is not the restriction of its curve");
+
+        var sharedHeights = SharedHeights(a, b);
+        var hA = LowestSharedHeightReachedTogether(f, a, sharedHeights);
+        var hB = LowestSharedHeightReachedTogether(g, b, sharedHeights);
+        _testOutputHelper.WriteLine($"{id}: Y = {sharedHeights}, H_a {hA}, H_b {hB}");
+
+        // prefixes, and restrictions to [0, k[, satisfy the hypotheses
+        if (a.DefinedFrom == 0 && a.IsLeftClosed)
+            Assert.True(hA, $"{id}: a starts at 0, and H_a fails");
+        if (b.DefinedFrom == 0 && b.IsLeftClosed)
+            Assert.True(hB, $"{id}: b starts at 0, and H_b fails");
+
+        if (hB)
+            foreach (var settings in EveryStrategy)
+            {
+                var curves = Curve.HorizontalDeviation(f, g, settings);
+                Assert.True(sup <= curves, $"{id}: {sup} between the sequences, above {curves} between the curves");
+            }
+        if (hA && hB)
+            Assert.True(sup == SupOfTheCurvesGaps(f, g, sharedHeights), $"{id}: {sup}, not the curves' gap over Y {SupOfTheCurvesGaps(f, g, sharedHeights)}");
+
+        if (!a.IsFinite || !b.IsFinite)
+            return;
+
+        var curvesFunction = Curve.HorizontalDeviationFunction(f, g);
+        foreach (var (t, v) in values)
+        {
+            var isContinuous = (t == a.DefinedFrom || a.LeftLimitAt(t) == a.ValueAt(t))
+                               && (t == a.DefinedUntil || a.RightLimitAt(t) == a.ValueAt(t));
+            if (isContinuous && (a.ValueAt(t) != sharedHeights.Lower || hB))
+                Assert.True(v == curvesFunction.ValueAt(t), $"{id}: {v} at {t}, the curves {curvesFunction.ValueAt(t)}");
+        }
+    }
+
+    /// <summary>
+    /// The catalogue, with the extensions above, has cases where each hypothesis holds and cases where it fails.
+    /// </summary>
+    [Fact]
+    public void CatalogueCasesCoverTheEquivalenceWithAndWithoutItsHypotheses()
+    {
+        var flags = CatalogueCasesAndTheirCurves()
+            .Select(c =>
+            {
+                var (f, g, a, b) = ((Curve) c[1], (Curve) c[2], (Sequence) c[3], (Sequence) c[4]);
+                var y = SharedHeights(a, b);
+                return (hA: LowestSharedHeightReachedTogether(f, a, y), hB: LowestSharedHeightReachedTogether(g, b, y));
+            })
+            .ToList();
+        Assert.Contains(flags, h => h.hA && h.hB);
+        Assert.Contains(flags, h => !h.hA);
+        Assert.Contains(flags, h => !h.hB);
+    }
+
+    /// <summary>
+    /// Without $(H_a)$, [TBP-SEQ-DEV] § 4.6, the deviation between the sequences can fall short of the curves' gap over the shared heights.
+    /// $A$ is 1 on $[0, 5]$ and $t - 4$ after it, $a$ its restriction to $[4, 6]$, and $b$ the prefix of $B(t) = t$ to $[0, 3]$, so that $Y = [1, 2]$:
+    /// $A$ reaches 1 at 0, $a$ only at 4, so every gap between the sequences is negative, while the curves' gap at 1 is 1.
+    /// </summary>
+    [Fact]
+    public void HorizontalDeviationOfCutsFallsShortWithoutTheHypothesisOnTheFirstOperand()
+    {
+        var f = new Curve(
+            new Sequence([ new Point(0, 1), new Segment(0, 5, 1, 0), new Point(5, 1), new Segment(5, 6, 1, 1) ]),
+            5, 1, 1);
+        var g = new RateLatencyServiceCurve(1, 0);
+        var a = f.Cut(4, 6, true, true);
+        var b = g.Cut(0, 3, true, true);
+        var sharedHeights = SharedHeights(a, b);
+
+        Assert.False(LowestSharedHeightReachedTogether(f, a, sharedHeights));
+        Assert.True(LowestSharedHeightReachedTogether(g, b, sharedHeights));
+        Assert.Equal(1, SupOfTheCurvesGaps(f, g, sharedHeights));
+        foreach (var settings in EveryStrategy)
+        {
+            Assert.Equal(0, Sequence.HorizontalDeviation(a, b, settings));
+            Assert.Equal(1, Curve.HorizontalDeviation(f, g, settings));
+        }
+    }
+
+    #endregion Equivalence with the curves
 }
