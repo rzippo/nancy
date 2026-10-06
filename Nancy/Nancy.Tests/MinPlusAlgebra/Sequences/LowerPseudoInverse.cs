@@ -269,4 +269,15 @@ public class LowerPseudoInverse
         Assert.Equal(expectedLpiSupport, lpi.Support);
         Assert.Equal(expectedLpiImage, lpi.Image);
     }
+
+    /// <summary>
+    /// Heights from 0 on, for a sequence that is open at its start and equal to 0 there: 0 is first reached at the start, and the point that ends it gives no other height.
+    /// </summary>
+    [Fact]
+    public void StartFromZeroOnAPlateauAtZeroOpenAtItsStart()
+    {
+        var operand = new Sequence([ Segment.Constant(0, 1, 0), new Point(1, 0) ]);
+        var result = operand.LowerPseudoInverse(startFromZero: true);
+        Assert.True(Sequence.Equivalent(new Sequence([ new Point(0, 0) ]), result));
+    }
 }

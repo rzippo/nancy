@@ -27,6 +27,19 @@ public class PseudoInverseDefinitions
         };
 
     /// <summary>
+    /// Whether <paramref name="y"/> is a value of an element: the value of a point, that of a plateau, and those strictly between the limits of a slope.
+    /// </summary>
+    private static bool IsAttained(Element e, Rational y)
+        => e switch
+        {
+            Point p => p.Value == y,
+            Segment { IsPlusInfinite: true } => false,
+            Segment s when s.Slope == 0 => s.RightLimitAtStartTime == y,
+            Segment s => s.RightLimitAtStartTime < y && y < s.RightLimitAtStartTime + s.Slope * s.Length,
+            _ => throw new InvalidOperationException()
+        };
+
+    /// <summary>
     /// Returns the first instant at which the elements are at or above <paramref name="y"/>, $+\infty$ if there is none.
     /// </summary>
     private static Rational Infimum(IEnumerable<Element> elements, Rational y)
@@ -78,7 +91,8 @@ public class PseudoInverseDefinitions
                     break;
                 case Segment s:
                     var right = s.RightLimitAtStartTime;
-                    if (s.IsPlusInfinite || right > y)
+                    // an open start does not qualify, whatever the values after it
+                    if (s.IsPlusInfinite || right > y || (right == y && s.Slope > 0))
                         break;
                     var t = s.Slope == 0 || right + s.Slope * s.Length <= y
                         ? s.EndTime
@@ -113,8 +127,8 @@ public class PseudoInverseDefinitions
     {
         var first = restriction[0];
         var low = first is Point p ? p.Value : ((Segment)first).RightLimitAtStartTime;
-        var isLowAttained = restriction.Any(e => e.AttainsValue(low));
-        if (start == 0)
+        var isLowAttained = restriction.Any(e => IsAttained(e, low));
+        if (start == 0 && isStartIncluded)
         {
             low = 0;
             isLowAttained = true;
@@ -126,7 +140,7 @@ public class PseudoInverseDefinitions
         {
             var top = restriction.Max(Limit);
             high = top;
-            isHighAttained = restriction.Any(e => e.AttainsValue(top));
+            isHighAttained = restriction.Any(e => IsAttained(e, top));
         }
         else if (!f.IsUltimatelyConstant && !f.IsUltimatelyPlusInfinite)
         {
@@ -308,8 +322,6 @@ public class PseudoInverseDefinitions
         foreach (var length in new[] { -1, 1, 3 })
         foreach (var isEndIncluded in new[] { true, false })
         {
-            if (start == 0 && !isStartIncluded)
-                continue;
             if (length == -1 && !isEndIncluded)
                 continue;
             var end = length == -1 ? Inf : start + length;
