@@ -678,4 +678,96 @@ public class LowerPseudoInverse
         Assert.True(result.IsLeftContinuous);
         Assert.True(Curve.Equivalent(expected, result));
     }
+
+    /// <summary>
+    /// Curves that are finite up to a time and $+\infty$ after it, with the value at that time below, at, or above its left limit:
+    /// the heights between the left limit and the value at the time are first reached at the time itself.
+    /// </summary>
+    public static List<(Curve operand, Curve expected)> JumpIntoPlusInfinityCases =
+    [
+        (
+            // a staircase 0, 1, 2 on unit steps, taking 3 at the time of the jump, above its left limit 2
+            new Curve(
+                new Sequence(new Element[]
+                {
+                    Point.Origin(), Segment.Zero(0, 1), new Point(1, 1), Segment.Constant(1, 2, 1), new Point(2, 2), Segment.Constant(2, 3, 2),
+                    new Point(3, 3), Segment.PlusInfinite(3, 6), Point.PlusInfinite(6), Segment.PlusInfinite(6, 9)
+                }),
+                6, 3, 0
+            ),
+            new Curve(
+                new Sequence(new Element[]
+                {
+                    Point.Origin(), Segment.Constant(0, 1, 1), new Point(1, 1), Segment.Constant(1, 2, 2), new Point(2, 2),
+                    Segment.Constant(2, 3, 3), new Point(3, 3), Segment.Constant(3, 4, 3)
+                }),
+                3, 1, 0
+            )
+        ),
+        (
+            // the same staircase, taking 2 at the time of the jump, its left limit
+            new Curve(
+                new Sequence(new Element[]
+                {
+                    Point.Origin(), Segment.Zero(0, 1), new Point(1, 1), Segment.Constant(1, 2, 1), new Point(2, 2), Segment.Constant(2, 3, 2),
+                    new Point(3, 2), Segment.PlusInfinite(3, 6), Point.PlusInfinite(6), Segment.PlusInfinite(6, 9)
+                }),
+                6, 3, 0
+            ),
+            new Curve(
+                new Sequence(new Element[]
+                {
+                    Point.Origin(), Segment.Constant(0, 1, 1), new Point(1, 1), Segment.Constant(1, 2, 2), new Point(2, 2),
+                    Segment.Constant(2, 4, 3), new Point(4, 3)
+                }),
+                3, 1, 0
+            )
+        ),
+        (
+            // $t$ up to 2, taking 3 at 2 and $+\infty$ after it: every height above 2 is first reached at 2
+            new Curve(
+                new Sequence(new Element[]
+                {
+                    Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 3), Segment.PlusInfinite(2, 3), Point.PlusInfinite(3), Segment.PlusInfinite(3, 4)
+                }),
+                3, 1, 0
+            ),
+            new Curve(
+                new Sequence(new Element[]
+                {
+                    Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 2), Segment.Constant(2, 3, 2)
+                }),
+                2, 1, 0
+            )
+        ),
+        (
+            // $t$ up to 2, taking $+\infty$ at 2
+            new Curve(
+                new Sequence(new Element[]
+                {
+                    Point.Origin(), new Segment(0, 2, 0, 1), Point.PlusInfinite(2), Segment.PlusInfinite(2, 3), Point.PlusInfinite(3), Segment.PlusInfinite(3, 4)
+                }),
+                3, 1, 0
+            ),
+            new Curve(
+                new Sequence(new Element[]
+                {
+                    Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 2), Segment.Constant(2, 3, 2)
+                }),
+                2, 1, 0
+            )
+        ),
+    ];
+
+    public static IEnumerable<object[]> JumpIntoPlusInfinityTestCases()
+        => JumpIntoPlusInfinityCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(JumpIntoPlusInfinityTestCases))]
+    public void JumpIntoPlusInfinity(Curve operand, Curve expected)
+    {
+        var result = operand.LowerPseudoInverse();
+        Assert.True(result.IsLeftContinuous);
+        Assert.True(Curve.Equivalent(expected, result));
+    }
 }
