@@ -27,6 +27,16 @@ public class FirstNonNegativeTime
         (
             curve: new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0, new Rational(-17, 6)), new Segment(0, 1, new Rational(-17, 6), 1) }), pseudoPeriodStart: 0, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
             expected: new Rational(17, 6)
+        ),
+        (
+            // the second period is the first with a non-negative value, right after its start, where the curve is -1
+            curve: new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0, -2), new Segment(0, new Rational(5, 2), -1, 0) }), pseudoPeriodStart: 0, pseudoPeriodLength: new Rational(5, 2), pseudoPeriodHeight: 1),
+            expected: new Rational(5, 2)
+        ),
+        (
+            // the second period is the first with a non-negative value, and its start is already one
+            curve: new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0, new Rational(-3, 2)), new Segment(0, 2, new Rational(-1, 2), 0) }), pseudoPeriodStart: 0, pseudoPeriodLength: 2, pseudoPeriodHeight: 1),
+            expected: 2
         )
     };
 
