@@ -3282,7 +3282,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (
             settings.UseBySequenceConvolutionIsospeedOptimization && 
             f.IsRightContinuous && g.IsRightContinuous &&
-            f.IsNonDecreasing && g.IsNonDecreasing
+            f.IsNonDecreasing && g.IsNonDecreasing &&
+            // the isomorphism is computed on the lower pseudo-inverses of the heights both operands take, which -inf values do not
+            f.IsFinite && g.IsFinite
         )
         {
             #if CONJECTURE_GENERALIZE_BYSEQUENCE_CONVOLUTION_ISOSPEED
