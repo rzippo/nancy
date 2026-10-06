@@ -132,7 +132,12 @@ public partial class ConvolutionIsomorphismOverInterval
         var (f_t, f_p) = f.Decompose(T_f, leftIncludesEndPoint: true, minDecomposition: false);
         var f_t_lpi = f_t?.LowerPseudoInverseOverInterval(0, T_f, isEndIncluded: true);
         var f_p_lpi = f_p.LowerPseudoInverseOverInterval(T_f);
-        var lpi_recomposed = f_t_lpi == null ? f_p_lpi : Curve.Minimum(f_t_lpi, f_p_lpi); 
+        var lpi_recomposed = f_t_lpi == null ? f_p_lpi : Curve.Minimum(f_t_lpi, f_p_lpi);
+        // the pseudo-inverses over an interval are +infinity below the value they start from, [ZNS26] Definition 19,
+        // while the whole one is 0 below f(0), and so the heights from 0 to f(0) are added
+        var f_0 = f.ValueAt(0);
+        if (f_0 > 0)
+            lpi_recomposed = Curve.Minimum(Curve.Minimum(Curve.PlusInfinite(), Sequence.Zero(0, f_0)), lpi_recomposed);
 
         var lpi = f.LowerPseudoInverse();
 
@@ -209,27 +214,26 @@ public partial class ConvolutionIsomorphismOverInterval
                 Assert.True(f_t_lpi == lpi_t);
             }
         }
-        else
+        else if (valueAtZero > 0 && valueAtZero < f_T_f_prime)
+        {
+            // below f(0) the lpi of the transient is +infinity, [ZNS26] Definition 19, and that of the whole function is 0;
+            // from there, the cut is done since if f_t ends with a constant segment, f_t_lpi will have extra information, namely f_t_lpi(f_T_f)
+            Assert.True(Sequence.Equivalent(Sequence.PlusInfinite(0, valueAtZero), f_t_lpi.Cut(0, valueAtZero)));
+            Assert.True(Sequence.Equivalent(Sequence.Zero(0, valueAtZero), lpi_t.Cut(0, valueAtZero)));
+            Assert.True(Sequence.Equivalent(
+                f_t_lpi.Cut(valueAtZero, f_T_f_prime),
+                lpi_t.Cut(valueAtZero, f_T_f_prime))
+            );
+        }
+        else if (valueAtZero == 0 || valueAtZero >= f_T_f_prime)
             // The cut is done since if f_t ends with a constant segment, f_t_lpi will have extra information, namely f_t_lpi(f_T_f)
             Assert.True(Sequence.Equivalent(
                 f_t_lpi.Cut(0, f_T_f_prime),
                 lpi_t.Cut(0, f_T_f_prime))
             );
 
-        if (T_f == 0 && valueAtZero > 0)
-        {
-            Assert.True(Curve.EquivalentAfter(f_p_lpi, lpi_p, valueAtZero));
-            Assert.True(Sequence.Equivalent(
-                Sequence.Zero(0, valueAtZero), 
-                f_p_lpi.Cut(0, valueAtZero))
-            );
-            Assert.True(Sequence.Equivalent(
-                Sequence.PlusInfinite(0, valueAtZero), 
-                lpi_p.Cut(0, valueAtZero))
-            );
-        }
-        else
-            Assert.True(Curve.Equivalent(f_p_lpi, lpi_p));
+        // the periodic part of the lpi is +infinity below its first value, as is the lpi of the periodic part over an interval, also if it starts at 0
+        Assert.True(Curve.Equivalent(f_p_lpi, lpi_p));
     }
 
     [Theory]

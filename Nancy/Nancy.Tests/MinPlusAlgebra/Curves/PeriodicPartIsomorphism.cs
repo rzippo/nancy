@@ -99,23 +99,6 @@ public class PeriodicPartIsomorphism
         => Pairs.Concat(SelectedPairs).Select(p => new object[] { p.f, p.g });
 
     /// <summary>
-    /// The lower pseudo-inverse over $[a, +\infty[$ as [ZNS26] Definition 19 gives it: $+\infty$ below $f(a)$, also for $a = 0$,
-    /// where <see cref="Curve.LowerPseudoInverseOverInterval"/> instead extends the support down to 0, as the whole lower pseudo-inverse does.
-    /// </summary>
-    private static Curve LowerPseudoInverseOverIntervalByDefinition(Curve f, Rational a)
-    {
-        var lpi = f.LowerPseudoInverseOverInterval(a);
-        var f_a = f.ValueAt(a);
-        if (a != 0 || f_a <= 0)
-            return lpi;
-
-        var plusInfinityBelow = new Curve(
-            new Sequence([ Point.PlusInfinite(0), Segment.PlusInfinite(0, f_a), Point.MinusInfinite(f_a), Segment.MinusInfinite(f_a, f_a + 1) ]),
-            f_a, 1, 0);
-        return Curve.Maximum(lpi, plusInfinityBelow);
-    }
-
-    /// <summary>
     /// [ZNS26] Theorem 31: for left-continuous operands, $(f^\wedge_p \otimes g^\wedge_p)^{-1}_{\uparrow, [T_f + T_g, +\infty[} = f^{-1}_{\uparrow, p} \overline{\otimes} g^{-1}_{\uparrow, p}$.
     /// </summary>
     [Theory]
@@ -134,7 +117,7 @@ public class PeriodicPartIsomorphism
 
     /// <summary>
     /// [ZNS26] Theorem 32: for right-continuous operands, $(f^\vee_p \otimes g^\vee_p)^{-1}_{\downarrow, [T_f + T_g, +\infty[} = f^{-1}_{\downarrow, p} \otimes g^{-1}_{\downarrow, p}$,
-    /// with the lower pseudo-inverses over an interval of Definition 19.
+    /// with the lower pseudo-inverses over an interval of Definition 19, which are $+\infty$ below $f(a)$, also for $a = 0$.
     /// </summary>
     [Theory]
     [MemberData(nameof(SelectedPairTestCases))]
@@ -145,9 +128,9 @@ public class PeriodicPartIsomorphism
 
         var convolution = Curve.MaxPlusConvolution(
             f.Decompose(T_f, minDecomposition: false).right, g.Decompose(T_g, minDecomposition: false).right, WithoutIsomorphism);
-        var left = LowerPseudoInverseOverIntervalByDefinition(convolution, T_f + T_g);
+        var left = convolution.LowerPseudoInverseOverInterval(T_f + T_g);
         var right = Curve.Convolution(
-            LowerPseudoInverseOverIntervalByDefinition(f, T_f), LowerPseudoInverseOverIntervalByDefinition(g, T_g), WithoutIsomorphism);
+            f.LowerPseudoInverseOverInterval(T_f), g.LowerPseudoInverseOverInterval(T_g), WithoutIsomorphism);
         Assert.True(Curve.Equivalent(left, right));
     }
 

@@ -154,11 +154,12 @@ public class PseudoInverseDefinitions
     }
 
     private static IEnumerable<Rational> Heights(
-        Curve f, List<Element> restriction, Rational start, Rational end, bool isStartIncluded
+        Curve f, List<Element> restriction, Rational start, Rational end, bool isStartIncluded, bool isOverInterval
     )
         => Heights(
             restriction,
-            extendToZero: start == 0 && isStartIncluded,
+            // the whole pseudo-inverses are defined from 0, those over an interval from f(a), [ZNS26] Definition 19
+            extendToZero: start == 0 && isStartIncluded && !isOverInterval,
             // an unbounded pseudo-period, followed up to where the restriction ends
             hasTop: end != Inf || (!f.IsUltimatelyConstant && !f.IsUltimatelyPlusInfinite),
             isTopCutOff: end == Inf);
@@ -338,11 +339,27 @@ public class PseudoInverseDefinitions
 
     private static void AssertInverse(
         string id, Curve f, Curve inverse, Func<IEnumerable<Element>, Rational, Rational> definition,
-        Rational start, Rational end, bool isStartIncluded, bool isEndIncluded
+        Rational start, Rational end, bool isStartIncluded, bool isEndIncluded, bool isOverInterval = false
     )
     {
         var restriction = Restriction(f, start, end, isStartIncluded, isEndIncluded);
-        foreach (var y in Heights(f, restriction, start, end, isStartIncluded))
+        if (isOverInterval && isStartIncluded)
+        {
+            // [ZNS26] Definition 19: below f(a) the lower form is +inf and the upper form -inf, also if a = 0
+            var first = restriction[0];
+            var low = first is Point p ? p.Value : ((Segment)first).RightLimitAtStartTime;
+            var below = definition == Infimum ? Inf : Rational.MinusInfinity;
+            for (var k = 0; k <= 72; k++)
+            foreach (var y in new[] { new Rational(k, 6), new Rational(k, 7) })
+            {
+                if (y >= low)
+                    continue;
+                var belowActual = inverse.ValueAt(y);
+                Assert.True(below == belowActual, $"{id}: at y = {y}, below f(a) = {low}, expected {below}, got {belowActual}");
+            }
+        }
+
+        foreach (var y in Heights(f, restriction, start, end, isStartIncluded, isOverInterval))
         {
             var expected = end == Inf && f.IsUltimatelyConstant && definition == Supremum && y >= f.ValueAt(f.PseudoPeriodStart)
                 // f never exceeds y
@@ -371,7 +388,7 @@ public class PseudoInverseDefinitions
         => AssertInverse(
             id, f,
             f.LowerPseudoInverseOverInterval(start, end == Inf ? null : end, isStartIncluded, isEndIncluded),
-            Infimum, start, end, isStartIncluded, isEndIncluded);
+            Infimum, start, end, isStartIncluded, isEndIncluded, isOverInterval: true);
 
     [Theory]
     [MemberData(nameof(NamedCurveIntervalCases))]
@@ -381,7 +398,7 @@ public class PseudoInverseDefinitions
         => AssertInverse(
             id, f,
             f.UpperPseudoInverseOverInterval(start, end == Inf ? null : end, isStartIncluded, isEndIncluded),
-            Supremum, start, end, isStartIncluded, isEndIncluded);
+            Supremum, start, end, isStartIncluded, isEndIncluded, isOverInterval: true);
 
     private static void AssertSequenceInverse(
         string id, List<Element> elements, Sequence inverse, Func<IEnumerable<Element>, Rational, Rational> definition, bool extendToZero
@@ -437,9 +454,9 @@ public class PseudoInverseDefinitions
             var where = $"{id}, over {(isStartIncluded ? "[" : "]")}{start}, {end}{(isEndIncluded && end != Inf ? "]" : "[")}";
             var upperBound = end == Inf ? (Rational?)null : end;
             AssertInverse(where, f, f.LowerPseudoInverseOverInterval(start, upperBound, isStartIncluded, isEndIncluded),
-                Infimum, start, end, isStartIncluded, isEndIncluded);
+                Infimum, start, end, isStartIncluded, isEndIncluded, isOverInterval: true);
             AssertInverse(where, f, f.UpperPseudoInverseOverInterval(start, upperBound, isStartIncluded, isEndIncluded),
-                Supremum, start, end, isStartIncluded, isEndIncluded);
+                Supremum, start, end, isStartIncluded, isEndIncluded, isOverInterval: true);
 
             if (end == Inf)
                 continue;

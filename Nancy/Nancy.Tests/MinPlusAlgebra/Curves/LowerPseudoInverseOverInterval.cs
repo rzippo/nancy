@@ -277,7 +277,17 @@ public class CurveLowerPseudoInverseOverInterval
         var f_lpi = f.LowerPseudoInverse();
         var f_lpi_D = f.LowerPseudoInverseOverInterval(0, Rational.PlusInfinity);
 
-        Assert.True(Curve.Equivalent(f_lpi, f_lpi_D));
+        // the whole pseudo-inverse is defined from 0, and the one over an interval from f(a), [ZNS26] Definition 19:
+        // they are the same from f(0) on, and below it the first is 0 and the second +infinity
+        var f_0 = f.ValueAt(0);
+        Assert.True(Curve.EquivalentAfter(f_lpi, f_lpi_D, f_0));
+        if (f_0 > 0)
+        {
+            Assert.True(Sequence.Equivalent(Sequence.Zero(0, f_0), f_lpi.Cut(0, f_0)));
+            Assert.True(Sequence.Equivalent(Sequence.PlusInfinite(0, f_0), f_lpi_D.Cut(0, f_0)));
+        }
+        else
+            Assert.True(Curve.Equivalent(f_lpi, f_lpi_D));
     }
 
     public static IEnumerable<object[]> LpiOverPeriod_PeriodStart_TestCases()

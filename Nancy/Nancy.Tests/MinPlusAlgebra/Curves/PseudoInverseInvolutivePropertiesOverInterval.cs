@@ -141,4 +141,42 @@ public class CurvePseudoInverseInvolutivePropertiesOverInterval
 
         Assert.True(Curve.Equivalent(f_D, upiD));
     }
+
+    /// <summary>
+    /// Left-continuous, non-decreasing curves, the start $a$ of an interval, and $a' = \sup\{ t \ge a \mid f(t) = f(a) \}$.
+    /// The first three have $f(a) = 0$ and a plateau from $a$, so that the lower pseudo-inverse is taken over $[0, +\infty[$.
+    /// </summary>
+    public static List<(Curve f, Rational a, Rational aPrime)> InvolutionStartingAtAHeightOfZeroCases =
+    [
+        // 0 up to 2, then slope 1
+        (new RateLatencyServiceCurve(1, 2), 0, 2),
+        (new RateLatencyServiceCurve(1, 2), 1, 2),
+        (new RateLatencyServiceCurve(1, 2), 2, 2),
+        // 0 up to 1, then 1 up to 3, then slope 1: $f(a) = 0$ with a plateau that ends before the curve moves on
+        (new Curve(new Sequence([ Point.Origin(), Segment.Constant(0, 1, 0), new Point(1, 0), new Segment(1, 2, 0, 1), new Point(2, 1), new Segment(2, 3, 1, 1) ]), 1, 2, 2), 0, 1),
+        // for contrast, $f(0) > 0$: the lower pseudo-inverse is taken over $[2, +\infty[$
+        (new Curve(new Sequence([ new Point(0, 2), new Segment(0, 1, 2, 1) ]), 0, 1, 1), 0, 0),
+    ];
+
+    public static IEnumerable<object[]> InvolutionStartingAtAHeightOfZeroTestCases()
+        => InvolutionStartingAtAHeightOfZeroCases.ToXUnitTestCases();
+
+    /// <summary>
+    /// [ZNS26] Proposition 23: for left-continuous $f$ non-decreasing over $[a, +\infty[$, the lower pseudo-inverse over $[f(a), +\infty[$ of the upper pseudo-inverse of $f$ over $[a, +\infty[$
+    /// is $f|^\wedge_{[a', +\infty[}$, which is $+\infty$ below $a'$, also when $f(a) = 0$ and the interval starts at 0.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(InvolutionStartingAtAHeightOfZeroTestCases))]
+    public void LpiOfUpiOverIntervalStartingAtAHeightOfZero(Curve f, Rational a, Rational aPrime)
+    {
+        Assert.True(f.IsLeftContinuous);
+        var (_, f_D) = f.Decompose(a, minDecomposition: true);
+        var f_a = f.ValueAt(a);
+
+        var upiD = f_D.UpperPseudoInverseOverInterval(a);
+        var lpiD = upiD.LowerPseudoInverseOverInterval(f_a);
+
+        var (_, expected) = f.Decompose(aPrime, minDecomposition: true);
+        Assert.True(Curve.Equivalent(expected, lpiD));
+    }
 }
