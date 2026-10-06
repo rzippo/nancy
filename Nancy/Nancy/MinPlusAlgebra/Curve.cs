@@ -4173,7 +4173,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else if (IsUltimatelyPlusInfinite)
         {
-            return LowerPseudoInverseOverInterval(0);
+            return LowerPseudoInverseOverInterval(0, null, true, false, extendToZero: true);
         }
         else
         {
@@ -4341,7 +4341,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Computes the lower pseudo-inverse function over interval $I$, $f^{-1}_{\downarrow,I}(x)$.
     /// The support of the result will be the interval $f(I)$, defined as the smallest interval containing all $f(x)$ for $x \in I$.
-    /// If $0 \in I$, the support is extended to start from 0.
+    /// Below it the result is $+\infty$, also if $0 \in I$, unlike for <see cref="LowerPseudoInverse"/>, which is defined from 0.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
     /// <param name="end">End of the interval.
@@ -4352,7 +4352,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
-    /// Defined and discussed in [ZNS23a].
+    /// Defined and discussed in [ZNS23a], and in [ZNS26] Definition 19, which makes the result $+\infty$ below $f(a)$ so that it keeps the $+\infty$ of the initial part of the restricted functions the isomorphism of convolutions is stated on.
+    /// This differs from <see cref="LowerPseudoInverse"/> for $f(0) > 0$ and an interval starting at 0, where the whole pseudo-inverse is 0 below $f(0)$.
     /// If $f$ is $+\infty$ over the whole interval, the support is $\{ +\infty \}$, and the result is $+\infty$ at every finite height.
     /// If the interval does not contain its start, the value at the start is the right limit there, as only what follows it counts.
     /// </remarks>
@@ -4361,6 +4362,31 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Rational? end = null,
         bool isStartIncluded = true,
         bool isEndIncluded = false
+    )
+        => LowerPseudoInverseOverInterval(start, end, isStartIncluded, isEndIncluded, extendToZero: false);
+
+    /// <summary>
+    /// Computes the lower pseudo-inverse over interval $I$ starting at $a$, as <see cref="LowerPseudoInverseOverInterval(Rational, Rational?, bool, bool)"/> does,
+    /// or, with <paramref name="extendToZero"/> and $a = 0$, as <see cref="LowerPseudoInverse"/> does, 0 below $f(0)$.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval, $+\infty$ if null.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed; it has no effect if <paramref name="end"/> is null.</param>
+    /// <param name="extendToZero">
+    /// If true and <paramref name="start"/> is 0, the result is 0 below $f(0)$, as the whole pseudo-inverse is, instead of $+\infty$.
+    /// It requires the interval to include 0, which is not checked.
+    /// </param>
+    /// <exception cref="ArgumentException">If the interval is invalid, or the curve is not non-decreasing or non-negative over it.</exception>
+    /// <remarks>
+    /// <see cref="LowerPseudoInverse"/> uses it for ultimately $+\infty$ curves, with <paramref name="extendToZero"/> set, so that one code path serves both.
+    /// </remarks>
+    private Curve LowerPseudoInverseOverInterval(
+        Rational start,
+        Rational? end,
+        bool isStartIncluded,
+        bool isEndIncluded,
+        bool extendToZero
     )
     {
         if (!IsNonDecreasingOverInterval(start, end, isStartIncluded, isEndIncluded))
@@ -4374,11 +4400,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw new ArgumentException($"Invalid start: {start}");
 
         var _end = end ?? Rational.PlusInfinity;
-        var startFromZero = start == 0;
+        var startFromZero = extendToZero && start == 0;
 
         if (!isStartIncluded && start < _end)
             // over an interval that excludes its start a, the result is the same as the lower pseudo-inverse over the interval including a, of f made right-continuous at a, [TBP-PI-INT] Proposition 9 (i)
-            return WithRightContinuousAt(start).LowerPseudoInverseOverInterval(start, end, true, isEndIncluded);
+            return WithRightContinuousAt(start).LowerPseudoInverseOverInterval(start, end, true, isEndIncluded, extendToZero);
 
         if (start == _end)
         {
@@ -4400,7 +4426,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (IsUltimatelyPlusInfinite && (PseudoPeriodStartInfimum < _end ||
                                              (PseudoPeriodStartInfimum == _end && isEndIncluded && ValueAt(_end).IsInfinite)))
                 // f is +inf in the interval, and what comes after does not change the infimum
-                return LowerPseudoInverseOverInterval(start, null, isStartIncluded);
+                return LowerPseudoInverseOverInterval(start, null, isStartIncluded, false, extendToZero);
 
             // limited interval, no pseudo-periodic behavior
             var cut = CutAsEnumerable(start, _end, true, isEndIncluded);
@@ -4447,8 +4473,21 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
                 if (lastFiniteTime == 0 && start == 0)
-                    // every height is first reached at 0
-                    return Zero();
+                {
+                    // every height from f(0) on is first reached at 0, and no height is below it if the result is defined from 0
+                    var valueAtZero = ValueAt(0);
+                    if (extendToZero || valueAtZero == 0)
+                        return Zero();
+                    if (valueAtZero.IsInfinite)
+                        return PlusInfinite();
+
+                    return new Curve(
+                        new Sequence([
+                            Point.PlusInfinite(0), Segment.PlusInfinite(0, valueAtZero),
+                            new Point(valueAtZero, 0), Segment.Constant(valueAtZero, valueAtZero + 1, 0)
+                        ]),
+                        valueAtZero, 1, 0);
+                }
                 if (start > lastFiniteTime || (start == lastFiniteTime && ValueAt(start).IsInfinite))
                     // f is +inf over the interval, so it reaches no finite height
                     return PlusInfinite();
