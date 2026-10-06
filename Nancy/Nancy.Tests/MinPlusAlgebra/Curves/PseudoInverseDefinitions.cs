@@ -42,7 +42,7 @@ public class PseudoInverseDefinitions
     /// <summary>
     /// Returns the first instant at which the elements are at or above <paramref name="y"/>, $+\infty$ if there is none.
     /// </summary>
-    private static Rational Infimum(IEnumerable<Element> elements, Rational y)
+    internal static Rational Infimum(IEnumerable<Element> elements, Rational y)
     {
         var best = Inf;
         foreach (var e in elements)
@@ -78,7 +78,7 @@ public class PseudoInverseDefinitions
     /// <summary>
     /// Returns the last instant at which the elements are at or below <paramref name="y"/>, $-\infty$ if there is none.
     /// </summary>
-    private static Rational Supremum(IEnumerable<Element> elements, Rational y)
+    internal static Rational Supremum(IEnumerable<Element> elements, Rational y)
     {
         var best = Rational.MinusInfinity;
         foreach (var e in elements)
