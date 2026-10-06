@@ -25,11 +25,100 @@ public class Deviations
             hDev: 4,
             0
         ),
+        // With no rate the service curve is 0 everywhere, and never reaches the burst.
+        // hDev(f, g, t) is 0 at t = 0 and +infinity for every t > 0, so the deviation is +infinity, measured at 0.
+        (
+            f: new SigmaRhoArrivalCurve(1, 0),
+            g: new RateLatencyServiceCurve(0, 0),
+            hDev: Rational.PlusInfinity,
+            0
+        ),
+        // As above, with the rate-latency curve of a tandem that includes a server with no rate.
+        (
+            f: new SigmaRhoArrivalCurve(1, 0),
+            g: new RateLatencyServiceCurve(0, 1).Convolution(new RateLatencyServiceCurve(5, 2)),
+            hDev: Rational.PlusInfinity,
+            0
+        ),
+        // As above, with a rate-latency curve scaled by 0.
+        (
+            f: new SigmaRhoArrivalCurve(1, 0),
+            g: new RateLatencyServiceCurve(4, 1).Scale(0),
+            hDev: Rational.PlusInfinity,
+            0
+        ),
         // With no burst and no rate the arrival curve is 0 everywhere, so it never exceeds g.
         (
             f: new SigmaRhoArrivalCurve(0, 0),
             g: new RateLatencyServiceCurve(2, 4),
             hDev: 0,
+            0
+        ),
+        // The same against service curves with no rate, which are 0 everywhere as well.
+        (
+            f: new SigmaRhoArrivalCurve(0, 0),
+            g: new RateLatencyServiceCurve(0, 0),
+            hDev: 0,
+            0
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(0, 0),
+            g: new RateLatencyServiceCurve(0, 3),
+            hDev: 0,
+            0
+        ),
+        // With a rate and no burst, f(t) > 0 for every t > 0, which a service curve with no rate never reaches:
+        // hDev(f, g, t) is +infinity for every t > 0, and is measured at 0.
+        (
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(0, 0),
+            hDev: Rational.PlusInfinity,
+            0
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(2, 1),
+            g: new RateLatencyServiceCurve(0, 3),
+            hDev: Rational.PlusInfinity,
+            0
+        ),
+        // Equal curves: hDev(f, g, t) is 0 at every t.
+        (
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(1, 0),
+            hDev: 0,
+            0
+        ),
+        (
+            f: new RateLatencyServiceCurve(2, 3),
+            g: new RateLatencyServiceCurve(2, 3),
+            hDev: 0,
+            0
+        ),
+        (
+            f: new StairCurve(1, 1),
+            g: new StairCurve(1, 1),
+            hDev: 0,
+            0
+        ),
+        // The same rate, g delayed by 3: hDev(f, g, t) is 3 for every t > 0, first approached right after 0.
+        (
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(1, 3),
+            hDev: 3,
+            0
+        ),
+        // A burst of 2 at the same rate, with no latency: hDev(f, g, t) is 2 for every t > 0.
+        (
+            f: new SigmaRhoArrivalCurve(2, 1),
+            g: new RateLatencyServiceCurve(1, 0),
+            hDev: 2,
+            0
+        ),
+        // Against a delay of 2, which is +infinity after it: hDev(f, g, t) is 2 - t up to 2, first approached right after 0.
+        (
+            f: new SigmaRhoArrivalCurve(1, 1),
+            g: new DelayServiceCurve(2),
+            hDev: 2,
             0
         ),
         // With no burst the deviation approaches the latency as t goes to 0 from the right.
@@ -345,6 +434,60 @@ public class Deviations
             g: new RateLatencyServiceCurve(4, 3),
             vDev: 13,
             time: 3
+        ),
+        // Both 0 everywhere.
+        (
+            f: new SigmaRhoArrivalCurve(0, 0),
+            g: new RateLatencyServiceCurve(0, 0),
+            vDev: 0,
+            time: 0
+        ),
+        // f is 0 everywhere: f - g is 0 up to the latency, and negative after.
+        (
+            f: new SigmaRhoArrivalCurve(0, 0),
+            g: new RateLatencyServiceCurve(2, 4),
+            vDev: 0,
+            time: 0
+        ),
+        // g is 0 everywhere: f - g is f, which is the burst right after 0, or grows without bound with a rate.
+        (
+            f: new SigmaRhoArrivalCurve(1, 0),
+            g: new RateLatencyServiceCurve(0, 0),
+            vDev: 1,
+            time: 0
+        ),
+        (
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(0, 0),
+            vDev: Rational.PlusInfinity,
+            time: Rational.PlusInfinity
+        ),
+        // Equal curves: f - g is 0 everywhere.
+        (
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(1, 0),
+            vDev: 0,
+            time: 0
+        ),
+        (
+            f: new StairCurve(1, 1),
+            g: new StairCurve(1, 1),
+            vDev: 0,
+            time: 0
+        ),
+        // The same rate, g delayed by 3: f - g is t up to 3, then 3.
+        (
+            f: new SigmaRhoArrivalCurve(0, 1),
+            g: new RateLatencyServiceCurve(1, 3),
+            vDev: 3,
+            time: 3
+        ),
+        // Against a delay of 2: f - g is f up to 2, and -infinity after.
+        (
+            f: new SigmaRhoArrivalCurve(1, 1),
+            g: new DelayServiceCurve(2),
+            vDev: 3,
+            time: 2
         ),
         (
             f: new SigmaRhoArrivalCurve(4, 5),
