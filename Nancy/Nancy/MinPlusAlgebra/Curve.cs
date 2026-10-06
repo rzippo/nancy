@@ -4743,6 +4743,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (sr.Sigma == 0 && sr.Rho == 0)
                 // f is 0 everywhere, so it never exceeds g
                 return 0;
+            if (rl.Rate == 0)
+                // f is not 0 everywhere, as checked above, so it exceeds g, 0 everywhere, right after 0
+                return Rational.PlusInfinity;
+
             if(rl.Rate >= sr.Rho)
                 return rl.Latency + sr.Sigma / rl.Rate;
             else
@@ -4839,7 +4843,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// The definition of $hDev(f, g, t)$ is based on [DNC18] Lemma 5.1.
-    /// Where the deviation is $+\infty$ over an interval, because <paramref name="f"/> takes the value $+\infty$ there, the result is the start of the first such interval.
+    /// Where the deviation is $+\infty$ over an interval, because <paramref name="f"/> takes the value $+\infty$ there or <paramref name="g"/> never reaches $f(t)$, the result is the start of the first such interval.
     /// </remarks>
     public static Rational HorizontalDeviationMeasuredAt(Curve f, Curve g, ComputationSettings? settings = null)
     {
@@ -4850,25 +4854,22 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve rl)
         {
-            if(rl.Rate >= sr.Rho)
+            // with no rate, g is 0 everywhere, and the deviation is 0, or +infinity from right after 0
+            if (rl.Rate >= sr.Rho || rl.Rate == 0)
                 return 0;
             else
                 return Rational.PlusInfinity;
         }
         else
         {
-            if (!f.IsFinite)
-            {
-                var hDevF = HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings);
-                // where the deviation is +inf over an interval, it is reached at the start of the first one
-                var firstInfinite = hDevF.BaseSequence.Elements.FirstOrDefault(e => e.IsPlusInfinite);
-                return firstInfinite is not null ? firstInfinite.StartTime : hDevF.SupArg();
-            }
-            var hDevArg = g.LowerPseudoInverse()
-                .Composition(f, settings)
-                .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
-                .SupArg();
-            return hDevArg;
+            var hDevF = f.IsFinite
+                ? g.LowerPseudoInverse()
+                    .Composition(f, settings)
+                    .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
+                : HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings);
+            // where the deviation is +inf over an interval, it is reached at the start of the first one
+            var firstInfinite = hDevF.BaseSequence.Elements.FirstOrDefault(e => e.IsPlusInfinite);
+            return firstInfinite is not null ? firstInfinite.StartTime : hDevF.SupArg();
         }
     }
 
