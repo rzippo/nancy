@@ -28,6 +28,19 @@ public class Scaling
             yield return new object[] { curve, scaling };            
     }
 
+    /// <summary>
+    /// The times the values of a curve are compared at: the multiples of $1 / q$ below the end of the base sequence and one period, where $q$ is the denominator of that end.
+    /// They are few, and all of them are used.
+    /// </summary>
+    public static IEnumerable<Rational> TimesToCompare(Curve curve)
+    {
+        Rational maxTime = curve.BaseSequence.DefinedUntil + curve.PseudoPeriodLength;
+        int denominator = (int) maxTime.Denominator;
+        int numerator = (int) maxTime.Numerator;
+        for (var i = 0; i < numerator; i++)
+            yield return new Rational(i, denominator);
+    }
+
     [Theory]
     [MemberData(nameof(GetCurvesAndScalings))]
     public void ScalingValues(Curve curve, decimal scaling)
@@ -36,22 +49,8 @@ public class Scaling
 
         Assert.Equal(curve.IsZero, scaled.IsZero);
 
-        var random = new Random();
-        for (int i = 0; i < 10; i++)
-        {
-            var time = RandomTime();
+        foreach (var time in TimesToCompare(curve))
             Assert.Equal(curve.ValueAt(time) * scaling, scaled.ValueAt(time));
-        }
-
-        Rational RandomTime()
-        {
-            Rational maxTime = curve.BaseSequence.DefinedUntil + curve.PseudoPeriodLength;
-            int denominator = (int) maxTime.Denominator;
-            int numerator = (int) maxTime.Numerator;
-
-            int randomInt = random.Next(0, numerator);
-            return new Rational(randomInt, denominator);
-        }
     }
 
     [Theory]
@@ -62,22 +61,8 @@ public class Scaling
 
         Assert.Equal(curve.IsZero, scaled.IsZero);
 
-        var random = new Random();
-        for (int i = 0; i < 10; i++)
-        {
-            var time = RandomTime();
+        foreach (var time in TimesToCompare(curve))
             Assert.Equal(curve.ValueAt(time) * scaling, scaled.ValueAt(time));
-        }
-
-        Rational RandomTime()
-        {
-            Rational maxTime = curve.BaseSequence.DefinedUntil + curve.PseudoPeriodLength;
-            int denominator = (int) maxTime.Denominator;
-            int numerator = (int) maxTime.Numerator;
-
-            int randomInt = random.Next(0, numerator);
-            return new Rational(randomInt, denominator);
-        }
     }
 
     [Theory]
@@ -88,21 +73,7 @@ public class Scaling
 
         Assert.Equal(curve.IsZero, scaled.IsZero);
 
-        var random = new Random();
-        for (int i = 0; i < 10; i++)
-        {
-            var time = RandomTime();
+        foreach (var time in TimesToCompare(curve))
             Assert.Equal(curve.ValueAt(time) / scaling, scaled.ValueAt(time));
-        }
-
-        Rational RandomTime()
-        {
-            Rational maxTime = curve.BaseSequence.DefinedUntil + curve.PseudoPeriodLength;
-            int denominator = (int) maxTime.Denominator;
-            int numerator = (int) maxTime.Numerator;
-
-            int randomInt = random.Next(0, numerator);
-            return new Rational(randomInt, denominator);
-        }
     }
 }

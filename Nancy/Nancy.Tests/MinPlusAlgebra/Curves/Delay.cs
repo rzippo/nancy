@@ -37,22 +37,8 @@ public class Delay
         Assert.Equal(curve.IsZero, delayed.IsZero);
         Assert.True( delay == 0 || delayed.Cut(0, delay).IsZero);
 
-        var random = new Random();
-        for (int i = 0; i < 10; i++)
-        {
-            var time = RandomTime();
+        foreach (var time in Scaling.TimesToCompare(curve))
             Assert.Equal(curve.ValueAt(time), delayed.ValueAt(time + delay));
-        }
-
-        Rational RandomTime()
-        {
-            Rational maxTime = curve.BaseSequence.DefinedUntil + curve.PseudoPeriodLength;
-            int denominator = (int) maxTime.Denominator;
-            int numerator = (int) maxTime.Numerator;
-
-            int randomInt = random.Next(0, numerator);
-            return new Rational(randomInt, denominator);
-        }
     }
 
     public static List<(DelayServiceCurve a, DelayServiceCurve b)> DelayCompositions =

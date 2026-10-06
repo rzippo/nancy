@@ -127,7 +127,8 @@ public class SelfConvolutionSubAdditive
         Curve[] beta = new Curve[N];
         Curve[] W = new Curve[N];
 
-        Random rnd = new Random();
+        // seed 0 gives the longest chain of equivalences, 37, of the first 300 seeds, all of which end
+        Random rnd = new Random(0);
         for (var i = 0; i < N; i++)
         {
             beta[i] = new RateLatencyServiceCurve(rnd.Next(1, 20), rnd.Next(1, 20)); 
