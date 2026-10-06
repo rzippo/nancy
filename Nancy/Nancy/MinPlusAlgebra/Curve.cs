@@ -4343,6 +4343,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Replaces the value at the start of the cut with the right limit there, if the interval excludes its start.
+    /// </summary>
+    private IEnumerable<Element> WithRightLimitAtStart(IEnumerable<Element> cut, Rational start, bool isStartIncluded)
+        => isStartIncluded ? cut : cut.Skip(1).Prepend(new Point(start, RightLimitAt(start)));
+
+    /// <summary>
     /// Computes the lower pseudo-inverse function over interval $I$, $f^{-1}_{\downarrow,I}(x)$.
     /// The support of the result will be the interval $f(I)$, defined as the smallest interval containing all $f(x)$ for $x \in I$.
     /// If $0 \in I$, the support is extended to start from 0.
@@ -4378,6 +4384,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         var _end = end ?? Rational.PlusInfinity;
         var startFromZero = start == 0;
 
+        if (!isStartIncluded && start < _end)
+            // over an interval that excludes its start a, the result is the same as the lower pseudo-inverse over the interval including a, of f made right-continuous at a, [TBP-PI-INT] Proposition 9 (i)
+            return WithRightContinuousAt(start).LowerPseudoInverseOverInterval(start, end, true, isEndIncluded);
+
         if (start == _end)
         {
             if (!(isStartIncluded && isEndIncluded))
@@ -4401,7 +4411,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 return LowerPseudoInverseOverInterval(start, null, isStartIncluded);
 
             // limited interval, no pseudo-periodic behavior
-            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            var cut = CutAsEnumerable(start, _end, true, isEndIncluded);
             var lpi_raw = cut
                 .LowerPseudoInverse(startFromZero)
                 .ToList();
@@ -4447,9 +4457,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (lastFiniteTime == 0 && start == 0)
                     // every height is first reached at 0
                     return Zero();
-                if (start > lastFiniteTime || (start == lastFiniteTime && (!isStartIncluded || ValueAt(start).IsInfinite)))
+                if (start > lastFiniteTime || (start == lastFiniteTime && ValueAt(start).IsInfinite))
                     // f is +inf over the interval, so it reaches no finite height
                     return PlusInfinite();
+
                 var isStartBeforeLastFinite = start < lastFiniteTime;
                 // f(T_I) can be above the left limit: the heights in between are first reached at T_I too
                 // if the interval starts at T_I, there is no left limit in it, and the heights are those from f(T_I) on
@@ -4578,14 +4589,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 var constant_start = Rational.Max(PseudoPeriodStartInfimum, start);
                 var constant_value = ValueAt(PseudoPeriodStart);
+                var valueAtStart = isStartIncluded ? ValueAt(start) : RightLimitAt(start);
                 // the transient excludes constant_start, so its inverse covers up to f(constant_start^-)
                 var upi = start < constant_start
-                    ? CutAsEnumerable(start, constant_start)
+                    ? WithRightLimitAtStart(CutAsEnumerable(start, constant_start), start, isStartIncluded)
                         .UpperPseudoInverse()
                         .ToList()
                     : [];
                 // for any y from f(constant_start^-), up to the constant, f(t) <= y for t < constant_start, and for no t > constant_start
-                var jump_start = start < constant_start ? LeftLimitAt(constant_start) : ValueAt(start);
+                var jump_start = start < constant_start ? LeftLimitAt(constant_start) : valueAtStart;
                 if (jump_start < constant_value)
                 {
                     if (upi.LastOrDefault() is not Point last || last.Time != jump_start)
@@ -4595,7 +4607,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 upi.Add(Point.PlusInfinite(constant_value));
                 upi.Add(Segment.PlusInfinite(constant_value, constant_value + 1));
 
-                var valueAtStart = ValueAt(start);
                 var sequence = valueAtStart > 0
                     ? Sequence.MinusInfinite(0, valueAtStart).Elements
                         .Concat(upi)
@@ -4622,7 +4633,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 var lastFiniteValue = isStartBeforeLastFinite ? LeftLimitAt(lastFiniteTime) : ValueAt(lastFiniteTime); // L
                 var isLastFiniteConstant = isStartBeforeLastFinite && GetSegmentBefore(lastFiniteTime).IsConstant;
                 var transient_upi = isStartBeforeLastFinite
-                    ? BaseSequence.CutAsEnumerable(start, lastFiniteTime)
+                    ? WithRightLimitAtStart(BaseSequence.CutAsEnumerable(start, lastFiniteTime), start, isStartIncluded)
                         .UpperPseudoInverse()
                     : Enumerable.Empty<Element>();
                 var upi = isLastFiniteConstant
@@ -4632,7 +4643,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         .Append(new Point(lastFiniteValue, lastFiniteTime))
                         .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
 
-                var valueAtStart = ValueAt(start);
+                var valueAtStart = isStartIncluded ? ValueAt(start) : RightLimitAt(start);
                 var sequence = valueAtStart > 0
                     ? Sequence.MinusInfinite(0, valueAtStart).Elements
                         .Concat(upi)
@@ -4651,11 +4662,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 var periodStart = (start < PseudoPeriodStart ? PseudoPeriodStart : start) + PseudoPeriodLength;
                 // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
                 // the pseudo-inverse of said point is then removed from the result
-                var upi = CutAsEnumerable(start, periodStart + PseudoPeriodLength, isEndIncluded: true)
+                var upi = WithRightLimitAtStart(CutAsEnumerable(start, periodStart + PseudoPeriodLength, isEndIncluded: true), start, isStartIncluded)
                     .UpperPseudoInverse()
                     .SkipLast(1);
 
-                var valueAtStart = ValueAt(start);
+                var valueAtStart = isStartIncluded ? ValueAt(start) : RightLimitAt(start);
                 var sequence = valueAtStart > 0
                     ? Sequence.MinusInfinite(0, valueAtStart).Elements
                         .Concat(upi)
