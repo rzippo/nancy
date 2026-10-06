@@ -87,6 +87,65 @@ public class IsNonNegativeOverInterval
         Assert.Equal(expected, curve.IsNonNegativeOverInterval(start, end, isStartIncluded, isEndIncluded));
     }
 
+    /// <summary>
+    /// A curve that is negative at 0 and 0 after, over intervals starting at 0.
+    /// </summary>
+    public static List<(Curve curve, Rational start, Rational? end, bool isStartIncluded, bool isEndIncluded, bool expected)> StartAtZeroCases = new()
+    {
+        (
+            curve: new Curve(
+                new Sequence(new List<Element> { new Point(0, -1), new Segment(0, 1, 0, 0), new Point(1, 0), new Segment(1, 2, 0, 0) }),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0),
+            start: 0,
+            end: null,
+            isStartIncluded: true,
+            isEndIncluded: false,
+            expected: false
+        ),
+        (
+            curve: new Curve(
+                new Sequence(new List<Element> { new Point(0, -1), new Segment(0, 1, 0, 0), new Point(1, 0), new Segment(1, 2, 0, 0) }),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0),
+            start: 0,
+            end: null,
+            isStartIncluded: false,
+            isEndIncluded: false,
+            expected: true
+        ),
+        (
+            curve: new Curve(
+                new Sequence(new List<Element> { new Point(0, -1), new Segment(0, 1, 0, 0), new Point(1, 0), new Segment(1, 2, 0, 0) }),
+                pseudoPeriodStart: 1,
+                pseudoPeriodLength: 1,
+                pseudoPeriodHeight: 0),
+            start: 0,
+            end: 3,
+            isStartIncluded: false,
+            isEndIncluded: true,
+            expected: true
+        ),
+    };
+
+    public static IEnumerable<object[]> StartAtZeroTestCases()
+        => StartAtZeroCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(StartAtZeroTestCases))]
+    public void IntervalOpenAtZeroDoesNotIncludeTheValueAtZero(
+        Curve curve,
+        Rational start,
+        Rational? end,
+        bool isStartIncluded,
+        bool isEndIncluded,
+        bool expected)
+    {
+        Assert.Equal(expected, curve.IsNonNegativeOverInterval(start, end, isStartIncluded, isEndIncluded));
+    }
+
     public static List<(Curve curve, Rational start, bool expected)> UnboundedCases = new()
     {
         (
