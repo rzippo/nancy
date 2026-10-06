@@ -1242,6 +1242,7 @@ public static class SequenceExtensions
                             {
                                 // this is the first element of the sequence, so the left-continuity point must be processed here
                                 yield return new Point(time: s.RightLimitAtStartTime, value: s.StartTime);
+                                wasPreviousPoint = true;
                             }
                             else
                             {
