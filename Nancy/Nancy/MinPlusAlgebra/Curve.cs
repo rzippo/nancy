@@ -4283,9 +4283,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
             if (lastFiniteTime == 0)
                 return Zero();
-            var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
-                lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
+            // f(T_I) can be above the left limit: every height from the left limit on is first exceeded at T_I
+            var lastFiniteValue = LeftLimitAt(lastFiniteTime); // L
             var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
             var transient_upi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse(startFromZero: true);
             var upi = isLastFiniteConstant
@@ -4523,7 +4522,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (lastFiniteTime == 0)
                     return Zero();
                 var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-                var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
+                // f(T_I) can be above the left limit: the heights in between are first reached, or first exceeded, at T_I too
+                var lastFiniteValue = start < lastFiniteTime ? LeftLimitAt(lastFiniteTime) :
+                    valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
                     lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
                 var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
                 var transient_lpi = start < lastFiniteTime
@@ -4681,7 +4682,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (lastFiniteTime == 0)
                     return Zero();
                 var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-                var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
+                // f(T_I) can be above the left limit: the heights in between are first reached, or first exceeded, at T_I too
+                var lastFiniteValue = start < lastFiniteTime ? LeftLimitAt(lastFiniteTime) :
+                    valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
                     lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
                 var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
                 var transient_upi = start < lastFiniteTime
