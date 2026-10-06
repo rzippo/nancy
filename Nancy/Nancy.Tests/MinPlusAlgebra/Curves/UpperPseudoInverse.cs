@@ -372,7 +372,7 @@ public class UpperPseudoInverse
                 )
             ),
             (
-                // just madness
+                // f(0) = v > 0, then +inf: upi is -inf in [0, v[, and 0 from v on
                 operand: new Curve(
                     baseSequence: new Sequence(new List<Element>()
                     {
@@ -385,7 +385,18 @@ public class UpperPseudoInverse
                     pseudoPeriodLength: 1,
                     pseudoPeriodHeight: 0
                 ),
-                expected: Curve.Zero()
+                expected: new Curve(
+                    baseSequence: new Sequence(new List<Element>()
+                    {
+                        Point.MinusInfinite(0),
+                        Segment.MinusInfinite(0, 5),
+                        new Point(5, 0),
+                        Segment.Constant(5, 6, 0)
+                    }),
+                    pseudoPeriodStart: 5,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0
+                )
             )
         };
 

@@ -110,7 +110,7 @@ public class CurveLowerPseudoInverseOverInterval
                 pseudoPeriodHeight: 0
             )
         ),
-        // UI edge case
+        // UI edge case: f is +inf over the interval, so it reaches no finite height, [ZNS23a] Definition 14
         (
             operand: new Curve(
                 baseSequence: new Sequence(new List<Element>()
@@ -126,18 +126,7 @@ public class CurveLowerPseudoInverseOverInterval
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
             ),
-            expected: new Curve(
-                baseSequence: new Sequence(new List<Element>()
-                {
-                    Point.PlusInfinite(0),
-                    Segment.PlusInfinite(0, 2),
-                    new Point(2, 2),
-                    Segment.Constant(2, 3, 2)
-                }),
-                pseudoPeriodStart: 2,
-                pseudoPeriodLength: 1,
-                pseudoPeriodHeight: 0
-            )
+            expected: Curve.PlusInfinite()
         )
     };
 

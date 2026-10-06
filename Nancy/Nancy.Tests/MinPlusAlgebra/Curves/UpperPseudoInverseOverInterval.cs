@@ -101,7 +101,7 @@ public class UpperPseudoInverseOverInterval
                     pseudoPeriodHeight: 0
                 )
             ),
-            // UI edge case
+            // UI edge case: f is +inf over the interval, so no instant has f(t) <= y for a finite y, [ZNS23a] Definition 14
             (
                 operand: new Curve(
                     baseSequence: new Sequence(new List<Element>()
@@ -117,18 +117,7 @@ public class UpperPseudoInverseOverInterval
                     pseudoPeriodLength: 1,
                     pseudoPeriodHeight: 0
                 ),
-                expected: new Curve(
-                    baseSequence: new Sequence(new List<Element>()
-                    {
-                        Point.MinusInfinite(0),
-                        Segment.MinusInfinite(0, 2),
-                        new Point(2, 2),
-                        Segment.Constant(2, 3, 2)
-                    }),
-                    pseudoPeriodStart: 2,
-                    pseudoPeriodLength: 1,
-                    pseudoPeriodHeight: 0
-                )
+                expected: Curve.MinusInfinite()
             )
         };
 

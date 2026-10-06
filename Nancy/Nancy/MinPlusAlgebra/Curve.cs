@@ -4166,28 +4166,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else if (IsUltimatelyPlusInfinite)
         {
-            var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
-            if (lastFiniteTime == 0)
-                return Zero();
-            var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-            var leftLimit = LeftLimitAt(lastFiniteTime);
-            var lastFiniteValue = valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime : leftLimit; // L
-            var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
-            var transient_lpi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).LowerPseudoInverse(startFromZero: true);
-            // f(T_I) can be above the left limit: the heights in between are first reached at T_I too
-            var lpi = isLastFiniteConstant
-                ? transient_lpi
-                    .Append(Segment.Constant(leftLimit, lastFiniteValue + 2, lastFiniteTime))
-                : transient_lpi
-                    .Append(new Point(leftLimit, lastFiniteTime))
-                    .Append(Segment.Constant(leftLimit, lastFiniteValue + 1, lastFiniteTime));
-
-            return new Curve(
-                baseSequence: lpi.ToSequence(),
-                pseudoPeriodStart: isLastFiniteConstant ? lastFiniteValue + 1 : lastFiniteValue,
-                pseudoPeriodLength: 1,
-                pseudoPeriodHeight: 0
-            );
+            return LowerPseudoInverseOverInterval(0);
         }
         else if (!IsNonNegative)
         {
@@ -4280,33 +4259,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else if (IsUltimatelyPlusInfinite)
         {
-            var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
-            if (lastFiniteTime == 0)
-                return Zero();
-            // f(T_I) can be above the left limit: every height from the left limit on is first exceeded at T_I
-            var lastFiniteValue = LeftLimitAt(lastFiniteTime); // L
-            var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
-            var transient_upi = BaseSequence.CutAsEnumerable(0, lastFiniteTime).UpperPseudoInverse(startFromZero: true);
-            var upi = isLastFiniteConstant
-                ? transient_upi
-                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime))
-                : transient_upi
-                    .Append(new Point(lastFiniteValue, lastFiniteTime))
-                    .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
-
-            var valueAtZero = ValueAt(0);
-            var sequence = valueAtZero > 0
-                ? Sequence.MinusInfinite(0, valueAtZero).Elements
-                    .Concat(upi)
-                    .ToSequence()
-                : upi.ToSequence();
-
-            return new Curve(
-                baseSequence: sequence,
-                pseudoPeriodStart: lastFiniteValue,
-                pseudoPeriodLength: 1,
-                pseudoPeriodHeight: 0
-            );
+            return UpperPseudoInverseOverInterval(0);
         }
         else if (!IsNonNegative)
         {
@@ -4518,16 +4471,19 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
             else if (IsUltimatelyPlusInfinite)
             {
-                var lastFiniteTime = Rational.Max(PseudoPeriodStartInfimum, start); // T_I
-                if (lastFiniteTime == 0)
+                var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
+                if (lastFiniteTime == 0 && start == 0)
+                    // every height is first reached at 0
                     return Zero();
-                var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-                // f(T_I) can be above the left limit: the heights in between are first reached, or first exceeded, at T_I too
-                var lastFiniteValue = start < lastFiniteTime ? LeftLimitAt(lastFiniteTime) :
-                    valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
-                    lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
-                var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
-                var transient_lpi = start < lastFiniteTime
+                if (start > lastFiniteTime || (start == lastFiniteTime && (!isStartIncluded || ValueAt(start).IsInfinite)))
+                    // f is +inf over the interval, so it reaches no finite height
+                    return PlusInfinite();
+                var isStartBeforeLastFinite = start < lastFiniteTime;
+                // f(T_I) can be above the left limit: the heights in between are first reached at T_I too
+                // if the interval starts at T_I, there is no left limit in it, and the heights are those from f(T_I) on
+                var lastFiniteValue = isStartBeforeLastFinite ? LeftLimitAt(lastFiniteTime) : ValueAt(lastFiniteTime); // L
+                var isLastFiniteConstant = isStartBeforeLastFinite && GetSegmentBefore(lastFiniteTime).IsConstant;
+                var transient_lpi = isStartBeforeLastFinite
                     ? BaseSequence.CutAsEnumerable(start, lastFiniteTime)
                         .LowerPseudoInverse(startFromZero)
                     : Enumerable.Empty<Element>();
@@ -4538,7 +4494,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         .Append(new Point(lastFiniteValue, lastFiniteTime))
                         .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
 
-                var valueAtStart = ValueAt(start).IsFinite ? ValueAt(start) : LeftLimitAt(start);
+                var valueAtStart = ValueAt(start);
                 var sequence = !startFromZero && valueAtStart > 0
                     ? Sequence.PlusInfinite(0, valueAtStart).Elements
                         .Concat(lpi)
@@ -4678,16 +4634,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
             else if (IsUltimatelyPlusInfinite)
             {
-                var lastFiniteTime = Rational.Max(PseudoPeriodStartInfimum, start); // T_I
-                if (lastFiniteTime == 0)
-                    return Zero();
-                var valueAtLastFiniteTime = ValueAt(lastFiniteTime); // f(T_I)
-                // f(T_I) can be above the left limit: the heights in between are first reached, or first exceeded, at T_I too
-                var lastFiniteValue = start < lastFiniteTime ? LeftLimitAt(lastFiniteTime) :
-                    valueAtLastFiniteTime.IsFinite ? valueAtLastFiniteTime :
-                    lastFiniteTime > 0 ? LeftLimitAt(lastFiniteTime) : 0; // L
-                var isLastFiniteConstant = GetSegmentBefore(lastFiniteTime).IsConstant;
-                var transient_upi = start < lastFiniteTime
+                var lastFiniteTime = PseudoPeriodStartInfimum; // T_I
+                if (start > lastFiniteTime || (start == lastFiniteTime && (!isStartIncluded || ValueAt(start).IsInfinite)))
+                    // f is +inf over the interval, so no instant has f(t) <= y for a finite y
+                    return MinusInfinite();
+
+                var isStartBeforeLastFinite = start < lastFiniteTime;
+                // f(T_I) can be above the left limit: every height from the left limit on is first exceeded at T_I
+                // if the interval starts at T_I, there is no left limit in it, and the heights are those from f(T_I) on
+                var lastFiniteValue = isStartBeforeLastFinite ? LeftLimitAt(lastFiniteTime) : ValueAt(lastFiniteTime); // L
+                var isLastFiniteConstant = isStartBeforeLastFinite && GetSegmentBefore(lastFiniteTime).IsConstant;
+                var transient_upi = isStartBeforeLastFinite
                     ? BaseSequence.CutAsEnumerable(start, lastFiniteTime)
                         .UpperPseudoInverse()
                     : Enumerable.Empty<Element>();
@@ -4698,7 +4655,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         .Append(new Point(lastFiniteValue, lastFiniteTime))
                         .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
 
-                var valueAtStart = ValueAt(start).IsFinite ? ValueAt(start) : LeftLimitAt(start);
+                var valueAtStart = ValueAt(start);
                 var sequence = valueAtStart > 0
                     ? Sequence.MinusInfinite(0, valueAtStart).Elements
                         .Concat(upi)
