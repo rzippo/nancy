@@ -4428,6 +4428,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else if (_end < Rational.PlusInfinity)
         {
+            if (IsUltimatelyPlusInfinite && (PseudoPeriodStartInfimum < _end ||
+                                             (PseudoPeriodStartInfimum == _end && isEndIncluded && ValueAt(_end).IsInfinite)))
+                // f is +inf in the interval, and what comes after does not change the infimum
+                return LowerPseudoInverseOverInterval(start, null, isStartIncluded);
+
             // limited interval, no pseudo-periodic behavior
             var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
             var lpi_raw = cut
@@ -4584,6 +4589,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else if (_end < Rational.PlusInfinity)
         {
+            if (IsUltimatelyPlusInfinite && (PseudoPeriodStartInfimum < _end ||
+                                             (PseudoPeriodStartInfimum == _end && isEndIncluded && ValueAt(_end).IsInfinite)))
+                // f is +inf in the interval, and what comes after does not change the supremum
+                return UpperPseudoInverseOverInterval(start, null, isStartIncluded);
+
             // limited interval, no pseudo-periodic behavior
             var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
             var upi_raw = cut
