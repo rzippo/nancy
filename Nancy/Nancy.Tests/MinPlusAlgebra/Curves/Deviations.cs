@@ -488,12 +488,13 @@ public class Deviations
     [MemberData(nameof(GetHorizontalDeviationTestCases))]
     public void HorizontalDeviationAlternativesTest(Curve a, Curve b, Rational expected)
     {
-        // the following are mathematically equivalent methods to compute hdev(a, b)
+        // the following compute hdev(a, b), the first one only when the upper pseudo-inverses of both curves are finite
         _testOutputHelper.WriteLine($"var a = {a.ToCodeString()}");
         _testOutputHelper.WriteLine($"var b = {b.ToCodeString()}");
         _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()}");
 
-        // todo: document source for this result
+        // The height form of [PS22] Lemma 25 with the upper pseudo-inverses, as a (max,+) deconvolution at 0.
+        // Not the deviation when f(0) > 0, where it is +inf, nor between sequences, see [TBP-SEQ-DEV] § A.2.
         // This alternative is well-defined only if the pseudo-inverses are finite: 
         // otherwise the (max,+) deconvolution reaches +infty - (+infty) or -infty - (-infty), 
         // and whatever it returns is not the deviation.
@@ -526,9 +527,14 @@ public class Deviations
             .SupValue();
         _testOutputHelper.WriteLine($"var hDev_3 = {hDev_3.ToCodeString()}");
 
+        // The gap between the lower pseudo-inverses, [PS22] Lemma 25, as extended by [TBP-SEQ-DEV] § 4.6, on generic curves
+        var hDev_4 = Curve.HorizontalDeviation(new Curve(a), new Curve(b), ByPseudoInverses);
+        _testOutputHelper.WriteLine($"var hDev_4 = {hDev_4.ToCodeString()}");
+
         if (doHDev1)
             Assert.Equal(hDev_1, hDev_2);
         Assert.Equal(hDev_2, hDev_3);
+        Assert.Equal(hDev_3, hDev_4);
         Assert.Equal(expected, hDev_3);
     }
 
@@ -922,5 +928,364 @@ public class Deviations
         Assert.True(h.IsNonNegative);
         Assert.True(Curve.HorizontalDeviationFunction(f, g + 1) <= h);
         Assert.True(Curve.HorizontalDeviationFunction(f, g.DelayBy(new Rational(3, 2))) >= h);
+    }
+
+    #region Every strategy
+
+    private static readonly ComputationSettings ByPseudoInverses = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.PseudoInverseGap };
+    private static readonly ComputationSettings ByComposition = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.Composition };
+    private static readonly ComputationSettings[] EveryStrategy = Enum.GetValues<HorizontalDeviationStrategy>()
+        .Select(strategy => new ComputationSettings { HorizontalDeviationStrategy = strategy })
+        .ToArray();
+
+    /// <summary>
+    /// $-\infty$ on $[0, 1[$, then $t$.
+    /// </summary>
+    private static readonly Curve MinusThenRate = new(
+        new Sequence([ Point.MinusInfinite(0), Segment.MinusInfinite(0, 1), new Point(1, 1), new Segment(1, 2, 1, 1) ]),
+        1, 1, 1);
+
+    /// <summary>
+    /// Pairs whose horizontal deviation is computed by hand, from $hDev(f, g, t) = \inf\{ d \ge 0 \mid f(t) \le g(t + d) \}$,
+    /// where an operand is bounded, takes the value $+\infty$ or $-\infty$, or the first is $+\infty$ everywhere.
+    /// </summary>
+    public static IEnumerable<object[]> BoundedAndInfiniteOperandCases()
+    {
+        var rate = new RateLatencyServiceCurve(1, 0);
+        var halfRate = new RateLatencyServiceCurve(new Rational(1, 2), 0);
+        var cases = new List<(string id, Curve f, Curve g, Rational hdev)>
+        {
+            // g stays at 3, so never reaches f(t) = t for t > 3
+            ("g bounded", rate, Curve.Minimum(rate, new ConstantCurve(3)), Rational.PlusInfinity),
+            // g = t/2 up to 3 reaches f(t) = t at 2t for t <= 2, and f = 2 at 4 after
+            ("both bounded", Curve.Minimum(rate, new ConstantCurve(2)), Curve.Minimum(halfRate, new ConstantCurve(3)), 2),
+            // g = delta_3 reaches every height above 0 at 3, and f = min(t, 2) is above 0 from 0 on
+            ("f bounded, g reaches +inf", Curve.Minimum(rate, new ConstantCurve(2)), new DelayServiceCurve(3), 3),
+            // f = floor(t) up to 3, taking 3 at 3, then +inf: g = delta_5 takes 5 - t to reach f(t) = floor(t) >= 1, at most 4 at t = 1; the rate-latency curve never reaches +inf
+            ("f jumps to +inf above its left limit, g = delta_5", Curve.Maximum(rate.Floor(), new DelayServiceCurve(3)), new DelayServiceCurve(5), 4),
+            ("f jumps to +inf above its left limit, g never +inf", Curve.Maximum(rate.Floor(), new DelayServiceCurve(3)), new RateLatencyServiceCurve(2, 1), Rational.PlusInfinity),
+            // f becomes +inf after 1, and g never does
+            ("f reaches +inf, g bounded", new DelayServiceCurve(1), Curve.Minimum(rate, new ConstantCurve(3)), Rational.PlusInfinity),
+            // f is +inf everywhere, and g = delta_2 becomes so after 2
+            ("f +inf everywhere", Curve.PlusInfinite(), new DelayServiceCurve(2), 2),
+            ("f +inf everywhere, g never +inf", Curve.PlusInfinite(), rate, Rational.PlusInfinity),
+            // g is -inf before 1, so reaches f(t) = t only from 1
+            ("g -inf at first", rate, MinusThenRate, 1),
+            // g is +inf everywhere, so it is above f at once
+            ("g +inf everywhere", rate, Curve.PlusInfinite(), 0),
+        };
+        foreach (var (id, f, g, hdev) in cases)
+            yield return [id, f, g, hdev];
+    }
+
+    /// <summary>
+    /// Every pair of curves whose horizontal deviation is known: the known cases, those whose first operand becomes $+\infty$, and the bounded and infinite operands.
+    /// </summary>
+    public static IEnumerable<object[]> AllKnownHDevs()
+    {
+        foreach (var testCase in GetHorizontalDeviationTestCases())
+            yield return ["known", testCase[0], testCase[1], testCase[2]];
+        foreach (var testCase in InfiniteFirstOperandCases())
+            yield return [testCase[0], testCase[1], testCase[2], testCase[3]];
+        foreach (var testCase in BoundedAndInfiniteOperandCases())
+            yield return testCase;
+    }
+
+    /// <summary>
+    /// Every strategy gives the known value, see <see cref="HorizontalDeviationStrategy"/>.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(AllKnownHDevs))]
+    public void HorizontalDeviationIsTheSameUnderEveryStrategy(string id, Curve f, Curve g, Rational expected)
+    {
+        foreach (var settings in EveryStrategy)
+        {
+            var result = Curve.HorizontalDeviation(f, g, settings);
+            Assert.True(result == expected, $"{id}: {result} by {settings.HorizontalDeviationStrategy}, not {expected}");
+        }
+    }
+
+    /// <summary>
+    /// The strategies agree on the property pairs, as generic curves, so that none takes the closed form of a token bucket against a rate-latency curve.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(PropertyCurvePairs))]
+    public void HorizontalDeviationStrategiesAgree(Curve f, Curve g)
+    {
+        var expected = Curve.HorizontalDeviation(new Curve(f), new Curve(g), ByPseudoInverses);
+        foreach (var settings in EveryStrategy)
+            Assert.Equal(expected, Curve.HorizontalDeviation(new Curve(f), new Curve(g), settings));
+    }
+
+    /// <summary>
+    /// The known pairs the hypotheses of [PS22] Lemma 25 hold for: non-decreasing curves with finite values that are not bounded above,
+    /// recognised by their lower pseudo-inverses being finite everywhere.
+    /// </summary>
+    public static IEnumerable<object[]> PollexSlomkaLemma25Cases()
+    {
+        foreach (var testCase in AllKnownHDevs())
+        {
+            var (f, g) = ((Curve) testCase[1], (Curve) testCase[2]);
+            if (f.IsFinite && g.IsFinite && g.IsNonNegative && f.LowerPseudoInverse().IsFinite && g.LowerPseudoInverse().IsFinite)
+                yield return testCase;
+        }
+    }
+
+    /// <summary>
+    /// [PS22] Lemma 25: for non-decreasing curves with finite values that are not bounded above,
+    /// the horizontal deviation is the vertical deviation between the lower pseudo-inverses of the second and the first operand.
+    /// It is taken here through <see cref="Curve.VerticalDeviation(Curve, Curve, ComputationSettings?)"/>.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(PollexSlomkaLemma25Cases))]
+    public void HorizontalDeviationIsTheVerticalDeviationBetweenPseudoInverses(string id, Curve f, Curve g, Rational expected)
+    {
+        var vdev = Curve.VerticalDeviation(g.LowerPseudoInverse(), f.LowerPseudoInverse());
+        Assert.True(vdev == expected, $"{id}: {vdev} between the pseudo-inverses, not {expected}");
+    }
+
+    /// <summary>
+    /// The known pairs with a finite horizontal deviation, between curves with finite values and a non-negative second operand.
+    /// </summary>
+    public static IEnumerable<object[]> DominatingShiftCases()
+    {
+        foreach (var testCase in AllKnownHDevs())
+        {
+            var (f, g, hdev) = ((Curve) testCase[1], (Curve) testCase[2], (Rational) testCase[3]);
+            if (f.IsFinite && g.IsNonNegative && hdev.IsFinite)
+                yield return testCase;
+        }
+    }
+
+    /// <summary>
+    /// [PS22] Lemma 54: for non-decreasing curves, the horizontal deviation is the smallest shift of the first operand that the second dominates,
+    /// $\inf\{ \mu \ge 0 \mid \forall t, f(t) \le g(t + \mu) \}$, which is the same as delaying $f$ by $\mu$ and staying below $g$.
+    /// The infimum need not be attained, so the shifts $d + \epsilon$ and $d - \epsilon$ are checked.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(DominatingShiftCases))]
+    public void HorizontalDeviationIsTheSmallestDominatingShift(string id, Curve f, Curve g, Rational expected)
+    {
+        var epsilon = new Rational(1, 1000);
+        Assert.True(f.DelayBy(expected + epsilon) <= g, $"{id}: f delayed by {expected} + {epsilon} is not below g");
+        if (expected > epsilon)
+            Assert.False(f.DelayBy(expected - epsilon) <= g, $"{id}: f delayed by {expected} - {epsilon} is below g");
+    }
+
+    /// <summary>
+    /// The height form with the upper pseudo-inverses, $\sup_y \left( g^{-1}_\uparrow(y) - f^{-1}_\uparrow(y) \right)$ and 0 if that is negative,
+    /// written as the (max,+) deconvolution of the upper pseudo-inverses at 0; null where an upper pseudo-inverse is not finite.
+    /// </summary>
+    private static Rational? HorizontalDeviationByUpperPseudoInverses(Curve f, Curve g)
+    {
+        var fUpi = f.UpperPseudoInverse();
+        var gUpi = g.UpperPseudoInverse();
+        if (!fUpi.IsFinite || !gUpi.IsFinite)
+            return null;
+
+        return Curve.MaxPlusDeconvolution(fUpi, gUpi).Negate().ToNonNegative().ValueAt(0);
+    }
+
+    /// <summary>
+    /// Pairs of curves with plateaus and jumps, whose upper pseudo-inverses are finite and whose first operand is non-negative.
+    /// Chosen out of seeded random ones by covering, with the fewest and smallest, each kind of tail, continuity, plateau and jump, the relation of the two, and whether the deviation is 0, finite or $+\infty$.
+    /// </summary>
+    private static readonly (Curve f, Curve g)[] UpperAndLowerPseudoInverseCurves =
+    [
+        (
+            new StairCurve(1, 3),
+            new StairCurve(1, 4)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,4,4,new Rational(1, 2)) }), pseudoPeriodStart: 0, pseudoPeriodLength: 4, pseudoPeriodHeight: 6),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,5,3,new Rational(1, 4)) }), pseudoPeriodStart: 0, pseudoPeriodLength: 5, pseudoPeriodHeight: new Rational(17, 4))
+        ),
+        (
+            new RateLatencyServiceCurve(1, 0),
+            new RateLatencyServiceCurve(1, 5)
+        ),
+        (
+            new StairCurve(2, 2),
+            new RateLatencyServiceCurve(new Rational(1, 3), 3)
+        ),
+        (
+            new RateLatencyServiceCurve(new Rational(2, 3), 1),
+            new RateLatencyServiceCurve(4, 0)
+        ),
+        (
+            new RateLatencyServiceCurve(new Rational(4, 3), 1),
+            new SigmaRhoArrivalCurve(3, new Rational(3, 2))
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,0,0), new Point(1,0), new Segment(1,2,4,0), new Point(2,4), new Segment(2,4,7,0), new Point(4,7), new Segment(4,5,10,0) }), pseudoPeriodStart: 1, pseudoPeriodLength: 4, pseudoPeriodHeight: 10),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,3,3,0), new Point(3,3), new Segment(3,4,8,2), new Point(4,10), new Segment(4,6,10,2), new Point(6,14), new Segment(6,10,17,2) }), pseudoPeriodStart: 4, pseudoPeriodLength: 6, pseudoPeriodHeight: 15)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,5,0), new Point(1,5), new Segment(1,2,9,0) }), pseudoPeriodStart: 0, pseudoPeriodLength: 2, pseudoPeriodHeight: 9),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,4,0), new Point(1,4), new Segment(1,3,5,0), new Point(3,5), new Segment(3,5,9,0), new Point(5,9), new Segment(5,6,10,0), new Point(6,10), new Segment(6,9,14,0), new Point(9,14), new Segment(9,12,19,0) }), pseudoPeriodStart: 0, pseudoPeriodLength: 12, pseudoPeriodHeight: 19)
+        )
+    ];
+
+    public static IEnumerable<object[]> UpperAndLowerPseudoInverseCurvePairs()
+        => UpperAndLowerPseudoInverseCurves.Select(p => new object[] { p.f, p.g });
+
+    /// <summary>
+    /// Pairs of curves, some raised at the origin, some bounded or $+\infty$ after a delay.
+    /// Chosen out of seeded random ones by covering, with the fewest and smallest, each kind of tail, continuity, plateau and jump, the relation of the two, and whether the deviation is 0, finite or $+\infty$.
+    /// </summary>
+    private static readonly (Curve f, Curve g)[] CurvesOfAnyKind =
+    [
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,2), new Segment(0,1,3,0) }), pseudoPeriodStart: 0, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,2), new Segment(0,1,3,0), new Point(1,3), new Segment(1,2,3,0) }), pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 0)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,2,0,0), new Point(2,0), new Segment(2,8,2,3) }), pseudoPeriodStart: 2, pseudoPeriodLength: 6, pseudoPeriodHeight: 20),
+            new StairCurve(1, 1)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,2), new Segment(0,6,2,0), new Point(6,2), new Segment(6,7,2,new Rational(1, 2)) }), pseudoPeriodStart: 6, pseudoPeriodLength: 1, pseudoPeriodHeight: new Rational(1, 2)),
+            new SigmaRhoArrivalCurve(0, 4)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,new Rational(3, 4),0,4), new Point(new Rational(3, 4),3), new Segment(new Rational(3, 4),new Rational(7, 4),3,0) }), pseudoPeriodStart: new Rational(3, 4), pseudoPeriodLength: 1, pseudoPeriodHeight: 0),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,4,2,0), new Point(4,2), new Segment(4,5,2,new Rational(1, 4)), new Point(5,new Rational(9, 4)), new Segment(5,9,new Rational(17, 4),new Rational(1, 4)) }), pseudoPeriodStart: 4, pseudoPeriodLength: 5, pseudoPeriodHeight: new Rational(13, 4))
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,3,0,0), new Point(3,0), new Segment(3,8,4,0) }), pseudoPeriodStart: 3, pseudoPeriodLength: 5, pseudoPeriodHeight: 4),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,4), new Segment(0,2,4,0), new Point(2,4), new Segment(2,3,7,new Rational(3, 2)), new Point(3,new Rational(17, 2)), new Segment(3,4,new Rational(17, 2),new Rational(3, 2)) }), pseudoPeriodStart: 3, pseudoPeriodLength: 1, pseudoPeriodHeight: new Rational(3, 2))
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,1), new Segment(0,5,1,0), new Point(5,1), new Segment(5,7,1,new Rational(4, 3)), new Point(7,new Rational(11, 3)), new Segment(7,14,new Rational(1, 0),0), new Point(14,new Rational(1, 0)), new Segment(14,21,new Rational(1, 0),0) }), pseudoPeriodStart: 14, pseudoPeriodLength: 7, pseudoPeriodHeight: 0),
+            new StairCurve(3, 1)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,1,6,0), new Point(1,6), new Segment(1,2,9,new Rational(2, 3)), new Point(2,new Rational(29, 3)), new Segment(2,3,new Rational(38, 3),new Rational(2, 3)), new Point(3,new Rational(40, 3)), new Segment(3,4,new Rational(58, 3),new Rational(2, 3)) }), pseudoPeriodStart: 1, pseudoPeriodLength: 3, pseudoPeriodHeight: 14),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,4,0,0), new Point(4,0), new Segment(4,7,2,0) }), pseudoPeriodStart: 4, pseudoPeriodLength: 3, pseudoPeriodHeight: 2)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,3,3,0), new Point(3,3), new Segment(3,4,4,0), new Point(4,4), new Segment(4,8,new Rational(1, 0),0), new Point(8,new Rational(1, 0)), new Segment(8,12,new Rational(1, 0),0) }), pseudoPeriodStart: 8, pseudoPeriodLength: 4, pseudoPeriodHeight: 0),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,3,4,new Rational(1, 2)), new Point(3,new Rational(11, 2)), new Segment(3,6,new Rational(1, 0),0), new Point(6,new Rational(1, 0)), new Segment(6,9,new Rational(1, 0),0) }), pseudoPeriodStart: 6, pseudoPeriodLength: 3, pseudoPeriodHeight: 0)
+        ),
+        (
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,2,7,0), new Point(2,7), new Segment(2,4,11,0) }), pseudoPeriodStart: 0, pseudoPeriodLength: 4, pseudoPeriodHeight: 11),
+            new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,2), new Segment(0,3,3,0), new Point(3,3), new Segment(3,5,5,0), new Point(5,5), new Segment(5,7,6,0), new Point(7,6), new Segment(7,10,8,0), new Point(10,8), new Segment(10,11,9,0), new Point(11,9), new Segment(11,15,11,0), new Point(15,11), new Segment(15,19,14,0), new Point(19,14), new Segment(19,20,16,0) }), pseudoPeriodStart: 0, pseudoPeriodLength: 20, pseudoPeriodHeight: 14)
+        )
+    ];
+
+    public static IEnumerable<object[]> CurvePairsOfAnyKind()
+        => CurvesOfAnyKind.Select(p => new object[] { p.f, p.g });
+
+    /// <summary>
+    /// Checks that every strategy gives the same horizontal deviation on curves of any kind: raised at the origin, bounded, or $+\infty$ after a delay.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(CurvePairsOfAnyKind))]
+    public void HorizontalDeviationIsTheSameUnderEveryStrategyOnCurvesOfAnyKind(Curve f, Curve g)
+    {
+        var expected = Curve.HorizontalDeviation(new Curve(f), new Curve(g), ByPseudoInverses);
+        foreach (var settings in EveryStrategy)
+            Assert.Equal(expected, Curve.HorizontalDeviation(new Curve(f), new Curve(g), settings));
+    }
+
+    /// <summary>
+    /// With $f(0) = 0$, the gap between the upper pseudo-inverses gives the same deviation as the one between the lower pseudo-inverses, and as composition, [TBP-SEQ-DEV] § A.2.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(UpperAndLowerPseudoInverseCurvePairs))]
+    public void HorizontalDeviationIsTheSameWithUpperAndLowerPseudoInverses(Curve f, Curve g)
+    {
+        var byUpper = HorizontalDeviationByUpperPseudoInverses(f, g);
+        var byLower = Curve.HorizontalDeviation(new Curve(f), new Curve(g), ByPseudoInverses);
+        var byComposition = Curve.HorizontalDeviation(new Curve(f), new Curve(g), ByComposition);
+        Assert.Equal(byLower, byComposition);
+        Assert.Equal(byLower, byUpper);
+    }
+
+    /// <summary>
+    /// With $f(0) > 0$ the upper pseudo-inverse of $f$ is $-\infty$ below $f(0)$, and the gap between the upper pseudo-inverses is $+\infty$ although the deviation is finite:
+    /// $f(t) = 2 + t/2$ with $f(0) = 2$, against a rate-latency curve, has deviation 4, as it has with $f(0) = 0$ and $f(0^+) = 2$, [TBP-SEQ-DEV] § A.2.
+    /// </summary>
+    [Fact]
+    public void UpperPseudoInverseFormIsInfiniteWhenTheFirstOperandStartsAbove0()
+    {
+        var g = new RateLatencyServiceCurve(1, 2);
+        var f = new Curve(new Sequence([ new Point(0, 2), new Segment(0, 1, 2, new Rational(1, 2)) ]), 0, 1, new Rational(1, 2));
+        var fFrom0Plus = new SigmaRhoArrivalCurve(2, new Rational(1, 2));
+
+        foreach (var settings in EveryStrategy)
+            Assert.Equal(4, Curve.HorizontalDeviation(f, g, settings));
+        Assert.False(f.UpperPseudoInverse().IsFinite);
+        Assert.Equal(Rational.PlusInfinity, Curve.MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse()).Negate().ToNonNegative().ValueAt(0));
+        Assert.Equal(4, HorizontalDeviationByUpperPseudoInverses(fFrom0Plus, g));
+    }
+
+    /// <summary>
+    /// A first operand that takes the value $-\infty$ is negative, and rejected under every strategy.
+    /// </summary>
+    [Fact]
+    public void MinusInfiniteFirstOperandIsRejectedUnderEveryStrategy()
+    {
+        foreach (var settings in EveryStrategy)
+            Assert.Throws<ArgumentException>(() => Curve.HorizontalDeviation(MinusThenRate, new RateLatencyServiceCurve(1, 0), settings));
+    }
+
+    #endregion Every strategy
+
+    /// <summary>
+    /// The example of the introduction of [TBP-SEQ-DEV]: a token bucket $\alpha(t) = 2 + t/2$, $\alpha(0) = 0$, and a rate-latency $\beta(t) = (t - 2)^+$.
+    /// At $t = 1$, $vDev(\alpha, \beta, 1) = 5/2$ and $hDev(\alpha, \beta, 1) = 7/2$; the suprema are $vDev(\alpha, \beta) = 3$, at the latency, and $hDev(\alpha, \beta) = 4$, approached as $t$ tends to 0.
+    /// </summary>
+    [Fact]
+    public void TheIntroductionExampleOfTheReport()
+    {
+        var half = new Rational(1, 2);
+        var alpha = new SigmaRhoArrivalCurve(2, half);
+        var beta = new RateLatencyServiceCurve(1, 2);
+        foreach (var (f, g) in new[] { ((Curve) alpha, (Curve) beta), (new Curve(alpha), new Curve(beta)) })
+        {
+            Assert.Equal(new Rational(5, 2), (f - g).ValueAt(1));
+            Assert.Equal(new Rational(7, 2), Curve.HorizontalDeviationFunction(f, g).ValueAt(1));
+            Assert.Equal(3, Curve.VerticalDeviation(f, g));
+            Assert.Equal(2, Curve.VerticalDeviationMeasuredAt(f, g));
+            foreach (var settings in EveryStrategy)
+                Assert.Equal(4, Curve.HorizontalDeviation(f, g, settings));
+        }
+    }
+
+    /// <summary>
+    /// Pairs of curves taking the value $+\infty$ or $-\infty$, with their vertical deviation, [TBP-SEQ-DEV] § 3:
+    /// where one curve alone is infinite, or the two are infinite with opposite signs, the difference is that of the infinite terms.
+    /// </summary>
+    public static IEnumerable<object[]> InfiniteVDevCases()
+    {
+        var rate = new RateLatencyServiceCurve(1, 0);
+        var delta1 = new DelayServiceCurve(1);
+        var delta2 = new DelayServiceCurve(2);
+        yield return ["g +inf after 2", rate, delta2, (Rational) 2];
+        yield return ["f +inf after 2", delta2, rate, Rational.PlusInfinity];
+        yield return ["f -inf before 1", MinusThenRate, rate, (Rational) 0];
+        yield return ["g -inf before 1", rate, MinusThenRate, Rational.PlusInfinity];
+        yield return ["f +inf after 1, g -inf before 1", delta1, MinusThenRate, Rational.PlusInfinity];
+        // f(1) - g(1) = 1, and -inf before and after
+        yield return ["f -inf before 1, g +inf after 1", MinusThenRate, delta1, (Rational) 1];
+    }
+
+    [Theory]
+    [MemberData(nameof(InfiniteVDevCases))]
+    public void VerticalDeviationOverInfiniteValues(string id, Curve f, Curve g, Rational expected)
+    {
+        var vdev = Curve.VerticalDeviation(f, g);
+        Assert.True(vdev == expected, $"{id}: {vdev}, not {expected}");
+    }
+
+    /// <summary>
+    /// [TBP-SEQ-DEV] § 3: where both curves are $+\infty$, or both $-\infty$, at some time, their difference there has no value, and neither has the deviation.
+    /// </summary>
+    [Fact]
+    public void VerticalDeviationIsUndefinedWhereBothAreTheSameInfinity()
+    {
+        Assert.Throws<UndeterminedResultException>(() => Curve.VerticalDeviation(new DelayServiceCurve(1), new DelayServiceCurve(2)));
+        Assert.Throws<UndeterminedResultException>(() => Curve.VerticalDeviation(MinusThenRate, MinusThenRate));
     }
 }
