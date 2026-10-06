@@ -119,16 +119,15 @@ public class PseudoInverseDefinitions
     }
 
     /// <summary>
-    /// The heights at which the pseudo-inverses over the interval are defined, [ZNS23a] Definition 14: the support $f(I)$, extended down to 0 if $0 \in I$.
+    /// The heights at which the pseudo-inverses over an interval are defined, [ZNS23a] Definition 14: the support $f(I)$, extended down to 0 if $0 \in I$.
+    /// Above, the support ends at the top of a bounded restriction, and at where an unbounded one was cut.
     /// </summary>
-    private static IEnumerable<Rational> Heights(
-        Curve f, List<Element> restriction, Rational start, Rational end, bool isStartIncluded
-    )
+    private static IEnumerable<Rational> Heights(List<Element> restriction, bool extendToZero, bool hasTop, bool isTopCutOff)
     {
         var first = restriction[0];
         var low = first is Point p ? p.Value : ((Segment)first).RightLimitAtStartTime;
         var isLowAttained = restriction.Any(e => IsAttained(e, low));
-        if (start == 0 && isStartIncluded)
+        if (extendToZero)
         {
             low = 0;
             isLowAttained = true;
@@ -136,17 +135,11 @@ public class PseudoInverseDefinitions
 
         Rational? high = null;
         var isHighAttained = true;
-        if (end != Inf)
+        if (hasTop)
         {
             var top = restriction.Max(Limit);
             high = top;
-            isHighAttained = restriction.Any(e => IsAttained(e, top));
-        }
-        else if (!f.IsUltimatelyConstant && !f.IsUltimatelyPlusInfinite)
-        {
-            // an unbounded pseudo-period, followed up to where the restriction ends
-            high = restriction.Max(Limit);
-            isHighAttained = false;
+            isHighAttained = !isTopCutOff && restriction.Any(e => IsAttained(e, top));
         }
 
         for (var k = 0; k <= 72; k++)
@@ -159,6 +152,16 @@ public class PseudoInverseDefinitions
             yield return y;
         }
     }
+
+    private static IEnumerable<Rational> Heights(
+        Curve f, List<Element> restriction, Rational start, Rational end, bool isStartIncluded
+    )
+        => Heights(
+            restriction,
+            extendToZero: start == 0 && isStartIncluded,
+            // an unbounded pseudo-period, followed up to where the restriction ends
+            hasTop: end != Inf || (!f.IsUltimatelyConstant && !f.IsUltimatelyPlusInfinite),
+            isTopCutOff: end == Inf);
 
     /// <summary>
     /// Whether a restriction is non-negative, which the pseudo-inverses over an interval require.
@@ -311,12 +314,11 @@ public class PseudoInverseDefinitions
         => NamedCurves().Select(c => new object[] { c.id, c.f });
 
     /// <summary>
-    /// The named curves over a set of intervals, those starting at 0, 1 and 2, closed or open on the left, unbounded or ending 1 or 3 after, closed or open on the right.
-    /// Only the intervals over which the curve is non-negative are used.
+    /// The intervals a curve is checked over: those starting at 0, 1 and 2, closed or open on the left, unbounded or ending 1 or 3 after, closed or open on the right.
+    /// Only those over which the curve is non-negative are used.
     /// </summary>
-    public static IEnumerable<object[]> NamedCurveIntervalCases()
+    private static IEnumerable<(Rational start, Rational end, bool isStartIncluded, bool isEndIncluded)> Intervals(Curve f)
     {
-        foreach (var (id, f) in NamedCurves())
         foreach (var start in new[] { 0, 1, 2 })
         foreach (var isStartIncluded in new[] { true, false })
         foreach (var length in new[] { -1, 1, 3 })
@@ -327,9 +329,12 @@ public class PseudoInverseDefinitions
             var end = length == -1 ? Inf : start + length;
             if (!IsNonNegative(Restriction(f, start, end, isStartIncluded, isEndIncluded)))
                 continue;
-            yield return [id, f, new Rational(start), end, isStartIncluded, isEndIncluded];
+            yield return (start, end, isStartIncluded, isEndIncluded);
         }
     }
+
+    public static IEnumerable<object[]> NamedCurveIntervalCases()
+        => NamedCurves().SelectMany(c => Intervals(c.f).Select(i => new object[] { c.id, c.f, i.start, i.end, i.isStartIncluded, i.isEndIncluded }));
 
     private static void AssertInverse(
         string id, Curve f, Curve inverse, Func<IEnumerable<Element>, Rational, Rational> definition,
@@ -377,4 +382,76 @@ public class PseudoInverseDefinitions
             id, f,
             f.UpperPseudoInverseOverInterval(start, end == Inf ? null : end, isStartIncluded, isEndIncluded),
             Supremum, start, end, isStartIncluded, isEndIncluded);
+
+    private static void AssertSequenceInverse(
+        string id, List<Element> elements, Sequence inverse, Func<IEnumerable<Element>, Rational, Rational> definition, bool extendToZero
+    )
+    {
+        foreach (var y in Heights(elements, extendToZero, hasTop: true, isTopCutOff: false))
+        {
+            var expected = definition(elements, y);
+            Rational actual;
+            try
+            {
+                actual = inverse.ValueAt(y);
+            }
+            catch (ArgumentException e)
+            {
+                throw new InvalidOperationException($"{id}: at y = {y}, {e.Message} Cut: {new Sequence(elements).ToCodeString()} Inverse: {inverse.ToCodeString()}", e);
+            }
+
+            Assert.True(expected == actual, $"{id}: at y = {y}, expected {expected}, got {actual}");
+        }
+    }
+
+    /// <summary>
+    /// Small curves that together have each kind of tail, a start at, below and above 0, jumps, plateaus at both ends of the period, and fractional values.
+    /// </summary>
+    private static readonly Curve[] SelectedCurves =
+    [
+        Curve.PlusInfinite(),
+        new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,-2), new Segment(0,new Rational(5, 2),-2,0) }), pseudoPeriodStart: 0, pseudoPeriodLength: new Rational(5, 2), pseudoPeriodHeight: 0),
+        new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,new Rational(5, 4),0,0), new Point(new Rational(5, 4),1), new Segment(new Rational(5, 4),new Rational(5, 2),1,new Rational(1, 3)) }), pseudoPeriodStart: 0, pseudoPeriodLength: new Rational(5, 2), pseudoPeriodHeight: new Rational(17, 12)),
+        new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,2), new Segment(0,1,3,2), new Point(1,5), new Segment(1,2,5,2) }), pseudoPeriodStart: 1, pseudoPeriodLength: 1, pseudoPeriodHeight: 2),
+        new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,new Rational(3, 2),0,1), new Point(new Rational(3, 2),new Rational(3, 2)), new Segment(new Rational(3, 2),new Rational(5, 2),new Rational(3, 2),0) }), pseudoPeriodStart: new Rational(3, 2), pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+        new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,-2), new Segment(0,1,-2,new Rational(3, 2)), new Point(1,new Rational(1, 2)), new Segment(1,2,new Rational(1, 2),1), new Point(2,new Rational(3, 2)), new Segment(2,3,new Rational(3, 2),1) }), pseudoPeriodStart: 2, pseudoPeriodLength: 1, pseudoPeriodHeight: 1),
+        new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,0), new Segment(0,2,1,new Rational(3, 2)), new Point(2,4), new Segment(2,3,4,new Rational(1, 2)), new Point(3,new Rational(9, 2)), new Segment(3,4,new Rational(9, 2),0) }), pseudoPeriodStart: 2, pseudoPeriodLength: 2, pseudoPeriodHeight: new Rational(1, 2)),
+        new Curve(baseSequence: new Sequence(new List<Element>{ new Point(0,1), new Segment(0,2,1,0), new Point(2,2), new Segment(2,3,3,1), new Point(3,4), new Segment(3,new Rational(9, 2),5,new Rational(1, 3)), new Point(new Rational(9, 2),new Rational(11, 2)), new Segment(new Rational(9, 2),5,new Rational(11, 2),0) }), pseudoPeriodStart: new Rational(9, 2), pseudoPeriodLength: new Rational(1, 2), pseudoPeriodHeight: 1)
+    ];
+
+    public static IEnumerable<object[]> SelectedCurveCases()
+        => SelectedCurves.Select((f, i) => new object[] { $"selected {i}", f });
+
+    /// <summary>
+    /// Checks the selected curves over their whole domain, over the intervals of <see cref="Intervals"/>, and as sequences cut over the bounded ones.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(SelectedCurveCases))]
+    public void SelectedCurvesMatchTheDefinitions(string id, Curve f)
+    {
+        AssertInverse(id, f, f.LowerPseudoInverse(), Infimum, 0, Inf, true, true);
+        AssertInverse(id, f, f.UpperPseudoInverse(), Supremum, 0, Inf, true, true);
+
+        foreach (var (start, end, isStartIncluded, isEndIncluded) in Intervals(f))
+        {
+            var where = $"{id}, over {(isStartIncluded ? "[" : "]")}{start}, {end}{(isEndIncluded && end != Inf ? "]" : "[")}";
+            var upperBound = end == Inf ? (Rational?)null : end;
+            AssertInverse(where, f, f.LowerPseudoInverseOverInterval(start, upperBound, isStartIncluded, isEndIncluded),
+                Infimum, start, end, isStartIncluded, isEndIncluded);
+            AssertInverse(where, f, f.UpperPseudoInverseOverInterval(start, upperBound, isStartIncluded, isEndIncluded),
+                Supremum, start, end, isStartIncluded, isEndIncluded);
+
+            if (end == Inf)
+                continue;
+            var cut = f.Cut(start, end, isStartIncluded, isEndIncluded);
+            var elements = cut.Elements.ToList();
+            if (elements.Any(e => e.IsInfinite))
+                continue;
+            foreach (var fromZero in new[] { false, true })
+            {
+                AssertSequenceInverse($"{where}, cut, from 0: {fromZero}", elements, cut.LowerPseudoInverse(fromZero), Infimum, extendToZero: fromZero);
+                AssertSequenceInverse($"{where}, cut, from 0: {fromZero}", elements, cut.UpperPseudoInverse(fromZero), Supremum, extendToZero: fromZero);
+            }
+        }
+    }
 }
