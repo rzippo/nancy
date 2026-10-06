@@ -376,7 +376,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         var _end = end ?? Rational.PlusInfinity;
 
-        if(start == 0 && _end == Rational.PlusInfinity)
+        if(start == 0 && isStartIncluded && _end == Rational.PlusInfinity)
             return IsNonNegative;
         else if(start == _end)
         {
