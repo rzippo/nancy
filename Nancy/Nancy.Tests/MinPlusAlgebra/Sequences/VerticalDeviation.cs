@@ -92,7 +92,7 @@ public class VerticalDeviation
     private static readonly bool[] Ends = [true, false];
 
     /// <summary>
-    /// The domains of the two operands, named by the cases of [TBP-SEQ-DEV] § 6, and the shared domain $I$ the result is defined over, or null where $I$ is empty.
+    /// The domains of the two operands, named by the cases of [TBP-SEQ-DEV] § 5, and the shared domain $I$ the result is defined over, or null where $I$ is empty.
     /// The expected $I$ is written out, not computed: its lower end is the larger of the two lower ends, included where every operand whose end it is includes it, and likewise the upper end.
     /// </summary>
     public static IEnumerable<object?[]> SharedDomainCases()
@@ -186,7 +186,7 @@ public class VerticalDeviation
     public static IEnumerable<object[]> ValidityCasesTestCases => ValidityCases.ToXUnitTestCases();
 
     /// <summary>
-    /// Operands taking the value $+\infty$, named by the cases of [TBP-SEQ-DEV] § 6, with the value of $vDev(a, b, t)$ at some times, and its supremum.
+    /// Operands taking the value $+\infty$, named by the cases of [TBP-SEQ-DEV] § 5, with the value of $vDev(a, b, t)$ at some times, and its supremum.
     /// The letter in a name is the operand that takes the value $+\infty$.
     /// </summary>
     public static IEnumerable<object[]> InfiniteValueCases()
@@ -198,7 +198,7 @@ public class VerticalDeviation
     }
 
     /// <summary>
-    /// [TBP-SEQ-DEV] § 5: with infinite values, the deviation subtracts at each time as for finite ones.
+    /// [TBP-SEQ-DEV] § 3: with infinite values, the deviation subtracts at each time as for finite ones.
     /// </summary>
     [Theory]
     [MemberData(nameof(InfiniteValueCases))]
@@ -211,7 +211,7 @@ public class VerticalDeviation
     }
 
     /// <summary>
-    /// Operands that are both $+\infty$ at some shared time, named by the cases of [TBP-SEQ-DEV] § 6.
+    /// Operands that are both $+\infty$ at some shared time, named by the cases of [TBP-SEQ-DEV] § 5.
     /// </summary>
     public static IEnumerable<object[]> BothInfiniteCases()
     {
@@ -223,14 +223,121 @@ public class VerticalDeviation
     }
 
     /// <summary>
-    /// [TBP-SEQ-DEV] § 5: where both operands are $+\infty$ at a shared time, their difference is undefined there, and so is the deviation: the methods throw.
+    /// [TBP-SEQ-DEV] § 3: where both operands are $+\infty$ at a shared time, their difference is undefined there, and so is the deviation: the methods throw.
     /// </summary>
     [Theory]
     [MemberData(nameof(BothInfiniteCases))]
-    public void BothInfiniteAtASharedTimeIsRejected(string id, Sequence a, Sequence b)
+    public void BothInfiniteAtASharedTimeIsRejected(string _, Sequence a, Sequence b)
     {
         Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviationFunction(a, b));
         Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
+    }
+
+    /// <summary>
+    /// $-\infty$ on $[0, 1[$, then $t$ up to 4.
+    /// </summary>
+    private static readonly Sequence MinusThenT = new([
+        Point.MinusInfinite(0), Segment.MinusInfinite(0, 1), new Point(1, 1), new Segment(1, 4, 1, 1), new Point(4, 4)
+    ]);
+
+    /// <summary>
+    /// Operands taking the value $-\infty$, [TBP-SEQ-DEV] § 3, with the value of $vDev(a, b, t)$ at some times, and its supremum:
+    /// where one operand alone is infinite, or the two are infinite with opposite signs, the difference is that of the infinite terms.
+    /// </summary>
+    public static IEnumerable<object[]> MinusInfiniteValueCases()
+    {
+        var w = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
+        var h2 = new DelayServiceCurve(2).Cut(0, 4, true, true);
+        yield return ["a is -inf where b is finite", MinusThenT, w, new (Rational t, Rational v)[] { (0, Rational.MinusInfinity), (2, 0) }, (Rational) 0];
+        yield return ["b is -inf where a is finite", w, MinusThenT, new (Rational t, Rational v)[] { (0, Rational.PlusInfinity), (2, 0) }, Rational.PlusInfinity];
+        yield return ["a is -inf where b is finite, and finite where b is +inf", MinusThenT, h2,
+            new (Rational t, Rational v)[] { (0, Rational.MinusInfinity), (1, 1), (2, 2), (3, Rational.MinusInfinity) }, (Rational) 2];
+        yield return ["a is +inf where b is finite, and finite where b is -inf", h2, MinusThenT,
+            new (Rational t, Rational v)[] { (0, Rational.PlusInfinity), (2, -2), (3, Rational.PlusInfinity) }, Rational.PlusInfinity];
+        yield return ["a is -inf where b is +inf", Sequence.MinusInfinite(0, 2, true, true), h2,
+            new (Rational t, Rational v)[] { (1, Rational.MinusInfinity), (2, Rational.MinusInfinity) }, Rational.MinusInfinity];
+        yield return ["a is +inf where b is -inf", Sequence.PlusInfinite(0, 1, true, false), MinusThenT,
+            new (Rational t, Rational v)[] { (0, Rational.PlusInfinity), (new Rational(1, 2), Rational.PlusInfinity) }, Rational.PlusInfinity];
+    }
+
+    [Theory]
+    [MemberData(nameof(MinusInfiniteValueCases))]
+    public void VerticalDeviationOverMinusInfiniteValues(string id, Sequence a, Sequence b, (Rational t, Rational v)[] values, Rational sup)
+    {
+        var vdev = Sequence.VerticalDeviationFunction(a, b);
+        foreach (var (t, v) in values)
+            Assert.True(vdev.ValueAt(t) == v, $"{id}: {vdev.ValueAt(t)} at {t}, not {v}");
+        Assert.True(Sequence.VerticalDeviation(a, b) == sup, $"{id}: supremum {Sequence.VerticalDeviation(a, b)}, not {sup}");
+    }
+
+    /// <summary>
+    /// [TBP-SEQ-DEV] § 3: where both operands are $-\infty$ at a shared time, as where both are $+\infty$, the difference is undefined, and the methods throw.
+    /// </summary>
+    [Fact]
+    public void BothMinusInfiniteAtASharedTimeIsRejected()
+    {
+        var minusOn02 = Sequence.MinusInfinite(0, 2, true, true);
+        foreach (var (a, b) in new[] { (MinusThenT, MinusThenT), (MinusThenT, minusOn02), (minusOn02, MinusThenT) })
+        {
+            Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviationFunction(a, b));
+            Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
+        }
+    }
+
+    /// <summary>
+    /// Curves taking the value $+\infty$ or $-\infty$, and the domains to restrict them to,
+    /// with whether some time has both curves at the same infinity, where the curves' deviation is undefined.
+    /// </summary>
+    public static IEnumerable<object[]> InfiniteCurveCases()
+    {
+        var w = new RateLatencyServiceCurve(1, 0);
+        var delta1 = new DelayServiceCurve(1);
+        var delta2 = new DelayServiceCurve(2);
+        // -inf on [0, 1[, then t
+        var minusThenT = new Curve(
+            new Sequence([ Point.MinusInfinite(0), Segment.MinusInfinite(0, 1), new Point(1, 1), new Segment(1, 2, 1, 1) ]),
+            1, 1, 1);
+        yield return ["VI-a-infinite, curves", delta2, w, I(0, 4, true, true), I(0, 4, true, true), false];
+        yield return ["VI-b-infinite, curves", w, delta2, I(0, 4, true, true), I(0, 4, true, true), false];
+        // the cuts are both +inf only after 2, which the shared domain [0, 2] excludes
+        yield return ["VI-both-infinite, curves, cut before", delta2, delta1, I(0, 2, true, true), I(1, 3, true, true), true];
+        yield return ["a is -inf, curves", minusThenT, w, I(0, 4, true, true), I(0, 4, true, true), false];
+        yield return ["b is -inf, curves", w, minusThenT, I(0, 4, true, true), I(0, 4, true, true), false];
+        yield return ["a is +inf where b is -inf, curves", delta1, minusThenT, I(0, 4, true, true), I(0, 4, true, true), false];
+        // the cuts are both -inf only before 1, which the shared domain [1, 3] excludes
+        yield return ["both -inf, curves, cut after", minusThenT, minusThenT, I(0, 3, true, true), I(1, 4, true, true), true];
+    }
+
+    /// <summary>
+    /// Checks that the vertical deviation between cuts of curves with infinite values matches the curves', [TBP-SEQ-DEV] Theorem 17.
+    /// Over the shared domain, the deviation between the restrictions is the curves' at every time.
+    /// Where no time has both curves at the same infinity, the curves' deviation is defined, and at least that between the restrictions.
+    /// Where some time does, the curves' deviation is undefined, and the method throws.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(InfiniteCurveCases))]
+    public void VerticalDeviationMatchesTheCurvesOverInfiniteValues(string id, Curve f, Curve g, Interval xA, Interval xB, bool curvesUndefined)
+    {
+        var a = f.Cut(xA);
+        var b = g.Cut(xB);
+        var vdev = Sequence.VerticalDeviationFunction(a, b);
+        var shared = Interval.Intersection(xA, xB)!.Value;
+        for (var i = 0; i <= 16; i++)
+        {
+            var t = shared.Lower + (shared.Upper - shared.Lower) * new Rational(i, 16);
+            if (!vdev.IsDefinedAt(t))
+                continue;
+            var (x, y) = (f.ValueAt(t), g.ValueAt(t));
+            var expected = x.IsPlusInfinite || y.IsMinusInfinite ? Rational.PlusInfinity
+                : x.IsMinusInfinite || y.IsPlusInfinite ? Rational.MinusInfinity
+                : x - y;
+            Assert.True(vdev.ValueAt(t) == expected, $"{id}: {vdev.ValueAt(t)} at {t}, the curves {expected}");
+        }
+
+        if (curvesUndefined)
+            Assert.Throws<UndeterminedResultException>(() => Curve.VerticalDeviation(f, g));
+        else
+            Assert.True(Sequence.VerticalDeviation(a, b) <= Curve.VerticalDeviation(f, g), $"{id}: above the curves' deviation");
     }
 
     /// <summary>
