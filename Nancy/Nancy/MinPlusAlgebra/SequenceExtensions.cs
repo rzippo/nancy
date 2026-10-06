@@ -1311,6 +1311,10 @@ public static class SequenceExtensions
                         }
                         else if (s.RightLimitAtStartTime == previousValue)
                         {
+                            if (wasPreviousPoint == null && previousValue > Rational.MinusInfinity)
+                                // the sequence starts at 0, with no point at its start: the start reaches 0
+                                yield return new Point(time: previousValue, value: s.StartTime);
+
                             // right-continuity, simple inverse
                             yield return s.Inverse();
                             previousValue = s.LeftLimitAtEndTime;
