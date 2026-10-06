@@ -280,4 +280,32 @@ public class LowerPseudoInverse
         var result = operand.LowerPseudoInverse(startFromZero: true);
         Assert.True(Sequence.Equivalent(new Sequence([ new Point(0, 0) ]), result));
     }
+
+    /// <summary>
+    /// Heights from 0 on, for a sequence that is open at its start and above 0 there: the start reaches every height up to the first value.
+    /// </summary>
+    public static List<(Sequence operand, Sequence expected)> StartFromZeroAboveZeroOpenAtItsStartCases =
+    [
+        (
+            // 2 after 1 and up to 2
+            new Sequence([ Segment.Constant(1, 2, 2), new Point(2, 2) ]),
+            new Sequence([ new Point(0, 1), Segment.Constant(0, 2, 1), new Point(2, 1) ])
+        ),
+        (
+            // from 1, with slope 1, after 1 and up to 2
+            new Sequence([ new Segment(1, 2, 1, 1), new Point(2, 2) ]),
+            new Sequence([ new Point(0, 1), Segment.Constant(0, 1, 1), new Point(1, 1), new Segment(1, 2, 1, 1), new Point(2, 2) ])
+        ),
+    ];
+
+    public static IEnumerable<object[]> StartFromZeroAboveZeroOpenAtItsStartTestCases()
+        => StartFromZeroAboveZeroOpenAtItsStartCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(StartFromZeroAboveZeroOpenAtItsStartTestCases))]
+    public void StartFromZeroAboveZeroOpenAtItsStart(Sequence operand, Sequence expected)
+    {
+        var result = operand.LowerPseudoInverse(startFromZero: true);
+        Assert.True(Sequence.Equivalent(expected, result));
+    }
 }
