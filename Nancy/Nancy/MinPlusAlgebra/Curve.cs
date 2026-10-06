@@ -441,8 +441,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 return Rational.PlusInfinity;
             else
             {
-                // the values in a period do not exceed the one at its end, so the first non-negative one is in the period before the first that starts non-negative, or in it
-                var k = Rational.Max(0, (-ValueAt(PseudoPeriodStart) / PseudoPeriodHeight).Ceil() - 1);
+                // the k-th period takes the values of the first plus k times the height;
+                // the first period whose supremum is non-negative reaches 0, unless that supremum is 0 only as a limit, in which case the next one does
+                var periodSupremum = CutAsEnumerable(PseudoPeriodStart, FirstPseudoPeriodEnd).SupValue();
+                var k = Rational.Max(0, (-periodSupremum / PseudoPeriodHeight).Ceil());
                 return FindFirstNonNegativeInSequence(
                     CutAsEnumerable(PseudoPeriodStart + k * PseudoPeriodLength, PseudoPeriodStart + (k + 2) * PseudoPeriodLength, isEndIncluded: true)
                 );
@@ -467,7 +469,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                             if (s.Slope > 0)
                             {
                                 var t = s.StartTime + (-s.RightLimitAtStartTime / s.Slope);
-                                if (t <= s.EndTime)
+                                // the segment is open at its end, where it only approaches its left limit
+                                if (t < s.EndTime)
                                     return t;
                             }
                             break;
