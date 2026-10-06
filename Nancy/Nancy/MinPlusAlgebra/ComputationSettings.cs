@@ -201,6 +201,11 @@ public record ComputationSettings
     /// </summary>
     public bool UseCompositionOptimizations { get; set; } = true;
 
+    /// <summary>
+    /// The algorithm by which <see cref="Curve.HorizontalDeviation(Curve, Curve, ComputationSettings?)"/> and <see cref="Sequence.HorizontalDeviation(Sequence, Sequence, ComputationSettings?)"/> compute the horizontal deviation.
+    /// </summary>
+    public HorizontalDeviationStrategy HorizontalDeviationStrategy { get; set; } = HorizontalDeviationStrategy.PseudoInverseGap;
+
     /// <exclude/>
     /// <summary>
     /// If true, isomorphism properties between min-plus and max-plus are used to optimize

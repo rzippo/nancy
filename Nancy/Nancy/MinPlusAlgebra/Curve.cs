@@ -4743,8 +4743,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="g">Must be non-decreasing.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A non-negative horizontal deviation.</returns>
+    /// <remarks>
+    /// The algorithm is chosen by <see cref="ComputationSettings.HorizontalDeviationStrategy"/>, see <see cref="Unipi.Nancy.MinPlusAlgebra.HorizontalDeviationStrategy"/>: each gives the same value, and they differ only in performance.
+    /// </remarks>
     public static Rational HorizontalDeviation(Curve f, Curve g, ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
         if (!f.IsNonDecreasing || !g.IsNonDecreasing)
             throw new ArgumentException("The arguments must be non-decreasing.");
         if (!f.IsNonNegative)
@@ -4762,31 +4766,82 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else
         {
-            // the following are mathematically equivalent methods
-            #if false
-            // todo: document source for this result
-            var a_upi = a.UpperPseudoInverse();
-            var b_upi = b.UpperPseudoInverse();
-            var hDev = MaxPlusDeconvolution(a_upi, b_upi, settings)
-                .Negate()
-                .ToNonNegative()
-                .ValueAt(0);
-            #elif false
-            // [DNC18] Proposition 5.14
-            var hDev = b.LowerPseudoInverse()
-                .Composition(a, settings)
-                .Deconvolution(new RateLatencyServiceCurve(1, 0), settings)
-                .ValueAt(0);
-            #elif true
-            // Derived from [DNC18] Lemma 5.2 and similar, in principle, to [DNC18] Proposition 5.14
-            if (!f.IsFinite)
-                return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings).SupValue();
-            var hDev = g.LowerPseudoInverse()
-                .Composition(f, settings)
-                .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
-                .SupValue();
-            #endif
-            return hDev;
+            switch (settings.HorizontalDeviationStrategy)
+            {
+                case HorizontalDeviationStrategy.PseudoInverseGap:
+                {
+                    // the heights below f(0) are not in the image of f, but they change nothing:
+                    // f first reaches each of them at 0, and g no later than it reaches f(0), so each gap is at most the one at f(0)
+                    var fLpi = f.LowerPseudoInverse();
+                    var gLpi = g.LowerPseudoInverse();
+                    if (fLpi.IsFinite)
+                        // f reaches every finite height
+                        return Subtraction(gLpi, fLpi, settings).SupValue(settings);
+
+                    // f is bounded, so ultimately constant, and attains its largest value: above it, its pseudo-inverse is +inf, and those heights are left out
+                    var top = f.ValueAt(f.PseudoPeriodStart);
+                    var gaps = Sequence.Subtraction(
+                        gLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings),
+                        fLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings));
+                    return gaps.SupValue();
+                }
+                case HorizontalDeviationStrategy.PseudoInverseDeconvolution:
+                {
+                    // the upper pseudo-inverse of f is -inf below f(0), where the deconvolution is +inf though the deviation can be finite:
+                    // f(0) <= f(0+), so g reaches f(0) no later than the values right after 0, and setting f(0) = 0 does not change the deviation
+                    if (f.ValueAt(0) != 0)
+                        f = f.WithOriginAt(0);
+
+                    // f takes no height below its top, where the upper pseudo-inverses are compared: the deviation is the first time g is non-negative
+                    if (f.IsZero)
+                        return g.IsNonNegative ? 0 : g.FirstNonNegativeTime;
+
+                    // above both tops, both upper pseudo-inverses are +inf, and the deconvolution is undefined
+                    if (f.IsUltimatelyConstant && g.IsUltimatelyConstant)
+                    {
+                        if (g.ValueAt(g.PseudoPeriodStart) < f.ValueAt(f.PseudoPeriodStart))
+                            // g never reaches the top of f
+                            return Rational.PlusInfinity;
+
+                        // g reaches the top of f before both are constant, so adding the same ramp to both from then on does not change the deviation
+                        var ramp = new RateLatencyServiceCurve(1, Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart));
+                        f = Addition(f, ramp, settings);
+                        g = Addition(g, ramp, settings);
+                    }
+
+                    return MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse(), settings)
+                        .Negate()
+                        .ToNonNegative()
+                        .ValueAt(0);
+                }
+                case HorizontalDeviationStrategy.Composition:
+                {
+                    // a composition needs a finite inner function
+                    if (!f.IsFinite)
+                        return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings).SupValue();
+
+                    // [DNC18] Lemma 5.2
+                    return g.LowerPseudoInverse()
+                        .Composition(f, settings)
+                        .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
+                        .SupValue();
+                }
+                case HorizontalDeviationStrategy.CompositionDeconvolution:
+                {
+                    // a composition needs a finite inner function
+                    if (!f.IsFinite)
+                        return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings).SupValue();
+
+                    // [DNC18] Proposition 5.14
+                    return g.LowerPseudoInverse()
+                        .Composition(f, settings)
+                        .Deconvolution(new RateLatencyServiceCurve(1, 0), settings)
+                        .ValueAt(0);
+                }
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(settings), settings.HorizontalDeviationStrategy, "Unknown horizontal deviation strategy.");
+            }
         }
     }
 
@@ -4842,6 +4897,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>A non-negative horizontal deviation function.</returns>
     /// <remarks>
     /// <paramref name="f"/> may take the value $+\infty$: where it does, the deviation is the time <paramref name="g"/> takes after $t$ to become $+\infty$, or $+\infty$ if it never does.
+    /// Only the composition computes this function.
+    /// The gap between the lower pseudo-inverses, which <see cref="HorizontalDeviation"/> uses by default, has the same supremum, but as a function of the heights:
+    /// brought back to the times by composing with $f$, it exceeds this function on the plateaus of $f$.
     /// </remarks>
     public static Curve HorizontalDeviationFunction(Curve f, Curve g, ComputationSettings? settings = null)
     {
