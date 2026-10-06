@@ -207,6 +207,58 @@ public class PseudoInverseDefinitions
                 Point.Origin(), Segment.PlusInfinite(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)
             ]),
             1, 1, 0));
+
+        // negative at 0, then non-negative from the next instant, and $+\infty$ at 1
+        yield return ("-1 at 0, then 0 and +inf", new Curve(
+            new Sequence([
+                new Point(0, -1), new Segment(0, 1, 0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)
+            ]),
+            1, 1, 0));
+
+        // negative up to 1, then $+\infty$
+        yield return ("negative, then +inf", new Curve(
+            new Sequence([
+                new Point(0, -2), Segment.Constant(0, 1, -1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)
+            ]),
+            1, 1, 0));
+
+        // negative up to 1, taking 2 at 1, and $+\infty$ after
+        yield return ("negative, then 2 and +inf", new Curve(
+            new Sequence([
+                new Point(0, -1), new Segment(0, 1, -1, 1), new Point(1, 2), Segment.PlusInfinite(1, 2),
+                Point.PlusInfinite(2), Segment.PlusInfinite(2, 3)
+            ]),
+            2, 1, 0));
+
+        // negative at 0, then 0 from the next instant on
+        yield return ("-1 at 0, then 0 and a slope", new Curve(
+            new Sequence([
+                new Point(0, -1), new Segment(0, 3, 0, 2), new Point(3, 6), new Segment(3, 4, 6, 2)
+            ]),
+            3, 1, 2));
+
+        // negative up to 1, then reaching 0 at 1
+        yield return ("negative, then 0 and a slope", new Curve(
+            new Sequence([
+                new Point(0, -2), new Segment(0, 1, -2, 1), new Point(1, -1), new Segment(1, 2, 0, 2),
+                new Point(2, 2), new Segment(2, 3, 2, 2)
+            ]),
+            2, 1, 2));
+
+        // negative at 0, then a plateau at 0, a jump, and a constant
+        yield return ("-1 at 0, then a plateau and a constant", new Curve(
+            new Sequence([
+                new Point(0, -1), Segment.Constant(0, 1, 0), new Point(1, 2), Segment.Constant(1, 2, 3),
+                new Point(2, 3), Segment.Constant(2, 3, 3)
+            ]),
+            2, 1, 0));
+
+        // negative forever
+        yield return ("negative forever", new Curve(
+            new Sequence([
+                new Point(0, -1), Segment.Constant(0, 1, -1)
+            ]),
+            0, 1, 0));
     }
 
     public static IEnumerable<object[]> NamedCurveCases()
