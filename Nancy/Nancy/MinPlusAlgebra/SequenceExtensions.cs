@@ -1251,6 +1251,13 @@ public static class SequenceExtensions
                         }
                         else if (s.RightLimitAtStartTime > previousValue)
                         {
+                            if (wasPreviousPoint == null && previousValue > Rational.MinusInfinity)
+                            {
+                                // the sequence starts above 0, with no point at its start: the start reaches the heights from 0 on
+                                yield return new Point(time: previousValue, value: s.StartTime);
+                                wasPreviousPoint = true;
+                            }
+
                             if (wasPreviousPoint == true)
                             {
                                 // right-discontinuity, becomes constant segment
@@ -1281,6 +1288,10 @@ public static class SequenceExtensions
                         {
                             if (previousValue != Rational.MinusInfinity)
                             {
+                                if (wasPreviousPoint == null)
+                                    // the sequence starts above 0, with no point at its start: the start reaches the heights from 0 on
+                                    yield return new Point(time: previousValue, value: s.StartTime);
+
                                 // right-discontinuity, becomes constant segment
                                 yield return new Segment(
                                     startTime: previousValue,
