@@ -253,6 +253,38 @@ public class PseudoInverseDefinitions
             ]),
             2, 1, 0));
 
+        // negative at 2, where an interval can start, and non-negative right after
+        yield return ("negative at 2, then a slope", new Curve(
+            new Sequence([
+                new Point(0, -1), Segment.Constant(0, 2, -1), new Point(2, -1), new Segment(2, 3, 0, 1),
+                new Point(3, 1), new Segment(3, 4, 1, 1)
+            ]),
+            3, 1, 1));
+
+        // negative at 2, and non-negative right after, up to a constant
+        yield return ("negative at 2, then a constant", new Curve(
+            new Sequence([
+                new Point(0, -1), Segment.Constant(0, 2, -1), new Point(2, -1), new Segment(2, 3, 0, 1),
+                new Point(3, 1), Segment.Constant(3, 4, 1)
+            ]),
+            3, 1, 0));
+
+        // negative at 2, and non-negative right after, up to $+\infty$
+        yield return ("negative at 2, then a slope and +inf", new Curve(
+            new Sequence([
+                new Point(0, -1), Segment.Constant(0, 2, -1), new Point(2, -1), new Segment(2, 3, 0, 1),
+                new Point(3, 1), Segment.PlusInfinite(3, 4), Point.PlusInfinite(4), Segment.PlusInfinite(4, 5)
+            ]),
+            4, 1, 0));
+
+        // jumping at 1 and 2, where the value is below the right limit
+        yield return ("jumps with the value below the right limit", new Curve(
+            new Sequence([
+                Point.Origin(), new Segment(0, 1, 0, 1), new Point(1, 1), new Segment(1, 2, 2, 1),
+                new Point(2, 3), new Segment(2, 3, 4, 1), new Point(3, 5), new Segment(3, 4, 5, 1)
+            ]),
+            3, 1, 1));
+
         // negative forever
         yield return ("negative forever", new Curve(
             new Sequence([
@@ -265,14 +297,14 @@ public class PseudoInverseDefinitions
         => NamedCurves().Select(c => new object[] { c.id, c.f });
 
     /// <summary>
-    /// The named curves over a set of intervals, those starting at 0, 1 and 2, closed on the left, unbounded or ending 1 or 3 after, closed or open on the right.
+    /// The named curves over a set of intervals, those starting at 0, 1 and 2, closed or open on the left, unbounded or ending 1 or 3 after, closed or open on the right.
     /// Only the intervals over which the curve is non-negative are used.
     /// </summary>
     public static IEnumerable<object[]> NamedCurveIntervalCases()
     {
         foreach (var (id, f) in NamedCurves())
         foreach (var start in new[] { 0, 1, 2 })
-        foreach (var isStartIncluded in new[] { true })
+        foreach (var isStartIncluded in new[] { true, false })
         foreach (var length in new[] { -1, 1, 3 })
         foreach (var isEndIncluded in new[] { true, false })
         {
