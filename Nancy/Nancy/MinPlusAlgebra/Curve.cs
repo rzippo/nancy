@@ -4130,6 +4130,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous, see [DNC18] § 3.2.1 .
+    /// It is defined for $x \ge 0$: if $f$ is negative at first, $f^{-1}_\downarrow(0)$ is the first instant it is not.
     /// Algorithmic properties discussed in [ZNS23b].
     /// </remarks>
     public Curve LowerPseudoInverse()
@@ -4202,6 +4203,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The result of this operation is right-continuous.
     /// If $f$ is right-continuous and $f(t) > 0$ for $t > 0$, then the operation is revertible,
     /// i.e., $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, see [DNC18] § 3.2.1.
+    /// It is defined for $x \ge 0$, and is $-\infty$ where no instant has $f(t) \le x$, as below $f(0)$.
     /// Algorithmic properties discussed in [ZNS23b].
     /// </remarks>
     public Curve UpperPseudoInverse()
@@ -4351,6 +4353,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
     /// Defined and discussed in [ZNS23a].
+    /// If $f$ is $+\infty$ over the whole interval, the support is $\{ +\infty \}$, and the result is $+\infty$ at every finite height.
+    /// If the interval does not contain its start, the value at the start is the right limit there, as only what follows it counts.
     /// </remarks>
     public Curve LowerPseudoInverseOverInterval(
         Rational start,
@@ -4518,6 +4522,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
     /// Defined and discussed in [ZNS23a].
+    /// If $f$ is $+\infty$ over the whole interval, the support is $\{ +\infty \}$, and the result is $-\infty$ at every finite height.
+    /// If the interval does not contain its start, the value at the start is the right limit there, as only what follows it counts.
     /// </remarks>
     public Curve UpperPseudoInverseOverInterval(
         Rational start,
