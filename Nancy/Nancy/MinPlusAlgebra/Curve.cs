@@ -4136,21 +4136,26 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (!IsNonDecreasing)
             throw new ArgumentException("The lower pseudo-inverse is defined only for non-decreasing functions");
 
+        if (!IsNonNegative)
+        {
+            // for y > 0 the inverse is that of max(f, 0), and for y = 0 it is the first instant f is not negative
+            var firstNonNegativeTime = FirstNonNegativeTime;
+            if (firstNonNegativeTime == Rational.PlusInfinity)
+                // f(t) < 0 for every t, so no t reaches any y >= 0
+                return PlusInfinite();
+
+            return Maximum(this, Zero()).LowerPseudoInverse().WithOriginAt(firstNonNegativeTime).TransientReduction();
+        }
+
         if (IsUltimatelyConstant)
         {
             var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
-            if (constant_value < 0)
-                // f(t) < 0 for every t, so no t reaches any y >= 0
-                return PlusInfinite();
 
-            // the transient includes constant_start, so its inverse covers [0, f(constant_start)] if f(constant_start) >= 0
-            var value_at_start = ValueAt(constant_start);
-            var lpi = value_at_start >= 0
-                ? CutAsEnumerable(0, constant_start, isEndIncluded: true).LowerPseudoInverse(startFromZero: true)
-                : [new Point(0, constant_start)];
+            // the transient includes constant_start, so its inverse covers [0, f(constant_start)]
+            var jump_start = ValueAt(constant_start);
+            var lpi = CutAsEnumerable(0, constant_start, isEndIncluded: true).LowerPseudoInverse(startFromZero: true);
             // for any y above f(constant_start), up to the constant, f(t) >= y exactly for t > constant_start
-            var jump_start = Rational.Max(value_at_start, 0);
             if (jump_start < constant_value)
                 lpi = lpi
                     .Append(Segment.Constant(jump_start, constant_value, constant_start))
@@ -4167,23 +4172,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         else if (IsUltimatelyPlusInfinite)
         {
             return LowerPseudoInverseOverInterval(0);
-        }
-        else if (!IsNonNegative)
-        {
-            var T = Rational.Max(FirstPseudoPeriodEnd, FirstNonNegativeTime);
-            if (ValueAt(T) < 0)
-                T += PseudoPeriodLength;
-            var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndIncluded: true)
-                .LowerPseudoInverse(startFromZero: true)
-                .SkipLast(1)
-                .ToSequence();
-
-            return new Curve(
-                baseSequence: sequence,
-                pseudoPeriodStart: ValueAt(T),
-                pseudoPeriodLength: PseudoPeriodHeight,
-                pseudoPeriodHeight: PseudoPeriodLength
-            ).TransientReduction();
         }
         else
         {
@@ -4220,20 +4208,21 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (!IsNonDecreasing)
             throw new ArgumentException("The upper pseudo-inverse is defined only for non-decreasing functions");
 
+        if (!IsNonNegative)
+            // for y >= 0, f(t) <= y exactly when max(f, 0)(t) <= y
+            return Maximum(this, Zero()).UpperPseudoInverse().TransientReduction();
+
         if (IsUltimatelyConstant)
         {
             var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
-            if (constant_value < 0)
-                // f(t) < 0 for every t, so every t is below any y >= 0
-                return PlusInfinite();
 
-            // the transient excludes constant_start, so its inverse covers up to f(constant_start^-), if f(t) >= 0 for some t < constant_start
-            var upi = FirstNonNegativeTime < constant_start
+            // the transient excludes constant_start, so its inverse covers up to f(constant_start^-)
+            var upi = constant_start > 0
                 ? CutAsEnumerable(0, constant_start).UpperPseudoInverse(startFromZero: true).ToList()
                 : [];
             // for any y from f(constant_start^-), up to the constant, f(t) <= y for t < constant_start, and for no t > constant_start
-            var jump_start = Rational.Max(constant_start > 0 ? LeftLimitAt(constant_start) : ValueAt(0), 0);
+            var jump_start = constant_start > 0 ? LeftLimitAt(constant_start) : ValueAt(0);
             if (jump_start < constant_value)
             {
                 if (upi.LastOrDefault() is not Point last || last.Time != jump_start)
@@ -4260,28 +4249,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         else if (IsUltimatelyPlusInfinite)
         {
             return UpperPseudoInverseOverInterval(0);
-        }
-        else if (!IsNonNegative)
-        {
-            if (FirstNonNegativeTime == Rational.PlusInfinity)
-                // for any y in Q+, f(x) <= y for any x in Q+
-                // hence sup{ Q+ } = +infty for all y
-                return PlusInfinite();
-
-            var T = Rational.Max(FirstPseudoPeriodEnd, FirstNonNegativeTime);
-            if (ValueAt(T) < 0)
-                T += PseudoPeriodLength;
-            var sequence = CutAsEnumerable(0, T + PseudoPeriodLength, isEndIncluded: true)
-                .UpperPseudoInverse(startFromZero: true)
-                .SkipLast(1)
-                .ToSequence();
-
-            return new Curve(
-                baseSequence: sequence,
-                pseudoPeriodStart: ValueAt(T),
-                pseudoPeriodLength: PseudoPeriodHeight,
-                pseudoPeriodHeight: PseudoPeriodLength
-            ).TransientReduction();
         }
         else
         {
