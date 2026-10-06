@@ -121,8 +121,15 @@ public class PseudoInverseDefinitions
     /// <summary>
     /// The heights at which the pseudo-inverses over an interval are defined, [ZNS23a] Definition 14: the support $f(I)$, extended down to 0 if $0 \in I$.
     /// Above, the support ends at the top of a bounded restriction, and at where an unbounded one was cut.
+    /// With <paramref name="includeUnattainedLow"/>, the lowest height is included also where no instant attains it, as at an excluded start the curve rises from:
+    /// the infimum of the definition is still that start there.
     /// </summary>
-    private static IEnumerable<Rational> Heights(List<Element> restriction, bool extendToZero, bool hasTop, bool isTopCutOff)
+    /// <param name="restriction">The elements of the curve over the interval.</param>
+    /// <param name="extendToZero">Starts from 0 instead of the lowest value.</param>
+    /// <param name="hasTop">Stops at the highest value.</param>
+    /// <param name="isTopCutOff">Excludes the highest value, where the restriction was cut off.</param>
+    /// <param name="includeUnattainedLow">Includes the lowest value even if no instant attains it.</param>
+    private static IEnumerable<Rational> Heights(List<Element> restriction, bool extendToZero, bool hasTop, bool isTopCutOff, bool includeUnattainedLow = false)
     {
         var first = restriction[0];
         var low = first is Point p ? p.Value : ((Segment)first).RightLimitAtStartTime;
@@ -145,7 +152,7 @@ public class PseudoInverseDefinitions
         for (var k = 0; k <= 72; k++)
         foreach (var y in new[] { new Rational(k, 6), new Rational(k, 7) })
         {
-            if (y < low || (y == low && !isLowAttained))
+            if (y < low || (y == low && !isLowAttained && !includeUnattainedLow))
                 continue;
             if (high is { } h && (y > h || (y == h && !isHighAttained)))
                 continue;
@@ -154,7 +161,7 @@ public class PseudoInverseDefinitions
     }
 
     private static IEnumerable<Rational> Heights(
-        Curve f, List<Element> restriction, Rational start, Rational end, bool isStartIncluded, bool isOverInterval
+        Curve f, List<Element> restriction, Rational start, Rational end, bool isStartIncluded, bool isOverInterval, bool includeUnattainedLow
     )
         => Heights(
             restriction,
@@ -162,7 +169,8 @@ public class PseudoInverseDefinitions
             extendToZero: start == 0 && isStartIncluded && !isOverInterval,
             // an unbounded pseudo-period, followed up to where the restriction ends
             hasTop: end != Inf || (!f.IsUltimatelyConstant && !f.IsUltimatelyPlusInfinite),
-            isTopCutOff: end == Inf);
+            isTopCutOff: end == Inf,
+            includeUnattainedLow: includeUnattainedLow);
 
     /// <summary>
     /// Whether a restriction is non-negative, which the pseudo-inverses over an interval require.
@@ -359,7 +367,8 @@ public class PseudoInverseDefinitions
             }
         }
 
-        foreach (var y in Heights(f, restriction, start, end, isStartIncluded, isOverInterval))
+        // the lower forms are also checked at a lowest height no instant attains, where the infimum is still defined
+        foreach (var y in Heights(f, restriction, start, end, isStartIncluded, isOverInterval, includeUnattainedLow: definition == Infimum))
         {
             var expected = end == Inf && f.IsUltimatelyConstant && definition == Supremum && y >= f.ValueAt(f.PseudoPeriodStart)
                 // f never exceeds y
