@@ -436,4 +436,44 @@ public class SubAdditiveClosure
     {
         Assert.Equal(expected, operand.SubAdditiveClosure().ValueAt(time));
     }
+
+    /// <summary>
+    /// Curves with $f(0) &lt; 0$, and whether their closure, the infimum of their (min,+) powers, is $-\infty$ everywhere.
+    /// The closure is $-\infty$ at the finite sums of times at which $f$ is not $+\infty$, and $+\infty$ elsewhere.
+    /// Where it takes both, its sub-additivity involves $-\infty + \infty$, which is undefined, and the closure throws (null here);
+    /// it throws as well where $f$ takes both infinities.
+    /// </summary>
+    public static List<(string id, Curve curve, bool isMinusInfinite)> NegativeAtOriginCases =
+    [
+        ("finite only at 0", new Curve(
+            new Sequence([new Point(0, -1), Segment.PlusInfinite(0, 2)]), 1, 1, 0), false),
+        ("finite only at multiples of 2", new Curve(
+            new Sequence([new Point(0, -1), Segment.PlusInfinite(0, 2)]), 0, 2, 0), false),
+        ("finite only over ]1, 2[ after 0", new Curve(
+            new Sequence([new Point(0, -1), Segment.PlusInfinite(0, 1), Point.PlusInfinite(1), Segment.Zero(1, 2), Point.PlusInfinite(2), Segment.PlusInfinite(2, 3)]), 2, 1, 0), false),
+        ("+inf then -inf", new Curve(
+            new Sequence([new Point(0, -1), Segment.PlusInfinite(0, 1), Point.MinusInfinite(1), Segment.MinusInfinite(1, 2)]), 1, 1, 0), false),
+        ("finite everywhere", new Curve(
+            new Sequence([new Point(0, -1), Segment.Constant(0, 2, 1)]), 1, 1, 0), true),
+        ("+inf only over ]1, 2[", new Curve(
+            new Sequence([new Point(0, -1), Segment.Zero(0, 1), Point.Origin().Delay(1), Segment.PlusInfinite(1, 2), Point.Origin().Delay(2), Segment.Zero(2, 3)]), 2, 1, 0), true),
+        ("finite right after 0, then +inf", new Curve(
+            new Sequence([new Point(0, -1), new Segment(0, 1, 0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)]), 1, 1, 0), true),
+        ("finite, then -inf", new Curve(
+            new Sequence([new Point(0, -1), Segment.Zero(0, 1), Point.MinusInfinite(1), Segment.MinusInfinite(1, 2)]), 1, 1, 0), true),
+    ];
+
+    public static IEnumerable<object[]> NegativeAtOriginTestCases()
+        => NegativeAtOriginCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(NegativeAtOriginTestCases))]
+    public void GeneralClosureOfCurveNegativeAtOrigin(string id, Curve curve, bool isMinusInfinite)
+    {
+        output.WriteLine(id);
+        if (isMinusInfinite)
+            Assert.True(Curve.Equivalent(Curve.MinusInfinite(), curve.GeneralSubAdditiveClosure()));
+        else
+            Assert.Throws<UndeterminedResultException>(() => curve.GeneralSubAdditiveClosure());
+    }
 }

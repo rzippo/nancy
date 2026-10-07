@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -239,5 +240,23 @@ public class SuperAdditiveClosure
     public void TheClosureIsUnboundedWhenTheRightLimitAtZeroIsPositive(Curve operand, Rational time, Rational expected)
     {
         Assert.Equal(expected, operand.SuperAdditiveClosure().ValueAt(time));
+    }
+
+    /// <summary>
+    /// The negations of <see cref="SubAdditiveClosure.NegativeAtOriginCases"/>, with $f(0) > 0$: their super-additive closure is $+\infty$ everywhere, or throws.
+    /// </summary>
+    public static IEnumerable<object[]> PositiveAtOriginTestCases()
+        => SubAdditiveClosure.NegativeAtOriginCases
+            .Select(c => new object[] { c.id, -c.curve, c.isMinusInfinite });
+
+    [Theory]
+    [MemberData(nameof(PositiveAtOriginTestCases))]
+    public void GeneralClosureOfCurvePositiveAtOrigin(string id, Curve curve, bool isPlusInfinite)
+    {
+        output.WriteLine(id);
+        if (isPlusInfinite)
+            Assert.True(Curve.Equivalent(Curve.PlusInfinite(), curve.GeneralSuperAdditiveClosure()));
+        else
+            Assert.Throws<UndeterminedResultException>(() => curve.GeneralSuperAdditiveClosure());
     }
 }
