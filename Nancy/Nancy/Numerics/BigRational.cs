@@ -24,7 +24,7 @@ namespace Unipi.Nancy.Numerics;
 [ComVisible(false)]
 [JsonObject(MemberSerialization.OptIn)]
 [Newtonsoft.Json.JsonConverter(typeof(BigRationalNewtonsoftJsonConverter))]
-public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<BigRational>, IToCodeString, IStableHashCode
+public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<BigRational>, IToCodeString, IStableHashCode, IToMppgString
 {
     #region Static public values
 
@@ -360,6 +360,21 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         sb.Append(")");
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Return a string containing code to create an equivalent of this BigRational in a (min,+) playground.
+    /// </summary>
+    public readonly string ToMppgString()
+    {
+        if (IsPlusInfinite)
+            return "+inf";
+        else if (IsMinusInfinite)
+            return "-inf";
+        else if (IsInteger)
+            return Numerator.ToString();
+        else
+            return $"{Numerator.ToString()}/{Denominator.ToString()}";
     }
 
     // IEquatable<BigRational>
