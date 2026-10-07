@@ -4351,7 +4351,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <summary>
     /// Computes the lower pseudo-inverse function over interval $I$ starting at $a$,
-    /// $f^{-1}_{\downarrow,I}(y) = \inf \left\{ t \in I \mid f(t) \ge y \right\}$ if $y \ge f(a)$, $+\infty$ otherwise.
+    /// $f^{-1}_{\downarrow,I}(y) = \inf \left\{ t \in I \mid f(t) \ge y \right\}$ if $y \ge \inf_{t \in I} f(t)$, $+\infty$ otherwise, [TBP-PI-INT] Definition 3.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
     /// <param name="end">End of the interval.
@@ -4362,11 +4362,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
-    /// Defined and discussed in [ZNS23a], and in [ZNS26] Definition 19, which makes the result $+\infty$ below $f(a)$ so that it keeps the $+\infty$ of the initial part of the restricted functions the isomorphism of convolutions is stated on.
-    /// This differs from <see cref="LowerPseudoInverse"/> for $f(0) > 0$ and an interval starting at 0, where the whole pseudo-inverse is 0 below $f(0)$.
-    /// If $f$ is $+\infty$ over the whole interval, the support is $\{ +\infty \}$, and the result is $+\infty$ at every finite height.
-    /// If the interval does not contain its start, $f(a)$ is not a value over it, and the right limit $f(a^+)$ takes its place:
-    /// the result is $+\infty$ below $f(a^+)$, and $a$ at it, the infimum of the instants of the interval, also where none of them is at $f(a^+)$.
+    /// [ZNS26] Definition 19, which is [ZNS23a] Definition 14, defines it over $[a, +\infty[$.
+    /// [TBP-PI-INT] Definition 3 extends it to any interval.
+    /// Over an interval starting at 0, it is $+\infty$ below $f(0)$, while <see cref="LowerPseudoInverse"/> is 0 there, [TBP-PI-INT] Proposition 5.
     /// </remarks>
     public Curve LowerPseudoInverseOverInterval(
         Rational start,
@@ -4561,7 +4559,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <summary>
     /// Computes the upper pseudo-inverse function over interval $I$ starting at $a$,
-    /// $f^{-1}_{\uparrow,I}(y) = \sup \left\{ t \in I \mid f(t) \le y \right\}$ if $y \ge f(a)$, $-\infty$ otherwise.
+    /// $f^{-1}_{\uparrow,I}(y) = \sup \left\{ t \in I \mid f(t) \le y \right\}$ if $y \ge \inf_{t \in I} f(t)$, $-\infty$ otherwise, [TBP-PI-INT] Definition 3.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
     /// <param name="end">End of the interval.
@@ -4571,11 +4569,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// If <paramref name="end"/> is $+\infty$, it has no effect.</param>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing or non-negative.</exception>
     /// <remarks>
-    /// Defined and discussed in [ZNS23a].
-    /// If $f$ is $+\infty$ over the whole interval, the support is $\{ +\infty \}$, and the result is $-\infty$ at every finite height.
-    /// If the interval does not contain its start, $f(a)$ is not a value over it, and the right limit $f(a^+)$ takes its place:
-    /// the result is $-\infty$ below $f(a^+)$, and at it the supremum of the instants of the interval where $f$ stays at $f(a^+)$,
-    /// which is $-\infty$ if $f$ rises right after $a$, as no instant of the interval is at or below $f(a^+)$.
+    /// [ZNS26] Definition 19, which is [ZNS23a] Definition 14, defines it over $[a, +\infty[$.
+    /// [TBP-PI-INT] Definition 3 extends it to any interval.
     /// </remarks>
     public Curve UpperPseudoInverseOverInterval(
         Rational start,
@@ -4601,15 +4596,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (!(isStartIncluded && isEndIncluded))
                 throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
 
-            // point-interval, the inverse is just a point, if f(x) is finite
+            // a single instant a: from f(a) on, a is at or below the height, [TBP-PI-INT] Proposition 6
             var value = ValueAt(start);
-            if (value.IsInfinite)
-                return MinusInfinite();
-            else
-            {
-                var point = new Point(ValueAt(start), start);
-                return Maximum(MinusInfinite(), point);
-            }
+            return value.IsInfinite
+                ? MinusInfinite()
+                : MinusInfiniteThenConstant(value, start);
         }
         else if (_end < Rational.PlusInfinity)
         {
@@ -4627,7 +4618,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var upi = upi_raw.Last() is Point && !upiShouldEndWithPoint
                 ? upi_raw.SkipLast(1).ToSequence()
                 : upi_raw.ToSequence();
-            return Maximum(MinusInfinite(), upi);
+            // from the supremum of f over the interval on, every instant of it is at or below the height, so the result is its end, [TBP-PI-INT] Proposition 6;
+            // the inverse of the cut is defined only up to that supremum, and never exceeds the end
+            var supremum = isEndIncluded ? ValueAt(_end) : LeftLimitAt(_end);
+            return Maximum(Maximum(MinusInfinite(), upi), MinusInfiniteThenConstant(supremum, _end));
         }
         else
         {
@@ -4725,6 +4719,18 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
         }
     }
+
+    /// <summary>
+    /// The curve that is $-\infty$ over $[0, t[$ and <paramref name="value"/> from $t$ on.
+    /// </summary>
+    /// <param name="t">The time from which the curve is <paramref name="value"/>, finite and non-negative.</param>
+    /// <param name="value">The value from <paramref name="t"/> on, finite.</param>
+    private static Curve MinusInfiniteThenConstant(Rational t, Rational value)
+        => t == 0
+            ? new Curve(new Sequence([new Point(0, value), Segment.Constant(0, 1, value)]), 0, 1, 0)
+            : new Curve(
+                new Sequence([Point.MinusInfinite(0), Segment.MinusInfinite(0, t), new Point(t, value), Segment.Constant(t, t + 1, value)]),
+                t, 1, 0);
 
     /// <summary>
     /// Computes the horizontal deviation between the two curves, $hDev(f, g)$.
