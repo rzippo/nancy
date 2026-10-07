@@ -124,9 +124,11 @@ public static class CurveLowerBounds
     /// </summary>
     /// <param name="curve">The curve to process.</param>
     /// <param name="alpha">Controls the type of bounding. If 0, the bounding optimizes for low delay. If 1, optimizes for high rate.</param>
+    /// <exception cref="ArgumentException">If the curve is negative somewhere, as every rate-latency curve is non-negative, and none is below it.</exception>
     /// <remarks>
     /// There may be infinite valid lower-bounds, varying on the trade-off between delay and long-term service.
     /// The parameter <paramref name="alpha"/> controls this behavior, with the default setting being highest rate.
+    /// If the curve has no sustained rate, the only rate-latency curve below it has no rate, and is 0 everywhere: it is returned with latency 0.
     /// </remarks>
     public static RateLatencyServiceCurve RateLatencyLowerBound(this Curve curve, decimal alpha = 1.0m)
     {
@@ -136,6 +138,11 @@ public static class CurveLowerBounds
             throw new ArgumentException("Trying to lower bound a curve with infinite sustained rate");
         if (alpha < 0 || alpha > 1)
             throw new ArgumentException("Alpha parameter must be in [0, 1]");
+        if (!curve.IsNonNegative)
+            throw new ArgumentException("A rate-latency curve is non-negative everywhere, so none is below a curve that is negative somewhere");
+        if (curve.PseudoPeriodSlope == 0)
+            // any latency gives the same function, 0 everywhere, so the latency is 0 too
+            return new RateLatencyServiceCurve(rate: 0, latency: 0);
 
         var maxRate = curve.PseudoPeriodSlope;
         var minDelay = curve.FirstNonZeroTime;
