@@ -232,4 +232,64 @@ public class TransientReduction
         Assert.True(reducedCurve.Equivalent(reducibleCurve));
         Assert.Equal(expected, reducedCurve.PseudoPeriodStart);
     }
+
+    /// <summary>
+    /// Ultimately infinite curves, whose pseudo-period height is that infinity, as their slope is, with the expected start once reduced.
+    /// A period of such a curve is entirely that infinity, so only such a period can be absorbed into it.
+    /// </summary>
+    public static List<(Curve curve, Rational expectedStart)> InfiniteHeightCases =
+    [
+        // -inf at 0, then 2 + t, then +inf from 1: the transient has an infinity of the opposite sign
+        (
+            new Curve(
+                new Sequence([Point.MinusInfinite(0), new Segment(0, 1, 2, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)]),
+                1, 1, Rational.PlusInfinity),
+            1
+        ),
+        // 2 + t, then +inf from 1: the transient is finite, and is not +inf as the period is
+        (
+            new Curve(
+                new Sequence([new Point(0, 2), new Segment(0, 1, 2, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)]),
+                1, 1, Rational.PlusInfinity),
+            1
+        ),
+        // 0 over [0, 1[, then +inf from 1, with the period starting at 2: the one from 1 is +inf as well
+        (
+            new Curve(
+                new Sequence([Point.Origin(), Segment.Zero(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2), Point.PlusInfinite(2), Segment.PlusInfinite(2, 3)]),
+                2, 1, Rational.PlusInfinity),
+            1
+        ),
+        // +inf at 0 and right after, then -inf from 1
+        (
+            new Curve(
+                new Sequence([Point.PlusInfinite(0), Segment.PlusInfinite(0, 1), Point.MinusInfinite(1), Segment.MinusInfinite(1, 2)]),
+                1, 1, Rational.MinusInfinity),
+            1
+        ),
+    ];
+
+    public static IEnumerable<object[]> InfiniteHeightTestCases()
+        => InfiniteHeightCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(InfiniteHeightTestCases))]
+    public void InfiniteHeightTransientReduction(Curve curve, Rational expectedStart)
+    {
+        var reduced = curve.TransientReduction();
+        Assert.True(Curve.Equivalent(curve, reduced));
+        Assert.Equal(expectedStart, reduced.PseudoPeriodStart);
+        Assert.True(Curve.Equivalent(curve, curve.Optimize()));
+    }
+
+    [Fact]
+    public void MinimumOfAnUltimatelyInfiniteCurveWithMinusInfinity()
+    {
+        // the minimum of a delay curve and -inf at 1 has a pseudo-period height of +inf, as the slope of the delay curve is
+        var minimum = new DelayServiceCurve(3).Minimum(Point.MinusInfinite(1));
+        Assert.Equal(Rational.MinusInfinity, minimum.ValueAt(1));
+        Assert.Equal(0, minimum.ValueAt(2));
+        Assert.Equal(0, minimum.ValueAt(3));
+        Assert.Equal(Rational.PlusInfinity, minimum.ValueAt(4));
+    }
 }
