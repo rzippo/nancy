@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
@@ -94,5 +95,31 @@ public class OperatorsTests
         Assert.True(BigRational.Zero < BigRational.PlusInfinity);
         Assert.True(BigRational.MinusInfinity < BigRational.Zero);
         Assert.True(BigRational.Zero > BigRational.MinusInfinity);
+    }
+
+    /// <summary>
+    /// Pairs of values near the range of a long, whose cross products overflow it, and whether they are equal.
+    /// </summary>
+    public static List<(BigRational a, BigRational b, bool areEqual)> LargeEqualsCases =
+    [
+        (new BigRational(3, 4), new BigRational(long.MaxValue), false),
+        (new BigRational(3, 4), new BigRational(long.MaxValue - 1, long.MaxValue), false),
+        (new BigRational(long.MaxValue - 1, long.MaxValue), new BigRational(long.MaxValue - 1, long.MaxValue), true),
+        (new BigRational(1, long.MaxValue), new BigRational(1, long.MaxValue - 1), false),
+    ];
+
+    public static IEnumerable<object[]> LargeEqualsTestCases()
+        => LargeEqualsCases.ToXUnitTestCases();
+
+    /// <summary>
+    /// Equals of values near the range of a long agrees with the equality operator.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(LargeEqualsTestCases))]
+    public void EqualsOfLargeValues(BigRational a, BigRational b, bool areEqual)
+    {
+        Assert.Equal(areEqual, a.Equals(b));
+        Assert.Equal(areEqual, a.Equals((object)b));
+        Assert.Equal(areEqual, a == b);
     }
 }

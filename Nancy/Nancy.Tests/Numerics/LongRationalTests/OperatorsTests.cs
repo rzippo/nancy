@@ -109,4 +109,30 @@ public class OperatorsTests
         Assert.Equal(areEqual, a == b);
         Assert.Equal(!areEqual, a != b);
     }
+
+    /// <summary>
+    /// Pairs of values near the range of a long, whose cross products overflow it, and whether they are equal.
+    /// </summary>
+    public static List<(LongRational a, LongRational b, bool areEqual)> LargeEqualsCases =
+    [
+        (new LongRational(3, 4), new LongRational(long.MaxValue), false),
+        (new LongRational(3, 4), new LongRational(long.MaxValue - 1, long.MaxValue), false),
+        (new LongRational(long.MaxValue - 1, long.MaxValue), new LongRational(long.MaxValue - 1, long.MaxValue), true),
+        (new LongRational(1, long.MaxValue), new LongRational(1, long.MaxValue - 1), false),
+    ];
+
+    public static IEnumerable<object[]> LargeEqualsTestCases()
+        => LargeEqualsCases.ToXUnitTestCases();
+
+    /// <summary>
+    /// Equals of values near the range of a long agrees with the equality operator.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(LargeEqualsTestCases))]
+    public void EqualsOfLargeValues(LongRational a, LongRational b, bool areEqual)
+    {
+        Assert.Equal(areEqual, a.Equals(b));
+        Assert.Equal(areEqual, a.Equals((object)b));
+        Assert.Equal(areEqual, a == b);
+    }
 }
