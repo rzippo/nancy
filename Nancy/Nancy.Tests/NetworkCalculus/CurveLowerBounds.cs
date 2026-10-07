@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -233,5 +234,50 @@ public class CurveLowerBounds
         {
             Assert.True(rateLatency <= point);    
         }
+    }
+
+    /// <summary>
+    /// Non-negative curves with no sustained rate, whose rate-latency lower bound has rate 0 and latency 0.
+    /// </summary>
+    public static List<(string id, Curve curve)> ZeroRateCurves =
+    [
+        ("rising to 2, then constant", new Curve(
+            new Sequence([Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 2), Segment.Constant(2, 3, 2)]), 2, 1, 0)),
+        ("constant 3", new ConstantCurve(3)),
+        ("zero", Curve.Zero()),
+    ];
+
+    public static IEnumerable<object[]> ZeroRateTestCases()
+        => ZeroRateCurves
+            .SelectMany(c => new[] { 0m, 0.5m, 1m }.Select(alpha => new object[] { c.id, c.curve, alpha }));
+
+    [Theory]
+    [MemberData(nameof(ZeroRateTestCases))]
+    public void RateLatencyLowerBoundOfACurveWithNoRate(string id, Curve curve, decimal alpha)
+    {
+        var bound = curve.RateLatencyLowerBound(alpha);
+        Assert.True(bound.Rate == 0, $"{id}: rate {bound.Rate}");
+        Assert.True(bound.Latency == 0, $"{id}: latency {bound.Latency}");
+        Assert.True(Curve.IsLowerBoundOf(bound, curve));
+    }
+
+    /// <summary>
+    /// Curves that are negative somewhere: every rate-latency curve is non-negative, so none is below them.
+    /// </summary>
+    public static List<(string id, Curve curve)> NegativeCurves =
+    [
+        ("-1 + t", new Curve(new Sequence([new Point(0, -1), new Segment(0, 1, -1, 1)]), 0, 1, 1)),
+        ("-1, then 2", new Curve(new Sequence([new Point(0, -1), Segment.Constant(0, 1, -1), new Point(1, 2), Segment.Constant(1, 2, 2)]), 1, 1, 0)),
+    ];
+
+    public static IEnumerable<object[]> NegativeTestCases()
+        => NegativeCurves.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(NegativeTestCases))]
+    public void RateLatencyLowerBoundOfANegativeCurveThrows(string id, Curve curve)
+    {
+        Assert.False(curve.IsNonNegative, id);
+        Assert.Throws<ArgumentException>(() => curve.RateLatencyLowerBound());
     }
 }
