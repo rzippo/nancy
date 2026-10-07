@@ -5604,6 +5604,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 return this;
             }
 
+            // with an infinite height, every period is that infinity, so an earlier part matches it only if it is the same, unshifted
+            Sequence ShiftedByHeight(Sequence s)
+                => PseudoPeriodHeight.IsInfinite ? s : s.VerticalShift(PseudoPeriodHeight, exceptOrigin: false);
+
             void ByPeriod()
             {
                 bool tryShorten = periodStart - periodLength >= 0;
@@ -5614,8 +5618,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     // logger.Trace($"TransientReduction by period, iteration #{iteration}");
 
                     var candidatePeriod = sequence.Cut(periodStart - periodLength, periodStart).Optimize();
-                    var shiftedCandidateSequence = candidatePeriod
-                        .VerticalShift(PseudoPeriodHeight, exceptOrigin: false)
+                    var shiftedCandidateSequence = ShiftedByHeight(candidatePeriod)
                         .Delay(periodLength, prependWithZero: false);
                     if (shiftedCandidateSequence == pseudoPeriodicSequence)
                     {
@@ -5654,8 +5657,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         periodTail = periodTail.Cut(periodTail.DefinedUntil - length,
                             periodTail.DefinedUntil);
 
-                    var shiftedTransientSequence = transientTail
-                        .VerticalShift(PseudoPeriodHeight, exceptOrigin: false)
+                    var shiftedTransientSequence = ShiftedByHeight(transientTail)
                         .Delay(periodLength, prependWithZero: false);
                     if (shiftedTransientSequence == periodTail)
                     {
