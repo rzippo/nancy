@@ -270,11 +270,12 @@ public class PrimitiveEdgeCases
 
     public static List<(BigRational value, string toString, string code)> FormattingCases =
     [
-        (BigRational.Zero, "0/1", "0"),
-        (new BigRational(3, 4), "3/4", "new Rational(3, 4)"),
-        (new BigRational(-2), "-2/1", "-2"),
-        (BigRational.PlusInfinity, "1/0", "new Rational(1, 0)"),
-        (BigRational.MinusInfinity, "-1/0", "new Rational(-1, 0)")
+        // as for Rational: integers are written without a denominator, and the code builds a BigRational
+        (BigRational.Zero, "0", "0"),
+        (new BigRational(3, 4), "3/4", "new BigRational(3, 4)"),
+        (new BigRational(-2), "-2", "-2"),
+        (BigRational.PlusInfinity, "1/0", "new BigRational(1, 0)"),
+        (BigRational.MinusInfinity, "-1/0", "new BigRational(-1, 0)")
     ];
 
     public static IEnumerable<object[]> FormattingTestCases()

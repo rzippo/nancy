@@ -278,11 +278,12 @@ public class PrimitiveEdgeCases
 
     public static List<(LongRational value, string toString, string code)> FormattingCases =
     [
-        (LongRational.Zero, "0/1", "0"),
-        (new LongRational(3, 4), "3/4", "new Rational(3, 4)"),
-        (new LongRational(-2), "-2/1", "-2"),
-        (LongRational.PlusInfinity, "1/0", "new Rational(1, 0)"),
-        (LongRational.MinusInfinity, "-1/0", "new Rational(-1, 0)")
+        // as for Rational: integers are written without a denominator, and the code builds a LongRational
+        (LongRational.Zero, "0", "0"),
+        (new LongRational(3, 4), "3/4", "new LongRational(3, 4)"),
+        (new LongRational(-2), "-2", "-2"),
+        (LongRational.PlusInfinity, "1/0", "new LongRational(1, 0)"),
+        (LongRational.MinusInfinity, "-1/0", "new LongRational(-1, 0)")
     ];
 
     public static IEnumerable<object[]> FormattingTestCases()
