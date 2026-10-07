@@ -12,6 +12,8 @@ namespace Unipi.Nancy;
 /// </summary>
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(RationalSystemJsonConverter.PlainRational))]
+[JsonSerializable(typeof(BigRationalSystemJsonConverter.PlainBigRational))]
+[JsonSerializable(typeof(LongRationalSystemJsonConverter.PlainLongRational))]
 [JsonSerializable(typeof(TwoRatesServiceCurveSystemJsonConverter.PlainTwoRatesServiceCurve))]
 [JsonSerializable(typeof(GenericCurveSystemJsonConverter.PlainCurve))]
 [JsonSerializable(typeof(ConstantCurveSystemJsonConverter.PlainConstantCurve))]
@@ -23,6 +25,8 @@ namespace Unipi.Nancy;
 [JsonSerializable(typeof(StairCurveSystemJsonConverter.PlainStairCurve))]
 [JsonSerializable(typeof(SigmaRhoArrivalCurveSystemJsonConverter.PlainSigmaRhoArrivalCurve))]
 [JsonSerializable(typeof(Rational))]
+[JsonSerializable(typeof(BigRational))]
+[JsonSerializable(typeof(LongRational))]
 [JsonSerializable(typeof(Curve))]
 [JsonSerializable(typeof(ConvexCurve))]
 [JsonSerializable(typeof(ConcaveCurve))]
