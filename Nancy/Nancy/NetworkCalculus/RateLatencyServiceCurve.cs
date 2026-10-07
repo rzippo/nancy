@@ -178,8 +178,8 @@ public class RateLatencyServiceCurve : ConvexCurve
             return base.Addition(curve, settings);
     }
 
-    /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>
-    public override Curve VerticalShift(Rational shift, bool exceptOrigin = false)
+    /// <inheritdoc cref="Curve.VerticalShift(Rational, bool, ComputationSettings?)"/>
+    public override Curve VerticalShift(Rational shift, bool exceptOrigin = false, ComputationSettings? settings = null)
     {
         if (shift == 0)
             return this;

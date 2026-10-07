@@ -149,24 +149,25 @@ public class RaisedRateLatencyServiceCurve : Curve
 
     internal static readonly Rational DefaultPeriodLength = 1;
 
-    /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>
+    /// <inheritdoc cref="Curve.VerticalShift(Rational, bool, ComputationSettings?)"/>
     /// <param name="shift">The additive factor $k$.</param>
     /// <param name="exceptOrigin">
     /// If false, which is the default, the shift applies to any $t$, the origin included.
     /// If true, the value at the origin is left as it is.
     /// </param>
+    /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// Shifting raises the buffer by <paramref name="shift"/>.
     /// The result is another curve of this kind only when the origin ends up where this type puts it, either at 0 or at the raised buffer,
     /// which is the case when <paramref name="exceptOrigin"/> agrees with <see cref="HasZeroOrigin"/>.
     /// </remarks>
-    public override Curve VerticalShift(Rational shift, bool exceptOrigin = false)
+    public override Curve VerticalShift(Rational shift, bool exceptOrigin = false, ComputationSettings? settings = null)
     {
         if (shift == 0)
             return this;
 
         if (exceptOrigin != HasZeroOrigin)
-            return base.VerticalShift(shift, exceptOrigin);
+            return base.VerticalShift(shift, exceptOrigin, settings);
 
         return new RaisedRateLatencyServiceCurve(Rate, Latency, BufferShift + shift, HasZeroOrigin);
     }

@@ -3342,12 +3342,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// If false, which is the default, the shift applies to any $t$, the origin included.
     /// If true, the value at the origin is left as it is and the shift applies to $t > 0$.
     /// </param>
-    public virtual Curve VerticalShift(Rational shift, bool exceptOrigin = false)
+    /// <param name="settings">Optional settings for the operation.</param>
+    public virtual Curve VerticalShift(Rational shift, bool exceptOrigin = false, ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
         if (shift == 0)
             return this;
 
-        if (shift == Rational.PlusInfinity)
+        if (shift == Rational.PlusInfinity && settings.UseInfiniteVerticalShiftShortcut)
             return exceptOrigin ? PlusInfinite().WithZeroOrigin() : PlusInfinite();
 
         if (exceptOrigin && IsZero)

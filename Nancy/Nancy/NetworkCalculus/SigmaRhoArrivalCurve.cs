@@ -119,13 +119,14 @@ public class SigmaRhoArrivalCurve : ConcaveCurve
         return base.Scale(scaling);
     }
 
-    /// <inheritdoc cref="Curve.VerticalShift(Rational, bool)"/>
+    /// <inheritdoc cref="Curve.VerticalShift(Rational, bool, ComputationSettings?)"/>
     /// <param name="shift">The additive factor $k$.</param>
     /// <param name="exceptOrigin">
     /// If false, which is the default, the shift applies to any $t$, the origin included, and the result is a plain <see cref="Curve"/>.
     /// If true, the value at the origin is left at 0 and the result is the curve with $\sigma + k$ as burst.
     /// </param>
-    public override Curve VerticalShift(Rational shift, bool exceptOrigin = false)
+    /// <param name="settings">Optional settings for the operation.</param>
+    public override Curve VerticalShift(Rational shift, bool exceptOrigin = false, ComputationSettings? settings = null)
     {
         if (shift == 0)
             return this;
@@ -144,7 +145,7 @@ public class SigmaRhoArrivalCurve : ConcaveCurve
             }
         }
 
-        return base.VerticalShift(shift, exceptOrigin);
+        return base.VerticalShift(shift, exceptOrigin, settings);
     }
 
     #endregion

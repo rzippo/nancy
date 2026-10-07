@@ -188,6 +188,12 @@ public record ComputationSettings
     /// </summary>
     public bool UseDelayDeconvolutionShortcut { get; set; } = true;
 
+    /// <summary>
+    /// If set, a vertical shift by $+\infty$ is shortcut to a curve that is $+\infty$ wherever it is shifted, rather than shifting each element of the curve.
+    /// Applies to <see cref="Curve.VerticalShift(Unipi.Nancy.Numerics.Rational, bool, ComputationSettings?)"/>.
+    /// </summary>
+    public bool UseInfiniteVerticalShiftShortcut { get; set; } = true;
+
     /// <exclude />
     /// <summary>
     /// If set, optimized convolution of sub-additive curves is used even if the operands are not finite for any $t$.
