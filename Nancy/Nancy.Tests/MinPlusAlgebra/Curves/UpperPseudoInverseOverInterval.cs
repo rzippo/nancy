@@ -172,8 +172,9 @@ public class UpperPseudoInverseOverInterval
                     {
                         new Point(0, 1),
                         new Segment(0, 1, 1, 2),
-                        Point.MinusInfinite(1),
-                        Segment.MinusInfinite(1,2)
+                        // from 1 on, the top of the image, not attained, every instant of the interval is at or below the height
+                        new Point(1, 3),
+                        Segment.Constant(1, 2, 3)
                     }),
                     pseudoPeriodStart: 1,
                     pseudoPeriodLength: 1,
@@ -209,11 +210,10 @@ public class UpperPseudoInverseOverInterval
                         new Point(2, 5),
                         new Segment(2, 3, 5, 1),
                         new Point(3, 7),
-                        Segment.MinusInfinite(3,4),
-                        Point.MinusInfinite(4),
-                        Segment.MinusInfinite(4,5),
+                        // above the top of the image, 3, every instant of the interval is at or below the height
+                        Segment.Constant(3, 4, 7),
                     }),
-                    pseudoPeriodStart: 4,
+                    pseudoPeriodStart: 3,
                     pseudoPeriodLength: 1,
                     pseudoPeriodHeight: 0
                 )

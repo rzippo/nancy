@@ -12,6 +12,15 @@ public partial class ConvolutionIsomorphismOverInterval
 {
     public static IEnumerable<object[]> UpiDecompositionEquivalenceTestCases()
     {
+        // [TBP-PI-INT] Corollary 8 needs no continuity
+        var testcases = ContinuousExamples.Concat(LeftContinuousExamples).Concat(RightContinuousExamples);
+
+        foreach (var c in testcases)
+            yield return new object[] { c };
+    }
+
+    public static IEnumerable<object[]> UpiDecompositionStrongEquivalenceTestCases()
+    {
         var testcases = ContinuousExamples.Concat(LeftContinuousExamples);
 
         foreach (var c in testcases)
@@ -29,7 +38,6 @@ public partial class ConvolutionIsomorphismOverInterval
         output.WriteLine(f.ToCodeString());
 
         // necessary hypotheses
-        Assert.True(f.IsLeftContinuous);
         Assert.True(f.IsNonDecreasing);
         Assert.True(f.IsNonNegative);
 
@@ -45,7 +53,7 @@ public partial class ConvolutionIsomorphismOverInterval
     }
 
     [Theory]
-    [MemberData(nameof(UpiDecompositionEquivalenceTestCases))]
+    [MemberData(nameof(UpiDecompositionStrongEquivalenceTestCases))]
     public void UpiDecompositionStrongEquivalence(Curve f)
     {
         // This test verifies that 

@@ -391,6 +391,21 @@ public class PseudoInverseDefinitions
             var actual = inverse.ValueAt(y);
             Assert.True(expected == actual, $"{id}: at y = {y}, expected {expected}, got {actual}");
         }
+
+        // over a bounded interval, also at and above the top of the image, where the infimum is +inf and the supremum the end of the interval, [TBP-PI-INT] Proposition 6
+        if (isOverInterval && end != Inf)
+        {
+            var top = restriction.Max(Limit);
+            if (top.IsFinite)
+            {
+                foreach (var y in new[] { top, top + new Rational(1, 2), top + 1 })
+                {
+                    var expected = definition(restriction, y);
+                    var actual = inverse.ValueAt(y);
+                    Assert.True(expected == actual, $"{id}: at y = {y}, above the image, expected {expected}, got {actual}");
+                }
+            }
+        }
     }
 
     [Theory]
