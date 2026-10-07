@@ -25,6 +25,25 @@ public class GCDTests
         Assert.Equal(expected, gcd);
     }
 
+    public static List<(long a, long b, long expected)> GcdLongCases =
+    [
+        (84, 18, 6),
+        (18, 84, 6),
+        (12, 8, 4),
+        (8, 12, 4),
+    ];
+
+    public static IEnumerable<object[]> GetGcdLongCases()
+        => GcdLongCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetGcdLongCases))]
+    public void Long(long a, long b, long expected)
+    {
+        long gcd = BigRational.GreatestCommonDivisor(a, b);
+        Assert.Equal(expected, gcd);
+    }
+
     public static List<(BigRational a, BigRational b, BigRational expected)> NegativeGcdCases =
     [
         (new BigRational(-84), new BigRational(18), new BigRational(6)),
