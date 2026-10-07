@@ -476,4 +476,36 @@ public class SubAdditiveClosure
         else
             Assert.Throws<UndeterminedResultException>(() => curve.GeneralSubAdditiveClosure());
     }
+
+    private static readonly ComputationSettings WithZeroClosureShortcut = new() { UseZeroClosureShortcut = true };
+    private static readonly ComputationSettings WithoutZeroClosureShortcut = new() { UseZeroClosureShortcut = false };
+
+    public static List<(string id, Curve curve)> ZeroRightAfterOriginCases =
+    [
+        ("staircase 0 up to 1, steps every 1/10", new StairCurve(1, new Rational(1, 10)).DelayBy(1)),
+        ("delay of 2", new DelayServiceCurve(2)),
+        ("3 at 0, 0 up to 2, then slope 1", new Curve(
+            new Sequence([new Point(0, 3), Segment.Zero(0, 2), Point.Origin().Delay(2), new Segment(2, 3, 0, 1)]), 2, 1, 1)),
+        ("0 up to 1, then -1", new Curve(
+            new Sequence([Point.Origin(), Segment.Zero(0, 1), new Point(1, -1), Segment.Constant(1, 2, -1)]), 1, 1, 0)),
+    ];
+
+    public static IEnumerable<object[]> ZeroRightAfterOriginTestCases()
+        => ZeroRightAfterOriginCases.ToXUnitTestCases();
+
+    /// <summary>
+    /// Curves that are 0 right after the origin, non-negative or not, have the same closure with and without the shortcut to 0.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ZeroRightAfterOriginTestCases))]
+    public void ClosureOfCurveZeroRightAfterOriginIsTheSameWithoutTheShortcut(string id, Curve curve)
+    {
+        output.WriteLine(id);
+        Assert.True(Curve.Equivalent(
+            curve.SubAdditiveClosure(WithZeroClosureShortcut),
+            curve.SubAdditiveClosure(WithoutZeroClosureShortcut)));
+        Assert.True(Curve.Equivalent(
+            (-curve).SuperAdditiveClosure(WithZeroClosureShortcut),
+            (-curve).SuperAdditiveClosure(WithoutZeroClosureShortcut)));
+    }
 }
