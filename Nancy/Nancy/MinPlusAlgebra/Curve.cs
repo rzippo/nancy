@@ -7663,15 +7663,32 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the subadditive closure.</returns>
+    /// <exception cref="UndeterminedResultException">
+    /// If $f(0) &lt; 0$ and $f$ is $+\infty$ right after 0, or if $f$ takes both $+\infty$ and $-\infty$.
+    /// </exception>
     /// <remarks>
     /// This version does not assume $f^*(0) = 0$, making the result more general but at the cost of optimizations,
     /// since the result is not statically guaranteed to be a <see cref="SubAdditiveCurve"/>.
     /// Described in [BT08] Section 4.6 as algorithm 5.
+    /// For $f(0) &lt; 0$, the closure is $-\infty$ at every $t$ that splits into finitely many parts at which $f$ is not $+\infty$, as parts of length 0 each add $f(0)$.
+    /// If $f$ is not $+\infty$ right after 0, that is every $t$, and the closure is $-\infty$ everywhere.
+    /// Otherwise the times right after 0 do not split, the closure is $+\infty$ there, and its sub-additivity involves $-\infty + \infty$, which is undefined.
     /// </remarks>
     public Curve GeneralSubAdditiveClosure(ComputationSettings? settings = null)
     {
         if (ValueAt(0) < 0)
+        {
+            // a split with parts at -infinity and at +infinity sums them, which is undefined
+            if (HasPlusInfinity && HasMinusInfinity)
+                throw new UndeterminedResultException(
+                    "The sub-additive closure of a curve that takes both +infinity and -infinity sums them, which is undefined.");
+            // the closure is -infinity at every t that splits into finitely many parts at which f is not +infinity, as parts of length 0 each add f(0) < 0;
+            // if f is not +infinity right after 0, parts that short sum to every t, and if it is, the times right after 0 do not split at all
+            if (GetSegmentAfter(0, autoMerge: false).IsPlusInfinite)
+                throw new UndeterminedResultException(
+                    "The sub-additive closure of this curve, with f(0) < 0, is -infinity at some times and +infinity at others, so its sub-additivity is undefined.");
             return MinusInfinite();
+        }
         else
             return SubAdditiveClosure(settings);
     }
@@ -8412,14 +8429,31 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the super-additive closure.</returns>
+    /// <exception cref="UndeterminedResultException">
+    /// If $f(0) > 0$ and $f$ is $-\infty$ right after 0, or if $f$ takes both $+\infty$ and $-\infty$.
+    /// </exception>
     /// <remarks>
     /// This version does not assume $f_*(0) = 0$, making the result more general but at the cost of optimizations,
     /// since the result is not statically guaranteed to be a <see cref="SuperAdditiveCurve"/>.
+    /// For $f(0) > 0$, the closure is $+\infty$ at every $t$ that splits into finitely many parts at which $f$ is not $-\infty$, as parts of length 0 each add $f(0)$.
+    /// If $f$ is not $-\infty$ right after 0, that is every $t$, and the closure is $+\infty$ everywhere.
+    /// Otherwise the times right after 0 do not split, the closure is $-\infty$ there, and its super-additivity involves $+\infty - \infty$, which is undefined.
     /// </remarks>
     public Curve GeneralSuperAdditiveClosure(ComputationSettings? settings = null)
     {
         if (ValueAt(0) > 0)
+        {
+            // a split with parts at +infinity and at -infinity sums them, which is undefined
+            if (HasPlusInfinity && HasMinusInfinity)
+                throw new UndeterminedResultException(
+                    "The super-additive closure of a curve that takes both +infinity and -infinity sums them, which is undefined.");
+            // the closure is +infinity at every t that splits into finitely many parts at which f is not -infinity, as parts of length 0 each add f(0) > 0;
+            // if f is not -infinity right after 0, parts that short sum to every t, and if it is, the times right after 0 do not split at all
+            if (GetSegmentAfter(0, autoMerge: false).IsMinusInfinite)
+                throw new UndeterminedResultException(
+                    "The super-additive closure of this curve, with f(0) > 0, is +infinity at some times and -infinity at others, so its super-additivity is undefined.");
             return PlusInfinite();
+        }
         else
             return SuperAdditiveClosure(settings);
     }
