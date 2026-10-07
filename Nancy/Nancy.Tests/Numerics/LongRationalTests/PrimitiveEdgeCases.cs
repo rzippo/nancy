@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
@@ -274,6 +275,16 @@ public class PrimitiveEdgeCases
         Assert.Equal(gcd, LongRational.GreatestCommonDivisor(left, right));
         Assert.Equal(lcm, LongRational.LeastCommonMultiple(left, right));
         Assert.Equal(lcd, LongRational.LeastCommonDenominator(left, right));
+    }
+
+    [Fact]
+    public void LeastCommonDenominatorBeyondTheRangeOfALong()
+    {
+        // 4 and the largest long are coprime, and their product is beyond the range of a long;
+        // as for Rational in its long form, the least common denominator is a BigInteger
+        Assert.Equal(
+            BigInteger.Parse("36893488147419103228"),
+            LongRational.LeastCommonDenominator(new LongRational(3, 4), new LongRational(1, long.MaxValue)));
     }
 
     public static List<(LongRational value, string toString, string code, string mppg)> FormattingCases =
