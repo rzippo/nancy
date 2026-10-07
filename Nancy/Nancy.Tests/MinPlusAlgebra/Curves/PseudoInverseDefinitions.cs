@@ -119,10 +119,7 @@ public class PseudoInverseDefinitions
     }
 
     /// <summary>
-    /// The heights at which the pseudo-inverses over an interval are defined, [ZNS23a] Definition 14: the support $f(I)$, extended down to 0 if $0 \in I$.
-    /// Above, the support ends at the top of a bounded restriction, and at where an unbounded one was cut.
-    /// With <paramref name="includeUnattainedLow"/>, the lowest height is included also where no instant attains it, as at an excluded start the curve rises from:
-    /// the infimum of the definition is still that start there.
+    /// Selects the heights to check: the heights k/6 and k/7, for k up to 72, that lie between the lowest and highest values of the restriction, each end included only if some instant attains it.
     /// </summary>
     /// <param name="restriction">The elements of the curve over the interval.</param>
     /// <param name="extendToZero">Starts from 0 instead of the lowest value.</param>
@@ -367,8 +364,8 @@ public class PseudoInverseDefinitions
             }
         }
 
-        // the lower forms are also checked at a lowest height no instant attains, where the infimum is still defined
-        foreach (var y in Heights(f, restriction, start, end, isStartIncluded, isOverInterval, includeUnattainedLow: definition == Infimum))
+        // the forms are also checked at a lowest height no instant attains, where the infimum is still the start and the supremum is -inf
+        foreach (var y in Heights(f, restriction, start, end, isStartIncluded, isOverInterval, includeUnattainedLow: true))
         {
             var expected = end == Inf && f.IsUltimatelyConstant && definition == Supremum && y >= f.ValueAt(f.PseudoPeriodStart)
                 // f never exceeds y
