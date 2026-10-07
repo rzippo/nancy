@@ -343,9 +343,13 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     public override readonly String ToString()
     {
         StringBuilder ret = new StringBuilder();
-        ret.Append(Numerator.ToString());
-        ret.Append(c_solidus);
-        ret.Append(Denominator.ToString());
+        ret.Append(Numerator.ToString("R", CultureInfo.InvariantCulture));
+        if (Denominator != 1)
+        {
+            ret.Append(c_solidus);
+            ret.Append(Denominator.ToString("R", CultureInfo.InvariantCulture));
+        }
+
         return ret.ToString();
     }
 
@@ -359,7 +363,7 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
             return Numerator.ToString();
 
         var sb = new StringBuilder();
-        sb.Append("new Rational(");
+        sb.Append("new LongRational(");
         sb.Append(Numerator.ToString());
         sb.Append(", ");
         sb.Append(Denominator.ToString());

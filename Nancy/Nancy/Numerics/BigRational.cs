@@ -334,8 +334,12 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     {
         StringBuilder ret = new StringBuilder();
         ret.Append(Numerator.ToString("R", CultureInfo.InvariantCulture));
-        ret.Append(c_solidus);
-        ret.Append(Denominator.ToString("R", CultureInfo.InvariantCulture));
+        if (Denominator != 1)
+        {
+            ret.Append(c_solidus);
+            ret.Append(Denominator.ToString("R", CultureInfo.InvariantCulture));
+        }
+
         return ret.ToString();
     }
 
@@ -349,7 +353,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             return Numerator.ToString();
 
         var sb = new StringBuilder();
-        sb.Append("new Rational(");
+        sb.Append("new BigRational(");
         sb.Append(Numerator.ToString());
         sb.Append(", ");
         sb.Append(Denominator.ToString());
