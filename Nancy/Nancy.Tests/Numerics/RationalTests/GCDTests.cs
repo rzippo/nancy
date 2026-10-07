@@ -40,7 +40,7 @@ public class GCDTests
     [MemberData(nameof(GetGcdLongCases))]
     public void Long(long a, long b, long expected)
     {
-        long gcd = Nancy.Numerics.LongRational.GreatestCommonDivisor(a, b);
+        long gcd = Nancy.Numerics.Rational.GreatestCommonDivisor(a, b);
         Assert.Equal(expected, gcd);
     }
 
