@@ -194,6 +194,12 @@ public record ComputationSettings
     /// </summary>
     public bool UseInfiniteVerticalShiftShortcut { get; set; } = true;
 
+    /// <summary>
+    /// If set, a closure whose result is 0 is shortcut to it, without running the algorithm.
+    /// Applies to <see cref="Curve.SubAdditiveClosure(ComputationSettings?)"/>, and through negation to <see cref="Curve.SuperAdditiveClosure(ComputationSettings?)"/>.
+    /// </summary>
+    public bool UseZeroClosureShortcut { get; set; } = true;
+
     /// <exclude />
     /// <summary>
     /// If set, optimized convolution of sub-additive curves is used even if the operands are not finite for any $t$.

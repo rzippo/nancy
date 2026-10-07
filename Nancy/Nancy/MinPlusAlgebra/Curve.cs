@@ -7625,6 +7625,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// For a more general implementation, see <see cref="GeneralSubAdditiveClosure"/>. 
     /// Described in [BT08] Section 4.6 as algorithm 5.
     /// If $f(0^+) &lt; 0$ the result is $-\infty$ for any $t > 0$, and is returned without running the algorithm.
+    /// If $f$ is non-negative and 0 right after 0, the result is 0, and is returned without running the algorithm, see <see cref="ComputationSettings.UseZeroClosureShortcut"/>.
     /// </remarks>
     public virtual SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
@@ -7643,6 +7644,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return new SubAdditiveCurve(MinusInfinite().WithOriginAt(0), false);
 
         settings ??= ComputationSettings.Default();
+
+        // splitting any t > 0 into parts right after 0 gives 0, and no sum of non-negative values is below it
+        if (settings.UseZeroClosureShortcut && GetSegmentAfter(0, autoMerge: false) is { RightLimitAtStartTime.IsZero: true, Slope.IsZero: true } && IsNonNegative)
+            return new SubAdditiveCurve(Zero(), false);
 
         var transientClosures = TransientElements
             .Select(element => element.SubAdditiveClosure(settings));
