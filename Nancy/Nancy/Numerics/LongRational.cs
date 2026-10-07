@@ -857,13 +857,20 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <inheritdoc />
     public static bool operator ==(LongRational x, LongRational y)
     {
-        return Compare(x, y) == 0;
+        // Shortcut common comparisons to infinite
+        if (y.IsPlusInfinite)
+            return x.IsPlusInfinite;
+        if (y.IsMinusInfinite)
+            return x.IsMinusInfinite;
+
+        // values are normalized, so equal values have the same numerator and denominator
+        return x.Numerator == y.Numerator && x.Denominator == y.Denominator;
     }
 
     /// <inheritdoc />
     public static bool operator !=(LongRational x, LongRational y)
     {
-        return Compare(x, y) != 0;
+        return x.Numerator != y.Numerator || x.Denominator != y.Denominator;
     }
 
     /// <inheritdoc />
