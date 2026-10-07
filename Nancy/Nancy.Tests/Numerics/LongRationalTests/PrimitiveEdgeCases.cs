@@ -276,14 +276,14 @@ public class PrimitiveEdgeCases
         Assert.Equal(lcd, LongRational.LeastCommonDenominator(left, right));
     }
 
-    public static List<(LongRational value, string toString, string code)> FormattingCases =
+    public static List<(LongRational value, string toString, string code, string mppg)> FormattingCases =
     [
         // as for Rational: integers are written without a denominator, and the code builds a LongRational
-        (LongRational.Zero, "0", "0"),
-        (new LongRational(3, 4), "3/4", "new LongRational(3, 4)"),
-        (new LongRational(-2), "-2", "-2"),
-        (LongRational.PlusInfinity, "1/0", "new LongRational(1, 0)"),
-        (LongRational.MinusInfinity, "-1/0", "new LongRational(-1, 0)")
+        (LongRational.Zero, "0", "0", "0"),
+        (new LongRational(3, 4), "3/4", "new LongRational(3, 4)", "3/4"),
+        (new LongRational(-2), "-2", "-2", "-2"),
+        (LongRational.PlusInfinity, "1/0", "new LongRational(1, 0)", "+inf"),
+        (LongRational.MinusInfinity, "-1/0", "new LongRational(-1, 0)", "-inf")
     ];
 
     public static IEnumerable<object[]> FormattingTestCases()
@@ -294,10 +294,12 @@ public class PrimitiveEdgeCases
     public void FormattingMethodsReturnStableRepresentations(
         LongRational value,
         string toString,
-        string code)
+        string code,
+        string mppg)
     {
         Assert.Equal(toString, value.ToString());
         Assert.Equal(code, value.ToCodeString());
+        Assert.Equal(mppg, value.ToMppgString());
     }
 
     public static List<(LongRational value, object? other, int expectedSign)> ObjectComparisonCases =

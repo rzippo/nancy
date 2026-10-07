@@ -268,14 +268,14 @@ public class PrimitiveEdgeCases
         Assert.Equal(lcd, BigRational.LeastCommonDenominator(left, right));
     }
 
-    public static List<(BigRational value, string toString, string code)> FormattingCases =
+    public static List<(BigRational value, string toString, string code, string mppg)> FormattingCases =
     [
         // as for Rational: integers are written without a denominator, and the code builds a BigRational
-        (BigRational.Zero, "0", "0"),
-        (new BigRational(3, 4), "3/4", "new BigRational(3, 4)"),
-        (new BigRational(-2), "-2", "-2"),
-        (BigRational.PlusInfinity, "1/0", "new BigRational(1, 0)"),
-        (BigRational.MinusInfinity, "-1/0", "new BigRational(-1, 0)")
+        (BigRational.Zero, "0", "0", "0"),
+        (new BigRational(3, 4), "3/4", "new BigRational(3, 4)", "3/4"),
+        (new BigRational(-2), "-2", "-2", "-2"),
+        (BigRational.PlusInfinity, "1/0", "new BigRational(1, 0)", "+inf"),
+        (BigRational.MinusInfinity, "-1/0", "new BigRational(-1, 0)", "-inf")
     ];
 
     public static IEnumerable<object[]> FormattingTestCases()
@@ -286,10 +286,12 @@ public class PrimitiveEdgeCases
     public void FormattingMethodsReturnStableRepresentations(
         BigRational value,
         string toString,
-        string code)
+        string code,
+        string mppg)
     {
         Assert.Equal(toString, value.ToString());
         Assert.Equal(code, value.ToCodeString());
+        Assert.Equal(mppg, value.ToMppgString());
     }
 
     public static List<(BigRational value, object? other, int expectedSign)> ObjectComparisonCases =
