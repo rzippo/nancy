@@ -3350,7 +3350,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return this;
 
         if (shift == Rational.PlusInfinity && settings.UseInfiniteVerticalShiftShortcut)
-            return exceptOrigin ? PlusInfinite().WithZeroOrigin() : PlusInfinite();
+        {
+            // -inf + inf is undefined, so any -inf value throws, except at an excepted origin
+            var elements = exceptOrigin && PseudoPeriodStart == 0
+                ? Cut(0, SecondPseudoPeriodEnd).Elements
+                : BaseSequence.Elements;
+            if (elements.Any(e => e.IsMinusInfinite && !(exceptOrigin && e is Point p && p.Time == 0)))
+                throw new UndeterminedResultException("Cannot sum opposite infinities");
+
+            return exceptOrigin ? PlusInfinite().WithOriginAt(ValueAt(0)) : PlusInfinite();
+        }
 
         if (exceptOrigin && IsZero)
             return new ConstantCurve(shift);
