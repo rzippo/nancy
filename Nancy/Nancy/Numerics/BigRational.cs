@@ -811,6 +811,24 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
+    /// Greatest Common Divisor of the two numbers.
+    /// </summary>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    public static long GreatestCommonDivisor(long a, long b)
+    {
+        a = Math.Abs(a);
+        b = Math.Abs(b);
+        while (b != 0)
+        {
+            long temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+
+    /// <summary>
     /// Least Common Multiple of the two numbers.
     /// </summary>
     /// <param name="a">The first operand.</param>
