@@ -4339,15 +4339,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// Replaces the value at the start of the cut with the right limit there, if the interval excludes its start.
-    /// </summary>
-    private IEnumerable<Element> WithRightLimitAtStart(IEnumerable<Element> cut, Rational start, bool isStartIncluded)
-        => isStartIncluded ? cut : cut.Skip(1).Prepend(new Point(start, RightLimitAt(start)));
-
-    /// <summary>
-    /// Computes the lower pseudo-inverse function over interval $I$, $f^{-1}_{\downarrow,I}(x)$.
-    /// The support of the result will be the interval $f(I)$, defined as the smallest interval containing all $f(x)$ for $x \in I$.
-    /// Below it the result is $+\infty$, also if $0 \in I$, unlike for <see cref="LowerPseudoInverse"/>, which is defined from 0.
+    /// Computes the lower pseudo-inverse function over interval $I$ starting at $a$,
+    /// $f^{-1}_{\downarrow,I}(y) = \inf \left\{ t \in I \mid f(t) \ge y \right\}$ if $y \ge f(a)$, $+\infty$ otherwise.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
     /// <param name="end">End of the interval.
@@ -4361,7 +4354,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Defined and discussed in [ZNS23a], and in [ZNS26] Definition 19, which makes the result $+\infty$ below $f(a)$ so that it keeps the $+\infty$ of the initial part of the restricted functions the isomorphism of convolutions is stated on.
     /// This differs from <see cref="LowerPseudoInverse"/> for $f(0) > 0$ and an interval starting at 0, where the whole pseudo-inverse is 0 below $f(0)$.
     /// If $f$ is $+\infty$ over the whole interval, the support is $\{ +\infty \}$, and the result is $+\infty$ at every finite height.
-    /// If the interval does not contain its start, the value at the start is the right limit there, as only what follows it counts.
+    /// If the interval does not contain its start, $f(a)$ is not a value over it, and the right limit $f(a^+)$ takes its place:
+    /// the result is $+\infty$ below $f(a^+)$, and $a$ at it, the infimum of the instants of the interval, also where none of them is at $f(a^+)$.
     /// </remarks>
     public Curve LowerPseudoInverseOverInterval(
         Rational start,
@@ -4555,8 +4549,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// Computes the upper pseudo-inverse function over interval $D$, $f^{-1}_{\uparrow,D}(x)$.
-    /// The support of the result will be the interval $f(I)$, defined as the smallest interval containing all $f(x)$ for $x \in I$.
+    /// Computes the upper pseudo-inverse function over interval $I$ starting at $a$,
+    /// $f^{-1}_{\uparrow,I}(y) = \sup \left\{ t \in I \mid f(t) \le y \right\}$ if $y \ge f(a)$, $-\infty$ otherwise.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
     /// <param name="end">End of the interval.
@@ -4568,7 +4562,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// Defined and discussed in [ZNS23a].
     /// If $f$ is $+\infty$ over the whole interval, the support is $\{ +\infty \}$, and the result is $-\infty$ at every finite height.
-    /// If the interval does not contain its start, the value at the start is the right limit there, as only what follows it counts.
+    /// If the interval does not contain its start, $f(a)$ is not a value over it, and the right limit $f(a^+)$ takes its place:
+    /// the result is $-\infty$ below $f(a^+)$, and at it the supremum of the instants of the interval where $f$ stays at $f(a^+)$,
+    /// which is $-\infty$ if $f$ rises right after $a$, as no instant of the interval is at or below $f(a^+)$.
     /// </remarks>
     public Curve UpperPseudoInverseOverInterval(
         Rational start,
@@ -4631,7 +4627,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 var valueAtStart = isStartIncluded ? ValueAt(start) : RightLimitAt(start);
                 // the transient excludes constant_start, so its inverse covers up to f(constant_start^-)
                 var upi = start < constant_start
-                    ? WithRightLimitAtStart(CutAsEnumerable(start, constant_start), start, isStartIncluded)
+                    ? CutAsEnumerable(start, constant_start, isStartIncluded)
                         .UpperPseudoInverse()
                         .ToList()
                     : [];
@@ -4646,11 +4642,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 upi.Add(Point.PlusInfinite(constant_value));
                 upi.Add(Segment.PlusInfinite(constant_value, constant_value + 1));
 
-                var sequence = valueAtStart > 0
-                    ? Sequence.MinusInfinite(0, valueAtStart).Elements
-                        .Concat(upi)
-                        .ToSequence()
-                    : upi.ToSequence();
+                // -inf below the value at the start, and at the right limit of an excluded start where f rises, as no instant of the interval is at or below it, [TBP-PI-INT] Proposition 9
+                var sequence = upi
+                    .Fill(0, valueAtStart, fillWith: Rational.MinusInfinity)
+                    .ToSequence();
 
                 return new Curve(
                     baseSequence: sequence,
@@ -4672,7 +4667,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 var lastFiniteValue = isStartBeforeLastFinite ? LeftLimitAt(lastFiniteTime) : ValueAt(lastFiniteTime); // L
                 var isLastFiniteConstant = isStartBeforeLastFinite && GetSegmentBefore(lastFiniteTime).IsConstant;
                 var transient_upi = isStartBeforeLastFinite
-                    ? WithRightLimitAtStart(BaseSequence.CutAsEnumerable(start, lastFiniteTime), start, isStartIncluded)
+                    ? BaseSequence.CutAsEnumerable(start, lastFiniteTime, isStartIncluded)
                         .UpperPseudoInverse()
                     : Enumerable.Empty<Element>();
                 var upi = isLastFiniteConstant
@@ -4683,11 +4678,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         .Append(Segment.Constant(lastFiniteValue, lastFiniteValue + 1, lastFiniteTime));
 
                 var valueAtStart = isStartIncluded ? ValueAt(start) : RightLimitAt(start);
-                var sequence = valueAtStart > 0
-                    ? Sequence.MinusInfinite(0, valueAtStart).Elements
-                        .Concat(upi)
-                        .ToSequence()
-                    : upi.ToSequence();
+                // -inf below the value at the start, and at the right limit of an excluded start where f rises, as no instant of the interval is at or below it, [TBP-PI-INT] Proposition 9
+                var sequence = upi
+                    .Fill(0, valueAtStart, fillWith: Rational.MinusInfinity)
+                    .ToSequence();
 
                 return new Curve(
                     baseSequence: sequence,
@@ -4701,16 +4695,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 var periodStart = (start < PseudoPeriodStart ? PseudoPeriodStart : start) + PseudoPeriodLength;
                 // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
                 // the pseudo-inverse of said point is then removed from the result
-                var upi = WithRightLimitAtStart(CutAsEnumerable(start, periodStart + PseudoPeriodLength, isEndIncluded: true), start, isStartIncluded)
+                var upi = CutAsEnumerable(start, periodStart + PseudoPeriodLength, isStartIncluded, isEndIncluded: true)
                     .UpperPseudoInverse()
                     .SkipLast(1);
 
                 var valueAtStart = isStartIncluded ? ValueAt(start) : RightLimitAt(start);
-                var sequence = valueAtStart > 0
-                    ? Sequence.MinusInfinite(0, valueAtStart).Elements
-                        .Concat(upi)
-                        .ToSequence()
-                    : upi.ToSequence();
+                // -inf below the value at the start, and at the right limit of an excluded start where f rises, as no instant of the interval is at or below it, [TBP-PI-INT] Proposition 9
+                var sequence = upi
+                    .Fill(0, valueAtStart, fillWith: Rational.MinusInfinity)
+                    .ToSequence();
 
                 return new Curve(
                     baseSequence: sequence,
