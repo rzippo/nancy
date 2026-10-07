@@ -506,14 +506,8 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc />
         public readonly Boolean Equals(Rational other)
         {
-            if (this.Denominator == other.Denominator)
-            {
-                return Numerator == other.Numerator;
-            }
-            else
-            {
-                return (Numerator * other.Denominator) == (Denominator * other.Numerator);
-            }
+            // values are normalized, so equal values have the same numerator and denominator
+            return Numerator == other.Numerator && Denominator == other.Denominator;
         }
 
         #endregion Public Instance Methods
