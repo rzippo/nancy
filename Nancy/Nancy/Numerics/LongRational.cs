@@ -690,10 +690,11 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     ///     <item> Divide the product of the denominators by the GCD </item>
     /// </list>
     /// </remarks>
-    public static long LeastCommonDenominator(LongRational x, LongRational y)
+    /// <returns>The least common denominator, as a <see cref="BigInteger"/>, since it can be beyond the range of a long.</returns>
+    public static BigInteger LeastCommonDenominator(LongRational x, LongRational y)
     {
         // LCD( a/b, c/d ) == (bd) / gcd(b,d)
-        return (x.Denominator / GreatestCommonDivisor(x.Denominator, y.Denominator)) * y.Denominator;
+        return (x.Denominator / GreatestCommonDivisor(x.Denominator, y.Denominator)) * (BigInteger)y.Denominator;
     }
 
     /// <summary>
