@@ -321,7 +321,7 @@ public class PseudoInverseDefinitions
 
     /// <summary>
     /// The intervals a curve is checked over: those starting at 0, 1 and 2, closed or open on the left, unbounded or ending 1 or 3 after, closed or open on the right.
-    /// Only those over which the curve is non-negative are used.
+    /// Only those over which the curve is non-negative and non-decreasing are used.
     /// </summary>
     private static IEnumerable<(Rational start, Rational end, bool isStartIncluded, bool isEndIncluded)> Intervals(Curve f)
     {
@@ -335,12 +335,29 @@ public class PseudoInverseDefinitions
             var end = length == -1 ? Inf : start + length;
             if (!IsNonNegative(Restriction(f, start, end, isStartIncluded, isEndIncluded)))
                 continue;
+            if (!f.IsNonDecreasingOverInterval(start, end == Inf ? null : end, isStartIncluded, isEndIncluded))
+                continue;
             yield return (start, end, isStartIncluded, isEndIncluded);
         }
     }
 
+    /// <summary>
+    /// Returns curves that are non-decreasing only over some intervals, and are checked over those intervals, not over their whole domain.
+    /// </summary>
+    public static IEnumerable<(string id, Curve f)> IntervalOnlyCurves()
+    {
+        // $t$, except 5 at 1, and from 2 on rising by 1 every period of length 1
+        yield return ("5 at 1, t around it", new Curve(
+            new Sequence([
+                Point.Origin(), new Segment(0, 1, 0, 1), new Point(1, 5), new Segment(1, 2, 1, 1),
+                new Point(2, 2), new Segment(2, 3, 2, 1)
+            ]),
+            2, 1, 1));
+    }
+
     public static IEnumerable<object[]> NamedCurveIntervalCases()
-        => NamedCurves().SelectMany(c => Intervals(c.f).Select(i => new object[] { c.id, c.f, i.start, i.end, i.isStartIncluded, i.isEndIncluded }));
+        => NamedCurves().Concat(IntervalOnlyCurves())
+            .SelectMany(c => Intervals(c.f).Select(i => new object[] { c.id, c.f, i.start, i.end, i.isStartIncluded, i.isEndIncluded }));
 
     private static void AssertInverse(
         string id, Curve f, Curve inverse, Func<IEnumerable<Element>, Rational, Rational> definition,
