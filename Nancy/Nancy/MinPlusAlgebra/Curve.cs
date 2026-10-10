@@ -4084,6 +4084,46 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Enforces $f(t) = f(t^+)$, i.e. right-continuity at <paramref name="time"/>.
+    /// </summary>
+    /// <param name="time">The instant $t$, non-negative and finite.</param>
+    /// <returns>The curve with its right limit at <paramref name="time"/> as its value there, and unchanged elsewhere.</returns>
+    public Curve WithRightContinuousAt(Rational time)
+        => WithValueAt(time, RightLimitAt(time));
+
+    /// <summary>
+    /// Enforces $f(t) = f(t^-)$, i.e. left-continuity at <paramref name="time"/>.
+    /// </summary>
+    /// <param name="time">The instant $t$, positive and finite.</param>
+    /// <returns>The curve with its left limit at <paramref name="time"/> as its value there, and unchanged elsewhere.</returns>
+    /// <exception cref="ArgumentException">If <paramref name="time"/> is 0, where a curve has no left limit.</exception>
+    public Curve WithLeftContinuousAt(Rational time)
+        => WithValueAt(time, LeftLimitAt(time));
+
+    /// <summary>
+    /// Enforces $f(t) = v$.
+    /// </summary>
+    /// <param name="time">The instant $t$, non-negative and finite.</param>
+    /// <param name="value">The value $v$ to be enforced.</param>
+    /// <returns>The curve with <paramref name="value"/> at <paramref name="time"/>, and unchanged elsewhere.</returns>
+    public Curve WithValueAt(Rational time, Rational value)
+    {
+        if (ValueAt(time) == value)
+            return this;
+
+        // a change at or after the pseudo-period start would repeat in every pseudo-period, so the pseudo-period starts after the time instead
+        var periodStart = time < PseudoPeriodStart
+            ? PseudoPeriodStart
+            : PseudoPeriodStart + (((time - PseudoPeriodStart) / PseudoPeriodLength).Floor() + 1) * PseudoPeriodLength;
+        var before = time == 0 ? [] : CutAsEnumerable(0, time);
+        var sequence = before
+            .Append(new Point(time, value))
+            .Concat(CutAsEnumerable(time, periodStart + PseudoPeriodLength, isStartIncluded: false))
+            .ToSequence();
+        return new Curve(sequence, periodStart, PseudoPeriodLength, PseudoPeriodHeight);
+    }
+
+    /// <summary>
     /// Computes the lower pseudo-inverse function, $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>

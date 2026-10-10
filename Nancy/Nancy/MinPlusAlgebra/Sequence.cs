@@ -1878,6 +1878,44 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         => Elements.ToRightContinuous().ToSequence();
 
     /// <summary>
+    /// Enforces $f(t) = f(t^+)$, i.e. right-continuity at <paramref name="time"/>.
+    /// </summary>
+    /// <param name="time">The instant $t$, in the support and before its end.</param>
+    /// <returns>The sequence with its right limit at <paramref name="time"/> as its value there, and unchanged elsewhere.</returns>
+    /// <exception cref="ArgumentException">If <paramref name="time"/> is not in the support, or is its end, where the sequence has no right limit.</exception>
+    public Sequence WithRightContinuousAt(Rational time)
+        => WithValueAt(time, RightLimitAt(time));
+
+    /// <summary>
+    /// Enforces $f(t) = f(t^-)$, i.e. left-continuity at <paramref name="time"/>.
+    /// </summary>
+    /// <param name="time">The instant $t$, in the support and after its start.</param>
+    /// <returns>The sequence with its left limit at <paramref name="time"/> as its value there, and unchanged elsewhere.</returns>
+    /// <exception cref="ArgumentException">If <paramref name="time"/> is not in the support, or is its start, where the sequence has no left limit.</exception>
+    public Sequence WithLeftContinuousAt(Rational time)
+        => WithValueAt(time, LeftLimitAt(time));
+
+    /// <summary>
+    /// Enforces $f(t) = v$.
+    /// </summary>
+    /// <param name="time">The instant $t$, in the support.</param>
+    /// <param name="value">The value $v$ to be enforced.</param>
+    /// <returns>The sequence with <paramref name="value"/> at <paramref name="time"/>, and unchanged elsewhere.</returns>
+    /// <exception cref="ArgumentException">If <paramref name="time"/> is not in the support.</exception>
+    public Sequence WithValueAt(Rational time, Rational value)
+    {
+        if (ValueAt(time) == value)
+            return this;
+
+        var before = time == DefinedFrom ? [] : CutAsEnumerable(DefinedFrom, time, IsLeftClosed, false);
+        var after = time == DefinedUntil ? [] : CutAsEnumerable(time, DefinedUntil, false, IsRightClosed);
+        return before
+            .Append(new Point(time, value))
+            .Concat(after)
+            .ToSequence();
+    }
+
+    /// <summary>
     /// Computes the lower pseudo-inverse of the sequence,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
