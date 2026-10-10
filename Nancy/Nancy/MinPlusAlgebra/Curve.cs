@@ -4313,6 +4313,74 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Computes the lower pseudo-inverse at height <paramref name="y"/>, $f^{-1}_\downarrow(y) = \inf \left\{ t \ge 0 \mid f(t) \ge y \right\}$, [ZNS26] Definition 16.
+    /// </summary>
+    /// <param name="y">The height.</param>
+    /// <returns>The infimum, $+\infty$ if no instant has $f(t) \ge y$.</returns>
+    /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
+    /// <remarks>
+    /// It is <see cref="LowerPseudoInverse"/> at <paramref name="y"/>, without computing the whole pseudo-inverse.
+    /// </remarks>
+    public Rational LowerPseudoInverseAt(Rational y)
+    {
+        if (!IsNonDecreasing)
+            throw new ArgumentException("The lower pseudo-inverse is defined only for non-decreasing functions");
+        if (y <= ValueAt(0))
+            return 0;
+
+        var throughFirstPeriod = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true).ToSequence();
+        var time = throughFirstPeriod.LowerPseudoInverseAt(y);
+        if (!time.IsPlusInfinite)
+            return time;
+
+        // f is below y up to the end of the first pseudo-period, and each later one adds the pseudo-period height, if positive and finite
+        if (!(PseudoPeriodHeight > 0) || PseudoPeriodHeight.IsInfinite || y.IsPlusInfinite)
+            return Rational.PlusInfinity;
+
+        // the first k with f(T + (k + 1) d) >= y: f(T + k d) < y, so y is first reached in ]T + k d, T + (k + 1) d]
+        Rational k = ((y - ValueAt(FirstPseudoPeriodEnd)) / PseudoPeriodHeight).Ceil();
+        var period = CutAsEnumerable(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).ToSequence();
+        return period.LowerPseudoInverseAt(y - k * PseudoPeriodHeight) + k * PseudoPeriodLength;
+    }
+
+    /// <summary>
+    /// Computes the upper pseudo-inverse at height <paramref name="y"/>, $f^{-1}_\uparrow(y) = \sup \left\{ t \ge 0 \mid f(t) \le y \right\}$, [ZNS26] Definition 16.
+    /// </summary>
+    /// <param name="y">The height.</param>
+    /// <returns>The supremum, $-\infty$ if no instant has $f(t) \le y$, as below $f(0)$, and $+\infty$ if every instant from some time on has.</returns>
+    /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
+    /// <remarks>
+    /// It is <see cref="UpperPseudoInverse"/> at <paramref name="y"/>, without computing the whole pseudo-inverse.
+    /// </remarks>
+    public Rational UpperPseudoInverseAt(Rational y)
+    {
+        if (!IsNonDecreasing)
+            throw new ArgumentException("The upper pseudo-inverse is defined only for non-decreasing functions");
+        if (y < ValueAt(0))
+            return Rational.MinusInfinity;
+        if (y.IsPlusInfinite || PseudoPeriodHeight.IsMinusInfinite)
+            // every instant has f(t) <= y; a non-decreasing curve that is ultimately -infinity is -infinity everywhere
+            return Rational.PlusInfinity;
+
+        if (PseudoPeriodHeight.IsPlusInfinite)
+            // f is +infinity after the first pseudo-period, so no later instant has f(t) <= y
+            return CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true).ToSequence().UpperPseudoInverseAt(y);
+
+        var periodStartValue = ValueAt(PseudoPeriodStart);
+        if (y < periodStartValue)
+            // f(T) > y, so the last instant with f(t) <= y is before T
+            return CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true).ToSequence().UpperPseudoInverseAt(y);
+        if (PseudoPeriodHeight == 0)
+            // a non-decreasing curve with no pseudo-period height is constant from T on, at f(T) <= y
+            return Rational.PlusInfinity;
+
+        // the last k with f(T + k d) <= y: f(T + (k + 1) d) > y, so the supremum is in [T + k d, T + (k + 1) d[
+        Rational k = ((y - periodStartValue) / PseudoPeriodHeight).Floor();
+        var period = CutAsEnumerable(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).ToSequence();
+        return period.UpperPseudoInverseAt(y - k * PseudoPeriodHeight) + k * PseudoPeriodLength;
+    }
+
+    /// <summary>
     /// Computes the lower pseudo-inverse function over interval $I$, $f^{-1}_{\downarrow,I}(x)$.
     /// The support of the result will be the interval $f(I)$, defined as the smallest interval containing all $f(x)$ for $x \in I$.
     /// If $0 \in I$, the support is extended to start from 0.

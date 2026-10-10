@@ -1914,6 +1914,78 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
+    /// Computes the lower pseudo-inverse at height <paramref name="y"/>, $f^{-1}_\downarrow(y) = \inf \left\{ t \in D \mid f(t) \ge y \right\}$, over the domain $D$ of the sequence.
+    /// </summary>
+    /// <param name="y">The height.</param>
+    /// <returns>The infimum, $+\infty$ if no instant has $f(t) \ge y$.</returns>
+    /// <exception cref="ArgumentException">If the sequence is not non-decreasing.</exception>
+    /// <remarks>
+    /// Below the image of the sequence every instant qualifies, and the result is the start of the domain.
+    /// Above the image no instant qualifies, and the result is $+\infty$.
+    /// After <see cref="IsNonDecreasing"/>, which is cached, the cost is a binary search over the elements, $O(\log n)$.
+    /// </remarks>
+    public Rational LowerPseudoInverseAt(Rational y)
+    {
+        if (!IsNonDecreasing)
+            throw new ArgumentException("The lower pseudo-inverse is defined only for non-decreasing functions");
+
+        // as the sequence is non-decreasing, the elements with a value at or above y are a suffix
+        var index = FindFirstIndex(element => element switch
+        {
+            Point point => point.Value >= y,
+            Segment segment => segment.Slope == 0 ? segment.RightLimitAtStartTime >= y : segment.LeftLimitAtEndTime > y,
+            _ => throw new InvalidCastException()
+        });
+        if (index == -1)
+            return Rational.PlusInfinity;
+
+        return Elements[index] switch
+        {
+            Point point => point.Time,
+            Segment segment => segment.RightLimitAtStartTime >= y
+                ? segment.StartTime
+                : segment.StartTime + (y - segment.RightLimitAtStartTime) / segment.Slope,
+            _ => throw new InvalidCastException()
+        };
+    }
+
+    /// <summary>
+    /// Computes the upper pseudo-inverse at height <paramref name="y"/>, $f^{-1}_\uparrow(y) = \sup \left\{ t \in D \mid f(t) \le y \right\}$, over the domain $D$ of the sequence.
+    /// </summary>
+    /// <param name="y">The height.</param>
+    /// <returns>The supremum, $-\infty$ if no instant has $f(t) \le y$.</returns>
+    /// <exception cref="ArgumentException">If the sequence is not non-decreasing.</exception>
+    /// <remarks>
+    /// Below the image of the sequence no instant qualifies, and the result is $-\infty$.
+    /// Above the image every instant qualifies, and the result is the end of the domain.
+    /// After <see cref="IsNonDecreasing"/>, which is cached, the cost is a binary search over the elements, $O(\log n)$.
+    /// </remarks>
+    public Rational UpperPseudoInverseAt(Rational y)
+    {
+        if (!IsNonDecreasing)
+            throw new ArgumentException("The upper pseudo-inverse is defined only for non-decreasing functions");
+
+        // as the sequence is non-decreasing, the elements with a value at or below y are a prefix
+        var index = FindLastIndex(element => element switch
+        {
+            Point point => point.Value <= y,
+            Segment segment => segment.Slope == 0 ? segment.RightLimitAtStartTime <= y : segment.RightLimitAtStartTime < y,
+            _ => throw new InvalidCastException()
+        });
+        if (index == -1)
+            return Rational.MinusInfinity;
+
+        return Elements[index] switch
+        {
+            Point point => point.Time,
+            Segment segment => segment.Slope == 0 || segment.LeftLimitAtEndTime <= y
+                ? segment.EndTime
+                : segment.StartTime + (y - segment.RightLimitAtStartTime) / segment.Slope,
+            _ => throw new InvalidCastException()
+        };
+    }
+
+    /// <summary>
     /// Computes the horizontal deviation between the two sequences, $hDev(f, g)$.
     /// The two sequences must have an overlapping image, and the deviation is measured between points in that overlap. 
     /// </summary>
