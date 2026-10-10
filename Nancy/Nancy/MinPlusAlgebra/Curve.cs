@@ -3019,8 +3019,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The first time t at which $f(t)$ = value, or $+\infty$ if it is never reached.</returns>
     /// <remarks>
     /// The current implementation uses <see cref="ToUpperNonDecreasing"/> and <see cref="LowerPseudoInverse"/>.
-    /// Thus, it is useful as a shortcut but not to optimize computation of $f^{-1}_\downarrow(x)$ for a single point.
+    /// For a non-decreasing curve, the result is <see cref="LowerPseudoInverseAt"/> at <paramref name="value"/>.
+    /// For any other curve, it can be a time before the curve attains the value.
     /// </remarks>
+    [Obsolete("Use LowerPseudoInverseAt for a non-decreasing curve. For any other curve, this method can return a time before the curve attains the value.")]
     public Rational TimeAt(Rational value)
     {
         return this
