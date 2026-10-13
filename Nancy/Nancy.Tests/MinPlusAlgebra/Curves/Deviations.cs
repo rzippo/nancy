@@ -628,60 +628,6 @@ public class Deviations
     }
 
     [Theory]
-    [MemberData(nameof(GetHorizontalDeviationTestCases))]
-    public void HorizontalDeviationAlternativesTest(Curve a, Curve b, Rational expected)
-    {
-        // the following compute hdev(a, b), the first one only when the upper pseudo-inverses of both curves are finite
-        _testOutputHelper.WriteLine($"var a = {a.ToCodeString()}");
-        _testOutputHelper.WriteLine($"var b = {b.ToCodeString()}");
-        _testOutputHelper.WriteLine($"var expected = {expected.ToCodeString()}");
-
-        // The height form of [PS22] Lemma 25 with the upper pseudo-inverses, as a (max,+) deconvolution at 0.
-        // Not the deviation when f(0) > 0, where it is +inf, nor between sequences, see [TBP-SEQ-DEV] § A.2.
-        // This alternative is well-defined only if the pseudo-inverses are finite: 
-        // otherwise the (max,+) deconvolution reaches +infty - (+infty) or -infty - (-infty), 
-        // and whatever it returns is not the deviation.
-        // The UPI is UltimatelyPlusInfinite if the curve is UC, and is -infty in 0 if f(0) > 0
-        var a_upi = a.UpperPseudoInverse();
-        var b_upi = b.UpperPseudoInverse();
-        var doHDev1 = a_upi.IsFinite && b_upi.IsFinite;
-        Rational hDev_1 = 0;
-        if (doHDev1)
-        {
-            hDev_1 = Curve.MaxPlusDeconvolution(a_upi, b_upi)
-                .Negate()
-                .ToNonNegative()
-                .ValueAt(0);
-            _testOutputHelper.WriteLine($"var hDev_1 = {hDev_1.ToCodeString()}");
-        }
-
-        var b_lpi = b.LowerPseudoInverse();
-        // [DNC18] Proposition 5.14
-        var hDev_2 = b_lpi
-            .Composition(a)
-            .Deconvolution(new RateLatencyServiceCurve(1, 0))
-            .ValueAt(0);
-        _testOutputHelper.WriteLine($"var hDev_2 = {hDev_2.ToCodeString()}");
-
-        // Derived from [DNC18] Lemma 5.2 and similar, in principle, to Proposition 5.14
-        var hDev_3 = b_lpi
-            .Composition(a)
-            .Subtraction(new RateLatencyServiceCurve(1, 0))
-            .SupValue();
-        _testOutputHelper.WriteLine($"var hDev_3 = {hDev_3.ToCodeString()}");
-
-        // The gap between the lower pseudo-inverses, [PS22] Lemma 25, as extended by [TBP-SEQ-DEV] § 4.6, on generic curves
-        var hDev_4 = Curve.HorizontalDeviation(new Curve(a), new Curve(b), ByPseudoInverses);
-        _testOutputHelper.WriteLine($"var hDev_4 = {hDev_4.ToCodeString()}");
-
-        if (doHDev1)
-            Assert.Equal(hDev_1, hDev_2);
-        Assert.Equal(hDev_2, hDev_3);
-        Assert.Equal(hDev_3, hDev_4);
-        Assert.Equal(expected, hDev_3);
-    }
-
-    [Theory]
     [MemberData(nameof(GetHorizontalDeviationArgTestCases))]
     public void HorizontalDeviationArgTest(Curve a, Curve b, Rational expected)
     {
@@ -1216,20 +1162,6 @@ public class Deviations
     }
 
     /// <summary>
-    /// The height form with the upper pseudo-inverses, $\sup_y \left( g^{-1}_\uparrow(y) - f^{-1}_\uparrow(y) \right)$ and 0 if that is negative,
-    /// written as the (max,+) deconvolution of the upper pseudo-inverses at 0; null where an upper pseudo-inverse is not finite.
-    /// </summary>
-    private static Rational? HorizontalDeviationByUpperPseudoInverses(Curve f, Curve g)
-    {
-        var fUpi = f.UpperPseudoInverse();
-        var gUpi = g.UpperPseudoInverse();
-        if (!fUpi.IsFinite || !gUpi.IsFinite)
-            return null;
-
-        return Curve.MaxPlusDeconvolution(fUpi, gUpi).Negate().ToNonNegative().ValueAt(0);
-    }
-
-    /// <summary>
     /// Pairs of curves with plateaus and jumps, whose upper pseudo-inverses are finite and whose first operand is non-negative.
     /// Chosen out of seeded random ones by covering, with the fewest and smallest, each kind of tail, continuity, plateau and jump, the relation of the two, and whether the deviation is 0, finite or $+\infty$.
     /// </summary>
@@ -1338,7 +1270,7 @@ public class Deviations
     [MemberData(nameof(UpperAndLowerPseudoInverseCurvePairs))]
     public void HorizontalDeviationIsTheSameWithUpperAndLowerPseudoInverses(Curve f, Curve g)
     {
-        var byUpper = HorizontalDeviationByUpperPseudoInverses(f, g);
+        var byUpper = HorizontalDeviationStrategies.UpperDeconvolutionAlone(f, g);
         var byLower = Curve.HorizontalDeviation(new Curve(f), new Curve(g), ByPseudoInverses);
         var byComposition = Curve.HorizontalDeviation(new Curve(f), new Curve(g), ByComposition);
         Assert.Equal(byLower, byComposition);
@@ -1359,8 +1291,8 @@ public class Deviations
         foreach (var settings in EveryStrategy)
             Assert.Equal(4, Curve.HorizontalDeviation(f, g, settings));
         Assert.False(f.UpperPseudoInverse().IsFinite);
-        Assert.Equal(Rational.PlusInfinity, Curve.MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse()).Negate().ToNonNegative().ValueAt(0));
-        Assert.Equal(4, HorizontalDeviationByUpperPseudoInverses(fFrom0Plus, g));
+        Assert.Equal(Rational.PlusInfinity, HorizontalDeviationStrategies.UpperDeconvolutionAlone(f, g));
+        Assert.Equal(4, HorizontalDeviationStrategies.UpperDeconvolutionAlone(fFrom0Plus, g));
     }
 
     /// <summary>
