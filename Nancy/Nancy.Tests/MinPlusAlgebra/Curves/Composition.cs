@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -480,5 +481,18 @@ public class Composition
         var expectedNonDecreasing = f.IsNonDecreasing && g.IsNonDecreasing;
         Assert.Equal(expectedNonDecreasing, result.IsNonDecreasing);
         Assert.True(Curve.Equivalent(result, expected));
+    }
+
+    /// <summary>
+    /// An inner function that takes $+\infty$ is rejected, as the outer function cannot be sampled there,
+    /// whether the outer one becomes $+\infty$ too or not.
+    /// </summary>
+    [Fact]
+    public void InnerFunctionTakingPlusInfinityIsRejected()
+    {
+        var inner = new DelayServiceCurve(2);
+        Assert.Throws<ArgumentException>(() => new RateLatencyServiceCurve(1, 0).Composition(inner));
+        Assert.Throws<ArgumentException>(() => new DelayServiceCurve(3).Composition(inner));
+        Assert.Throws<ArgumentException>(() => Curve.Composition(new RateLatencyServiceCurve(1, 0), Curve.PlusInfinite()));
     }
 }

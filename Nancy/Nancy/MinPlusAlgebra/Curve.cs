@@ -8193,7 +8193,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Compute the composition of this curve, $f$, and $g$, i.e. $f(g(t))$.
     /// </summary>
-    /// <param name="g">Inner function, must be non-negative and non-decreasing.</param>
+    /// <param name="g">Inner function, must be non-negative, non-decreasing and finite.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
@@ -8209,6 +8209,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw new ArgumentException("g must be non-negative");
         if (!g.IsNonDecreasing)
             throw new ArgumentException("g must be non-decreasing");
+        if (!g.IsFinite)
+            throw new ArgumentException("g must be finite");
 
         // since g is non-decreasing, matching its value at 0 and at the start of its pseudo-period
         // means it is constant over any t, hence its range is the single point g(0).
@@ -8302,7 +8304,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Compute the composition $f(g(t))$.
     /// </summary>
     /// <param name="f">Outer function.</param>
-    /// <param name="g">Inner function, must be non-negative and non-decreasing.</param>
+    /// <param name="g">Inner function, must be non-negative, non-decreasing and finite.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
