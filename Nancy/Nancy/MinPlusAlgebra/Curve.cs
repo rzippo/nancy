@@ -4218,10 +4218,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var constant_start = PseudoPeriodStartInfimum;
             var constant_value = ValueAt(PseudoPeriodStart);
 
-            // the transient excludes constant_start, so its inverse covers up to f(constant_start^-)
+            // the transient excludes constant_start, so its inverse covers up to f(constant_start^-);
+            // without a transient, no instant is below f(0), and the heights under it are -inf
             var upi = constant_start > 0
                 ? CutAsEnumerable(0, constant_start).UpperPseudoInverse(startFromZero: true).ToList()
-                : [];
+                : ValueAt(0) > 0 ? Sequence.MinusInfinite(0, ValueAt(0)).Elements.ToList() : [];
             // for any y from f(constant_start^-), up to the constant, f(t) <= y for t < constant_start, and for no t > constant_start
             var jump_start = constant_start > 0 ? LeftLimitAt(constant_start) : ValueAt(0);
             if (jump_start < constant_value)
@@ -4233,15 +4234,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             upi.Add(Point.PlusInfinite(constant_value));
             upi.Add(Segment.PlusInfinite(constant_value, constant_value + 1));
 
-            var valueAtZero = ValueAt(0);
-            var sequence = valueAtZero > 0
-                ? Sequence.MinusInfinite(0, valueAtZero).Elements
-                    .Concat(upi)
-                    .ToSequence()
-                : upi.ToSequence();
-
             return new Curve(
-                baseSequence: sequence,
+                baseSequence: upi.ToSequence(),
                 pseudoPeriodStart: constant_value,
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: 0
@@ -4259,15 +4253,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 .UpperPseudoInverse(startFromZero: true)
                 .SkipLast(1);
 
-            var valueAtZero = ValueAt(0);
-            var sequence = valueAtZero > 0
-                ? Sequence.MinusInfinite(0, valueAtZero).Elements
-                    .Concat(upi)
-                    .ToSequence()
-                : upi.ToSequence();
-
             return new Curve(
-                baseSequence: sequence,
+                baseSequence: upi.ToSequence(),
                 pseudoPeriodStart: ValueAt(PseudoPeriodStart),
                 pseudoPeriodLength: PseudoPeriodHeight,
                 pseudoPeriodHeight: PseudoPeriodLength

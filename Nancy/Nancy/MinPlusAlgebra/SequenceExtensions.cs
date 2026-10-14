@@ -1355,76 +1355,116 @@ public static class SequenceExtensions
         var merged = startFromZero ?
             elements.MergeAsEnumerable().SkipUntilValue(0):
             elements.MergeAsEnumerable();
+        var upi = Inverse();
 
-        using var enumerator = merged.GetEnumerator();
+        // from 0 up to the first value of the sequence, no instant has f(t) <= y, and the supremum is -inf
+        return startFromZero
+            ? upi.Fill(0, 0, fillWith: Rational.MinusInfinity)
+            : upi;
 
-        if (!enumerator.MoveNext())
-            throw new ArgumentException("Elements is an empty collection");
-
-        Rational previousValue = Rational.MinusInfinity;
-        bool? wasPreviousPoint = null;
-        Point? heldPoint = null; // points are held back in case there is a right-discontinuity to introduce instead 
-        do
+        IEnumerable<Element> Inverse()
         {
-            switch (enumerator.Current)
+            using var enumerator = merged.GetEnumerator();
+
+            if (!enumerator.MoveNext())
+                throw new ArgumentException("Elements is an empty collection");
+
+            Rational previousValue = Rational.MinusInfinity;
+            bool? wasPreviousPoint = null;
+            Point? heldPoint = null; // points are held back in case there is a right-discontinuity to introduce instead 
+            do
             {
-                case Point p:
+                switch (enumerator.Current)
                 {
-                    if (p.Value > previousValue)
+                    case Point p:
                     {
-                        if (previousValue > Rational.MinusInfinity)
+                        if (p.Value > previousValue)
                         {
-                            // left-discontinuity, becomes constant segment
-                            if (wasPreviousPoint != true)
+                            if (previousValue > Rational.MinusInfinity)
                             {
-                                yield return new Point(time: previousValue, value: p.Time);
+                                // left-discontinuity, becomes constant segment
+                                if (wasPreviousPoint != true)
+                                {
+                                    yield return new Point(time: previousValue, value: p.Time);
+                                }
+                                yield return new Segment(
+                                    startTime: previousValue,
+                                    endTime: p.Value,
+                                    rightLimitAtStartTime: p.Time,
+                                    slope: 0
+                                );
                             }
-                            yield return new Segment(
-                                startTime: previousValue,
-                                endTime: p.Value,
-                                rightLimitAtStartTime: p.Time,
-                                slope: 0
-                            );
-                        }
-                        // hold back in case the next segment is constant
-                        // thus a right-discontinuity should be introduced instead
-                        heldPoint = (Point) p.Inverse();
-                        previousValue = p.Value;
-                        wasPreviousPoint = true;
-                    }
-                    else if (p.Value == previousValue && wasPreviousPoint != true)
-                    {
-                        // hold back in case the next segment is constant
-                        // thus a right-discontinuity should be introduced instead
-                        heldPoint = (Point) p.Inverse();
-                        previousValue = p.Value;
-                        wasPreviousPoint = true;
-                    }
-                    else if (p.Value < previousValue)
-                    {
-                        throw new ArgumentException("The sequence is not non-decreasing.");
-                    }
-
-                    break;
-                }
-
-                case Segment s:
-                {
-                    if (s.IsConstant)
-                    {
-                        // the segment itself is skipped, as constant segments become left-discontinuities
-                        if (s.RightLimitAtStartTime == previousValue)
-                        {
-                            // discard the point held, push right-continuity point instead
-                            yield return new Point(
-                                time: s.RightLimitAtStartTime,
-                                value: s.EndTime
-                            );
-                            heldPoint = null;
-                            previousValue = s.RightLimitAtStartTime;
+                            // hold back in case the next segment is constant
+                            // thus a right-discontinuity should be introduced instead
+                            heldPoint = (Point) p.Inverse();
+                            previousValue = p.Value;
                             wasPreviousPoint = true;
                         }
-                        else if (s.RightLimitAtStartTime > previousValue)
+                        else if (p.Value == previousValue && wasPreviousPoint != true)
+                        {
+                            // hold back in case the next segment is constant
+                            // thus a right-discontinuity should be introduced instead
+                            heldPoint = (Point) p.Inverse();
+                            previousValue = p.Value;
+                            wasPreviousPoint = true;
+                        }
+                        else if (p.Value < previousValue)
+                        {
+                            throw new ArgumentException("The sequence is not non-decreasing.");
+                        }
+
+                        break;
+                    }
+
+                    case Segment s:
+                    {
+                        if (s.IsConstant)
+                        {
+                            // the segment itself is skipped, as constant segments become left-discontinuities
+                            if (s.RightLimitAtStartTime == previousValue)
+                            {
+                                // discard the point held, push right-continuity point instead
+                                yield return new Point(
+                                    time: s.RightLimitAtStartTime,
+                                    value: s.EndTime
+                                );
+                                heldPoint = null;
+                                previousValue = s.RightLimitAtStartTime;
+                                wasPreviousPoint = true;
+                            }
+                            else if (s.RightLimitAtStartTime > previousValue)
+                            {
+                                if (heldPoint is not null)
+                                {
+                                    yield return heldPoint;
+                                    heldPoint = null;
+                                }
+
+                                if (wasPreviousPoint == true)
+                                {
+                                    // right-discontinuity, becomes constant segment
+                                    yield return new Segment(
+                                        startTime: previousValue,
+                                        endTime: s.RightLimitAtStartTime,
+                                        rightLimitAtStartTime: s.StartTime,
+                                        slope: 0
+                                    );
+                                }
+
+                                // right-continuity point as inverse of constant segment
+                                yield return new Point(
+                                    time: s.RightLimitAtStartTime,
+                                    value: s.EndTime
+                                );
+                                previousValue = s.RightLimitAtStartTime;
+                                wasPreviousPoint = true;
+                            }
+                            else if (s.RightLimitAtStartTime < previousValue)
+                            {
+                                throw new ArgumentException("The sequence is not non-decreasing.");
+                            }
+                        }
+                        else if (s.Slope > 0)
                         {
                             if (heldPoint is not null)
                             {
@@ -1432,84 +1472,53 @@ public static class SequenceExtensions
                                 heldPoint = null;
                             }
 
-                            if (wasPreviousPoint == true)
+                            if (s.RightLimitAtStartTime > previousValue)
                             {
-                                // right-discontinuity, becomes constant segment
-                                yield return new Segment(
-                                    startTime: previousValue,
-                                    endTime: s.RightLimitAtStartTime,
-                                    rightLimitAtStartTime: s.StartTime,
-                                    slope: 0
-                                );
+                                if (previousValue != Rational.MinusInfinity)
+                                {
+                                    // right-discontinuity, becomes constant segment
+                                    yield return new Segment(
+                                        startTime: previousValue,
+                                        endTime: s.RightLimitAtStartTime,
+                                        rightLimitAtStartTime: s.StartTime,
+                                        slope: 0
+                                    );
+                                    yield return new Point(
+                                        time: s.RightLimitAtStartTime,
+                                        value: s.StartTime
+                                    );
+                                }
+                                // then the segment inverse
+                                yield return s.Inverse();
+                                previousValue = s.LeftLimitAtEndTime;
+                                wasPreviousPoint = false;
                             }
-
-                            // right-continuity point as inverse of constant segment
-                            yield return new Point(
-                                time: s.RightLimitAtStartTime,
-                                value: s.EndTime
-                            );
-                            previousValue = s.RightLimitAtStartTime;
-                            wasPreviousPoint = true;
+                            else if (s.RightLimitAtStartTime == previousValue)
+                            {
+                                // right-continuity, simple inverse
+                                yield return s.Inverse();
+                                previousValue = s.LeftLimitAtEndTime;
+                                wasPreviousPoint = false;
+                            }
+                            else if (s.RightLimitAtStartTime < previousValue)
+                            {
+                                throw new ArgumentException("The sequence is not non-decreasing.");
+                            }
                         }
-                        else if (s.RightLimitAtStartTime < previousValue)
+                        else if (s.Slope < 0)
                         {
                             throw new ArgumentException("The sequence is not non-decreasing.");
                         }
-                    }
-                    else if (s.Slope > 0)
-                    {
-                        if (heldPoint is not null)
-                        {
-                            yield return heldPoint;
-                            heldPoint = null;
-                        }
 
-                        if (s.RightLimitAtStartTime > previousValue)
-                        {
-                            if (previousValue != Rational.MinusInfinity)
-                            {
-                                // right-discontinuity, becomes constant segment
-                                yield return new Segment(
-                                    startTime: previousValue,
-                                    endTime: s.RightLimitAtStartTime,
-                                    rightLimitAtStartTime: s.StartTime,
-                                    slope: 0
-                                );
-                                yield return new Point(
-                                    time: s.RightLimitAtStartTime,
-                                    value: s.StartTime
-                                );
-                            }
-                            // then the segment inverse
-                            yield return s.Inverse();
-                            previousValue = s.LeftLimitAtEndTime;
-                            wasPreviousPoint = false;
-                        }
-                        else if (s.RightLimitAtStartTime == previousValue)
-                        {
-                            // right-continuity, simple inverse
-                            yield return s.Inverse();
-                            previousValue = s.LeftLimitAtEndTime;
-                            wasPreviousPoint = false;
-                        }
-                        else if (s.RightLimitAtStartTime < previousValue)
-                        {
-                            throw new ArgumentException("The sequence is not non-decreasing.");
-                        }
+                        break;
                     }
-                    else if (s.Slope < 0)
-                    {
-                        throw new ArgumentException("The sequence is not non-decreasing.");
-                    }
-
-                    break;
                 }
             }
-        }
-        while (enumerator.MoveNext());
+            while (enumerator.MoveNext());
 
-        if (heldPoint is not null)
-            yield return heldPoint;
+            if (heldPoint is not null)
+                yield return heldPoint;
+        }
     }
 
     /// <summary>
