@@ -257,4 +257,43 @@ public class UpperPseudoInverse
         Assert.Equal(expectedUpiSupport, upi.Support);
         Assert.Equal(expectedUpiImage, upi.Image);
     }
+
+    /// <summary>
+    /// Heights from 0 on: below the first non-negative value of the sequence no instant has $f(t) \le y$, and the result is $-\infty$ there;
+    /// a sequence that reaches 0 needs nothing below it.
+    /// </summary>
+    public static List<(string name, Sequence operand, Sequence expected)> StartFromZeroCases =
+    [
+        (
+            "closed start above 0: 2 at 1, rising to 3 at 2",
+            new Sequence([ new Point(1, 2), new Segment(1, 2, 2, 1), new Point(2, 3) ]),
+            new Sequence([ Point.MinusInfinite(0), Segment.MinusInfinite(0, 2), new Point(2, 1), new Segment(2, 3, 1, 1), new Point(3, 2) ])
+        ),
+        (
+            "open start above 0, rising: no instant is at 2",
+            new Sequence([ new Segment(1, 2, 2, 1), new Point(2, 3) ]),
+            new Sequence([ Point.MinusInfinite(0), Segment.MinusInfinite(0, 2), Point.MinusInfinite(2), new Segment(2, 3, 1, 1), new Point(3, 2) ])
+        ),
+        (
+            "open start on a plateau above 0: 2 over ]1, 2]",
+            new Sequence([ Segment.Constant(1, 2, 2), new Point(2, 2) ]),
+            new Sequence([ Point.MinusInfinite(0), Segment.MinusInfinite(0, 2), new Point(2, 2) ])
+        ),
+        (
+            "reaches 0: -1 at 0, rising to 1 at 2",
+            new Sequence([ new Point(0, -1), new Segment(0, 2, -1, 1), new Point(2, 1) ]),
+            new Sequence([ new Point(0, 1), new Segment(0, 1, 1, 1), new Point(1, 2) ])
+        ),
+    ];
+
+    public static IEnumerable<object[]> StartFromZeroCaseData() => StartFromZeroCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(StartFromZeroCaseData))]
+    public void StartFromZero(string name, Sequence operand, Sequence expected)
+    {
+        Assert.False(string.IsNullOrEmpty(name));
+        var result = operand.UpperPseudoInverse(startFromZero: true);
+        Assert.True(Sequence.Equivalent(expected, result), $"{name}: {result.ToCodeString()}");
+    }
 }
