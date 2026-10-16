@@ -1524,6 +1524,86 @@ public class HorizontalDeviation
             Assert.Equal(delay, twice - once);
     }
 
+    /// <summary>
+    /// A larger second operand can have a larger deviation, [TBP-SEQ-DEV] Remark 22:
+    /// over $[0, 10]$, $a(t) = t$, $b_1(t) = \min(t, 5)$ and $b_2$ equal to $b_1$ up to 9, then rising with slope 5 to $b_2(10) = 10$,
+    /// give 0 and 4, although $b_2 \ge b_1$.
+    /// </summary>
+    [Fact]
+    public void HorizontalDeviationIsNotMonotoneInTheSecondOperand()
+    {
+        var a = new Sequence([ new Point(0, 0), new Segment(0, 10, 0, 1), new Point(10, 10) ]);
+        var b1 = new Sequence([ new Point(0, 0), new Segment(0, 5, 0, 1), new Point(5, 5), new Segment(5, 10, 5, 0), new Point(10, 5) ]);
+        var b2 = new Sequence([
+            new Point(0, 0), new Segment(0, 5, 0, 1), new Point(5, 5),
+            new Segment(5, 9, 5, 0), new Point(9, 5),
+            new Segment(9, 10, 5, 5), new Point(10, 10)
+        ]);
+
+        foreach (var settings in EveryStrategy)
+        {
+            var h1 = Sequence.HorizontalDeviation(a, b1, settings);
+            var h2 = Sequence.HorizontalDeviation(a, b2, settings);
+            Assert.Equal(0, h1);
+            Assert.Equal(4, h2);
+            Assert.True(h2 > h1);
+        }
+    }
+
+    /// <summary>
+    /// Gives triples $(a, b, b')$ with $b \le b'$ over the same domain and the image of $a$ in the images of both,
+    /// and the deviations of $a$ from $b$ and from $b'$.
+    /// </summary>
+    public static IEnumerable<object[]> LargerSecondOperandCases()
+    {
+        // b = t/2 and b' = t on [0, 8], a = t on [0, 4]
+        yield return [
+            "linear",
+            new Sequence([ new Point(0, 0), new Segment(0, 4, 0, 1), new Point(4, 4) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 8, 0, new Rational(1, 2)), new Point(8, 4) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 8, 0, 1), new Point(8, 8) ]),
+            new Rational(4), new Rational(0)
+        ];
+        // b is t up to 2, 2 on ]2, 4], t - 2 up to 4 at 6; b' = t on [0, 6]; a = t on [0, 4]
+        yield return [
+            "b with a plateau",
+            new Sequence([ new Point(0, 0), new Segment(0, 4, 0, 1), new Point(4, 4) ]),
+            new Sequence([
+                new Point(0, 0), new Segment(0, 2, 0, 1), new Point(2, 2),
+                new Segment(2, 4, 2, 0), new Point(4, 2),
+                new Segment(4, 6, 2, 1), new Point(6, 4)
+            ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 6, 0, 1), new Point(6, 6) ]),
+            new Rational(2), new Rational(0)
+        ];
+        // b = b' = t/2 on [0, 4], a = t on [0, 2]
+        yield return [
+            "equal operands",
+            new Sequence([ new Point(0, 0), new Segment(0, 2, 0, 1), new Point(2, 2) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 4, 0, new Rational(1, 2)), new Point(4, 2) ]),
+            new Sequence([ new Point(0, 0), new Segment(0, 4, 0, new Rational(1, 2)), new Point(4, 2) ]),
+            new Rational(2), new Rational(2)
+        ];
+    }
+
+    /// <summary>
+    /// A larger second operand has a smaller or equal deviation when the image of the first is in the images of both, [TBP-SEQ-DEV] Proposition 23.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(LargerSecondOperandCases))]
+    public void HorizontalDeviationDoesNotIncreaseWithALargerSecondOperandWhoseImageContainsTheFirst(
+        string id, Sequence a, Sequence b, Sequence bLarger, Rational expectedB, Rational expectedBLarger)
+    {
+        foreach (var settings in EveryStrategy)
+        {
+            var h = Sequence.HorizontalDeviation(a, b, settings);
+            var hLarger = Sequence.HorizontalDeviation(a, bLarger, settings);
+            Assert.True(h == expectedB, $"{id}: {h} by {settings.HorizontalDeviationStrategy}, not {expectedB}");
+            Assert.True(hLarger == expectedBLarger, $"{id}: {hLarger} by {settings.HorizontalDeviationStrategy}, not {expectedBLarger}");
+            Assert.True(hLarger <= h);
+        }
+    }
+
     #region Every strategy
 
     private static readonly ComputationSettings ByPseudoInverses = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.PseudoInverseGap };
