@@ -151,7 +151,7 @@ public class VerticalDeviation
     /// </summary>
     [Theory]
     [MemberData(nameof(SharedDomainCases))]
-    public void VerticalDeviationFunctionIsDefinedOverTheSharedDomain(string id, Interval xA, Interval xB, Interval? expected)
+    public void DifferenceIsDefinedOverTheSharedDomain(string id, Interval xA, Interval xB, Interval? expected)
     {
         var f = new SigmaRhoArrivalCurve(3, 2);
         var g = new RateLatencyServiceCurve(1, 2);
@@ -162,12 +162,12 @@ public class VerticalDeviation
 
         if (expected is not { } x)
         {
-            Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviationFunction(a, b));
+            Assert.Throws<ArgumentException>(() => Sequence.Subtraction(a, b));
             Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
             return;
         }
 
-        var vdev = Sequence.VerticalDeviationFunction(a, b);
+        var vdev = Sequence.Subtraction(a, b);
         Assert.True(vdev.Support.SetEquals(x), $"{id}: defined over {vdev.Support}, not {x}");
         Assert.True((f - g).Match(vdev), $"{id}: differs from the curves");
     }
@@ -204,7 +204,7 @@ public class VerticalDeviation
     [MemberData(nameof(InfiniteValueCases))]
     public void VerticalDeviationOverInfiniteValues(string id, Sequence a, Sequence b, (Rational t, Rational v)[] values, Rational sup)
     {
-        var vdev = Sequence.VerticalDeviationFunction(a, b);
+        var vdev = Sequence.Subtraction(a, b);
         foreach (var (t, v) in values)
             Assert.True(vdev.ValueAt(t) == v, $"{id}: {vdev.ValueAt(t)} at {t}, not {v}");
         Assert.True(Sequence.VerticalDeviation(a, b) == sup, $"{id}: supremum {Sequence.VerticalDeviation(a, b)}, not {sup}");
@@ -229,8 +229,8 @@ public class VerticalDeviation
     [MemberData(nameof(BothInfiniteCases))]
     public void BothInfiniteAtASharedTimeIsRejected(string _, Sequence a, Sequence b)
     {
-        Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviationFunction(a, b));
-        Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
+        Assert.Throws<UndeterminedResultException>(() => Sequence.Subtraction(a, b));
+        Assert.Throws<UndeterminedResultException>(() => Sequence.VerticalDeviation(a, b));
     }
 
     /// <summary>
@@ -264,7 +264,7 @@ public class VerticalDeviation
     [MemberData(nameof(MinusInfiniteValueCases))]
     public void VerticalDeviationOverMinusInfiniteValues(string id, Sequence a, Sequence b, (Rational t, Rational v)[] values, Rational sup)
     {
-        var vdev = Sequence.VerticalDeviationFunction(a, b);
+        var vdev = Sequence.Subtraction(a, b);
         foreach (var (t, v) in values)
             Assert.True(vdev.ValueAt(t) == v, $"{id}: {vdev.ValueAt(t)} at {t}, not {v}");
         Assert.True(Sequence.VerticalDeviation(a, b) == sup, $"{id}: supremum {Sequence.VerticalDeviation(a, b)}, not {sup}");
@@ -279,8 +279,8 @@ public class VerticalDeviation
         var minusOn02 = Sequence.MinusInfinite(0, 2, true, true);
         foreach (var (a, b) in new[] { (MinusThenT, MinusThenT), (MinusThenT, minusOn02), (minusOn02, MinusThenT) })
         {
-            Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviationFunction(a, b));
-            Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
+            Assert.Throws<UndeterminedResultException>(() => Sequence.Subtraction(a, b));
+            Assert.Throws<UndeterminedResultException>(() => Sequence.VerticalDeviation(a, b));
         }
     }
 
@@ -320,7 +320,7 @@ public class VerticalDeviation
     {
         var a = f.Cut(xA);
         var b = g.Cut(xB);
-        var vdev = Sequence.VerticalDeviationFunction(a, b);
+        var vdev = Sequence.Subtraction(a, b);
         var shared = Interval.Intersection(xA, xB)!.Value;
         for (var i = 0; i <= 16; i++)
         {
@@ -346,12 +346,12 @@ public class VerticalDeviation
     /// </summary>
     [Theory]
     [MemberData(nameof(ValidityCasesTestCases))]
-    public void VerticalDeviationFunctionMatchesTheCurvesOverTheSharedDomain(Curve f, Curve g, Interval xF, Interval xG)
+    public void DifferenceMatchesTheCurvesOverTheSharedDomain(Curve f, Curve g, Interval xF, Interval xG)
     {
         var fCut = f.Cut(xF.Lower, xF.Upper, xF.IsLowerIncluded, xF.IsUpperIncluded);
         var gCut = g.Cut(xG.Lower, xG.Upper, xG.IsLowerIncluded, xG.IsUpperIncluded);
 
-        var vdevFunctionSequence = Sequence.VerticalDeviationFunction(fCut, gCut);
+        var vdevFunctionSequence = Sequence.Subtraction(fCut, gCut);
         var vdevFunctionCurves = f - g;
 
         var overlap = Interval.Intersection(fCut.Support, gCut.Support)!.Value;
@@ -398,8 +398,8 @@ public class VerticalDeviation
     {
         if (Interval.Intersection(a.Support, b.Support) is null) return;
 
-        var v = Sequence.VerticalDeviationFunction(a, b);
-        var w = Sequence.VerticalDeviationFunction(b, a);
+        var v = Sequence.Subtraction(a, b);
+        var w = Sequence.Subtraction(b, a);
         foreach (var t in SampleTimes(v))
             Assert.Equal(-w.ValueAt(t), v.ValueAt(t));
     }
@@ -414,8 +414,8 @@ public class VerticalDeviation
         if (Interval.Intersection(a.Support, b.Support) is null) return;
 
         var shift = new Rational(7, 2);
-        var v = Sequence.VerticalDeviationFunction(a, b);
-        var raised = Sequence.VerticalDeviationFunction(a + shift, b);
+        var v = Sequence.Subtraction(a, b);
+        var raised = Sequence.Subtraction(a + shift, b);
         foreach (var t in SampleTimes(v))
             Assert.Equal(v.ValueAt(t) + shift, raised.ValueAt(t));
     }

@@ -2090,19 +2090,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="g">The second operand.</param>
     /// <param name="settings">Settings for the computation.</param>
     /// <returns>A vertical deviation, which may be negative.</returns>
-    /// <exception cref="ArgumentException">
-    /// If the supports do not intersect;
-    /// or if both operands are $+\infty$, or both $-\infty$, at a shared time, where their difference is undefined, [TBP-SEQ-DEV] § 3.
-    /// </exception>
+    /// <exception cref="ArgumentException">If the supports do not intersect.</exception>
+    /// <exception cref="UndeterminedResultException">If both operands are $+\infty$, or both $-\infty$, at a shared time, where their difference is undefined.</exception>
     /// <remarks>
     /// Defined in [TBP-SEQ-DEV] Definition 16, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>.
+    /// It is the supremum of <see cref="Subtraction(Sequence,Sequence)"/>.
     /// For cuts of curves, it matches the vertical deviation between them, [TBP-SEQ-DEV] Theorem 17.
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
-    {
-        var vdevT = VerticalDeviationFunction(f, g, settings);
-        return vdevT.SupValue();
-    }
+        => Subtraction(f, g).SupValue();
 
     /// <summary>
     /// Computes the horizontal deviation function between the two sequences, $hDev(f, g, t)$.
@@ -2248,72 +2244,6 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     private Sequence Truncate(Rational height)
         => Minimum(this, Constant(height, DefinedFrom, DefinedUntil, IsLeftClosed, IsRightClosed));
-
-    /// <summary>
-    /// Computes the vertical deviation function between the two sequences, $vDev(f, g, t)$.
-    /// It is measured over the times both sequences are defined at, the intersection of their supports, and is undefined where the supports do not intersect.
-    /// </summary>
-    /// <param name="f">The first operand.</param>
-    /// <param name="g">The second operand.</param>
-    /// <param name="settings">Settings for the computation.</param>
-    /// <returns>
-    /// A vertical deviation function, whose values may be negative, defined over the intersection of the supports:
-    /// each end is included where every operand whose end it is includes it.
-    /// </returns>
-    /// <exception cref="ArgumentException">
-    /// If the supports do not intersect;
-    /// or if both operands are $+\infty$, or both $-\infty$, at a shared time, where their difference is undefined.
-    /// </exception>
-    /// <remarks>
-    /// Defined in [TBP-SEQ-DEV] Definition 16, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>.
-    /// For cuts of curves, it matches the vertical deviation function between them, [TBP-SEQ-DEV] Theorem 17.
-    /// </remarks>
-    public static Sequence VerticalDeviationFunction(Sequence f, Sequence g, ComputationSettings? settings = null)
-    {
-        var supportOverlapNullable = Interval.Intersection(f.Support, g.Support);
-        if(!supportOverlapNullable.HasValue)
-            throw new ArgumentException("The two sequences do not have an overlapping support.");
-        var supportOverlap = supportOverlapNullable.Value;
-
-        var fCut = f.CutAsEnumerable(
-            supportOverlap.Lower, supportOverlap.Upper, supportOverlap.IsLowerIncluded, supportOverlap.IsUpperIncluded)
-            .ToSequence();
-        var gCut = g.CutAsEnumerable(
-            supportOverlap.Lower, supportOverlap.Upper, supportOverlap.IsLowerIncluded, supportOverlap.IsUpperIncluded)
-            .ToSequence();
-        
-        // Where both operands are infinities of the same sign at a shared time, their difference has no value,
-        // and neither has the deviation, [TBP-SEQ-DEV] § 3.
-        if (!fCut.IsFinite && !gCut.IsFinite && HaveSameInfinityAtSomeTime(fCut, gCut))
-            throw new ArgumentException("The two sequences are both infinite at a shared time, where their difference is undefined.");
-
-        return Subtraction(fCut, gCut);
-
-        static bool HaveSameInfinityAtSomeTime(Sequence a, Sequence b)
-        {
-            var times = a.Elements.Concat(b.Elements)
-                .SelectMany(element => new[] { element.StartTime, element.EndTime })
-                .Distinct()
-                .OrderBy(time => time)
-                .ToList();
-            for (var i = 0; i < times.Count; i++)
-            {
-                var time = times[i];
-                if (a.IsDefinedAt(time) && SameInfinity(a.ValueAt(time), b.ValueAt(time)))
-                    return true;
-                if (i + 1 < times.Count)
-                {
-                    var middle = (time + times[i + 1]) / 2;
-                    if (SameInfinity(a.ValueAt(middle), b.ValueAt(middle)))
-                        return true;
-                }
-            }
-            return false;
-        }
-
-        static bool SameInfinity(Rational x, Rational y)
-            => (x.IsPlusInfinite && y.IsPlusInfinite) || (x.IsMinusInfinite && y.IsMinusInfinite);
-    }
 
     /// <summary>
     /// Computes the floor function, $\lfloor f(t) \rfloor$.
