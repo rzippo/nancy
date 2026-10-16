@@ -2358,14 +2358,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     public static Sequence Addition(Sequence a, Sequence b)
     {
-        var overlap = GetOverlap(a, b);
-        if (overlap == null)
-            throw new ArgumentException("The sequences do not overlap.");
+        var overlap = Interval.Intersection(a.Support, b.Support)
+            ?? throw new ArgumentException("The sequences do not overlap.");
 
-        var (start, end, isLeftClosed, isRightClosed) = overlap ?? default;
-
-        var aCut = a.Cut(start, end, isLeftClosed, isRightClosed);
-        var bCut = b.Cut(start, end, isLeftClosed, isRightClosed);
+        var aCut = a.Cut(overlap);
+        var bCut = b.Cut(overlap);
 
         var intervals = IntervalBucket.ComputeIntervals(aCut, bCut);
         var sumElements = intervals
