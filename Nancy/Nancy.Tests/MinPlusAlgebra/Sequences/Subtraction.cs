@@ -69,4 +69,17 @@ public class Subtraction
         Assert.True(Sequence.Equivalent(actualExpected, diff));
 #pragma warning restore CS0618 // Type or member is obsolete
     }
+
+    /// <summary>
+    /// Supports that share a single time, which both include, give the difference at that time alone:
+    /// $t$ over $[0, 2]$ minus $t + 3$ over $[2, 4]$ is $-3$ at 2.
+    /// </summary>
+    [Fact]
+    public void SupportsSharingASingleTimeGiveTheDifferenceThere()
+    {
+        var a = new Sequence([ Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 2) ]);
+        var b = new Sequence([ new Point(2, 5), new Segment(2, 4, 5, 1), new Point(4, 7) ]);
+        var difference = Sequence.Subtraction(a, b);
+        Assert.True(Sequence.Equivalent(new Sequence([ new Point(2, -3) ]), difference), $"{difference}");
+    }
 }

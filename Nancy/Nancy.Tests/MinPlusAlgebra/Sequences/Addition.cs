@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -65,5 +66,33 @@ public class Addition
     {
         var diff = a + b;
         Assert.True(Sequence.Equivalent(expected, diff));
+    }
+
+    /// <summary>
+    /// $t$ over $[0, 1]$, and $t + 5$ over $[1, 2]$, $]1, 2]$, and $t$ over $[0, 1[$.
+    /// </summary>
+    private static readonly Sequence TOn01 = new([ Point.Origin(), new Segment(0, 1, 0, 1), new Point(1, 1) ]);
+    private static readonly Sequence TPlus5On12 = new([ new Point(1, 6), new Segment(1, 2, 6, 1), new Point(2, 7) ]);
+    private static readonly Sequence TPlus5OnOpen12 = new([ new Segment(1, 2, 6, 1), new Point(2, 7) ]);
+    private static readonly Sequence TOn01Open = new([ Point.Origin(), new Segment(0, 1, 0, 1) ]);
+
+    /// <summary>
+    /// Supports that share a single time, which both include, give the sum at that time alone.
+    /// </summary>
+    [Fact]
+    public void SupportsSharingASingleTimeGiveTheSumThere()
+    {
+        var sum = TOn01 + TPlus5On12;
+        Assert.True(Sequence.Equivalent(new Sequence([ new Point(1, 7) ]), sum), $"{sum}");
+    }
+
+    /// <summary>
+    /// Supports that touch at a time one of them excludes share no time, and the sum throws.
+    /// </summary>
+    [Fact]
+    public void SupportsTouchingAtAnExcludedTimeAreRejected()
+    {
+        Assert.Throws<ArgumentException>(() => TOn01 + TPlus5OnOpen12);
+        Assert.Throws<ArgumentException>(() => TOn01Open + TPlus5On12);
     }
 }
