@@ -1080,6 +1080,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes the overlap between two sequences.
     /// </summary>
     /// <returns>The endpoints of the overlap interval, including whether its left/right closed, or null if there is none.</returns>
+    [Obsolete("Use Interval.Intersection of the two supports, which also keeps a single time both include.")]
     public static (Rational start, Rational end, bool isLeftClosed, bool isRightClosed)? GetOverlap(Sequence a, Sequence b)
     {
         Rational start = Rational.Max(a.DefinedFrom, b.DefinedFrom);
@@ -1103,6 +1104,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes the overlap between two sequences.
     /// </summary>
     /// <returns>The endpoints of the overlap interval, or null if there is none.</returns>
+    [Obsolete("Use Interval.Intersection of the two supports, which also keeps a single time both include.")]
     public (Rational start, Rational end, bool isLeftClosed, bool isRightClosed)? GetOverlap(Sequence secondOperand)
         => GetOverlap(this, secondOperand);
 

@@ -31,7 +31,9 @@ public class Methods
     [Fact]
     public void GetOverlap()
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         var overlap = TestFunctions.SequenceA.GetOverlap(TestFunctions.SequenceB);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         Assert.NotNull(overlap);
         var (start, end, isLeftClosed, isRightClosed) = overlap ?? default;
