@@ -2288,6 +2288,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>
     /// The result is normalized, see <see cref="IsNormalized"/>.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
     public static Sequence Addition(Sequence a, Sequence b)
     {
         var overlap = Interval.Intersection(a.Support, b.Support)
@@ -2314,6 +2316,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>
     /// The result is normalized, see <see cref="IsNormalized"/>.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
     public Sequence Addition(Sequence b)
         => Addition(this, b);
 
@@ -2323,13 +2327,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <returns>The sequence resulting from the sum.</returns>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
     public static Sequence operator +(Sequence a, Sequence b)
         => Addition(a, b);
 
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
-    /// <returns>The sequence resulting from the sum.</returns>
+    /// <returns>The sequence resulting from the difference.</returns>
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <remarks>
@@ -2337,6 +2343,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
     /// The result is normalized, see <see cref="IsNormalized"/>.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time.</exception>
     public static Sequence Subtraction(Sequence a, Sequence b)
         => Addition(a, -b);
 
@@ -2344,25 +2352,29 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
     /// <param name="b">The second operand.</param>
-    /// <returns>The sequence resulting from the sum.</returns>
+    /// <returns>The sequence resulting from the difference.</returns>
     /// <remarks>
     /// The result may contain negative values. 
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
     /// The result is normalized, see <see cref="IsNormalized"/>.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time.</exception>
     public Sequence Subtraction(Sequence b)
         => Subtraction(this, b);
 
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
     /// </summary>
-    /// <returns>The sequence resulting from the sum.</returns>
+    /// <returns>The sequence resulting from the difference.</returns>
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
     /// <remarks>
     /// The result is normalized, see <see cref="IsNormalized"/>.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time.</exception>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static Sequence Subtraction(Sequence a, Sequence b, bool nonNegative)
         => nonNegative ?
@@ -2374,10 +2386,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="b">The second operand.</param>
     /// <param name="nonNegative">If true, the result is non-negative.</param>
-    /// <returns>The sequence resulting from the sum.</returns>
+    /// <returns>The sequence resulting from the difference.</returns>
     /// <remarks>
     /// The result is normalized, see <see cref="IsNormalized"/>.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time.</exception>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public Sequence Subtraction(Sequence b, bool nonNegative)
         => Subtraction(this, b, nonNegative);
@@ -2391,6 +2405,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// The result may contain negative values. 
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
     /// </remarks>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time.</exception>
     public static Sequence operator -(Sequence a, Sequence b)
         => Subtraction(a, b);
 
