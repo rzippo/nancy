@@ -1839,6 +1839,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         => expressionL.Compute() >= expressionR.Compute();
 
     /// <summary>
+    /// This operator returns true if the value of a curve expression is below or equal than the value of another one, and the two values are not equivalent.
+    /// </summary>
+    public static bool operator <(CurveExpression expressionL, CurveExpression expressionR)
+        => expressionL.Compute() < expressionR.Compute();
+
+    /// <summary>
+    /// This operator returns true if the value of a curve expression is greater or equal than the value of another one, and the two values are not equivalent.
+    /// </summary>
+    public static bool operator >(CurveExpression expressionL, CurveExpression expressionR)
+        => expressionL.Compute() > expressionR.Compute();
+
+    /// <summary>
     /// Creates a new expression that shifts the <see cref="CurveExpression"/>
     /// by <paramref name="rationalExpression"/>, i.e., computing $f(t) + K$.
     /// </summary>
