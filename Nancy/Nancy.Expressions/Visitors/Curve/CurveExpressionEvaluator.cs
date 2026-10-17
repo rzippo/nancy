@@ -181,7 +181,8 @@ public record CurveExpressionEvaluator : ICurveExpressionVisitor
 
     /// <inheritdoc />
     public virtual void Visit(VerticalShiftExpression expression)
-        => _result = Read(expression.LeftOperand).VerticalShift(Read(expression.RightOperand), false);
+        => _result = Read(expression.LeftOperand).VerticalShift(Read(expression.RightOperand), false,
+            ComputationSettingsOf(expression.Settings));
 
     /// <inheritdoc />
     public virtual void Visit(CurvePlaceholderExpression expression)
