@@ -36,7 +36,7 @@ public class CurveExpressionComparison
             (0, 2, 0, 0), (2, 3, 3, 3), (3, 4, 3, 3), (4, 5, valueAtFour, 5));
 
     // In each pair below, what tells the two curves apart happens only after both transients end.
-    // Cases: the first curve, the second, whether the first is below the second, whether the second is below the first.
+    // Cases: the first curve, the second, whether the first is below the second, whether the second is below the first, whether they are the same function.
     public static IEnumerable<object[]> LatePairs()
     {
         // Period 3 from T = 2: t + 3 on [0,2), then t + 2, t + 1, t + 2 on the three unit stretches of a period.
@@ -45,24 +45,24 @@ public class CurveExpressionComparison
         var crossing = Pieces(2, 3, 3, (0, 2, 3, 3), (2, 3, 4, 4), (3, 4, new Rational(7, 2), new Rational(7, 2)), (4, 5, 6, 6));
 
         // Steps (period 2 from T = 1) sits below upper everywhere and meets it only on [6,7], in the third period of upper
-        yield return Case(Steps(1, 2, 2), upper, true, false);
+        yield return Case(Steps(1, 2, 2), upper, true, false, false);
         // Steps is above crossing only on [6,7], so the two cross at t = 6, after both transients and before t = 8
-        yield return Case(Steps(1, 2, 2), crossing, false, false);
+        yield return Case(Steps(1, 2, 2), crossing, false, false, false);
         // the same function over period 2 from T = 1 and over period 4 from T = 1
-        yield return Case(Steps(1, 2, 2), StepsOverFiveUnits(1, 4, 4, 5), true, true);
+        yield return Case(Steps(1, 2, 2), StepsOverFiveUnits(1, 4, 4, 5), true, true, true);
         // the same function with the first period unrolled into the transient, period 2 from T = 3
-        yield return Case(Steps(1, 2, 2), StepsOverFiveUnits(3, 2, 2, 5), true, true);
+        yield return Case(Steps(1, 2, 2), StepsOverFiveUnits(3, 2, 2, 5), true, true, true);
         // equal except at t = 4, where the period-4 encoding takes 4 instead of 5, and so again at t = 8, 12, ...
-        yield return Case(StepsOverFiveUnits(1, 4, 4, 4), Steps(1, 2, 2), true, false);
+        yield return Case(StepsOverFiveUnits(1, 4, 4, 4), Steps(1, 2, 2), true, false, false);
 
-        static object[] Case(Curve a, Curve b, bool aBelowB, bool bBelowA)
-            => [a, b, aBelowB, bBelowA];
+        static object[] Case(Curve a, Curve b, bool aBelowB, bool bBelowA, bool equivalent)
+            => [a, b, aBelowB, bBelowA, equivalent];
     }
 
     [Theory]
     [MemberData(nameof(LatePairs))]
     public void ExpressionsOfCurvesDifferingOnlyAfterTheirTransientsAreOrderedAccordingly(
-        Curve a, Curve b, bool aBelowB, bool bBelowA)
+        Curve a, Curve b, bool aBelowB, bool bBelowA, bool equivalent)
     {
         var expressionA = a.ToExpression("a");
         var expressionB = b.ToExpression("b");
@@ -71,5 +71,9 @@ public class CurveExpressionComparison
         Assert.Equal(bBelowA, expressionA >= expressionB);
         Assert.Equal(bBelowA, expressionB <= expressionA);
         Assert.Equal(aBelowB, expressionB >= expressionA);
+        Assert.Equal(aBelowB && !equivalent, expressionA < expressionB);
+        Assert.Equal(bBelowA && !equivalent, expressionA > expressionB);
+        Assert.Equal(bBelowA && !equivalent, expressionB < expressionA);
+        Assert.Equal(aBelowB && !equivalent, expressionB > expressionA);
     }
 }
