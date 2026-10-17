@@ -167,6 +167,88 @@ public class ComparisonRelations
             Curve.IsStrictLowerBoundOfExceptOrigin(lower, upper, settings));
     }
 
+    // A curve of unit slope between jumps, given by its pieces: the value at the start of each, and the right limit there.
+    private static Curve Pieces(
+        Rational pseudoPeriodStart, Rational pseudoPeriodLength, Rational pseudoPeriodHeight,
+        params (Rational Start, Rational End, Rational Value, Rational Right)[] pieces)
+        => new Curve(
+            baseSequence: new Sequence(pieces.SelectMany(p => new Element[]
+            {
+                new Point(p.Start, p.Value),
+                new Segment(p.Start, p.End, p.Right, 1)
+            })),
+            pseudoPeriodStart: pseudoPeriodStart,
+            pseudoPeriodLength: pseudoPeriodLength,
+            pseudoPeriodHeight: pseudoPeriodHeight);
+
+    // f(t) = t + g(t), with g = 0 on [0,2), then 1 on [2,3), 0 on [3,4), 1 on [4,5) and so on: period 2 from T = 1.
+    private static Curve Steps(Rational pseudoPeriodStart, Rational pseudoPeriodLength, Rational pseudoPeriodHeight)
+        => Pieces(pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight,
+            (0, 2, 0, 0), (2, 3, 3, 3));
+
+    // The same function written over the base sequence [0,5), so that it can carry period 4 from T = 1 or period 2 from T = 3.
+    private static Curve StepsOverFiveUnits(Rational pseudoPeriodStart, Rational pseudoPeriodLength, Rational pseudoPeriodHeight, Rational valueAtFour)
+        => Pieces(pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight,
+            (0, 2, 0, 0), (2, 3, 3, 3), (3, 4, 3, 3), (4, 5, valueAtFour, 5));
+
+    // In each pair below, what tells the two curves apart happens only after both transients end.
+    // Cases: the first curve, the second, whether the first is below the second, whether the second is below the first, whether they are the same function.
+    public static IEnumerable<object[]> LatePairs()
+    {
+        // Period 3 from T = 2: t + 3 on [0,2), then t + 2, t + 1, t + 2 on the three unit stretches of a period.
+        var upper = Pieces(2, 3, 3, (0, 2, 3, 3), (2, 3, 4, 4), (3, 4, 4, 4), (4, 5, 6, 6));
+        // As upper, but t + 1/2 on the middle stretch of a period.
+        var crossing = Pieces(2, 3, 3, (0, 2, 3, 3), (2, 3, 4, 4), (3, 4, new Rational(7, 2), new Rational(7, 2)), (4, 5, 6, 6));
+
+        // Steps (period 2 from T = 1) sits below upper everywhere and meets it only on [6,7], in the third period of upper
+        yield return Case(Steps(1, 2, 2), upper, true, false, false);
+        // Steps is above crossing only on [6,7], so the two cross at t = 6, after both transients and before t = 8
+        yield return Case(Steps(1, 2, 2), crossing, false, false, false);
+        // the same function over period 2 from T = 1 and over period 4 from T = 1
+        yield return Case(Steps(1, 2, 2), StepsOverFiveUnits(1, 4, 4, 5), true, true, true);
+        // the same function with the first period unrolled into the transient, period 2 from T = 3
+        yield return Case(Steps(1, 2, 2), StepsOverFiveUnits(3, 2, 2, 5), true, true, true);
+        // equal except at t = 4, where the period-4 encoding takes 4 instead of 5, and so again at t = 8, 12, ...
+        yield return Case(StepsOverFiveUnits(1, 4, 4, 4), Steps(1, 2, 2), true, false, false);
+
+        static object[] Case(Curve a, Curve b, bool aBelowB, bool bBelowA, bool equivalent)
+            => [a, b, aBelowB, bBelowA, equivalent];
+    }
+
+    [Theory]
+    [MemberData(nameof(LatePairs))]
+    public void CurvesDifferingOnlyAfterTheirTransientsAreOrderedAccordingly(
+        Curve a, Curve b, bool aBelowB, bool bBelowA, bool equivalent)
+    {
+        AssertEveryRelation(a, b, aBelowB, bBelowA, equivalent);
+        AssertEveryRelation(b, a, bBelowA, aBelowB, equivalent);
+    }
+
+    private static void AssertEveryRelation(Curve x, Curve y, bool xBelowY, bool yBelowX, bool equivalent)
+    {
+        var settings = new ComputationSettings { UseParallelism = false };
+
+        Assert.False(x == y);
+        Assert.True(x != y);
+
+        Assert.Equal(xBelowY, x <= y);
+        Assert.Equal(yBelowX, x >= y);
+        Assert.Equal(xBelowY && !equivalent, x < y);
+        Assert.Equal(yBelowX && !equivalent, x > y);
+
+        Assert.Equal(equivalent, x.Equivalent(y, settings));
+        Assert.Equal(equivalent, Curve.Equivalent(x, y, settings));
+
+        Assert.Equal(xBelowY, x.IsLowerBoundOf(y, settings));
+        Assert.Equal(xBelowY, Curve.IsLowerBoundOf(x, y, settings));
+        Assert.Equal(yBelowX, x.IsUpperBoundOf(y, settings));
+        Assert.Equal(yBelowX, Curve.IsUpperBoundOf(x, y, settings));
+        Assert.Equal(xBelowY && !equivalent, x.IsProperLowerBoundOf(y, settings));
+        Assert.Equal(xBelowY && !equivalent, Curve.IsProperLowerBoundOf(x, y, settings));
+        Assert.Equal(yBelowX && !equivalent, x.IsProperUpperBoundOf(y, settings));
+        Assert.Equal(yBelowX && !equivalent, Curve.IsProperUpperBoundOf(x, y, settings));
+    }
+
     // The three surfaces of each relation must agree, so a call through one can be read as the others.
     private static void AssertEverySurfaceAgrees(Curve a, Curve b)
     {
