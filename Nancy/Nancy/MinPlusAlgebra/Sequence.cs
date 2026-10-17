@@ -2408,16 +2408,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     {
         if (cutToOverlap)
         {
-            var overlap = GetOverlap(a, b);
-            if (overlap == null)
-                throw new ArgumentException("The sequences don't overlap");
-            else
-            {
-                var (start, end, isLeftClosed, isRightClosed) = overlap ?? default;
-
-                a = a.Cut(start, end, isLeftClosed, isRightClosed);
-                b = b.Cut(start, end, isLeftClosed, isRightClosed);
-            }
+            var overlap = Interval.Intersection(a.Support, b.Support)
+                ?? throw new ArgumentException("The sequences do not overlap.");
+            a = a.Cut(overlap);
+            b = b.Cut(overlap);
         }
 
         var lowerEnvelopeElements = LowerEnvelope(a, b, settings);
@@ -2485,17 +2479,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <returns>The sequence resulting from the maximum.</returns>
     public static Sequence Maximum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
     {
-        if(cutToOverlap)
+        if (cutToOverlap)
         {
-            var overlap = GetOverlap(a, b);
-            if (overlap == null)
-                throw new ArgumentException("The sequences don't overlap");
-            {
-                var (start, end, isLeftClosed, isRightClosed) = overlap ?? default;
-
-                a = a.Cut(start, end, isLeftClosed, isRightClosed);
-                b = b.Cut(start, end, isLeftClosed, isRightClosed);
-            }
+            var overlap = Interval.Intersection(a.Support, b.Support)
+                ?? throw new ArgumentException("The sequences do not overlap.");
+            a = a.Cut(overlap);
+            b = b.Cut(overlap);
         }
 
         var upperEnvelopeElements = UpperEnvelope(a, b, settings);
