@@ -1,3 +1,4 @@
+using System;
 using Unipi.Nancy.MinPlusAlgebra;
 using Xunit;
 
@@ -34,5 +35,33 @@ public class Min
         Assert.Equal(f1.DefinedFrom, min.DefinedFrom);
         Assert.Equal(f2.DefinedUntil, min.DefinedUntil);
         Assert.True(min.IsFinite);
+    }
+
+    /// <summary>
+    /// $t$ over $[0, 1]$, and $t + 5$ over $[1, 2]$, $]1, 2]$, and $t$ over $[0, 1[$.
+    /// </summary>
+    private static readonly Sequence TOn01 = new([ Point.Origin(), new Segment(0, 1, 0, 1), new Point(1, 1) ]);
+    private static readonly Sequence TPlus5On12 = new([ new Point(1, 6), new Segment(1, 2, 6, 1), new Point(2, 7) ]);
+    private static readonly Sequence TPlus5OnOpen12 = new([ new Segment(1, 2, 6, 1), new Point(2, 7) ]);
+    private static readonly Sequence TOn01Open = new([ Point.Origin(), new Segment(0, 1, 0, 1) ]);
+
+    /// <summary>
+    /// Supports that share a single time, which both include, give the minimum at that time alone.
+    /// </summary>
+    [Fact]
+    public void SupportsSharingASingleTimeGiveTheMinimumThere()
+    {
+        var min = Sequence.Minimum(TOn01, TPlus5On12);
+        Assert.True(Sequence.Equivalent(new Sequence([ new Point(1, 1) ]), min), $"{min}");
+    }
+
+    /// <summary>
+    /// Supports that touch at a time one of them excludes share no time, and the minimum throws.
+    /// </summary>
+    [Fact]
+    public void SupportsTouchingAtAnExcludedTimeAreRejected()
+    {
+        Assert.Throws<ArgumentException>(() => Sequence.Minimum(TOn01, TPlus5OnOpen12));
+        Assert.Throws<ArgumentException>(() => Sequence.Minimum(TOn01Open, TPlus5On12));
     }
 }
