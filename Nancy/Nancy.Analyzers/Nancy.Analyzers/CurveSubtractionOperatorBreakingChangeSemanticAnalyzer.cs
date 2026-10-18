@@ -76,9 +76,7 @@ public class CurveSubtractionOperatorBreakingChangeSemanticAnalyzer : Diagnostic
         };
         
         var diagnostic = Diagnostic.Create(Rule,
-            location,
-            // The value is passed to the 'MessageFormat' argument of your rule.
-            "1.2.15");
+            location);
 
         // Reporting a diagnostic is the primary outcome of analyzers.
         context.ReportDiagnostic(diagnostic);
