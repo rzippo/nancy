@@ -5,7 +5,6 @@
     <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>$(NoWarn);NANCY0003</NoWarn>
 
     <RootNamespace>Unipi.Nancy.Expressions</RootNamespace>
     <AssemblyName>Unipi.Nancy.Expressions.Local</AssemblyName>
