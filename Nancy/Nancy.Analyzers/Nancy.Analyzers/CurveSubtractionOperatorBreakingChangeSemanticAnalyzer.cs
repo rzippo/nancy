@@ -32,7 +32,7 @@ public class CurveSubtractionOperatorBreakingChangeSemanticAnalyzer : Diagnostic
     private const string Category = "Usage";
 
     private static readonly DiagnosticDescriptor Rule = new(DiagnosticId, Title, MessageFormat, Category,
-        DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        DiagnosticSeverity.Info, isEnabledByDefault: true, description: Description);
 
     // Keep in mind: you have to list your rules here.
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
