@@ -7,11 +7,13 @@ on:
       - master
     paths:
       - 'Nancy/Nancy.Analyzers/Nancy.Analyzers/*'
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers.Tests/*'
   pull_request:
     branches:
       - master
     paths:
       - 'Nancy/Nancy.Analyzers/Nancy.Analyzers/*'
+      - 'Nancy/Nancy.Analyzers/Nancy.Analyzers.Tests/*'
 
 jobs:
   Nancy-Analyzers-test:
@@ -21,6 +23,7 @@ jobs:
       BUILD_CONFIG: "Release"
       SOLUTION: "Nancy/Nancy.sln"
       NANCY_ANALYZERS: "Nancy/Nancy.Analyzers/Nancy.Analyzers/Nancy.Analyzers.csproj"
+      NANCY_ANALYZERS_TESTS: "Nancy/Nancy.Analyzers/Nancy.Analyzers.Tests/Nancy.Analyzers.Tests.csproj"
 
     steps:
       - uses: actions/checkout@v6
@@ -30,8 +33,13 @@ jobs:
         with:
           dotnet-version: |
             9.0.x
+            10.0.x
 
       - name: Build Nancy.Analyzers
         run: dotnet build $NANCY_ANALYZERS --configuration $BUILD_CONFIG
 
-      # No actual tests available
+      - name: Build Nancy.Analyzers.Tests
+        run: dotnet build $NANCY_ANALYZERS_TESTS --configuration $BUILD_CONFIG
+
+      - name: Test Nancy.Analyzers
+        run: dotnet test --project $NANCY_ANALYZERS_TESTS --configuration $BUILD_CONFIG
