@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -60,7 +61,12 @@ public class SequenceSubtractionOperatorBreakingChangeSemanticAnalyzer : Diagnos
         if (context.Operation is not IBinaryOperation { OperatorKind: BinaryOperatorKind.Subtract } binaryOperation)
             return;
         
-        if (binaryOperation.OperatorMethod?.ReceiverType?.Name != CommonApiClassName)
+        if (binaryOperation.OperatorMethod is not { } operatorMethod ||
+            operatorMethod.ReceiverType?.Name != CommonApiClassName)
+            return;
+
+        // The operator - with a rational on the right is a vertical shift, not a subtraction
+        if (operatorMethod.Parameters.Any(p => p.Type.Name != CommonApiClassName))
             return;
         
         // The highlighted area in the analyzed source code. Keep it as specific as possible.
