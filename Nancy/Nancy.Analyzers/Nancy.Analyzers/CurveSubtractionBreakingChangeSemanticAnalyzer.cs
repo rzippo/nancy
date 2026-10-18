@@ -71,7 +71,7 @@ public class CurveSubtractionBreakingChangeSemanticAnalyzer : DiagnosticAnalyzer
 
         // Check whether the method name is 'Subtraction' and it is a member of the 'Curve' class.
         if (methodSymbol.MethodKind != MethodKind.Ordinary ||
-            methodSymbol.ReceiverType?.Name != CommonApiClassName ||
+            !MinPlusAlgebraTypes.Is(methodSymbol.ReceiverType, CommonApiClassName) ||
             methodSymbol.Name != CommonApiMethodName
            )
             return;

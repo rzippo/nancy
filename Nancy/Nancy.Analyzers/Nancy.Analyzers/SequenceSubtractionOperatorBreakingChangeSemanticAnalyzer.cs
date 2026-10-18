@@ -62,11 +62,11 @@ public class SequenceSubtractionOperatorBreakingChangeSemanticAnalyzer : Diagnos
             return;
         
         if (binaryOperation.OperatorMethod is not { } operatorMethod ||
-            operatorMethod.ReceiverType?.Name != CommonApiClassName)
+            !MinPlusAlgebraTypes.Is(operatorMethod.ReceiverType, CommonApiClassName))
             return;
 
         // The operator - with a rational on the right is a vertical shift, not a subtraction
-        if (operatorMethod.Parameters.Any(p => p.Type.Name != CommonApiClassName))
+        if (operatorMethod.Parameters.Any(p => !MinPlusAlgebraTypes.Is(p.Type, CommonApiClassName)))
             return;
         
         // The highlighted area in the analyzed source code. Keep it as specific as possible.
