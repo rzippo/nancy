@@ -5,9 +5,9 @@
 Rule ID | Category | Severity | Notes 
 --------|----------|----------|-------
 NANCY0001 | Usage    | Warning  | Breaking change on Curve.Subtraction() methods. 
-NANCY0002 | Usage    | Warning  | Breaking change on operator - between Curves.   
+NANCY0002 | Usage    | Warning  | Breaking change on operator - between Sequences.   
 NANCY0003 | Usage    | Warning  | Breaking change on Sequence.Subtraction() methods. 
-NANCY0004 | Usage    | Warning  | Breaking change on operator - between Sequences.
+NANCY0004 | Usage    | Warning  | Breaking change on operator - between Curves.
 
 ## Release 1.1
 
