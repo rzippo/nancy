@@ -19,7 +19,7 @@ public sealed class DivisionPrecisionCodeFixProvider : CodeFixProvider
     private const string TitleIntegralCtor = "Use Rational(numerator, denominator)";
     private const string TitleGenericCtorWrap = "Wrap both sides with Rational(...)";
     public override ImmutableArray<string> FixableDiagnosticIds
-        => [DiagnosticId];
+        => ImmutableArray.Create(DiagnosticId);
 
     public override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;
