@@ -34,4 +34,30 @@ public class SequenceSubtraction
     [MemberData(nameof(OperatorCases))]
     public Task OperatorBetweenSequencesIsMarked(string body)
         => NancyAnalyzerVerifier<SequenceSubtractionOperatorBreakingChangeSemanticAnalyzer>.VerifyBodyAsync(body);
+
+    private const string SequenceOutsideNancy = """
+        namespace Elsewhere;
+
+        class Sequence
+        {
+            public Sequence Subtraction(Sequence other) => this;
+            public static Sequence operator -(Sequence x, Sequence y) => x;
+        }
+
+        class Snippet
+        {
+            void Run(Sequence s, Sequence t)
+            {
+                var x = s.Subtraction(t);
+                var y = s - t;
+            }
+        }
+        """;
+
+    [Fact]
+    public async Task ASequenceTypeOutsideNancyIsNotMarked()
+    {
+        await NancyAnalyzerVerifier<SequenceSubtractionBreakingChangeSemanticAnalyzer>.VerifyAsync(SequenceOutsideNancy);
+        await NancyAnalyzerVerifier<SequenceSubtractionOperatorBreakingChangeSemanticAnalyzer>.VerifyAsync(SequenceOutsideNancy);
+    }
 }

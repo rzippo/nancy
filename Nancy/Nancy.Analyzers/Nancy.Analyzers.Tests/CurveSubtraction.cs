@@ -36,4 +36,30 @@ public class CurveSubtraction
     [MemberData(nameof(OperatorCases))]
     public Task OperatorBetweenCurvesIsMarked(string body)
         => NancyAnalyzerVerifier<CurveSubtractionOperatorBreakingChangeSemanticAnalyzer>.VerifyBodyAsync(body);
+
+    private const string CurveOutsideNancy = """
+        namespace Elsewhere;
+
+        class Curve
+        {
+            public Curve Subtraction(Curve other) => this;
+            public static Curve operator -(Curve x, Curve y) => x;
+        }
+
+        class Snippet
+        {
+            void Run(Curve c, Curve d)
+            {
+                var x = c.Subtraction(d);
+                var y = c - d;
+            }
+        }
+        """;
+
+    [Fact]
+    public async Task ACurveTypeOutsideNancyIsNotMarked()
+    {
+        await NancyAnalyzerVerifier<CurveSubtractionBreakingChangeSemanticAnalyzer>.VerifyAsync(CurveOutsideNancy);
+        await NancyAnalyzerVerifier<CurveSubtractionOperatorBreakingChangeSemanticAnalyzer>.VerifyAsync(CurveOutsideNancy);
+    }
 }
