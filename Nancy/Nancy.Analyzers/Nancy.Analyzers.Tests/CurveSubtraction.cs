@@ -28,6 +28,8 @@ public class CurveSubtraction
         yield return ["var x = c {|NANCY0004:-|} d;"];
         yield return ["var x = rl {|NANCY0004:-|} d;"];
         yield return ["var x = -c;"];
+        yield return ["var x = c - 3;"];
+        yield return ["var x = c - new Rational(1, 2);"];
     }
 
     [Theory]

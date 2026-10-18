@@ -26,6 +26,8 @@ public class SequenceSubtraction
     {
         yield return ["var x = s {|NANCY0002:-|} t;"];
         yield return ["var x = -s;"];
+        yield return ["var x = s - 3;"];
+        yield return ["var x = s - new Rational(1, 2);"];
     }
 
     [Theory]
