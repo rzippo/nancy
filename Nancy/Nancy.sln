@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.UncheckedInternals", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Analyzers.CodeFixers", "Nancy.Analyzers\Nancy.Analyzers.CodeFixers\Nancy.Analyzers.CodeFixers.csproj", "{61D58F4B-6D0D-4703-8669-8812DDAC40F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy.Analyzers.Tests", "Nancy.Analyzers\Nancy.Analyzers.Tests\Nancy.Analyzers.Tests.csproj", "{BEE2E9B9-C224-493F-B39F-76EF10C1D4D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -115,6 +117,10 @@ Global
 		{61D58F4B-6D0D-4703-8669-8812DDAC40F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61D58F4B-6D0D-4703-8669-8812DDAC40F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61D58F4B-6D0D-4703-8669-8812DDAC40F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEE2E9B9-C224-493F-B39F-76EF10C1D4D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEE2E9B9-C224-493F-B39F-76EF10C1D4D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEE2E9B9-C224-493F-B39F-76EF10C1D4D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEE2E9B9-C224-493F-B39F-76EF10C1D4D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -136,6 +142,7 @@ Global
 		{8EC5F62A-1A5A-4C27-8FF5-77D347B4FF4B} = {7A25C9E7-A35B-4C20-8639-9AD49D410EE4}
 		{5E8EEAA5-B61C-4D55-BB11-0AF9DA51139B} = {8A83E30C-B159-473F-A593-64E8034B41E6}
 		{61D58F4B-6D0D-4703-8669-8812DDAC40F1} = {7A25C9E7-A35B-4C20-8639-9AD49D410EE4}
+		{BEE2E9B9-C224-493F-B39F-76EF10C1D4D6} = {7A25C9E7-A35B-4C20-8639-9AD49D410EE4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B378BEB-8939-431D-9E23-562DEF7D5F5D}
