@@ -1,7 +1,7 @@
 namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
-/// The lower pseudoinverse of a (max,+) convolution of two non-decreasing right-continuous function is equal
+/// The lower pseudoinverse of a (max,+) convolution of two non-negative, non-decreasing, right-continuous functions is equal
 /// to the (min,+) convolution of their lower pseudoinverses.
 /// I.e., $(f \overline{\otimes} g)^{\underline{-1}} = f{^\underline{-1}} \otimes g{^\underline{-1}}$. 
 /// </summary>
@@ -23,8 +23,10 @@ public class IsomorphismConvRight : Equivalence
                     Expressions.Placeholder("g"))
             ))
     {
+        AddHypothesis<CurveExpression>("f", f => f.IsNonNegative);
         AddHypothesis<CurveExpression>("f", f => f.IsNonDecreasing);
         AddHypothesis<CurveExpression>("f", f => f.IsRightContinuous);
+        AddHypothesis<CurveExpression>("g", g => g.IsNonNegative);
         AddHypothesis<CurveExpression>("g", g => g.IsNonDecreasing);
         AddHypothesis<CurveExpression>("g", g => g.IsRightContinuous);
     }

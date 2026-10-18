@@ -1,7 +1,7 @@
 namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
-/// The upper pseudoinverse of a (min,+) convolution of two non-decreasing left-continuous function is equal
+/// The upper pseudoinverse of a (min,+) convolution of two non-negative, non-decreasing, left-continuous functions is equal
 /// to the (max,+) convolution of their upper pseudoinverses.
 /// I.e., $(f \otimes g)^{\overline{-1}} = f^{\overline{-1}} \overline{\otimes} g^{\overline{-1}}$. 
 /// </summary>
@@ -23,8 +23,10 @@ public class IsomorphismConvLeft : Equivalence
                     Expressions.Placeholder("g"))
             ))
     {
+        AddHypothesis<CurveExpression>("f", f => f.IsNonNegative);
         AddHypothesis<CurveExpression>("f", f => f.IsNonDecreasing);
         AddHypothesis<CurveExpression>("f", f => f.IsLeftContinuous);
+        AddHypothesis<CurveExpression>("g", g => g.IsNonNegative);
         AddHypothesis<CurveExpression>("g", g => g.IsNonDecreasing);
         AddHypothesis<CurveExpression>("g", g => g.IsLeftContinuous);
     }

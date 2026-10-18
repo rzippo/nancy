@@ -1,7 +1,7 @@
 namespace Unipi.Nancy.Expressions.Equivalences;
 
 /// <summary>
-/// If $f$ is non-decreasing and left-continuous, the lower pseudoinverse of its upper pseudoinverse is equal to $f$ again.
+/// If $f$ is non-negative, non-decreasing and left-continuous, the lower pseudoinverse of its upper pseudoinverse is equal to $f$ again.
 /// I.e., $(f^{\overline{-1}})^{\underline{-1}} = f$.
 /// </summary>
 /// <remarks>
@@ -14,6 +14,7 @@ public class PseudoInversesOfLeftContinuous : Equivalence
         base(Expressions.LowerPseudoInverse(Expressions.UpperPseudoInverse(Expressions.Placeholder("f"))),
             Expressions.Placeholder("f"))
     {
+        AddHypothesis<CurveExpression>("f", f => f.IsNonNegative);
         AddHypothesis<CurveExpression>("f", f => f.IsNonDecreasing);
         AddHypothesis<CurveExpression>("f", f => f.IsLeftContinuous);
     }
