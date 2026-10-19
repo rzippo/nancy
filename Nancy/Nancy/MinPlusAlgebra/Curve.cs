@@ -7697,9 +7697,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// This version does not assume $f^*(0) = 0$, making the result more general but at the cost of optimizations,
     /// since the result is not statically guaranteed to be a <see cref="SubAdditiveCurve"/>.
     /// Described in [BT08] Section 4.6 as algorithm 5.
-    /// For $f(0) &lt; 0$, the closure is $-\infty$ at every $t$ that splits into finitely many parts at which $f$ is not $+\infty$, as parts of length 0 each add $f(0)$.
-    /// If $f$ is not $+\infty$ right after 0, that is every $t$, and the closure is $-\infty$ everywhere.
-    /// Otherwise the times right after 0 do not split, the closure is $+\infty$ there, and its sub-additivity involves $-\infty + \infty$, which is undefined.
+    /// For $f(0) &lt; 0$, the closure is $-\infty$ at 0 and takes only the values $-\infty$ and $+\infty$ elsewhere, [TBP-CLOS-NEG] Corollary 3.2.
+    /// It is $-\infty$ everywhere unless $f$ is $+\infty$ right after 0, [TBP-CLOS-NEG] Corollary 3.5.
     /// </remarks>
     public Curve GeneralSubAdditiveClosure(ComputationSettings? settings = null)
     {
@@ -8463,9 +8462,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// This version does not assume $f_*(0) = 0$, making the result more general but at the cost of optimizations,
     /// since the result is not statically guaranteed to be a <see cref="SuperAdditiveCurve"/>.
-    /// For $f(0) > 0$, the closure is $+\infty$ at every $t$ that splits into finitely many parts at which $f$ is not $-\infty$, as parts of length 0 each add $f(0)$.
-    /// If $f$ is not $-\infty$ right after 0, that is every $t$, and the closure is $+\infty$ everywhere.
-    /// Otherwise the times right after 0 do not split, the closure is $-\infty$ there, and its super-additivity involves $+\infty - \infty$, which is undefined.
+    /// For $f(0) > 0$, the closure is $+\infty$ at 0 and takes only the values $+\infty$ and $-\infty$ elsewhere, [TBP-CLOS-NEG] Theorem 4.3.
+    /// It is $+\infty$ everywhere unless $f$ is $-\infty$ right after 0, [TBP-CLOS-NEG] Corollary 4.4.
     /// </remarks>
     public Curve GeneralSuperAdditiveClosure(ComputationSettings? settings = null)
     {
