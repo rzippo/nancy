@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -348,6 +349,30 @@ public class BoundaryValues
         Assert.Equal(min, curve.MinValueOverInterval(cutStart, cutEnd, isStartIncluded, isEndIncluded));
         Assert.Equal(sup, curve.SupValueOverInterval(cutStart, cutEnd, isStartIncluded, isEndIncluded));
         Assert.Equal(max, curve.MaxValueOverInterval(cutStart, cutEnd, isStartIncluded, isEndIncluded));
+    }
+
+    public static IEnumerable<object[]> GetInfiniteIntervalCases()
+    {
+        Curve[] curves = [new RateLatencyServiceCurve(2, 3), new StairCurve(1, new Rational(1, 2)).DelayBy(1)];
+        foreach (var curve in curves)
+        {
+            yield return new object[] { curve, (Rational) 0, Rational.PlusInfinity };
+            yield return new object[] { curve, (Rational) 5, Rational.PlusInfinity };
+            yield return new object[] { curve, Rational.PlusInfinity, Rational.PlusInfinity };
+        }
+    }
+
+    /// <summary>
+    /// The boundary values over an interval are defined for a finite interval, so an infinite end is rejected for every one of them.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetInfiniteIntervalCases))]
+    public void BoundaryValuesOverInfiniteIntervalThrow(Curve curve, Rational cutStart, Rational cutEnd)
+    {
+        Assert.Throws<ArgumentException>(() => curve.InfValueOverInterval(cutStart, cutEnd));
+        Assert.Throws<ArgumentException>(() => curve.MinValueOverInterval(cutStart, cutEnd));
+        Assert.Throws<ArgumentException>(() => curve.SupValueOverInterval(cutStart, cutEnd));
+        Assert.Throws<ArgumentException>(() => curve.MaxValueOverInterval(cutStart, cutEnd));
     }
 
 }
