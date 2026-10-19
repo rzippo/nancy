@@ -7699,7 +7699,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the subadditive closure.</returns>
     /// <exception cref="UndeterminedResultException">
-    /// If $f(0) &lt; 0$ and $f$ is $+\infty$ right after 0, or if $f$ takes both $+\infty$ and $-\infty$.
+    /// If $f(0) &lt; 0$ and $f$ is $+\infty$ right after 0.
     /// </exception>
     /// <remarks>
     /// This version does not assume $f^*(0) = 0$, making the result more general but at the cost of optimizations,
@@ -8465,7 +8465,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the super-additive closure.</returns>
     /// <exception cref="UndeterminedResultException">
-    /// If $f(0) > 0$ and $f$ is $-\infty$ right after 0, or if $f$ takes both $+\infty$ and $-\infty$.
+    /// If $f(0) > 0$ and $f$ is $-\infty$ right after 0.
     /// </exception>
     /// <remarks>
     /// This version does not assume $f_*(0) = 0$, making the result more general but at the cost of optimizations,
