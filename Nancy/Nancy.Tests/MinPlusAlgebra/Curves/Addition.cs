@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -105,5 +106,43 @@ public class Addition
 
         Assert.True(Curve.Equivalent(expected, aPb));
         Assert.True(Curve.Equivalent(aPb, bPa));
+    }
+
+    /// <summary>
+    /// The staircase of period 2, written with a period of 4: added to a staircase of period 2, its sum has a period of 4, which minimization shortens to 2.
+    /// </summary>
+    private static readonly Curve StaircaseWithDoubledPeriod =
+        new Curve(new StairCurve(1, 2).Cut(0, 8), 4, 4, 2);
+
+    public static IEnumerable<object[]> AdditionFormsAndMinimization()
+    {
+        var forms = new (string name, Func<Curve, Curve, ComputationSettings, Curve> add)[]
+        {
+            ("instance", (a, b, s) => a.Addition(b, s)),
+            ("static", (a, b, s) => Curve.Addition(a, b, s)),
+            ("enumerable of two", (a, b, s) => Curve.Addition((IEnumerable<Curve>) new List<Curve> { a, b }, s)),
+            ("collection of two", (a, b, s) => Curve.Addition((IReadOnlyCollection<Curve>) new List<Curve> { a, b }, s)),
+            ("collection of three", (a, b, s) => Curve.Addition((IReadOnlyCollection<Curve>) new List<Curve> { a, b, b }, s)),
+        };
+        foreach (var (name, add) in forms)
+        foreach (var useMinimization in new[] { true, false })
+            yield return new object[] { name, add, useMinimization };
+    }
+
+    /// <summary>
+    /// Every form of the addition honours <see cref="ComputationSettings.UseRepresentationMinimization"/>.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(AdditionFormsAndMinimization))]
+    public void EveryFormHonoursRepresentationMinimization(
+        string form, Func<Curve, Curve, ComputationSettings, Curve> add, bool useMinimization)
+    {
+        _testOutputHelper.WriteLine(form);
+        var settings = new ComputationSettings { UseRepresentationMinimization = useMinimization };
+        var staircase = new StairCurve(1, 2);
+
+        var sum = add(staircase, StaircaseWithDoubledPeriod, settings);
+
+        Assert.Equal(useMinimization ? 2 : 4, sum.PseudoPeriodLength);
     }
 }
