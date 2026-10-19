@@ -713,7 +713,25 @@ public partial class LatexFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(NegateRationalExpression expression)
-        => VisitUnaryPrefix(expression, "-");
+    {
+        // the negation of a number is written as the negative number, as it would be if the number were given negative
+        var isNameShown = CurrentDepth >= MaxDepth && !expression.Name.Equals("");
+        if (!isNameShown && expression.Operand is RationalNumberExpression number
+            && !(!number.Name.Equals("") && (ShowRationalsAsName || CurrentDepth + 1 >= MaxDepth)))
+        {
+            var negated = -number.Value;
+            var sb = new StringBuilder();
+            if (negated.IsNegative)
+                sb.Append('-');
+            var magnitude = negated.IsNegative ? -negated : negated;
+            if (magnitude.Denominator == 1)
+                sb.Append($"{magnitude.Numerator}");
+            else
+                sb.Append($"\\frac{magnitude.Numerator}{magnitude.Denominator}");
+            return (sb, false);
+        }
+        return VisitUnaryPrefix(expression, "-");
+    }
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)

@@ -149,7 +149,8 @@ public partial class UnicodeFormatterVisitor :
 
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryInfix<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
-        string unicodeOperation
+        string unicodeOperation,
+        bool leftOmitsParenthesesAsNegativeInteger = false
     )
     {
         if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
@@ -160,7 +161,7 @@ public partial class UnicodeFormatterVisitor :
             var sb = new StringBuilder();
 
             var (leftUnicodeBuilder, leftNeedsParentheses) = GeneralizedAccept(expression.LeftOperand);
-            if (leftNeedsParentheses)
+            if (leftNeedsParentheses && !(leftOmitsParenthesesAsNegativeInteger && IsNegativeInteger(leftUnicodeBuilder)))
             {
                 sb.Append('(');
                 sb.Append(leftUnicodeBuilder);
@@ -185,6 +186,12 @@ public partial class UnicodeFormatterVisitor :
             return (sb, true);
         }
     }
+
+    /// <summary>
+    /// True if the text is a negative integer, as <c>-3</c>, which reads unambiguously as the left operand of a division.
+    /// </summary>
+    private static bool IsNegativeInteger(StringBuilder text)
+        => text.Length > 1 && text[0] == '-' && text.ToString(1, text.Length - 1).All(char.IsAsciiDigit);
 
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitBinaryPrefix<T1, T2, TResult>(
         IGenericBinaryExpression<T1, T2, TResult> expression,
@@ -473,7 +480,7 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalDivisionExpression expression)
-        => VisitBinaryInfix(expression, "/");
+        => VisitBinaryInfix(expression, "/", leftOmitsParenthesesAsNegativeInteger: true);
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalLeastCommonMultipleExpression expression)
@@ -692,7 +699,17 @@ public partial class UnicodeFormatterVisitor :
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(NegateRationalExpression expression)
-        => VisitUnaryPrefix(expression, "-");
+    {
+        // the negation of a number is written as the negative number, as it would be if the number were given negative
+        var isNameShown = CurrentDepth >= MaxDepth && !expression.Name.Equals("");
+        if (!isNameShown && expression.Operand is RationalNumberExpression number
+            && !(!number.Name.Equals("") && (ShowRationalsAsName || CurrentDepth + 1 >= MaxDepth)))
+        {
+            var negated = -number.Value;
+            return (new StringBuilder(negated.ToString()), negated.IsNegative || negated.Denominator != 1);
+        }
+        return VisitUnaryPrefix(expression, "-");
+    }
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InvertRationalExpression expression)
