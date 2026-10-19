@@ -819,7 +819,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <paramref name="right"/> passed as arguments.</summary>
     public static RationalExpression GreatestCommonDivisor(RationalExpression left, RationalExpression right,
         string expressionName = "", ExpressionSettings? settings = null)
-        => left.GreatestCommonDivisor(right);
+        => left.GreatestCommonDivisor(right, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the g.c.d. between the current expression and the rational number
@@ -842,7 +842,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// </summary>
     public static RationalExpression GreatestCommonDivisor(RationalExpression left, Rational right,
         string expressionName = "", ExpressionSettings? settings = null)
-        => left.GreatestCommonDivisor(right);
+        => left.GreatestCommonDivisor(right, expressionName: expressionName, settings: settings);
 
     #endregion GreatestCommonDivisor
 
