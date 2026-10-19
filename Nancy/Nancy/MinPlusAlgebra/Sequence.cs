@@ -208,7 +208,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
-    /// True if there is left-discontinuity within the sequence.
+    /// True if there is no left-discontinuity within the sequence.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsLeftContinuous
@@ -220,7 +220,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     internal bool? _isLeftContinuous;
 
     /// <summary>
-    /// True if there is right-discontinuity within the sequence.
+    /// True if there is no right-discontinuity within the sequence.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRightContinuous
