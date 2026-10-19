@@ -2643,7 +2643,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         elements = indexes
                             .AsParallel().AsOrdered()
                             .Select(i => ComputeExtensionSequence(i, settings))
-                            .SelectMany(seq => seq.Elements);
+                            .SelectMany(seq => seq.Elements)
+                            .WithoutAggregateException();
                     }
                     else
                     {
@@ -2670,7 +2671,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         extensionElements = indexes
                             .AsParallel().AsOrdered()
                             .Select(i => ComputeExtensionSequence(i, settings))
-                            .SelectMany(seq => seq.Elements);
+                            .SelectMany(seq => seq.Elements)
+                            .WithoutAggregateException();
                     }
                     else
                     {
@@ -2956,7 +2958,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             periodicSegmentsCopy = PseudoPeriodicElements
                 .AsParallel().AsOrdered()
-                .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
+                .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex))
+                .WithoutAggregateException();
         }
         else
         {
