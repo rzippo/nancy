@@ -5205,10 +5205,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
     }
 
+    private static void ThrowIfIntervalIsInfinite(Rational cutStart, Rational cutEnd)
+    {
+        if (cutStart.IsInfinite || cutEnd.IsInfinite)
+            throw new ArgumentException("The interval must be finite.");
+    }
+
     /// <summary>
-    /// If the curve is upper-bounded in interval $I$, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
-    /// Otherwise, returns $+\infty$.
+    /// Returns the supremum of the curve over the specified interval, or $+\infty$ if the curve is not bounded above there.
+    /// Requires finite interval endpoints.
     /// </summary>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
     public Rational SupValueOverInterval(
         Rational cutStart,
         Rational cutEnd,
@@ -5217,14 +5224,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ComputationSettings? settings = null
     )
     {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
         var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
         return cut.SupValue();
     }
 
     /// <summary>
-    /// If the curve has a maximum in interval $I$, i.e., exist $x$ and $t^* \in I$ such that $f(t) \le x$ for any $t \in I$ and $f(t^*) = x$, returns $x$.
-    /// Otherwise, returns null.
+    /// Returns the maximum value of the curve over the specified interval, or null if no maximum is attained.
+    /// Requires finite interval endpoints.
     /// </summary>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
     public Rational? MaxValueOverInterval(
         Rational cutStart,
         Rational cutEnd,
@@ -5233,14 +5242,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ComputationSettings? settings = null
     )
     {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
         var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
         return cut.MaxValue();
     }
 
     /// <summary>
-    /// If the curve is lower-bounded in interval $I$, i.e., exists $x$ such that $f(t) \ge x$ for any $t \in I$, returns $\sup x$.
-    /// Otherwise, returns $-\infty$.
+    /// Returns the infimum of the curve over the specified interval, or $-\infty$ if the curve is not bounded below there.
+    /// Requires finite interval endpoints.
     /// </summary>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
     public Rational InfValueOverInterval(
         Rational cutStart,
         Rational cutEnd,
@@ -5249,14 +5260,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ComputationSettings? settings = null
     )
     {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
         var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
         return cut.InfValue();
     }
 
     /// <summary>
-    /// If the curve has a minimum in interval $I$, i.e., exist $x$ and $t^* \in I$ such that $f(t) \ge x$ for any $t \in I$ and $f(t^*) = x$, returns $x$.
-    /// Otherwise, returns null.
+    /// Returns the minimum value of the curve over the specified interval, or null if no minimum is attained.
+    /// Requires finite interval endpoints.
     /// </summary>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
     public Rational? MinValueOverInterval(
         Rational cutStart,
         Rational cutEnd,
@@ -5265,6 +5278,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ComputationSettings? settings = null
     )
     {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
         var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
         return cut.MinValue();
     }
