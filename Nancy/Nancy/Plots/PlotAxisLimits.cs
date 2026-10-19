@@ -266,7 +266,7 @@ public static class PlotAxisLimitAlgorithms
     /// <param name="xFrameLimit">The x framing limit to carry the trailing continuation to, when known; the x data limit when null.</param>
     /// <remarks>
     /// An explicit finite limit in <paramref name="settings"/> is the data limit, as requested.
-    /// Otherwise the data limit is the extent of the finite values, with the trailing continuation.
+    /// Otherwise the data limit is the extent of the finite values, with the trailing continuation, or the point 0 if there is none.
     /// Reserving room for the areas marking infinite values, opening up degenerate ranges and margins are framing concerns, and belong to <see cref="SuggestFramingLimits(IReadOnlyCollection{Sequence},PlotSettings,bool)"/>.
     /// </remarks>
     public static PlotDataLimits SuggestDataLimits(
@@ -598,8 +598,9 @@ public static class PlotAxisLimitAlgorithms
             .Where(y => y.IsFinite)
             .ToList();
 
+        // with no finite value the data are the point 0, a degenerate range that the framing opens up for the areas of the infinities
         if (finiteYValues.Count == 0)
-            throw new ArgumentException("Cannot compute y-axis limits: no finite y values were found.");
+            return new Interval(0, 0, isLowerIncluded: true, isUpperIncluded: true);
 
         return new Interval(
             finiteYValues.Min(),
