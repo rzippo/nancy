@@ -248,5 +248,5 @@ public static class RateLatencyServiceCurveExtensions
 {
     /// <inheritdoc cref="RateLatencyServiceCurve.Convolution(RateLatencyServiceCurve, ComputationSettings?)"/>
     public static RateLatencyServiceCurve Convolution(this IReadOnlyCollection<RateLatencyServiceCurve> curves, ComputationSettings? settings = null)
-        => RateLatencyServiceCurve.Convolution(curves);
+        => RateLatencyServiceCurve.Convolution(curves, settings);
 }

@@ -189,5 +189,5 @@ public static class DelayServiceCurveExtensions
 {    
     /// <inheritdoc cref="DelayServiceCurve.Convolution(DelayServiceCurve, ComputationSettings?)"/>
     public static DelayServiceCurve Convolution(this IEnumerable<DelayServiceCurve> curves, ComputationSettings? settings = null)
-        => DelayServiceCurve.Convolution(curves);
+        => DelayServiceCurve.Convolution(curves, settings);
 }

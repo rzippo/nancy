@@ -107,7 +107,7 @@ public static class ConcaveCurveExtensions
 {
     /// <inheritdoc cref="Curve.Minimum(IEnumerable{Curve}, ComputationSettings?)"/>
     public static ConcaveCurve Minimum(this IEnumerable<ConcaveCurve> curves, ComputationSettings? settings = null)
-        => curves.Aggregate((a, b) => a.Minimum(b));
+        => curves.Aggregate((a, b) => a.Minimum(b, settings));
 
     /// <inheritdoc cref="Curve.Minimum(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConcaveCurve Minimum(this IReadOnlyCollection<ConcaveCurve> curves, ComputationSettings? settings = null)
