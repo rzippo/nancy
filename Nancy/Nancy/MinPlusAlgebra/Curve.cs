@@ -5742,7 +5742,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The curve resulting from the sum.</returns>
     /// <remarks> Algorithm defined in [BT08] Section 4.2 </remarks>
     public static Curve Addition(Curve a, Curve b, ComputationSettings? settings = null)
-        => a.Addition(b);
+        => a.Addition(b, settings);
 
     /// <summary>
     /// Computes the sum of a set of curves.
@@ -5791,7 +5791,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (curves.Count == 1)
             return curves.Single();
         if (curves.Count == 2)
-            return Addition(curves.ElementAt(0), curves.ElementAt(1));
+            return Addition(curves.ElementAt(0), curves.ElementAt(1), settings);
 
         bool parallelizeDueCount =
             settings.UseParallelListAddition &&
