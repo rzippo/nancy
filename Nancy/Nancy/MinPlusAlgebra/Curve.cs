@@ -6640,18 +6640,18 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (settings.UseOriginConvolutionShortcut)
         {
             if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-                return g.VerticalShift(f.ValueAt(0), false);
+                return g.VerticalShift(f.ValueAt(0), false, settings);
             if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-                return f.VerticalShift(g.ValueAt(0), false);
+                return f.VerticalShift(g.ValueAt(0), false, settings);
         }
 
         // Shortcut: $0 \otimes f$, for a non-decreasing f, is constant $f(0)$
         if (settings.UseZeroConvolutionShortcut && (f.IsZero || g.IsZero))
         {
             if (f.IsZero && g.IsNonDecreasing)
-                return f.VerticalShift(g.ValueAt(0), false);
+                return f.VerticalShift(g.ValueAt(0), false, settings);
             if (g.IsZero && f.IsNonDecreasing)
-                return g.VerticalShift(f.ValueAt(0), false);
+                return g.VerticalShift(f.ValueAt(0), false, settings);
         }
 
         #if DO_LOG
@@ -7790,9 +7790,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (settings.UseOriginConvolutionShortcut)
         {
             if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-                return g.VerticalShift(f.ValueAt(0), false);
+                return g.VerticalShift(f.ValueAt(0), false, settings);
             if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-                return f.VerticalShift(g.ValueAt(0), false);
+                return f.VerticalShift(g.ValueAt(0), false, settings);
         }
 
         #if DO_LOG
