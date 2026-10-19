@@ -123,6 +123,37 @@ public class InfinityFraming
         Assert.Equal(limits.YFramingLimit.Lower, limits.MinusInfinityBand.Lower);
     }
 
+    public static IEnumerable<object[]> SequencesWithNoFiniteValue()
+    {
+        yield return new object[] { new[] { Curve.PlusInfinite().Cut(0, 10, true, true) }, true, false };
+        yield return new object[] { new[] { Curve.MinusInfinite().Cut(0, 10, true, true) }, false, true };
+        yield return new object[]
+        {
+            new[] { Curve.PlusInfinite().Cut(0, 10, true, true), Curve.MinusInfinite().Cut(0, 10, true, true) },
+            true,
+            true
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(SequencesWithNoFiniteValue))]
+    public void WithNoFiniteValueTheRangeIsDegenerateAtTheXAxis(Sequence[] sequences, bool hasPlusInfinity, bool hasMinusInfinity)
+    {
+        // there is no finite value to build a y-range from, so the data are the point 0 and the areas take the room
+        var settings = new PlotSettings { RelativeXAxisMargin = 0, RelativeYAxisMargin = 0 };
+        var limits = PlotAxisLimitAlgorithms.SuggestFramingLimits(sequences, settings);
+
+        Assert.Equal(new Interval(0, 0), limits.DataLimits.YDataLimit);
+        Assert.True(limits.YFramingLimit.Lower < limits.YFramingLimit.Upper);
+        Assert.True(limits.YFramingLimit.Lower <= 0 && 0 <= limits.YFramingLimit.Upper);
+        Assert.Equal(hasPlusInfinity, limits.HasPlusInfinityBand);
+        Assert.Equal(hasMinusInfinity, limits.HasMinusInfinityBand);
+        if (hasPlusInfinity)
+            Assert.Equal(limits.YFramingLimit.Upper, limits.PlusInfinityBand.Upper);
+        if (hasMinusInfinity)
+            Assert.Equal(limits.YFramingLimit.Lower, limits.MinusInfinityBand.Lower);
+    }
+
     [Fact]
     public void IgnoreReservesNoRoom()
     {
