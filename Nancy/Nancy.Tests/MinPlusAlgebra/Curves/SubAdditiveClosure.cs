@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
@@ -507,5 +508,31 @@ public class SubAdditiveClosure
         Assert.True(Curve.Equivalent(
             (-curve).SuperAdditiveClosure(WithZeroClosureShortcut),
             (-curve).SuperAdditiveClosure(WithoutZeroClosureShortcut)));
+    }
+
+    /// <summary>
+    /// A curve that is 0 at the origin and takes both infinities afterwards is not rejected upfront, so the closures reach the sum of opposite infinities while they compute it.
+    /// </summary>
+    public static Curve BothInfinitiesAfterOrigin = new Curve(
+        new Sequence([Point.Origin(), Segment.PlusInfinite(0, 1), Point.PlusInfinite(1), Segment.MinusInfinite(1, 2), Point.MinusInfinite(2)]), 0, 2, 0);
+
+    public static IEnumerable<object[]> ClosuresOfCurveTakingBothInfinities()
+    {
+        yield return new object[] { nameof(Curve.SubAdditiveClosure), (Func<Curve, Curve>) (f => f.SubAdditiveClosure()) };
+        yield return new object[] { nameof(Curve.GeneralSubAdditiveClosure), (Func<Curve, Curve>) (f => f.GeneralSubAdditiveClosure()) };
+        yield return new object[] { nameof(Curve.SuperAdditiveClosure), (Func<Curve, Curve>) (f => (-f).SuperAdditiveClosure()) };
+        yield return new object[] { nameof(Curve.GeneralSuperAdditiveClosure), (Func<Curve, Curve>) (f => (-f).GeneralSuperAdditiveClosure()) };
+    }
+
+    /// <summary>
+    /// The closures of a curve taking both infinities throw <see cref="UndeterminedResultException"/> itself, not wrapped in an <see cref="AggregateException"/>.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ClosuresOfCurveTakingBothInfinities))]
+    public void ClosureOfCurveTakingBothInfinitiesThrowsUndeterminedResult(string closure, Func<Curve, Curve> compute)
+    {
+        output.WriteLine(closure);
+        Assert.True(BothInfinitiesAfterOrigin.HasPlusInfinity && BothInfinitiesAfterOrigin.HasMinusInfinity);
+        Assert.Throws<UndeterminedResultException>(() => compute(BothInfinitiesAfterOrigin));
     }
 }
