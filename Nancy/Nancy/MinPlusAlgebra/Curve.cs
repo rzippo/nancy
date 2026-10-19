@@ -27,6 +27,10 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </summary>
 /// <remarks>
 /// Implementation of data structure described in [BT08] Section 4.1
+/// <para>
+/// Curves that take both $+\infty$ and $-\infty$ are generally not supported, since the sum of opposite infinities is undefined.
+/// Code involving them may throw <see cref="UndeterminedResultException"/>, or compute invalid results.
+/// </para>
 /// </remarks>
 /// <docs position="1"/>
 [JsonObject(MemberSerialization.OptIn)]
