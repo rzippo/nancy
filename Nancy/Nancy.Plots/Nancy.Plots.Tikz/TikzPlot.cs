@@ -687,6 +687,14 @@ public class TikzPlot
     }
 
     /// <summary>
+    /// The legend image of a line, for a sequence that has none to plot.
+    /// </summary>
+    private static string ToLegendImage(string color, string lineStyle)
+        => string.IsNullOrWhiteSpace(lineStyle)
+            ? $"\\addlegendimage{{ color = {color}, thick }}"
+            : $"\\addlegendimage{{ color = {color}, thick, {lineStyle.Trim().TrimEnd(',')} }}";
+
+    /// <summary>
     /// Get the TikZ lines that plot the sequences using TikZ.
     /// </summary>
     /// <param name="sequences">The sequences to process.</param>
@@ -711,8 +719,6 @@ public class TikzPlot
     {
         if (sequences.Count != names.Count || sequences.Count != colors.Count)
             throw new ArgumentException("The arguments must be of the same length");
-        if (sequences.Any(s => s.FirstFiniteTime.IsPlusInfinite))
-            throw new ArgumentException("Cannot plot infinite-only sequences");
 
         var plots = sequences
             .Select((s, i) => ToTikzExtensions
@@ -740,7 +746,8 @@ public class TikzPlot
             var legendLines = plots.Select((plot, i) =>
                 {
                     var firstSegmentLine = plot.FirstOrDefault(l => !l.Contains("only marks"));
-                    var legendLine = firstSegmentLine ?? plot.First();
+                    // a sequence with no finite value has no line, and its legend entry takes an image of one
+                    var legendLine = firstSegmentLine ?? plot.FirstOrDefault() ?? ToLegendImage(colors[i], lineStyles[i]);
                     return legendLine;
                 })
                 .ToList();
