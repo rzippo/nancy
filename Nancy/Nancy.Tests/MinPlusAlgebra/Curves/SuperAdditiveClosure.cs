@@ -259,4 +259,38 @@ public class SuperAdditiveClosure
         else
             Assert.Throws<UndeterminedResultException>(() => curve.GeneralSuperAdditiveClosure());
     }
+
+    /// <summary>
+    /// The known closures are super-additive, bounded below by their operand, and their own closure.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(KnownClosuresTestCases))]
+    public void ClosureIsSuperAdditiveAboveTheOperandAndIdempotent(Curve curve, Curve _)
+    {
+        var closure = new Curve(curve.SuperAdditiveClosure());
+        Assert.True(closure.IsSuperAdditive);
+        Assert.True(closure >= curve);
+        Assert.True(Curve.Equivalent(closure, closure.SuperAdditiveClosure()));
+    }
+
+    public static IEnumerable<object[]> KnownClosuresWithOptimizations()
+    {
+        foreach (var (curve, closure) in KnownClosures)
+        foreach (var useConvolutionOptimizations in new[] { true, false })
+            yield return new object[] { curve, closure, useConvolutionOptimizations };
+    }
+
+    /// <summary>
+    /// The known closures are the same whether the optimizations of the convolution are used or not.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(KnownClosuresWithOptimizations))]
+    public void KnownClosuresDoNotDependOnTheOptimizations(
+        Curve curve,
+        Curve expected,
+        bool useConvolutionOptimizations)
+    {
+        var settings = new ComputationSettings { UseSubAdditiveConvolutionOptimizations = useConvolutionOptimizations };
+        Assert.True(Curve.Equivalent(expected, curve.SuperAdditiveClosure(settings)));
+    }
 }

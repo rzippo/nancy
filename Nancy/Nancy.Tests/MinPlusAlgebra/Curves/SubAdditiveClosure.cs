@@ -535,4 +535,38 @@ public class SubAdditiveClosure
         Assert.True(BothInfinitiesAfterOrigin.HasPlusInfinity && BothInfinitiesAfterOrigin.HasMinusInfinity);
         Assert.Throws<UndeterminedResultException>(() => compute(BothInfinitiesAfterOrigin));
     }
+
+    /// <summary>
+    /// The known closures are sub-additive, bounded above by their operand, and their own closure.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(KnownSubadditiveClosureTestCases))]
+    public void ClosureIsSubAdditiveBelowTheOperandAndIdempotent(Curve operand, Curve _)
+    {
+        var closure = new Curve(operand.SubAdditiveClosure());
+        Assert.True(closure.IsSubAdditive);
+        Assert.True(closure <= operand);
+        Assert.True(Curve.Equivalent(closure, closure.SubAdditiveClosure()));
+    }
+
+    public static IEnumerable<object[]> KnownSubadditiveClosuresWithOptimizations()
+    {
+        foreach (var (operand, expected) in KnownSubadditiveClosures)
+        foreach (var useConvolutionOptimizations in new[] { true, false })
+            yield return new object[] { operand, expected, useConvolutionOptimizations };
+    }
+
+    /// <summary>
+    /// The known closures are the same whether the optimizations of the convolution are used or not.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(KnownSubadditiveClosuresWithOptimizations))]
+    public void KnownClosuresDoNotDependOnTheOptimizations(
+        Curve operand,
+        Curve expected,
+        bool useConvolutionOptimizations)
+    {
+        var settings = new ComputationSettings { UseSubAdditiveConvolutionOptimizations = useConvolutionOptimizations };
+        Assert.True(Curve.Equivalent(expected, operand.SubAdditiveClosure(settings)));
+    }
 }
