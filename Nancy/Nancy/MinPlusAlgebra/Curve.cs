@@ -7608,7 +7608,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the subadditive closure.</returns>
     /// <exception cref="InvalidOperationException">
-    /// Thrown if $f(0) &lt; 0$, which means the subadditive closure is $-\infty$ for any $t$.
+    /// Thrown if $f(0) &lt; 0$.
+    /// For those cases, see <see cref="GeneralSubAdditiveClosure"/>.
     /// </exception>
     /// <remarks>
     /// This method assumes $f(0) \ge 0$ since it implies $f^*(0) = 0$,
@@ -7626,7 +7627,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the subadditive closure.</returns>
     /// <exception cref="InvalidOperationException">
-    /// Thrown if $f(0) &lt; 0$, which means the subadditive closure is $-\infty$ for any $t$.
+    /// Thrown if $f(0) &lt; 0$.
+    /// For those cases, see <see cref="GeneralSubAdditiveClosure"/>.
     /// </exception>
     /// <remarks>
     /// This method assumes $f(0) \ge 0$ since it implies $f^*(0) = 0$,
@@ -8429,7 +8431,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// If $f(0^+) > 0$ the result is $+\infty$ for any $t > 0$, and is returned without running the algorithm.
     /// </remarks>
     /// <exception cref="InvalidOperationException">
-    /// Thrown if $f(0) &gt; 0$, which means the super-additive closure is $+\infty$ for any $t$.
+    /// Thrown if $f(0) &gt; 0$.
+    /// For those cases, see <see cref="GeneralSuperAdditiveClosure"/>.
     /// </exception>
     public virtual SuperAdditiveCurve SuperAdditiveClosure(ComputationSettings? settings = null)
     {
