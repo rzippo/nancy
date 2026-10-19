@@ -91,4 +91,33 @@ public class RationalGreatestCommonDivisor
         Assert.Equal(expected, mixedRightExpression.Compute());
     }
 
+    public static IEnumerable<object[]> StaticFormsKeepNameAndSettingsTestCases()
+    {
+        yield return new object[]
+        {
+            "two expressions",
+            (System.Func<string, ExpressionSettings, RationalExpression>) ((name, settings) =>
+                RationalExpression.GreatestCommonDivisor(Expressions.FromRational(4), Expressions.FromRational(6), name, settings))
+        };
+        yield return new object[]
+        {
+            "an expression and a rational",
+            (System.Func<string, ExpressionSettings, RationalExpression>) ((name, settings) =>
+                RationalExpression.GreatestCommonDivisor(Expressions.FromRational(4), new Rational(6), name, settings))
+        };
+    }
+
+    /// <summary>
+    /// The static forms give the expression they create the name and the settings they were given.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(StaticFormsKeepNameAndSettingsTestCases))]
+    public void StaticFormsKeepNameAndSettings(string form, System.Func<string, ExpressionSettings, RationalExpression> create)
+    {
+        output.WriteLine(form);
+        var settings = new ExpressionSettings { CacheSettings = new CacheSettings() };
+        var expression = create("myGcd", settings);
+        Assert.Equal("myGcd", expression.Name);
+        Assert.Same(settings, expression.Settings);
+    }
 }
