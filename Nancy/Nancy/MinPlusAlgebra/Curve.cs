@@ -3346,6 +3346,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// If true, the value at the origin is left as it is and the shift applies to $t > 0$.
     /// </param>
     /// <param name="settings">Optional settings for the operation.</param>
+    /// <exception cref="UndeterminedResultException">
+    /// If <paramref name="shift"/> is an infinity opposite to one the curve takes, since their sum is undefined.
+    /// With <paramref name="exceptOrigin"/> the value at the origin is left out of the check.
+    /// </exception>
     public virtual Curve VerticalShift(Rational shift, bool exceptOrigin = false, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
