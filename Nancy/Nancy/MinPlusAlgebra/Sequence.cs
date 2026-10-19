@@ -2059,7 +2059,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             // both operands reach +inf: truncating both at M, above all their finite values, does not change the deviation, [TBP-SEQ-DEV] § 4.2
             var m = Rational.Max(f.FiniteSupValue(), g.FiniteSupValue()) + 1;
-            return HorizontalDeviation(f.Truncate(m), g.Truncate(m), settings);
+            return HorizontalDeviation(f.Truncate(m, settings), g.Truncate(m, settings), settings);
         }
 
         switch (settings.HorizontalDeviationStrategy)
@@ -2138,7 +2138,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             // both operands reach +inf: they are truncated at M, above all their finite values, and measured from the heights below M,
             // which leaves out the times after f becomes +inf, [TBP-SEQ-DEV] § 4.2
             var m = Rational.Max(f.FiniteSupValue(), g.FiniteSupValue()) + 1;
-            (f, g) = (f.Truncate(m), g.Truncate(m));
+            (f, g) = (f.Truncate(m, settings), g.Truncate(m, settings));
             imageOverlap = new Interval(imageOverlap.Lower, m, imageOverlap.IsLowerIncluded, false);
         }
 
@@ -2244,8 +2244,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// The truncation of this sequence at <paramref name="height"/>, $\min(f(t), M)$, over the same support.
     /// </summary>
-    private Sequence Truncate(Rational height)
-        => Minimum(this, Constant(height, DefinedFrom, DefinedUntil, IsLeftClosed, IsRightClosed));
+    private Sequence Truncate(Rational height, ComputationSettings? settings)
+        => Minimum(this, Constant(height, DefinedFrom, DefinedUntil, IsLeftClosed, IsRightClosed), settings: settings);
 
     /// <summary>
     /// Computes the floor function, $\lfloor f(t) \rfloor$.
