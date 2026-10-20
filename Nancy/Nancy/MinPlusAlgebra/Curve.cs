@@ -4804,9 +4804,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     if (f.ValueAt(0) != 0)
                         f = f.WithOriginAt(0);
 
+                    // where f is 0, the delay is largest at 0, the first time g is non-negative, and the gap of the upper pseudo-inverses at the height 0 measures it from the last time f is 0 instead, so it is taken apart;
+                    // the upper pseudo-inverse of g, from the height 0, is that of max(g, 0), whose delays are those of g where f is positive
+                    var firstNonNegativeTime = g.IsNonNegative ? 0 : g.FirstNonNegativeTime;
+                    if (firstNonNegativeTime.IsPlusInfinite)
+                        return Rational.PlusInfinity;
+
                     // f takes no height below its top, where the upper pseudo-inverses are compared: the deviation is the first time g is non-negative
                     if (f.IsZero)
-                        return g.IsNonNegative ? 0 : g.FirstNonNegativeTime;
+                        return firstNonNegativeTime;
 
                     // above both tops, both upper pseudo-inverses are +inf, and the deconvolution is undefined
                     if (f.IsUltimatelyConstant && g.IsUltimatelyConstant)
@@ -4821,10 +4827,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         g = Addition(g, ramp, settings);
                     }
 
-                    return MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse(), settings)
+                    var upperGap = MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse(), settings)
                         .Negate()
                         .ToNonNegative()
                         .ValueAt(0);
+                    return Rational.Max(firstNonNegativeTime, upperGap);
                 }
                 case HorizontalDeviationStrategy.Composition:
                 {
