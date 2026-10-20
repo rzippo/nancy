@@ -7664,8 +7664,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// which allows many optimizations via the <see cref="SubAdditiveCurve"/> class.
     /// For a more general implementation, see <see cref="GeneralSubAdditiveClosure"/>. 
     /// Described in [BT08] Section 4.6 as algorithm 5.
-    /// If $f(0^+) &lt; 0$ the result is $-\infty$ for any $t > 0$, and is returned without running the algorithm.
-    /// If $f$ is non-negative and 0 right after 0, the result is 0, and is returned without running the algorithm, see <see cref="ComputationSettings.UseZeroClosureShortcut"/>.
+    /// The closure is $-\infty$ for every $t > 0$ iff $f(0^+) &lt; 0$, [TBP-CLOS-NEG] Corollary 5.6.
+    /// This case is returned directly without running the general closure algorithm.
+    /// The closure is identically zero iff $f$ is non-negative and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-NEG] Theorem 5.2 and Corollary 5.6.
+    /// When <see cref="ComputationSettings.UseZeroClosureShortcut"/> is enabled, this case is also returned directly.
     /// </remarks>
     public virtual SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
@@ -7676,16 +7678,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw new InvalidOperationException(
                 "This method cannot compute the subadditive closure of curves with f(0) < 0. See GeneralSubAdditiveClosure instead.");
 
-        // With $f(0^+) < 0$, splitting any $t > 0$ into $k$ parts gives $k \cdot f(t/k) \to -\infty$, so the closure is $-\infty$ there.
-        // The decomposition below cannot reach that value: the closure of the first element is $-\infty$ past the origin,
-        // that of the origin is $+\infty$ past it, and their convolution reaches $(+\infty) + (-\infty)$,
-        // which is undefined unless a (min,+) convention for that sum is coded in.
+        // The general algorithm would convolve the origin's closure, which is $+\infty$ for $t > 0$, with the first segment's closure, which is $-\infty$ there.
+        // Return the known closure directly to avoid the undefined sum $(+\infty) + (-\infty)$.
         if (RightLimitAt(0) < 0)
             return new SubAdditiveCurve(MinusInfinite().WithOriginAt(0), false);
 
         settings ??= ComputationSettings.Default();
 
-        // splitting any t > 0 into parts right after 0 gives 0, and no sum of non-negative values is below it
         if (settings.UseZeroClosureShortcut && GetSegmentAfter(0, autoMerge: false) is { RightLimitAtStartTime.IsZero: true, Slope.IsZero: true } && IsNonNegative)
             return new SubAdditiveCurve(Zero(), false);
 
@@ -8456,7 +8455,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The result of the super-additive closure.</returns>
     /// <remarks>
     /// Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4.
-    /// If $f(0^+) > 0$ the result is $+\infty$ for any $t > 0$, and is returned without running the algorithm.
+    /// The closure is $+\infty$ for every $t > 0$ iff $f(0^+) > 0$, [TBP-CLOS-NEG] Corollary 5.8.
+    /// This case is returned directly without running the general closure algorithm.
+    /// The closure is identically zero iff $f$ is non-positive and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-NEG] Corollaries 5.7 and 5.8.
+    /// When <see cref="ComputationSettings.UseZeroClosureShortcut"/> is enabled, this case is also returned directly.
     /// </remarks>
     /// <exception cref="InvalidOperationException">
     /// Thrown if $f(0) &gt; 0$.
@@ -8471,8 +8473,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw new InvalidOperationException(
                 "This method cannot compute the superadditive closure of curves with f(0) > 0. See GeneralSuperAdditiveClosure instead.");
 
-        // With $f(0^+) > 0$, splitting any $t > 0$ into $k$ parts gives $k \cdot f(t/k) \to +\infty$, so the closure is $+\infty$ there.
-        // The negation below reaches the same value, at the cost of two sign flips and a decomposition.
+        // Return the known closure directly to avoid negating the operand and the result.
         if (RightLimitAt(0) > 0)
             return new SuperAdditiveCurve(PlusInfinite().WithOriginAt(0), false);
 

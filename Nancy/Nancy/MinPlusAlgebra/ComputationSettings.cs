@@ -195,8 +195,9 @@ public record ComputationSettings
     public bool UseInfiniteVerticalShiftShortcut { get; set; } = true;
 
     /// <summary>
-    /// If set, a closure whose result is 0 is shortcut to it, without running the algorithm.
-    /// Applies to <see cref="Curve.SubAdditiveClosure(ComputationSettings?)"/>, and through negation to <see cref="Curve.SuperAdditiveClosure(ComputationSettings?)"/>.
+    /// Enables returning the zero curve directly when the closure is known to be zero.
+    /// For <see cref="Curve.SubAdditiveClosure(ComputationSettings?)"/>, this applies when the operand $f$ is non-negative and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-NEG] Theorem 5.2.
+    /// For <see cref="Curve.SuperAdditiveClosure(ComputationSettings?)"/>, the same zero-interval condition applies with $f$ non-positive, [TBP-CLOS-NEG] Corollary 5.7.
     /// </summary>
     public bool UseZeroClosureShortcut { get; set; } = true;
 
