@@ -7726,10 +7726,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         if (ValueAt(0) < 0)
         {
-            // a split with parts at -infinity and at +infinity sums them, which is undefined
+            // curves taking both infinities are not supported, see the remarks of Curve
             if (HasPlusInfinity && HasMinusInfinity)
                 throw new UndeterminedResultException(
-                    "The sub-additive closure of a curve that takes both +infinity and -infinity sums them, which is undefined.");
+                    "The sub-additive closure does not support curves that take both +infinity and -infinity.");
             // the closure is -infinity at every t that splits into finitely many parts at which f is not +infinity, as parts of length 0 each add f(0) < 0;
             // if f is not +infinity right after 0, parts that short sum to every t, and if it is, the times right after 0 do not split at all
             if (GetSegmentAfter(0, autoMerge: false).IsPlusInfinite)
@@ -8491,10 +8491,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         if (ValueAt(0) > 0)
         {
-            // a split with parts at +infinity and at -infinity sums them, which is undefined
+            // curves taking both infinities are not supported, see the remarks of Curve
             if (HasPlusInfinity && HasMinusInfinity)
                 throw new UndeterminedResultException(
-                    "The super-additive closure of a curve that takes both +infinity and -infinity sums them, which is undefined.");
+                    "The super-additive closure does not support curves that take both +infinity and -infinity.");
             // the closure is +infinity at every t that splits into finitely many parts at which f is not -infinity, as parts of length 0 each add f(0) > 0;
             // if f is not -infinity right after 0, parts that short sum to every t, and if it is, the times right after 0 do not split at all
             if (GetSegmentAfter(0, autoMerge: false).IsMinusInfinite)
