@@ -7,8 +7,9 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 public enum HorizontalDeviationStrategy
 {
     /// <summary>
-    /// The largest gap between the lower pseudo-inverses, $\sup_y \left( g^{-1}_\downarrow(y) - f^{-1}_\downarrow(y) \right)$,
-    /// the height form of [TBP-SEQ-DEV] § 4.5 for sequences and § 4.6 for curves, which for curves with finite values that are not bounded above is [PS22] Lemma 25.
+    /// Computes the horizontal deviation as the supremum of the gap between the lower pseudo-inverses.
+    /// For finite-valued, unbounded curves, this is [PS22] Lemma 25.
+    /// The general sequence and curve formulations are given in [TBP-SEQ-DEV] § 4.5 and § 4.6, respectively.
     /// </summary>
     PseudoInverseGap,
 
@@ -24,9 +25,8 @@ public enum HorizontalDeviationStrategy
     CompositionDeconvolution,
 
     /// <summary>
-    /// The (max,+) deconvolution of the upper pseudo-inverses, taken at 0.
-    /// It is the height form of [PS22] Lemma 25 with the upper pseudo-inverses, [TBP-SEQ-DEV] Proposition 42.
-    /// This form does not cover sequences, so <see cref="PseudoInverseGap"/> is used instead.
+    /// Computes the horizontal deviation through the (max,+) deconvolution of the upper pseudo-inverses, evaluated at $0$ and negated, [TBP-SEQ-DEV] Proposition 50.
+    /// For sequences, <see cref="PseudoInverseGap"/> is used instead.
     /// </summary>
     PseudoInverseDeconvolution,
 }

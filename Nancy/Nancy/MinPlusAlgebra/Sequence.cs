@@ -2155,12 +2155,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         // each end reached or passed strictly where the overlap excludes it.
         var fCutStart = imageOverlap.IsLowerIncluded
             ? f.LowerPseudoInverseAt(imageOverlap.Lower)
-            : FirstTimeAbove(imageOverlap.Lower);
+            : FirstPassageAbove(imageOverlap.Lower);
         if (fCutStart.IsPlusInfinite)
             throw new InvalidOperationException("The first operand does not reach the overlap of the images.");
 
         var fCutEnd = imageOverlap.IsUpperIncluded
-            ? FirstTimeAbove(imageOverlap.Upper)
+            ? FirstPassageAbove(imageOverlap.Upper)
             : f.LowerPseudoInverseAt(imageOverlap.Upper);
         if (fCutEnd.IsPlusInfinite)
             fCutEnd = f.DefinedUntil;
@@ -2211,8 +2211,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
         return hdevT;
 
-        // the first time f is above y
-        Rational FirstTimeAbove(Rational y)
+        // The first passage above $y$ of non-decreasing $f$: its upper pseudo-inverse with $\sup\emptyset = \texttt{f.DefinedFrom}$, as in [PS22] Definition 5.
+        Rational FirstPassageAbove(Rational y)
         {
             var time = f.UpperPseudoInverseAt(y);
             return time.IsMinusInfinite ? f.DefinedFrom : time;

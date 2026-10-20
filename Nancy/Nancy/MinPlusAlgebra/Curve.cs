@@ -4158,7 +4158,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous, see [DNC18] § 3.2.1 .
-    /// It is defined for $x \ge 0$: if $f$ is negative at first, $f^{-1}_\downarrow(0)$ is the first instant it is not.
+    /// It is defined for $x \ge 0$: if $f$ is negative at first, $f^{-1}_\downarrow(0)$ is the first instant $t$ at which $f(t^+)$ is not negative.
     /// Algorithmic properties discussed in [ZNS23b].
     /// </remarks>
     public Curve LowerPseudoInverse()
@@ -4168,13 +4168,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         if (!IsNonNegative)
         {
-            // for y > 0 the inverse is that of max(f, 0), and for y = 0 it is the first instant f is not negative
-            var firstNonNegativeTime = FirstNonNegativeTime;
-            if (firstNonNegativeTime == Rational.PlusInfinity)
-                // f(t) < 0 for every t, so no t reaches any y >= 0
+            // Replacing $f$ by $\max(f, 0)$ preserves its lower pseudo-inverse for $y > 0$, but sets its value at $y = 0$ to zero.
+            // Preserve $f^{-1}_\downarrow(0)$ and restore it after computing the inverse.
+            var lpiAtZero = FirstNonNegativeTime;
+            if (lpiAtZero == Rational.PlusInfinity)
+                // If $f(t) < 0$ everywhere, its lower pseudo-inverse is $+\infty$ for every $y \ge 0$.
                 return PlusInfinite();
 
-            return Maximum(this, Zero()).LowerPseudoInverse().WithOriginAt(firstNonNegativeTime).TransientReduction();
+            return Maximum(this, Zero()).LowerPseudoInverse().WithOriginAt(lpiAtZero).TransientReduction();
         }
 
         if (IsUltimatelyConstant)
@@ -4782,56 +4783,61 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 case HorizontalDeviationStrategy.PseudoInverseGap:
                 {
-                    // the heights below f(0) are not in the image of f, but they change nothing:
-                    // f first reaches each of them at 0, and g no later than it reaches f(0), so each gap is at most the one at f(0)
                     var fLpi = f.LowerPseudoInverse();
                     var gLpi = g.LowerPseudoInverse();
+                    // The lower pseudo-inverse is finite everywhere on $[0, +\infty)$ if and only if $f$ is unbounded.
                     if (fLpi.IsFinite)
-                        // f reaches every finite height
                         return Subtraction(gLpi, fLpi, settings).SupValue(settings);
-
-                    // f is bounded, so ultimately constant, and attains its largest value: above it, its pseudo-inverse is +inf, and those heights are left out
-                    var top = f.ValueAt(f.PseudoPeriodStart);
-                    var gaps = Sequence.Subtraction(
-                        gLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings),
-                        fLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings));
-                    return gaps.SupValue();
+                    else
+                    {
+                        // Here $f$ is bounded: for $y > \max f$, $f^{-1}_\downarrow(y) = +\infty$, so the inverse gap can involve $+\infty - (+\infty)$.
+                        // The horizontal deviation is the supremum of the inverse gap over $[0, \max f]$, [TBP-SEQ-DEV] Proposition 49.
+                        // The maximum of $f$ is attained at $\texttt{PseudoPeriodStart}$, [TBP-SEQ-DEV] Lemma 45 (i).
+                        var top = f.ValueAt(f.PseudoPeriodStart);
+                        var gaps = Sequence.Subtraction(
+                            gLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings),
+                            fLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings));
+                        return gaps.SupValue();
+                    }
                 }
                 case HorizontalDeviationStrategy.PseudoInverseDeconvolution:
                 {
-                    // the upper pseudo-inverse of f is -inf below f(0), where the deconvolution is +inf though the deviation can be finite:
-                    // f(0) <= f(0+), so g reaches f(0) no later than the values right after 0, and setting f(0) = 0 does not change the deviation
-                    if (f.ValueAt(0) != 0)
-                        f = f.WithOriginAt(0);
+                    // The upper pseudo-inverse formula requires $f(0) = 0$; setting this value preserves the deviation, [TBP-SEQ-DEV] Lemma 47 (ii).
+                    f = f.WithOriginAt(0);
 
-                    // where f is 0, the delay is largest at 0, the first time g is non-negative, and the gap of the upper pseudo-inverses at the height 0 measures it from the last time f is 0 instead, so it is taken apart;
-                    // the upper pseudo-inverse of g, from the height 0, is that of max(g, 0), whose delays are those of g where f is positive
-                    var firstNonNegativeTime = g.IsNonNegative ? 0 : g.FirstNonNegativeTime;
-                    if (firstNonNegativeTime.IsPlusInfinite)
+                    // Since $f(0) = 0$, the largest horizontal deviation among times with $f(t) = 0$ occurs at $t = 0$ and equals $g^{-1}_\downarrow(0)$.
+                    var deviationWhereFIsZero = g.FirstNonNegativeTime;
+                    if (deviationWhereFIsZero.IsPlusInfinite)
                         return Rational.PlusInfinity;
 
-                    // f takes no height below its top, where the upper pseudo-inverses are compared: the deviation is the first time g is non-negative
+                    // If $f$ is identically zero, its horizontal deviation from $g$ is attained at the origin.
                     if (f.IsZero)
-                        return firstNonNegativeTime;
+                        return deviationWhereFIsZero;
 
-                    // above both tops, both upper pseudo-inverses are +inf, and the deconvolution is undefined
+                    // If both curves are bounded, their upper pseudo-inverses are both $+\infty$ above their maxima, making their difference undefined.
                     if (f.IsUltimatelyConstant && g.IsUltimatelyConstant)
                     {
                         if (g.ValueAt(g.PseudoPeriodStart) < f.ValueAt(f.PseudoPeriodStart))
-                            // g never reaches the top of f
+                            // If $\max g < \max f$, then $g$ never reaches the largest value of $f$, so the deviation is $+\infty$, [TBP-SEQ-DEV] Lemma 52 (i).
                             return Rational.PlusInfinity;
-
-                        // g reaches the top of f before both are constant, so adding the same ramp to both from then on does not change the deviation
-                        var ramp = new RateLatencyServiceCurve(1, Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart));
-                        f = Addition(f, ramp, settings);
-                        g = Addition(g, ramp, settings);
+                        else
+                        {
+                            // Adding the same ramp from the time both curves are constant makes them unbounded while preserving the deviation and $g^{-1}_\downarrow(0)$, [TBP-SEQ-DEV] Lemma 52 (ii).
+                            // This lets the transformed curves use the upper pseudo-inverse computation after this block.
+                            var ramp = new RateLatencyServiceCurve(1, Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart));
+                            f = Addition(f, ramp, settings);
+                            g = Addition(g, ramp, settings);
+                        }
                     }
 
-                    var upperGap = MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse(), settings)
+                    // The upper pseudo-inverse formula gives the supremum of the horizontal deviation over times with $f(t) > 0$, [TBP-SEQ-DEV] Proposition 50 (i).
+                    var deviationWhereFIsPositive = MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse(), settings)
                         .Negate()
                         .ToNonNegative()
                         .ValueAt(0);
-                    return Rational.Max(firstNonNegativeTime, upperGap);
+
+                    // The times with $f(t) = 0$ and $f(t) > 0$ cover the domain, so the full horizontal deviation is the maximum of their two contributions, [TBP-SEQ-DEV] Proposition 50 (ii).
+                    return Rational.Max(deviationWhereFIsZero, deviationWhereFIsPositive);
                 }
                 case HorizontalDeviationStrategy.Composition:
                 {
@@ -4874,7 +4880,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>
     /// The definition of $hDev(f, g, t)$ is based on [DNC18] Lemma 5.1.
-    /// Where the deviation is $+\infty$ over an interval, because <paramref name="f"/> takes the value $+\infty$ there or <paramref name="g"/> never reaches $f(t)$, the result is the start of the first such interval.
+    /// If the horizontal deviation is $+\infty$ over an interval, for example where $f(t) = +\infty$ and $g$ remains finite everywhere, the result is the start of the first such interval.
     /// </remarks>
     public static Rational HorizontalDeviationMeasuredAt(Curve f, Curve g, ComputationSettings? settings = null)
     {
@@ -4898,14 +4904,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     .Composition(f, settings)
                     .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
                 : HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings);
-            // where the deviation is +inf over an interval, it is reached at the start of the first one
+            // Return the start of the first interval with infinite horizontal deviation.
             var firstInfinite = hDevF.BaseSequence.Elements.FirstOrDefault(e => e.IsPlusInfinite);
             return firstInfinite is not null ? firstInfinite.StartTime : hDevF.SupArg();
         }
     }
 
     /// <summary>
-    /// Computes the horizontal deviation functions between the two curves, $hDev(f, g, t) = \inf\{ d \ge 0 \mid f(t) \le g(t+d) \}$.
+    /// Computes the horizontal deviation function between the two curves, $hDev(f, g, t) = \inf\{ d \ge 0 \mid f(t) \le g(t+d) \}$.
     /// </summary>
     /// <param name="f">Must be non-decreasing and non-negative.</param>
     /// <param name="g">Must be non-decreasing.</param>
@@ -4913,9 +4919,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>A non-negative horizontal deviation function.</returns>
     /// <remarks>
     /// <paramref name="f"/> may take the value $+\infty$: where it does, the deviation is the time <paramref name="g"/> takes after $t$ to become $+\infty$, or $+\infty$ if it never does.
-    /// Only the composition computes this function.
-    /// The gap between the lower pseudo-inverses, which <see cref="HorizontalDeviation"/> uses by default, has the same supremum, but as a function of the heights:
-    /// brought back to the times by composing with $f$, it exceeds this function on the plateaus of $f$.
+    /// This method computes the horizontal deviation function through composition.
+    /// The lower pseudo-inverse gap used by <see cref="HorizontalDeviation"/> is a function of height whose supremum equals that of this function of time, [TBP-SEQ-DEV] Proposition 49.
     /// </remarks>
     public static Curve HorizontalDeviationFunction(Curve f, Curve g, ComputationSettings? settings = null)
     {
@@ -4935,48 +4940,53 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// The horizontal deviation function for a non-negative, non-decreasing <paramref name="f"/> that becomes $+\infty$.
+    /// Computes the horizontal deviation function for non-decreasing operands, with <paramref name="f"/> non-negative and taking $+\infty$.
     /// </summary>
     /// <remarks>
-    /// A composition needs a finite inner function, so the result is computed in two parts.
-    /// Before $f$ becomes $+\infty$, it is the composition with $f$ capped at its largest finite value.
-    /// Where $f(t) = +\infty$, it is the time <paramref name="g"/> takes to become $+\infty$, or $+\infty$ if it never does.
-    /// The result is the maximum of the two.
+    /// This computation is described in [TBP-SEQ-DEV] Corollary 48.
+    /// To use composition, $f$ is capped at the supremum of its finite values.
+    /// A separate function gives the horizontal deviation wherever $f(t) = +\infty$, and is zero elsewhere.
+    /// Where $f(t) = +\infty$, the deviation is the time remaining after $t$ until $g$ becomes $+\infty$, or $+\infty$ if it never does.
+    /// The result is the pointwise maximum of this function and the horizontal deviation function computed with the capped operand.
     /// </remarks>
     private static Curve HorizontalDeviationFunctionWithInfiniteFirstOperand(Curve f, Curve g, ComputationSettings? settings)
     {
         var (fInfiniteFrom, fInfiniteAtStart) = FirstPlusInfiniteTime(f);
 
-        // where f is +inf: the time g takes to become +inf, and 0 before f is
-        Curve whereInfinite;
+        // This function gives the horizontal deviation where $f(t) = +\infty$, and is zero elsewhere.
+        // There the deviation is the time remaining after $t$ until $g$ becomes $+\infty$, or $+\infty$ if it never does.
+        Curve deviationWhereFIsInfinite;
         if (g.IsFinite)
-            whereInfinite = fInfiniteAtStart
+            deviationWhereFIsInfinite = fInfiniteAtStart
                 ? new DelayServiceCurve(fInfiniteFrom).WithRightContinuousAt(fInfiniteFrom)
                 : new DelayServiceCurve(fInfiniteFrom);
         else
         {
             var gInfiniteFrom = FirstPlusInfiniteTime(g).time;
-            whereInfinite = gInfiniteFrom > fInfiniteFrom
+            deviationWhereFIsInfinite = gInfiniteFrom > fInfiniteFrom
                 ? ZeroThenCountdownTo(fInfiniteFrom, fInfiniteAtStart, gInfiniteFrom)
                 : new ConstantCurve(0);
         }
 
+        // If $f$ is infinite everywhere, this function already gives the full horizontal deviation function.
         if (fInfiniteFrom == 0 && fInfiniteAtStart)
-            // f is +inf everywhere
-            return whereInfinite;
+            return deviationWhereFIsInfinite;
 
-        // before f becomes +inf: f capped at its largest finite value
-        var largestFiniteValue = f.Cut(0, fInfiniteFrom, isStartIncluded: true, isEndIncluded: !fInfiniteAtStart, settings).SupValue();
-        // the cap is its value from 0 on, as a constant curve is 0 at the origin
-        var capped = Minimum(f, new ConstantCurve(largestFiniteValue).ToRightContinuous(), settings);
-        var whereFinite = g.LowerPseudoInverse()
-            .Composition(capped, settings)
+        // The finite values of $f$ have a finite supremum, [TBP-SEQ-DEV] Lemma 45 (ii).
+        var finiteValueSupremum = f.Cut(0, fInfiniteFrom, isStartIncluded: true, isEndIncluded: !fInfiniteAtStart, settings).SupValue();
+
+        // The cap must also apply at $t = 0$; ConstantCurve otherwise has value zero there.
+        var cappedF = Minimum(f, new ConstantCurve(finiteValueSupremum).ToRightContinuous(), settings);
+        var deviationWithCappedF = g.LowerPseudoInverse()
+            .Composition(cappedF, settings)
             .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
             .ToNonNegative();
 
-        return Maximum(whereFinite, whereInfinite, settings);
+        return Maximum(deviationWithCappedF, deviationWhereFIsInfinite, settings);
 
-        // 0 up to time, then the time left until deadline, then 0; at time itself, the time left if isTimeIncluded
+        // Constructs a curve that is zero for $t < \texttt{time}$ and equals $\max(\texttt{deadline} - t, 0)$ for $t > \texttt{time}$.
+        // At $t = \texttt{time}$, its value is $\texttt{deadline} - \texttt{time}$ if isTimeIncluded is true, and zero otherwise.
+        // Requires finite arguments with $0 \le \texttt{time} < \texttt{deadline}$.
         static Curve ZeroThenCountdownTo(Rational time, bool isTimeIncluded, Rational deadline)
         {
             var elements = new List<Element>();
