@@ -27,6 +27,8 @@ public class HorizontalDeviationStrategies
         ["bounded, f(0) = 0"] = Curve.Minimum(new RateLatencyServiceCurve(5, 0), new ConstantCurve(5)),
         ["bounded, f(0) > 0"] = C([new Point(0, 1), new Segment(0, 1, 1, 4), new Point(1, 5), Segment.Constant(1, 2, 5)], 1, 1, 0),
         ["zero"] = Curve.Zero(),
+        ["0 up to 1, then t - 1"] = new RateLatencyServiceCurve(1, 1),
+        ["0 up to 3, then 1"] = C([Point.Origin(), Segment.Zero(0, 3), new Point(3, 0), Segment.Constant(3, 4, 1), new Point(4, 1), Segment.Constant(4, 5, 1)], 4, 1, 0),
         ["+inf after 2, f(0) = 0"] = C([Point.Origin(), new Segment(0, 2, 0, 1), new Point(2, 2), Segment.PlusInfinite(2, 3), Point.PlusInfinite(3), Segment.PlusInfinite(3, 4)], 3, 1, 0),
         ["+inf after 2, f(0) > 0"] = C([new Point(0, 1), new Segment(0, 2, 1, 1), new Point(2, 3), Segment.PlusInfinite(2, 3), Point.PlusInfinite(3), Segment.PlusInfinite(3, 4)], 3, 1, 0),
     };
@@ -68,6 +70,12 @@ public class HorizontalDeviationStrategies
         ("zero", "unbounded", 0), ("zero", "bounded at 10", 0), ("zero", "bounded at 5", 0),
         ("zero", "bounded at 3", 0), ("zero", "+inf after 3", 0), ("zero", "negative at first", 1),
         ("zero", "bounded at 10, faster", 0), ("zero", "over 0 by a jump, -1 at it", 2), ("zero", "over 0 by a jump, 1 at it", 2),
+        ("0 up to 1, then t - 1", "unbounded", 1), ("0 up to 1, then t - 1", "bounded at 10", Inf), ("0 up to 1, then t - 1", "bounded at 5", Inf),
+        ("0 up to 1, then t - 1", "bounded at 3", Inf), ("0 up to 1, then t - 1", "+inf after 3", 2), ("0 up to 1, then t - 1", "negative at first", 1),
+        ("0 up to 1, then t - 1", "bounded at 10, faster", Inf), ("0 up to 1, then t - 1", "over 0 by a jump, -1 at it", 2), ("0 up to 1, then t - 1", "over 0 by a jump, 1 at it", 2),
+        ("0 up to 3, then 1", "unbounded", 0), ("0 up to 3, then 1", "bounded at 10", 0), ("0 up to 3, then 1", "bounded at 5", 0),
+        ("0 up to 3, then 1", "bounded at 3", 0), ("0 up to 3, then 1", "+inf after 3", 0), ("0 up to 3, then 1", "negative at first", 1),
+        ("0 up to 3, then 1", "bounded at 10, faster", 0), ("0 up to 3, then 1", "over 0 by a jump, -1 at it", 2), ("0 up to 3, then 1", "over 0 by a jump, 1 at it", 2),
         ("+inf after 2, f(0) = 0", "unbounded", Inf), ("+inf after 2, f(0) = 0", "bounded at 10", Inf), ("+inf after 2, f(0) = 0", "bounded at 5", Inf),
         ("+inf after 2, f(0) = 0", "bounded at 3", Inf), ("+inf after 2, f(0) = 0", "+inf after 3", 3), ("+inf after 2, f(0) = 0", "negative at first", Inf),
         ("+inf after 2, f(0) = 0", "bounded at 10, faster", Inf), ("+inf after 2, f(0) = 0", "over 0 by a jump, -1 at it", Inf), ("+inf after 2, f(0) = 0", "over 0 by a jump, 1 at it", Inf),
@@ -95,6 +103,9 @@ public class HorizontalDeviationStrategies
         => Curve.MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse()).Negate().ToNonNegative().ValueAt(0);
 
     private static bool BothBounded(Curve f, Curve g) => f.IsUltimatelyConstant && g.IsUltimatelyConstant;
+
+    // f is 0 on an interval from 0, so that its upper pseudo-inverse at 0 is the end of that interval
+    private static bool StaysAtZero(Curve f) => f.UpperPseudoInverse().ValueAt(0) > 0;
 
     /// <summary>
     /// The lower gap alone is undefined where both curves are bounded: above both tops both lower pseudo-inverses are $+\infty$, and their gap is $+\infty - (+\infty)$.
@@ -125,9 +136,10 @@ public class HorizontalDeviationStrategies
     }
 
     /// <summary>
-    /// The upper deconvolution alone is undefined where both curves are bounded, as the lower gap;
-    /// $+\infty$ where $f(0) > 0$, as the upper pseudo-inverse of $f$ is $-\infty$ below $f(0)$, though the deviation can be finite;
-    /// and 0 for $f = 0$, which takes no height below its top, though $g$ may reach 0 only later.
+    /// Checks the uncorrected upper-pseudo-inverse deconvolution against the expected horizontal deviation.
+    /// For bounded operands it should throw; otherwise it should return $+\infty$ when $f(0) > 0$, or zero when $f = 0$.
+    /// When $f$ stays at zero after the origin and $g(0) < 0$, its result should not exceed the expected deviation.
+    /// In the remaining cases it should equal the expected deviation.
     /// </summary>
     private static void AssertUpperDeconvolutionAlone(Curve f, Curve g, Rational expected)
     {
@@ -137,6 +149,8 @@ public class HorizontalDeviationStrategies
             Assert.Equal(Inf, UpperDeconvolutionAlone(f, g));
         else if (f.IsZero)
             Assert.Equal(0, UpperDeconvolutionAlone(f, g));
+        else if (StaysAtZero(f) && g.ValueAt(0) < 0)
+            Assert.True(UpperDeconvolutionAlone(f, g) <= expected);
         else
             Assert.Equal(expected, UpperDeconvolutionAlone(f, g));
     }
@@ -178,6 +192,29 @@ public class HorizontalDeviationStrategies
     {
         Assert.False(string.IsNullOrEmpty(id));
         AssertUpperDeconvolutionAlone(f, g, expected);
+    }
+
+    /// <summary>
+    /// Provides grid pairs for which the uncorrected upper-pseudo-inverse deconvolution falls short of the horizontal deviation.
+    /// Each case includes the value of that deconvolution, computed by hand.
+    /// </summary>
+    public static IEnumerable<object[]> FallsShortData() =>
+    [
+        ["0 up to 1, then t - 1", "negative at first", new Rational(0)],
+        ["0 up to 1, then t - 1", "over 0 by a jump, -1 at it", new Rational(1)],
+        ["0 up to 1, then t - 1", "over 0 by a jump, 1 at it", new Rational(1)],
+        ["0 up to 3, then 1", "negative at first", new Rational(0)],
+        ["0 up to 3, then 1", "over 0 by a jump, -1 at it", new Rational(0)],
+        ["0 up to 3, then 1", "over 0 by a jump, 1 at it", new Rational(0)],
+    ];
+
+    [Theory]
+    [MemberData(nameof(FallsShortData))]
+    public void UpperDeconvolutionAloneFallsShortWhereFStaysAtZeroAndGStartsNegative(string fKind, string gKind, Rational alone)
+    {
+        var expected = Grid.Single(c => c.f == fKind && c.g == gKind).expected;
+        Assert.True(alone < expected);
+        Assert.Equal(alone, UpperDeconvolutionAlone(Fs[fKind], Gs[gKind]));
     }
 
     public static IEnumerable<object[]> GridUnderEveryStrategy()
