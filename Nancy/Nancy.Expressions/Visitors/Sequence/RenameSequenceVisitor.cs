@@ -41,12 +41,12 @@ public class RenameSequenceVisitor : ISequenceExpressionVisitor
             Name = NewName ?? expression.Name,
             Generation = NewGeneration ?? expression.Generation,
             // Since we know renaming does not change the result, it is safe to explicitly copy over the cache fields.
-            _value = expression._value,
-            _isLeftContinuous = expression._isLeftContinuous,
-            _isRightContinuous = expression._isRightContinuous,
-            _isNonNegative = expression._isNonNegative,
-            _isNonDecreasing = expression._isNonDecreasing,
-            _isIncreasing = expression._isIncreasing,
+            _value = Volatile.Read(ref expression._value) is { IsValueCreated: true } cache_value ? cache_value : null,
+            _isLeftContinuous = Volatile.Read(ref expression._isLeftContinuous) is { IsValueCreated: true } cache_isLeftContinuous ? cache_isLeftContinuous : null,
+            _isRightContinuous = Volatile.Read(ref expression._isRightContinuous) is { IsValueCreated: true } cache_isRightContinuous ? cache_isRightContinuous : null,
+            _isNonNegative = Volatile.Read(ref expression._isNonNegative) is { IsValueCreated: true } cache_isNonNegative ? cache_isNonNegative : null,
+            _isNonDecreasing = Volatile.Read(ref expression._isNonDecreasing) is { IsValueCreated: true } cache_isNonDecreasing ? cache_isNonDecreasing : null,
+            _isIncreasing = Volatile.Read(ref expression._isIncreasing) is { IsValueCreated: true } cache_isIncreasing ? cache_isIncreasing : null,
         };
     }
 

@@ -28,69 +28,129 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Private cache field for <see cref="Value"/>
     /// </summary>
-    internal Sequence? _value;
+    internal Lazy<Sequence>? _value;
 
     /// <inheritdoc />
-    public Sequence Value => _value ??= Compute();
+    public Sequence Value => Compute();
 
     /// <inheritdoc cref="IExpression.IsComputed"/>
     public bool IsComputed
-        => _value != null;
+        => Volatile.Read(ref _value) is { IsValueCreated: true };
 
     /// <summary>
     /// Private cache field for <see cref="IsLeftContinuous"/>.
     /// </summary>
-    internal bool? _isLeftContinuous;
+    internal Lazy<bool>? _isLeftContinuous;
 
     /// <summary>
     /// True if the sequence described by the expression is left continuous.
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
-    public bool IsLeftContinuous => _isLeftContinuous ??= Value.IsLeftContinuous;
+    public bool IsLeftContinuous
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isLeftContinuous);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Value.IsLeftContinuous, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isLeftContinuous, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsRightContinuous"/>.
     /// </summary>
-    internal bool? _isRightContinuous;
+    internal Lazy<bool>? _isRightContinuous;
 
     /// <summary>
     /// True if the sequence described by the expression is right continuous.
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
-    public bool IsRightContinuous => _isRightContinuous ??= Value.IsRightContinuous;
+    public bool IsRightContinuous
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isRightContinuous);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Value.IsRightContinuous, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isRightContinuous, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsNonNegative"/>.
     /// </summary>
-    internal bool? _isNonNegative;
+    internal Lazy<bool>? _isNonNegative;
 
     /// <summary>
     /// True if the sequence described by the expression is non-negative.
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
-    public bool IsNonNegative => _isNonNegative ??= Value.IsNonNegative;
+    public bool IsNonNegative
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonNegative);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Value.IsNonNegative, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonNegative, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>.
     /// </summary>
-    internal bool? _isNonDecreasing;
+    internal Lazy<bool>? _isNonDecreasing;
 
     /// <summary>
     /// True if the sequence described by the expression is non-decreasing.
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
-    public bool IsNonDecreasing => _isNonDecreasing ??= Value.IsNonDecreasing;
+    public bool IsNonDecreasing
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonDecreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Value.IsNonDecreasing, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonDecreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsIncreasing"/>.
     /// </summary>
-    internal bool? _isIncreasing;
+    internal Lazy<bool>? _isIncreasing;
 
     /// <summary>
     /// True if the sequence described by the expression is increasing.
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
-    public bool IsIncreasing => _isIncreasing ??= Value.IsIncreasing;
+    public bool IsIncreasing
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isIncreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Value.IsIncreasing, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isIncreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     #endregion Properties
 
@@ -133,19 +193,21 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     {
         get
         {
-            if (_value is null)
+            var cache = Volatile.Read(ref _value);
+            if (cache is not { IsValueCreated: true })
                 return true;
             var threshold = Settings?.CacheSettings?.CheapCacheElementThreshold
                 ?? new CacheSettings().CheapCacheElementThreshold;
-            return _value.Count <= threshold;
+            return cache.Value.Count <= threshold;
         }
     }
 
     /// <inheritdoc />
     void IValueCacheOwner.DropValueIfLargerThan(int threshold)
     {
-        if (_value is not null && _value.Count > threshold)
-            _value = null;
+        var cache = Volatile.Read(ref _value);
+        if (cache is { IsValueCreated: true } && cache.Value.Count > threshold)
+            Interlocked.CompareExchange(ref _value, null, cache);
     }
 
     /// <summary>
@@ -153,11 +215,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// </summary>
     private void ClearPredicates()
     {
-        _isLeftContinuous = null;
-        _isRightContinuous = null;
-        _isNonNegative = null;
-        _isNonDecreasing = null;
-        _isIncreasing = null;
+        Interlocked.Exchange(ref _isLeftContinuous, null);
+        Interlocked.Exchange(ref _isRightContinuous, null);
+        Interlocked.Exchange(ref _isNonNegative, null);
+        Interlocked.Exchange(ref _isNonDecreasing, null);
+        Interlocked.Exchange(ref _isIncreasing, null);
     }
 
     /// <summary>
@@ -171,7 +233,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
                 leaf.ResetValueCaches();
         }
         else if (force || !ValueCacheIsCheap)
-            _value = null;
+            Interlocked.Exchange(ref _value, null);
 
         if (force)
             ClearPredicates();
@@ -792,13 +854,19 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
 
     /// <inheritdoc />
     public Sequence Compute(ExpressionSettings? settings = null)
+        => (Volatile.Read(ref _value) ?? InitializeValueCache(settings)).Value;
+
+    private Lazy<Sequence> InitializeValueCache(ExpressionSettings? settings)
     {
-        if (_value is not null)
-            return _value;
-        var evaluator = new SequenceExpressionEvaluator(settings);
-        _value = evaluator.GetResult(this);
-        evaluator.ReleaseOperands(ExpressionSettings.Resolve(settings, Settings)?.CacheSettings);
-        return _value;
+        var candidate = new Lazy<Sequence>(() =>
+        {
+            var evaluator = new SequenceExpressionEvaluator(settings);
+            var value = evaluator.GetResult(this);
+            evaluator.ReleaseOperands(ExpressionSettings.Resolve(settings, Settings)?.CacheSettings);
+            return value;
+        }, LazyThreadSafetyMode.ExecutionAndPublication);
+        // Retain the selected holder: a concurrent clear may replace the field before evaluation finishes.
+        return Interlocked.CompareExchange(ref _value, candidate, null) ?? candidate;
     }
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>

@@ -34,6 +34,9 @@ public interface IGenericExpression<out TExpressionResult> : IExpression
     /// </param>
     /// <remarks>
     /// A node whose value is already cached returns it, whatever the settings, and none of its operands is visited.
+    /// The library’s expression nodes also retain a computation exception and rethrow it on later accesses until a forced cache clear.
+    /// To retry after a failure in an operand, call <see cref="IExpression.ClearValueCache"/> on the root with <see cref="CacheClearScope.Subtree"/> and <c>force: true</c>, so retained parent failures are discarded too.
+    /// Custom evaluations must not depend on their own result, directly or indirectly.
     /// </remarks>
     public TExpressionResult Compute(ExpressionSettings? settings = null);
     

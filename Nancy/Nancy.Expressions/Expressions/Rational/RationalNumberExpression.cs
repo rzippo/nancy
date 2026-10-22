@@ -18,7 +18,7 @@ public record RationalNumberExpression : RationalExpression, IExpressionLeaf
         ExpressionSettings? settings = null)
         : base(expressionName, settings)
     {
-        _value = number;
+        _value = new Lazy<Rational>(number);
     }
 
     /// <inheritdoc />

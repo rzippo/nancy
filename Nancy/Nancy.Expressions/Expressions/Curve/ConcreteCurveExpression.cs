@@ -23,7 +23,7 @@ public record ConcreteCurveExpression : CurveExpression, IExpressionLeaf
         [CallerArgumentExpression("curve")] string name = "",
         ExpressionSettings? settings = null) : base(name, settings)
     {
-        _value = curve;
+        _value = new Lazy<Curve>(curve);
     }
 
     /// <inheritdoc />

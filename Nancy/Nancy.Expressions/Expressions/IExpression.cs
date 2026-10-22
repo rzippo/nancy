@@ -92,6 +92,7 @@ public interface IExpression
     /// <param name="force">
     /// If true, discards everything a computation left behind, so that computing again repeats all of its work:
     /// every value but a leaf's, however cheap, every cached predicate, and the properties cached by the value a leaf holds.
+    /// Also discards retained computation exceptions, allowing the cleared nodes to retry.
     /// For timing a computation from a cold start.
     /// </param>
     /// <remarks>

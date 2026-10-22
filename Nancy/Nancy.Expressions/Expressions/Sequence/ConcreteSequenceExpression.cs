@@ -24,7 +24,7 @@ public record ConcreteSequenceExpression : SequenceExpression, IExpressionLeaf
         [CallerArgumentExpression("sequence")] string name = "",
         ExpressionSettings? settings = null) : base(name, settings)
     {
-        _value = sequence;
+        _value = new Lazy<Sequence>(sequence);
     }
 
     /// <inheritdoc />

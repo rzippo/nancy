@@ -28,7 +28,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     /// <summary>
     /// Private cache field for <see cref="Value"/>
     /// </summary>
-    internal Rational? _value;
+    internal Lazy<Rational>? _value;
 
     /// <summary>
     /// The class aims at providing the main methods to build, manipulate and print expressions which evaluate to rational
@@ -46,11 +46,11 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
     }
 
     /// <inheritdoc />
-    public Rational Value => _value ??= Compute();
+    public Rational Value => Compute();
     
     /// <inheritdoc cref="IExpression.IsComputed"/>
     public bool IsComputed
-        => _value != null;
+        => Volatile.Read(ref _value) is { IsValueCreated: true };
 
     /// <summary>
     /// Always <see langword="true"/>.
@@ -82,7 +82,7 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
                 leaf.ResetValueCaches();
         }
         else if (force || !ValueCacheIsCheap)
-            _value = null;
+            Interlocked.Exchange(ref _value, null);
 
         if (scope == CacheClearScope.SelfOnly)
             return;
@@ -141,14 +141,19 @@ public abstract record RationalExpression : IGenericExpression<Rational>, IVisit
 
     /// <inheritdoc />
     public Rational Compute(ExpressionSettings? settings = null)
+        => (Volatile.Read(ref _value) ?? InitializeValueCache(settings)).Value;
+
+    private Lazy<Rational> InitializeValueCache(ExpressionSettings? settings)
     {
-        if (_value is { } value)
+        var candidate = new Lazy<Rational>(() =>
+        {
+            var evaluator = new RationalExpressionEvaluator(settings);
+            var value = evaluator.GetResult(this);
+            evaluator.ReleaseOperands(ExpressionSettings.Resolve(settings, Settings)?.CacheSettings);
             return value;
-        var evaluator = new RationalExpressionEvaluator(settings);
-        value = evaluator.GetResult(this);
-        _value = value;
-        evaluator.ReleaseOperands(ExpressionSettings.Resolve(settings, Settings)?.CacheSettings);
-        return value;
+        }, LazyThreadSafetyMode.ExecutionAndPublication);
+        // Retain the selected holder: a concurrent clear may replace the field before evaluation finishes.
+        return Interlocked.CompareExchange(ref _value, candidate, null) ?? candidate;
     }
 
     /// <inheritdoc cref="IExpression.ComputeWithoutResult"/>

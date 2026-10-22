@@ -44,7 +44,7 @@ public class RenameRationalVisitor : IRationalExpressionVisitor
             Generation = NewGeneration ?? expression.Generation,
             // Since we know renaming does not change the result,
             // it is safe to explicitly copy over the cache fields
-            _value = expression._value,
+            _value = Volatile.Read(ref expression._value) is { IsValueCreated: true } cache_value ? cache_value : null,
         };
     }
 
