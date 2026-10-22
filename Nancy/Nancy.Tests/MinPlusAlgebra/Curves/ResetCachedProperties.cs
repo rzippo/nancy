@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
@@ -32,13 +33,20 @@ public class ResetCachedProperties
         c.BaseSequence.IsNonDecreasing, c.BaseSequence.IsIncreasing
     ];
 
+    private static bool? Cached(object? value) => value switch
+    {
+        Lazy<bool> { IsValueCreated: true } cache => cache.Value,
+        bool known => known,
+        _ => null
+    };
+
     private static bool?[] CachedFields(Curve c) =>
     [
-        c._hasPlusInfinity, c._hasMinusInfinity, c._isPassingThroughOrigin,
-        c._isLeftContinuous, c._isRightContinuous, c._isNonNegative,
-        c._isNonDecreasing, c._isIncreasing, c._IsSubAdditive, c._IsSuperAdditive,
-        c.BaseSequence._isLeftContinuous, c.BaseSequence._isRightContinuous,
-        c.BaseSequence._isNonDecreasing, c.BaseSequence._isIncreasing
+        Cached(c._hasPlusInfinity), Cached(c._hasMinusInfinity), Cached(c._isPassingThroughOrigin),
+        Cached(c._isLeftContinuous), Cached(c._isRightContinuous), Cached(c._isNonNegative),
+        Cached(c._isNonDecreasing), Cached(c._isIncreasing), Cached(c._IsSubAdditive), Cached(c._IsSuperAdditive),
+        Cached(c.BaseSequence._isLeftContinuous), Cached(c.BaseSequence._isRightContinuous),
+        Cached(c.BaseSequence._isNonDecreasing), Cached(c.BaseSequence._isIncreasing)
     ];
 
     [Theory]
@@ -105,6 +113,6 @@ public class ResetCachedProperties
         _ = curve.IsSubAdditive;
         curve.ResetCachedProperties();
 
-        Assert.Equal(known, curve._IsSubAdditive);
+        Assert.Equal(known, Cached(curve._IsSubAdditive));
     }
 }
