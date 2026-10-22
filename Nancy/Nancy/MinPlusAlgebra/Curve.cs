@@ -1,3 +1,4 @@
+using System.Threading;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -233,9 +234,21 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool HasPlusInfinity
-        => _hasPlusInfinity ??= BaseSequence.HasPlusInfinity;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _hasPlusInfinity);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => BaseSequence.HasPlusInfinity, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _hasPlusInfinity, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
-    internal bool? _hasPlusInfinity;
+    // Lazy publishes a complete value and serializes its computation within each holder.
+    internal Lazy<bool>? _hasPlusInfinity;
 
     /// <summary>
     /// True if the curve has $-\infty$ value for some $t$.
@@ -243,18 +256,40 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <inheritdoc cref="HasPlusInfinity" path="/remarks"/>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool HasMinusInfinity
-        => _hasMinusInfinity ??= BaseSequence.HasMinusInfinity;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _hasMinusInfinity);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => BaseSequence.HasMinusInfinity, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _hasMinusInfinity, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
-    internal bool? _hasMinusInfinity;
+    internal Lazy<bool>? _hasMinusInfinity;
 
     /// <summary>
     /// True if $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsPassingThroughOrigin
-        => _isPassingThroughOrigin ??= ValueAt(0) == 0;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isPassingThroughOrigin);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => ValueAt(0) == 0, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isPassingThroughOrigin, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
-    internal bool? _isPassingThroughOrigin;
+    internal Lazy<bool>? _isPassingThroughOrigin;
 
     /// <summary>
     /// True if there is no infinite value or discontinuity within the curve.
@@ -307,24 +342,46 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsLeftContinuous
-        => _isLeftContinuous ??= Cut(0, SecondPseudoPeriodEnd).IsLeftContinuous;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isLeftContinuous);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Cut(0, SecondPseudoPeriodEnd).IsLeftContinuous, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isLeftContinuous, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsLeftContinuous"/>
     /// </summary>
-    internal bool? _isLeftContinuous;
+    internal Lazy<bool>? _isLeftContinuous;
 
     /// <summary>
     /// True if there is no right-discontinuity within the curve.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRightContinuous
-        => _isRightContinuous ??= Cut(0, SecondPseudoPeriodEnd).IsRightContinuous;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isRightContinuous);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Cut(0, SecondPseudoPeriodEnd).IsRightContinuous, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isRightContinuous, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsRightContinuous"/>
     /// </summary>
-    internal bool? _isRightContinuous;
+    internal Lazy<bool>? _isRightContinuous;
 
     /// <summary>
     /// True if the curve is continuous at <paramref name="time"/>.
@@ -350,12 +407,23 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonNegative
-        => _isNonNegative ??= InfValue() >= 0;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonNegative);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => InfValue() >= 0, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonNegative, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsNonNegative"/>
     /// </summary>
-    internal bool? _isNonNegative;
+    internal Lazy<bool>? _isNonNegative;
 
     /// <summary>
     /// True if the curve is non-negative over the given interval, i.e. i.e. $f(t) \ge 0$ for any $t$ in the given interval.
@@ -379,7 +447,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start < 0 || start == Rational.PlusInfinity)
             throw new ArgumentException($"Invalid start: {start}");
 
-        if (_isNonNegative is true)
+        if (Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } known && known.Value)
             return true;
 
         var _end = end ?? Rational.PlusInfinity;
@@ -491,23 +559,45 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonDecreasing
-        => _isNonDecreasing ??= CutAsEnumerable(0, SecondPseudoPeriodEnd).IsNonDecreasing();
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonDecreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, SecondPseudoPeriodEnd).IsNonDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonDecreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>
     /// </summary>
-    internal bool? _isNonDecreasing;
+    internal Lazy<bool>? _isNonDecreasing;
 
     /// <summary>
     /// True if for any $t > s$, $f(t) > f(s)$.
     /// </summary>
     public bool IsIncreasing
-        => _isIncreasing ??= CutAsEnumerable(0, SecondPseudoPeriodEnd).IsIncreasing();
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isIncreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, SecondPseudoPeriodEnd).IsIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isIncreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsIncreasing"/>
     /// </summary>
-    internal bool? _isIncreasing;
+    internal Lazy<bool>? _isIncreasing;
 
     /// <summary>
     /// True if for any pair $t,s$ in the given interval, $t > s$, $f(t) \ge f(s)$.
@@ -531,7 +621,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start < 0 || start == Rational.PlusInfinity)
             throw new ArgumentException($"Invalid start: {start}");
 
-        if (_isNonDecreasing is true)
+        if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known && known.Value)
             return true;
 
         var _end = end ?? Rational.PlusInfinity;
@@ -583,7 +673,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start < 0 || start == Rational.PlusInfinity)
             throw new ArgumentException($"Invalid start: {start}");
 
-        if (_isLeftContinuous is true)
+        if (Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } known && known.Value)
             return true;
 
         var _end = end ?? Rational.PlusInfinity;
@@ -634,7 +724,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start < 0 || start == Rational.PlusInfinity)
             throw new ArgumentException($"Invalid start: {start}");
 
-        if (_isRightContinuous is true)
+        if (Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } known && known.Value)
             return true;
 
         var _end = end ?? Rational.PlusInfinity;
@@ -764,7 +854,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         get
         {
-            return _IsSubAdditive ??= CheckIsSubAdditive();
+            var cache = Volatile.Read(ref _IsSubAdditive);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => CheckIsSubAdditive(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _IsSubAdditive, candidate, null) ?? candidate;
+            }
+            return cache.Value;
 
             bool CheckIsSubAdditive()
             {
@@ -788,7 +884,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Private cache field for IsSubAdditive.
     /// </summary>
-    internal bool? _IsSubAdditive;
+    internal Lazy<bool>? _IsSubAdditive;
 
     /// <summary>
     /// True if the curve is subadditive with $f(0) = 0$.
@@ -812,7 +908,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         get
         {
-            return _IsSuperAdditive ??= CheckIsSuperAdditive();
+            var cache = Volatile.Read(ref _IsSuperAdditive);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => CheckIsSuperAdditive(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _IsSuperAdditive, candidate, null) ?? candidate;
+            }
+            return cache.Value;
 
             bool CheckIsSuperAdditive()
             {
@@ -838,7 +940,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Private cache field for IsSuperAdditive.
     /// </summary>
-    internal bool? _IsSuperAdditive;
+    internal Lazy<bool>? _IsSuperAdditive;
 
     /// <summary>
     /// True if the curve is super-additive with $f(0) = 0$.
@@ -974,23 +1076,23 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Forgets every property this curve has cached, and those cached by its <see cref="BaseSequence"/>, so that each is computed again when next asked for.
     /// </summary>
     /// <remarks>
-    /// No result changes, only the work that produced the cached answers is lost.
-    /// This is for measuring that work, for instance timing an operation from a cold start on a curve already used.
+    /// Clears retained exceptions from property computations so they can be retried.
+    /// It also allows the cost of computing cached properties to be measured again.
     /// A property the curve knows from how it was constructed is kept, being part of the curve rather than work done on it.
     /// <see cref="BaseSequence"/> is shared with the curves copied from this one, which lose its cached properties too.
     /// </remarks>
     public virtual void ResetCachedProperties()
     {
-        _hasPlusInfinity = null;
-        _hasMinusInfinity = null;
-        _isPassingThroughOrigin = null;
-        _isLeftContinuous = null;
-        _isRightContinuous = null;
-        _isNonNegative = null;
-        _isNonDecreasing = null;
-        _isIncreasing = null;
-        _IsSubAdditive = null;
-        _IsSuperAdditive = null;
+        Interlocked.Exchange(ref _hasPlusInfinity, null);
+        Interlocked.Exchange(ref _hasMinusInfinity, null);
+        Interlocked.Exchange(ref _isPassingThroughOrigin, null);
+        Interlocked.Exchange(ref _isLeftContinuous, null);
+        Interlocked.Exchange(ref _isRightContinuous, null);
+        Interlocked.Exchange(ref _isNonNegative, null);
+        Interlocked.Exchange(ref _isNonDecreasing, null);
+        Interlocked.Exchange(ref _isIncreasing, null);
+        Interlocked.Exchange(ref _IsSubAdditive, null);
+        Interlocked.Exchange(ref _IsSuperAdditive, null);
         BaseSequence.ResetCachedProperties();
     }
 
@@ -2700,12 +2802,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
 
-        if(_isNonDecreasing is not null)
-            result._isNonDecreasing = _isNonDecreasing;
-        if(_isLeftContinuous is not null)
-            result._isLeftContinuous = _isLeftContinuous;
-        if(_isRightContinuous is not null)
-            result._isRightContinuous = _isRightContinuous;
+        if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known_isNonDecreasing)
+            result._isNonDecreasing = known_isNonDecreasing;
+        if (Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } known_isLeftContinuous)
+            result._isLeftContinuous = known_isLeftContinuous;
+        if (Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } known_isRightContinuous)
+            result._isRightContinuous = known_isRightContinuous;
 
         return result;
     }

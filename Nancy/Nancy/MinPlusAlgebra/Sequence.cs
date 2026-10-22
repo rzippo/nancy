@@ -1,3 +1,4 @@
+using System.Threading;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -212,24 +213,47 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsLeftContinuous
-        => _isLeftContinuous ??= Elements.IsLeftContinuous();
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isLeftContinuous);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsLeftContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isLeftContinuous, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsLeftContinuous"/>
     /// </summary>
-    internal bool? _isLeftContinuous;
+    // Lazy publishes a complete value and serializes its computation within each holder.
+    internal Lazy<bool>? _isLeftContinuous;
 
     /// <summary>
     /// True if there is no right-discontinuity within the sequence.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRightContinuous
-        => _isRightContinuous ??= Elements.IsRightContinuous();
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isRightContinuous);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsRightContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isRightContinuous, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsRightContinuous"/>
     /// </summary>
-    internal bool? _isRightContinuous;
+    internal Lazy<bool>? _isRightContinuous;
 
     /// <summary>
     /// True if the sequence is continuous at <paramref name="time"/>.
@@ -291,24 +315,46 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonDecreasing
-        => _isNonDecreasing ??= Elements.IsNonDecreasing();
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonDecreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsNonDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonDecreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>
     /// </summary>
-    internal bool? _isNonDecreasing;
+    internal Lazy<bool>? _isNonDecreasing;
 
     /// <summary>
     /// True if for any $t > s$, $f(t) > f(s)$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsIncreasing
-        => _isIncreasing ??= Elements.IsIncreasing();
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isIncreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isIncreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
     /// <summary>
     /// Private cache field for <see cref="IsIncreasing"/>
     /// </summary>
-    internal bool? _isIncreasing;
+    internal Lazy<bool>? _isIncreasing;
 
     /// <summary>
     /// True if <see cref="DefinedFrom"/> is exclusive.
@@ -462,15 +508,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Forgets every property this sequence has cached, so that each is computed again when next asked for.
     /// </summary>
     /// <remarks>
-    /// No result changes, only the work that produced the cached answers is lost.
-    /// This is for measuring that work, for instance timing an operation from a cold start on a sequence already used.
+    /// Clears retained exceptions from property computations so they can be retried.
+    /// It also allows the cost of computing cached properties to be measured again.
     /// </remarks>
     public void ResetCachedProperties()
     {
-        _isLeftContinuous = null;
-        _isRightContinuous = null;
-        _isNonDecreasing = null;
-        _isIncreasing = null;
+        Interlocked.Exchange(ref _isLeftContinuous, null);
+        Interlocked.Exchange(ref _isRightContinuous, null);
+        Interlocked.Exchange(ref _isNonDecreasing, null);
+        Interlocked.Exchange(ref _isIncreasing, null);
     }
 
     #endregion

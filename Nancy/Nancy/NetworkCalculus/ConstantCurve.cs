@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
@@ -51,7 +53,7 @@ public class ConstantCurve : Curve
     {
         // sub-additivity fails only for a finite negative value: at $-\infty$, $f(t+s)$ and $f(t) + f(s)$ are both $-\infty$
         if (!(Value.IsFinite && Value.IsNegative))
-            _IsSubAdditive = true;
+            Interlocked.Exchange(ref _IsSubAdditive, new Lazy<bool>(value: true));
     }
 
     /// <inheritdoc />
