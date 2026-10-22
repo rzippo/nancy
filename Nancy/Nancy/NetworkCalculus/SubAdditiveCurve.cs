@@ -656,7 +656,7 @@ public class SubAdditiveCurve : Curve
                     lower = curve;
                     higher = this;
                 }
-                else if (this.Match(minimum.PseudoPeriodicSequence))
+                else if (this.Match(minimum.PseudoPeriodicSequence, settings: settings))
                 {
                     lower = this;
                     higher = curve;
@@ -706,7 +706,7 @@ public class SubAdditiveCurve : Curve
         logger.Debug($"SpecializedEstimateConvolution: extending from T_min {minimum.PseudoPeriodStart} d_min {minimum.PseudoPeriodLength} to T {T} d {d}");
         #endif
 
-        var minimumCut = minimum.Cut(0, T + d);
+        var minimumCut = minimum.Cut(0, T + d, settings: settings);
 
         var cutEnd = T + d;
 
@@ -716,9 +716,9 @@ public class SubAdditiveCurve : Curve
         var colors = minimumCut.Elements
             .Select(element =>
             {
-                if(a.Match(element))
+                if(a.Match(element, settings: settings))
                     return Color.A;
-                else if (b.Match(element))
+                else if (b.Match(element, settings: settings))
                     return Color.B;
                 else
                     return Color.Both;

@@ -2526,7 +2526,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 .ToList();
         }
 
-        return lowerElements.Merge();
+        return lowerElements.Merge(settings: settings);
     }
 
     #endregion Minimum operator
@@ -2604,7 +2604,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 .ToList();
         }
 
-        return upperElements.Merge();
+        return upperElements.Merge(settings: settings);
     }
 
     #endregion Maximum operator
@@ -2733,7 +2733,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                             f.DefinedFrom + g.DefinedFrom,
                             ta_f_prime + ta_g_prime
                         );
-                        inverse = Sequence.Minimum(ext, inverse_raw, false);
+                        inverse = Sequence.Minimum(ext, inverse_raw, false, settings: settings);
                     }
 
                     if (cutCeiling == Rational.PlusInfinity)
@@ -3379,13 +3379,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                             }
                         }
 
-                        var upperEnvelope = missingElements.UpperEnvelope();
+                        var upperEnvelope = missingElements.UpperEnvelope(settings: settings);
                         var ext = upperEnvelope.ToSequence(
                             fillFrom: upperEnvelope.First().StartTime, 
                             fillTo: upperEnvelope.Last().EndTime, 
                             fillWith: Rational.MinusInfinity
                         );
-                        inverse = Sequence.Maximum(ext, inverse_raw, false);
+                        inverse = Sequence.Maximum(ext, inverse_raw, false, settings: settings);
                     }
 
                     if (cutCeiling == Rational.PlusInfinity)

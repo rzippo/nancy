@@ -1566,9 +1566,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return (true, a, b);
 
         var minimum = Minimum(a, b, settings);
-        if (Equivalent(a, minimum))
+        if (Equivalent(a, minimum, settings: settings))
             return (true, a, b);
-        else if (Equivalent(b, minimum))
+        else if (Equivalent(b, minimum, settings: settings))
             return (true, b, a);
         else
             return (false, a, b);
@@ -1586,10 +1586,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return (true, b, a);
         else
         {
-            var minimum = Minimum(a, b);
-            if (a.Match(minimum.PseudoPeriodicSequence))
+            var minimum = Minimum(a, b, settings: settings);
+            if (a.Match(minimum.PseudoPeriodicSequence, settings: settings))
                 return (true, a, b);
-            else if (b.Match(minimum.PseudoPeriodicSequence))
+            else if (b.Match(minimum.PseudoPeriodicSequence, settings: settings))
                 return (true, b, a);
             else
                 return (false, a, b);
@@ -1989,8 +1989,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         foreach (var t in times)
         {
-            var aValue = a.ValueAt(t);
-            var bValue = b.ValueAt(t);
+            var aValue = a.ValueAt(t, settings: settings);
+            var bValue = b.ValueAt(t, settings: settings);
             if (aValue.IsFinite && bValue.IsFinite)
                 Include(aValue - bValue);
         }
@@ -2209,7 +2209,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         if (lo == hi)
         {
-            if (isStartInclusive && isEndInclusive && a.ValueAt(lo) == b.ValueAt(lo))
+            if (isStartInclusive && isEndInclusive && a.ValueAt(lo, settings: settings) == b.ValueAt(lo, settings: settings))
                 yield return new Interval(lo, hi, isLowerIncluded: true, isUpperIncluded: true);
 
             yield break;
@@ -2246,7 +2246,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             SignSpan? previous = null;
             foreach (var span in EnumerateSignSpansOver(a, b, lo, hi, settings))
             {
-                if (a.ValueAt(span.Start) == b.ValueAt(span.Start))
+                if (a.ValueAt(span.Start, settings: settings) == b.ValueAt(span.Start, settings: settings))
                     yield return new Interval(span.Start, span.Start, isLowerIncluded: true, isUpperIncluded: true);
 
                 // equality over the whole of the interval, or at the one meeting inside it
@@ -2259,7 +2259,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
 
             // the last span's End is the one breakpoint no span starts at
-            if (previous is { } last && a.ValueAt(last.End) == b.ValueAt(last.End))
+            if (previous is { } last && a.ValueAt(last.End, settings: settings) == b.ValueAt(last.End, settings: settings))
                 yield return new Interval(last.End, last.End, isLowerIncluded: true, isUpperIncluded: true);
         }
 
@@ -2323,7 +2323,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 var leftSignAlone = lo > 0 ? LeftSignOutside(a, b, lo) : 0;
                 var rightSignAlone = RightSignOutside(a, b, lo);
                 if (leftSignAlone != 0 && rightSignAlone != 0 && leftSignAlone != rightSignAlone)
-                    yield return new CurveCrossing(lo, IsUpward: leftSignAlone < 0, IsContact: a.ValueAt(lo) == b.ValueAt(lo));
+                    yield return new CurveCrossing(lo, IsUpward: leftSignAlone < 0, IsContact: a.ValueAt(lo, settings: settings) == b.ValueAt(lo, settings: settings));
             }
 
             yield break;
@@ -2355,7 +2355,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         CurveCrossing? CrossingAt(Rational t, int before, int after)
             => before != 0 && after != 0 && before != after && InWindow(t)
-                ? new CurveCrossing(t, IsUpward: before < 0, IsContact: a.ValueAt(t) == b.ValueAt(t))
+                ? new CurveCrossing(t, IsUpward: before < 0, IsContact: a.ValueAt(t, settings: settings) == b.ValueAt(t, settings: settings))
                 : null;
 
         bool InWindow(Rational t)
@@ -3466,12 +3466,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             // -inf + inf is undefined, so any -inf value throws, except at an excepted origin
             var elements = exceptOrigin && PseudoPeriodStart == 0
-                ? Cut(0, SecondPseudoPeriodEnd).Elements
+                ? Cut(0, SecondPseudoPeriodEnd, settings: settings).Elements
                 : BaseSequence.Elements;
             if (elements.Any(e => e.IsMinusInfinite && !(exceptOrigin && e is Point p && p.Time == 0)))
                 throw new UndeterminedResultException("Cannot sum opposite infinities");
 
-            return exceptOrigin ? PlusInfinite().WithOriginAt(ValueAt(0)) : PlusInfinite();
+            return exceptOrigin ? PlusInfinite().WithOriginAt(ValueAt(0, settings: settings)) : PlusInfinite();
         }
 
         if (exceptOrigin && IsZero)
@@ -3481,7 +3481,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             // must skip first period
             return new Curve(
-                baseSequence: Cut(0, SecondPseudoPeriodEnd)
+                baseSequence: Cut(0, SecondPseudoPeriodEnd, settings: settings)
                     .VerticalShift(shift, exceptOrigin),
                 pseudoPeriodStart: FirstPseudoPeriodEnd,
                 pseudoPeriodLength: PseudoPeriodLength,
@@ -3561,7 +3561,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (HasTransient)
         {
             // all elements in [0, T]
-            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true);
+            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true, settings: settings);
             foreach (var (left, center, right) in transient.EnumerateBreakpoints())
             {
                 if (
@@ -3580,7 +3580,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if(PseudoPeriodSlope > 0)
         {
             foreach (var (left, center, right) in
-                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings).EnumerateBreakpoints())
             {
                 if (
                     left is not null && left.LeftLimitAtEndTime > center.Value ||
@@ -3597,7 +3597,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         else
         {
             foreach (var (left, center, right) in
-                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings).EnumerateBreakpoints())
             {
                 if (
                     left is not null && left.LeftLimitAtEndTime > center.Value ||
@@ -3612,7 +3612,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
         }
 
-        return Maximum(curves);
+        return Maximum(curves, settings: settings);
 
         // the values the closure is bounded from below by at a breakpoint and after it:
         // the right limit is approached only after the breakpoint, so it does not bound the value at the breakpoint itself
@@ -3720,7 +3720,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (HasTransient)
         {
             // all elements in [0, T]
-            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true);
+            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true, settings: settings);
             foreach (var (left, center, right) in transient.EnumerateBreakpoints())
             {
                 if (
@@ -3739,7 +3739,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         // a bound of this closure applies before its breakpoint,
         // so the bounds of the periodic part must repeat with it: with a slope of 0 they repeat unchanged, and are still needed
         foreach (var (left, center, right) in
-                 Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+                 Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings).EnumerateBreakpoints())
         {
             if (
                 left is not null && left.LeftLimitAtEndTime > center.Value ||
@@ -3753,7 +3753,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
         }
 
-        return Minimum(curves);
+        return Minimum(curves, settings: settings);
 
         // the values the closure is bounded from above by before a breakpoint and at it:
         // the left limit is approached only before the breakpoint, so it does not bound the value at the breakpoint itself
@@ -3857,7 +3857,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (HasTransient)
         {
             // all elements in [0, T]
-            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true);
+            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true, settings: settings);
             foreach (var (left, center, right) in transient.EnumerateBreakpoints())
             {
                 if (
@@ -3876,7 +3876,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if(PseudoPeriodSlope < 0)
         {
             foreach (var (left, center, right) in
-                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings).EnumerateBreakpoints())
             {
                 if (
                     left is not null && left.LeftLimitAtEndTime < center.Value ||
@@ -3893,7 +3893,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         else
         {
             foreach (var (left, center, right) in
-                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+                     Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings).EnumerateBreakpoints())
             {
                 if (
                     left is not null && left.LeftLimitAtEndTime < center.Value ||
@@ -3908,7 +3908,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
         }
 
-        return Minimum(curves);
+        return Minimum(curves, settings: settings);
 
         // the values the closure is bounded from below by at a breakpoint and after it:
         // the right limit is approached only after the breakpoint, so it does not bound the value at the breakpoint itself
@@ -4017,7 +4017,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (HasTransient)
         {
             // all elements in [0, T]
-            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true);
+            var transient = CutAsEnumerable(0, PseudoPeriodStart, isEndIncluded: true, settings: settings);
             foreach (var (left, center, right) in transient.EnumerateBreakpoints())
             {
                 if (
@@ -4036,7 +4036,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         // a bound of this closure applies after its breakpoint,
         // so the bounds of the periodic part must repeat with it: with a slope of 0 they repeat unchanged, and are still needed
         foreach (var (left, center, right) in
-                 Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true).EnumerateBreakpoints())
+                 Cut(PseudoPeriodStart, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings).EnumerateBreakpoints())
         {
             if (
                 left is not null && left.LeftLimitAtEndTime < center.Value ||
@@ -4050,7 +4050,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
         }
 
-        return Maximum(curves);
+        return Maximum(curves, settings: settings);
 
         // the values the closure is bounded from above by before a breakpoint and at it:
         // the left limit is approached only before the breakpoint, so it does not bound the value at the breakpoint itself
@@ -4895,7 +4895,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         // Here $f$ is bounded: for $y > \max f$, $f^{-1}_\downarrow(y) = +\infty$, so the inverse gap can involve $+\infty - (+\infty)$.
                         // The horizontal deviation is the supremum of the inverse gap over $[0, \max f]$, [TBP-SEQ-DEV] Proposition 49.
                         // The maximum of $f$ is attained at $\texttt{PseudoPeriodStart}$, [TBP-SEQ-DEV] Lemma 45 (i).
-                        var top = f.ValueAt(f.PseudoPeriodStart);
+                        var top = f.ValueAt(f.PseudoPeriodStart, settings: settings);
                         var gaps = Sequence.Subtraction(
                             gLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings),
                             fLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings));
@@ -4919,7 +4919,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     // If both curves are bounded, their upper pseudo-inverses are both $+\infty$ above their maxima, making their difference undefined.
                     if (f.IsUltimatelyConstant && g.IsUltimatelyConstant)
                     {
-                        if (g.ValueAt(g.PseudoPeriodStart) < f.ValueAt(f.PseudoPeriodStart))
+                        if (g.ValueAt(g.PseudoPeriodStart, settings: settings) < f.ValueAt(f.PseudoPeriodStart, settings: settings))
                             // If $\max g < \max f$, then $g$ never reaches the largest value of $f$, so the deviation is $+\infty$, [TBP-SEQ-DEV] Lemma 52 (i).
                             return Rational.PlusInfinity;
                         else
@@ -4936,7 +4936,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     var deviationWhereFIsPositive = MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse(), settings)
                         .Negate()
                         .ToNonNegative()
-                        .ValueAt(0);
+                        .ValueAt(0, settings: settings);
 
                     // The times with $f(t) = 0$ and $f(t) > 0$ cover the domain, so the full horizontal deviation is the maximum of their two contributions, [TBP-SEQ-DEV] Proposition 50 (ii).
                     return Rational.Max(deviationWhereFIsZero, deviationWhereFIsPositive);
@@ -4945,25 +4945,25 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 {
                     // a composition needs a finite inner function
                     if (!f.IsFinite)
-                        return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings).SupValue();
+                        return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings).SupValue(settings: settings);
 
                     // [DNC18] Lemma 5.2
                     return g.LowerPseudoInverse()
                         .Composition(f, settings)
                         .Subtraction(new RateLatencyServiceCurve(1, 0), settings)
-                        .SupValue();
+                        .SupValue(settings: settings);
                 }
                 case HorizontalDeviationStrategy.CompositionDeconvolution:
                 {
                     // a composition needs a finite inner function
                     if (!f.IsFinite)
-                        return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings).SupValue();
+                        return HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings).SupValue(settings: settings);
 
                     // [DNC18] Proposition 5.14
                     return g.LowerPseudoInverse()
                         .Composition(f, settings)
                         .Deconvolution(new RateLatencyServiceCurve(1, 0), settings)
-                        .ValueAt(0);
+                        .ValueAt(0, settings: settings);
                 }
 
                 default:
@@ -5008,7 +5008,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 : HorizontalDeviationFunctionWithInfiniteFirstOperand(f, g, settings);
             // Return the start of the first interval with infinite horizontal deviation.
             var firstInfinite = hDevF.BaseSequence.Elements.FirstOrDefault(e => e.IsPlusInfinite);
-            return firstInfinite is not null ? firstInfinite.StartTime : hDevF.SupArg();
+            return firstInfinite is not null ? firstInfinite.StartTime : hDevF.SupArg(settings: settings);
         }
     }
 
@@ -6643,8 +6643,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public Curve Minimum(Sequence s, ComputationSettings? settings = null)
     {
         var periodStart = s.DefinedUntil < PseudoPeriodStart ? PseudoPeriodStart : s.DefinedUntil + PseudoPeriodLength;
-        var cut = Cut(0, periodStart + PseudoPeriodLength);
-        var minS = Sequence.Minimum(cut, s, false);
+        var cut = Cut(0, periodStart + PseudoPeriodLength, settings: settings);
+        var minS = Sequence.Minimum(cut, s, false, settings: settings);
 
         var result = new Curve(
             baseSequence: minS,
@@ -6692,8 +6692,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public Curve Maximum(Sequence s, ComputationSettings? settings = null)
     {
         var periodStart = s.DefinedUntil < PseudoPeriodStart ? PseudoPeriodStart : s.DefinedUntil + PseudoPeriodLength;
-        var cut = Cut(0, periodStart + PseudoPeriodLength);
-        var maxS = Sequence.Maximum(cut, s, false);
+        var cut = Cut(0, periodStart + PseudoPeriodLength, settings: settings);
+        var maxS = Sequence.Maximum(cut, s, false, settings: settings);
 
         var result = new Curve(
             baseSequence: maxS,
@@ -6759,18 +6759,18 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (settings.UseOriginConvolutionShortcut)
         {
             if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-                return g.VerticalShift(f.ValueAt(0), false, settings);
+                return g.VerticalShift(f.ValueAt(0, settings: settings), false, settings);
             if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-                return f.VerticalShift(g.ValueAt(0), false, settings);
+                return f.VerticalShift(g.ValueAt(0, settings: settings), false, settings);
         }
 
         // Shortcut: $0 \otimes f$, for a non-decreasing f, is constant $f(0)$
         if (settings.UseZeroConvolutionShortcut && (f.IsZero || g.IsZero))
         {
             if (f.IsZero && g.IsNonDecreasing)
-                return f.VerticalShift(g.ValueAt(0), false, settings);
+                return f.VerticalShift(g.ValueAt(0, settings: settings), false, settings);
             if (g.IsZero && f.IsNonDecreasing)
-                return g.VerticalShift(f.ValueAt(0), false, settings);
+                return g.VerticalShift(f.ValueAt(0, settings: settings), false, settings);
         }
 
         #if DO_LOG
@@ -6865,7 +6865,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 // Vertical filtering optimization, discussed in [ZNS23a]
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
-                cutCeiling = f.ValueAt(f.PseudoPeriodStart) + g.ValueAt(g.PseudoPeriodStart) + 2 * lcm_c;
+                cutCeiling = f.ValueAt(f.PseudoPeriodStart, settings: settings) + g.ValueAt(g.PseudoPeriodStart, settings: settings) + 2 * lcm_c;
             }
             else
             {
@@ -6919,7 +6919,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
             return new Curve(
                 baseSequence: head
-                    .CutAsEnumerable(0, time, isEndIncluded: !isValueInfinite)
+                    .CutAsEnumerable(0, time, isEndIncluded: !isValueInfinite, settings: settings)
                     .Fill(0, periodStart + 1, fillWith: Rational.MinusInfinity)
                     .ToSequence(),
                 pseudoPeriodStart: periodStart,
@@ -6940,7 +6940,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
                 return new Curve(
                     baseSequence: curve
-                        .CutAsEnumerable(0, from, isEndIncluded: !isInfiniteThere)
+                        .CutAsEnumerable(0, from, isEndIncluded: !isInfiniteThere, settings: settings)
                         .Fill(0, from + 1, fillWith: 0)
                         .ToSequence(),
                     pseudoPeriodStart: from,
@@ -7113,7 +7113,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 logger.Trace("Convolution: periodic x periodic isom.");
                 #endif
                 var cutEnd = tf + tg + lcm_d + d;
-                var cutCeiling = f.ValueAt(tf) + g.ValueAt(tg) + 2 * lcm_c;
+                var cutCeiling = f.ValueAt(tf, settings: settings) + g.ValueAt(tg, settings: settings) + 2 * lcm_c;
                 var sequence = Sequence.Convolution(fCut, gCut, settings, cutEnd, cutCeiling, useIsomorphism: true);
 
                 var resultEnd = sequence.Elements.Last(e => e.IsFinite).EndTime;
@@ -7268,11 +7268,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw new ArgumentException("Time must be non-negative and finite.");
 
         var h = Convolution(f, g, settings);
-        var h_t = h.ValueAt(time);
+        var h_t = h.ValueAt(time, settings: settings);
 
         // for simplicity, just take everything
-        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true);
-        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true);
+        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true, settings: settings);
+        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true, settings: settings);
 
         var convolutionPairs = fCut.SelectMany(e_f =>
                 gCut.Select(e_g => (e_f, e_g))
@@ -7428,7 +7428,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             )
             {
                 var lcm_c = Rational.LeastCommonMultiple(f.PseudoPeriodHeight, g.PseudoPeriodHeight);
-                cutCeiling = f.ValueAt(f.PseudoPeriodStart) + g.ValueAt(g.PseudoPeriodStart) + 2 * lcm_c;
+                cutCeiling = f.ValueAt(f.PseudoPeriodStart, settings: settings) + g.ValueAt(g.PseudoPeriodStart, settings: settings) + 2 * lcm_c;
             }
             else
             {
@@ -7469,7 +7469,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             Rational c = periodicCurve.PseudoPeriodHeight;
 
             var transientSequence = new Sequence(transientCurve.TransientElements);
-            var periodicSequence = periodicCurve.Cut(periodicCurve.PseudoPeriodStart, T + d);
+            var periodicSequence = periodicCurve.Cut(periodicCurve.PseudoPeriodStart, T + d, settings: settings);
 
             #if DO_LOG
             logger.Trace("Estimate convolution: transient x periodic");
@@ -7561,7 +7561,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 logger.Trace("Estimate convolution: periodic x periodic isom.");
                 #endif
                 var cutEnd = tf + tg + lcm_d + d;
-                var cutCeiling = f.ValueAt(tf) + g.ValueAt(tg) + 2 * lcm_c;
+                var cutCeiling = f.ValueAt(tf, settings: settings) + g.ValueAt(tg, settings: settings) + 2 * lcm_c;
                 var result = Sequence.EstimateConvolution(fCut, gCut, settings, cutEnd, cutCeiling, countElements: countElements);
 
                 return result;
@@ -7703,7 +7703,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         // $f \oslash \delta_T = f(t + T)$, for a non-decreasing $f$ with $f(0) = 0$, see [DNC18] Proposition 3.2
         if (settings.UseDelayDeconvolutionShortcut && g is DelayServiceCurve delay &&
-            f.IsNonDecreasing && f.ValueAt(0) == 0)
+            f.IsNonDecreasing && f.ValueAt(0, settings: settings) == 0)
             return f.ForwardBy(delay.Delay);
 
         Rational T = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart) + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
@@ -7786,7 +7786,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #if DO_LOG
         logger.Debug($"Computing closure of {TransientElements.Count()} transient and {PseudoPeriodicElements.Count()} pseudo-periodic elements.");
         #endif
-        if (ValueAt(0) < 0)
+        if (ValueAt(0, settings: settings) < 0)
             throw new InvalidOperationException(
                 "This method cannot compute the subadditive closure of curves with f(0) < 0. See GeneralSubAdditiveClosure instead.");
 
@@ -7842,7 +7842,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     public Curve GeneralSubAdditiveClosure(ComputationSettings? settings = null)
     {
-        if (ValueAt(0) < 0)
+        if (ValueAt(0, settings: settings) < 0)
         {
             // curves taking both infinities are not supported, see the remarks of Curve
             if (HasPlusInfinity && HasMinusInfinity)
@@ -7908,9 +7908,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (settings.UseOriginConvolutionShortcut)
         {
             if (f.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-                return g.VerticalShift(f.ValueAt(0), false, settings);
+                return g.VerticalShift(f.ValueAt(0, settings: settings), false, settings);
             if (g.FirstFiniteTimeExceptOrigin == Rational.PlusInfinity)
-                return f.VerticalShift(g.ValueAt(0), false, settings);
+                return f.VerticalShift(g.ValueAt(0, settings: settings), false, settings);
         }
 
         #if DO_LOG
@@ -8012,14 +8012,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 #else
                 // more efficient expression
                 var tstar_f = f
-                    .Cut(f.PseudoPeriodStart, f.FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .Cut(f.PseudoPeriodStart, f.FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings)
                     .LastPlateauStart;
                 var tstar_g = g
-                    .Cut(g.PseudoPeriodStart, g.FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .Cut(g.PseudoPeriodStart, g.FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings)
                     .LastPlateauStart;
                 #endif
-                var T_f_lpi = tstar_f < f.FirstPseudoPeriodEnd ? f.ValueAt(f.FirstPseudoPeriodEnd) : f.ValueAt(f.PseudoPeriodStart);
-                var T_g_lpi = tstar_g < g.FirstPseudoPeriodEnd ? g.ValueAt(g.FirstPseudoPeriodEnd) : g.ValueAt(g.PseudoPeriodStart);
+                var T_f_lpi = tstar_f < f.FirstPseudoPeriodEnd ? f.ValueAt(f.FirstPseudoPeriodEnd, settings: settings) : f.ValueAt(f.PseudoPeriodStart, settings: settings);
+                var T_g_lpi = tstar_g < g.FirstPseudoPeriodEnd ? g.ValueAt(g.FirstPseudoPeriodEnd, settings: settings) : g.ValueAt(g.PseudoPeriodStart, settings: settings);
                 cutCeiling = T_f_lpi + T_g_lpi + 2 * lcm_c;
             }
             else
@@ -8078,7 +8078,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
             return new Curve(
                 baseSequence: head
-                    .CutAsEnumerable(0, time, isEndIncluded: !isValueInfinite)
+                    .CutAsEnumerable(0, time, isEndIncluded: !isValueInfinite, settings: settings)
                     .Fill(0, periodStart + 1, fillWith: Rational.PlusInfinity)
                     .ToSequence(),
                 pseudoPeriodStart: periodStart,
@@ -8099,7 +8099,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
                 return new Curve(
                     baseSequence: curve
-                        .CutAsEnumerable(0, from, isEndIncluded: !isInfiniteThere)
+                        .CutAsEnumerable(0, from, isEndIncluded: !isInfiniteThere, settings: settings)
                         .Fill(0, from + 1, fillWith: 0)
                         .ToSequence(),
                     pseudoPeriodStart: from,
@@ -8244,10 +8244,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 #else
                 // more efficient expression
                 var tstar_f = f
-                    .Cut(f.PseudoPeriodStart, f.FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .Cut(f.PseudoPeriodStart, f.FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings)
                     .LastPlateauStart;
                 var tstar_g = g
-                    .Cut(g.PseudoPeriodStart, g.FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .Cut(g.PseudoPeriodStart, g.FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings)
                     .LastPlateauStart;
                 #endif
 
@@ -8257,7 +8257,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     // If [ZNS26] Lemma 21 does not apply, workaround according to [ZNS26] Remark 39,
                     // i.e. use T_f** as the pseudo-period start instead of T_f
                     var fpstarCut = f
-                        .CutAsEnumerable(f.PseudoPeriodStart, tstar_f + f.PseudoPeriodLength)
+                        .CutAsEnumerable(f.PseudoPeriodStart, tstar_f + f.PseudoPeriodLength, settings: settings)
                         .Fill(0, f.PseudoPeriodStart, fillWith: Rational.MinusInfinity)
                         .ToSequence();
                     var fpstar = new Curve(
@@ -8268,7 +8268,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     );
 
                     var gpstarCut = g
-                        .CutAsEnumerable(g.PseudoPeriodStart, tstar_g + g.PseudoPeriodLength)
+                        .CutAsEnumerable(g.PseudoPeriodStart, tstar_g + g.PseudoPeriodLength, settings: settings)
                         .Fill(0, g.PseudoPeriodStart, fillWith: Rational.MinusInfinity)
                         .ToSequence();
                     var gpstar = new Curve(
@@ -8329,7 +8329,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 logger.Trace("Max-plus Convolution: periodic x periodic isom.");
                 #endif
                 var cutEnd = tf + tg + lcm_d + d;
-                var cutCeiling = f.ValueAt(tf) + g.ValueAt(tg) + 2 * lcm_c;
+                var cutCeiling = f.ValueAt(tf, settings: settings) + g.ValueAt(tg, settings: settings) + 2 * lcm_c;
                 var sequence = Sequence.MaxPlusConvolution(fCut, gCut, settings, cutEnd, cutCeiling, useIsomorphism: true);
 
                 var resultEnd = sequence.Elements.Last(e => e.IsFinite).EndTime;
@@ -8490,11 +8490,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw new ArgumentException("Time must be non-negative and finite.");
 
         var h = MaxPlusConvolution(f, g, settings);
-        var h_t = h.ValueAt(time);
+        var h_t = h.ValueAt(time, settings: settings);
 
         // for simplicity, just take everything
-        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true);
-        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true);
+        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true, settings: settings);
+        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true, settings: settings);
 
         var convolutionPairs = fCut.SelectMany(e_f =>
             gCut.Select(e_g => (e_f, e_g))
@@ -8581,7 +8581,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #if DO_LOG
         logger.Trace("Computing super-additive closure");
         #endif
-        if (ValueAt(0) > 0)
+        if (ValueAt(0, settings: settings) > 0)
             throw new InvalidOperationException(
                 "This method cannot compute the superadditive closure of curves with f(0) > 0. See GeneralSuperAdditiveClosure instead.");
 
@@ -8609,7 +8609,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     public Curve GeneralSuperAdditiveClosure(ComputationSettings? settings = null)
     {
-        if (ValueAt(0) > 0)
+        if (ValueAt(0, settings: settings) > 0)
         {
             // curves taking both infinities are not supported, see the remarks of Curve
             if (HasPlusInfinity && HasMinusInfinity)
@@ -8655,9 +8655,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         // since g is non-decreasing, matching its value at 0 and at the start of its pseudo-period
         // means it is constant over any t, hence its range is the single point g(0).
         // the general algorithm cannot cut f over such a range, but the composition is then the constant f(g(0))
-        if (g.IsUltimatelyConstant && g.ValueAt(0) == g.ValueAt(g.PseudoPeriodStart))
+        if (g.IsUltimatelyConstant && g.ValueAt(0, settings: settings) == g.ValueAt(g.PseudoPeriodStart, settings: settings))
         {
-            var constantValue = f.ValueAt(g.ValueAt(0));
+            var constantValue = f.ValueAt(g.ValueAt(0, settings: settings), settings: settings);
             return new Curve(
                 baseSequence: new Sequence([
                     new Point(0, constantValue),
@@ -8671,7 +8671,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         var T_due_g = g.PseudoPeriodStart;
         var T_due_f = g.LowerPseudoInverse()
-            .ValueAt(f.PseudoPeriodStart);
+            .ValueAt(f.PseudoPeriodStart, settings: settings);
         if (T_due_f.IsFinite && !g.IsRightContinuousAt(T_due_f))
             // it suffices to use \lpi{g}(T_f) + epsilon, for any epsilon > 0
             T_due_f = g.GetSegmentAfter(T_due_f).EndTime;
@@ -8721,8 +8721,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #if DO_LOG
         var sw = Stopwatch.StartNew();
         #endif
-        var gCut = g.Cut(0, T + d);
-        var fCut = f.Cut(g.ValueAt(0), g.LeftLimitAt(T + d), isEndIncluded: true);
+        var gCut = g.Cut(0, T + d, settings: settings);
+        var fCut = f.Cut(g.ValueAt(0, settings: settings), g.LeftLimitAt(T + d), isEndIncluded: true, settings: settings);
         var sequence = Sequence.Composition(fCut, gCut);
         #if DO_LOG
         sw.Stop();

@@ -1715,7 +1715,7 @@ public static class SequenceExtensions
                 .ToList();
         }
 
-        var sequence = lowerElements.Merge();
+        var sequence = lowerElements.Merge(settings: settings);
         #if DO_LOG
         lowerEnvelopeStopwatch.Stop();
         logger.Debug($"Lower envelopes computed: {elements.Count} elements, {lowerEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
@@ -1745,7 +1745,7 @@ public static class SequenceExtensions
                     .AsParallel()
                     .Aggregate((a, b) =>
                     {
-                        var elements = Sequence.LowerEnvelope(a, b);
+                        var elements = Sequence.LowerEnvelope(a, b, settings: settings);
                         return new Sequence(elements, elements.First().StartTime, elements.Last().EndTime);
                     })
                     .Elements;
@@ -1755,7 +1755,7 @@ public static class SequenceExtensions
                 return sequences
                     .Aggregate((a, b) =>
                     {
-                        var elements = Sequence.LowerEnvelope(a, b);
+                        var elements = Sequence.LowerEnvelope(a, b, settings: settings);
                         return new Sequence(elements, elements.First().StartTime, elements.Last().EndTime);
                     })
                     .Elements;
@@ -1806,7 +1806,7 @@ public static class SequenceExtensions
                 .ToList();
         }
 
-        var sequence = upperElements.Merge();
+        var sequence = upperElements.Merge(settings: settings);
         #if DO_LOG
         upperEnvelopeStopwatch.Stop();
         logger.Debug($"Lower envelopes computed: {elements.Count} elements, {upperEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
@@ -1835,7 +1835,7 @@ public static class SequenceExtensions
                     .AsParallel()
                     .Aggregate((a, b) =>
                     {
-                        var elements = Sequence.UpperEnvelope(a, b);
+                        var elements = Sequence.UpperEnvelope(a, b, settings: settings);
                         return new Sequence(elements, elements.First().StartTime, elements.Last().EndTime);
                     })
                     .Elements;
@@ -1845,7 +1845,7 @@ public static class SequenceExtensions
                 return sequences
                     .Aggregate((a, b) =>
                     {
-                        var elements = Sequence.UpperEnvelope(a, b);
+                        var elements = Sequence.UpperEnvelope(a, b, settings: settings);
                         return new Sequence(elements, elements.First().StartTime, elements.Last().EndTime);
                     })
                     .Elements;

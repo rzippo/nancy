@@ -139,7 +139,7 @@ public class DelayServiceCurve : SuperAdditiveCurve
             return curve;
         else if (curve is DelayServiceCurve d)
             return d.Delay == 0 ? this : new DelayServiceCurve(Delay + d.Delay);
-        else if (settings.UseDelayConvolutionShortcut && curve.IsNonDecreasing && curve.ValueAt(0) == 0)
+        else if (settings.UseDelayConvolutionShortcut && curve.IsNonDecreasing && curve.ValueAt(0, settings: settings) == 0)
             // $\delta_T \otimes f = f([t - T]^+)$, for a non-decreasing $f$ with $f(0) = 0$, see [DNC18] Proposition 3.2
             return curve.DelayBy(Delay);
         else
