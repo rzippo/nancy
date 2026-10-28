@@ -42,13 +42,15 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Returns a cut of the sequence for a smaller support.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <param name="cutStart">Left endpoint of the new support.</param>
     /// <param name="cutEnd">Right endpoint of the new support.</param>
     /// <param name="isStartIncluded">If true, the support is left-closed.</param>
     /// <param name="isEndIncluded">If true, the support is right-closed.</param>
     /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
     /// <remarks>Optimized for minimal allocations</remarks>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static IEnumerable<Element> Cut(
         this IEnumerable<Element> elements,
         Rational cutStart,
@@ -57,7 +59,7 @@ public static partial class SequenceExtensions
         bool isEndIncluded = false
     )
     {
-        using var enumerator = elements.GetEnumerator();
+        using var enumerator = new ElementCursor(elements);
         if (!enumerator.MoveNext())
             throw new ArgumentException("Elements is an empty collection");
 
@@ -724,64 +726,69 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Returns the <see cref="Element"/> that describes the sequence in <paramref name="time"/>.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <param name="time">Time of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Element"/> describing the sequence at <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a linear search, $O(n)$</remarks>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Element GetElementAt(this IEnumerable<Element> elements, Rational time)
     {
-        try
+        using var cursor = new ElementCursor(elements);
+        while (cursor.MoveNext())
         {
-            var targetElement = elements.Single(e => e.IsDefinedFor(time));
-            return targetElement;
+            if (cursor.Current.IsDefinedFor(time))
+                return cursor.Current;
+            if (cursor.Current.StartTime > time)
+                break;
         }
-        catch (InvalidOperationException)
-        {
-            throw new ArgumentException("The given time is out of sequence support.");
-        }
+        throw new ArgumentException("The given time is out of sequence support.", nameof(time));
     }
 
     /// <summary>
     /// Returns the <see cref="Segment"/> that describes the sequence before <paramref name="time"/>.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <param name="time">Time of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a linear search, $O(n)$</remarks>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Segment GetSegmentBefore(this IEnumerable<Element> elements, Rational time)
     {
-        try
+        using var cursor = new ElementCursor(elements);
+        Segment? found = null;
+        while (cursor.MoveNext())
         {
-            var targetElement = elements.Last(e => e is Segment s && s.EndTime <= time);
-            return (Segment) targetElement;
+            if (cursor.Current is Segment segment && segment.EndTime <= time)
+                found = segment;
         }
-        catch (InvalidOperationException)
-        {
-            throw new ArgumentException("Sequence is not defined after given time");
-        }
+        return found ?? throw new ArgumentException("Sequence is not defined before the given time.", nameof(time));
     }
 
     /// <summary>
     /// Returns the <see cref="Segment"/> that describes the sequence after <paramref name="time"/>.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <param name="time">Time of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a linear search, $O(n)$</remarks>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Segment GetSegmentAfter(this IEnumerable<Element> elements, Rational time)
     {
-        try
+        using var cursor = new ElementCursor(elements);
+        while (cursor.MoveNext())
         {
-            var targetElement = elements.First(element => element.EndTime > time);
-            return (Segment) targetElement;
+            if (cursor.Current.StartTime > time)
+                break;
+            if (cursor.Current is Segment segment && segment.EndTime > time)
+                return segment;
         }
-        catch (InvalidOperationException)
-        {
-            throw new ArgumentException("Sequence is not defined after given time");
-        }
+        throw new ArgumentException("Sequence is not defined after the given time.", nameof(time));
     }
 
     #endregion
@@ -791,75 +798,55 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end.
     /// </summary>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
     public static bool AreInTimeOrder(this IEnumerable<Element> elements)
     {
-        var lastStartTime = Rational.MinusInfinity;
-        var lastEndTime = Rational.MinusInfinity;
-
-        foreach (var element in elements)
+        using var enumerator = elements.GetEnumerator();
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        var previous = enumerator.Current;
+        while (enumerator.MoveNext())
         {
-            if (element.StartTime >= lastStartTime)
-            {
-                if (element.StartTime == lastStartTime)
-                {
-                    if (element.EndTime >= lastEndTime)
-                    {
-                        lastStartTime = element.StartTime;
-                        lastEndTime = element.EndTime;
-                        continue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    lastStartTime = element.StartTime;
-                    lastEndTime = element.EndTime;
-                    continue;
-                }
-            }
-            else
-            {
+            var next = enumerator.Current;
+            if (next.StartTime < previous.StartTime ||
+                (next.StartTime == previous.StartTime && next.EndTime < previous.EndTime))
                 return false;
-            }
+            previous = next;
         }
-
         return true;
     }
 
     /// <summary>
     /// Checks if the elements form a sequence.
-    /// In addition to <see cref="AreInTimeOrder(IEnumerable{Element})"/> it requires non-overlapping, but it allows gaps.
+    /// In addition to <see cref="AreInTimeOrder(IEnumerable{Element})"/> it requires non-overlapping supports, including no duplicate points, but allows gaps.
     /// </summary>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
     public static bool AreInTimeSequence(this IEnumerable<Element> elements)
     {
-        var nextExpectedTime = Rational.MinusInfinity;
-        foreach (var element in elements)
+        using var enumerator = elements.GetEnumerator();
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        var previous = enumerator.Current;
+        while (enumerator.MoveNext())
         {
-            if (element.StartTime >= nextExpectedTime)
-            {
-                nextExpectedTime = element.EndTime;
-                continue;
-            }
-            else
-            {
+            var next = enumerator.Current;
+            if (next.StartTime < previous.EndTime ||
+                (next.StartTime == previous.EndTime && previous is Point && next is Point))
                 return false;
-            }
+            previous = next;
         }
-
         return true;
     }
 
     /// <summary>
     /// Checks if the elements form a uninterrupted sequence.
     /// </summary>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
     public static bool AreUninterruptedSequence(this IEnumerable<Element> elements)
     {
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
-            throw new InvalidOperationException("The collection is empty");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
 
         Rational lastDefinedTime = enumerator.Current.EndTime;
         bool lastElementWasPoint = enumerator.Current is Point;
@@ -884,8 +871,11 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Sorts the elements in time order.
     /// </summary>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
     public static IReadOnlyList<Element> SortElements(this IReadOnlyList<Element> elements, ComputationSettings? settings = null)
     {
+        if (elements.Count == 0)
+            throw new ArgumentException("The element collection is empty.", nameof(elements));
         settings ??= ComputationSettings.Default();
         const int ParallelizationThreshold = 10_000;
 
@@ -947,11 +937,13 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Enumerates a set of <see cref="Element"/>s as a series of breakpoints.
     /// </summary>
-    /// <param name="elements">The elements to enumerate, must be sorted.</param>
     /// <remarks>Does not attempt merging.</remarks>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static IEnumerable<(Segment? left, Point center, Segment? right)> EnumerateBreakpoints(this IEnumerable<Element> elements)
     {
-        using var enumerator = elements.GetEnumerator();
+        using var enumerator = new ElementCursor(elements);
         if (!enumerator.MoveNext())
             throw new ArgumentException("Elements is an empty collection");
 
@@ -1084,13 +1076,17 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if there is no discontinuity within the sequence.
     /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsContinuous(this IEnumerable<Element> elements)
     {
-        using var enumerator = elements.GetEnumerator();
+        using var enumerator = new ElementCursor(elements);
         if(!enumerator.MoveNext())
             throw new ArgumentException("Elements is an empty collection");
 
-        Rational lastValue = enumerator.Current is Point p ? 
+        Rational lastValue = enumerator.Current is Point p ?
             p.Value :
             ((Segment)enumerator.Current).LeftLimitAtEndTime;
 
@@ -1124,67 +1120,134 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if there is no left-discontinuity within the sequence.
     /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsLeftContinuous(this IEnumerable<Element> elements)
     {
-        foreach(var breakpoint in elements.EnumerateBreakpoints())
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        Segment? previous = null;
+        do
         {
-            if (breakpoint.left is { } s &&
-                s.LeftLimitAtEndTime != breakpoint.center.Value)
+            if (cursor.Current is Point point && previous is { } left &&
+                left.LeftLimitAtEndTime != point.Value)
                 return false;
-        }
-
+            previous = cursor.Current as Segment;
+        } while (cursor.MoveNext());
         return true;
     }
 
     /// <summary>
     /// True if there is no right-discontinuity within the sequence.
     /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsRightContinuous(this IEnumerable<Element> elements)
     {
-        foreach (var breakpoint in elements.EnumerateBreakpoints())
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        Point? previous = null;
+        do
         {
-            if (breakpoint.right is { } s &&
-                s.RightLimitAtStartTime != breakpoint.center.Value)
+            if (cursor.Current is Segment segment && previous is { } left &&
+                left.Value != segment.RightLimitAtStartTime)
                 return false;
-        }
-
+            previous = cursor.Current as Point;
+        } while (cursor.MoveNext());
         return true;
     }
 
     /// <summary>True if every defined value is zero.</summary>
-    /// <param name="elements">The element stream; time order is not required.</param>
-    /// <returns>True if every element is zero; true for empty input.</returns>
+    /// <returns>True if every element is zero.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsZero(this IEnumerable<Element> elements)
-        => elements.All(e => e.IsZero);
+    {
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
+        {
+            if (!cursor.Current.IsZero)
+                return false;
+        } while (cursor.MoveNext());
+        return true;
+    }
 
     /// <summary>True if every defined value is infinite, with either sign.</summary>
-    /// <param name="elements">The element stream; time order is not required.</param>
-    /// <returns>True if every element is infinite; true for empty input.</returns>
+    /// <returns>True if every element is infinite.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsInfinite(this IEnumerable<Element> elements)
-        => elements.All(e => e.IsInfinite);
+    {
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
+        {
+            if (!cursor.Current.IsInfinite)
+                return false;
+        } while (cursor.MoveNext());
+        return true;
+    }
 
     /// <summary>True if some defined value is plus infinity.</summary>
-    /// <param name="elements">The element stream; time order is not required.</param>
-    /// <returns>True if an element is plus infinite; false for empty input.</returns>
+    /// <returns>True if an element is plus infinite.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool HasPlusInfinity(this IEnumerable<Element> elements)
-        => elements.Any(e => e.IsPlusInfinite);
+    {
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
+        {
+            if (cursor.Current.IsPlusInfinite)
+                return true;
+        } while (cursor.MoveNext());
+        return false;
+    }
 
     /// <summary>True if some defined value is minus infinity.</summary>
-    /// <param name="elements">The element stream; time order is not required.</param>
-    /// <returns>True if an element is minus infinite; false for empty input.</returns>
+    /// <returns>True if an element is minus infinite.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool HasMinusInfinity(this IEnumerable<Element> elements)
-        => elements.Any(e => e.IsMinusInfinite);
+    {
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
+        {
+            if (cursor.Current.IsMinusInfinite)
+                return true;
+        } while (cursor.MoveNext());
+        return false;
+    }
 
     /// <summary>True if every defined value is non-positive.</summary>
-    /// <param name="elements">A nonempty element stream; time order is not required.</param>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonPositive(this IEnumerable<Element> elements)
     {
-        var seen = false;
-        foreach (var element in elements)
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
         {
-            seen = true;
+            var element = cursor.Current;
             var matches = element switch
             {
                 Point point => point.Value <= 0,
@@ -1193,23 +1256,24 @@ public static partial class SequenceExtensions
             };
             if (!matches)
                 return false;
-        }
-        if (!seen)
-            throw new InvalidOperationException("Sequence contains no elements");
+        } while (cursor.MoveNext());
         return true;
     }
 
     /// <summary>True if every defined value is strictly positive.</summary>
-    /// <param name="elements">A nonempty element stream; time order is not required.</param>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
     /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsPositive(this IEnumerable<Element> elements)
     {
-        var seen = false;
-        foreach (var element in elements)
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
         {
-            seen = true;
+            var element = cursor.Current;
             var matches = element switch
             {
                 Point point => point.Value > 0,
@@ -1220,23 +1284,24 @@ public static partial class SequenceExtensions
             };
             if (!matches)
                 return false;
-        }
-        if (!seen)
-            throw new InvalidOperationException("Sequence contains no elements");
+        } while (cursor.MoveNext());
         return true;
     }
 
     /// <summary>True if every defined value is strictly negative.</summary>
-    /// <param name="elements">A nonempty element stream; time order is not required.</param>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
     /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNegative(this IEnumerable<Element> elements)
     {
-        var seen = false;
-        foreach (var element in elements)
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
         {
-            seen = true;
+            var element = cursor.Current;
             var matches = element switch
             {
                 Point point => point.Value < 0,
@@ -1247,39 +1312,43 @@ public static partial class SequenceExtensions
             };
             if (!matches)
                 return false;
-        }
-        if (!seen)
-            throw new InvalidOperationException("Sequence contains no elements");
+        } while (cursor.MoveNext());
         return true;
     }
 
     /// <summary>True if all defined values equal one constant, possibly infinite.</summary>
-    /// <param name="elements">A nonempty element stream; time order is not required.</param>
     /// <returns>Whether every element has the same constant value.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsConstant(this IEnumerable<Element> elements)
     {
         Rational? value = null;
-        foreach (var element in elements)
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
         {
+            var element = cursor.Current;
             if (element is Segment { IsConstant: false })
                 return false;
             var current = element is Point point ? point.Value : ((Segment) element).RightLimitAtStartTime;
             if (value is { } previous && previous != current)
                 return false;
             value = current;
-        }
-        if (value is null)
-            throw new InvalidOperationException("Sequence contains no elements");
+        } while (cursor.MoveNext());
         return true;
     }
 
-    /// <summary>True if finite coefficients define one affine function on the whole support.</summary>
-    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
-    /// <returns>Whether all values belong to the same finite affine function.</returns>
-    /// <remarks>A finite singleton is affine. Infinite constants are not affine.
-    /// Ordering is checked during consumption; an unread tail is not validated after a decisive failure.</remarks>
-    /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
+    /// <summary>True if finite coefficients $a$ and $b$ exist such that $f(t)=at+b$ throughout the support.</summary>
+    /// <returns>Whether the represented function is affine.</returns>
+    /// <remarks>
+    /// A stream containing one point with a finite value is affine.
+    /// Enumeration stops when the result is false; remaining elements are not read or validated.
+    /// </remarks>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsAffine(this IEnumerable<Element> elements)
     {
         using var cursor = new ElementCursor(elements);
@@ -1316,37 +1385,37 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
-    /// <param name="elements">A nonempty stream of elements; time order is not required.</param>
     /// <returns>Whether every point and segment value is non-negative.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonNegative(this IEnumerable<Element> elements)
     {
-        var seen = false;
-        foreach (var element in elements)
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
         {
+            var element = cursor.Current;
             if (element is Point point)
             {
-                seen = true;
-                if (point.Value < 0) return false;
+                    if (point.Value < 0) return false;
             }
             else if (element is Segment segment)
             {
-                seen = true;
-                if (segment.RightLimitAtStartTime < 0 || segment.LeftLimitAtEndTime < 0) return false;
+                    if (segment.RightLimitAtStartTime < 0 || segment.LeftLimitAtEndTime < 0) return false;
             }
-        }
-        if (!seen)
-            throw new InvalidOperationException("Sequence contains no elements");
+        } while (cursor.MoveNext());
         return true;
     }
 
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
-    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
     /// <returns>Whether the stream is non-decreasing.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
-    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonDecreasing(this IEnumerable<Element> elements)
     {
         return CheckMonotonicity(elements, Monotonicity.NonDecreasing);
@@ -1355,10 +1424,10 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t > s$, $f(t) > f(s)$.
     /// </summary>
-    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
     /// <returns>Whether the stream is strictly increasing.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
-    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsIncreasing(this IEnumerable<Element> elements)
     {
         return CheckMonotonicity(elements, Monotonicity.StrictlyIncreasing);
@@ -1367,20 +1436,26 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t > s$, $f(t) \le f(s)$.
     /// </summary>
-    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
     /// <returns>Whether the stream is non-increasing.</returns>
-    /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonIncreasing(this IEnumerable<Element> elements)
-        => CheckMonotonicity(elements, Monotonicity.NonIncreasing);
+    {
+        return CheckMonotonicity(elements, Monotonicity.NonIncreasing);
+    }
 
     /// <summary>
     /// True if for any $t > s$, $f(t) &lt; f(s)$.
     /// </summary>
-    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
     /// <returns>Whether the stream is strictly decreasing.</returns>
-    /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsDecreasing(this IEnumerable<Element> elements)
-        => CheckMonotonicity(elements, Monotonicity.StrictlyDecreasing);
+    {
+        return CheckMonotonicity(elements, Monotonicity.StrictlyDecreasing);
+    }
 
     private enum Monotonicity
     {
@@ -1440,31 +1515,61 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t$, $\left|f(t)\right| &lt; +\infty$.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsFinite(this IEnumerable<Element> elements)
     {
-        return elements.All(e => e.IsFinite);
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
+        {
+            if (!cursor.Current.IsFinite)
+                return false;
+        } while (cursor.MoveNext());
+        return true;
     }
 
     /// <summary>
     /// True if for any $t$, $f(t) = -\infty$.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsMinusInfinite(this IEnumerable<Element> elements)
     {
-        return elements.All(e => e.IsMinusInfinite);
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
+        {
+            if (!cursor.Current.IsMinusInfinite)
+                return false;
+        } while (cursor.MoveNext());
+        return true;
     }
 
     /// <summary>
     /// True if for any $t$, $f(t) = +\infty$.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsPlusInfinite(this IEnumerable<Element> elements)
     {
-        return elements.All(e => e.IsPlusInfinite);
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
+        {
+            if (!cursor.Current.IsPlusInfinite)
+                return false;
+        } while (cursor.MoveNext());
+        return true;
     }
 
     #endregion
@@ -1482,46 +1587,53 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>Finds the supremum and its earliest boundary location in one traversal.</summary>
-    /// <param name="elements">A nonempty element stream; time order is not required.</param>
     /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
     /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static (Rational Value, Rational Time) SupValueAndArg(this IEnumerable<Element> elements)
         => FindBoundaryExtremum(elements, BoundKind.Supremum);
 
     /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
-    /// <param name="elements">A nonempty element stream; time order is not required.</param>
     /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
     /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static (Rational Value, Rational Time) InfValueAndArg(this IEnumerable<Element> elements)
         => FindBoundaryExtremum(elements, BoundKind.Infimum);
 
     /// <summary>
-    /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
+    /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for every $t$ in the support, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
     /// </summary>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational SupValue(this IEnumerable<Element> elements)
     {
-        return elements.GetElementsBoundaryValues().Max();
+        return FindBoundaryExtremum(elements, BoundKind.Supremum).Value;
     }
 
     /// <summary>Returns the earliest boundary location of the supremum.</summary>
-    /// <param name="elements">A nonempty element stream; time order is not required.</param>
     /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational SupArg(this IEnumerable<Element> elements)
     {
         return FindBoundaryExtremum(elements, BoundKind.Supremum).Time;
     }
 
     /// <summary>
-    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
-    /// <param name="elements">The nonempty element stream.</param>
     /// <returns>The attained maximum, or null when it is not attained.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MaxValue(this IEnumerable<Element> elements)
     {
         var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Supremum);
@@ -1529,22 +1641,26 @@ public static partial class SequenceExtensions
     }
 
     /// <inheritdoc cref="MaxValue(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MaxValue(this IReadOnlyCollection<Element> elements)
     {
         return MaxValue((IEnumerable<Element>) elements);
     }
 
     /// <summary>
-    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $t^*$.
+    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
     /// Otherwise, returns null.
     /// </summary>
-    /// <param name="elements">The nonempty element stream.</param>
     /// <returns>An argument in the support attaining the maximum, or null if unattained.
     /// An open plateau may have no earliest attaining argument.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MaxArg(this IEnumerable<Element> elements)
     {
-        var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Supremum);
+        var (_, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Supremum);
         return attainingElement switch
         {
             Point point => point.Time,
@@ -1554,6 +1670,9 @@ public static partial class SequenceExtensions
     }
 
     /// <inheritdoc cref="MaxArg(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MaxArg(this IReadOnlyCollection<Element> elements)
     {
         return MaxArg((IEnumerable<Element>) elements);
@@ -1567,30 +1686,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>
-    /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$, returns $\sup x$.
+    /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for every $t$ in the support, returns $\sup x$.
     /// Otherwise, returns $-\infty$.
     /// </summary>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational InfValue(this IEnumerable<Element> elements)
     {
-        return elements.GetElementsBoundaryValues().Min();
+        return FindBoundaryExtremum(elements, BoundKind.Infimum).Value;
     }
 
     /// <summary>Returns the earliest boundary location of the infimum.</summary>
-    /// <param name="elements">A nonempty element stream; time order is not required.</param>
     /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational InfArg(this IEnumerable<Element> elements)
     {
         return FindBoundaryExtremum(elements, BoundKind.Infimum).Time;
     }
 
     /// <summary>
-    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
-    /// <param name="elements">The nonempty element stream.</param>
     /// <returns>The attained minimum, or null when it is not attained.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MinValue(this IEnumerable<Element> elements)
     {
         var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Infimum);
@@ -1598,22 +1722,26 @@ public static partial class SequenceExtensions
     }
 
     /// <inheritdoc cref="MinValue(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MinValue(this IReadOnlyCollection<Element> elements)
     {
         return MinValue((IEnumerable<Element>) elements);
     }
     
     /// <summary>
-    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $t^*$.
+    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
     /// Otherwise, returns null.
     /// </summary>
-    /// <param name="elements">The nonempty element stream.</param>
     /// <returns>An argument in the support attaining the minimum, or null if unattained.
     /// An open plateau may have no earliest attaining argument.</returns>
-    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MinArg(this IEnumerable<Element> elements)
     {
-        var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Infimum);
+        var (_, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Infimum);
         return attainingElement switch
         {
             Point point => point.Time,
@@ -1623,6 +1751,9 @@ public static partial class SequenceExtensions
     }
 
     /// <inheritdoc cref="MinArg(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MinArg(this IReadOnlyCollection<Element> elements)
     {
         return MinArg((IEnumerable<Element>) elements);
@@ -1675,21 +1806,34 @@ public static partial class SequenceExtensions
     private static (Rational Value, Rational Time) FindBoundaryExtremum(
         IEnumerable<Element> elements, BoundKind kind)
     {
-        using var pairs = elements.GetElementsBoundaryPairs().GetEnumerator();
-        if (!pairs.MoveNext())
-            throw new InvalidOperationException("Sequence contains no elements");
-
-        var best = pairs.Current;
-        while (pairs.MoveNext())
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        var first = cursor.Current;
+        var bestValue = first is Point p ? p.Value : ((Segment) first).RightLimitAtStartTime;
+        var bestTime = first.StartTime;
+        do
         {
-            var candidate = pairs.Current;
-            var improves = kind == BoundKind.Supremum
-                ? candidate.value > best.value
-                : candidate.value < best.value;
-            if (improves || candidate.value == best.value && candidate.time < best.time)
-                best = candidate;
+            if (cursor.Current is Point point)
+                Consider(point.Value, point.Time);
+            else
+            {
+                var segment = (Segment) cursor.Current;
+                Consider(segment.RightLimitAtStartTime, segment.StartTime);
+                Consider(segment.LeftLimitAtEndTime, segment.EndTime);
+            }
+        } while (cursor.MoveNext());
+        return (bestValue, bestTime);
+
+        void Consider(Rational value, Rational time)
+        {
+            var improves = kind == BoundKind.Supremum ? value > bestValue : value < bestValue;
+            if (improves || (value == bestValue && time < bestTime))
+            {
+                bestValue = value;
+                bestTime = time;
+            }
         }
-        return (best.value, best.time);
     }
 
     /// <summary>
@@ -1698,13 +1842,17 @@ public static partial class SequenceExtensions
     /// <param name="elements">The element stream.</param>
     /// <param name="boundKind">The bound to find.</param>
     /// <returns>The extreme value and its first attaining element, or a null element when the bound is unattained.</returns>
-    /// <exception cref="InvalidOperationException">If the stream contains no points or segments.</exception>
+    /// <exception cref="ArgumentException">If the stream is empty or an encountered element violates uninterrupted time order.</exception>
     private static (Rational bound, Element? attainingElement) FindBoundAndAttainment(IEnumerable<Element> elements, BoundKind boundKind)
     {
         Rational? extreme = null;
         Element? attainingElement = null;
-        foreach (var element in elements)
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        do
         {
+            var element = cursor.Current;
             Rational candidate;
             if (element is Point point)
                 candidate = point.Value;
@@ -1722,10 +1870,8 @@ public static partial class SequenceExtensions
             }
             else if (candidate == extreme.Value && attainingElement is null && element.AttainsValue(candidate))
                 attainingElement = element;
-        }
-        if (extreme is null)
-            throw new InvalidOperationException("Sequence contains no elements");
-        return (extreme.Value, attainingElement);
+        } while (cursor.MoveNext());
+        return (extreme!.Value, attainingElement);
     }
 
     #endregion
@@ -1735,10 +1881,10 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Computes a left-continuous version of this sequence.
     /// </summary>
-    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
     /// <returns>Elements in time order, with each point set to the left limit where one exists.</returns>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     public static IEnumerable<Element> ToLeftContinuous(this IEnumerable<Element> elements)
     {
         using var cursor = new ElementCursor(elements);
@@ -1767,10 +1913,10 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Computes a right-continuous version of this sequence.
     /// </summary>
-    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
     /// <returns>Elements in time order, with each point set to the right limit where one exists.</returns>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     public static IEnumerable<Element> ToRightContinuous(this IEnumerable<Element> elements)
     {
         using var cursor = new ElementCursor(elements);
@@ -1807,20 +1953,21 @@ public static partial class SequenceExtensions
     /// Computes the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\downarrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$: the heights from 0 up to the first value of the sequence are first reached at its start.</param>
     /// <exception cref="ArgumentException">If the elements are not non-decreasing.</exception>
-    /// <exception cref="ArgumentException">If the collection is empty.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous.
     /// See [DNC18] § 3.2.1
     /// If there are jumps or plateaus at the endpoints, those may also be lost during pseudoinversion. 
     /// </remarks>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static IEnumerable<Element> LowerPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = false)
     {
         var merged = startFromZero ?
-            elements.MergeAsEnumerable().SkipUntilValue(0):
-            elements.MergeAsEnumerable();
+            ValidatedElements().MergeAsEnumerable().SkipUntilValue(0):
+            ValidatedElements().MergeAsEnumerable();
 
         using var enumerator = merged.GetEnumerator();
 
@@ -1973,28 +2120,41 @@ public static partial class SequenceExtensions
             }
         }
         while (enumerator.MoveNext());
+
+        IEnumerable<Element> ValidatedElements()
+        {
+            using var cursor = new ElementCursor(elements);
+            if (!cursor.MoveNext())
+                throw new ArgumentException("The element stream is empty.", nameof(elements));
+            do
+            {
+                yield return cursor.Current;
+            } while (cursor.MoveNext());
+        }
+
     }
 
     /// <summary>
     /// Computes the upper pseudo-inverse function,
     /// $f^{-1}_\uparrow(x) = \inf \left\{ t : f(t) > x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
-    /// <param name="elements">The elements to process.</param>
     /// <param name="startFromZero">
     /// If true, $f^{-1}_\uparrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.
     /// At a height from 0 below $Image(f)$, the result is $-\infty$.
     /// If every value of the sequence is negative, the result is a point at height 0 whose value is the end of the support.
     /// </param>
     /// <exception cref="ArgumentException">If the elements are not non-decreasing.</exception>
-    /// <exception cref="ArgumentException">If the collection is empty.</exception>
     /// <remarks>
     /// The result of this operation is right-continuous, thus is revertible, i.e. $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous.
     /// See [DNC18] § 3.2.1
     /// If there are jumps or plateaus at the endpoints, those may also be lost during pseudoinversion. 
     /// </remarks>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static IEnumerable<Element> UpperPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = false)
     {
-        var source = elements;
+        var source = ValidatedElements();
         var merged = (startFromZero ? WithNonNegativePrefix(source) : source).MergeAsEnumerable();
         var upi = Inverse();
 
@@ -2233,6 +2393,18 @@ public static partial class SequenceExtensions
             if (heldPoint is not null)
                 yield return heldPoint;
         }
+
+        IEnumerable<Element> ValidatedElements()
+        {
+            using var cursor = new ElementCursor(elements);
+            if (!cursor.MoveNext())
+                throw new ArgumentException("The element stream is empty.", nameof(elements));
+            do
+            {
+                yield return cursor.Current;
+            } while (cursor.MoveNext());
+        }
+
     }
 
     /// <summary>

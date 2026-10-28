@@ -32,7 +32,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     #region Properties
 
     /// <summary>
-    /// Set of elements composing the sequence.
+    /// Elements representing the sequence in uninterrupted time order.
+    /// Points and open segments alternate, and each element begins where the preceding one ends.
+    /// Either kind may occur first or last, determining whether that endpoint is included.
     /// </summary>
     [JsonProperty(PropertyName = "elements")]
     [JsonPropertyName("elements")]
