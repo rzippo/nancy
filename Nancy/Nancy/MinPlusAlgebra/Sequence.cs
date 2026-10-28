@@ -2417,22 +2417,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">If the supports share no time.</exception>
     /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
     public static Sequence Addition(Sequence a, Sequence b)
-    {
-        var overlap = Interval.Intersection(a.Support, b.Support)
-            ?? throw new ArgumentException("The sequences do not overlap.");
-
-        var aCut = a.Cut(overlap);
-        var bCut = b.Cut(overlap);
-
-        var intervals = IntervalBucket.ComputeIntervals(aCut, bCut);
-        var sumElements = intervals
-            .Select(interval => Element.Addition(interval.Elements))
-            .ToList();
-
-        IEnumerable<Element> mergedElements = sumElements.Merge();
-
-        return new Sequence(mergedElements);
-    }
+        => a.Elements.Addition(b.Elements)
+            .MergeAsEnumerable()
+            .ToSequence();
 
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
@@ -2472,7 +2459,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">If the supports share no time.</exception>
     /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time.</exception>
     public static Sequence Subtraction(Sequence a, Sequence b)
-        => Addition(a, -b);
+        => a.Elements.Subtraction(b.Elements)
+            .MergeAsEnumerable()
+            .ToSequence();
 
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
@@ -2550,6 +2539,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <returns>The sequence resulting from the minimum.</returns>
     public static Sequence Minimum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
+        if (cutToOverlap && !settings.UseParallelLowerEnvelope)
+            return a.Elements.Minimum(b.Elements)
+                .MergeAsEnumerable()
+                .ToSequence();
+
         if (cutToOverlap)
         {
             var overlap = Interval.Intersection(a.Support, b.Support)
@@ -2625,6 +2620,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <returns>The sequence resulting from the maximum.</returns>
     public static Sequence Maximum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
+        if (cutToOverlap && !settings.UseParallelUpperEnvelope)
+            return a.Elements.Maximum(b.Elements)
+                .MergeAsEnumerable()
+                .ToSequence();
+
         if (cutToOverlap)
         {
             var overlap = Interval.Intersection(a.Support, b.Support)
