@@ -472,6 +472,134 @@ public static class SequenceExtensions
 
     #endregion
 
+    #region Pointwise operators
+
+    /// <summary>
+    /// Adds two streams of elements over the intersection of their supports.
+    /// </summary>
+    /// <param name="a">The first operand, in time order and uninterrupted, as the elements of a <see cref="Sequence"/>.</param>
+    /// <param name="b">The second operand, as <paramref name="a"/>.</param>
+    /// <returns>The elements of the sum in time order.</returns>
+    /// <remarks>
+    /// Within the intersection, the result has a point at each breakpoint of either operand and a segment between consecutive breakpoints.
+    /// Use <see cref="MergeAsEnumerable"/> to merge adjacent compatible elements.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time, when the result is first enumerated.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time, when the result reaches it.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Addition(this IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+            yield return Element.Addition(left, right);
+    }
+
+    /// <summary>
+    /// Subtracts two streams of elements over the intersection of their supports.
+    /// </summary>
+    /// <param name="a">The first operand, in time order and uninterrupted, as the elements of a <see cref="Sequence"/>.</param>
+    /// <param name="b">The second operand, as <paramref name="a"/>.</param>
+    /// <returns>The elements of the difference in time order.</returns>
+    /// <remarks>
+    /// Within the intersection, the result has a point at each breakpoint of either operand and a segment between consecutive breakpoints.
+    /// Use <see cref="MergeAsEnumerable"/> to merge adjacent compatible elements.
+    /// The result may contain negative values.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time, when the result is first enumerated.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time, when the result reaches it.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Subtraction(this IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+            yield return Element.Subtraction(left, right);
+    }
+
+    /// <summary>
+    /// Computes the pointwise minimum of two streams over the intersection of their supports.
+    /// </summary>
+    /// <param name="a">The first operand, nonempty, uninterrupted and in time order.</param>
+    /// <param name="b">The second operand, nonempty, uninterrupted and in time order.</param>
+    /// <returns>The elements of the minimum in time order.</returns>
+    /// <remarks>
+    /// Within the intersection, the result has a point at each breakpoint of either operand and at each segment crossing, with segments between consecutive points.
+    /// Use <see cref="MergeAsEnumerable"/> to merge adjacent compatible elements.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time, when enumeration begins.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Minimum(this IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+            foreach (var element in Element.Minimum(left, right))
+                yield return element;
+    }
+
+    /// <summary>
+    /// Computes the pointwise maximum of two streams over the intersection of their supports.
+    /// </summary>
+    /// <param name="a">The first operand, nonempty, uninterrupted and in time order.</param>
+    /// <param name="b">The second operand, nonempty, uninterrupted and in time order.</param>
+    /// <returns>The elements of the maximum in time order.</returns>
+    /// <remarks>
+    /// Within the intersection, the result has a point at each breakpoint of either operand and at each segment crossing, with segments between consecutive points.
+    /// Use <see cref="MergeAsEnumerable"/> to merge adjacent compatible elements.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time, when enumeration begins.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Maximum(this IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+            foreach (var element in Element.Maximum(left, right))
+                yield return element;
+    }
+
+    #endregion
+
+    #region Overlap traversal
+
+    /// <summary>
+    /// Pairs points and overlapping segments of two nonempty, uninterrupted streams in time order.
+    /// </summary>
+    /// <param name="a">The first stream.</param>
+    /// <param name="b">The second stream.</param>
+    /// <returns>Point pairs at shared times and segment pairs covering each shared open interval.</returns>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time.</exception>
+    private static IEnumerable<(Element left, Element right)> OverlappingElements(IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        using var cursorA = new ElementCursor(a);
+        using var cursorB = new ElementCursor(b);
+        if (!cursorA.MoveNext() || !cursorB.MoveNext())
+            throw new ArgumentException("An operand is empty.");
+
+        var t = Rational.Max(cursorA.Current.StartTime, cursorB.Current.StartTime);
+        // The overlap includes its start unless an operand that starts there is open.
+        var isPointDefined = (cursorA.Current is Point || cursorA.Current.StartTime < t)
+            && (cursorB.Current is Point || cursorB.Current.StartTime < t);
+
+        var hasYielded = false;
+        while (true)
+        {
+            if (isPointDefined)
+            {
+                if (!cursorA.TryPointAt(t, out var pointA) || !cursorB.TryPointAt(t, out var pointB))
+                    break;
+                yield return (pointA, pointB);
+                hasYielded = true;
+            }
+
+            if (!cursorA.TrySegmentAfter(t, out var segmentA) || !cursorB.TrySegmentAfter(t, out var segmentB))
+                break;
+            yield return (segmentA, segmentB);
+            hasYielded = true;
+
+            t = Rational.Min(segmentA.EndTime, segmentB.EndTime);
+            isPointDefined = true;
+        }
+
+        if (!hasYielded)
+            throw new ArgumentException("The streams share no time.");
+    }
+
+    #endregion
+
     #region Element lookup
 
     /// <summary>
