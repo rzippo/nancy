@@ -2488,11 +2488,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (cutToOverlap)
             return new Sequence(lowerEnvelopeElements);
         else
-            return new Sequence(
-                elements: lowerEnvelopeElements,
-                fillFrom: Rational.Min(a.DefinedFrom, b.DefinedFrom),
-                fillTo: Rational.Max(a.DefinedUntil, b.DefinedUntil)
-            );
+            return lowerEnvelopeElements.Fill(
+                    Rational.Min(a.DefinedFrom, b.DefinedFrom),
+                    Rational.Max(a.DefinedUntil, b.DefinedUntil),
+                    isFromIncluded: lowerEnvelopeElements.First() is Point,
+                    isToIncluded: lowerEnvelopeElements.Last() is Point,
+                    fillWith: Rational.PlusInfinity)
+                .ToSequence();
     }
 
     /// <summary>
@@ -2561,12 +2563,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (cutToOverlap)
             return new Sequence(upperEnvelopeElements);
         else
-            return new Sequence(
-                elements: upperEnvelopeElements,
-                fillFrom: Rational.Min(a.DefinedFrom, b.DefinedFrom),
-                fillTo: Rational.Max(a.DefinedUntil, b.DefinedUntil),
-                fillWith: Rational.MinusInfinity
-            );
+            return upperEnvelopeElements.Fill(
+                    Rational.Min(a.DefinedFrom, b.DefinedFrom),
+                    Rational.Max(a.DefinedUntil, b.DefinedUntil),
+                    isFromIncluded: upperEnvelopeElements.First() is Point,
+                    isToIncluded: upperEnvelopeElements.Last() is Point,
+                    fillWith: Rational.MinusInfinity)
+                .ToSequence();
     }
 
     /// <summary>

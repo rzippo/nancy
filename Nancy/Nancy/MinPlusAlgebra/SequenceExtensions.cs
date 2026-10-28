@@ -1819,7 +1819,7 @@ public static class SequenceExtensions
         if (sequences.Count == 1)
             return sequences.First().Elements;
         else if(sequences.Count == 2)
-            return Sequence.LowerEnvelope(sequences.First(), sequences.Last(), settings);
+            return Sequence.Minimum(sequences.First(), sequences.Last(), cutToOverlap: false, settings).Elements;
         else
         {
             settings ??= ComputationSettings.Default();
@@ -1830,21 +1830,13 @@ public static class SequenceExtensions
             {
                 return sequences
                     .AsParallel()
-                    .Aggregate((a, b) =>
-                    {
-                        var elements = Sequence.LowerEnvelope(a, b, settings: settings);
-                        return new Sequence(elements, elements.First().StartTime, elements.Last().EndTime);
-                    })
+                    .Aggregate((a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings))
                     .Elements;
             }
             else
             {
                 return sequences
-                    .Aggregate((a, b) =>
-                    {
-                        var elements = Sequence.LowerEnvelope(a, b, settings: settings);
-                        return new Sequence(elements, elements.First().StartTime, elements.Last().EndTime);
-                    })
+                    .Aggregate((a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings))
                     .Elements;
             }
         }
@@ -1909,7 +1901,7 @@ public static class SequenceExtensions
         if (sequences.Count == 1)
             return sequences.First().Elements;
         else if(sequences.Count == 2)
-            return Sequence.UpperEnvelope(sequences.First(), sequences.Last(), settings);
+            return Sequence.Maximum(sequences.First(), sequences.Last(), cutToOverlap: false, settings).Elements;
         else
         {
             settings ??= ComputationSettings.Default();
@@ -1920,21 +1912,13 @@ public static class SequenceExtensions
             {
                 return sequences
                     .AsParallel()
-                    .Aggregate((a, b) =>
-                    {
-                        var elements = Sequence.UpperEnvelope(a, b, settings: settings);
-                        return new Sequence(elements, elements.First().StartTime, elements.Last().EndTime);
-                    })
+                    .Aggregate((a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings))
                     .Elements;
             }
             else
             {
                 return sequences
-                    .Aggregate((a, b) =>
-                    {
-                        var elements = Sequence.UpperEnvelope(a, b, settings: settings);
-                        return new Sequence(elements, elements.First().StartTime, elements.Last().EndTime);
-                    })
+                    .Aggregate((a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings))
                     .Elements;
             }
         }
