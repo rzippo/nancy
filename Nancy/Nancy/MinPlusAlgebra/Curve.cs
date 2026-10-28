@@ -2802,11 +2802,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
 
-        if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known_isNonDecreasing)
+        if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known_isNonDecreasing && known_isNonDecreasing.Value)
             result._isNonDecreasing = known_isNonDecreasing;
-        if (Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } known_isLeftContinuous)
+        if (Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } known_isLeftContinuous && known_isLeftContinuous.Value)
             result._isLeftContinuous = known_isLeftContinuous;
-        if (Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } known_isRightContinuous)
+        if (Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } known_isRightContinuous && known_isRightContinuous.Value)
             result._isRightContinuous = known_isRightContinuous;
 
         return result;
