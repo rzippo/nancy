@@ -70,37 +70,127 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// True if all elements of the sequence are finite.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsFinite => Elements.All(e => e.IsFinite);
+    public bool IsFinite
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isFinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsFinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isFinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsFinite"/>.</summary>
+    internal Lazy<bool>? _isFinite;
 
     /// <summary>
     /// True if all elements of the sequence are infinite.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsInfinite => Elements.All(e => e.IsInfinite);
+    public bool IsInfinite
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isInfinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isInfinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsInfinite"/>.</summary>
+    internal Lazy<bool>? _isInfinite;
 
     /// <summary>
     /// True if all elements of the sequence are plus infinite.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPlusInfinite => Elements.All(e => e.IsPlusInfinite);
+    public bool IsPlusInfinite
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isPlusInfinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsPlusInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isPlusInfinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsPlusInfinite"/>.</summary>
+    internal Lazy<bool>? _isPlusInfinite;
 
     /// <summary>
     /// True if all elements of the sequence are minus infinite.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsMinusInfinite => Elements.All(e => e.IsMinusInfinite);
+    public bool IsMinusInfinite
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isMinusInfinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsMinusInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isMinusInfinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsMinusInfinite"/>.</summary>
+    internal Lazy<bool>? _isMinusInfinite;
 
     /// <summary>
     /// True if any element of the sequence is plus infinite.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool HasPlusInfinity => Elements.Any(e => e.IsPlusInfinite);
+    public bool HasPlusInfinity
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _hasPlusInfinity);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.Any(e => e.IsPlusInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _hasPlusInfinity, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="HasPlusInfinity"/>.</summary>
+    internal Lazy<bool>? _hasPlusInfinity;
 
     /// <summary>
     /// True if any element of the sequence is minus infinite.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool HasMinusInfinity => Elements.Any(e => e.IsMinusInfinite);
+    public bool HasMinusInfinity
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _hasMinusInfinity);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.Any(e => e.IsMinusInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _hasMinusInfinity, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="HasMinusInfinity"/>.</summary>
+    internal Lazy<bool>? _hasMinusInfinity;
 
     /// <summary>
     /// The first instant around which the sequence is not infinite.
@@ -138,8 +228,22 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// True if the sequence is 0 for all $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsZero =>
-        Elements.All(e => e.IsZero);
+    public bool IsZero
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isZero);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsZero), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isZero, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsZero"/>.</summary>
+    internal Lazy<bool>? _isZero;
 
     /// <summary>
     /// True if no two consecutive elements of the sequence can be merged.
@@ -155,20 +259,32 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     {
         get
         {
-            for (var i = 0; i + 2 < Count; i++)
+            var cache = Volatile.Read(ref _isNormalized);
+            if (cache is null)
             {
-                if (Elements[i] is Segment left &&
-                    Elements[i + 1] is Point point &&
-                    Elements[i + 2] is Segment right &&
-                    SequenceExtensions.CanMergeTriplet(left, point, right))
+                var candidate = new Lazy<bool>(() =>
                 {
-                    return false;
-                }
-            }
+                    for (var i = 0; i + 2 < Count; i++)
+                    {
+                        if (Elements[i] is Segment left &&
+                            Elements[i + 1] is Point point &&
+                            Elements[i + 2] is Segment right &&
+                            SequenceExtensions.CanMergeTriplet(left, point, right))
+                        {
+                            return false;
+                        }
+                    }
 
-            return true;
+                    return true;
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNormalized, candidate, null) ?? candidate;
+            }
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="IsNormalized"/>.</summary>
+    internal Lazy<bool>? _isNormalized;
 
     /// <summary>
     /// True if there is no discontinuity within the sequence.
@@ -178,37 +294,49 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     {
         get
         {
-            Rational lastValue = Elements.First() is Point ? 
-                ((Point)Elements.First()).Value :
-                ((Segment)Elements.First()).LeftLimitAtEndTime;
-
-            foreach (Element element in Elements.Skip(1))
+            var cache = Volatile.Read(ref _isContinuous);
+            if (cache is null)
             {
-                switch(element)
+                var candidate = new Lazy<bool>(() =>
                 {
-                    case Point point:
-                        if (point.Value == lastValue)
-                            break;
-                        else
-                            return false;
+                    Rational lastValue = Elements.First() is Point ?
+                        ((Point)Elements.First()).Value :
+                        ((Segment)Elements.First()).LeftLimitAtEndTime;
 
-                    case Segment segment:
-                        if (segment.RightLimitAtStartTime == lastValue)
+                    foreach (Element element in Elements.Skip(1))
+                    {
+                        switch(element)
                         {
-                            lastValue = segment.LeftLimitAtEndTime;
-                            break;
+                            case Point point:
+                                if (point.Value == lastValue)
+                                    break;
+                                else
+                                    return false;
+
+                            case Segment segment:
+                                if (segment.RightLimitAtStartTime == lastValue)
+                                {
+                                    lastValue = segment.LeftLimitAtEndTime;
+                                    break;
+                                }
+                                else
+                                    return false;
+
+                            default:
+                                throw new InvalidCastException();
                         }
-                        else
-                            return false;
+                    }
 
-                    default:
-                        throw new InvalidCastException();
-                }
+                    return true;
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isContinuous, candidate, null) ?? candidate;
             }
-
-            return true;
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="IsContinuous"/>.</summary>
+    internal Lazy<bool>? _isContinuous;
 
     /// <summary>
     /// True if there is no left-discontinuity within the sequence.
@@ -310,27 +438,116 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNonNegative
-        => InfValue() >= 0;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonNegative);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => InfValue() >= 0, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonNegative, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
-    /// <inheritdoc cref="SequenceExtensions.IsNonPositive"/>
-    [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNonPositive => Elements.IsNonPositive();
+    /// <summary>Cached value of <see cref="IsNonNegative"/>.</summary>
+    internal Lazy<bool>? _isNonNegative;
 
-    /// <inheritdoc cref="SequenceExtensions.IsPositive"/>
+    /// <summary>True if every defined value is non-positive.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPositive => Elements.IsPositive();
+    public bool IsNonPositive
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonPositive);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsNonPositive(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonPositive, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
-    /// <inheritdoc cref="SequenceExtensions.IsNegative"/>
-    [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNegative => Elements.IsNegative();
+    /// <summary>Cached value of <see cref="IsNonPositive"/>.</summary>
+    internal Lazy<bool>? _isNonPositive;
 
-    /// <inheritdoc cref="SequenceExtensions.IsConstant"/>
+    /// <summary>True if every defined value is strictly positive.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsConstant => Elements.IsConstant();
+    public bool IsPositive
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isPositive);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsPositive(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isPositive, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
 
-    /// <inheritdoc cref="SequenceExtensions.IsAffine"/>
+    /// <summary>Cached value of <see cref="IsPositive"/>.</summary>
+    internal Lazy<bool>? _isPositive;
+
+    /// <summary>True if every defined value is strictly negative.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsAffine => Elements.IsAffine();
+    public bool IsNegative
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNegative);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsNegative(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNegative, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsNegative"/>.</summary>
+    internal Lazy<bool>? _isNegative;
+
+    /// <summary>True if all defined values equal one constant, possibly infinite.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsConstant
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isConstant);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsConstant(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isConstant, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsConstant"/>.</summary>
+    internal Lazy<bool>? _isConstant;
+
+    /// <summary>True if finite coefficients $a$ and $b$ exist such that $f(t)=at+b$ throughout the support.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsAffine
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isAffine);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsAffine(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isAffine, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsAffine"/>.</summary>
+    internal Lazy<bool>? _isAffine;
 
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
@@ -428,31 +645,50 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// True if <see cref="DefinedFrom"/> is exclusive.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsLeftOpen => Elements.First() is Segment;
+    public bool IsLeftOpen
+        => Elements[0] is Segment;
 
     /// <summary>
     /// True if <see cref="DefinedFrom"/> is inclusive.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsLeftClosed => !IsLeftOpen;
+    public bool IsLeftClosed
+        => Elements[0] is Point;
 
     /// <summary>
     /// True if <see cref="DefinedUntil"/> is exclusive.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsRightOpen => Elements.Last() is Segment;
+    public bool IsRightOpen
+        => Elements[^1] is Segment;
 
     /// <summary>
     /// True if <see cref="DefinedUntil"/> is inclusive.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsRightClosed => !IsRightOpen;
+    public bool IsRightClosed
+        => Elements[^1] is Point;
 
     /// <summary>
     /// True if the sequence consists of only a <see cref="Point"/>, meaning it has 0 time length.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPoint => Elements.Count == 1 && Elements.Single() is Point;
+    public bool IsPoint
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isPoint);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.Count == 1 && Elements.Single() is Point, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isPoint, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsPoint"/>.</summary>
+    internal Lazy<bool>? _isPoint;
 
     /// <summary>
     /// True if the sequence starts with a plateau.
@@ -462,21 +698,33 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     {
         get
         {
-            if (Elements.First() is Point p)
+            var cache = Volatile.Read(ref _startsWithPlateau);
+            if (cache is null)
             {
-                if (Count == 1)
-                    return false;
-                var s = (Segment) Elements.First(e => e is Segment);
-                return s.IsConstant && s.RightLimitAtStartTime == p.Value;
+                var candidate = new Lazy<bool>(() =>
+                {
+                    if (Elements.First() is Point p)
+                    {
+                        if (Count == 1)
+                            return false;
+                        var s = (Segment) Elements.First(e => e is Segment);
+                        return s.IsConstant && s.RightLimitAtStartTime == p.Value;
+                    }
+                    else if (Elements.First() is Segment s)
+                    {
+                        return s.IsConstant;
+                    }
+                    else
+                        throw new InvalidCastException();
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _startsWithPlateau, candidate, null) ?? candidate;
             }
-            else if (Elements.First() is Segment s)
-            {
-                return s.IsConstant;
-            }
-            else
-                throw new InvalidCastException();
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="StartsWithPlateau"/>.</summary>
+    internal Lazy<bool>? _startsWithPlateau;
 
     /// <summary>
     /// True if the sequence ends with a plateau.
@@ -486,21 +734,33 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     {
         get
         {
-            if (Elements.Last() is Point p)
+            var cache = Volatile.Read(ref _endsWithPlateau);
+            if (cache is null)
             {
-                if (Count == 1)
-                    return false;
-                var s = (Segment) Elements.Last(e => e is Segment);
-                return s.IsConstant && s.LeftLimitAtEndTime == p.Value;
+                var candidate = new Lazy<bool>(() =>
+                {
+                    if (Elements.Last() is Point p)
+                    {
+                        if (Count == 1)
+                            return false;
+                        var s = (Segment) Elements.Last(e => e is Segment);
+                        return s.IsConstant && s.LeftLimitAtEndTime == p.Value;
+                    }
+                    else if (Elements.Last() is Segment s)
+                    {
+                        return s.IsConstant;
+                    }
+                    else
+                        throw new InvalidCastException();
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _endsWithPlateau, candidate, null) ?? candidate;
             }
-            else if (Elements.Last() is Segment s)
-            {
-                return s.IsConstant;
-            }
-            else
-                throw new InvalidCastException();
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="EndsWithPlateau"/>.</summary>
+    internal Lazy<bool>? _endsWithPlateau;
 
     /// <summary>
     /// Returns the end time of the plateau at the start of the sequence,
@@ -581,6 +841,24 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     public void ResetCachedProperties()
     {
+        Interlocked.Exchange(ref _endsWithPlateau, null);
+        Interlocked.Exchange(ref _startsWithPlateau, null);
+        Interlocked.Exchange(ref _isPoint, null);
+        Interlocked.Exchange(ref _isAffine, null);
+        Interlocked.Exchange(ref _isConstant, null);
+        Interlocked.Exchange(ref _isNegative, null);
+        Interlocked.Exchange(ref _isPositive, null);
+        Interlocked.Exchange(ref _isNonPositive, null);
+        Interlocked.Exchange(ref _isNonNegative, null);
+        Interlocked.Exchange(ref _isContinuous, null);
+        Interlocked.Exchange(ref _isNormalized, null);
+        Interlocked.Exchange(ref _isZero, null);
+        Interlocked.Exchange(ref _hasMinusInfinity, null);
+        Interlocked.Exchange(ref _hasPlusInfinity, null);
+        Interlocked.Exchange(ref _isMinusInfinite, null);
+        Interlocked.Exchange(ref _isPlusInfinite, null);
+        Interlocked.Exchange(ref _isInfinite, null);
+        Interlocked.Exchange(ref _isFinite, null);
         Interlocked.Exchange(ref _isLeftContinuous, null);
         Interlocked.Exchange(ref _isRightContinuous, null);
         Interlocked.Exchange(ref _isNonDecreasing, null);
@@ -605,6 +883,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     private bool? RightContinuousIfKnown
         => Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsNonNegative"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? NonNegativeIfKnown
+        => Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } cache ? cache.Value : null;
 
     #endregion
 
@@ -1940,11 +2224,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// i.e. a curve $g(t) = f(t)$ if $f(t) > 0$, $g(t) = 0$ otherwise.
     /// </summary>
     public Sequence ToNonNegative()
-        => Maximum(
-            this, 
-            Sequence.Zero(DefinedFrom, DefinedUntil, isEndIncluded: true), 
-            cutToOverlap: true
-        );
+        => NonNegativeIfKnown == true
+            ? this
+            : Maximum(
+                this, 
+                Sequence.Zero(DefinedFrom, DefinedUntil, isEndIncluded: true), 
+                cutToOverlap: true
+            );
 
     /// <summary>
     /// Computes a left-continuous version of this sequence.

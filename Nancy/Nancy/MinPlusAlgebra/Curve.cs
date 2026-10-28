@@ -123,7 +123,22 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve has finite value for any $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsFinite => BaseSequence.IsFinite;
+    public bool IsFinite
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isFinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => BaseSequence.IsFinite, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isFinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsFinite"/>.</summary>
+    internal Lazy<bool>? _isFinite;
 
     /// <summary>
     /// The first instant around which the curve is not infinite.
@@ -209,22 +224,64 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve is 0 for all $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsZero =>
-        BaseSequence.IsZero && PseudoPeriodHeight.IsZero;
+    public bool IsZero
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isZero);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => BaseSequence.IsZero && PseudoPeriodHeight.IsZero, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isZero, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsZero"/>.</summary>
+    internal Lazy<bool>? _isZero;
 
     /// <summary>
     /// True if the curve has $+\infty$ value for any $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPlusInfinite =>
-        this.Equivalent(PlusInfinite());
+    public bool IsPlusInfinite
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isPlusInfinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => this.Equivalent(PlusInfinite()), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isPlusInfinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsPlusInfinite"/>.</summary>
+    internal Lazy<bool>? _isPlusInfinite;
 
     /// <summary>
     /// True if the curve has $-\infty$ value for any $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsMinusInfinite =>
-        this.Equivalent(MinusInfinite());
+    public bool IsMinusInfinite
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isMinusInfinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => this.Equivalent(MinusInfinite()), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isMinusInfinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsMinusInfinite"/>.</summary>
+    internal Lazy<bool>? _isMinusInfinite;
 
     /// <summary>
     /// True if the curve has $+\infty$ value for some $t$.
@@ -299,17 +356,29 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         get
         {
-            if (!BaseSequence.IsContinuous)
-                return false;
+            var cache = Volatile.Read(ref _isContinuous);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() =>
+                {
+                    if (!BaseSequence.IsContinuous)
+                        return false;
 
-            Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
-            Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
+                    Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
+                    Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
 
-            bool isPeriodicContinuous = pseudoPeriodStartValue + PseudoPeriodHeight == pseudoPeriodLastValue;
+                    bool isPeriodicContinuous = pseudoPeriodStartValue + PseudoPeriodHeight == pseudoPeriodLastValue;
 
-            return isPeriodicContinuous;
+                    return isPeriodicContinuous;
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isContinuous, candidate, null) ?? candidate;
+            }
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="IsContinuous"/>.</summary>
+    internal Lazy<bool>? _isContinuous;
 
     /// <summary>
     /// True if there is no discontinuity within the curve, except at most in origin.
@@ -319,23 +388,35 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         get
         {
-            if (!BaseSequence
-                    .Cut(0, BaseSequence.DefinedUntil, isStartIncluded: false)
-                    .IsContinuous)
-                return false;
+            var cache = Volatile.Read(ref _isContinuousExceptOrigin);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() =>
+                {
+                    if (!BaseSequence
+                            .Cut(0, BaseSequence.DefinedUntil, isStartIncluded: false)
+                            .IsContinuous)
+                        return false;
 
-            // with the pseudo-period starting at 0, a jump right after 0 repeats right after the end of each pseudo-period
-            if (PseudoPeriodStart == 0 && !IsRightContinuousAt(0))
-                return false;
+                    // with the pseudo-period starting at 0, a jump right after 0 repeats right after the end of each pseudo-period
+                    if (PseudoPeriodStart == 0 && !IsRightContinuousAt(0))
+                        return false;
 
-            Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
-            Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
+                    Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
+                    Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
 
-            bool isPeriodicContinuous = pseudoPeriodStartValue + PseudoPeriodHeight == pseudoPeriodLastValue;
+                    bool isPeriodicContinuous = pseudoPeriodStartValue + PseudoPeriodHeight == pseudoPeriodLastValue;
 
-            return isPeriodicContinuous;
+                    return isPeriodicContinuous;
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isContinuousExceptOrigin, candidate, null) ?? candidate;
+            }
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="IsContinuousExceptOrigin"/>.</summary>
+    internal Lazy<bool>? _isContinuousExceptOrigin;
 
     /// <summary>
     /// True if there is no left-discontinuity within the curve.
@@ -558,23 +639,98 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <summary>True if every defined value is non-positive.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNonPositive => BaseSequence.IsNonPositive && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
+    public bool IsNonPositive
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonPositive);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => BaseSequence.IsNonPositive && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite)), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonPositive, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsNonPositive"/>.</summary>
+    internal Lazy<bool>? _isNonPositive;
 
     /// <summary>True if every defined value is strictly positive, including plus infinity.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPositive => BaseSequence.IsPositive && (PseudoPeriodSlope >= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
+    public bool IsPositive
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isPositive);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => BaseSequence.IsPositive && (PseudoPeriodSlope >= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite)), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isPositive, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsPositive"/>.</summary>
+    internal Lazy<bool>? _isPositive;
 
     /// <summary>True if every defined value is strictly negative, including minus infinity.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNegative => BaseSequence.IsNegative && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
+    public bool IsNegative
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNegative);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => BaseSequence.IsNegative && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite)), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNegative, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsNegative"/>.</summary>
+    internal Lazy<bool>? _isNegative;
 
     /// <summary>True if one constant value, possibly infinite, holds on the whole support.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsConstant => BaseSequence.IsConstant && (PseudoPeriodHeight == 0 || IsUltimatelyInfinite);
+    public bool IsConstant
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isConstant);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => BaseSequence.IsConstant && (PseudoPeriodHeight == 0 || IsUltimatelyInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isConstant, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsConstant"/>.</summary>
+    internal Lazy<bool>? _isConstant;
 
     /// <summary>True if finite coefficients define one affine function on the whole support.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsAffine => IsUltimatelyAffine && BaseSequence.IsAffine;
+    public bool IsAffine
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isAffine);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsUltimatelyAffine && BaseSequence.IsAffine, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isAffine, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsAffine"/>.</summary>
+    internal Lazy<bool>? _isAffine;
 
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
@@ -852,7 +1008,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
             throw new ArgumentException("Equal interval endpoints must both be included.");
 
-        if (start == intervalEnd)
+        if (start == intervalEnd || ContinuousIfKnown == true)
             return true;
         if (start == 0 && intervalEnd.IsPlusInfinite && isStartIncluded)
             return IsContinuous;
@@ -965,29 +1121,85 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// This property does not check if $f(t), t &lt;$ <see cref="PseudoPeriodStart"/> is either infinite, finite or both.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyFinite =>
-        PseudoPeriodicElements.All(elem => elem.IsFinite);
+    public bool IsUltimatelyFinite
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isUltimatelyFinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => PseudoPeriodicElements.All(elem => elem.IsFinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isUltimatelyFinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsUltimatelyFinite"/>.</summary>
+    internal Lazy<bool>? _isUltimatelyFinite;
 
     /// <summary>
     /// True if, for some $T$, $f(t) = +\infty$ for all $t \ge T$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyPlusInfinite
-        => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsPlusInfinite();
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isUltimatelyPlusInfinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsPlusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isUltimatelyPlusInfinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsUltimatelyPlusInfinite"/>.</summary>
+    internal Lazy<bool>? _isUltimatelyPlusInfinite;
 
     /// <summary>
     /// True if, for some $T$, $f(t) = -\infty$ for all $t \ge T$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyMinusInfinite
-        => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite();
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isUltimatelyMinusInfinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isUltimatelyMinusInfinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsUltimatelyMinusInfinite"/>.</summary>
+    internal Lazy<bool>? _isUltimatelyMinusInfinite;
 
     /// <summary>
     /// True if, for $b \in \{-\infty, +\infty\}$ and some $T$, $f(t) = b$ for all $t \ge T$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyInfinite
-        => IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isUltimatelyInfinite);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isUltimatelyInfinite, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsUltimatelyInfinite"/>.</summary>
+    internal Lazy<bool>? _isUltimatelyInfinite;
 
     /// <summary>
     /// True if for all $t >$ <see cref="PseudoPeriodStart"/> the curve is either always finite or always infinite.
@@ -996,8 +1208,22 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Defined in [BT08], Definition 1.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyPlain =>
-        IsUltimatelyFinite || IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite;
+    public bool IsUltimatelyPlain
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isUltimatelyPlain);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsUltimatelyFinite || IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isUltimatelyPlain, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsUltimatelyPlain"/>.</summary>
+    internal Lazy<bool>? _isUltimatelyPlain;
 
     /// <summary>
     /// True if $f$ is plain, i.e., it is either
@@ -1013,38 +1239,78 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         get
         {
-            if (IsFinite)
-                return true;
+            var cache = Volatile.Read(ref _isPlain);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() =>
+                {
+                    if (IsFinite)
+                        return true;
 
-            var ti = PseudoPeriodStartInfimum;
-            var transientIsFinite =  ti == 0 || CutAsEnumerable(0, ti, true, false).IsFinite();
-            var periodIsPlainlyInfinite =
-                ValueAt(ti).IsFinite
-                    ? (CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsMinusInfinite() ||
-                       CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsPlusInfinite())
-                    : (CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsMinusInfinite() ||
-                       CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsPlusInfinite());
+                    var ti = PseudoPeriodStartInfimum;
+                    var transientIsFinite =  ti == 0 || CutAsEnumerable(0, ti, true, false).IsFinite();
+                    var periodIsPlainlyInfinite =
+                        ValueAt(ti).IsFinite
+                            ? (CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsMinusInfinite() ||
+                               CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsPlusInfinite())
+                            : (CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsMinusInfinite() ||
+                               CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsPlusInfinite());
 
-            return transientIsFinite && periodIsPlainlyInfinite;
+                    return transientIsFinite && periodIsPlainlyInfinite;
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isPlain, candidate, null) ?? candidate;
+            }
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="IsPlain"/>.</summary>
+    internal Lazy<bool>? _isPlain;
 
     /// <summary>
     /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is finite and affine.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyAffine =>
-        IsUltimatelyFinite
-        && PseudoPeriodicElements.Count() == 2
-        && ((Segment)PseudoPeriodicElements.Last()).Slope == PseudoPeriodSlope
-        && IsContinuousAt(FirstPseudoPeriodEnd);
+    public bool IsUltimatelyAffine
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isUltimatelyAffine);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsUltimatelyFinite
+                    && PseudoPeriodicElements.Count() == 2
+                    && ((Segment)PseudoPeriodicElements.Last()).Slope == PseudoPeriodSlope
+                    && IsContinuousAt(FirstPseudoPeriodEnd), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isUltimatelyAffine, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsUltimatelyAffine"/>.</summary>
+    internal Lazy<bool>? _isUltimatelyAffine;
 
     /// <summary>
     /// True if for $t \ge$ <see cref="PseudoPeriodStart"/> the curve has one finite constant value.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyConstant =>
-        IsUltimatelyAffine && PseudoPeriodSlope == 0;
+    public bool IsUltimatelyConstant
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isUltimatelyConstant);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsUltimatelyAffine && PseudoPeriodSlope == 0, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isUltimatelyConstant, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsUltimatelyConstant"/>.</summary>
+    internal Lazy<bool>? _isUltimatelyConstant;
 
     /// <summary>
     /// True if the curve is subadditive, i.e. $f(t+s) \le f(t) + f(s)$.
@@ -1096,7 +1362,21 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularSubAdditive
-        => IsSubAdditive && IsPassingThroughOrigin;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isRegularSubAdditive);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsSubAdditive && IsPassingThroughOrigin, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isRegularSubAdditive, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsRegularSubAdditive"/>.</summary>
+    internal Lazy<bool>? _isRegularSubAdditive;
 
     /// <summary>
     /// True if the curve is super-additive, i.e. $f(t+s) \ge f(t) + f(s)$.
@@ -1152,7 +1432,21 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularSuperAdditive
-        => IsSuperAdditive && IsPassingThroughOrigin;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isRegularSuperAdditive);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsSuperAdditive && IsPassingThroughOrigin, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isRegularSuperAdditive, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsRegularSuperAdditive"/>.</summary>
+    internal Lazy<bool>? _isRegularSuperAdditive;
 
     /// <summary>
     /// Tests if the curve is concave,
@@ -1168,32 +1462,58 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         get
         {
-            if (IsContinuousExceptOrigin && ValueAt(0) <= RightLimitAt(0) && IsUltimatelyAffine)
+            var cache = Volatile.Read(ref _isConcave);
+            if (cache is null)
             {
-                var prevSlope = Rational.PlusInfinity;
-                foreach (var element in BaseSequence.Elements)
+                var candidate = new Lazy<bool>(() =>
                 {
-                    if (element is Segment s)
+                    if (IsContinuousExceptOrigin && ValueAt(0) <= RightLimitAt(0) && IsUltimatelyAffine)
                     {
-                        if (s.Slope > prevSlope)
-                            return false;
-                        prevSlope = s.Slope;
-                    }
-                }
+                        var prevSlope = Rational.PlusInfinity;
+                        foreach (var element in BaseSequence.Elements)
+                        {
+                            if (element is Segment s)
+                            {
+                                if (s.Slope > prevSlope)
+                                    return false;
+                                prevSlope = s.Slope;
+                            }
+                        }
 
-                return true;
+                        return true;
+                    }
+                    else
+                        return false;
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isConcave, candidate, null) ?? candidate;
             }
-            else
-                return false;
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="IsConcave"/>.</summary>
+    internal Lazy<bool>? _isConcave;
 
     /// <summary>
     /// Tests if the curve is concave with $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularConcave
-        => IsConcave && IsPassingThroughOrigin;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isRegularConcave);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsConcave && IsPassingThroughOrigin, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isRegularConcave, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsRegularConcave"/>.</summary>
+    internal Lazy<bool>? _isRegularConcave;
 
     /// <summary>
     /// Tests if the curve is convex,
@@ -1209,39 +1529,79 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         get
         {
-            if (IsContinuousExceptOrigin && ValueAt(0) >= RightLimitAt(0) && IsUltimatelyAffine)
+            var cache = Volatile.Read(ref _isConvex);
+            if (cache is null)
             {
-                var prevSlope = Rational.MinusInfinity;
-                foreach (var element in BaseSequence.Elements)
+                var candidate = new Lazy<bool>(() =>
                 {
-                    if (element is Segment s)
+                    if (IsContinuousExceptOrigin && ValueAt(0) >= RightLimitAt(0) && IsUltimatelyAffine)
                     {
-                        if (s.Slope < prevSlope)
-                            return false;
-                        prevSlope = s.Slope;
-                    }
-                }
+                        var prevSlope = Rational.MinusInfinity;
+                        foreach (var element in BaseSequence.Elements)
+                        {
+                            if (element is Segment s)
+                            {
+                                if (s.Slope < prevSlope)
+                                    return false;
+                                prevSlope = s.Slope;
+                            }
+                        }
 
-                return true;
+                        return true;
+                    }
+                    else
+                        return false;
+                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isConvex, candidate, null) ?? candidate;
             }
-            else
-                return false;
+            return cache.Value;
         }
     }
+
+    /// <summary>Cached value of <see cref="IsConvex"/>.</summary>
+    internal Lazy<bool>? _isConvex;
 
     /// <summary>
     /// Tests if the curve is convex with $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRegularConvex
-        => IsConvex && IsPassingThroughOrigin;
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isRegularConvex);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => IsConvex && IsPassingThroughOrigin, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isRegularConvex, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="IsRegularConvex"/>.</summary>
+    internal Lazy<bool>? _isRegularConvex;
 
     /// <summary>
     /// True if pseudo-periodic behavior starts at $T > 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool HasTransient =>
-        PseudoPeriodStart > 0;
+    public bool HasTransient
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _hasTransient);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => PseudoPeriodStart > 0, LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _hasTransient, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>Cached value of <see cref="HasTransient"/>.</summary>
+    internal Lazy<bool>? _hasTransient;
 
     /// <summary>
     /// Sequence describing the curve in $[0, T[$, before pseudo-periodic behavior.
@@ -1288,6 +1648,32 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     public virtual void ResetCachedProperties()
     {
+        Interlocked.Exchange(ref _hasTransient, null);
+        Interlocked.Exchange(ref _isRegularConvex, null);
+        Interlocked.Exchange(ref _isConvex, null);
+        Interlocked.Exchange(ref _isRegularConcave, null);
+        Interlocked.Exchange(ref _isConcave, null);
+        Interlocked.Exchange(ref _isRegularSuperAdditive, null);
+        Interlocked.Exchange(ref _isRegularSubAdditive, null);
+        Interlocked.Exchange(ref _isUltimatelyConstant, null);
+        Interlocked.Exchange(ref _isUltimatelyAffine, null);
+        Interlocked.Exchange(ref _isPlain, null);
+        Interlocked.Exchange(ref _isUltimatelyPlain, null);
+        Interlocked.Exchange(ref _isUltimatelyInfinite, null);
+        Interlocked.Exchange(ref _isUltimatelyMinusInfinite, null);
+        Interlocked.Exchange(ref _isUltimatelyPlusInfinite, null);
+        Interlocked.Exchange(ref _isUltimatelyFinite, null);
+        Interlocked.Exchange(ref _isAffine, null);
+        Interlocked.Exchange(ref _isConstant, null);
+        Interlocked.Exchange(ref _isNegative, null);
+        Interlocked.Exchange(ref _isPositive, null);
+        Interlocked.Exchange(ref _isNonPositive, null);
+        Interlocked.Exchange(ref _isContinuousExceptOrigin, null);
+        Interlocked.Exchange(ref _isContinuous, null);
+        Interlocked.Exchange(ref _isMinusInfinite, null);
+        Interlocked.Exchange(ref _isPlusInfinite, null);
+        Interlocked.Exchange(ref _isZero, null);
+        Interlocked.Exchange(ref _isFinite, null);
         Interlocked.Exchange(ref _hasPlusInfinity, null);
         Interlocked.Exchange(ref _hasMinusInfinity, null);
         Interlocked.Exchange(ref _isPassingThroughOrigin, null);
@@ -1307,6 +1693,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
 
     #region Known properties
+
+    /// <summary>
+    /// <see cref="IsContinuous"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? ContinuousIfKnown
+        => Volatile.Read(ref _isContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
 
     /// <summary>
     /// <see cref="IsLeftContinuous"/> if already cached, without forcing the check.
@@ -3072,6 +3464,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known_isNonDecreasing && known_isNonDecreasing.Value)
             result._isNonDecreasing = known_isNonDecreasing;
+        if (Volatile.Read(ref _isIncreasing) is { IsValueCreated: true } known_isIncreasing && known_isIncreasing.Value)
+            result._isIncreasing = known_isIncreasing;
+        if (Volatile.Read(ref _isNonIncreasing) is { IsValueCreated: true } known_isNonIncreasing && known_isNonIncreasing.Value)
+            result._isNonIncreasing = known_isNonIncreasing;
+        if (Volatile.Read(ref _isDecreasing) is { IsValueCreated: true } known_isDecreasing && known_isDecreasing.Value)
+            result._isDecreasing = known_isDecreasing;
+        if (Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } known_isNonNegative && known_isNonNegative.Value)
+            result._isNonNegative = known_isNonNegative;
+        if (Volatile.Read(ref _isNonPositive) is { IsValueCreated: true } known_isNonPositive && known_isNonPositive.Value)
+            result._isNonPositive = known_isNonPositive;
+        if (Volatile.Read(ref _isPositive) is { IsValueCreated: true } known_isPositive && known_isPositive.Value)
+            result._isPositive = known_isPositive;
+        if (Volatile.Read(ref _isNegative) is { IsValueCreated: true } known_isNegative && known_isNegative.Value)
+            result._isNegative = known_isNegative;
         if (Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } known_isLeftContinuous && known_isLeftContinuous.Value)
             result._isLeftContinuous = known_isLeftContinuous;
         if (Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } known_isRightContinuous && known_isRightContinuous.Value)
