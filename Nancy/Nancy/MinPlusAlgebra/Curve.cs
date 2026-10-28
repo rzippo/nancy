@@ -5203,22 +5203,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
     }
 
-    /// <summary>
-    /// If the curve is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$,
-    /// returns the first time around which $f(t)$ gets close to $x$ (i.e., either it attains the value or has it as a limit).
-    /// Otherwise, returns $+\infty$.
-    /// </summary>
+    /// <summary>Returns the earliest boundary location of the supremum.</summary>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>A boundary time, or plus infinity when the bound is approached only as time tends to infinity.</returns>
     public Rational SupArg(ComputationSettings? settings = null)
     {
-        if (PseudoPeriodSlope <= 0)
-        {
-            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
-            return cut.SupArg();
-        }
-        else
-        {
-            return Rational.PlusInfinity;
-        }
+        var cut = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+        return PseudoPeriodSlope > 0 && !cut.SupValue().IsPlusInfinite
+            ? Rational.PlusInfinity
+            : cut.Elements.SupArg();
     }
 
     /// <summary>
@@ -5272,22 +5265,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
     }
 
-    /// <summary>
-    /// If the curve is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$,
-    /// returns the first time around which $f(t)$ gets close to $x$ (i.e., either it attains the value or has it as a limit).
-    /// Otherwise, returns $-\infty$.
-    /// </summary>
+    /// <summary>Returns the earliest boundary location of the infimum.</summary>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>A boundary time, or plus infinity when the bound is approached only as time tends to infinity.</returns>
     public Rational InfArg(ComputationSettings? settings = null)
     {
-        if (PseudoPeriodSlope >= 0)
-        {
-            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
-            return cut.InfArg();
-        }
-        else
-        {
-            return Rational.MinusInfinity;
-        }
+        var cut = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+        return PseudoPeriodSlope < 0 && !cut.InfValue().IsMinusInfinite
+            ? Rational.PlusInfinity
+            : cut.Elements.InfArg();
     }
 
     /// <summary>

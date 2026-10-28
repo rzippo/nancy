@@ -1002,7 +1002,7 @@ public static class SequenceExtensions
         return attainingElement switch
         {
             Point p => p.Time,
-            Segment s => s.TimeAt(sup),
+            Segment s => InteriorTime(s),
             _ => null
         };
     }
@@ -1017,7 +1017,7 @@ public static class SequenceExtensions
         return attainingElement switch
         {
             Point p => p.Time,
-            Segment s => s.TimeAt(sup),
+            Segment s => InteriorTime(s),
             _ => null
         };
     }
@@ -1090,7 +1090,7 @@ public static class SequenceExtensions
         return attainingElement switch
         {
             Point p => p.Time,
-            Segment s => s.TimeAt(inf),
+            Segment s => InteriorTime(s),
             _ => null
         };
     }
@@ -1105,9 +1105,47 @@ public static class SequenceExtensions
         return attainingElement switch
         {
             Point p => p.Time,
-            Segment s => s.TimeAt(inf),
+            Segment s => InteriorTime(s),
             _ => null
         };
+    }
+
+    /// <summary>
+    /// Chooses a finite time strictly inside the segment's open support.
+    /// </summary>
+    /// <param name="segment">The segment to sample.</param>
+    /// <returns>An interior time, without requiring a particular representative.</returns>
+    /// <remarks>
+    /// For a constant segment, every interior time attains its value, whereas its endpoints are excluded.
+    /// </remarks>
+    private static Rational InteriorTime(Segment segment)
+    {
+        if (segment.StartTime.IsFinite)
+        {
+            if (segment.EndTime.IsFinite)
+            {
+                // The midpoint lies strictly between the two finite endpoints.
+                return segment.StartTime + (segment.EndTime - segment.StartTime) / 2;
+            }
+            else
+            {
+                // With no upper bound, moving one unit right stays inside the support.
+                return segment.StartTime + 1;
+            }
+        }
+        else
+        {
+            if (segment.EndTime.IsFinite)
+            {
+                // With no lower bound, moving one unit left stays inside the support.
+                return segment.EndTime - 1;
+            }
+            else
+            {
+                // The support is the whole real line, so zero is an interior time.
+                return 0;
+            }
+        }
     }
 
     /// <summary>
