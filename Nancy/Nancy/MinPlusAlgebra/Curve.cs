@@ -5708,11 +5708,19 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional computation settings.</param>
     /// <returns>A boundary time, or plus infinity when the bound is approached only as time tends to infinity.</returns>
     public Rational SupArg(ComputationSettings? settings = null)
+        => SupValueAndArg(settings).Time;
+
+    /// <summary>Finds the supremum and its earliest boundary location in one traversal of a sufficient finite cut.</summary>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>The bound and its earliest value or one-sided-limit location.
+    /// The time is plus infinity when the bound is approached only asymptotically.</returns>
+    public (Rational Value, Rational Time) SupValueAndArg(ComputationSettings? settings = null)
     {
-        var cut = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
-        return PseudoPeriodSlope > 0 && !cut.SupValue().IsPlusInfinite
-            ? Rational.PlusInfinity
-            : cut.Elements.SupArg();
+        var bound = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings)
+            .SupValueAndArg();
+        return PseudoPeriodSlope > 0 && !bound.Value.IsPlusInfinite
+            ? (Rational.PlusInfinity, Rational.PlusInfinity)
+            : bound;
     }
 
     /// <summary>
@@ -5770,11 +5778,19 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional computation settings.</param>
     /// <returns>A boundary time, or plus infinity when the bound is approached only as time tends to infinity.</returns>
     public Rational InfArg(ComputationSettings? settings = null)
+        => InfValueAndArg(settings).Time;
+
+    /// <summary>Finds the infimum and its earliest boundary location in one traversal of a sufficient finite cut.</summary>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>The bound and its earliest value or one-sided-limit location.
+    /// The time is plus infinity when the bound is approached only asymptotically.</returns>
+    public (Rational Value, Rational Time) InfValueAndArg(ComputationSettings? settings = null)
     {
-        var cut = Cut(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
-        return PseudoPeriodSlope < 0 && !cut.InfValue().IsMinusInfinite
-            ? Rational.PlusInfinity
-            : cut.Elements.InfArg();
+        var bound = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings)
+            .InfValueAndArg();
+        return PseudoPeriodSlope < 0 && !bound.Value.IsMinusInfinite
+            ? (Rational.MinusInfinity, Rational.PlusInfinity)
+            : bound;
     }
 
     /// <summary>
