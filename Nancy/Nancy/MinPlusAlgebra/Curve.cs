@@ -447,17 +447,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start < 0 || start == Rational.PlusInfinity)
             throw new ArgumentException($"Invalid start: {start}");
 
+        var _end = end ?? Rational.PlusInfinity;
+        if (start == _end && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
         if (Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } known && known.Value)
             return true;
-
-        var _end = end ?? Rational.PlusInfinity;
 
         if(start == 0 && isStartIncluded && _end == Rational.PlusInfinity)
             return IsNonNegative;
         else if(start == _end)
         {
-            if (!(isStartIncluded && isEndIncluded))
-                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
             return ValueAt(start) >= 0;
         }
         else if(_end < Rational.PlusInfinity)
@@ -621,17 +621,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start < 0 || start == Rational.PlusInfinity)
             throw new ArgumentException($"Invalid start: {start}");
 
+        var _end = end ?? Rational.PlusInfinity;
+        if (start == _end && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
         if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known && known.Value)
             return true;
-
-        var _end = end ?? Rational.PlusInfinity;
 
         if(start == 0 && _end == Rational.PlusInfinity && isStartIncluded)
             return IsNonDecreasing;
         else if(start == _end)
         {
-            if (!(isStartIncluded && isEndIncluded))
-                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
             return true;
         }
         else if(_end < Rational.PlusInfinity)
@@ -673,17 +673,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start < 0 || start == Rational.PlusInfinity)
             throw new ArgumentException($"Invalid start: {start}");
 
+        var _end = end ?? Rational.PlusInfinity;
+        if (start == _end && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
         if (Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } known && known.Value)
             return true;
-
-        var _end = end ?? Rational.PlusInfinity;
 
         if(start == 0 && _end == Rational.PlusInfinity)
             return IsLeftContinuous;
         else if(start == _end)
         {
-            if (!(isStartIncluded && isEndIncluded))
-                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
             return true;
         }
         else if(_end < Rational.PlusInfinity)
@@ -724,17 +724,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start < 0 || start == Rational.PlusInfinity)
             throw new ArgumentException($"Invalid start: {start}");
 
+        var _end = end ?? Rational.PlusInfinity;
+        if (start == _end && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
         if (Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } known && known.Value)
             return true;
-
-        var _end = end ?? Rational.PlusInfinity;
 
         if(start == 0 && _end == Rational.PlusInfinity && isStartIncluded)
             return IsRightContinuous;
         else if(start == _end)
         {
-            if (!(isStartIncluded && isEndIncluded))
-                throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
             return true;
         }
         else if(_end < Rational.PlusInfinity)
