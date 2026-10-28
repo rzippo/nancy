@@ -868,15 +868,12 @@ public sealed class Segment : Element, IEquatable<Segment>
         Rational overlapStart, overlapEnd;
         (overlapStart, overlapEnd) = overlap ?? throw new ArgumentException("Non-overlapping segments");
 
-        Segment firstCut = a.Cut(overlapStart, overlapEnd);
-        Segment secondCut = b.Cut(overlapStart, overlapEnd);
-
         Segment sumResult = new Segment
         (
             startTime: overlapStart,
             endTime: overlapEnd,
-            rightLimitAtStartTime: firstCut.RightLimitAtStartTime + secondCut.RightLimitAtStartTime,
-            slope: firstCut.Slope + secondCut.Slope
+            rightLimitAtStartTime: a.RightLimitAt(overlapStart) + b.RightLimitAt(overlapStart),
+            slope: a.Slope + b.Slope
         );
 
         return sumResult;
@@ -965,15 +962,12 @@ public sealed class Segment : Element, IEquatable<Segment>
         Rational overlapStart, overlapEnd;
         (overlapStart, overlapEnd) = overlap ?? throw new ArgumentException("Non-overlapping segments");
 
-        Segment firstCut = a.Cut(overlapStart, overlapEnd);
-        Segment secondCut = b.Cut(overlapStart, overlapEnd);
-
         Segment subResult = new Segment
         (
             startTime: overlapStart,
             endTime: overlapEnd,
-            rightLimitAtStartTime: firstCut.RightLimitAtStartTime - secondCut.RightLimitAtStartTime,
-            slope: firstCut.Slope - secondCut.Slope
+            rightLimitAtStartTime: a.RightLimitAt(overlapStart) - b.RightLimitAt(overlapStart),
+            slope: a.Slope - b.Slope
         );
 
         return subResult;
