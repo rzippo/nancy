@@ -9,7 +9,7 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// <summary>
 /// Provides LINQ extensions methods for <see cref="Sequence"/> and <see cref="Element"/>.
 /// </summary>
-public static class SequenceExtensions
+public static partial class SequenceExtensions
 {
     #if DO_LOG
     private static Logger logger = LogManager.GetCurrentClassLogger();
