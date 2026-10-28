@@ -1714,7 +1714,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     /// <summary>
     /// Shifts the sequence horizontally to the right, i.e. $g(t) = f(t - T)$.
-    /// If $T \ge 0$, it behaves like <see cref="Delay(Rational, bool)"/> (with prependWithZeros set to false).
+    /// If $T \ge 0$, it behaves like <see cref="Delay(Rational, bool)"/> (with its default zero prefix).
     /// If $T &lt; 0$, it behaves like <see cref="Forward(Rational)"/>.
     /// </summary>
     /// <exception cref="ArgumentException">If <paramref name="shift"/> is infinite.</exception>
