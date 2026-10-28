@@ -310,62 +310,19 @@ public static partial class SequenceExtensions
     /// Applies merge, whenever possible, to a set of elements.
     /// The result is the minimal set, in number of elements, to represent the same information.
     /// </summary>
-    /// <param name="elements">The elements to merge.</param>
+    /// <param name="elements">Ordered, non-overlapping elements; gaps and missing boundary points are allowed.</param>
     /// <param name="doSort">If true, the elements are sorted before attempting to merge.</param>
     /// <param name="settings">Settings to forward to SortElements, if used.</param>
     /// <returns>A set where no further merges are possible.</returns>
     /// <remarks>
-    /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
+    /// Compatible adjoining segment–point–segment triples are merged; gaps and missing joining points are preserved.
     /// </remarks>
+    /// <exception cref="ArgumentException">If input is empty, overlaps or is out of order.</exception>
     public static List<Element> Merge(this IReadOnlyList<Element> elements, bool doSort = false, ComputationSettings? settings = null)
     {
-        var reorderedElements = doSort ? elements.SortElements(settings): elements;
-
-        List<Element> mergedElements = new List<Element>();
-
-        int index = 0;
-        while (index < reorderedElements.Count)
-        {
-            switch(reorderedElements[index])
-            {
-                case Point point:
-                    mergedElements.Add(point);
-                    break;
-
-                case Segment _:
-                    var segment = MergeAhead();
-                    mergedElements.Add(segment);
-                    break;
-            }
-
-            index++;
-
-            Segment MergeAhead()
-            {
-                Segment left = (Segment)reorderedElements[index];
-
-                while (index < reorderedElements.Count - 2)
-                {
-                    if (
-                        reorderedElements[index + 1] is Point point &&
-                        reorderedElements[index + 2] is Segment right &&
-                        CanMergeTriplet(left, point, right)
-                    )
-                    {
-                        left = MergeTriplet(left, point, right);
-                        index += 2;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                return left;
-            }                
-        }
-
-        return mergedElements;
+        var ordered = doSort ? elements.SortElements(settings) : elements;
+        return ordered.MergeAsEnumerable()
+            .ToList();
     }
 
     /// <summary>
@@ -405,70 +362,75 @@ public static partial class SequenceExtensions
     /// Applies merge, whenever possible, to a set of elements.
     /// The result is the minimal set, in number of elements, to represent the same information.
     /// </summary>
-    /// <param name="elements">The elements to merge, must be sorted</param>
+    /// <param name="elements">Ordered, non-overlapping elements; gaps and missing boundary points are allowed.</param>
     /// <returns>A set where no further merges are possible.</returns>
     /// <remarks>
-    /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
+    /// Compatible adjoining segment–point–segment triples are merged; gaps and missing joining points are preserved.
     /// Optimized for minimal allocations.
     /// </remarks>
+    /// <exception cref="ArgumentException">If input is empty, overlaps or is out of order.</exception>
     public static IEnumerable<Element> MergeAsEnumerable(this IEnumerable<Element> elements)
     {
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
-            throw new ArgumentException("Elements is an empty collection");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        var previous = enumerator.Current;
+        var pending = previous;
 
-        // pass on first point, if any
-        if (enumerator.Current is Point)
-        {
-            yield return enumerator.Current;
-            if(!enumerator.MoveNext())
-                yield break;
-        }
-
-        Segment left;
-        if (enumerator.Current is not Segment)
-            throw new ArgumentException("Invalid sequence of elements");
-        left = (Segment) enumerator.Current;
-
-        // At the start of each iteration, left is the current segment
-        // as long as we don't hit the end,
-        // we fetch a point and a segment, check for merging, and restore the initial condition
         while (true)
         {
-            if (!enumerator.MoveNext())
+            if (pending is Point)
+            {
+                yield return pending;
+                if (!ReadNext())
+                    yield break;
+                pending = enumerator.Current;
+                continue;
+            }
+
+            var left = (Segment) pending;
+            if (!ReadNext())
             {
                 yield return left;
                 yield break;
             }
 
-            if (enumerator.Current is not Point center)
-                throw new ArgumentException("Invalid sequence of elements");
+            if (enumerator.Current is not Point center || center.Time != left.EndTime)
+            {
+                yield return left;
+                pending = enumerator.Current;
+                continue;
+            }
 
-            if (!enumerator.MoveNext())
+            if (!ReadNext())
             {
                 yield return left;
                 yield return center;
                 yield break;
             }
 
-            if (enumerator.Current is not Segment right)
-                throw new ArgumentException("Invalid sequence of elements");
-
-            if (SequenceExtensions.CanMergeTriplet(left, center, right))
+            if (enumerator.Current is Segment right && CanMergeTriplet(left, center, right))
             {
-                left = new Segment(
-                    startTime: left.StartTime,
-                    endTime: right.EndTime,
-                    rightLimitAtStartTime: left.RightLimitAtStartTime,
-                    slope: left.Slope
-                );
+                pending = MergeTriplet(left, center, right);
             }
             else
             {
                 yield return left;
                 yield return center;
-                left = right;
+                pending = enumerator.Current;
             }
+        }
+
+        bool ReadNext()
+        {
+            if (!enumerator.MoveNext())
+                return false;
+            var next = enumerator.Current;
+            if (next.StartTime < previous.EndTime ||
+                (next.StartTime == previous.EndTime && previous is Point && next is Point))
+                throw new ArgumentException("Elements must be ordered and have non-overlapping supports.", nameof(elements));
+            previous = next;
+            return true;
         }
     }
 
