@@ -4763,7 +4763,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
                 // -inf below the value at the start, and at the right limit of an excluded start where f rises, as no instant of the interval is at or below it, [TBP-PI-INT] Proposition 9
                 var sequence = upi
-                    .Fill(0, valueAtStart, fillWith: Rational.MinusInfinity)
+                    .Fill(0, valueAtStart, isToIncluded: true, fillWith: Rational.MinusInfinity)
                     .ToSequence();
 
                 return new Curve(
@@ -4799,7 +4799,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 var valueAtStart = isStartIncluded ? ValueAt(start) : RightLimitAt(start);
                 // -inf below the value at the start, and at the right limit of an excluded start where f rises, as no instant of the interval is at or below it, [TBP-PI-INT] Proposition 9
                 var sequence = upi
-                    .Fill(0, valueAtStart, fillWith: Rational.MinusInfinity)
+                    .Fill(0, valueAtStart, isToIncluded: true, fillWith: Rational.MinusInfinity)
                     .ToSequence();
 
                 return new Curve(
@@ -4821,7 +4821,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 var valueAtStart = isStartIncluded ? ValueAt(start) : RightLimitAt(start);
                 // -inf below the value at the start, and at the right limit of an excluded start where f rises, as no instant of the interval is at or below it, [TBP-PI-INT] Proposition 9
                 var sequence = upi
-                    .Fill(0, valueAtStart, fillWith: Rational.MinusInfinity)
+                    .Fill(0, valueAtStart, isToIncluded: true, fillWith: Rational.MinusInfinity)
                     .ToSequence();
 
                 return new Curve(

@@ -192,16 +192,30 @@ public static class SequenceExtensions
     }
 
     /// <summary>
-    /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/>
-    /// with the given value, defaults to $+\infty$.
+    /// Fills the gaps of the set of elements within <paramref name="interval"/> with the given value, defaults to $+\infty$.
     /// </summary>
-    /// <param name="elements">The set of elements. Must be in order.</param>
+    /// <param name="elements">The set of elements, in time order and with non-overlapping supports.</param>
+    /// <param name="interval">The filling interval.</param>
+    /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
+    /// <returns>The elements, with gaps within the filling interval filled with constant elements of value <paramref name="fillWith"/>.</returns>
+    /// <remarks>Elements outside the filling interval are kept unchanged. If the filling interval is empty, the elements are returned unchanged.</remarks>
+    /// <exception cref="ArgumentException">During enumeration, if the elements are out of order or have overlapping supports.</exception>
+    public static IEnumerable<Element> Fill(this IEnumerable<Element> elements, Interval interval, Rational? fillWith = null)
+        => elements.Fill(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded, fillWith);
+
+    /// <summary>
+    /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.
+    /// </summary>
+    /// <param name="elements">The set of elements, in time order and with non-overlapping supports.</param>
     /// <param name="fillFrom">Left endpoint of the filling interval.</param>
     /// <param name="fillTo">Right endpoint of the filling interval.</param>
     /// <param name="isFromIncluded">If true, left endpoint is inclusive.</param>
     /// <param name="isToIncluded">If true, right endpoint is inclusive.</param>
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
-    /// <returns>The result.</returns>
+    /// <returns>The elements, with gaps within the filling interval filled with constant elements of value <paramref name="fillWith"/>.</returns>
+    /// <remarks>Elements outside the filling interval are kept unchanged. If the filling interval is empty, the elements are returned unchanged.</remarks>
+    /// <exception cref="ArgumentException">If the filling interval is not valid.</exception>
+    /// <exception cref="ArgumentException">During enumeration, if the elements are out of order or have overlapping supports.</exception>
     public static IEnumerable<Element> Fill(
         this IEnumerable<Element> elements,
         Rational fillFrom,
@@ -211,53 +225,71 @@ public static class SequenceExtensions
         Rational? fillWith = null
     )
     {
-        Rational value = fillWith ?? Rational.PlusInfinity;
-        Rational expectedStart = fillFrom;
-        bool isExpectingPoint = isFromIncluded;
-        foreach (var element in elements)
-        {
-            if(expectedStart > element.StartTime)
-                throw new ArgumentException("Segments out of order");
+        if (fillFrom > fillTo)
+            throw new ArgumentException("The filling interval is reversed.", nameof(fillTo));
+        return Filled();
 
-            if (expectedStart < element.StartTime)
+        IEnumerable<Element> Filled()
+        {
+            var value = fillWith ?? Rational.PlusInfinity;
+            using var enumerator = elements.GetEnumerator();
+            if (!enumerator.MoveNext())
             {
-                if (isExpectingPoint)
-                    yield return new Point(expectedStart, value);
-                yield return fillSegment(expectedStart, element.StartTime);
-                if(element is Segment)
-                    yield return new Point(element.StartTime, value);
+                if (fillFrom == fillTo && !(isFromIncluded && isToIncluded))
+                    yield break;
+                if (isFromIncluded)
+                    yield return new Point(fillFrom, value);
+                if (fillFrom < fillTo)
+                {
+                    yield return Segment.Constant(fillFrom, fillTo, value);
+                    if (isToIncluded)
+                        yield return new Point(fillTo, value);
+                }
+                yield break;
             }
 
-            if (expectedStart == element.StartTime && !(element is Point) && isExpectingPoint)
+            var current = enumerator.Current;
+            foreach (var filler in FillGap(fillFrom, current.StartTime, isFromIncluded, current is Segment))
+                yield return filler;
+            yield return current;
+
+            while (enumerator.MoveNext())
             {
-                yield return new Point(expectedStart, value);
+                var next = enumerator.Current;
+                if (next.StartTime < current.EndTime ||
+                    (next.StartTime == current.EndTime && current is Point && next is Point))
+                    throw new ArgumentException("Elements must be ordered and have non-overlapping supports.", nameof(elements));
+
+                foreach (var filler in FillGap(current.EndTime, next.StartTime, current is Segment, next is Segment))
+                    yield return filler;
+                yield return next;
+                current = next;
             }
 
-            yield return element;
-            expectedStart = element.EndTime;
-            isExpectingPoint = element is Segment;
-        }
+            foreach (var filler in FillGap(current.EndTime, fillTo, current is Segment, isToIncluded))
+                yield return filler;
 
-        if (expectedStart < fillTo)
-        {
-            if (isExpectingPoint)
-                yield return new Point(expectedStart, value);
-            yield return fillSegment(expectedStart, fillTo);
-            isExpectingPoint = true;
-        }
-
-        if(isToIncluded && isExpectingPoint)
-            yield return new Point(fillTo, value);
-
-        Segment fillSegment(Rational start, Rational end)
-        {
-            if (value.IsPlusInfinite)
+            // Intersect each missing interval with the requested filling interval.
+            // Its endpoint flags distinguish missing boundary points from values supplied by the input.
+            IEnumerable<Element> FillGap(Rational start, Rational end, bool includeStart, bool includeEnd)
             {
-                return Segment.PlusInfinite(start, end);
-            }
-            else
-            {
-                return Segment.Constant(start, end, value);
+                var from = Rational.Max(start, fillFrom);
+                var to = Rational.Min(end, fillTo);
+                var leftIncluded = (from > start || includeStart) && (from > fillFrom || isFromIncluded);
+                var rightIncluded = (to < end || includeEnd) && (to < fillTo || isToIncluded);
+                if (from > to)
+                    yield break;
+                if (from == to)
+                {
+                    if (leftIncluded && rightIncluded)
+                        yield return new Point(from, value);
+                    yield break;
+                }
+                if (leftIncluded)
+                    yield return new Point(from, value);
+                yield return Segment.Constant(from, to, value);
+                if (rightIncluded)
+                    yield return new Point(to, value);
             }
         }
     }
@@ -1412,9 +1444,26 @@ public static class SequenceExtensions
         var upi = Inverse();
 
         // from 0 up to the first value of the sequence, no instant has f(t) <= y, and the supremum is -inf
-        return startFromZero
-            ? upi.Fill(0, 0, fillWith: Rational.MinusInfinity)
-            : upi;
+        return startFromZero ? WithPrefix() : upi;
+
+        IEnumerable<Element> WithPrefix()
+        {
+            using var enumerator = upi.GetEnumerator();
+            if (!enumerator.MoveNext())
+                throw new ArgumentException("The inverse has no elements.", nameof(elements));
+            var first = enumerator.Current;
+            if (first.StartTime > 0)
+            {
+                yield return Point.MinusInfinite(0);
+                yield return Segment.MinusInfinite(0, first.StartTime);
+            }
+            if (first.StartTime >= 0 && first is Segment)
+                yield return Point.MinusInfinite(first.StartTime);
+            do
+            {
+                yield return enumerator.Current;
+            } while (enumerator.MoveNext());
+        }
 
         IEnumerable<Element> Inverse()
         {

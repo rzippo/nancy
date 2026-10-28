@@ -2559,7 +2559,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             ]);
 
             return new Curve(
-                baseSequence: new Sequence(elements, fillFrom: 0, fillTo: EndTime),
+                baseSequence: new Sequence(elements, fillFrom: 0, fillTo: closingEnd),
                 pseudoPeriodStart: closingStart,
                 pseudoPeriodLength: EndTime,
                 pseudoPeriodHeight: LeftLimitAtEndTime

@@ -1507,13 +1507,16 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.
     /// </summary>
-    /// <param name="elements">The set of elements. Must be in order.</param>
+    /// <param name="elements">The set of elements, in time order and with non-overlapping supports.</param>
     /// <param name="fillFrom">Left endpoint of the filling interval.</param>
     /// <param name="fillTo">Right endpoint of the filling interval.</param>
     /// <param name="isFromIncluded">If true, left endpoint is inclusive.</param>
     /// <param name="isToIncluded">If true, right endpoint is inclusive.</param>
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
-    /// <returns>The result.</returns>
+    /// <returns>The elements, with gaps within the filling interval filled with constant elements of value <paramref name="fillWith"/>.</returns>
+    /// <remarks>Elements outside the filling interval are kept unchanged. If the filling interval is empty, the elements are returned unchanged.</remarks>
+    /// <exception cref="ArgumentException">If the filling interval is not valid.</exception>
+    /// <exception cref="ArgumentException">During enumeration, if the elements are out of order or have overlapping supports.</exception>
     public static IEnumerable<Element> Fill(
         IEnumerable<Element> elements,
         Rational fillFrom,
