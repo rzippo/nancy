@@ -191,7 +191,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (lastTransientSegment.Slope == lastPeriodSegment.Slope &&
                     gapBeforePeriodStart == gapBeforeFirstPeriodEnd
                    )
-                    
+
                     return lastTransientSegment.StartTime;    
             }
             // infinities must be compared without gap computations, which are undefined
@@ -292,7 +292,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     internal Lazy<bool>? _isPassingThroughOrigin;
 
     /// <summary>
-    /// True if there is no infinite value or discontinuity within the curve.
+    /// True if values and one-sided limits agree throughout the curve, including matching infinite values.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsContinuous
@@ -348,7 +348,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var cache = Volatile.Read(ref _isLeftContinuous);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Cut(0, SecondPseudoPeriodEnd).IsLeftContinuous, LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .IsLeftContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isLeftContinuous, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -371,7 +372,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var cache = Volatile.Read(ref _isRightContinuous);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Cut(0, SecondPseudoPeriodEnd).IsRightContinuous, LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .IsRightContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isRightContinuous, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -554,6 +556,26 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
     }
 
+    /// <summary>True if every defined value is non-positive.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsNonPositive => BaseSequence.IsNonPositive && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
+
+    /// <summary>True if every defined value is strictly positive, including plus infinity.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsPositive => BaseSequence.IsPositive && (PseudoPeriodSlope >= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
+
+    /// <summary>True if every defined value is strictly negative, including minus infinity.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsNegative => BaseSequence.IsNegative && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
+
+    /// <summary>True if one constant value, possibly infinite, holds on the whole support.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsConstant => BaseSequence.IsConstant && (PseudoPeriodHeight == 0 || IsUltimatelyInfinite);
+
+    /// <summary>True if finite coefficients define one affine function on the whole support.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsAffine => IsUltimatelyAffine && BaseSequence.IsAffine;
+
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
@@ -565,7 +587,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var cache = Volatile.Read(ref _isNonDecreasing);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, SecondPseudoPeriodEnd).IsNonDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .IsNonDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isNonDecreasing, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -587,7 +610,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var cache = Volatile.Read(ref _isIncreasing);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, SecondPseudoPeriodEnd).IsIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+                    .IsIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isIncreasing, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -610,7 +634,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var cache = Volatile.Read(ref _isNonIncreasing);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, SecondPseudoPeriodEnd)
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
                     .IsNonIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isNonIncreasing, candidate, null) ?? candidate;
             }
@@ -634,7 +658,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var cache = Volatile.Read(ref _isDecreasing);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, SecondPseudoPeriodEnd)
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
                     .IsDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isDecreasing, candidate, null) ?? candidate;
             }
@@ -664,38 +688,188 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         bool isEndIncluded = false
     )
     {
-        if (start > end)
-            throw new ArgumentException("Interval start cannot be after its end.");
-        if (start < 0 || start == Rational.PlusInfinity)
-            throw new ArgumentException($"Invalid start: {start}");
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
 
-        var _end = end ?? Rational.PlusInfinity;
-        if (start == _end && !(isStartIncluded && isEndIncluded))
-            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
-
-        if (NonDecreasingIfKnown == true)
+        if (start == intervalEnd || NonDecreasingIfKnown == true)
             return true;
-
-        if(start == 0 && _end == Rational.PlusInfinity && isStartIncluded)
+        if (start == 0 && intervalEnd.IsPlusInfinite && isStartIncluded)
             return IsNonDecreasing;
-        else if(start == _end)
-        {
+        if (intervalEnd.IsFinite)
+            return CutAsEnumerable(start, intervalEnd, isStartIncluded, isEndIncluded)
+                .IsNonDecreasing();
+
+        // One complete period contains every recurring transition, including its closing point.
+        var periodEnd = Rational.Max(start, PseudoPeriodStart) + PseudoPeriodLength;
+        var cut = CutAsEnumerable(start, periodEnd, isStartIncluded, isEndIncluded: true);
+        if (!cut.IsNonDecreasing())
+            return false;
+
+        // An excluded periodic start omits its transition to the right; check the repeated transition at the closing point.
+        if (!isStartIncluded && start >= PseudoPeriodStart)
+            return ValueAt(periodEnd) <= RightLimitAt(periodEnd);
+        return true;
+    }
+
+    /// <summary>True if the curve is strictly increasing on the given interval.</summary>
+    /// <param name="start">The finite non-negative start time.</param>
+    /// <param name="end">The end time; null means plus infinity.</param>
+    /// <param name="isStartIncluded">Whether the start belongs to the interval.</param>
+    /// <param name="isEndIncluded">Whether the finite end belongs to the interval.</param>
+    /// <returns>Whether the property holds on the requested support.</returns>
+    /// <exception cref="ArgumentException">If the interval is invalid.</exception>
+    public bool IsIncreasingOverInterval(
+        Rational start, Rational? end = null,
+        bool isStartIncluded = true, bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || IncreasingIfKnown == true)
             return true;
-        }
-        else if(_end < Rational.PlusInfinity)
-        {
-            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
-            return cut.IsNonDecreasing();
-        }
-        else
-        {
-            // the transient from start, if any, then two pseudo-periods:
-            // the end of the first period repeats its start, which the interval may exclude;
-            // a decrease right after that end shows only in the second period
-            var periodStart = Rational.Max(start, PseudoPeriodStart);
-            var cut = CutAsEnumerable(start, periodStart + 2 * PseudoPeriodLength, isStartIncluded, false);
-            return cut.IsNonDecreasing();
-        }
+        if (start == 0 && intervalEnd.IsPlusInfinite && isStartIncluded)
+            return IsIncreasing;
+        if (intervalEnd.IsFinite)
+            return CutAsEnumerable(start, intervalEnd, isStartIncluded, isEndIncluded)
+                .IsIncreasing();
+
+        // One complete period contains every recurring transition, including its closing point.
+        var periodEnd = Rational.Max(start, PseudoPeriodStart) + PseudoPeriodLength;
+        var cut = CutAsEnumerable(start, periodEnd, isStartIncluded, isEndIncluded: true);
+        if (!cut.IsIncreasing())
+            return false;
+
+        // An excluded periodic start omits its transition to the right; check the repeated transition at the closing point.
+        if (!isStartIncluded && start >= PseudoPeriodStart)
+            return ValueAt(periodEnd) <= RightLimitAt(periodEnd);
+        return true;
+    }
+
+    /// <summary>True if the curve is non-increasing on the given interval.</summary>
+    /// <param name="start">The finite non-negative start time.</param>
+    /// <param name="end">The end time; null means plus infinity.</param>
+    /// <param name="isStartIncluded">Whether the start belongs to the interval.</param>
+    /// <param name="isEndIncluded">Whether the finite end belongs to the interval.</param>
+    /// <returns>Whether the property holds on the requested support.</returns>
+    /// <exception cref="ArgumentException">If the interval is invalid.</exception>
+    public bool IsNonIncreasingOverInterval(
+        Rational start, Rational? end = null,
+        bool isStartIncluded = true, bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || NonIncreasingIfKnown == true)
+            return true;
+        if (start == 0 && intervalEnd.IsPlusInfinite && isStartIncluded)
+            return IsNonIncreasing;
+        if (intervalEnd.IsFinite)
+            return CutAsEnumerable(start, intervalEnd, isStartIncluded, isEndIncluded)
+                .IsNonIncreasing();
+
+        // One complete period contains every recurring transition, including its closing point.
+        var periodEnd = Rational.Max(start, PseudoPeriodStart) + PseudoPeriodLength;
+        var cut = CutAsEnumerable(start, periodEnd, isStartIncluded, isEndIncluded: true);
+        if (!cut.IsNonIncreasing())
+            return false;
+
+        // An excluded periodic start omits its transition to the right; check the repeated transition at the closing point.
+        if (!isStartIncluded && start >= PseudoPeriodStart)
+            return ValueAt(periodEnd) >= RightLimitAt(periodEnd);
+        return true;
+    }
+
+    /// <summary>True if the curve is strictly decreasing on the given interval.</summary>
+    /// <param name="start">The finite non-negative start time.</param>
+    /// <param name="end">The end time; null means plus infinity.</param>
+    /// <param name="isStartIncluded">Whether the start belongs to the interval.</param>
+    /// <param name="isEndIncluded">Whether the finite end belongs to the interval.</param>
+    /// <returns>Whether the property holds on the requested support.</returns>
+    /// <exception cref="ArgumentException">If the interval is invalid.</exception>
+    public bool IsDecreasingOverInterval(
+        Rational start, Rational? end = null,
+        bool isStartIncluded = true, bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || DecreasingIfKnown == true)
+            return true;
+        if (start == 0 && intervalEnd.IsPlusInfinite && isStartIncluded)
+            return IsDecreasing;
+        if (intervalEnd.IsFinite)
+            return CutAsEnumerable(start, intervalEnd, isStartIncluded, isEndIncluded)
+                .IsDecreasing();
+
+        // One complete period contains every recurring transition, including its closing point.
+        var periodEnd = Rational.Max(start, PseudoPeriodStart) + PseudoPeriodLength;
+        var cut = CutAsEnumerable(start, periodEnd, isStartIncluded, isEndIncluded: true);
+        if (!cut.IsDecreasing())
+            return false;
+
+        // An excluded periodic start omits its transition to the right; check the repeated transition at the closing point.
+        if (!isStartIncluded && start >= PseudoPeriodStart)
+            return ValueAt(periodEnd) >= RightLimitAt(periodEnd);
+        return true;
+    }
+
+    /// <summary>True if the curve is continuous relative to the interval, including matching infinite values on the given interval.</summary>
+    /// <param name="start">The finite non-negative start time.</param>
+    /// <param name="end">The end time; null means plus infinity.</param>
+    /// <param name="isStartIncluded">Whether the start belongs to the interval.</param>
+    /// <param name="isEndIncluded">Whether the finite end belongs to the interval.</param>
+    /// <returns>Whether the property holds on the requested support.</returns>
+    /// <exception cref="ArgumentException">If the interval is invalid.</exception>
+    public bool IsContinuousOverInterval(
+        Rational start, Rational? end = null,
+        bool isStartIncluded = true, bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd)
+            return true;
+        if (start == 0 && intervalEnd.IsPlusInfinite && isStartIncluded)
+            return IsContinuous;
+        if (intervalEnd.IsFinite)
+            return CutAsEnumerable(start, intervalEnd, isStartIncluded, isEndIncluded)
+                .IsContinuous();
+
+        // One complete period contains every recurring transition, including its closing point.
+        var periodEnd = Rational.Max(start, PseudoPeriodStart) + PseudoPeriodLength;
+        var cut = CutAsEnumerable(start, periodEnd, isStartIncluded, isEndIncluded: true);
+        if (!cut.IsContinuous())
+            return false;
+
+        // An excluded periodic start omits its transition to the right; check the repeated transition at the closing point.
+        if (!isStartIncluded && start >= PseudoPeriodStart)
+            return ValueAt(periodEnd) == RightLimitAt(periodEnd);
+        return true;
     }
 
     /// <summary>
@@ -716,37 +890,26 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         bool isEndIncluded = false
     )
     {
-        if (start > end)
-            throw new ArgumentException("Interval start cannot be after its end.");
-        if (start < 0 || start == Rational.PlusInfinity)
-            throw new ArgumentException($"Invalid start: {start}");
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
 
-        var _end = end ?? Rational.PlusInfinity;
-        if (start == _end && !(isStartIncluded && isEndIncluded))
-            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
-
-        if (LeftContinuousIfKnown == true)
+        if (start == intervalEnd || LeftContinuousIfKnown == true)
             return true;
-
-        if(start == 0 && _end == Rational.PlusInfinity)
+        if (start == 0 && intervalEnd.IsPlusInfinite && isStartIncluded)
             return IsLeftContinuous;
-        else if(start == _end)
-        {
-            return true;
-        }
-        else if(_end < Rational.PlusInfinity)
-        {
-            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
-            return cut.IsLeftContinuous();
-        }
-        else
-        {
-            // the transient from start, if any, then a pseudo-period,
-            // whose left-discontinuities, its end included, are those of every later one
-            var periodStart = Rational.Max(start, PseudoPeriodStart);
-            var cut = CutAsEnumerable(start, periodStart + PseudoPeriodLength, isStartIncluded, true);
-            return cut.IsLeftContinuous();
-        }
+        if (intervalEnd.IsFinite)
+            return CutAsEnumerable(start, intervalEnd, isStartIncluded, isEndIncluded)
+                .IsLeftContinuous();
+
+        // One complete period contains every recurring transition, including its closing point.
+        var periodEnd = Rational.Max(start, PseudoPeriodStart) + PseudoPeriodLength;
+        var cut = CutAsEnumerable(start, periodEnd, isStartIncluded, isEndIncluded: true);
+        return cut.IsLeftContinuous();
     }
 
     /// <summary>
@@ -767,38 +930,32 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         bool isEndIncluded = false
     )
     {
-        if (start > end)
-            throw new ArgumentException("Interval start cannot be after its end.");
-        if (start < 0 || start == Rational.PlusInfinity)
-            throw new ArgumentException($"Invalid start: {start}");
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
 
-        var _end = end ?? Rational.PlusInfinity;
-        if (start == _end && !(isStartIncluded && isEndIncluded))
-            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
-
-        if (RightContinuousIfKnown == true)
+        if (start == intervalEnd || RightContinuousIfKnown == true)
             return true;
-
-        if(start == 0 && _end == Rational.PlusInfinity && isStartIncluded)
+        if (start == 0 && intervalEnd.IsPlusInfinite && isStartIncluded)
             return IsRightContinuous;
-        else if(start == _end)
-        {
-            return true;
-        }
-        else if(_end < Rational.PlusInfinity)
-        {
-            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
-            return cut.IsRightContinuous();
-        }
-        else
-        {
-            // the transient from start, if any, then two pseudo-periods:
-            // the end of the first period repeats its start, which the interval may exclude;
-            // a right-discontinuity at that end shows only in the second period
-            var periodStart = Rational.Max(start, PseudoPeriodStart);
-            var cut = CutAsEnumerable(start, periodStart + 2 * PseudoPeriodLength, isStartIncluded, false);
-            return cut.IsRightContinuous();
-        }
+        if (intervalEnd.IsFinite)
+            return CutAsEnumerable(start, intervalEnd, isStartIncluded, isEndIncluded)
+                .IsRightContinuous();
+
+        // One complete period contains every recurring transition, including its closing point.
+        var periodEnd = Rational.Max(start, PseudoPeriodStart) + PseudoPeriodLength;
+        var cut = CutAsEnumerable(start, periodEnd, isStartIncluded, isEndIncluded: true);
+        if (!cut.IsRightContinuous())
+            return false;
+
+        // An excluded periodic start omits its transition to the right; check the repeated transition at the closing point.
+        if (!isStartIncluded && start >= PseudoPeriodStart)
+            return ValueAt(periodEnd) == RightLimitAt(periodEnd);
+        return true;
     }
 
     /// <summary>
@@ -873,7 +1030,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is affine.
+    /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is finite and affine.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyAffine =>
@@ -883,7 +1040,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         && IsContinuousAt(FirstPseudoPeriodEnd);
 
     /// <summary>
-    /// True if for $t \ge$ <see cref="PseudoPeriodStart"/> the curve is constant.
+    /// True if for $t \ge$ <see cref="PseudoPeriodStart"/> the curve has one finite constant value.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsUltimatelyConstant =>
@@ -1180,6 +1337,18 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     private bool? NonIncreasingIfKnown
         => Volatile.Read(ref _isNonIncreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsIncreasing"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? IncreasingIfKnown
+        => Volatile.Read(ref _isIncreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsDecreasing"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? DecreasingIfKnown
+        => Volatile.Read(ref _isDecreasing) is { IsValueCreated: true } cache ? cache.Value : null;
 
     #endregion
 

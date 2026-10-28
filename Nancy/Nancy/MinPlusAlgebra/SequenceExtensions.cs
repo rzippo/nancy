@@ -1151,6 +1151,168 @@ public static partial class SequenceExtensions
         return true;
     }
 
+    /// <summary>True if every defined value is zero.</summary>
+    /// <param name="elements">The element stream; time order is not required.</param>
+    /// <returns>True if every element is zero; true for empty input.</returns>
+    public static bool IsZero(this IEnumerable<Element> elements)
+        => elements.All(e => e.IsZero);
+
+    /// <summary>True if every defined value is infinite, with either sign.</summary>
+    /// <param name="elements">The element stream; time order is not required.</param>
+    /// <returns>True if every element is infinite; true for empty input.</returns>
+    public static bool IsInfinite(this IEnumerable<Element> elements)
+        => elements.All(e => e.IsInfinite);
+
+    /// <summary>True if some defined value is plus infinity.</summary>
+    /// <param name="elements">The element stream; time order is not required.</param>
+    /// <returns>True if an element is plus infinite; false for empty input.</returns>
+    public static bool HasPlusInfinity(this IEnumerable<Element> elements)
+        => elements.Any(e => e.IsPlusInfinite);
+
+    /// <summary>True if some defined value is minus infinity.</summary>
+    /// <param name="elements">The element stream; time order is not required.</param>
+    /// <returns>True if an element is minus infinite; false for empty input.</returns>
+    public static bool HasMinusInfinity(this IEnumerable<Element> elements)
+        => elements.Any(e => e.IsMinusInfinite);
+
+    /// <summary>True if every defined value is non-positive.</summary>
+    /// <param name="elements">A nonempty element stream; time order is not required.</param>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    public static bool IsNonPositive(this IEnumerable<Element> elements)
+    {
+        var seen = false;
+        foreach (var element in elements)
+        {
+            seen = true;
+            var matches = element switch
+            {
+                Point point => point.Value <= 0,
+                Segment segment => segment.RightLimitAtStartTime <= 0 && segment.LeftLimitAtEndTime <= 0,
+                _ => throw new InvalidCastException()
+            };
+            if (!matches)
+                return false;
+        }
+        if (!seen)
+            throw new InvalidOperationException("Sequence contains no elements");
+        return true;
+    }
+
+    /// <summary>True if every defined value is strictly positive.</summary>
+    /// <param name="elements">A nonempty element stream; time order is not required.</param>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    public static bool IsPositive(this IEnumerable<Element> elements)
+    {
+        var seen = false;
+        foreach (var element in elements)
+        {
+            seen = true;
+            var matches = element switch
+            {
+                Point point => point.Value > 0,
+                Segment segment => segment.IsConstant
+                    ? segment.RightLimitAtStartTime > 0
+                    : segment.RightLimitAtStartTime >= 0 && segment.LeftLimitAtEndTime >= 0,
+                _ => throw new InvalidCastException()
+            };
+            if (!matches)
+                return false;
+        }
+        if (!seen)
+            throw new InvalidOperationException("Sequence contains no elements");
+        return true;
+    }
+
+    /// <summary>True if every defined value is strictly negative.</summary>
+    /// <param name="elements">A nonempty element stream; time order is not required.</param>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    public static bool IsNegative(this IEnumerable<Element> elements)
+    {
+        var seen = false;
+        foreach (var element in elements)
+        {
+            seen = true;
+            var matches = element switch
+            {
+                Point point => point.Value < 0,
+                Segment segment => segment.IsConstant
+                    ? segment.RightLimitAtStartTime < 0
+                    : segment.RightLimitAtStartTime <= 0 && segment.LeftLimitAtEndTime <= 0,
+                _ => throw new InvalidCastException()
+            };
+            if (!matches)
+                return false;
+        }
+        if (!seen)
+            throw new InvalidOperationException("Sequence contains no elements");
+        return true;
+    }
+
+    /// <summary>True if all defined values equal one constant, possibly infinite.</summary>
+    /// <param name="elements">A nonempty element stream; time order is not required.</param>
+    /// <returns>Whether every element has the same constant value.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    public static bool IsConstant(this IEnumerable<Element> elements)
+    {
+        Rational? value = null;
+        foreach (var element in elements)
+        {
+            if (element is Segment { IsConstant: false })
+                return false;
+            var current = element is Point point ? point.Value : ((Segment) element).RightLimitAtStartTime;
+            if (value is { } previous && previous != current)
+                return false;
+            value = current;
+        }
+        if (value is null)
+            throw new InvalidOperationException("Sequence contains no elements");
+        return true;
+    }
+
+    /// <summary>True if finite coefficients define one affine function on the whole support.</summary>
+    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
+    /// <returns>Whether all values belong to the same finite affine function.</returns>
+    /// <remarks>A finite singleton is affine. Infinite constants are not affine.
+    /// Ordering is checked during consumption; an unread tail is not validated after a decisive failure.</remarks>
+    /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
+    public static bool IsAffine(this IEnumerable<Element> elements)
+    {
+        using var cursor = new ElementCursor(elements);
+        Rational? previousEndValue = null;
+        Rational? slope = null;
+        while (cursor.MoveNext())
+        {
+            var element = cursor.Current;
+            if (!element.IsFinite)
+                return false;
+
+            var startValue = element is Point point ? point.Value : ((Segment) element).RightLimitAtStartTime;
+            if (previousEndValue is { } previous && previous != startValue)
+                return false;
+
+            if (element is Segment segment)
+            {
+                if (slope is { } previousSlope && previousSlope != segment.Slope)
+                    return false;
+
+                slope = segment.Slope;
+                previousEndValue = segment.LeftLimitAtEndTime;
+            }
+            else
+            {
+                previousEndValue = startValue;
+            }
+        }
+        if (previousEndValue is null)
+            throw new ArgumentException("Elements is an empty collection");
+        return true;
+    }
+
     /// <summary>
     /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
@@ -1319,6 +1481,22 @@ public static partial class SequenceExtensions
         return breakpoint.GetBreakpointBoundaryValues().Max();
     }
 
+    /// <summary>Finds the supremum and its earliest boundary location in one traversal.</summary>
+    /// <param name="elements">A nonempty element stream; time order is not required.</param>
+    /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    public static (Rational Value, Rational Time) SupValueAndArg(this IEnumerable<Element> elements)
+        => FindBoundaryExtremum(elements, BoundKind.Supremum);
+
+    /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
+    /// <param name="elements">A nonempty element stream; time order is not required.</param>
+    /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
+    public static (Rational Value, Rational Time) InfValueAndArg(this IEnumerable<Element> elements)
+        => FindBoundaryExtremum(elements, BoundKind.Infimum);
+
     /// <summary>
     /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
@@ -1328,17 +1506,13 @@ public static partial class SequenceExtensions
         return elements.GetElementsBoundaryValues().Max();
     }
 
-    /// <summary>
-    /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for any $t \ge 0$,
-    /// returns the first time around which $f(t)$ gets close to $x$ (i.e., either it attains the value or has it as a limit).
-    /// Otherwise, returns $+\infty$.
-    /// </summary>
+    /// <summary>Returns the earliest boundary location of the supremum.</summary>
+    /// <param name="elements">A nonempty element stream; time order is not required.</param>
+    /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static Rational SupArg(this IEnumerable<Element> elements)
     {
-        var supAndArg = elements
-            .GetElementsBoundaryPairs()
-            .MaxBy(pair => pair.value);
-        return supAndArg.time;
+        return FindBoundaryExtremum(elements, BoundKind.Supremum).Time;
     }
 
     /// <summary>
@@ -1365,7 +1539,8 @@ public static partial class SequenceExtensions
     /// Otherwise, returns null.
     /// </summary>
     /// <param name="elements">The nonempty element stream.</param>
-    /// <returns>The maximizing argument, or null when no maximum is attained.</returns>
+    /// <returns>An argument in the support attaining the maximum, or null if unattained.
+    /// An open plateau may have no earliest attaining argument.</returns>
     /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static Rational? MaxArg(this IEnumerable<Element> elements)
     {
@@ -1400,17 +1575,13 @@ public static partial class SequenceExtensions
         return elements.GetElementsBoundaryValues().Min();
     }
 
-    /// <summary>
-    /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for any $t \ge 0$,
-    /// returns the first time around which $f(t)$ gets close to $x$ (i.e., either it attains the value or has it as a limit).
-    /// Otherwise, returns $-\infty$.
-    /// </summary>
+    /// <summary>Returns the earliest boundary location of the infimum.</summary>
+    /// <param name="elements">A nonempty element stream; time order is not required.</param>
+    /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static Rational InfArg(this IEnumerable<Element> elements)
     {
-        var supAndArg = elements
-            .GetElementsBoundaryPairs()
-            .MinBy(pair => pair.value);
-        return supAndArg.time;
+        return FindBoundaryExtremum(elements, BoundKind.Infimum).Time;
     }
 
     /// <summary>
@@ -1437,7 +1608,8 @@ public static partial class SequenceExtensions
     /// Otherwise, returns null.
     /// </summary>
     /// <param name="elements">The nonempty element stream.</param>
-    /// <returns>The minimizing argument, or null when no minimum is attained.</returns>
+    /// <returns>An argument in the support attaining the minimum, or null if unattained.
+    /// An open plateau may have no earliest attaining argument.</returns>
     /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static Rational? MinArg(this IEnumerable<Element> elements)
     {
@@ -1460,6 +1632,64 @@ public static partial class SequenceExtensions
     {
         Infimum,
         Supremum
+    }
+
+    /// <summary>
+    /// Chooses a finite time strictly inside the segment's open support.
+    /// </summary>
+    /// <param name="segment">The segment to sample.</param>
+    /// <returns>An interior time, without requiring a particular representative.</returns>
+    /// <remarks>
+    /// For a constant segment, every interior time attains its value, whereas its endpoints are excluded.
+    /// </remarks>
+    private static Rational InteriorTime(Segment segment)
+    {
+        if (segment.StartTime.IsFinite)
+        {
+            if (segment.EndTime.IsFinite)
+            {
+                // The midpoint lies strictly between the two finite endpoints.
+                return segment.StartTime + (segment.EndTime - segment.StartTime) / 2;
+            }
+            else
+            {
+                // With no upper bound, moving one unit right stays inside the support.
+                return segment.StartTime + 1;
+            }
+        }
+        else
+        {
+            if (segment.EndTime.IsFinite)
+            {
+                // With no lower bound, moving one unit left stays inside the support.
+                return segment.EndTime - 1;
+            }
+            else
+            {
+                // The support is the whole real line, so zero is an interior time.
+                return 0;
+            }
+        }
+    }
+
+    private static (Rational Value, Rational Time) FindBoundaryExtremum(
+        IEnumerable<Element> elements, BoundKind kind)
+    {
+        using var pairs = elements.GetElementsBoundaryPairs().GetEnumerator();
+        if (!pairs.MoveNext())
+            throw new InvalidOperationException("Sequence contains no elements");
+
+        var best = pairs.Current;
+        while (pairs.MoveNext())
+        {
+            var candidate = pairs.Current;
+            var improves = kind == BoundKind.Supremum
+                ? candidate.value > best.value
+                : candidate.value < best.value;
+            if (improves || candidate.value == best.value && candidate.time < best.time)
+                best = candidate;
+        }
+        return (best.value, best.time);
     }
 
     /// <summary>
@@ -1501,44 +1731,6 @@ public static partial class SequenceExtensions
     #endregion
 
     #region Continuity transformations
-
-    /// <summary>
-    /// Chooses a finite time strictly inside the segment's open support.
-    /// </summary>
-    /// <param name="segment">The segment to sample.</param>
-    /// <returns>An interior time, without requiring a particular representative.</returns>
-    /// <remarks>
-    /// For a constant segment, every interior time attains its value, whereas its endpoints are excluded.
-    /// </remarks>
-    private static Rational InteriorTime(Segment segment)
-    {
-        if (segment.StartTime.IsFinite)
-        {
-            if (segment.EndTime.IsFinite)
-            {
-                // The midpoint lies strictly between the two finite endpoints.
-                return segment.StartTime + (segment.EndTime - segment.StartTime) / 2;
-            }
-            else
-            {
-                // With no upper bound, moving one unit right stays inside the support.
-                return segment.StartTime + 1;
-            }
-        }
-        else
-        {
-            if (segment.EndTime.IsFinite)
-            {
-                // With no lower bound, moving one unit left stays inside the support.
-                return segment.EndTime - 1;
-            }
-            else
-            {
-                // The support is the whole real line, so zero is an interior time.
-                return 0;
-            }
-        }
-    }
 
     /// <summary>
     /// Computes a left-continuous version of this sequence.

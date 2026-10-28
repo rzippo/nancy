@@ -310,6 +310,26 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     public bool IsNonNegative
         => InfValue() >= 0;
 
+    /// <inheritdoc cref="SequenceExtensions.IsNonPositive"/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsNonPositive => Elements.IsNonPositive();
+
+    /// <inheritdoc cref="SequenceExtensions.IsPositive"/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsPositive => Elements.IsPositive();
+
+    /// <inheritdoc cref="SequenceExtensions.IsNegative"/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsNegative => Elements.IsNegative();
+
+    /// <inheritdoc cref="SequenceExtensions.IsConstant"/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsConstant => Elements.IsConstant();
+
+    /// <inheritdoc cref="SequenceExtensions.IsAffine"/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsAffine => Elements.IsAffine();
+
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
@@ -1527,6 +1547,30 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             return new Sequence(segments);
         }
     }
+
+    /// <summary>Returns the earliest boundary location of the supremum.</summary>
+    /// <returns>The earliest time where the supremum is a value or one-sided limit.</returns>
+    public Rational SupArg() => Elements.SupArg();
+
+    /// <summary>Returns the earliest boundary location of the infimum.</summary>
+    /// <returns>The earliest time where the infimum is a value or one-sided limit.</returns>
+    public Rational InfArg() => Elements.InfArg();
+
+    /// <summary>Returns a time in the support attaining the maximum, if one exists.</summary>
+    /// <returns>An attaining time, or null if the supremum is unattained.</returns>
+    public Rational? MaxArg() => Elements.MaxArg();
+
+    /// <summary>Returns a time in the support attaining the minimum, if one exists.</summary>
+    /// <returns>An attaining time, or null if the infimum is unattained.</returns>
+    public Rational? MinArg() => Elements.MinArg();
+
+    /// <summary>Finds the supremum and its earliest boundary location in one traversal.</summary>
+    /// <returns>The supremum and its earliest value or one-sided-limit location.</returns>
+    public (Rational Value, Rational Time) SupValueAndArg() => Elements.SupValueAndArg();
+
+    /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
+    /// <returns>The infimum and its earliest value or one-sided-limit location.</returns>
+    public (Rational Value, Rational Time) InfValueAndArg() => Elements.InfValueAndArg();
 
     /// <summary>
     /// If the sequence is upper-bounded, i.e. $f(t) &lt;= x$ for any $t$, returns $x$.
