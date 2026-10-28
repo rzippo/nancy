@@ -920,8 +920,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">If the two sequences do not overlap.</exception>
     public static bool LessOrEqual(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
-        var minimum = Minimum(a, b, true, settings);
-        return a.CutToOverlap(minimum).Equivalent(minimum);
+        return SequenceExtensions.LessOrEqualOnOverlap(a.Elements, b.Elements);
     }
 
     /// <summary>
@@ -938,20 +937,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">If the two sequences do not overlap.</exception>
     public static bool GreaterOrEqual(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
-        var maximum = Maximum(a, b, true, settings);
-        return a.CutToOverlap(maximum).Equivalent(maximum);
+        return LessOrEqual(b, a, settings);
     }
-
-    /// <summary>
-    /// Restricts this sequence to the support of <paramref name="overlap"/>, so that the two can be compared.
-    /// </summary>
-    private Sequence CutToOverlap(Sequence overlap)
-        => Cut(
-            overlap.DefinedFrom,
-            overlap.DefinedUntil,
-            isStartIncluded: overlap.IsLeftClosed,
-            isEndIncluded: overlap.IsRightClosed
-        );
 
     /// <summary>
     /// Returns the opposite function, $g(t) = -f(t)$.
@@ -2199,10 +2186,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             case HorizontalDeviationStrategy.PseudoInverseDeconvolution:
             {
                 // The height form of [TBP-SEQ-DEV] § 4.5: the largest gap between the lower pseudo-inverses over the overlap of the images, or 0 if every gap is negative.
-                var gaps = Subtraction(
-                    g.LowerPseudoInverse().Cut(imageOverlap),
-                    f.LowerPseudoInverse().Cut(imageOverlap));
-                return Rational.Max(gaps.SupValue(), 0);
+                var gLpiCut = g.Elements.LowerPseudoInverse()
+                    .Cut(imageOverlap.Lower, imageOverlap.Upper, imageOverlap.IsLowerIncluded, imageOverlap.IsUpperIncluded);
+                var fLpiCut = f.Elements.LowerPseudoInverse()
+                    .Cut(imageOverlap.Lower, imageOverlap.Upper, imageOverlap.IsLowerIncluded, imageOverlap.IsUpperIncluded);
+                return Rational.Max(gLpiCut.Subtraction(fLpiCut)
+                    .SupValue(), 0);
             }
 
             default:
@@ -2226,7 +2215,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// For cuts of curves, it matches the vertical deviation between them, [TBP-SEQ-DEV] Theorem 17.
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
-        => Subtraction(f, g).SupValue();
+        => f.Elements.Subtraction(g.Elements)
+            .SupValue();
 
     /// <summary>
     /// Computes the horizontal deviation function between the two sequences, $hDev(f, g, t)$.

@@ -551,6 +551,46 @@ public static partial class SequenceExtensions
                 yield return element;
     }
 
+    #endregion
+
+    #region Comparisons
+
+    /// <summary>
+    /// Checks whether the first nonempty, uninterrupted stream bounds the second from below over their overlap.
+    /// </summary>
+    /// <param name="a">The first stream in time order.</param>
+    /// <param name="b">The second stream in time order.</param>
+    /// <returns>Whether the bound holds at every shared point and throughout every shared segment.</returns>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time.</exception>
+    internal static bool LessOrEqualOnOverlap(IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+        {
+            if (left is Point point)
+            {
+                if (point.Value > ((Point) right).Value)
+                    return false;
+            }
+            else
+            {
+                var segmentA = (Segment) left;
+                var segmentB = (Segment) right;
+                var start = Rational.Max(segmentA.StartTime, segmentB.StartTime);
+                var end = Rational.Min(segmentA.EndTime, segmentB.EndTime);
+                var startA = segmentA.RightLimitAt(start);
+                var startB = segmentB.RightLimitAt(start);
+                if (end.IsPlusInfinite && startA.IsFinite && startB.IsFinite)
+                {
+                    // Equal limits at infinity can hide different slopes.
+                    if (startA > startB || segmentA.Slope > segmentB.Slope)
+                        return false;
+                }
+                else if (startA > startB || segmentA.LeftLimitAt(end) > segmentB.LeftLimitAt(end))
+                    return false;
+            }
+        }
+        return true;
+    }
 
     #endregion
 
