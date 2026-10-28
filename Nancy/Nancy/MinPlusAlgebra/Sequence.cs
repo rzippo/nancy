@@ -3013,14 +3013,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                         fillTo: f.DefinedUntil + g.DefinedUntil
                     )
                     .ToSequence()
-                )
-                .ToList();
+                );
 
-            #if DO_LOG
-            logger.Trace($"Partitioned convolutions computed, proceding with lower envelope of {partialConvolutions.Count} sequences");
-            #endif
+            IEnumerable<Element> lowerEnvelope;
+            if (!settings.UseParallelListLowerEnvelope && !settings.UseParallelLowerEnvelope)
+                lowerEnvelope = MergePartialEnvelopes(partialConvolutions, EnvelopeKind.Lower);
+            else
+                lowerEnvelope = partialConvolutions.ToList()
+                    .LowerEnvelope(settings);
 
-            var lowerEnvelope = partialConvolutions.LowerEnvelope(settings);
             if (f.IsFinite && g.IsFinite)
             {
                 return lowerEnvelope
@@ -3081,6 +3082,27 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>Described in [BT08], Section 4.4 point 3</remarks>
     public Sequence Convolution(Sequence sequence, ComputationSettings? settings = null, Rational? cutEnd = null)
         => Convolution(this, sequence, settings, cutEnd);
+
+    /// <summary>
+    /// Merges completed partial envelopes serially while retaining only the accumulated envelope and the next partial result.
+    /// </summary>
+    /// <param name="partials">A nonempty stream of uninterrupted partial envelopes.</param>
+    /// <param name="extremum">The lower or upper envelope to compute.</param>
+    /// <returns>The merged envelope over the filled union of the supports.</returns>
+    private static IEnumerable<Element> MergePartialEnvelopes(IEnumerable<Sequence> partials, EnvelopeKind extremum)
+    {
+        using var enumerator = partials.GetEnumerator();
+        if (!enumerator.MoveNext()) throw new ArgumentException("The partial-envelope stream is empty.");
+        var current = enumerator.Current;
+        while (enumerator.MoveNext())
+        {
+            var next = enumerator.Current;
+            current = (extremum == EnvelopeKind.Upper ? current.Elements.Maximum(next.Elements, cutToOverlap: false) : current.Elements.Minimum(next.Elements, cutToOverlap: false))
+                .MergeAsEnumerable()
+                .ToSequence();
+        }
+        return current.Elements;
+    }
 
     #endregion Convolution operator
 
@@ -3668,14 +3690,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                         fillWith: Rational.MinusInfinity
                     )
                     .ToSequence()
-                )
-                .ToList();
+                );
 
-            #if DO_LOG
-            logger.Trace($"Partitioned convolutions computed, proceding with lower envelope of {partialConvolutions.Count} sequences");
-            #endif
+            IEnumerable<Element> upperEnvelope;
+            if (!settings.UseParallelListUpperEnvelope && !settings.UseParallelUpperEnvelope)
+                upperEnvelope = MergePartialEnvelopes(partialConvolutions, EnvelopeKind.Upper);
+            else
+                upperEnvelope = partialConvolutions.ToList()
+                    .UpperEnvelope(settings);
 
-            var upperEnvelope = partialConvolutions.UpperEnvelope(settings);
             if (f.IsFinite && g.IsFinite)
             {
                 return upperEnvelope
