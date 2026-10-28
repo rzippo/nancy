@@ -584,6 +584,13 @@ public class Deviations
             vDev: new Rational(850,7),
             new Rational(35, 4)
         ),
+        (
+            // f - g repeats over lcm(2, 3) = 6 and is largest, 1, only over ]2, 3], late in that period
+            f: new StairCurve(2, 2),
+            g: new StairCurve(3, 3),
+            vDev: 1,
+            2
+        ),
     ];
 
     public static IEnumerable<object[]> GetVerticalDeviationTestCases()
@@ -1035,6 +1042,16 @@ public class Deviations
         1, 1, 1);
 
     /// <summary>
+    /// $-\infty$ on $[0, 1]$, then $t$.
+    /// </summary>
+    private static readonly Curve MinusUpToOneThenRate = new(
+        new Sequence([
+            Point.MinusInfinite(0), Segment.MinusInfinite(0, 1), Point.MinusInfinite(1), new Segment(1, 2, 1, 1),
+            new Point(2, 2), new Segment(2, 3, 2, 1)
+        ]),
+        2, 1, 1);
+
+    /// <summary>
     /// Pairs whose horizontal deviation is computed by hand, from $hDev(f, g, t) = \inf\{ d \ge 0 \mid f(t) \le g(t + d) \}$,
     /// where an operand is bounded, takes the value $+\infty$ or $-\infty$, or the first is $+\infty$ everywhere.
     /// </summary>
@@ -1048,6 +1065,22 @@ public class Deviations
             ("g bounded", rate, Curve.Minimum(rate, new ConstantCurve(3)), Rational.PlusInfinity),
             // g = t/2 up to 3 reaches f(t) = t at 2t for t <= 2, and f = 2 at 4 after
             ("both bounded", Curve.Minimum(rate, new ConstantCurve(2)), Curve.Minimum(halfRate, new ConstantCurve(3)), 2),
+            // g = t/2 up to 2 reaches the maximum of f = min(t, 2), at 4, and f(t) = t at 2t before
+            ("both bounded, g reaches only the maximum of f", Curve.Minimum(rate, new ConstantCurve(2)), Curve.Minimum(halfRate, new ConstantCurve(2)), 2),
+            // g stays at 1, so never reaches f(t) = t for t > 1
+            ("both bounded, g below the maximum of f", Curve.Minimum(rate, new ConstantCurve(2)), Curve.Minimum(rate, new ConstantCurve(1)), Rational.PlusInfinity),
+            // g = 0 up to 1, then 1, jumps to a maximum below that of f = min(t, 2), so never reaches f(t) = t for t > 1
+            ("both bounded, g jumps to a maximum below that of f", Curve.Minimum(rate, new ConstantCurve(2)), Curve.Minimum(new DelayServiceCurve(1), new ConstantCurve(1)), Rational.PlusInfinity),
+            // g = 0 up to 1, then 3, jumps over every value of f = min(t, 2): f(t) > 0 waits for 1 - t, which tends to 1 as t tends to 0
+            ("both bounded, g jumps over the maximum of f", Curve.Minimum(rate, new ConstantCurve(2)), Curve.Minimum(new DelayServiceCurve(1), new ConstantCurve(3)), 1),
+            // f = 0 up to 1, then 2, against g = min(t, 2): after 1, f waits for 2 - t, which tends to 1 as t tends to 1
+            ("both bounded, f jumps to its maximum", Curve.Minimum(new DelayServiceCurve(1), new ConstantCurve(2)), Curve.Minimum(rate, new ConstantCurve(2)), 1),
+            // g, -inf before 1, then t up to 3, reaches f(t) = min(t, 2) at 1 for t <= 1, and at t after
+            ("both bounded, g -inf at first", Curve.Minimum(rate, new ConstantCurve(2)), Curve.Minimum(MinusThenRate, new ConstantCurve(3)), 1),
+            // f = 0, so the only height is 0, which g, -inf before 1, then t up to 3, reaches at 1
+            ("f zero, g bounded and -inf at first", new ConstantCurve(0), Curve.Minimum(MinusThenRate, new ConstantCurve(3)), 1),
+            // g is -inf everywhere, so it reaches no value of f
+            ("f bounded, g -inf everywhere", Curve.Minimum(rate, new ConstantCurve(2)), Curve.MinusInfinite(), Rational.PlusInfinity),
             // g = delta_3 reaches every height above 0 at 3, and f = min(t, 2) is above 0 from 0 on
             ("f bounded, g reaches +inf", Curve.Minimum(rate, new ConstantCurve(2)), new DelayServiceCurve(3), 3),
             // f = floor(t) up to 3, taking 3 at 3, then +inf: g = delta_5 takes 5 - t to reach f(t) = floor(t) >= 1, at most 4 at t = 1; the rate-latency curve never reaches +inf
@@ -1060,6 +1093,8 @@ public class Deviations
             ("f +inf everywhere, g never +inf", Curve.PlusInfinite(), rate, Rational.PlusInfinity),
             // g is -inf before 1, so reaches f(t) = t only from 1
             ("g -inf at first", rate, MinusThenRate, 1),
+            // g is -inf up to 1 included, so reaches f(t) = t only after 1, and at 0 its lower inverse is 1
+            ("g -inf up to 1", rate, MinusUpToOneThenRate, 1),
             // g is +inf everywhere, so it is above f at once
             ("g +inf everywhere", rate, Curve.PlusInfinite(), 0),
         };
@@ -1104,6 +1139,76 @@ public class Deviations
         var expected = Curve.HorizontalDeviation(new Curve(f), new Curve(g), ByPseudoInverses);
         foreach (var settings in EveryStrategy)
             Assert.Equal(expected, Curve.HorizontalDeviation(new Curve(f), new Curve(g), settings));
+    }
+
+    /// <summary>
+    /// The property curves, as first operands, also with $+\infty$ after 4 or from 4 on, against the property curves, as second operands,
+    /// with $-\infty$ before 1 or up to 2, with $+\infty$ after 5 or from 7 on, or with both.
+    /// </summary>
+    public static IEnumerable<object[]> ExtendedRealOperandPairs()
+    {
+        var fs = PropertyCurves
+            .SelectMany(f => new[] { f, Curve.Maximum(f, new DelayServiceCurve(4)), Curve.Maximum(f, new DelayServiceCurve(4).WithRightContinuousAt(4)) });
+        var gs = PropertyCurves
+            .SelectMany(g => new[]
+            {
+                Curve.Minimum(g, MinusInfiniteBefore(1, isTimeIncluded: false)),
+                Curve.Minimum(g, MinusInfiniteBefore(2, isTimeIncluded: true)),
+                Curve.Maximum(g, new DelayServiceCurve(5)),
+                Curve.Maximum(g, new DelayServiceCurve(7).WithRightContinuousAt(7)),
+                Curve.Maximum(Curve.Minimum(g, MinusInfiniteBefore(1, isTimeIncluded: true)), new DelayServiceCurve(6)),
+            });
+        return fs.SelectMany(f => gs.Select(g => new object[] { f, g }));
+
+        // $-\infty$ before the time, or up to it, and $+\infty$ after.
+        static Curve MinusInfiniteBefore(Rational time, bool isTimeIncluded)
+            => new(
+                new Sequence([
+                    Point.MinusInfinite(0), Segment.MinusInfinite(0, time),
+                    isTimeIncluded ? Point.MinusInfinite(time) : Point.PlusInfinite(time), Segment.PlusInfinite(time, time + 1),
+                    Point.PlusInfinite(time + 1), Segment.PlusInfinite(time + 1, time + 2)
+                ]),
+                time + 1, 1, 0);
+    }
+
+    /// <summary>
+    /// The inverse gap agrees with the deconvolution of the pseudo-inverses on operands with infinite values, whose inverse tails it derives from the curves.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ExtendedRealOperandPairs))]
+    public void HorizontalDeviationOfExtendedRealOperandsIsTheSameByDeconvolution(Curve f, Curve g)
+    {
+        var byDeconvolution = Curve.HorizontalDeviation(f, g, new ComputationSettings { HorizontalDeviationStrategy = HorizontalDeviationStrategy.PseudoInverseDeconvolution });
+        Assert.Equal(byDeconvolution, Curve.HorizontalDeviation(f, g, ByPseudoInverses));
+    }
+
+    /// <summary>
+    /// Staircases with the same slope and steps of different heights, the second delayed,
+    /// so that the inverse gap repeats only over the least common multiple of the steps, and its largest value can be anywhere in that period.
+    /// The first is raised after 0, or either is held at a plateau up to the step that passes it, which makes a transient below a positive height.
+    /// </summary>
+    public static IEnumerable<object[]> CommonSlopeStaircasePairs()
+    {
+        foreach (var (fStep, gStep) in new (int, int)[] { (2, 3), (3, 2), (2, 5), (3, 5), (4, 2), (6, 3) })
+        foreach (var raise in Enumerable.Range(0, 12))
+        foreach (var delay in new[] { 0, 1 })
+        {
+            var g = new StairCurve(gStep, gStep).DelayBy(delay);
+            yield return [Curve.Addition(new StairCurve(fStep, fStep), new ConstantCurve(raise)), g];
+            yield return [Curve.Maximum(new StairCurve(fStep, fStep), new ConstantCurve(raise)), g];
+            yield return [new StairCurve(fStep, fStep), Curve.Maximum(new StairCurve(gStep, gStep), new ConstantCurve(raise)).DelayBy(delay)];
+        }
+    }
+
+    /// <summary>
+    /// The inverse gap agrees with the deconvolution of the pseudo-inverses where the gap repeats only over the least common multiple of the inverse period lengths.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(CommonSlopeStaircasePairs))]
+    public void HorizontalDeviationOfCommonSlopeStaircasesIsTheSameByDeconvolution(Curve f, Curve g)
+    {
+        var byDeconvolution = Curve.HorizontalDeviation(f, g, new ComputationSettings { HorizontalDeviationStrategy = HorizontalDeviationStrategy.PseudoInverseDeconvolution });
+        Assert.Equal(byDeconvolution, Curve.HorizontalDeviation(f, g, ByPseudoInverses));
     }
 
     /// <summary>

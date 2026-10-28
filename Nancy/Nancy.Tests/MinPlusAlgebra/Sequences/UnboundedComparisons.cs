@@ -70,4 +70,31 @@ public class UnboundedComparisons
         Assert.Equal(expected, SequenceExtensions.LessOrEqualOnOverlap(left, right));
     }
 
+    public static IEnumerable<object[]> FirstDifferences()
+        => FiniteCases()
+            .Select(c => (c.Name, c.Left, c.Right, c.Difference))
+            .Concat(InfiniteCases().Select(c => (c.Name, c.Left, c.Right, c.Difference)))
+            .ToXUnitTestCases();
+
+    public static IEnumerable<object[]> StrictBounds()
+        => FiniteCases()
+            .Select(c => (c.Name, c.Left, c.Right, c.Strict))
+            .ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(FirstDifferences))]
+    public void FirstDifferencesMatchExpectedTimes(string name, Element[] left, Element[] right, Rational? expected)
+    {
+        Assert.NotEmpty(name);
+        Assert.Equal(expected, SequenceExtensions.FirstInequivalenceOnOverlap(left, right));
+        Assert.Equal(expected, SequenceExtensions.FirstInequivalenceOnOverlap(right, left));
+    }
+
+    [Theory]
+    [MemberData(nameof(StrictBounds))]
+    public void StrictBoundsMatchExpectedOrder(string name, Element[] left, Element[] right, bool expected)
+    {
+        Assert.NotEmpty(name);
+        Assert.Equal(expected, SequenceExtensions.StrictlyLessOnOverlap(left, right));
+    }
 }

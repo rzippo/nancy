@@ -102,7 +102,10 @@ public class HorizontalDeviationStrategies
     internal static Rational UpperDeconvolutionAlone(Curve f, Curve g)
         => Curve.MaxPlusDeconvolution(f.UpperPseudoInverse(), g.UpperPseudoInverse()).Negate().ToNonNegative().ValueAt(0);
 
-    private static bool BothBounded(Curve f, Curve g) => f.IsUltimatelyConstant && g.IsUltimatelyConstant;
+    // bounded above: ultimately constant, or $-\infty$ everywhere, as a non-decreasing curve that is ultimately $-\infty$ is
+    private static bool BothBounded(Curve f, Curve g) => IsBoundedAbove(f) && IsBoundedAbove(g);
+
+    private static bool IsBoundedAbove(Curve curve) => curve.IsUltimatelyConstant || curve.IsMinusInfinite;
 
     // f is 0 on an interval from 0, so that its upper pseudo-inverse at 0 is the end of that interval
     private static bool StaysAtZero(Curve f) => f.UpperPseudoInverse().ValueAt(0) > 0;
