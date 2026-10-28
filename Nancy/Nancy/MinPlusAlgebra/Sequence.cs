@@ -1656,6 +1656,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                     endTime: DefinedFrom + delay
                 )
             );
+            if (!IsLeftClosed)
+                delayedElements.Add(Point.Zero(DefinedFrom + delay));
         }
 
         delayedElements.AddRange(Elements
