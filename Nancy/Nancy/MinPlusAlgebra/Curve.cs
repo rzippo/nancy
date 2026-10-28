@@ -1468,37 +1468,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public static Rational? FindFirstInequivalenceAfter(Curve a, Curve b, Rational time, bool isStartIncluded = true, ComputationSettings? settings = null)
     {
         var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
-                            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
-
-        // sampled on the cuts, as sampling a curve past its first pseudo-period computes the extension of that period
-        var cutA = a.Cut(time, cutEnd, isStartIncluded, true, settings);
-        var cutB = b.Cut(time, cutEnd, isStartIncluded, true, settings);
-
-        // the breakpoints of both curves: between two consecutive ones, both are affine,
-        // so they agree there if and only if they agree at both limits
-        var breakpoints = cutA.Elements
-            .Concat(cutB.Elements)
-            .SelectMany(element => new[] { element.StartTime, element.EndTime })
-            .Append(time)
-            .Distinct()
-            .OrderBy(t => t)
-            .ToList();
-
-        for (int i = 0; i < breakpoints.Count; i++)
-        {
-            var t = breakpoints[i];
-            if ((t > time || isStartIncluded) && cutA.ValueAt(t) != cutB.ValueAt(t))
-                return t;
-
-            if (i + 1 < breakpoints.Count)
-            {
-                var next = breakpoints[i + 1];
-                if (cutA.RightLimitAt(t) != cutB.RightLimitAt(t) || cutA.LeftLimitAt(next) != cutB.LeftLimitAt(next))
-                    return t;
-            }
-        }
-
-        return null;
+            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        return SequenceExtensions.FirstInequivalenceOnOverlap(
+            a.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings),
+            b.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings));
     }
 
     /// <summary>
@@ -1533,7 +1506,19 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)"/>
     public static bool IsLowerBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
-        => Equivalent(a, Minimum(a, b, settings), settings);
+    {
+        if (a.IsFinite && b.IsFinite)
+        {
+            if (a.PseudoPeriodSlope > b.PseudoPeriodSlope)
+                return false;
+            var end = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
+                + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+            return SequenceExtensions.LessOrEqualOnOverlap(
+                a.CutAsEnumerable(0, end, isEndIncluded: true, settings: settings),
+                b.CutAsEnumerable(0, end, isEndIncluded: true, settings: settings));
+        }
+        return Equivalent(a, Minimum(a, b, settings), settings);
+    }
 
     /// <summary>
     /// True if this curve is an upper bound for <paramref name="curve"/>, i.e. $\forall t: f(t) \ge g(t)$.
@@ -1586,7 +1571,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <inheritdoc cref="IsStrictLowerBoundOf(Curve, ComputationSettings?)"/>
     public static bool IsStrictLowerBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
-        => IsLowerBoundOf(a, b, settings) && a.GetIntersections(b, settings: settings).IsEmpty;
+        => a.ValueAt(0, settings) < b.ValueAt(0, settings) && IsStrictLowerBoundOfExceptOrigin(a, b, settings);
 
     /// <summary>
     /// True if this curve is above <paramref name="curve"/> at every time, i.e. $\forall t: f(t) > g(t)$.
@@ -1603,6 +1588,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if this curve is below <paramref name="curve"/> at every time after the origin, i.e. $\forall t > 0: f(t) &lt; g(t)$.
     /// </summary>
     /// <remarks>
+    /// The bound is non-strict at $t = 0$.
     /// The two may meet at $t = 0$ and nowhere else, which is the common case for curves built through <see cref="NetworkCalculus"/>, all of which pass through the origin.
     /// </remarks>
     /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)" path="/remarks"/>
@@ -1611,8 +1597,27 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <inheritdoc cref="IsStrictLowerBoundOfExceptOrigin(Curve, ComputationSettings?)"/>
     public static bool IsStrictLowerBoundOfExceptOrigin(Curve a, Curve b, ComputationSettings? settings = null)
-        => IsLowerBoundOf(a, b, settings)
-           && a.GetIntersections(b, from: 0, isStartInclusive: false, settings: settings).IsEmpty;
+    {
+        if (a.IsFinite && b.IsFinite)
+        {
+            if (a.ValueAt(0, settings) > b.ValueAt(0, settings) || a.PseudoPeriodSlope > b.PseudoPeriodSlope)
+                return false;
+
+            // The gap b - a is ultimately pseudo-periodic and never shrinks from one period to the next, [BT08] Proposition 4(4).
+            // So it is enough to check up to one period past the later of the two pseudo-period starts, taking as period the least common multiple of their period lengths.
+            // The check leaves out 0, but includes the end of that period, where 0 repeats if both periods start there.
+            var end = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
+                + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+            return SequenceExtensions.StrictlyLessOnOverlap(
+                a.CutAsEnumerable(0, end, false, true, settings),
+                b.CutAsEnumerable(0, end, false, true, settings));
+        }
+        else
+        {
+            return IsLowerBoundOf(a, b, settings)
+                && a.GetIntersections(b, from: 0, isStartInclusive: false, settings: settings).IsEmpty;
+        }
+    }
 
     /// <summary>
     /// True if this curve is above <paramref name="curve"/> at every time after the origin, i.e. $\forall t > 0: f(t) > g(t)$.
@@ -1649,6 +1654,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         if (a == b)
             return (true, a, b);
+
+        if (a.IsFinite && b.IsFinite)
+        {
+            if (IsLowerBoundOf(a, b, settings))
+                return (true, a, b);
+            if (IsLowerBoundOf(b, a, settings))
+                return (true, b, a);
+            return (false, a, b);
+        }
 
         var minimum = Minimum(a, b, settings);
         if (Equivalent(a, minimum, settings: settings))
@@ -5150,22 +5164,39 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 case HorizontalDeviationStrategy.PseudoInverseGap:
                 {
+                    // If f is zero, the deviation is the time g takes to reach it.
+                    if (f.IsZero)
+                        return g.FirstNonNegativeTime;
+
+                    // An unbounded f that ultimately grows faster than g gets ever further ahead of it, [TBP-SEQ-DEV] Theorem 62.
+                    if (!f.IsUltimatelyConstant && f.PseudoPeriodSlope > g.PseudoPeriodSlope)
+                        return Rational.PlusInfinity;
+
+                    // The horizontal deviation is the supremum of the gap $g^{-1}_\downarrow(y) - f^{-1}_\downarrow(y)$ over the heights $y \ge 0$, up to $\max f$ if f is bounded, [TBP-SEQ-DEV] Proposition 49.
+                    // The gap is searched up to a height past which it is never larger.
                     var fLpi = f.LowerPseudoInverse();
                     var gLpi = g.LowerPseudoInverse();
-                    // The lower pseudo-inverse is finite everywhere on $[0, +\infty)$ if and only if $f$ is unbounded.
-                    if (fLpi.IsFinite)
-                        return Subtraction(gLpi, fLpi, settings).SupValue(settings);
+                    Rational end;
+                    if (f.IsUltimatelyConstant)
+                    {
+                        // An UC f has reached its maximum by its pseudo-period start, and the supremum above ends at that height.
+                        end = f.ValueAt(f.PseudoPeriodStart, settings: settings);
+                    }
                     else
                     {
-                        // Here $f$ is bounded: for $y > \max f$, $f^{-1}_\downarrow(y) = +\infty$, so the inverse gap can involve $+\infty - (+\infty)$.
-                        // The horizontal deviation is the supremum of the inverse gap over $[0, \max f]$, [TBP-SEQ-DEV] Proposition 49.
-                        // The maximum of $f$ is attained at $\texttt{PseudoPeriodStart}$, [TBP-SEQ-DEV] Lemma 45 (i).
-                        var top = f.ValueAt(f.PseudoPeriodStart, settings: settings);
-                        var gaps = Sequence.Subtraction(
-                            gLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings),
-                            fLpi.Cut(0, top, isStartIncluded: true, isEndIncluded: true, settings));
-                        return gaps.SupValue();
+                        // The gap is ultimately pseudo-periodic and never grows from one period to the next, [TBP-SEQ-DEV] Theorem 64.
+                        // So it is enough to search up to one period past the later of the two inverses' pseudo-period starts, taking as period the least common multiple of their period lengths.
+                        end = Rational.Max(fLpi.PseudoPeriodStart, gLpi.PseudoPeriodStart)
+                            + Rational.LeastCommonMultiple(fLpi.PseudoPeriodLength, gLpi.PseudoPeriodLength);
                     }
+
+                    var heights = new Interval(0, end, isLowerIncluded: true, isUpperIncluded: true);
+                    var gLpiCut = gLpi.CutAsEnumerable(heights, settings);
+                    var fLpiCut = fLpi.CutAsEnumerable(heights, settings);
+
+                    return gLpiCut
+                        .Subtraction(fLpiCut)
+                        .SupValue();
                 }
                 case HorizontalDeviationStrategy.PseudoInverseDeconvolution:
                 {
@@ -5401,10 +5432,28 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             else
                 return Rational.PlusInfinity;
         }
-        else
+        else if (!f.IsFinite || !g.IsFinite)
         {
+            // The window below holds for finite curves, [BT08] Proposition 4(4), so with infinite values the difference is computed in full.
             var diff = f.Subtraction(g, settings);
             return diff.SupValue(settings);
+        }
+        else
+        {
+            if (f.PseudoPeriodSlope > g.PseudoPeriodSlope)
+                return Rational.PlusInfinity;
+
+            // The difference is ultimately pseudo-periodic and never grows from one period to the next, [BT08] Proposition 4(4).
+            // So it is enough to search up to one period past the later of the two pseudo-period starts, taking as period the least common multiple of their period lengths.
+            var end = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart)
+                + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+            var times = new Interval(0, end, isLowerIncluded: true, isUpperIncluded: true);
+
+            var fCut = f.CutAsEnumerable(times, settings);
+            var gCut = g.CutAsEnumerable(times, settings);
+            return fCut
+                .Subtraction(gCut)
+                .SupValue();
         }
     }
 
@@ -5427,10 +5476,28 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             else
                 return Rational.PlusInfinity;
         }
-        else
+        else if (!f.IsFinite || !g.IsFinite)
         {
+            // The window below holds for finite curves, [BT08] Proposition 4(4), so with infinite values the difference is computed in full.
             var diff = f.Subtraction(g, settings);
             return diff.SupArg(settings);
+        }
+        else
+        {
+            if (f.PseudoPeriodSlope > g.PseudoPeriodSlope)
+                return Rational.PlusInfinity;
+
+            // The difference is ultimately pseudo-periodic and never grows from one period to the next, [BT08] Proposition 4(4), so a later period ties the supremum at best, and only after its first location.
+            // So it is enough to search up to one period past the later of the two pseudo-period starts, taking as period the least common multiple of their period lengths.
+            var end = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart)
+                + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+            var times = new Interval(0, end, isLowerIncluded: true, isUpperIncluded: true);
+
+            var fCut = f.CutAsEnumerable(times, settings);
+            var gCut = g.CutAsEnumerable(times, settings);
+            return fCut
+                .Subtraction(gCut)
+                .SupArg();
         }
     }
 
