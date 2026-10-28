@@ -15,6 +15,8 @@ public static class SequenceExtensions
     private static Logger logger = LogManager.GetCurrentClassLogger();
     #endif
 
+    #region Conversion
+
     /// <summary>
     /// Builds a <see cref="Sequence"/> object from the set of elements. 
     /// </summary>
@@ -32,6 +34,10 @@ public static class SequenceExtensions
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
     public static Sequence ToSequence(this IEnumerable<Element> elements, Rational fillFrom, Rational fillTo, Rational? fillWith = null)
         => new Sequence(elements, fillFrom, fillTo, fillWith);
+
+    #endregion
+
+    #region Cutting and filling
 
     /// <summary>
     /// Returns a cut of the sequence for a smaller support.
@@ -294,6 +300,10 @@ public static class SequenceExtensions
         }
     }
 
+    #endregion
+
+    #region Merging
+
     /// <summary>
     /// Applies merge, whenever possible, to a set of elements.
     /// The result is the minimal set, in number of elements, to represent the same information.
@@ -460,6 +470,10 @@ public static class SequenceExtensions
         }
     }
 
+    #endregion
+
+    #region Element lookup
+
     /// <summary>
     /// Returns the <see cref="Element"/> that describes the sequence in <paramref name="time"/>.
     /// </summary>
@@ -522,6 +536,10 @@ public static class SequenceExtensions
             throw new ArgumentException("Sequence is not defined after given time");
         }
     }
+
+    #endregion
+
+    #region Ordering and sequence validation
 
     /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end.
@@ -667,6 +685,10 @@ public static class SequenceExtensions
         }
     }
 
+    #endregion
+
+    #region Breakpoints and boundary values
+
     /// <summary>
     /// Enumerates a <see cref="Sequence"/> as a series of breakpoints.
     /// </summary>
@@ -807,6 +829,10 @@ public static class SequenceExtensions
             }
         }
     }
+
+    #endregion
+
+    #region Properties
 
     /// <summary>
     /// True if there is no discontinuity within the sequence.
@@ -963,6 +989,10 @@ public static class SequenceExtensions
     {
         return elements.All(e => e.IsPlusInfinite);
     }
+
+    #endregion
+
+    #region Extrema
 
     /// <summary>
     /// If the sequence is upper-bounded around the breakpoint $t_c$, i.e., exists $x$ such that $f(t) \le x$ for any $t \in [t_c - \varepsilon, t_c + \varepsilon]$, returns $\inf x$.
@@ -1142,6 +1172,10 @@ public static class SequenceExtensions
         };
     }
 
+    #endregion
+
+    #region Continuity transformations
+
     /// <summary>
     /// Chooses a finite time strictly inside the segment's open support.
     /// </summary>
@@ -1250,6 +1284,10 @@ public static class SequenceExtensions
             isStart = false;
         }
     }
+
+    #endregion
+
+    #region Pseudo-inverses
 
     /// <summary>
     /// Computes the lower pseudo-inverse function,
@@ -1837,6 +1875,10 @@ public static class SequenceExtensions
         }
     }
 
+    #endregion
+
+    #region Envelopes
+
     /// <summary>
     /// Computes the lower envelope of the set of elements given.
     /// $O(n \cdot \log(n))$ complexity.
@@ -1999,4 +2041,6 @@ public static class SequenceExtensions
             }
         }
     }
+    #endregion
+
 }
