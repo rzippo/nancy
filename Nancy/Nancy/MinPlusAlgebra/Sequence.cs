@@ -970,9 +970,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (IsZero)
             return this;
 
-        return new Sequence(
-            Elements.Select(e => -e)
-        );
+        return Elements.Negate()
+            .ToSequence();
     }
 
     /// <summary>
@@ -1693,11 +1692,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     public Sequence Scale(Rational scaling)
     {
-        var scaledElements = Elements
-            //.AsParallel().AsOrdered()
-            .Select(e => e.Scale(scaling));
-
-        return new Sequence(scaledElements);
+        return Elements.Scale(scaling)
+            .ToSequence();
     }
 
     /// <summary>
@@ -1727,7 +1723,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>
     /// Delays the support by the given time quantity, i.e. $f(t - T)$, with $T \ge 0$.
     /// </summary>
+    /// <param name="delay">The finite non-negative delay.</param>
+    /// <param name="prependWithZero">Whether to fill the added initial interval with zero; a positive delay requires a finite left endpoint when true.</param>
+    /// <returns>The delayed sequence, or this sequence when the delay is zero.</returns>
     /// <exception cref="ArgumentException">If <paramref name="delay"/> is either negative or infinite.</exception>
+    /// <exception cref="ArgumentException">If <paramref name="delay"/> is positive, <paramref name="prependWithZero"/> is true, and the support is left-unbounded.</exception>
     /// <seealso cref="Forward"/>
     /// <seealso cref="HorizontalShift"/>
     public Sequence Delay(Rational delay, bool prependWithZero = true)
@@ -1735,33 +1735,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (delay == 0)
             return this;
 
-        if (delay < 0)
-            throw new ArgumentException("Delay must be >= 0");
-
-        if (delay.IsInfinite)
-            throw new ArgumentException("Delay must be finite.");
-
-        var delayedElements = new List<Element>();
-
-        if (prependWithZero)
-        {
-            if (IsLeftClosed)
-                delayedElements.Add(Point.Zero(DefinedFrom));
-
-            delayedElements.Add(
-                Segment.Zero(
-                    startTime: DefinedFrom,
-                    endTime: DefinedFrom + delay
-                )
-            );
-            if (!IsLeftClosed)
-                delayedElements.Add(Point.Zero(DefinedFrom + delay));
-        }
-
-        delayedElements.AddRange(Elements
-            .Select(e => e.Delay(delay)));
-
-        return new Sequence(delayedElements);
+        return Elements.Delay(delay, prependWithZero)
+            .ToSequence();
     }
 
     /// <summary>
@@ -1775,44 +1750,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (time == 0)
             return this;
 
-        if (time < 0)
-            throw new ArgumentException("Time must be >= 0");
-
-        if (time.IsInfinite)
-            throw new ArgumentException("Time to forward by must be finite.");
-
-        var elements = new List<Element>();
-        foreach (var element in Elements)
-        {
-            if (element is Point p)
-            {
-                if(p.Time < time)
-                    continue;
-                else
-                    elements.Add(p.Forward(time));
-            }
-            else
-            {
-                var s = (Segment)element;
-                if (s.StartTime < time)
-                {
-                    if (s.IsDefinedFor(time))
-                    {
-                        var (_, center, right) = s.Split(time);
-                        elements.Add(center.Forward(time));
-                        elements.Add(right.Forward(time));
-                    }
-                    else
-                        continue;
-                }
-                else
-                {
-                    elements.Add(s.Forward(time));
-                }
-            }
-        }
-
-        return new Sequence(elements);
+        return Elements.Forward(time)
+            .ToSequence();
     }
 
     /// <summary>
@@ -1820,7 +1759,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// If $T \ge 0$, it behaves like <see cref="Delay(Rational, bool)"/> (with its default zero prefix).
     /// If $T &lt; 0$, it behaves like <see cref="Forward(Rational)"/>.
     /// </summary>
+    /// <param name="shift">The finite signed shift.</param>
+    /// <returns>The shifted sequence, or this sequence when the shift is zero.</returns>
     /// <exception cref="ArgumentException">If <paramref name="shift"/> is infinite.</exception>
+    /// <exception cref="ArgumentException">If <paramref name="shift"/> is positive and the support is left-unbounded.</exception>
     /// <seealso cref="Delay"/>
     /// <seealso cref="Forward"/>
     public Sequence HorizontalShift(Rational shift)
@@ -1846,20 +1788,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (shift == 0)
             return this;
 
-        var offsettedElements = Elements
-            .Select(e =>
-            {
-                if (exceptOrigin && e is Point { Time.IsZero: true })
-                {
-                    return e;
-                }
-                else
-                {
-                    return e.VerticalShift(shift);
-                }
-            });
-
-        return new Sequence(offsettedElements);
+        return Elements.VerticalShift(shift, exceptOrigin)
+            .ToSequence();
     }
 
     /// <summary>
@@ -2417,10 +2347,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     public Sequence Floor()
     {
-        var elements = Elements
-            .SelectMany(e => e.Floor())
-            .MergeAsEnumerable();
-        return elements.ToSequence();
+        return Elements.Floor()
+            .MergeAsEnumerable()
+            .ToSequence();
     }
 
     /// <summary>
@@ -2431,10 +2360,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </remarks>
     public Sequence Ceil()
     {
-        var elements = Elements
-            .SelectMany(e => e.Ceil())
-            .MergeAsEnumerable();
-        return elements.ToSequence();
+        return Elements.Ceil()
+            .MergeAsEnumerable()
+            .ToSequence();
     }
 
     #endregion Basic manipulations

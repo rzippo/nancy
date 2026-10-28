@@ -3676,7 +3676,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (time <= PseudoPeriodStart)
         {
             return new Curve(
-                baseSequence: BaseSequence.Forward(time),
+                baseSequence: BaseSequence.Cut(time, BaseSequence.DefinedUntil, isEndIncluded: BaseSequence.IsRightClosed)
+                    .Forward(time),
                 pseudoPeriodStart: PseudoPeriodStart - time,
                 pseudoPeriodLength: PseudoPeriodLength,
                 pseudoPeriodHeight: PseudoPeriodHeight
@@ -3685,7 +3686,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         else
         {
             return new Curve(
-                baseSequence: Cut(0, time + PseudoPeriodLength).Forward(time),
+                baseSequence: Cut(time, time + PseudoPeriodLength)
+                    .Forward(time),
                 pseudoPeriodStart: 0,
                 pseudoPeriodLength: PseudoPeriodLength,
                 pseudoPeriodHeight: PseudoPeriodHeight

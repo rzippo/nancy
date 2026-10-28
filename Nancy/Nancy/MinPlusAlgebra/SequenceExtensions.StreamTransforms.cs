@@ -76,8 +76,10 @@ public static partial class SequenceExtensions
     /// The zero prefix preserves the outer left endpoint's inclusion.
     /// At its join with a delayed open start, the value is zero; at a delayed closed start, the original point supplies the value.
     /// A zero delay yields the original element objects while validating their order.
+    /// A positive delay with a zero prefix requires a finite left endpoint; this is checked during enumeration before yielding any elements.
     /// </remarks>
     /// <exception cref="ArgumentException">If the delay is negative or infinite.</exception>
+    /// <exception cref="ArgumentException">If <paramref name="delay"/> is positive, <paramref name="prependWithZero"/> is true, and the support is left-unbounded.</exception>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static IEnumerable<Element> Delay(this IEnumerable<Element> elements, Rational delay, bool prependWithZero = true)
@@ -104,6 +106,8 @@ public static partial class SequenceExtensions
             if (prependWithZero)
             {
                 var start = cursor.Current.StartTime;
+                if (start.IsMinusInfinite)
+                    throw new ArgumentException("Cannot prepend zero to left-unbounded support for a positive delay.", nameof(prependWithZero));
                 if (cursor.Current is Point)
                     yield return Point.Zero(start);
                 yield return Segment.Zero(start, start + delay);
@@ -118,11 +122,11 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>
-    /// Advances an element stream by a finite non-negative time, removing the part before time zero.
+    /// Translates an element stream by a finite non-negative advance, $f(t + T)$, including times before zero.
     /// </summary>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <param name="time">The non-negative advance.</param>
-    /// <returns>The shifted portion at non-negative times.</returns>
+    /// <returns>The translated elements over the shifted support.</returns>
     /// <exception cref="ArgumentException">If the advance is negative or infinite.</exception>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
@@ -149,34 +153,19 @@ public static partial class SequenceExtensions
 
             do
             {
-                var element = cursor.Current;
-                if (element is Point point)
-                {
-                    if (point.Time >= time) yield return point.Forward(time);
-                }
-                else
-                {
-                    var segment = (Segment) element;
-                    if (segment.EndTime <= time) continue;
-                    if (segment.StartTime < time)
-                    {
-                        var (_, pointAtCut, right) = segment.Split(time);
-                        yield return pointAtCut.Forward(time);
-                        yield return right.Forward(time);
-                    }
-                    else yield return segment.Forward(time);
-                }
+                yield return cursor.Current.Forward(time);
             } while (cursor.MoveNext());
         }
     }
 
     /// <summary>
-    /// Shifts an element stream horizontally, using a zero prefix for positive shifts and clipping before zero for negative shifts.
+    /// Shifts an element stream horizontally, using a zero prefix for positive shifts and a pure translation for negative shifts.
     /// </summary>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <param name="shift">The finite signed shift.</param>
     /// <returns>The elements following the support conventions of the sequence horizontal shift.</returns>
     /// <exception cref="ArgumentException">If the shift is infinite.</exception>
+    /// <exception cref="ArgumentException">During enumeration, if <paramref name="shift"/> is positive and the support is left-unbounded.</exception>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static IEnumerable<Element> HorizontalShift(this IEnumerable<Element> elements, Rational shift)
