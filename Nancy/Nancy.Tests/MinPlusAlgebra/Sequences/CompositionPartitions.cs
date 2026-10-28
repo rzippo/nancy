@@ -120,6 +120,14 @@ public class CompositionPartitions
     }
 
     [Theory]
+    [MemberData(nameof(Cases))]
+    public void SequenceCompositionAgreesOnEveryAffinePiece(Sequence outer, Sequence inner)
+    {
+        var actual = Sequence.Composition(outer, inner);
+        AssertPointwiseComposition(outer, inner, actual);
+    }
+
+    [Theory]
     [MemberData(nameof(BoundedCases))]
     public void StreamCompositionMatchesInverseImagePartitioning(Sequence outer, Sequence inner)
     {

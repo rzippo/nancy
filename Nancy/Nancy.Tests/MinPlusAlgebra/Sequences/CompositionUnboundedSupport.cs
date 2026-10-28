@@ -100,6 +100,14 @@ public class CompositionUnboundedSupport
         Assert.Equal(expected.Elements, actual.Elements);
     }
 
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void SequenceCompositionPreservesUnboundedSupports(Sequence outer, Sequence inner, Sequence expected)
+    {
+        var actual = Sequence.Composition(outer, inner);
+        Assert.Equal(expected.Elements, actual.Elements);
+    }
+
     [Fact]
     public void AnUnboundedInnerSegmentProducesAFiniteRequestedPrefix()
     {

@@ -41,6 +41,7 @@ public class Composition
         try { expected = MaterializedCompositionReference.Composition(outer, inner); }
         catch (ArgumentException)
         {
+            Assert.Throws<ArgumentException>(() => Sequence.Composition(outer, inner));
             Assert.Throws<ArgumentException>(() => outer.Elements.Composition(inner.Elements)
                 .ToList());
             return;
@@ -49,6 +50,7 @@ public class Composition
             .MergeAsEnumerable()
             .ToSequence();
         Assert.True(Sequence.Equivalent(expected, actual));
+        Assert.True(Sequence.Equivalent(expected, Sequence.Composition(outer, inner)));
     }
 
     [Fact]
@@ -159,6 +161,13 @@ public class Composition
     {
         Assert.Throws<ArgumentException>(() => outer.Elements.Composition(inner.Elements)
             .ToList());
+    }
+
+    [Theory]
+    [MemberData(nameof(UnsupportedCases))]
+    public void SequenceCompositionRejectsUnsupportedOperands(Sequence outer, Sequence inner)
+    {
+        Assert.Throws<ArgumentException>(() => Sequence.Composition(outer, inner));
     }
 
     [Fact]
