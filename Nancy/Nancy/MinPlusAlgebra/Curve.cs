@@ -4421,6 +4421,53 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
     }
 
+    /// <summary>
+    /// Returns the lower pseudo-inverse over the height interval $[0, y_{end}]$ as a stream of elements.
+    /// </summary>
+    /// <param name="end">The last height, $y_{end}$, included.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The elements of the lower pseudo-inverse in height order.</returns>
+    /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
+    /// <exception cref="ArgumentException">If <paramref name="end"/> is not finite and non-negative.</exception>
+    /// <remarks>
+    /// For a finite requested end on finite curves with positive finite pseudo-period height that are not ultimately affine, computes the transient once and retains one inverse pseudo-period when the requested interval reaches the second period.
+    /// Elements are computed and retained as they are consumed; stopping early does not complete the retained period.
+    /// Other cases use <see cref="LowerPseudoInverse"/> and enumerate its extension on demand.
+    /// </remarks>
+    public IEnumerable<Element> LowerPseudoInverseAsEnumerable(Rational end, ComputationSettings? settings = null)
+    {
+        if (!IsNonDecreasing)
+            throw new ArgumentException("The lower pseudo-inverse is defined only for non-decreasing functions");
+        if (!end.IsFinite || end < 0)
+            throw new ArgumentException("The last height must be finite and non-negative.", nameof(end));
+
+        if (!IsFinite || PseudoPeriodHeight <= 0 ||
+            !PseudoPeriodHeight.IsFinite || IsUltimatelyAffine)
+            return LowerPseudoInverse()
+                .CutAsEnumerable(0, end, isStartIncluded: true, isEndIncluded: true, settings);
+
+        // At $f(T)$, a plateau can have its first qualifying time before $T$; use $f(T+d)$ for the lower inverse.
+        // Its inverse has period length $c$ and height $d$; move the start by whole periods if it is negative.
+        var inversePeriodStart = ValueAt(FirstPseudoPeriodEnd);
+        if (inversePeriodStart < 0)
+            inversePeriodStart += (-inversePeriodStart / PseudoPeriodHeight).Ceil() * PseudoPeriodHeight;
+        var inversePeriodEnd = inversePeriodStart + PseudoPeriodHeight;
+        var reusePeriod = end >= inversePeriodEnd;
+        var inverseEnd = reusePeriod ? inversePeriodEnd : end;
+
+        // Choose a source endpoint with $f(t) > y_{end}$, including one extra period when the heights are equal.
+        var sourceEnd = SecondPseudoPeriodEnd;
+        sourceEnd += Rational.Max(0, ((inverseEnd - ValueAt(sourceEnd)) / PseudoPeriodHeight).Ceil() + 1)
+            * PseudoPeriodLength;
+        var elements = CutAsEnumerable(0, sourceEnd, isStartIncluded: true, isEndIncluded: true, settings)
+            .LowerPseudoInverse(startFromZero: true);
+
+        if (reusePeriod)
+            elements = RepeatPseudoPeriod(elements, inversePeriodStart, PseudoPeriodHeight, PseudoPeriodLength);
+
+        return elements.Cut(0, end, isStartIncluded: true, isEndIncluded: true);
+    }
+
     // todo: add reference about $f(t) > 0$ for $t > 0$
 
     /// <summary>
@@ -4490,6 +4537,122 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 pseudoPeriodHeight: PseudoPeriodLength
             );
         }
+    }
+
+    /// <summary>
+    /// Returns the upper pseudo-inverse over the height interval $[0, y_{end}]$ as a stream of elements.
+    /// </summary>
+    /// <param name="end">The last height, $y_{end}$, included.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The elements of the upper pseudo-inverse in height order.</returns>
+    /// <exception cref="ArgumentException">If the curve is not non-decreasing.</exception>
+    /// <exception cref="ArgumentException">If <paramref name="end"/> is not finite and non-negative.</exception>
+    /// <remarks>
+    /// For a finite requested end on finite curves with positive finite pseudo-period height that are not ultimately affine, computes the transient once and retains one inverse pseudo-period when the requested interval reaches the second period.
+    /// Elements are computed and retained as they are consumed; stopping early does not complete the retained period.
+    /// Other cases use <see cref="UpperPseudoInverse"/> and enumerate its extension on demand.
+    /// </remarks>
+    public IEnumerable<Element> UpperPseudoInverseAsEnumerable(Rational end, ComputationSettings? settings = null)
+    {
+        if (!IsNonDecreasing)
+            throw new ArgumentException("The upper pseudo-inverse is defined only for non-decreasing functions");
+        if (!end.IsFinite || end < 0)
+            throw new ArgumentException("The last height must be finite and non-negative.", nameof(end));
+
+        if (!IsFinite || PseudoPeriodHeight <= 0 ||
+            !PseudoPeriodHeight.IsFinite || IsUltimatelyAffine)
+            return UpperPseudoInverse()
+                .CutAsEnumerable(0, end, isStartIncluded: true, isEndIncluded: true, settings);
+
+        // For $y >= f(T)$, time $T$ qualifies in $\sup \{ t : f(t) \le y \}$, so earlier times cannot increase the supremum.
+        // The upper inverse is therefore pseudo-periodic from $f(T)$, with period length $c$ and height $d$.
+        // Move the start by whole periods if it is below the requested nonnegative height domain.
+        var inversePeriodStart = ValueAt(PseudoPeriodStart);
+        if (inversePeriodStart < 0)
+            inversePeriodStart += (-inversePeriodStart / PseudoPeriodHeight).Ceil() * PseudoPeriodHeight;
+        var inversePeriodEnd = inversePeriodStart + PseudoPeriodHeight;
+        var reusePeriod = end >= inversePeriodEnd;
+        var inverseEnd = reusePeriod ? inversePeriodEnd : end;
+
+        // Choose a source endpoint with $f(t) > y_{end}$, including one extra period when the heights are equal.
+        var sourceEnd = SecondPseudoPeriodEnd;
+        sourceEnd += Rational.Max(0, ((inverseEnd - ValueAt(sourceEnd)) / PseudoPeriodHeight).Ceil() + 1)
+            * PseudoPeriodLength;
+        var elements = CutAsEnumerable(0, sourceEnd, isStartIncluded: true, isEndIncluded: true, settings)
+            .UpperPseudoInverse(startFromZero: true);
+
+        if (reusePeriod)
+            elements = RepeatPseudoPeriod(elements, inversePeriodStart, PseudoPeriodHeight, PseudoPeriodLength);
+
+        return elements.Cut(0, end, isStartIncluded: true, isEndIncluded: true);
+    }
+
+    /// <summary>
+    /// Enumerates a transient followed by repetitions of one retained pseudo-period.
+    /// </summary>
+    /// <param name="elements">A sequence stream covering $[0, T+d]$, whose continuation is pseudo-periodic from $T$.</param>
+    /// <param name="periodStart">The finite nonnegative pseudo-period start $T$.</param>
+    /// <param name="periodLength">The positive finite pseudo-period length $d$.</param>
+    /// <param name="periodHeight">The finite pseudo-period height.</param>
+    /// <returns>The transient followed by the repeated pseudo-period, computed as consumed.</returns>
+    private static IEnumerable<Element> RepeatPseudoPeriod(
+        IEnumerable<Element> elements, Rational periodStart, Rational periodLength, Rational periodHeight)
+    {
+        if (!periodStart.IsFinite || periodStart < 0)
+            throw new ArgumentException("The pseudo-period start must be finite and non-negative.", nameof(periodStart));
+        if (!periodLength.IsFinite || periodLength <= 0)
+            throw new ArgumentException("The pseudo-period length must be finite and positive.", nameof(periodLength));
+        if (!periodHeight.IsFinite)
+            throw new ArgumentException("The pseudo-period height must be finite.", nameof(periodHeight));
+        return Repeat();
+
+        IEnumerable<Element> Repeat()
+        {
+            var period = new List<Element>();
+            foreach (var element in elements.Cut(0, periodStart + periodLength, isStartIncluded: true, isEndIncluded: false))
+            {
+                if (element is Point point ? point.Time < periodStart : element.EndTime <= periodStart)
+                {
+                    yield return element;
+                    continue;
+                }
+
+                // A segment crossing $T$ belongs partly to the transient and partly to the retained period.
+                if (element is Segment crossing && crossing.StartTime < periodStart)
+                {
+                    var (transient, boundary, periodic) = crossing.Split(periodStart);
+                    yield return transient;
+                    period.Add(boundary);
+                    yield return boundary;
+                    period.Add(periodic);
+                    yield return periodic;
+                }
+                else
+                {
+                    period.Add(element);
+                    yield return element;
+                }
+            }
+
+            Rational timeShift = periodLength;
+            Rational valueShift = periodHeight;
+            while (true)
+            {
+                foreach (var element in period)
+                {
+                    yield return element switch
+                    {
+                        Point point => new Point(point.Time + timeShift, point.Value + valueShift),
+                        Segment segment => new Segment(segment.StartTime + timeShift, segment.EndTime + timeShift,
+                            segment.RightLimitAtStartTime + valueShift, segment.Slope),
+                        _ => throw new InvalidOperationException("Unsupported element type")
+                    };
+                }
+
+                timeShift += periodLength;
+                valueShift += periodHeight;
+            }
+            }
     }
 
     /// <summary>
