@@ -70,6 +70,37 @@ public class SequenceKnownPropertyShortcuts
     }
 
     [Fact]
+    public void ToNonNegativeReusesAnInputKnownToSatisfyTheProperty()
+    {
+        var source = new Sequence([new Point(0, 0), new Segment(0, 1, 0, 0)]);
+        Assert.True(source.IsNonNegative);
+        Assert.Same(source, source.ToNonNegative());
+    }
+
+    [Fact]
+    public void ToNonNegativeDoesNotInitializeAnUnknownPredicate()
+    {
+        var source = new Sequence([new Point(0, 0), new Segment(0, 1, 0, 0)]);
+        source._isNonNegative = new Lazy<bool>(() => throw new InvalidOperationException("Predicate was evaluated."),
+            LazyThreadSafetyMode.ExecutionAndPublication);
+        var result = source.ToNonNegative();
+        Assert.True(Sequence.Equivalent(source, result));
+        Assert.False(source._isNonNegative.IsValueCreated);
+    }
+
+    [Fact]
+    public void ToNonNegativeDoesNotReadAFaultedPredicate()
+    {
+        var source = new Sequence([new Point(0, 0), new Segment(0, 1, 0, 0)]);
+        source._isNonNegative = new Lazy<bool>(() => throw new InvalidOperationException("Cached failure."),
+            LazyThreadSafetyMode.ExecutionAndPublication);
+        Assert.Throws<InvalidOperationException>(() => source.IsNonNegative);
+        var result = source.ToNonNegative();
+        Assert.True(Sequence.Equivalent(source, result));
+        Assert.Throws<InvalidOperationException>(() => source.IsNonNegative);
+    }
+
+    [Fact]
     public void ToLeftContinuousTransformsAnInputKnownToViolateTheProperty()
     {
         var source = new Sequence([new Point(0, 2), new Segment(0, 1, 2, 0), new Point(1, -1), new Segment(1, 2, 2, 0)]);
@@ -87,6 +118,17 @@ public class SequenceKnownPropertyShortcuts
         var coldResult = source.ToRightContinuous();
         Assert.False(source.IsRightContinuous);
         var warmResult = source.ToRightContinuous();
+        Assert.False(Sequence.Equivalent(source, warmResult));
+        Assert.True(Sequence.Equivalent(coldResult, warmResult));
+    }
+
+    [Fact]
+    public void ToNonNegativeTransformsAnInputKnownToViolateTheProperty()
+    {
+        var source = new Sequence([new Point(0, 2), new Segment(0, 1, 2, 0), new Point(1, -1), new Segment(1, 2, 2, 0)]);
+        var coldResult = source.ToNonNegative();
+        Assert.False(source.IsNonNegative);
+        var warmResult = source.ToNonNegative();
         Assert.False(Sequence.Equivalent(source, warmResult));
         Assert.True(Sequence.Equivalent(coldResult, warmResult));
     }

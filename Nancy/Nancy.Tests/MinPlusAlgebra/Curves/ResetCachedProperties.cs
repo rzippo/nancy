@@ -24,13 +24,46 @@ public class ResetCachedProperties
     public static IEnumerable<object[]> CurveCases()
         => Curves.ToXUnitTestCases();
 
-    private static object[] ReadProperties(Curve c) =>
+    private static bool[] ReadProperties(Curve value) =>
     [
-        c.HasPlusInfinity, c.HasMinusInfinity, c.IsPassingThroughOrigin,
-        c.IsLeftContinuous, c.IsRightContinuous, c.IsNonNegative,
-        c.IsNonDecreasing, c.IsIncreasing, c.IsSubAdditive, c.IsSuperAdditive,
-        c.BaseSequence.IsLeftContinuous, c.BaseSequence.IsRightContinuous,
-        c.BaseSequence.IsNonDecreasing, c.BaseSequence.IsIncreasing
+        value.IsFinite,
+        value.IsZero,
+        value.IsPlusInfinite,
+        value.IsMinusInfinite,
+        value.HasPlusInfinity,
+        value.HasMinusInfinity,
+        value.IsPassingThroughOrigin,
+        value.IsContinuous,
+        value.IsContinuousExceptOrigin,
+        value.IsLeftContinuous,
+        value.IsRightContinuous,
+        value.IsNonNegative,
+        value.IsNonPositive,
+        value.IsPositive,
+        value.IsNegative,
+        value.IsConstant,
+        value.IsAffine,
+        value.IsNonDecreasing,
+        value.IsIncreasing,
+        value.IsNonIncreasing,
+        value.IsDecreasing,
+        value.IsUltimatelyFinite,
+        value.IsUltimatelyPlusInfinite,
+        value.IsUltimatelyMinusInfinite,
+        value.IsUltimatelyInfinite,
+        value.IsUltimatelyPlain,
+        value.IsPlain,
+        value.IsUltimatelyAffine,
+        value.IsUltimatelyConstant,
+        value.IsSubAdditive,
+        value.IsRegularSubAdditive,
+        value.IsSuperAdditive,
+        value.IsRegularSuperAdditive,
+        value.IsConcave,
+        value.IsRegularConcave,
+        value.IsConvex,
+        value.IsRegularConvex,
+        value.HasTransient
     ];
 
     private static bool? Cached(object? value) => value switch
@@ -42,17 +75,51 @@ public class ResetCachedProperties
 
     private static bool?[] CachedFields(Curve c) =>
     [
-        Cached(c._hasPlusInfinity), Cached(c._hasMinusInfinity), Cached(c._isPassingThroughOrigin),
-        Cached(c._isLeftContinuous), Cached(c._isRightContinuous), Cached(c._isNonNegative),
-        Cached(c._isNonDecreasing), Cached(c._isIncreasing), Cached(c._IsSubAdditive), Cached(c._IsSuperAdditive),
-        Cached(c.BaseSequence._isLeftContinuous), Cached(c.BaseSequence._isRightContinuous),
-        Cached(c.BaseSequence._isNonDecreasing), Cached(c.BaseSequence._isIncreasing)
+        Cached(c._isFinite),
+        Cached(c._isZero),
+        Cached(c._isPlusInfinite),
+        Cached(c._isMinusInfinite),
+        Cached(c._hasPlusInfinity),
+        Cached(c._hasMinusInfinity),
+        Cached(c._isPassingThroughOrigin),
+        Cached(c._isContinuous),
+        Cached(c._isContinuousExceptOrigin),
+        Cached(c._isLeftContinuous),
+        Cached(c._isRightContinuous),
+        Cached(c._isNonNegative),
+        Cached(c._isNonPositive),
+        Cached(c._isPositive),
+        Cached(c._isNegative),
+        Cached(c._isConstant),
+        Cached(c._isAffine),
+        Cached(c._isNonDecreasing),
+        Cached(c._isIncreasing),
+        Cached(c._isNonIncreasing),
+        Cached(c._isDecreasing),
+        Cached(c._isUltimatelyFinite),
+        Cached(c._isUltimatelyPlusInfinite),
+        Cached(c._isUltimatelyMinusInfinite),
+        Cached(c._isUltimatelyInfinite),
+        Cached(c._isUltimatelyPlain),
+        Cached(c._isPlain),
+        Cached(c._isUltimatelyAffine),
+        Cached(c._isUltimatelyConstant),
+        Cached(c._IsSubAdditive),
+        Cached(c._isRegularSubAdditive),
+        Cached(c._IsSuperAdditive),
+        Cached(c._isRegularSuperAdditive),
+        Cached(c._isConcave),
+        Cached(c._isRegularConcave),
+        Cached(c._isConvex),
+        Cached(c._isRegularConvex),
+        Cached(c._hasTransient)
     ];
 
     [Theory]
     [MemberData(nameof(CurveCases))]
     public void EveryCachedPropertyIsForgotten(Curve curve)
     {
+        curve = new Curve(curve);
         ReadProperties(curve);
         curve.ResetCachedProperties();
 
@@ -63,7 +130,9 @@ public class ResetCachedProperties
     [MemberData(nameof(CurveCases))]
     public void EveryPropertyReportsWhatItDidBefore(Curve curve)
     {
+        curve = new Curve(curve);
         var before = ReadProperties(curve);
+        Assert.Equal(before, ReadProperties(curve));
         var copy = new Curve(curve);
 
         curve.ResetCachedProperties();
@@ -76,12 +145,20 @@ public class ResetCachedProperties
     [MemberData(nameof(CurveCases))]
     public void ACutAfterTheResetCarriesNoCachedProperty(Curve curve)
     {
+        curve = new Curve(curve);
         ReadProperties(curve);
         curve.ResetCachedProperties();
 
         var cut = curve.Cut(0, 10);
 
         Assert.Null(cut._isNonDecreasing);
+        Assert.Null(cut._isIncreasing);
+        Assert.Null(cut._isNonIncreasing);
+        Assert.Null(cut._isDecreasing);
+        Assert.Null(cut._isNonNegative);
+        Assert.Null(cut._isNonPositive);
+        Assert.Null(cut._isPositive);
+        Assert.Null(cut._isNegative);
         Assert.Null(cut._isLeftContinuous);
         Assert.Null(cut._isRightContinuous);
     }

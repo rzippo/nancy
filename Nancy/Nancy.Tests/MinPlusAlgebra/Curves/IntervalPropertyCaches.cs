@@ -23,6 +23,10 @@ public class IntervalPropertyCaches
 
     public static IEnumerable<object[]> InvalidIntervalCases() => InvalidIntervals.ToXUnitTestCases();
 
+    // f(t) = slope * t
+    private static Curve Ramp(Rational slope)
+        => new Curve(new Sequence([Point.Origin(), new Segment(0, 1, 0, slope)]), 0, 1, slope);
+
     public static IEnumerable<Rational> SingletonTimes => [0, 1];
     public static IEnumerable<object[]> SingletonCases() => SingletonTimes.ToXUnitTestCases();
 
@@ -108,6 +112,90 @@ public class IntervalPropertyCaches
         Assert.True(curve.IsRightContinuousOverInterval(time, time, true, true));
         Assert.True(curve.IsRightContinuous);
         Assert.True(curve.IsRightContinuousOverInterval(time, time, true, true));
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidIntervalCases))]
+    public void IncreasingRejectsInvalidIntervalsWithColdAndWarmCaches(
+        Rational start, Rational end, bool startIncluded, bool endIncluded)
+    {
+        var curve = Ramp(1);
+        Assert.Throws<ArgumentException>(() => curve.IsIncreasingOverInterval(start, end, startIncluded, endIncluded));
+        Assert.True(curve.IsIncreasing);
+        Assert.Throws<ArgumentException>(() => curve.IsIncreasingOverInterval(start, end, startIncluded, endIncluded));
+    }
+
+    [Theory]
+    [MemberData(nameof(SingletonCases))]
+    public void IncreasingAcceptsClosedSingletonsWithColdAndWarmCaches(Rational time)
+    {
+        var curve = Ramp(1);
+        Assert.True(curve.IsIncreasingOverInterval(time, time, true, true));
+        Assert.True(curve.IsIncreasing);
+        Assert.True(curve.IsIncreasingOverInterval(time, time, true, true));
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidIntervalCases))]
+    public void NonIncreasingRejectsInvalidIntervalsWithColdAndWarmCaches(
+        Rational start, Rational end, bool startIncluded, bool endIncluded)
+    {
+        var curve = Curve.Zero();
+        Assert.Throws<ArgumentException>(() => curve.IsNonIncreasingOverInterval(start, end, startIncluded, endIncluded));
+        Assert.True(curve.IsNonIncreasing);
+        Assert.Throws<ArgumentException>(() => curve.IsNonIncreasingOverInterval(start, end, startIncluded, endIncluded));
+    }
+
+    [Theory]
+    [MemberData(nameof(SingletonCases))]
+    public void NonIncreasingAcceptsClosedSingletonsWithColdAndWarmCaches(Rational time)
+    {
+        var curve = Curve.Zero();
+        Assert.True(curve.IsNonIncreasingOverInterval(time, time, true, true));
+        Assert.True(curve.IsNonIncreasing);
+        Assert.True(curve.IsNonIncreasingOverInterval(time, time, true, true));
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidIntervalCases))]
+    public void DecreasingRejectsInvalidIntervalsWithColdAndWarmCaches(
+        Rational start, Rational end, bool startIncluded, bool endIncluded)
+    {
+        var curve = Ramp(-1);
+        Assert.Throws<ArgumentException>(() => curve.IsDecreasingOverInterval(start, end, startIncluded, endIncluded));
+        Assert.True(curve.IsDecreasing);
+        Assert.Throws<ArgumentException>(() => curve.IsDecreasingOverInterval(start, end, startIncluded, endIncluded));
+    }
+
+    [Theory]
+    [MemberData(nameof(SingletonCases))]
+    public void DecreasingAcceptsClosedSingletonsWithColdAndWarmCaches(Rational time)
+    {
+        var curve = Ramp(-1);
+        Assert.True(curve.IsDecreasingOverInterval(time, time, true, true));
+        Assert.True(curve.IsDecreasing);
+        Assert.True(curve.IsDecreasingOverInterval(time, time, true, true));
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidIntervalCases))]
+    public void ContinuousRejectsInvalidIntervalsWithColdAndWarmCaches(
+        Rational start, Rational end, bool startIncluded, bool endIncluded)
+    {
+        var curve = Curve.Zero();
+        Assert.Throws<ArgumentException>(() => curve.IsContinuousOverInterval(start, end, startIncluded, endIncluded));
+        Assert.True(curve.IsContinuous);
+        Assert.Throws<ArgumentException>(() => curve.IsContinuousOverInterval(start, end, startIncluded, endIncluded));
+    }
+
+    [Theory]
+    [MemberData(nameof(SingletonCases))]
+    public void ContinuousAcceptsClosedSingletonsWithColdAndWarmCaches(Rational time)
+    {
+        var curve = Curve.Zero();
+        Assert.True(curve.IsContinuousOverInterval(time, time, true, true));
+        Assert.True(curve.IsContinuous);
+        Assert.True(curve.IsContinuousOverInterval(time, time, true, true));
     }
 
 }
