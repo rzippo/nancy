@@ -3775,12 +3775,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     #region Composition
     
     /// <summary>
-    /// Compute the composition $f(g(t))$, over a limited interval.
+    /// Computes the composition $f(g(t))$ over the support of <paramref name="g"/>.
     /// </summary>
     /// <param name="f">
     /// Outer function, must be defined over a superset of the image of <paramref name="g"/>.
     /// </param>
-    /// <param name="g">Inner function, non-negative and non-decreasing.</param>
+    /// <param name="g">Inner function, finite-valued, non-negative and non-decreasing.</param>
     /// <exception cref="ArgumentException">
     /// If the operands are not defined as expected, i.e. if there are values attained by <paramref name="g"/> that are not in the support of <paramref name="f"/>.
     /// </exception>
@@ -3792,6 +3792,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Algorithmic properties discussed in [ZNS23b], which covers the right boundary of <paramref name="g"/>.
     /// The left boundary, and the sequences of a single element, are covered in [TBP-COMP-SEQ-EXT].
     /// Its case codes name the checks below.
+    /// The general case discovers the same breakpoint/preimage partition by walking forward through the outer function as the inner values increase.
+    /// The streamed result is merged and materialized here; the raw traversal is <see cref="SequenceExtensions.Composition"/>.
     /// </remarks>
     public static Sequence Composition(Sequence f, Sequence g)
     {
@@ -3913,104 +3915,17 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 }
             }
                     
-            var gTimes = g.EnumerateBreakpoints()
-                .Select(bp => bp.center.Time);
-            if(g.IsLeftOpen)
-                gTimes = gTimes.Prepend(g.DefinedFrom);
-            if(g.IsRightOpen)
-                gTimes = gTimes.Append(g.DefinedUntil);
-            // Where the image of g is a single value, the result is constant.
-            // The outer sequence contributes no breakpoint of its own, so there is nothing to cut.
-            // [TBP-COMP-SEQ-EXT], constant inner operand.
-            IEnumerable<Rational> fTimes;
-            if (gImageStart < gImageEnd)
-            {
-                var gInverse = g.LowerPseudoInverse();
-                fTimes = f.Cut(gImageStart, gImageEnd, false, false).EnumerateBreakpoints()
-                    .Select(bp => gInverse.ValueAt(bp.center.Time));
-            }
-            else
-            {
-                fTimes = [];
-            }
-
-            var times = gTimes.Concat(fTimes)
-                .OrderBy(t => t)
-                .OrderedDistinct();
-            #if DEBUG
-            var elements = EnumerateComposition(times).ToList();
-            var merged = elements.Merge();
-            var result = new Sequence(merged);
-            #else
-            var result = EnumerateComposition(times)
+            return f.Elements.Composition(g.Elements)
                 .MergeAsEnumerable()
                 .ToSequence();
-            #endif
-            return result;
-
-            IEnumerable<Element> EnumerateComposition(IEnumerable<Rational> times)
-            {
-                // The following loop works between two different breakpoints, computing the composition between those.
-                Rational? prevTime = null;
-                int lastIndexF = 0, lastIndexG = 0;
-                foreach (var time in times)
-                {
-                    if (prevTime is { } pTime)
-                    {
-                        if (prevTime > g.DefinedFrom || g.IsLeftClosed)
-                        {
-                            var gValue = g.ValueAt(pTime);
-                            var p = new Point(pTime, f.ValueAt(gValue));
-                            yield return p;
-                        }
-
-                        var gRightLimit = g.RightLimitAt(pTime);
-                        var (gSegment, gIndex) = g.GetSegmentAfter_Linear(pTime, lastIndexG);
-                        lastIndexG = gIndex;
-                        if (gSegment.Slope != 0)
-                        {
-                            var (fSegment, fIndex) = f.GetSegmentAfter_Linear(gRightLimit, lastIndexF);
-                            lastIndexF = fIndex;
-                            var s = new Segment(
-                                pTime,
-                                time,
-                                fSegment.RightLimitAt(gRightLimit),
-                                gSegment.Slope * fSegment.Slope
-                            );
-                            yield return s;
-                        }
-                        else
-                        {
-                            var (fElement, fIndex) = f.GetElementAt_Linear(gRightLimit, lastIndexF);
-                            lastIndexF = fIndex;
-                            var s = new Segment(
-                                pTime,
-                                time,
-                                fElement.ValueAt(gRightLimit),
-                                0
-                            );
-                            yield return s;
-                        }
-
-                        if (time == g.DefinedUntil && g.IsRightClosed)
-                        {
-                            var gValue = g.ValueAt(time);
-                            var p = new Point(time, f.ValueAt(gValue));
-                            yield return p;
-                        }
-                    }
-
-                    prevTime = time;
-                }
-            }
         }
     }
 
     /// <summary>
-    /// Compute the composition of this sequence, $f$, and $g$, i.e. $f(g(t))$, over a limited interval.
-    /// This sequence must be defined in $[g(a), g(b^-)[$ or $[g(a), g(b^-)]$.
+    /// Computes the composition of this sequence, $f$, and <paramref name="g"/>, i.e. $f(g(t))$, over the support of <paramref name="g"/>.
+    /// This sequence must be defined at every value attained by <paramref name="g"/>.
     /// </summary>
-    /// <param name="g">Inner function, non-negative and non-decreasing, defined in $[a, b[$.</param>
+    /// <param name="g">Inner function, finite-valued, non-negative and non-decreasing.</param>
     /// <exception cref="ArgumentException">If the operands are not defined as expected.</exception>
     /// <returns>The result of the composition.</returns>
     public Sequence Composition(Sequence g)
