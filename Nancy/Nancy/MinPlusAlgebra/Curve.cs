@@ -5946,10 +5946,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Rational d = Rational.LeastCommonMultiple(PseudoPeriodLength, b.PseudoPeriodLength);
         Rational c = d * (PseudoPeriodSlope + b.PseudoPeriodSlope);
 
-        Sequence extendedSequence1 = Extend(T + d, settings);
-        Sequence extendedSequence2 = b.Extend(T + d, settings);
-
-        Sequence baseSequence = extendedSequence1 + extendedSequence2;
+        Sequence baseSequence;
+        if (settings.UseParallelExtend || settings.UseParallelComputeExtensionSequences)
+            baseSequence = Sequence.Addition(Extend(T + d, settings), b.Extend(T + d, settings));
+        else
+            baseSequence = CutAsEnumerable(0, T + d, settings: settings)
+                .Addition(b.CutAsEnumerable(0, T + d, settings: settings))
+                .MergeAsEnumerable()
+                .ToSequence();
         var result = new Curve(
             baseSequence: baseSequence,
             pseudoPeriodStart: T,
@@ -6249,14 +6253,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Minimum: extending from T1 {a.PseudoPeriodStart} d1 {a.PseudoPeriodLength}  T2 {b.PseudoPeriodStart} d2 {b.PseudoPeriodLength} to T {T} d {d}");
         #endif
 
-        Sequence extendedSegmentsF1 = a.Extend(T + d, settings);
-        Sequence extendedSegmentsF2 = b.Extend(T + d, settings);
-
-        #if DO_LOG
-        logger.Debug($"Minimum: extending from {a.BaseSequence.Count} and {b.BaseSequence.Count} to {extendedSegmentsF1.Count} and {extendedSegmentsF2.Count}");
-        #endif
-
-        Sequence minSequence = extendedSegmentsF1.Minimum(extendedSegmentsF2, settings: settings);
+        Sequence minSequence;
+        if (!settings.UseParallelLowerEnvelope)
+        {
+            minSequence = a.CutAsEnumerable(0, T + d, settings: settings)
+                .Minimum(b.CutAsEnumerable(0, T + d, settings: settings))
+                .MergeAsEnumerable()
+                .ToSequence();
+        }
+        else
+        {
+            var extendedSegmentsF1 = a.Extend(T + d, settings);
+            var extendedSegmentsF2 = b.Extend(T + d, settings);
+            minSequence = extendedSegmentsF1.Minimum(extendedSegmentsF2, settings: settings);
+        }
 
         Curve result = new Curve
         (
@@ -6561,14 +6571,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Maximum: extending from T1 {a.PseudoPeriodStart} d1 {a.PseudoPeriodLength}  T2 {b.PseudoPeriodStart} d2 {b.PseudoPeriodLength} to T {T} d {d}");
         #endif
 
-        Sequence extendedSegmentsF1 = a.Extend(T + d, settings);
-        Sequence extendedSegmentsF2 = b.Extend(T + d, settings);
-
-        #if DO_LOG
-        logger.Debug($"Maximum: extending from {a.BaseSequence.Count} and {b.BaseSequence.Count} to {extendedSegmentsF1.Count} and {extendedSegmentsF2.Count}");
-        #endif
-
-        Sequence maxSequence = extendedSegmentsF1.Maximum(extendedSegmentsF2, settings: settings);
+        Sequence maxSequence;
+        if (!settings.UseParallelUpperEnvelope)
+        {
+            maxSequence = a.CutAsEnumerable(0, T + d, settings: settings)
+                .Maximum(b.CutAsEnumerable(0, T + d, settings: settings))
+                .MergeAsEnumerable()
+                .ToSequence();
+        }
+        else
+        {
+            var extendedSegmentsF1 = a.Extend(T + d, settings);
+            var extendedSegmentsF2 = b.Extend(T + d, settings);
+            maxSequence = extendedSegmentsF1.Maximum(extendedSegmentsF2, settings: settings);
+        }
 
         Curve result = new Curve
         (
