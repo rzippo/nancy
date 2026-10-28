@@ -2984,16 +2984,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     if (isEndIncluded)
                         endingPseudoPeriodIndex++;
 
-                    var indexes = settings.UseParallelExtend
-                        ? Enumerable.Range(startingPseudoPeriodIndex,
-                                (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1))
-                            .AsParallel().AsOrdered()
-                        : Enumerable.Range(startingPseudoPeriodIndex,
-                            (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
+                    var indexes = Enumerable.Range(startingPseudoPeriodIndex,
+                        endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1);
 
-                    var elements = indexes
-                        .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
-                        .SelectMany(en => en);
+                    var elements = ExtendPeriods(indexes);
 
                     return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
                 }
@@ -3003,13 +2997,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     if (isEndIncluded)
                         endingPseudoPeriodIndex++;
 
-                    var indexes = settings.UseParallelExtend
-                        ? Enumerable.Range(1, endingPseudoPeriodIndex).AsParallel().AsOrdered()
-                        : Enumerable.Range(1, endingPseudoPeriodIndex);
+                    var indexes = Enumerable.Range(1, endingPseudoPeriodIndex);
 
-                    var extensionElements = indexes
-                        .Select(i => ComputeExtensionSequenceAsEnumerable(i, settings))
-                        .SelectMany(en => en);
+                    var extensionElements = ExtendPeriods(indexes);
 
                     var elements = BaseSequence.Elements.Concat(extensionElements);
 
@@ -3021,6 +3011,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             return BaseSequence
                 .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+        }
+
+        IEnumerable<Element> ExtendPeriods(IEnumerable<int> indexes)
+        {
+            var periodicElements = PseudoPeriodicElements;
+            foreach (var index in indexes)
+            {
+                foreach (var element in ComputeExtensionSequenceAsEnumerable(index, periodicElements, settings))
+                    yield return element;
+            }
         }
     }
 
@@ -3140,21 +3140,21 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
     }
 
-    private IEnumerable<Element> ComputeExtensionSequenceAsEnumerable(int pseudoPeriodIndex, ComputationSettings? settings = null)
+    private IEnumerable<Element> ComputeExtensionSequenceAsEnumerable(int pseudoPeriodIndex, IEnumerable<Element> periodicElements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         bool doParallel = settings.UseParallelComputeExtensionSequences;
         IEnumerable<Element> periodicSegmentsCopy;
         if (doParallel)
         {
-            periodicSegmentsCopy = PseudoPeriodicElements
+            periodicSegmentsCopy = periodicElements
                 .AsParallel().AsOrdered()
                 .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex))
                 .WithoutAggregateException();
         }
         else
         {
-            periodicSegmentsCopy = PseudoPeriodicElements
+            periodicSegmentsCopy = periodicElements
                 .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
         }
 
