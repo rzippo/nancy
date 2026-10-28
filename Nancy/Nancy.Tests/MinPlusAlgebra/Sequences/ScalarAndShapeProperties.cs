@@ -44,7 +44,7 @@ public class ScalarAndShapeProperties
 
     [Fact]
     public void IsNonPositiveRejectsEmptyInput()
-        => Assert.Throws<InvalidOperationException>(() => Array.Empty<Element>().IsNonPositive());
+        => Assert.Throws<ArgumentException>(() => Array.Empty<Element>().IsNonPositive());
 
     [Theory]
     [MemberData(nameof(PropertyCases))]
@@ -56,7 +56,7 @@ public class ScalarAndShapeProperties
 
     [Fact]
     public void IsPositiveRejectsEmptyInput()
-        => Assert.Throws<InvalidOperationException>(() => Array.Empty<Element>().IsPositive());
+        => Assert.Throws<ArgumentException>(() => Array.Empty<Element>().IsPositive());
 
     [Theory]
     [MemberData(nameof(PropertyCases))]
@@ -68,7 +68,7 @@ public class ScalarAndShapeProperties
 
     [Fact]
     public void IsNegativeRejectsEmptyInput()
-        => Assert.Throws<InvalidOperationException>(() => Array.Empty<Element>().IsNegative());
+        => Assert.Throws<ArgumentException>(() => Array.Empty<Element>().IsNegative());
 
     [Theory]
     [MemberData(nameof(PropertyCases))]
@@ -80,7 +80,7 @@ public class ScalarAndShapeProperties
 
     [Fact]
     public void IsConstantRejectsEmptyInput()
-        => Assert.Throws<InvalidOperationException>(() => Array.Empty<Element>().IsConstant());
+        => Assert.Throws<ArgumentException>(() => Array.Empty<Element>().IsConstant());
 
     [Theory]
     [MemberData(nameof(PropertyCases))]
@@ -148,22 +148,22 @@ public class ScalarAndShapeProperties
     [Fact]
     public void ScalarPredicatesDistinguishMixedAndUniformInfinities()
     {
-        Element[] mixed = [Point.PlusInfinite(2), Point.MinusInfinite(1)];
+        Element[] mixed = [Point.PlusInfinite(0), Segment.MinusInfinite(0, 1)];
         Assert.True(Once(mixed).IsInfinite());
         Assert.False(Once(mixed).IsConstant());
         Assert.True(Once(mixed).HasPlusInfinity());
         Assert.True(Once(mixed).HasMinusInfinity());
         Assert.False(Once(mixed).IsZero());
-        Assert.False(Once(mixed.Append(Point.Origin())).IsInfinite());
+        Assert.False(Once(mixed.Append(new Point(1, 0))).IsInfinite());
     }
 
     [Fact]
-    public void ScalarPredicatesFollowEmptyQuantifierConventions()
+    public void ScalarPredicatesRejectEmptyInput()
     {
-        Assert.True(Array.Empty<Element>().IsZero());
-        Assert.True(Array.Empty<Element>().IsInfinite());
-        Assert.False(Array.Empty<Element>().HasPlusInfinity());
-        Assert.False(Array.Empty<Element>().HasMinusInfinity());
+        Assert.Throws<ArgumentException>(() => Array.Empty<Element>().IsZero());
+        Assert.Throws<ArgumentException>(() => Array.Empty<Element>().IsInfinite());
+        Assert.Throws<ArgumentException>(() => Array.Empty<Element>().HasPlusInfinity());
+        Assert.Throws<ArgumentException>(() => Array.Empty<Element>().HasMinusInfinity());
     }
 
     [Fact]
@@ -185,14 +185,14 @@ public class ScalarAndShapeProperties
     [Fact]
     public void SupremumPairUsesOneTraversalAndTheEarliestTie()
     {
-        Element[] elements = [new Point(5, 7), new Point(1, 7), new Point(3, -2)];
+        Element[] elements = [new Point(1, 7), Segment.Constant(1, 3, -2), new Point(3, 7)];
         Assert.Equal(((Rational)7, (Rational)1), Once(elements).SupValueAndArg());
     }
 
     [Fact]
     public void InfimumPairUsesOneTraversalAndTheEarliestTie()
     {
-        Element[] elements = [new Point(5, -2), new Point(1, -2), new Point(3, 7)];
+        Element[] elements = [new Point(1, -2), Segment.Constant(1, 3, 7), new Point(3, -2)];
         Assert.Equal(((Rational)(-2), (Rational)1), Once(elements).InfValueAndArg());
     }
 
@@ -220,11 +220,11 @@ public class ScalarAndShapeProperties
 
     [Fact]
     public void SupremumPairRejectsEmptyInput()
-        => Assert.Throws<InvalidOperationException>(() => Array.Empty<Element>().SupValueAndArg());
+        => Assert.Throws<ArgumentException>(() => Array.Empty<Element>().SupValueAndArg());
 
     [Fact]
     public void InfimumPairRejectsEmptyInput()
-        => Assert.Throws<InvalidOperationException>(() => Array.Empty<Element>().InfValueAndArg());
+        => Assert.Throws<ArgumentException>(() => Array.Empty<Element>().InfValueAndArg());
 
     private static IEnumerable<Element> DecisiveThenThrow(Element first)
     {

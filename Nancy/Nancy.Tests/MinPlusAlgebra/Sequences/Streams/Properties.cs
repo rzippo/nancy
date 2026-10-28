@@ -185,7 +185,7 @@ public class Properties
     }
 
     [Fact]
-    public void EmptyInputsKeepTheirExceptionTypes()
+    public void EmptyInputsThrowArgumentException()
     {
         Assert.Throws<ArgumentException>(() => Enumerable.Empty<Element>().IsNonDecreasing());
         Assert.Throws<ArgumentException>(() => Enumerable.Empty<Element>().IsIncreasing());
@@ -193,11 +193,11 @@ public class Properties
             .ToList());
         Assert.Throws<ArgumentException>(() => Enumerable.Empty<Element>().ToRightContinuous()
             .ToList());
-        Assert.Throws<InvalidOperationException>(() => Enumerable.Empty<Element>().IsNonNegative());
-        Assert.Throws<InvalidOperationException>(() => Enumerable.Empty<Element>().MaxValue());
-        Assert.Throws<InvalidOperationException>(() => Enumerable.Empty<Element>().MaxArg());
-        Assert.Throws<InvalidOperationException>(() => Enumerable.Empty<Element>().MinValue());
-        Assert.Throws<InvalidOperationException>(() => Enumerable.Empty<Element>().MinArg());
+        Assert.Throws<ArgumentException>(() => Enumerable.Empty<Element>().IsNonNegative());
+        Assert.Throws<ArgumentException>(() => Enumerable.Empty<Element>().MaxValue());
+        Assert.Throws<ArgumentException>(() => Enumerable.Empty<Element>().MaxArg());
+        Assert.Throws<ArgumentException>(() => Enumerable.Empty<Element>().MinValue());
+        Assert.Throws<ArgumentException>(() => Enumerable.Empty<Element>().MinArg());
     }
 
     [Fact]

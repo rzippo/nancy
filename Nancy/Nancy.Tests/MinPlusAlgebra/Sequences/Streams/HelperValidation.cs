@@ -38,12 +38,12 @@ public class HelperValidation
     }
 
     [Fact]
-    public void NonNegativityAndExtremeValuesDoNotRequireTimeOrder()
+    public void NonNegativityAndExtremeValuesRejectMalformedInput()
     {
         Element[] elements = [new Point(2, 3), new Segment(0, 1, 1, 1), new Point(1, 0)];
-        Assert.True(ValidationCases.SingleUse(elements).IsNonNegative());
-        Assert.Equal(3, ValidationCases.SingleUse(elements).MaxValue());
-        Assert.Equal(0, ValidationCases.SingleUse(elements).MinValue());
+        Assert.Throws<ArgumentException>(() => ValidationCases.SingleUse(elements).IsNonNegative());
+        Assert.Throws<ArgumentException>(() => ValidationCases.SingleUse(elements).MaxValue());
+        Assert.Throws<ArgumentException>(() => ValidationCases.SingleUse(elements).MinValue());
     }
 
     [Fact]

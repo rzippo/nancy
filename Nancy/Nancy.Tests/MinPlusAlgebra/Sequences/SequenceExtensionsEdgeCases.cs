@@ -120,8 +120,6 @@ public class SequenceExtensionsEdgeCases
     public static List<List<Element>> InvalidMergeAsEnumerableCases =
     [
         [],
-        [Point.Origin(), new Point(1, 1)],
-        [Segment.Constant(0, 1, 0), Segment.Constant(1, 2, 0)],
         [Segment.Constant(0, 1, 0), new Point(1, 0), new Point(1, 0)]
     ];
 
@@ -195,7 +193,7 @@ public class SequenceExtensionsEdgeCases
     [MemberData(nameof(GetEmptyElementCases))]
     public void EmptyElementOperations_Throw(List<Element> elements)
     {
-        Assert.Throws<InvalidOperationException>(() => elements.AreUninterruptedSequence());
+        Assert.Throws<ArgumentException>(() => elements.AreUninterruptedSequence());
         Assert.Throws<ArgumentException>(() => elements.EnumerateBreakpoints().ToList());
         Assert.Throws<ArgumentException>(() => elements.IsContinuous());
     }
