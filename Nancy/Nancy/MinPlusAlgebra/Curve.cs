@@ -451,7 +451,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start == _end && !(isStartIncluded && isEndIncluded))
             throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
 
-        if (Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } known && known.Value)
+        if (NonNegativeIfKnown == true)
             return true;
 
         if(start == 0 && isStartIncluded && _end == Rational.PlusInfinity)
@@ -600,6 +600,54 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     internal Lazy<bool>? _isIncreasing;
 
     /// <summary>
+    /// True if for any $t > s$, $f(t) \le f(s)$.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsNonIncreasing
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonIncreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, SecondPseudoPeriodEnd)
+                    .IsNonIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonIncreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsNonIncreasing"/>.
+    /// </summary>
+    internal Lazy<bool>? _isNonIncreasing;
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) &lt; f(s)$.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsDecreasing
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isDecreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, SecondPseudoPeriodEnd)
+                    .IsDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isDecreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsDecreasing"/>.
+    /// </summary>
+    internal Lazy<bool>? _isDecreasing;
+
+    /// <summary>
     /// True if for any pair $t,s$ in the given interval, $t > s$, $f(t) \ge f(s)$.
     /// </summary>
     /// <param name="start">Start of the interval.</param>
@@ -625,7 +673,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start == _end && !(isStartIncluded && isEndIncluded))
             throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
 
-        if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known && known.Value)
+        if (NonDecreasingIfKnown == true)
             return true;
 
         if(start == 0 && _end == Rational.PlusInfinity && isStartIncluded)
@@ -677,7 +725,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start == _end && !(isStartIncluded && isEndIncluded))
             throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
 
-        if (Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } known && known.Value)
+        if (LeftContinuousIfKnown == true)
             return true;
 
         if(start == 0 && _end == Rational.PlusInfinity)
@@ -728,7 +776,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (start == _end && !(isStartIncluded && isEndIncluded))
             throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
 
-        if (Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } known && known.Value)
+        if (RightContinuousIfKnown == true)
             return true;
 
         if(start == 0 && _end == Rational.PlusInfinity && isStartIncluded)
@@ -1091,12 +1139,49 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Interlocked.Exchange(ref _isNonNegative, null);
         Interlocked.Exchange(ref _isNonDecreasing, null);
         Interlocked.Exchange(ref _isIncreasing, null);
+        Interlocked.Exchange(ref _isNonIncreasing, null);
+        Interlocked.Exchange(ref _isDecreasing, null);
         Interlocked.Exchange(ref _IsSubAdditive, null);
         Interlocked.Exchange(ref _IsSuperAdditive, null);
         BaseSequence.ResetCachedProperties();
     }
 
     #endregion Properties
+
+
+    #region Known properties
+
+    /// <summary>
+    /// <see cref="IsLeftContinuous"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? LeftContinuousIfKnown
+        => Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsRightContinuous"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? RightContinuousIfKnown
+        => Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsNonNegative"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? NonNegativeIfKnown
+        => Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsNonDecreasing"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? NonDecreasingIfKnown
+        => Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsNonIncreasing"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? NonIncreasingIfKnown
+        => Volatile.Read(ref _isNonIncreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    #endregion
 
     #region Constructors
 
@@ -3532,7 +3617,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// It is the maximum with the zero curve, so it is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of this curve and <see cref="Zero"/>.
     /// </remarks>
     public Curve ToNonNegative()
-        => Maximum(this, Curve.Zero());
+        => NonNegativeIfKnown == true ? this : Maximum(this, Curve.Zero());
 
     /// <summary>
     /// Computes the _upper non-decreasing closure_, $\mathrm{UND}$, of this curve,
@@ -3845,6 +3930,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     public Curve ToLowerNonIncreasing(ComputationSettings? settings = null)
     {
+        if (NonIncreasingIfKnown == true)
+            return this;
+
         settings ??= ComputationSettings.Default();
 
         if (!settings.UseNonDecreasingClosureOptimizations)
@@ -4000,6 +4088,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     public Curve ToUpperNonIncreasing(ComputationSettings? settings = null)
     {
+        if (NonIncreasingIfKnown == true)
+            return this;
+
         settings ??= ComputationSettings.Default();
 
         // a curve that rises forever has a supremum of $+\infty$ over each of its tails,
@@ -4131,6 +4222,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public Curve ToLeftContinuous()
     {
+        if (LeftContinuousIfKnown == true)
+            return this;
+
         var sequence = CutAsEnumerable(0, SecondPseudoPeriodEnd)
             .ToLeftContinuous()
             .ToSequence();
@@ -4148,6 +4242,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public Curve ToRightContinuous()
     {
+        if (RightContinuousIfKnown == true)
+            return this;
+
         var sequence = CutAsEnumerable(0, SecondPseudoPeriodEnd)
             .ToRightContinuous()
             .ToSequence();
