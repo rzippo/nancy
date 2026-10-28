@@ -63,4 +63,42 @@ public class IsNonDecreasingOverInterval
     {
         Assert.Equal(expected, curve.IsNonDecreasingOverInterval(start, end, isStartIncluded, isEndIncluded));
     }
+
+    [Theory]
+    [MemberData(nameof(TestCases))]
+    public void TheNegationIsNonIncreasingOverTheSameIntervals(Curve curve, Rational start, Rational? end, bool isStartIncluded, bool isEndIncluded, bool expected)
+    {
+        Assert.Equal(expected, (-curve).IsNonIncreasingOverInterval(start, end, isStartIncluded, isEndIncluded));
+    }
+
+    /// <summary>The same curves and intervals, for the strict properties: a constant piece is not increasing.</summary>
+    public static List<(Curve curve, Rational start, Rational? end, bool isStartIncluded, bool isEndIncluded, bool expected)> StrictCases = new()
+    {
+        (DropInTransient, 1, null, true, false, false),
+        (DropInTransient, 1, 6, true, false, false),
+        (DropInTransient, 5, null, true, false, false),
+        (DropAtOrigin, 0, null, false, false, true),
+        (DropAtOrigin, 0, 3, false, false, true),
+        (DropAtOrigin, 0, null, true, false, false),
+        (DropAfterEachPeriodStart, 1, null, false, false, false),
+        (DropAfterEachPeriodStart, 1, null, true, false, false),
+        (new RateLatencyServiceCurve(2, 1), 1, null, true, false, true),
+    };
+
+    public static IEnumerable<object[]> StrictTestCases()
+        => StrictCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(StrictTestCases))]
+    public void IsIncreasingOverIntervalTest(Curve curve, Rational start, Rational? end, bool isStartIncluded, bool isEndIncluded, bool expected)
+    {
+        Assert.Equal(expected, curve.IsIncreasingOverInterval(start, end, isStartIncluded, isEndIncluded));
+    }
+
+    [Theory]
+    [MemberData(nameof(StrictTestCases))]
+    public void TheNegationIsDecreasingOverTheSameIntervals(Curve curve, Rational start, Rational? end, bool isStartIncluded, bool isEndIncluded, bool expected)
+    {
+        Assert.Equal(expected, (-curve).IsDecreasingOverInterval(start, end, isStartIncluded, isEndIncluded));
+    }
 }

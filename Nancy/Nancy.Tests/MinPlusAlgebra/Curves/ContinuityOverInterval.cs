@@ -69,4 +69,38 @@ public class ContinuityOverInterval
     {
         Assert.Equal(expected, curve.IsLeftContinuousOverInterval(start, end, isStartIncluded, isEndIncluded));
     }
+
+    /// <summary>The intervals of both tables: continuous where it is both left- and right-continuous.</summary>
+    public static List<(Curve curve, Rational start, Rational? end, bool isStartIncluded, bool isEndIncluded, bool expected)> ContinuityCases = new()
+    {
+        (new SigmaRhoArrivalCurve(3, 1), 0, null, false, false, true),
+        (new SigmaRhoArrivalCurve(3, 1), 0, null, true, false, false),
+        (new StepCurve(4, 2), 1, null, true, false, false),
+        (new StepCurve(4, 2), 1, 3, true, false, false),
+        (new StepCurve(4, 2), 2, null, false, false, true),
+        (new StairCurve(2, 3), 1, null, true, false, false),
+        (new StairCurve(2, 3), 3, null, false, false, false),
+        (new StairCurve(2, 3), 3, null, true, false, false),
+        (JumpsInTransient, 1, null, true, false, false),
+        (JumpsInTransient, 1, 6, true, false, false),
+        (JumpsInTransient, 4, null, true, false, false),
+        // right-continuous after the excluded 4, but left-discontinuous at 5
+        (JumpsInTransient, 4, null, false, false, false),
+        (JumpsInTransient, 5, null, true, false, true),
+        (JumpsInTransient, 5, null, false, false, true),
+        (new RateLatencyServiceCurve(2, 1), 1, null, true, false, true),
+    };
+
+    public static IEnumerable<object[]> ContinuityTestCases()
+        => ContinuityCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(ContinuityTestCases))]
+    public void Continuity(Curve curve, Rational start, Rational? end, bool isStartIncluded, bool isEndIncluded, bool expected)
+    {
+        Assert.Equal(expected, curve.IsContinuousOverInterval(start, end, isStartIncluded, isEndIncluded));
+        Assert.Equal(expected,
+            curve.IsLeftContinuousOverInterval(start, end, isStartIncluded, isEndIncluded)
+            && curve.IsRightContinuousOverInterval(start, end, isStartIncluded, isEndIncluded));
+    }
 }
