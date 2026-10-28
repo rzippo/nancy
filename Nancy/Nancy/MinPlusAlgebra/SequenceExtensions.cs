@@ -1625,49 +1625,66 @@ public static class SequenceExtensions
     }
 
     /// <summary>
-    /// Skips elements until <paramref name="value"/> is reached, i.e. while $f(t) &lt; v$.
+    /// Skips the prefix below <paramref name="value"/>, splitting a rising segment where it first reaches that height.
     /// </summary>
+    /// <param name="elements">Elements in uninterrupted time order, which is assumed rather than validated.</param>
+    /// <param name="value">The first height to retain.</param>
+    /// <returns>The remaining elements; empty if the input is empty or the height is never reached.</returns>
+    /// <remarks>
+    /// Monotonicity is checked on each consumed element, including the retained tail, before that element is returned.
+    /// Fully enumerating the result validates monotonicity over the entire input; stopping early leaves the unread tail unchecked.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If the consumed elements are not non-decreasing.</exception>
     internal static IEnumerable<Element> SkipUntilValue(this IEnumerable<Element> elements, Rational value)
     {
         using var enumerator = elements.GetEnumerator();
+        var previousValue = Rational.MinusInfinity;
+        var thresholdReached = false;
         while (enumerator.MoveNext())
         {
             switch (enumerator.Current)
             {
-                case Point p:
+                case Point point:
                 {
-                    if (p.Value < value)
+                    if (point.Value < previousValue)
+                        throw new ArgumentException("The sequence is not non-decreasing.");
+                    previousValue = point.Value;
+                    if (!thresholdReached && point.Value < value)
                         continue;
-                    else
-                        yield return p;
+                    yield return point;
                     break;
                 }
 
-                case Segment s:
+                case Segment segment:
                 {
-                    if (s.Slope < 0)
-                        throw new ArgumentException("Segments must be non-decreasing");
-
-                    if (s.IsConstant && s.LeftLimitAtEndTime < value)
-                        continue;
-                    else if (!s.IsConstant && s.LeftLimitAtEndTime <= value)
-                        continue;
-                    else if (s.RightLimitAtStartTime < value)
+                    if (segment.Slope < 0 || segment.RightLimitAtStartTime < previousValue)
+                        throw new ArgumentException("The sequence is not non-decreasing.");
+                    previousValue = segment.LeftLimitAtEndTime;
+                    if (thresholdReached)
                     {
-                        var (_, center, right) = s.Split(
-                            s.Inverse().ValueAt(value)
-                        );
+                        yield return segment;
+                        break;
+                    }
+                    if (segment.IsConstant && segment.LeftLimitAtEndTime < value)
+                        continue;
+                    if (!segment.IsConstant && segment.LeftLimitAtEndTime <= value)
+                        continue;
+                    if (segment.RightLimitAtStartTime < value)
+                    {
+                        var (_, center, right) = segment.Split(segment.Inverse().ValueAt(value));
                         yield return center;
                         yield return right;
                     }
                     else
-                        yield return s;
+                        yield return segment;
                     break;
                 }
 
                 default:
                     throw new InvalidCastException();
             }
+
+            thresholdReached = true;
         }
     }
 
