@@ -551,6 +551,7 @@ public static class SequenceExtensions
                 yield return element;
     }
 
+
     #endregion
 
     #region Overlap traversal
@@ -1035,56 +1036,124 @@ public static class SequenceExtensions
     /// <summary>
     /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
+    /// <param name="elements">A nonempty stream of elements; time order is not required.</param>
+    /// <returns>Whether every point and segment value is non-negative.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static bool IsNonNegative(this IEnumerable<Element> elements)
     {
-        return elements.InfValue() >= 0;
+        var seen = false;
+        foreach (var element in elements)
+        {
+            if (element is Point point)
+            {
+                seen = true;
+                if (point.Value < 0) return false;
+            }
+            else if (element is Segment segment)
+            {
+                seen = true;
+                if (segment.RightLimitAtStartTime < 0 || segment.LeftLimitAtEndTime < 0) return false;
+            }
+        }
+        if (!seen)
+            throw new InvalidOperationException("Sequence contains no elements");
+        return true;
     }
 
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
+    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
+    /// <returns>Whether the stream is non-decreasing.</returns>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
     public static bool IsNonDecreasing(this IEnumerable<Element> elements)
     {
-        // Read twice below, so a lazy enumerable is materialized once.
-        var elementList = elements as IReadOnlyList<Element> ?? elements.ToList();
-        foreach (var element in elementList)
-        {
-            if (element is Segment s && s.Slope < 0)
-                return false;
-        }
-
-        foreach (var breakpoint in elementList.EnumerateBreakpoints())
-        {
-            if (
-                (breakpoint.left is Segment l && l.LeftLimitAtEndTime > breakpoint.center.Value) ||
-                (breakpoint.right is Segment r && breakpoint.center.Value > r.RightLimitAtStartTime)
-            )
-                return false;
-        }
-        return true;
+        return CheckMonotonicity(elements, Monotonicity.NonDecreasing);
     }
 
     /// <summary>
     /// True if for any $t > s$, $f(t) > f(s)$.
     /// </summary>
+    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
+    /// <returns>Whether the stream is strictly increasing.</returns>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
     public static bool IsIncreasing(this IEnumerable<Element> elements)
     {
-        // Read twice below, so a lazy enumerable is materialized once.
-        var elementList = elements as IReadOnlyList<Element> ?? elements.ToList();
-        foreach (var element in elementList)
-        {
-            if (element is Segment s && s.Slope <= 0)
-                return false;
-        }
+        return CheckMonotonicity(elements, Monotonicity.StrictlyIncreasing);
+    }
 
-        foreach (var breakpoint in elementList.EnumerateBreakpoints())
+    /// <summary>
+    /// True if for any $t > s$, $f(t) \le f(s)$.
+    /// </summary>
+    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
+    /// <returns>Whether the stream is non-increasing.</returns>
+    /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
+    public static bool IsNonIncreasing(this IEnumerable<Element> elements)
+        => CheckMonotonicity(elements, Monotonicity.NonIncreasing);
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) &lt; f(s)$.
+    /// </summary>
+    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
+    /// <returns>Whether the stream is strictly decreasing.</returns>
+    /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
+    public static bool IsDecreasing(this IEnumerable<Element> elements)
+        => CheckMonotonicity(elements, Monotonicity.StrictlyDecreasing);
+
+    private enum Monotonicity
+    {
+        NonDecreasing,
+        StrictlyIncreasing,
+        NonIncreasing,
+        StrictlyDecreasing
+    }
+
+    /// <summary>
+    /// Checks slopes and adjacent boundary values in one traversal of uninterrupted elements in time order.
+    /// </summary>
+    /// <param name="elements">The nonempty element stream.</param>
+    /// <param name="monotonicity">The required monotonicity.</param>
+    /// <returns>Whether the requested monotonicity holds.</returns>
+    /// <remarks>
+    /// <see cref="ElementCursor.MoveNext"/> checks adjoining times and alternating points and segments during traversal.
+    /// An invalid unread tail is not checked when a monotonicity violation has already determined the result.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
+    private static bool CheckMonotonicity(IEnumerable<Element> elements, Monotonicity monotonicity)
+    {
+        Rational? previous = null;
+        using var cursor = new ElementCursor(elements);
+        while (cursor.MoveNext())
         {
-            if (
-                (breakpoint.left is Segment l && l.LeftLimitAtEndTime > breakpoint.center.Value) ||
-                (breakpoint.right is Segment r && breakpoint.center.Value > r.RightLimitAtStartTime)
-            )
+            var element = cursor.Current;
+            var start = element is Point point ? point.Value : ((Segment) element).RightLimitAtStartTime;
+            if (previous is { } value && (monotonicity switch
+                {
+                    Monotonicity.NonDecreasing or Monotonicity.StrictlyIncreasing => value > start,
+                    Monotonicity.NonIncreasing or Monotonicity.StrictlyDecreasing => value < start,
+                    _ => throw new ArgumentOutOfRangeException(nameof(monotonicity))
+                }))
                 return false;
+            if (element is Segment segment)
+            {
+                if (monotonicity switch
+                    {
+                        Monotonicity.NonDecreasing => segment.Slope < 0,
+                        Monotonicity.StrictlyIncreasing => segment.Slope <= 0,
+                        Monotonicity.NonIncreasing => segment.Slope > 0,
+                        Monotonicity.StrictlyDecreasing => segment.Slope >= 0,
+                        _ => throw new ArgumentOutOfRangeException(nameof(monotonicity))
+                    })
+                    return false;
+                previous = segment.LeftLimitAtEndTime;
+            }
+            else
+                previous = start;
         }
+        if (previous is null)
+            throw new ArgumentException("Elements is an empty collection");
         return true;
     }
 
@@ -1158,41 +1227,35 @@ public static class SequenceExtensions
     /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
+    /// <param name="elements">The nonempty element stream.</param>
+    /// <returns>The attained maximum, or null when it is not attained.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static Rational? MaxValue(this IEnumerable<Element> elements)
     {
-        var list = elements.ToList();
-        var sup = list.SupValue();
-        if (list.Any(e => e.AttainsValue(sup)))
-            return sup;
-        else
-            return null;
+        var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Supremum);
+        return attainingElement is null ? null : value;
     }
 
     /// <inheritdoc cref="MaxValue(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
     public static Rational? MaxValue(this IReadOnlyCollection<Element> elements)
     {
-        var sup = elements.SupValue();
-        if (elements.Any(e => e.AttainsValue(sup)))
-            return sup;
-        else
-            return null;
+        return MaxValue((IEnumerable<Element>) elements);
     }
 
     /// <summary>
     /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $t^*$.
     /// Otherwise, returns null.
     /// </summary>
+    /// <param name="elements">The nonempty element stream.</param>
+    /// <returns>The maximizing argument, or null when no maximum is attained.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static Rational? MaxArg(this IEnumerable<Element> elements)
     {
-        var list = elements.ToList();
-        var sup = list.SupValue();
-        var attainingElement = list
-            .FirstOrDefault(e => e.AttainsValue(sup));
-
+        var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Supremum);
         return attainingElement switch
         {
-            Point p => p.Time,
-            Segment s => InteriorTime(s),
+            Point point => point.Time,
+            Segment segment => InteriorTime(segment),
             _ => null
         };
     }
@@ -1200,16 +1263,7 @@ public static class SequenceExtensions
     /// <inheritdoc cref="MaxArg(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
     public static Rational? MaxArg(this IReadOnlyCollection<Element> elements)
     {
-        var sup = elements.SupValue();
-        var attainingElement = elements
-            .FirstOrDefault(e => e.AttainsValue(sup));
-
-        return attainingElement switch
-        {
-            Point p => p.Time,
-            Segment s => InteriorTime(s),
-            _ => null
-        };
+        return MaxArg((IEnumerable<Element>) elements);
     }
 
     /// If the sequence is upper-bounded around the breakpoint $t_c$, i.e., exists $x$ such that $f(t) \ge x$ for any $t \in [t_c - \varepsilon, t_c + \varepsilon]$, returns $\sup x$.
@@ -1245,42 +1299,35 @@ public static class SequenceExtensions
     /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
+    /// <param name="elements">The nonempty element stream.</param>
+    /// <returns>The attained minimum, or null when it is not attained.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static Rational? MinValue(this IEnumerable<Element> elements)
     {
-        var list = elements.ToList();
-        var inf = list.InfValue();
-        if (list.Any(e => e.AttainsValue(inf)))
-            return inf;
-        else
-            return null;
+        var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Infimum);
+        return attainingElement is null ? null : value;
     }
 
     /// <inheritdoc cref="MinValue(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
     public static Rational? MinValue(this IReadOnlyCollection<Element> elements)
     {
-        var list = elements.ToList();
-        var inf = list.InfValue();
-        if (list.Any(e => e.AttainsValue(inf)))
-            return inf;
-        else
-            return null;
+        return MinValue((IEnumerable<Element>) elements);
     }
     
     /// <summary>
     /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $t^*$.
     /// Otherwise, returns null.
     /// </summary>
+    /// <param name="elements">The nonempty element stream.</param>
+    /// <returns>The minimizing argument, or null when no minimum is attained.</returns>
+    /// <exception cref="InvalidOperationException">If the stream is empty.</exception>
     public static Rational? MinArg(this IEnumerable<Element> elements)
     {
-        var list = elements.ToList();
-        var inf = list.InfValue();
-        var attainingElement = list
-            .FirstOrDefault(e => e.AttainsValue(inf));
-
+        var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Infimum);
         return attainingElement switch
         {
-            Point p => p.Time,
-            Segment s => InteriorTime(s),
+            Point point => point.Time,
+            Segment segment => InteriorTime(segment),
             _ => null
         };
     }
@@ -1288,16 +1335,49 @@ public static class SequenceExtensions
     /// <inheritdoc cref="MinArg(System.Collections.Generic.IEnumerable{Unipi.Nancy.MinPlusAlgebra.Element})"/>
     public static Rational? MinArg(this IReadOnlyCollection<Element> elements)
     {
-        var inf = elements.InfValue();
-        var attainingElement = elements
-            .FirstOrDefault(e => e.AttainsValue(inf));
+        return MinArg((IEnumerable<Element>) elements);
+    }
 
-        return attainingElement switch
+    private enum BoundKind
+    {
+        Infimum,
+        Supremum
+    }
+
+    /// <summary>
+    /// Finds the extreme boundary value and the first element attaining it, retaining only the current candidate.
+    /// </summary>
+    /// <param name="elements">The element stream.</param>
+    /// <param name="boundKind">The bound to find.</param>
+    /// <returns>The extreme value and its first attaining element, or a null element when the bound is unattained.</returns>
+    /// <exception cref="InvalidOperationException">If the stream contains no points or segments.</exception>
+    private static (Rational bound, Element? attainingElement) FindBoundAndAttainment(IEnumerable<Element> elements, BoundKind boundKind)
+    {
+        Rational? extreme = null;
+        Element? attainingElement = null;
+        foreach (var element in elements)
         {
-            Point p => p.Time,
-            Segment s => InteriorTime(s),
-            _ => null
-        };
+            Rational candidate;
+            if (element is Point point)
+                candidate = point.Value;
+            else if (element is Segment segment)
+                candidate = boundKind == BoundKind.Supremum
+                    ? Rational.Max(segment.RightLimitAtStartTime, segment.LeftLimitAtEndTime)
+                    : Rational.Min(segment.RightLimitAtStartTime, segment.LeftLimitAtEndTime);
+            else
+                continue;
+
+            if (extreme is null || (boundKind == BoundKind.Supremum ? candidate > extreme.Value : candidate < extreme.Value))
+            {
+                extreme = candidate;
+                attainingElement = element.AttainsValue(candidate) ? element : null;
+            }
+            else if (candidate == extreme.Value && attainingElement is null && element.AttainsValue(candidate))
+                attainingElement = element;
+        }
+        if (extreme is null)
+            throw new InvalidOperationException("Sequence contains no elements");
+        return (extreme.Value, attainingElement);
     }
 
     #endregion
@@ -1343,74 +1423,70 @@ public static class SequenceExtensions
     }
 
     /// <summary>
-    /// Computes a left-continuous version of this sequence. 
+    /// Computes a left-continuous version of this sequence.
     /// </summary>
+    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
+    /// <returns>Elements in time order, with each point set to the left limit where one exists.</returns>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
     public static IEnumerable<Element> ToLeftContinuous(this IEnumerable<Element> elements)
     {
-        var elementList = elements as IReadOnlyList<Element> ?? elements.ToList();
-        if (elementList is [Segment lone])
+        using var cursor = new ElementCursor(elements);
+        Segment? left = null;
+        var seen = false;
+        while (cursor.MoveNext())
         {
-            // a lone segment has no breakpoint, so there is nothing to project
-            yield return lone;
-            yield break;
-        }
-
-        var isStart = true;
-        foreach (var (left, point, right) in elementList.EnumerateBreakpoints())
-        {
-            if (left != null)
+            seen = true;
+            if (cursor.Current is Segment segment)
             {
-                if (isStart)
-                    yield return left;
-
-                if (point.Value == left.LeftLimitAtEndTime)
-                    yield return point;
-                else
-                    yield return new Point(point.Time, left.LeftLimitAtEndTime);
+                left = segment;
+                yield return segment;
             }
             else
-                yield return point;
-
-            if (right != null)
-                yield return right;
-
-            isStart = false;
+            {
+                var point = (Point) cursor.Current;
+                yield return left is not null && left.LeftLimitAtEndTime != point.Value
+                    ? new Point(point.Time, left.LeftLimitAtEndTime)
+                    : point;
+            }
         }
+        if (!seen)
+            throw new ArgumentException("Elements is an empty collection");
     }
 
     /// <summary>
-    /// Computes a right-continuous version of this sequence. 
+    /// Computes a right-continuous version of this sequence.
     /// </summary>
+    /// <param name="elements">Nonempty uninterrupted elements in time order.</param>
+    /// <returns>Elements in time order, with each point set to the right limit where one exists.</returns>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
     public static IEnumerable<Element> ToRightContinuous(this IEnumerable<Element> elements)
     {
-        var elementList = elements as IReadOnlyList<Element> ?? elements.ToList();
-        if (elementList is [Segment lone])
-        {
-            // a lone segment has no breakpoint, so there is nothing to project
-            yield return lone;
-            yield break;
-        }
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("Elements is an empty collection");
 
-        var isStart = true;
-        foreach (var (left, point, right) in elementList.EnumerateBreakpoints())
+        do
         {
-            if (isStart && left != null)
-                yield return left;
-                
-            if (right != null)
+            if (cursor.Current is Segment initial)
             {
-                if (point.Value == right.RightLimitAtStartTime)
-                    yield return point;
-                else
-                    yield return new Point(point.Time, right.RightLimitAtStartTime);
-
-                yield return right;
+                yield return initial;
+                continue;
             }
-            else
-                yield return point;
 
-            isStart = false;
-        }
+            var point = (Point) cursor.Current;
+            if (!cursor.MoveNext())
+            {
+                yield return point;
+                yield break;
+            }
+            var right = (Segment) cursor.Current;
+            yield return right.RightLimitAtStartTime != point.Value
+                ? new Point(point.Time, right.RightLimitAtStartTime)
+                : point;
+            yield return right;
+        } while (cursor.MoveNext());
     }
 
     #endregion
