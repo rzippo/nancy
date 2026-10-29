@@ -5071,7 +5071,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
             else
             {
-                var periodStart = (start < PseudoPeriodStart ? PseudoPeriodStart : start) + PseudoPeriodLength;
+                var periodStart = Rational.Max(start, PseudoPeriodStart);
+                // An included time in the periodic part qualifies at its own height, so earlier times cannot increase the supremum.
+                // At an excluded start, no instant may qualify at that height; advance one period to include the boundary.
+                if (periodStart == start && !isStartIncluded)
+                    periodStart += PseudoPeriodLength;
+
                 // the point at the right endpoint is included in case there is a left-discontinuity at the end of the pseudo-period
                 // the pseudo-inverse of said point is then removed from the result
                 var upi = CutAsEnumerable(start, periodStart + PseudoPeriodLength, isStartIncluded, isEndIncluded: true)
