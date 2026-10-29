@@ -1990,7 +1990,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes the upper pseudo-inverse function,
     /// $f^{-1}_\uparrow(x) = \inf \left\{ t : f(t) > x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
-    /// <param name="startFromZero">If true, the values of the sequence below 0 are not considered, and the result starts from 0: below the first value of the sequence no instant has $f(t) \le x$, and the result is $-\infty$ there.</param>
+    /// <param name="startFromZero">
+    /// If true, $f^{-1}_\uparrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.
+    /// At a height from 0 below $Image(f)$, the result is $-\infty$.
+    /// If every value of the sequence is negative, the result is a point at height 0 whose value is the end of the support.
+    /// </param>
     /// <exception cref="ArgumentException">If the sequence is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is right-continuous, thus is revertible, i.e. $\left(f^{-1}_\uparrow\right)^{-1}_\uparrow = f$, only if $f$ is right-continuous, see [DNC18] § 3.2.1 .

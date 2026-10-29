@@ -1428,7 +1428,11 @@ public static class SequenceExtensions
     /// $f^{-1}_\uparrow(x) = \inf \left\{ t : f(t) > x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
     /// <param name="elements">The elements to process.</param>
-    /// <param name="startFromZero">If true, the values of the sequence below 0 are not considered, and the result starts from 0: below the first value of the sequence no instant has $f(t) \le x$, and the result is $-\infty$ there.</param>
+    /// <param name="startFromZero">
+    /// If true, $f^{-1}_\uparrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.
+    /// At a height from 0 below $Image(f)$, the result is $-\infty$.
+    /// If every value of the sequence is negative, the result is a point at height 0 whose value is the end of the support.
+    /// </param>
     /// <exception cref="ArgumentException">If the elements are not non-decreasing.</exception>
     /// <exception cref="ArgumentException">If the collection is empty.</exception>
     /// <remarks>
@@ -1438,9 +1442,8 @@ public static class SequenceExtensions
     /// </remarks>
     public static IEnumerable<Element> UpperPseudoInverse(this IEnumerable<Element> elements, bool startFromZero = false)
     {
-        var merged = startFromZero ?
-            elements.MergeAsEnumerable().SkipUntilValue(0):
-            elements.MergeAsEnumerable();
+        var source = elements;
+        var merged = (startFromZero ? WithNonNegativePrefix(source) : source).MergeAsEnumerable();
         var upi = Inverse();
 
         // from 0 up to the first value of the sequence, no instant has f(t) <= y, and the supremum is -inf
@@ -1463,6 +1466,62 @@ public static class SequenceExtensions
             {
                 yield return enumerator.Current;
             } while (enumerator.MoveNext());
+        }
+
+        IEnumerable<Element> WithNonNegativePrefix(IEnumerable<Element> source)
+        {
+            // For $y >= 0$, $f(t) <= y$ exactly when $\max(f(t), 0) \le y$.
+            // Keep the negative prefix's times, and check its original values before replacing them with zero.
+            using var enumerator = source.GetEnumerator();
+            var previousValue = Rational.MinusInfinity;
+            while (enumerator.MoveNext())
+            {
+                switch (enumerator.Current)
+                {
+                    case Point point:
+                        if (point.Value < previousValue)
+                            throw new ArgumentException("The sequence is not non-decreasing.");
+                        previousValue = point.Value;
+                        if (point.Value < 0)
+                        {
+                            yield return Point.Zero(point.Time);
+                            continue;
+                        }
+                        yield return point;
+                        break;
+
+                    case Segment segment:
+                        if (segment.Slope < 0 || segment.RightLimitAtStartTime < previousValue)
+                            throw new ArgumentException("The sequence is not non-decreasing.");
+                        previousValue = segment.LeftLimitAtEndTime;
+                        if (segment.RightLimitAtStartTime < 0)
+                        {
+                            if (segment.LeftLimitAtEndTime <= 0)
+                            {
+                                yield return Segment.Zero(segment.StartTime, segment.EndTime);
+                                continue;
+                            }
+
+                            var (_, crossing, right) = segment.Split(segment.Inverse().ValueAt(0));
+                            yield return Segment.Zero(segment.StartTime, crossing.Time);
+                            yield return crossing;
+                            yield return right;
+                        }
+                        else
+                        {
+                            yield return segment;
+                        }
+                        break;
+
+                    default:
+                        throw new InvalidCastException();
+                }
+
+                // From the first nonnegative value on, preserve every element so the inverse also sees any later decrease.
+                while (enumerator.MoveNext())
+                    yield return enumerator.Current;
+                yield break;
+            }
         }
 
         IEnumerable<Element> Inverse()
