@@ -36,6 +36,14 @@ internal ref struct ElementReader
         index = -1;
     }
 
+    /// <summary>Throws unless the reader is still before its first element.</summary>
+    /// <exception cref="InvalidOperationException">If an element has already been read.</exception>
+    public readonly void ThrowIfStarted()
+    {
+        if (current is not null || index >= 0)
+            throw new InvalidOperationException("The reader has already been read from.");
+    }
+
     /// <summary>The element read last.</summary>
     public readonly Element Current => current!;
 

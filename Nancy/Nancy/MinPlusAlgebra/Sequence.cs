@@ -80,7 +80,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isFinite);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsFinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => Elements.IsFinite(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isFinite, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -101,7 +101,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isInfinite);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => Elements.IsInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isInfinite, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -122,7 +122,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isPlusInfinite);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsPlusInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => Elements.IsPlusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isPlusInfinite, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -143,7 +143,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isMinusInfinite);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsMinusInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => Elements.IsMinusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isMinusInfinite, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -164,7 +164,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _hasPlusInfinity);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.Any(e => e.IsPlusInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => Elements.HasPlusInfinity(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _hasPlusInfinity, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -185,7 +185,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _hasMinusInfinity);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.Any(e => e.IsMinusInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => Elements.HasMinusInfinity(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _hasMinusInfinity, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -238,7 +238,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isZero);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.All(e => e.IsZero), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => Elements.IsZero(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isZero, candidate, null) ?? candidate;
             }
             return cache.Value;

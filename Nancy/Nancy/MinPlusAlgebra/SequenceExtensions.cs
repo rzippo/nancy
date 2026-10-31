@@ -1218,6 +1218,7 @@ public static partial class SequenceExtensions
 
     private static bool IsContinuous(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if(!reader.MoveNext())
             throw new ArgumentException("Elements is an empty collection");
@@ -1292,6 +1293,7 @@ public static partial class SequenceExtensions
 
     private static bool IsLeftContinuous(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1345,6 +1347,7 @@ public static partial class SequenceExtensions
 
     private static bool IsRightContinuous(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1392,6 +1395,7 @@ public static partial class SequenceExtensions
 
     private static bool IsZero(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1436,6 +1440,7 @@ public static partial class SequenceExtensions
 
     private static bool IsInfinite(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1480,6 +1485,7 @@ public static partial class SequenceExtensions
 
     private static bool HasPlusInfinity(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1524,6 +1530,7 @@ public static partial class SequenceExtensions
 
     private static bool HasMinusInfinity(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1568,6 +1575,7 @@ public static partial class SequenceExtensions
 
     private static bool IsNonPositive(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1622,6 +1630,7 @@ public static partial class SequenceExtensions
 
     private static bool IsPositive(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1678,6 +1687,7 @@ public static partial class SequenceExtensions
 
     private static bool IsNegative(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -1731,6 +1741,7 @@ public static partial class SequenceExtensions
 
     private static bool IsConstant(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         Rational? value = null;
         using var reader = elements;
         if (!reader.MoveNext())
@@ -1791,6 +1802,7 @@ public static partial class SequenceExtensions
 
     private static bool IsAffine(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         Rational? previousEndValue = null;
         Rational? slope = null;
@@ -1861,6 +1873,7 @@ public static partial class SequenceExtensions
 
     private static bool IsNonNegative(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -2068,6 +2081,7 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
     private static bool CheckMonotonicity(ElementReader elements, Monotonicity monotonicity)
     {
+        elements.ThrowIfStarted();
         Rational? previous = null;
         using var reader = elements;
         while (reader.MoveNext())
@@ -2141,6 +2155,7 @@ public static partial class SequenceExtensions
 
     private static bool IsFinite(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -2191,6 +2206,7 @@ public static partial class SequenceExtensions
 
     private static bool IsMinusInfinite(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -2241,6 +2257,7 @@ public static partial class SequenceExtensions
 
     private static bool IsPlusInfinite(ElementReader elements)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -2786,6 +2803,7 @@ public static partial class SequenceExtensions
     private static (Rational Value, Rational Time) FindBoundaryExtremum(
         ElementReader elements, BoundKind kind)
     {
+        elements.ThrowIfStarted();
         using var reader = elements;
         if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -2825,6 +2843,7 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty or an encountered element violates uninterrupted time order.</exception>
     private static (Rational bound, Element? attainingElement) FindBoundAndAttainment(ElementReader elements, BoundKind boundKind)
     {
+        elements.ThrowIfStarted();
         Rational? extreme = null;
         Element? attainingElement = null;
         using var reader = elements;
