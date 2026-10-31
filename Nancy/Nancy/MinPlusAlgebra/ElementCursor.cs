@@ -38,6 +38,13 @@ public sealed class ElementCursor : IEnumerator<Element>
     }
 
     private IEnumerator<Element>? enumerator;
+    // Arrays and the elements of a sequence are read by index instead, without an enumerator.
+    private Element[]? array;
+    private ReadOnlyElementList? view;
+    // Lists are read through their own enumerator, held unboxed, which detects a change to the list during traversal.
+    private List<Element>.Enumerator listEnumerator;
+    private bool isList;
+    private int index = -1;
     private Element? current;
     private bool isFirst;
     private Rational lastTime;
@@ -49,7 +56,24 @@ public sealed class ElementCursor : IEnumerator<Element>
     /// <param name="elements">Elements in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
     public ElementCursor(IEnumerable<Element> elements)
-        => enumerator = (elements ?? throw new ArgumentNullException(nameof(elements))).GetEnumerator();
+    {
+        switch (elements ?? throw new ArgumentNullException(nameof(elements)))
+        {
+            case Element[] elementArray:
+                array = elementArray;
+                break;
+            case List<Element> elementList:
+                listEnumerator = elementList.GetEnumerator();
+                isList = true;
+                break;
+            case ReadOnlyElementList elementView:
+                view = elementView;
+                break;
+            default:
+                enumerator = elements.GetEnumerator();
+                break;
+        }
+    }
 
     /// <summary>The current input element, retained when sampling within a segment.</summary>
     /// <exception cref="InvalidOperationException">If traversal has not started, has ended or is closed.</exception>
@@ -60,13 +84,13 @@ public sealed class ElementCursor : IEnumerator<Element>
     /// <summary>Advances to the next input element and validates its adjacency to the preceding element.</summary>
     /// <returns>True if an element is available; false on empty input and after exhaustion or disposal.</returns>
     /// <exception cref="ArgumentException">If the next element violates uninterrupted time order; traversal is then closed.</exception>
+    /// <exception cref="InvalidOperationException">If the source enumerator reports that its collection changed during traversal, as that of a list does.</exception>
     public bool MoveNext()
     {
         if (current is null && lastSide != Side.Unset)
             return false;
-        if (enumerator!.MoveNext())
+        if (ReadNext(out var next))
         {
-            var next = enumerator.Current;
             if (current is not null &&
                 (next.StartTime != current.EndTime || (current is Point) == (next is Point)))
             {
@@ -99,10 +123,43 @@ public sealed class ElementCursor : IEnumerator<Element>
     /// <summary>Closes traversal and disposes the source enumerator once.</summary>
     public void Dispose() => Close();
 
+    /// <summary>Reads the next input element.</summary>
+    /// <returns>False after the last one.</returns>
+    private bool ReadNext(out Element next)
+    {
+        if (array is not null)
+        {
+            var available = ++index < array.Length;
+            next = available ? array[index] : null!;
+            return available;
+        }
+        if (isList)
+        {
+            var available = listEnumerator.MoveNext();
+            next = available ? listEnumerator.Current : null!;
+            return available;
+        }
+        if (view is not null)
+        {
+            var available = ++index < view.Count;
+            next = available ? view[index] : null!;
+            return available;
+        }
+        var moved = enumerator!.MoveNext();
+        next = moved ? enumerator.Current : null!;
+        return moved;
+    }
+
     private void Close()
     {
         enumerator?.Dispose();
         enumerator = null;
+        array = null;
+        if (isList)
+            listEnumerator.Dispose();
+        listEnumerator = default;
+        isList = false;
+        view = null;
         current = null;
         lastSide = Side.Closed;
     }
