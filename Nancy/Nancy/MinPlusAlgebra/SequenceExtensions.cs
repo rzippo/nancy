@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.MinPlusAlgebra;
@@ -760,9 +761,14 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="AreInTimeOrder(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <exception cref="ArgumentException">If input is empty.</exception>
     public static bool AreInTimeOrder(this IEnumerable<Element> elements)
     {
+        if (TryGetSpan(elements, out var span))
+            return AreInTimeOrder(span);
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -779,12 +785,48 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>
+    /// Checks if time order is respected, i.e. they are ordered first by start, then by end.
+    /// </summary>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
+    public static bool AreInTimeOrder(this ReadOnlySpan<Element> elements)
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        var previous = elements[0];
+        for (var i = 1; i < elements.Length; i++)
+        {
+            var next = elements[i];
+            if (next.StartTime < previous.StartTime ||
+                (next.StartTime == previous.StartTime && next.EndTime < previous.EndTime))
+                return false;
+            previous = next;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if time order is respected, i.e. they are ordered first by start, then by end.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
+    public static bool AreInTimeOrder(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return AreInTimeOrder((ReadOnlySpan<Element>) elements);
+    }
+
+    /// <summary>
     /// Checks if the elements form a sequence.
     /// In addition to <see cref="AreInTimeOrder(IEnumerable{Element})"/> it requires non-overlapping supports, including no duplicate points, but allows gaps.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="AreInTimeSequence(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <exception cref="ArgumentException">If input is empty.</exception>
     public static bool AreInTimeSequence(this IEnumerable<Element> elements)
     {
+        if (TryGetSpan(elements, out var span))
+            return AreInTimeSequence(span);
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -801,11 +843,49 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>
+    /// Checks if the elements form a sequence.
+    /// In addition to <see cref="AreInTimeOrder(ReadOnlySpan{Element})"/> it requires non-overlapping supports, including no duplicate points, but allows gaps.
+    /// </summary>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
+    public static bool AreInTimeSequence(this ReadOnlySpan<Element> elements)
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+        var previous = elements[0];
+        for (var i = 1; i < elements.Length; i++)
+        {
+            var next = elements[i];
+            if (next.StartTime < previous.EndTime ||
+                (next.StartTime == previous.EndTime && previous is Point && next is Point))
+                return false;
+            previous = next;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the elements form a sequence.
+    /// In addition to <see cref="AreInTimeOrder(Element[])"/> it requires non-overlapping supports, including no duplicate points, but allows gaps.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
+    public static bool AreInTimeSequence(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return AreInTimeSequence((ReadOnlySpan<Element>) elements);
+    }
+
+    /// <summary>
     /// Checks if the elements form a uninterrupted sequence.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="AreUninterruptedSequence(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <exception cref="ArgumentException">If input is empty.</exception>
     public static bool AreUninterruptedSequence(this IEnumerable<Element> elements)
     {
+        if (TryGetSpan(elements, out var span))
+            return AreUninterruptedSequence(span);
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
@@ -828,6 +908,66 @@ public static partial class SequenceExtensions
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Checks if the elements form a uninterrupted sequence.
+    /// </summary>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
+    public static bool AreUninterruptedSequence(this ReadOnlySpan<Element> elements)
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+
+        Rational lastDefinedTime = elements[0].EndTime;
+        bool lastElementWasPoint = elements[0] is Point;
+
+        for (var i = 1; i < elements.Length; i++)
+        {
+            var element = elements[i];
+            //Good sequences are point-segment and segment-point. So the two checks are good if they are equal to each other
+            if (lastElementWasPoint != element is Segment)
+                return false;
+
+            if (element.StartTime != lastDefinedTime)
+                return false;
+
+            lastDefinedTime = element.EndTime;
+            lastElementWasPoint = element is Point;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the elements form a uninterrupted sequence.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If input is empty.</exception>
+    public static bool AreUninterruptedSequence(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return AreUninterruptedSequence((ReadOnlySpan<Element>) elements);
+    }
+
+    /// <summary>
+    /// Exposes the storage of an array or list as a span, without copying.
+    /// </summary>
+    /// <returns>False for other collections and for null.</returns>
+    private static bool TryGetSpan(IEnumerable<Element> elements, out ReadOnlySpan<Element> span)
+    {
+        switch (elements)
+        {
+            case Element[] array:
+                span = array;
+                return true;
+            case List<Element> list:
+                span = CollectionsMarshal.AsSpan(list);
+                return true;
+            default:
+                span = default;
+                return false;
+        }
     }
 
     /// <summary>
