@@ -951,8 +951,9 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>
-    /// Exposes the storage of an array or list as a span, without copying.
+    /// Exposes the storage of an array, a list or the read-only view of a sequence's array as a span, without copying.
     /// </summary>
+    /// <remarks>The span views the caller's storage, which must not change while the span is in use.</remarks>
     /// <returns>False for other collections and for null.</returns>
     internal static bool TryGetSpan(IEnumerable<Element> elements, out ReadOnlySpan<Element> span)
     {
@@ -963,6 +964,9 @@ public static partial class SequenceExtensions
                 return true;
             case List<Element> list:
                 span = CollectionsMarshal.AsSpan(list);
+                return true;
+            case ReadOnlyElementList view:
+                span = view.AsSpan();
                 return true;
             default:
                 span = default;

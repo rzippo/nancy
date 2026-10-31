@@ -38,7 +38,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     [JsonProperty(PropertyName = "elements")]
     [JsonPropertyName("elements")]
-    public IReadOnlyList<Element> Elements { get; }
+    public IReadOnlyList<Element> Elements => _elements;
+
+    /// <summary>The storage of <see cref="Elements"/>.</summary>
+    private readonly ReadOnlyElementList _elements;
 
     /// <summary>
     /// Left endpoint of the support of the sequence.
@@ -898,14 +901,20 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Constructor.
     /// </summary>
     /// <param name="elements">Set of elements composing the sequence. Must be in uninterrupted order.</param>
+    /// <remarks>The elements are copied, so later changes to <paramref name="elements"/> do not affect the sequence.</remarks>
     [Newtonsoft.Json.JsonConstructor]
     [System.Text.Json.Serialization.JsonConstructor]
     public Sequence(IReadOnlyList<Element> elements)
     {
-        if (!elements.AreUninterruptedSequence())
-            throw new ArgumentException("Elements are not uninterrupted");
+        _elements = ReadOnlyElementList.CopyOf(elements);
+    }
 
-        Elements = elements;
+    /// <summary>
+    /// Wraps a list of elements, which is in uninterrupted time order by construction.
+    /// </summary>
+    private Sequence(ReadOnlyElementList elements)
+    {
+        _elements = elements;
     }
 
     /// <summary>
@@ -914,11 +923,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="elements">Set of elements composing the sequence. Must be in uninterrupted order.</param>
     public Sequence(IEnumerable<Element> elements)
     {
-        var list = elements.ToList();
-        if (!list.AreUninterruptedSequence())
-            throw new ArgumentException("Elements are not uninterrupted");
-
-        Elements = new ReadOnlyCollection<Element>(list);
+        _elements = ReadOnlyElementList.CopyOf(elements);
     }
 
     /// <summary>
@@ -931,13 +936,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="fillWith">The value filled in. Defaults to $+\infty$</param>
     public Sequence(IEnumerable<Element> elements, Rational fillFrom, Rational fillTo, Rational? fillWith = null)
     {
-        var filledElements = elements
-            .Fill(fillFrom, fillTo, true, false, fillWith)
-            .ToList();
-        if (!filledElements.AreUninterruptedSequence())
-            throw new ArgumentException("Elements are not uninterrupted after filling: malformed input");
-
-        Elements = new ReadOnlyCollection<Element>(filledElements);
+        _elements = ReadOnlyElementList.CopyOf(elements
+            .Fill(fillFrom, fillTo, true, false, fillWith));
     }
 
     /// <summary>
@@ -1583,42 +1583,56 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             }
         }
 
-        // random-access selection of elements
-        var cutElements = new List<Element>();
-        for (int i = cutStartIndex; i <= cutEndIndex; i++)
+        // The cut keeps the elements between the boundary ones as they are, and of each boundary segment only its part inside the cut.
+        int runStart = cutStartIndex;
+        int runEnd = cutEndIndex + 1;
+        Element[] head = [];
+        Element[] tail = [];
+        if (cutStartIndex == cutEndIndex && Elements[cutStartIndex] is Segment only && only.StartTime < cutStart && only.EndTime > cutEnd)
         {
-            var element = Elements[i];
-            if (i == cutStartIndex && element is Segment sStart && sStart.StartTime < cutStart)
+            //edge case: cut is all within one segment
+            var (_, startPoint, right) = only.Split(cutStart);
+            var (inside, endPoint, _) = right.Split(cutEnd);
+            head = (isStartIncluded, isEndIncluded) switch
             {
-                var (_, point, right) = sStart.Split(cutStart);
-                if(isStartIncluded)
-                    cutElements.Add(point);
-
-                if (i == cutEndIndex && right.EndTime > cutEnd)
-                {
-                    //edge case: cut is all within one segment
-                    var (l, p, _) = right.Split(cutEnd);
-                    cutElements.Add(l);
-                    if(isEndIncluded)
-                        cutElements.Add(p);
-                }
-                else
-                    cutElements.Add(right);
+                (true, true) => [startPoint, inside, endPoint],
+                (true, false) => [startPoint, inside],
+                (false, true) => [inside, endPoint],
+                (false, false) => [inside]
+            };
+            runStart = runEnd;
+        }
+        else
+        {
+            if (Elements[cutStartIndex] is Segment first && first.StartTime < cutStart)
+            {
+                var (_, point, right) = first.Split(cutStart);
+                head = isStartIncluded ? [point, right] : [right];
+                runStart++;
             }
-            else if (i == cutEndIndex && element is Segment sEnd && sEnd.EndTime > cutEnd)
+            if (Elements[cutEndIndex] is Segment last && last.EndTime > cutEnd)
             {
-                var (left, point, _) = sEnd.Split(cutEnd);
-                cutElements.Add(left);
-                if(isEndIncluded)
-                    cutElements.Add(point);
-            }
-            else
-            {
-                cutElements.Add(element);
+                var (left, point, _) = last.Split(cutEnd);
+                tail = isEndIncluded ? [left, point] : [left];
+                runEnd--;
             }
         }
 
-        return new Sequence(cutElements);
+        var headList = head.Length > 0 ? ReadOnlyElementList.CopyOf(head) : null;
+        var runList = runStart < runEnd ? _elements.Slice(runStart, runEnd - runStart) : null;
+        var tailList = tail.Length > 0 ? ReadOnlyElementList.CopyOf(tail) : null;
+        // the run is copied, so that the cut does not keep this sequence's elements in memory
+        return new Sequence((headList, runList, tailList) switch
+        {
+            ({ } h, { } r, { } t) => ReadOnlyElementList.Concat(h, r, t),
+            ({ } h, { } r, null) => ReadOnlyElementList.Concat(h, r),
+            (null, { } r, { } t) => ReadOnlyElementList.Concat(r, t),
+            ({ } h, null, { } t) => ReadOnlyElementList.Concat(h, t),
+            (null, { } r, null) => r.Copy(),
+            ({ } h, null, null) => h,
+            (null, null, { } t) => t,
+            _ => throw new InvalidOperationException("A cut has at least one element.")
+        });
     }
 
     /// <summary>

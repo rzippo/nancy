@@ -3458,8 +3458,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else
         {
-            result = BaseSequence
-                .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+            // the base sequence is split at the pseudo-period start, which a cut across it must not keep
+            result = cutStart < PseudoPeriodStart && cutEnd > PseudoPeriodStart
+                ? BaseSequence.Elements
+                    .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+                    .ToSequence()
+                : BaseSequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
 
         if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known_isNonDecreasing && known_isNonDecreasing.Value)
