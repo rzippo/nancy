@@ -193,6 +193,27 @@ public class Cut
     [Theory]
     [MemberData(nameof(GetSuccessTestCases))]
     [MemberData(nameof(FromOtherTests))]
+    public void CutElementsAreUninterrupted(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    {
+        Sequence cut = sequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+        Assert.True(cut.Elements.AreUninterruptedSequence());
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSuccessTestCases))]
+    [MemberData(nameof(FromOtherTests))]
+    public void CutIsEquivalentToTheStreamedCut(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    {
+        // The two cuts may differ in representation, as the streamed one can join segments across a breakpoint.
+        var streamed = sequence.Elements
+            .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+            .ToSequence();
+        Assert.True(Sequence.Equivalent(streamed, sequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSuccessTestCases))]
+    [MemberData(nameof(FromOtherTests))]
     public void EquivalenceToExpectedInterval(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
     {
         var interval = new Interval(cutStart, cutEnd, isStartIncluded, isEndIncluded);
