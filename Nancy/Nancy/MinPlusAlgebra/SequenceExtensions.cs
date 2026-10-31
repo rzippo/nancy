@@ -1178,12 +1178,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if there is no discontinuity within the sequence.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsContinuous(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether the represented function has the stated property.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsContinuous(this IEnumerable<Element> elements)
         => IsContinuous(new ElementReader(elements));
+
+    /// <summary>
+    /// True if there is no discontinuity within the sequence.
+    /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsContinuous(this ReadOnlySpan<Element> elements)
+        => IsContinuous(new ElementReader(elements));
+
+    /// <summary>
+    /// True if there is no discontinuity within the sequence.
+    /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsContinuous(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsContinuous((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsContinuous(ElementReader elements)
     {
@@ -1225,12 +1252,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if there is no left-discontinuity within the sequence.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsLeftContinuous(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether the represented function has the stated property.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsLeftContinuous(this IEnumerable<Element> elements)
         => IsLeftContinuous(new ElementReader(elements));
+
+    /// <summary>
+    /// True if there is no left-discontinuity within the sequence.
+    /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsLeftContinuous(this ReadOnlySpan<Element> elements)
+        => IsLeftContinuous(new ElementReader(elements));
+
+    /// <summary>
+    /// True if there is no left-discontinuity within the sequence.
+    /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsLeftContinuous(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsLeftContinuous((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsLeftContinuous(ElementReader elements)
     {
@@ -1251,12 +1305,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if there is no right-discontinuity within the sequence.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsRightContinuous(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether the represented function has the stated property.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsRightContinuous(this IEnumerable<Element> elements)
         => IsRightContinuous(new ElementReader(elements));
+
+    /// <summary>
+    /// True if there is no right-discontinuity within the sequence.
+    /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsRightContinuous(this ReadOnlySpan<Element> elements)
+        => IsRightContinuous(new ElementReader(elements));
+
+    /// <summary>
+    /// True if there is no right-discontinuity within the sequence.
+    /// </summary>
+    /// <returns>Whether the represented function has the stated property.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsRightContinuous(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsRightContinuous((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsRightContinuous(ElementReader elements)
     {
@@ -1275,12 +1356,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>True if every defined value is zero.</summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsZero(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>True if every element is zero.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsZero(this IEnumerable<Element> elements)
         => IsZero(new ElementReader(elements));
+
+    /// <summary>True if every defined value is zero.</summary>
+    /// <returns>True if every element is zero.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsZero(this ReadOnlySpan<Element> elements)
+        => IsZero(new ElementReader(elements));
+
+    /// <summary>True if every defined value is zero.</summary>
+    /// <returns>True if every element is zero.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsZero(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsZero((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsZero(ElementReader elements)
     {
@@ -1296,12 +1400,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>True if every defined value is infinite, with either sign.</summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsInfinite(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>True if every element is infinite.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsInfinite(this IEnumerable<Element> elements)
         => IsInfinite(new ElementReader(elements));
+
+    /// <summary>True if every defined value is infinite, with either sign.</summary>
+    /// <returns>True if every element is infinite.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsInfinite(this ReadOnlySpan<Element> elements)
+        => IsInfinite(new ElementReader(elements));
+
+    /// <summary>True if every defined value is infinite, with either sign.</summary>
+    /// <returns>True if every element is infinite.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsInfinite(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsInfinite((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsInfinite(ElementReader elements)
     {
@@ -1317,12 +1444,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>True if some defined value is plus infinity.</summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="HasPlusInfinity(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>True if an element is plus infinite.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool HasPlusInfinity(this IEnumerable<Element> elements)
         => HasPlusInfinity(new ElementReader(elements));
+
+    /// <summary>True if some defined value is plus infinity.</summary>
+    /// <returns>True if an element is plus infinite.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool HasPlusInfinity(this ReadOnlySpan<Element> elements)
+        => HasPlusInfinity(new ElementReader(elements));
+
+    /// <summary>True if some defined value is plus infinity.</summary>
+    /// <returns>True if an element is plus infinite.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool HasPlusInfinity(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return HasPlusInfinity((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool HasPlusInfinity(ElementReader elements)
     {
@@ -1338,12 +1488,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>True if some defined value is minus infinity.</summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="HasMinusInfinity(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>True if an element is minus infinite.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool HasMinusInfinity(this IEnumerable<Element> elements)
         => HasMinusInfinity(new ElementReader(elements));
+
+    /// <summary>True if some defined value is minus infinity.</summary>
+    /// <returns>True if an element is minus infinite.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool HasMinusInfinity(this ReadOnlySpan<Element> elements)
+        => HasMinusInfinity(new ElementReader(elements));
+
+    /// <summary>True if some defined value is minus infinity.</summary>
+    /// <returns>True if an element is minus infinite.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool HasMinusInfinity(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return HasMinusInfinity((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool HasMinusInfinity(ElementReader elements)
     {
@@ -1359,12 +1532,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>True if every defined value is non-positive.</summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsNonPositive(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonPositive(this IEnumerable<Element> elements)
         => IsNonPositive(new ElementReader(elements));
+
+    /// <summary>True if every defined value is non-positive.</summary>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNonPositive(this ReadOnlySpan<Element> elements)
+        => IsNonPositive(new ElementReader(elements));
+
+    /// <summary>True if every defined value is non-positive.</summary>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNonPositive(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsNonPositive((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsNonPositive(ElementReader elements)
     {
@@ -1388,12 +1584,37 @@ public static partial class SequenceExtensions
 
     /// <summary>True if every defined value is strictly positive.</summary>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
-    /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
+    /// <remarks>
+    /// Segment endpoints are excluded; their limits need not satisfy a strict inequality.
+    /// Arrays and lists are read as spans, through <see cref="IsPositive(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsPositive(this IEnumerable<Element> elements)
         => IsPositive(new ElementReader(elements));
+
+    /// <summary>True if every defined value is strictly positive.</summary>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsPositive(this ReadOnlySpan<Element> elements)
+        => IsPositive(new ElementReader(elements));
+
+    /// <summary>True if every defined value is strictly positive.</summary>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsPositive(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsPositive((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsPositive(ElementReader elements)
     {
@@ -1419,12 +1640,37 @@ public static partial class SequenceExtensions
 
     /// <summary>True if every defined value is strictly negative.</summary>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
-    /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
+    /// <remarks>
+    /// Segment endpoints are excluded; their limits need not satisfy a strict inequality.
+    /// Arrays and lists are read as spans, through <see cref="IsNegative(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNegative(this IEnumerable<Element> elements)
         => IsNegative(new ElementReader(elements));
+
+    /// <summary>True if every defined value is strictly negative.</summary>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNegative(this ReadOnlySpan<Element> elements)
+        => IsNegative(new ElementReader(elements));
+
+    /// <summary>True if every defined value is strictly negative.</summary>
+    /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
+    /// <remarks>Segment endpoints are excluded; their limits need not satisfy a strict inequality.</remarks>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNegative(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsNegative((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsNegative(ElementReader elements)
     {
@@ -1449,12 +1695,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>True if all defined values equal one constant, possibly infinite.</summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsConstant(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether every element has the same constant value.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsConstant(this IEnumerable<Element> elements)
         => IsConstant(new ElementReader(elements));
+
+    /// <summary>True if all defined values equal one constant, possibly infinite.</summary>
+    /// <returns>Whether every element has the same constant value.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsConstant(this ReadOnlySpan<Element> elements)
+        => IsConstant(new ElementReader(elements));
+
+    /// <summary>True if all defined values equal one constant, possibly infinite.</summary>
+    /// <returns>Whether every element has the same constant value.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsConstant(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsConstant((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsConstant(ElementReader elements)
     {
@@ -1480,12 +1749,41 @@ public static partial class SequenceExtensions
     /// <remarks>
     /// A stream containing one point with a finite value is affine.
     /// Enumeration stops when the result is false; remaining elements are not read or validated.
+    /// Arrays and lists are read as spans, through <see cref="IsAffine(ReadOnlySpan{Element})"/>.
     /// </remarks>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsAffine(this IEnumerable<Element> elements)
         => IsAffine(new ElementReader(elements));
+
+    /// <summary>True if finite coefficients $a$ and $b$ exist such that $f(t)=at+b$ throughout the support.</summary>
+    /// <returns>Whether the represented function is affine.</returns>
+    /// <remarks>
+    /// A span containing one point with a finite value is affine.
+    /// Reading stops when the result is false; remaining elements are not read or validated.
+    /// </remarks>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsAffine(this ReadOnlySpan<Element> elements)
+        => IsAffine(new ElementReader(elements));
+
+    /// <summary>True if finite coefficients $a$ and $b$ exist such that $f(t)=at+b$ throughout the support.</summary>
+    /// <returns>Whether the represented function is affine.</returns>
+    /// <remarks>
+    /// An array containing one point with a finite value is affine.
+    /// Reading stops when the result is false; remaining elements are not read or validated.
+    /// </remarks>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsAffine(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsAffine((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsAffine(ElementReader elements)
     {
@@ -1523,12 +1821,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsNonNegative(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether every point and segment value is non-negative.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonNegative(this IEnumerable<Element> elements)
         => IsNonNegative(new ElementReader(elements));
+
+    /// <summary>
+    /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
+    /// </summary>
+    /// <returns>Whether every point and segment value is non-negative.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNonNegative(this ReadOnlySpan<Element> elements)
+        => IsNonNegative(new ElementReader(elements));
+
+    /// <summary>
+    /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
+    /// </summary>
+    /// <returns>Whether every point and segment value is non-negative.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNonNegative(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsNonNegative((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsNonNegative(ElementReader elements)
     {
@@ -1553,12 +1878,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsNonDecreasing(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether the stream is non-decreasing.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonDecreasing(this IEnumerable<Element> elements)
         => IsNonDecreasing(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) \ge f(s)$.
+    /// </summary>
+    /// <returns>Whether the elements are non-decreasing.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNonDecreasing(this ReadOnlySpan<Element> elements)
+        => IsNonDecreasing(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) \ge f(s)$.
+    /// </summary>
+    /// <returns>Whether the elements are non-decreasing.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNonDecreasing(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsNonDecreasing((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsNonDecreasing(ElementReader elements)
     {
@@ -1568,12 +1920,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t > s$, $f(t) > f(s)$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsIncreasing(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether the stream is strictly increasing.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsIncreasing(this IEnumerable<Element> elements)
         => IsIncreasing(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) > f(s)$.
+    /// </summary>
+    /// <returns>Whether the elements are strictly increasing.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsIncreasing(this ReadOnlySpan<Element> elements)
+        => IsIncreasing(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) > f(s)$.
+    /// </summary>
+    /// <returns>Whether the elements are strictly increasing.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsIncreasing(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsIncreasing((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsIncreasing(ElementReader elements)
     {
@@ -1583,12 +1962,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t > s$, $f(t) \le f(s)$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsNonIncreasing(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether the stream is non-increasing.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonIncreasing(this IEnumerable<Element> elements)
         => IsNonIncreasing(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) \le f(s)$.
+    /// </summary>
+    /// <returns>Whether the elements are non-increasing.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNonIncreasing(this ReadOnlySpan<Element> elements)
+        => IsNonIncreasing(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) \le f(s)$.
+    /// </summary>
+    /// <returns>Whether the elements are non-increasing.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsNonIncreasing(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsNonIncreasing((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsNonIncreasing(ElementReader elements)
     {
@@ -1598,12 +2004,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t > s$, $f(t) &lt; f(s)$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsDecreasing(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>Whether the stream is strictly decreasing.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsDecreasing(this IEnumerable<Element> elements)
         => IsDecreasing(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) &lt; f(s)$.
+    /// </summary>
+    /// <returns>Whether the elements are strictly decreasing.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsDecreasing(this ReadOnlySpan<Element> elements)
+        => IsDecreasing(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) &lt; f(s)$.
+    /// </summary>
+    /// <returns>Whether the elements are strictly decreasing.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsDecreasing(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsDecreasing((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsDecreasing(ElementReader elements)
     {
@@ -1668,12 +2101,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t$, $\left|f(t)\right| &lt; +\infty$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsFinite(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>The result.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsFinite(this IEnumerable<Element> elements)
         => IsFinite(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t$, $\left|f(t)\right| &lt; +\infty$.
+    /// </summary>
+    /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsFinite(this ReadOnlySpan<Element> elements)
+        => IsFinite(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t$, $\left|f(t)\right| &lt; +\infty$.
+    /// </summary>
+    /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsFinite(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsFinite((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsFinite(ElementReader elements)
     {
@@ -1691,12 +2151,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t$, $f(t) = -\infty$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsMinusInfinite(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>The result.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsMinusInfinite(this IEnumerable<Element> elements)
         => IsMinusInfinite(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t$, $f(t) = -\infty$.
+    /// </summary>
+    /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsMinusInfinite(this ReadOnlySpan<Element> elements)
+        => IsMinusInfinite(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t$, $f(t) = -\infty$.
+    /// </summary>
+    /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsMinusInfinite(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsMinusInfinite((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsMinusInfinite(ElementReader elements)
     {
@@ -1714,12 +2201,39 @@ public static partial class SequenceExtensions
     /// <summary>
     /// True if for any $t$, $f(t) = +\infty$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="IsPlusInfinite(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>The result.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsPlusInfinite(this IEnumerable<Element> elements)
         => IsPlusInfinite(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t$, $f(t) = +\infty$.
+    /// </summary>
+    /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsPlusInfinite(this ReadOnlySpan<Element> elements)
+        => IsPlusInfinite(new ElementReader(elements));
+
+    /// <summary>
+    /// True if for any $t$, $f(t) = +\infty$.
+    /// </summary>
+    /// <returns>The result.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static bool IsPlusInfinite(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return IsPlusInfinite((ReadOnlySpan<Element>) elements);
+    }
 
     private static bool IsPlusInfinite(ElementReader elements)
     {
@@ -1750,24 +2264,74 @@ public static partial class SequenceExtensions
 
     /// <summary>Finds the supremum and its earliest boundary location in one traversal.</summary>
     /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
-    /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
+    /// <remarks>
+    /// The time may be an excluded endpoint or plus infinity; it need not attain the bound.
+    /// Arrays and lists are read as spans, through <see cref="SupValueAndArg(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static (Rational Value, Rational Time) SupValueAndArg(this IEnumerable<Element> elements)
         => SupValueAndArg(new ElementReader(elements));
 
+    /// <summary>Finds the supremum and its earliest boundary location in one traversal.</summary>
+    /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static (Rational Value, Rational Time) SupValueAndArg(this ReadOnlySpan<Element> elements)
+        => SupValueAndArg(new ElementReader(elements));
+
+    /// <summary>Finds the supremum and its earliest boundary location in one traversal.</summary>
+    /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static (Rational Value, Rational Time) SupValueAndArg(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return SupValueAndArg((ReadOnlySpan<Element>) elements);
+    }
+
     private static (Rational Value, Rational Time) SupValueAndArg(ElementReader elements)
         => FindBoundaryExtremum(elements, BoundKind.Supremum);
 
     /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
     /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
-    /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
+    /// <remarks>
+    /// The time may be an excluded endpoint or plus infinity; it need not attain the bound.
+    /// Arrays and lists are read as spans, through <see cref="InfValueAndArg(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static (Rational Value, Rational Time) InfValueAndArg(this IEnumerable<Element> elements)
         => InfValueAndArg(new ElementReader(elements));
+
+    /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
+    /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static (Rational Value, Rational Time) InfValueAndArg(this ReadOnlySpan<Element> elements)
+        => InfValueAndArg(new ElementReader(elements));
+
+    /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
+    /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint or plus infinity; it need not attain the bound.</remarks>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static (Rational Value, Rational Time) InfValueAndArg(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return InfValueAndArg((ReadOnlySpan<Element>) elements);
+    }
 
     private static (Rational Value, Rational Time) InfValueAndArg(ElementReader elements)
         => FindBoundaryExtremum(elements, BoundKind.Infimum);
@@ -1776,11 +2340,38 @@ public static partial class SequenceExtensions
     /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for every $t$ in the support, returns $\inf x$.
     /// Otherwise, returns $+\infty$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="SupValue(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational SupValue(this IEnumerable<Element> elements)
         => SupValue(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for every $t$ in the support, returns $\inf x$.
+    /// Otherwise, returns $+\infty$.
+    /// </summary>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational SupValue(this ReadOnlySpan<Element> elements)
+        => SupValue(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for every $t$ in the support, returns $\inf x$.
+    /// Otherwise, returns $+\infty$.
+    /// </summary>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational SupValue(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return SupValue((ReadOnlySpan<Element>) elements);
+    }
 
     private static Rational SupValue(ElementReader elements)
     {
@@ -1788,12 +2379,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>Returns the earliest boundary location of the supremum.</summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="SupArg(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational SupArg(this IEnumerable<Element> elements)
         => SupArg(new ElementReader(elements));
+
+    /// <summary>Returns the earliest boundary location of the supremum.</summary>
+    /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational SupArg(this ReadOnlySpan<Element> elements)
+        => SupArg(new ElementReader(elements));
+
+    /// <summary>Returns the earliest boundary location of the supremum.</summary>
+    /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational SupArg(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return SupArg((ReadOnlySpan<Element>) elements);
+    }
 
     private static Rational SupArg(ElementReader elements)
     {
@@ -1804,12 +2418,41 @@ public static partial class SequenceExtensions
     /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="MaxValue(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>The attained maximum, or null when it is not attained.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MaxValue(this IEnumerable<Element> elements)
         => MaxValue(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    /// <returns>The attained maximum, or null when it is not attained.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational? MaxValue(this ReadOnlySpan<Element> elements)
+        => MaxValue(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    /// <returns>The attained maximum, or null when it is not attained.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational? MaxValue(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return MaxValue((ReadOnlySpan<Element>) elements);
+    }
 
     private static Rational? MaxValue(ElementReader elements)
     {
@@ -1830,6 +2473,9 @@ public static partial class SequenceExtensions
     /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
     /// Otherwise, returns null.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="MaxArg(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>An argument in the support attaining the maximum, or null if unattained.
     /// An open plateau may have no earliest attaining argument.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
@@ -1837,6 +2483,34 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MaxArg(this IEnumerable<Element> elements)
         => MaxArg(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
+    /// Otherwise, returns null.
+    /// </summary>
+    /// <returns>An argument in the support attaining the maximum, or null if unattained.
+    /// An open plateau may have no earliest attaining argument.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational? MaxArg(this ReadOnlySpan<Element> elements)
+        => MaxArg(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
+    /// Otherwise, returns null.
+    /// </summary>
+    /// <returns>An argument in the support attaining the maximum, or null if unattained.
+    /// An open plateau may have no earliest attaining argument.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational? MaxArg(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return MaxArg((ReadOnlySpan<Element>) elements);
+    }
 
     private static Rational? MaxArg(ElementReader elements)
     {
@@ -1869,11 +2543,38 @@ public static partial class SequenceExtensions
     /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for every $t$ in the support, returns $\sup x$.
     /// Otherwise, returns $-\infty$.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="InfValue(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational InfValue(this IEnumerable<Element> elements)
         => InfValue(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for every $t$ in the support, returns $\sup x$.
+    /// Otherwise, returns $-\infty$.
+    /// </summary>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational InfValue(this ReadOnlySpan<Element> elements)
+        => InfValue(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for every $t$ in the support, returns $\sup x$.
+    /// Otherwise, returns $-\infty$.
+    /// </summary>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational InfValue(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return InfValue((ReadOnlySpan<Element>) elements);
+    }
 
     private static Rational InfValue(ElementReader elements)
     {
@@ -1881,12 +2582,35 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>Returns the earliest boundary location of the infimum.</summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="InfArg(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational InfArg(this IEnumerable<Element> elements)
         => InfArg(new ElementReader(elements));
+
+    /// <summary>Returns the earliest boundary location of the infimum.</summary>
+    /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational InfArg(this ReadOnlySpan<Element> elements)
+        => InfArg(new ElementReader(elements));
+
+    /// <summary>Returns the earliest boundary location of the infimum.</summary>
+    /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational InfArg(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return InfArg((ReadOnlySpan<Element>) elements);
+    }
 
     private static Rational InfArg(ElementReader elements)
     {
@@ -1897,12 +2621,41 @@ public static partial class SequenceExtensions
     /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="MinValue(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>The attained minimum, or null when it is not attained.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MinValue(this IEnumerable<Element> elements)
         => MinValue(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    /// <returns>The attained minimum, or null when it is not attained.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational? MinValue(this ReadOnlySpan<Element> elements)
+        => MinValue(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
+    /// Otherwise, returns null.
+    /// </summary>
+    /// <returns>The attained minimum, or null when it is not attained.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational? MinValue(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return MinValue((ReadOnlySpan<Element>) elements);
+    }
 
     private static Rational? MinValue(ElementReader elements)
     {
@@ -1923,6 +2676,9 @@ public static partial class SequenceExtensions
     /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
     /// Otherwise, returns null.
     /// </summary>
+    /// <remarks>
+    /// Arrays and lists are read as spans, through <see cref="MinArg(ReadOnlySpan{Element})"/>.
+    /// </remarks>
     /// <returns>An argument in the support attaining the minimum, or null if unattained.
     /// An open plateau may have no earliest attaining argument.</returns>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
@@ -1930,6 +2686,34 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MinArg(this IEnumerable<Element> elements)
         => MinArg(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
+    /// Otherwise, returns null.
+    /// </summary>
+    /// <returns>An argument in the support attaining the minimum, or null if unattained.
+    /// An open plateau may have no earliest attaining argument.</returns>
+    /// <param name="elements">A nonempty span in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentException">If the span is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational? MinArg(this ReadOnlySpan<Element> elements)
+        => MinArg(new ElementReader(elements));
+
+    /// <summary>
+    /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
+    /// Otherwise, returns null.
+    /// </summary>
+    /// <returns>An argument in the support attaining the minimum, or null if unattained.
+    /// An open plateau may have no earliest attaining argument.</returns>
+    /// <param name="elements">A nonempty array in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="elements"/> is null.</exception>
+    /// <exception cref="ArgumentException">If the array is empty.</exception>
+    /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
+    public static Rational? MinArg(this Element[] elements)
+    {
+        ArgumentNullException.ThrowIfNull(elements);
+        return MinArg((ReadOnlySpan<Element>) elements);
+    }
 
     private static Rational? MinArg(ElementReader elements)
     {
