@@ -954,7 +954,7 @@ public static partial class SequenceExtensions
     /// Exposes the storage of an array or list as a span, without copying.
     /// </summary>
     /// <returns>False for other collections and for null.</returns>
-    private static bool TryGetSpan(IEnumerable<Element> elements, out ReadOnlySpan<Element> span)
+    internal static bool TryGetSpan(IEnumerable<Element> elements, out ReadOnlySpan<Element> span)
     {
         switch (elements)
         {
@@ -1183,18 +1183,21 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsContinuous(this IEnumerable<Element> elements)
+        => IsContinuous(new ElementReader(elements));
+
+    private static bool IsContinuous(ElementReader elements)
     {
-        using var enumerator = new ElementCursor(elements);
-        if(!enumerator.MoveNext())
+        using var reader = elements;
+        if(!reader.MoveNext())
             throw new ArgumentException("Elements is an empty collection");
 
-        Rational lastValue = enumerator.Current is Point p ?
+        Rational lastValue = reader.Current is Point p ?
             p.Value :
-            ((Segment)enumerator.Current).LeftLimitAtEndTime;
+            ((Segment)reader.Current).LeftLimitAtEndTime;
 
-        while (enumerator.MoveNext())
+        while (reader.MoveNext())
         {
-            switch(enumerator.Current)
+            switch(reader.Current)
             {
                 case Point point:
                     if (point.Value == lastValue)
@@ -1227,18 +1230,21 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsLeftContinuous(this IEnumerable<Element> elements)
+        => IsLeftContinuous(new ElementReader(elements));
+
+    private static bool IsLeftContinuous(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         Segment? previous = null;
         do
         {
-            if (cursor.Current is Point point && previous is { } left &&
+            if (reader.Current is Point point && previous is { } left &&
                 left.LeftLimitAtEndTime != point.Value)
                 return false;
-            previous = cursor.Current as Segment;
-        } while (cursor.MoveNext());
+            previous = reader.Current as Segment;
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1250,18 +1256,21 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsRightContinuous(this IEnumerable<Element> elements)
+        => IsRightContinuous(new ElementReader(elements));
+
+    private static bool IsRightContinuous(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         Point? previous = null;
         do
         {
-            if (cursor.Current is Segment segment && previous is { } left &&
+            if (reader.Current is Segment segment && previous is { } left &&
                 left.Value != segment.RightLimitAtStartTime)
                 return false;
-            previous = cursor.Current as Point;
-        } while (cursor.MoveNext());
+            previous = reader.Current as Point;
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1271,15 +1280,18 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsZero(this IEnumerable<Element> elements)
+        => IsZero(new ElementReader(elements));
+
+    private static bool IsZero(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            if (!cursor.Current.IsZero)
+            if (!reader.Current.IsZero)
                 return false;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1289,15 +1301,18 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsInfinite(this IEnumerable<Element> elements)
+        => IsInfinite(new ElementReader(elements));
+
+    private static bool IsInfinite(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            if (!cursor.Current.IsInfinite)
+            if (!reader.Current.IsInfinite)
                 return false;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1307,15 +1322,18 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool HasPlusInfinity(this IEnumerable<Element> elements)
+        => HasPlusInfinity(new ElementReader(elements));
+
+    private static bool HasPlusInfinity(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            if (cursor.Current.IsPlusInfinite)
+            if (reader.Current.IsPlusInfinite)
                 return true;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return false;
     }
 
@@ -1325,15 +1343,18 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool HasMinusInfinity(this IEnumerable<Element> elements)
+        => HasMinusInfinity(new ElementReader(elements));
+
+    private static bool HasMinusInfinity(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            if (cursor.Current.IsMinusInfinite)
+            if (reader.Current.IsMinusInfinite)
                 return true;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return false;
     }
 
@@ -1343,13 +1364,16 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonPositive(this IEnumerable<Element> elements)
+        => IsNonPositive(new ElementReader(elements));
+
+    private static bool IsNonPositive(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            var element = cursor.Current;
+            var element = reader.Current;
             var matches = element switch
             {
                 Point point => point.Value <= 0,
@@ -1358,7 +1382,7 @@ public static partial class SequenceExtensions
             };
             if (!matches)
                 return false;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1369,13 +1393,16 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsPositive(this IEnumerable<Element> elements)
+        => IsPositive(new ElementReader(elements));
+
+    private static bool IsPositive(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            var element = cursor.Current;
+            var element = reader.Current;
             var matches = element switch
             {
                 Point point => point.Value > 0,
@@ -1386,7 +1413,7 @@ public static partial class SequenceExtensions
             };
             if (!matches)
                 return false;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1397,13 +1424,16 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNegative(this IEnumerable<Element> elements)
+        => IsNegative(new ElementReader(elements));
+
+    private static bool IsNegative(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            var element = cursor.Current;
+            var element = reader.Current;
             var matches = element switch
             {
                 Point point => point.Value < 0,
@@ -1414,7 +1444,7 @@ public static partial class SequenceExtensions
             };
             if (!matches)
                 return false;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1424,21 +1454,24 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsConstant(this IEnumerable<Element> elements)
+        => IsConstant(new ElementReader(elements));
+
+    private static bool IsConstant(ElementReader elements)
     {
         Rational? value = null;
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            var element = cursor.Current;
+            var element = reader.Current;
             if (element is Segment { IsConstant: false })
                 return false;
             var current = element is Point point ? point.Value : ((Segment) element).RightLimitAtStartTime;
             if (value is { } previous && previous != current)
                 return false;
             value = current;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1452,13 +1485,16 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsAffine(this IEnumerable<Element> elements)
+        => IsAffine(new ElementReader(elements));
+
+    private static bool IsAffine(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
+        using var reader = elements;
         Rational? previousEndValue = null;
         Rational? slope = null;
-        while (cursor.MoveNext())
+        while (reader.MoveNext())
         {
-            var element = cursor.Current;
+            var element = reader.Current;
             if (!element.IsFinite)
                 return false;
 
@@ -1492,13 +1528,16 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonNegative(this IEnumerable<Element> elements)
+        => IsNonNegative(new ElementReader(elements));
+
+    private static bool IsNonNegative(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            var element = cursor.Current;
+            var element = reader.Current;
             if (element is Point point)
             {
                     if (point.Value < 0) return false;
@@ -1507,7 +1546,7 @@ public static partial class SequenceExtensions
             {
                     if (segment.RightLimitAtStartTime < 0 || segment.LeftLimitAtEndTime < 0) return false;
             }
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1519,6 +1558,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonDecreasing(this IEnumerable<Element> elements)
+        => IsNonDecreasing(new ElementReader(elements));
+
+    private static bool IsNonDecreasing(ElementReader elements)
     {
         return CheckMonotonicity(elements, Monotonicity.NonDecreasing);
     }
@@ -1531,6 +1573,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsIncreasing(this IEnumerable<Element> elements)
+        => IsIncreasing(new ElementReader(elements));
+
+    private static bool IsIncreasing(ElementReader elements)
     {
         return CheckMonotonicity(elements, Monotonicity.StrictlyIncreasing);
     }
@@ -1543,6 +1588,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsNonIncreasing(this IEnumerable<Element> elements)
+        => IsNonIncreasing(new ElementReader(elements));
+
+    private static bool IsNonIncreasing(ElementReader elements)
     {
         return CheckMonotonicity(elements, Monotonicity.NonIncreasing);
     }
@@ -1555,6 +1603,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsDecreasing(this IEnumerable<Element> elements)
+        => IsDecreasing(new ElementReader(elements));
+
+    private static bool IsDecreasing(ElementReader elements)
     {
         return CheckMonotonicity(elements, Monotonicity.StrictlyDecreasing);
     }
@@ -1574,17 +1625,17 @@ public static partial class SequenceExtensions
     /// <param name="monotonicity">The required monotonicity.</param>
     /// <returns>Whether the requested monotonicity holds.</returns>
     /// <remarks>
-    /// <see cref="ElementCursor.MoveNext"/> checks adjoining times and alternating points and segments during traversal.
+    /// <see cref="ElementReader.MoveNext"/> checks adjoining times and alternating points and segments during traversal.
     /// An invalid unread tail is not checked when a monotonicity violation has already determined the result.
     /// </remarks>
     /// <exception cref="ArgumentException">If the stream is empty or a consumed element violates uninterrupted time order.</exception>
-    private static bool CheckMonotonicity(IEnumerable<Element> elements, Monotonicity monotonicity)
+    private static bool CheckMonotonicity(ElementReader elements, Monotonicity monotonicity)
     {
         Rational? previous = null;
-        using var cursor = new ElementCursor(elements);
-        while (cursor.MoveNext())
+        using var reader = elements;
+        while (reader.MoveNext())
         {
-            var element = cursor.Current;
+            var element = reader.Current;
             var start = element is Point point ? point.Value : ((Segment) element).RightLimitAtStartTime;
             if (previous is { } value && (monotonicity switch
                 {
@@ -1622,15 +1673,18 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsFinite(this IEnumerable<Element> elements)
+        => IsFinite(new ElementReader(elements));
+
+    private static bool IsFinite(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            if (!cursor.Current.IsFinite)
+            if (!reader.Current.IsFinite)
                 return false;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1642,15 +1696,18 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsMinusInfinite(this IEnumerable<Element> elements)
+        => IsMinusInfinite(new ElementReader(elements));
+
+    private static bool IsMinusInfinite(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            if (!cursor.Current.IsMinusInfinite)
+            if (!reader.Current.IsMinusInfinite)
                 return false;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1662,15 +1719,18 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static bool IsPlusInfinite(this IEnumerable<Element> elements)
+        => IsPlusInfinite(new ElementReader(elements));
+
+    private static bool IsPlusInfinite(ElementReader elements)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            if (!cursor.Current.IsPlusInfinite)
+            if (!reader.Current.IsPlusInfinite)
                 return false;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return true;
     }
 
@@ -1695,6 +1755,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static (Rational Value, Rational Time) SupValueAndArg(this IEnumerable<Element> elements)
+        => SupValueAndArg(new ElementReader(elements));
+
+    private static (Rational Value, Rational Time) SupValueAndArg(ElementReader elements)
         => FindBoundaryExtremum(elements, BoundKind.Supremum);
 
     /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
@@ -1704,6 +1767,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static (Rational Value, Rational Time) InfValueAndArg(this IEnumerable<Element> elements)
+        => InfValueAndArg(new ElementReader(elements));
+
+    private static (Rational Value, Rational Time) InfValueAndArg(ElementReader elements)
         => FindBoundaryExtremum(elements, BoundKind.Infimum);
 
     /// <summary>
@@ -1714,6 +1780,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational SupValue(this IEnumerable<Element> elements)
+        => SupValue(new ElementReader(elements));
+
+    private static Rational SupValue(ElementReader elements)
     {
         return FindBoundaryExtremum(elements, BoundKind.Supremum).Value;
     }
@@ -1724,6 +1793,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational SupArg(this IEnumerable<Element> elements)
+        => SupArg(new ElementReader(elements));
+
+    private static Rational SupArg(ElementReader elements)
     {
         return FindBoundaryExtremum(elements, BoundKind.Supremum).Time;
     }
@@ -1737,6 +1809,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MaxValue(this IEnumerable<Element> elements)
+        => MaxValue(new ElementReader(elements));
+
+    private static Rational? MaxValue(ElementReader elements)
     {
         var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Supremum);
         return attainingElement is null ? null : value;
@@ -1761,6 +1836,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MaxArg(this IEnumerable<Element> elements)
+        => MaxArg(new ElementReader(elements));
+
+    private static Rational? MaxArg(ElementReader elements)
     {
         var (_, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Supremum);
         return attainingElement switch
@@ -1795,6 +1873,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational InfValue(this IEnumerable<Element> elements)
+        => InfValue(new ElementReader(elements));
+
+    private static Rational InfValue(ElementReader elements)
     {
         return FindBoundaryExtremum(elements, BoundKind.Infimum).Value;
     }
@@ -1805,6 +1886,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational InfArg(this IEnumerable<Element> elements)
+        => InfArg(new ElementReader(elements));
+
+    private static Rational InfArg(ElementReader elements)
     {
         return FindBoundaryExtremum(elements, BoundKind.Infimum).Time;
     }
@@ -1818,6 +1902,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MinValue(this IEnumerable<Element> elements)
+        => MinValue(new ElementReader(elements));
+
+    private static Rational? MinValue(ElementReader elements)
     {
         var (value, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Infimum);
         return attainingElement is null ? null : value;
@@ -1842,6 +1929,9 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
     public static Rational? MinArg(this IEnumerable<Element> elements)
+        => MinArg(new ElementReader(elements));
+
+    private static Rational? MinArg(ElementReader elements)
     {
         var (_, attainingElement) = FindBoundAndAttainment(elements, BoundKind.Infimum);
         return attainingElement switch
@@ -1906,25 +1996,25 @@ public static partial class SequenceExtensions
     }
 
     private static (Rational Value, Rational Time) FindBoundaryExtremum(
-        IEnumerable<Element> elements, BoundKind kind)
+        ElementReader elements, BoundKind kind)
     {
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
-        var first = cursor.Current;
+        var first = reader.Current;
         var bestValue = first is Point p ? p.Value : ((Segment) first).RightLimitAtStartTime;
         var bestTime = first.StartTime;
         do
         {
-            if (cursor.Current is Point point)
+            if (reader.Current is Point point)
                 Consider(point.Value, point.Time);
             else
             {
-                var segment = (Segment) cursor.Current;
+                var segment = (Segment) reader.Current;
                 Consider(segment.RightLimitAtStartTime, segment.StartTime);
                 Consider(segment.LeftLimitAtEndTime, segment.EndTime);
             }
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return (bestValue, bestTime);
 
         void Consider(Rational value, Rational time)
@@ -1945,16 +2035,16 @@ public static partial class SequenceExtensions
     /// <param name="boundKind">The bound to find.</param>
     /// <returns>The extreme value and its first attaining element, or a null element when the bound is unattained.</returns>
     /// <exception cref="ArgumentException">If the stream is empty or an encountered element violates uninterrupted time order.</exception>
-    private static (Rational bound, Element? attainingElement) FindBoundAndAttainment(IEnumerable<Element> elements, BoundKind boundKind)
+    private static (Rational bound, Element? attainingElement) FindBoundAndAttainment(ElementReader elements, BoundKind boundKind)
     {
         Rational? extreme = null;
         Element? attainingElement = null;
-        using var cursor = new ElementCursor(elements);
-        if (!cursor.MoveNext())
+        using var reader = elements;
+        if (!reader.MoveNext())
             throw new ArgumentException("The element stream is empty.", nameof(elements));
         do
         {
-            var element = cursor.Current;
+            var element = reader.Current;
             Rational candidate;
             if (element is Point point)
                 candidate = point.Value;
@@ -1972,7 +2062,7 @@ public static partial class SequenceExtensions
             }
             else if (candidate == extreme.Value && attainingElement is null && element.AttainsValue(candidate))
                 attainingElement = element;
-        } while (cursor.MoveNext());
+        } while (reader.MoveNext());
         return (extreme!.Value, attainingElement);
     }
 
