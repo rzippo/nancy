@@ -6741,16 +6741,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
                 void updateTails()
                 {
-                    transientTail = sequence
-                        .CutAsEnumerable(0, periodStart)
-                        .TakeLast(2).ToSequence();
+                    transientTail = Tail(0, periodStart);
                     transientTailSlope = ((Segment)transientTail.Elements.Last()).Slope;
-                    periodTail = sequence
-                        .CutAsEnumerable(periodStart, periodStart + periodLength)
-                        .TakeLast(2).ToSequence();
+                    periodTail = Tail(periodStart, periodStart + periodLength);
                     periodTailSlope = ((Segment)periodTail.Elements.Last()).Slope;
                     tryShorten = transientTailSlope == periodTailSlope;
                 }
+
+                // The last point and segment of the cut over [start, end[, located by binary search instead of reading the whole cut.
+                Sequence Tail(Rational start, Rational end)
+                    => sequence.Cut(Rational.Max(start, sequence.GetSegmentBefore(end).StartTime), end);
             }
         }
     }
