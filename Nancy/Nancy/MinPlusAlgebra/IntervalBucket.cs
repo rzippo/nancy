@@ -55,7 +55,8 @@ internal class IntervalBucket
 
     private List<Element> ElementBag { get; } = new();
 
-    private SpinLock Lock = new();
+    // Owner tracking is off: with it, every Enter spins once before its first attempt, also when uncontended.
+    private SpinLock Lock = new(enableThreadOwnerTracking: false);
 
     private IEnumerable<Element> ComputeElements()
     {
