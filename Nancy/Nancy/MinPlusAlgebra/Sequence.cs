@@ -55,6 +55,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     public ReadOnlyMemory<Element> AsMemory() => _elements.AsMemory();
 
     /// <summary>
+    /// <see cref="Elements"/> with its own type, whose indexer reads the array without an interface call.
+    /// </summary>
+    internal ReadOnlyElementList ElementList => _elements;
+
+    /// <summary>
     /// Left endpoint of the support of the sequence.
     /// Can be either inclusive or exclusive, see <see cref="IsLeftClosed"/> or <see cref="IsLeftOpen"/>.
     /// </summary>
@@ -91,7 +96,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isFinite);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsFinite(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsFinite(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isFinite, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -112,7 +117,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isInfinite);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isInfinite, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -133,7 +138,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isPlusInfinite);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsPlusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsPlusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isPlusInfinite, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -154,7 +159,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isMinusInfinite);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsMinusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsMinusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isMinusInfinite, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -175,7 +180,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _hasPlusInfinity);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.HasPlusInfinity(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().HasPlusInfinity(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _hasPlusInfinity, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -196,7 +201,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _hasMinusInfinity);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.HasMinusInfinity(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().HasMinusInfinity(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _hasMinusInfinity, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -249,7 +254,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isZero);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsZero(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsZero(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isZero, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -311,38 +316,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isContinuous);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() =>
-                {
-                    Rational lastValue = Elements.First() is Point ?
-                        ((Point)Elements.First()).Value :
-                        ((Segment)Elements.First()).LeftLimitAtEndTime;
-
-                    foreach (Element element in Elements.Skip(1))
-                    {
-                        switch(element)
-                        {
-                            case Point point:
-                                if (point.Value == lastValue)
-                                    break;
-                                else
-                                    return false;
-
-                            case Segment segment:
-                                if (segment.RightLimitAtStartTime == lastValue)
-                                {
-                                    lastValue = segment.LeftLimitAtEndTime;
-                                    break;
-                                }
-                                else
-                                    return false;
-
-                            default:
-                                throw new InvalidCastException();
-                        }
-                    }
-
-                    return true;
-                }, LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isContinuous, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -363,7 +337,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isLeftContinuous);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsLeftContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsLeftContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isLeftContinuous, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -387,7 +361,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isRightContinuous);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsRightContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsRightContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isRightContinuous, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -477,7 +451,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isNonPositive);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsNonPositive(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsNonPositive(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isNonPositive, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -496,7 +470,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isPositive);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsPositive(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsPositive(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isPositive, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -515,7 +489,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isNegative);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsNegative(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsNegative(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isNegative, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -534,7 +508,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isConstant);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsConstant(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsConstant(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isConstant, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -553,7 +527,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isAffine);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsAffine(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsAffine(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isAffine, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -574,7 +548,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isNonDecreasing);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsNonDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsNonDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isNonDecreasing, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -597,7 +571,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isIncreasing);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isIncreasing, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -620,7 +594,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isNonIncreasing);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsNonIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsNonIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isNonIncreasing, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -643,7 +617,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var cache = Volatile.Read(ref _isDecreasing);
             if (cache is null)
             {
-                var candidate = new Lazy<bool>(() => Elements.IsDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                var candidate = new Lazy<bool>(() => AsSpan().IsDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
                 cache = Interlocked.CompareExchange(ref _isDecreasing, candidate, null) ?? candidate;
             }
             return cache.Value;
@@ -1124,7 +1098,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     /// <inheritdoc />
     public bool Equals(Sequence? other)
-        => other is not null && Elements.SequenceEqual(other.Elements);
+        => other is not null && AsSpan().SequenceEqual(other.AsSpan());
 
     /// <summary>
     /// Returns <c>true</c> if its operands are equal, <c>false</c> otherwise.
@@ -1860,55 +1834,55 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     /// <summary>Returns the earliest boundary location of the supremum.</summary>
     /// <returns>The earliest time where the supremum is a value or one-sided limit.</returns>
-    public Rational SupArg() => Elements.SupArg();
+    public Rational SupArg() => AsSpan().SupArg();
 
     /// <summary>Returns the earliest boundary location of the infimum.</summary>
     /// <returns>The earliest time where the infimum is a value or one-sided limit.</returns>
-    public Rational InfArg() => Elements.InfArg();
+    public Rational InfArg() => AsSpan().InfArg();
 
     /// <summary>Returns a time in the support attaining the maximum, if one exists.</summary>
     /// <returns>An attaining time, or null if the supremum is unattained.</returns>
-    public Rational? MaxArg() => Elements.MaxArg();
+    public Rational? MaxArg() => AsSpan().MaxArg();
 
     /// <summary>Returns a time in the support attaining the minimum, if one exists.</summary>
     /// <returns>An attaining time, or null if the infimum is unattained.</returns>
-    public Rational? MinArg() => Elements.MinArg();
+    public Rational? MinArg() => AsSpan().MinArg();
 
     /// <summary>Finds the supremum and its earliest boundary location in one traversal.</summary>
     /// <returns>The supremum and its earliest value or one-sided-limit location.</returns>
-    public (Rational Value, Rational Time) SupValueAndArg() => Elements.SupValueAndArg();
+    public (Rational Value, Rational Time) SupValueAndArg() => AsSpan().SupValueAndArg();
 
     /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
     /// <returns>The infimum and its earliest value or one-sided-limit location.</returns>
-    public (Rational Value, Rational Time) InfValueAndArg() => Elements.InfValueAndArg();
+    public (Rational Value, Rational Time) InfValueAndArg() => AsSpan().InfValueAndArg();
 
     /// <summary>
     /// If the sequence is upper-bounded, i.e. $f(t) &lt;= x$ for any $t$, returns $x$.
     /// Otherwise, returns <see cref="Rational.PlusInfinity"/>
     /// </summary>
     public Rational SupValue()
-        => Elements.SupValue();
+        => AsSpan().SupValue();
 
     /// <summary>
     /// If the sequence has a maximum, i.e., exist $x and t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
     public Rational? MaxValue()
-        => Elements.MaxValue();
+        => AsSpan().MaxValue();
 
     /// <summary>
     /// If the sequence is lower-bounded, i.e. $f(t) &gt;= x$ for any $t$, returns $x$.
     /// Otherwise, returns <see cref="Rational.MinusInfinity"/>
     /// </summary>
     public Rational InfValue()
-        => Elements.InfValue();
+        => AsSpan().InfValue();
 
     /// <summary>
     /// If the sequence has a minimum, i.e., exist $x and t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
     public Rational? MinValue()
-        => Elements.MinValue();
+        => AsSpan().MinValue();
     
     /// <summary>
     /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.

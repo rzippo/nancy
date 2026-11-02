@@ -3608,7 +3608,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         IEnumerable<Element> ExtendPeriods(IEnumerable<int> indexes)
         {
-            var periodicElements = PseudoPeriodicElements;
+            var periodicElements = PseudoPeriodicSequence.ElementList;
             foreach (var index in indexes)
             {
                 foreach (var element in ComputeExtensionSequenceAsEnumerable(index, periodicElements, settings))
@@ -3733,7 +3733,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
     }
 
-    private IEnumerable<Element> ComputeExtensionSequenceAsEnumerable(int pseudoPeriodIndex, IEnumerable<Element> periodicElements, ComputationSettings? settings = null)
+    private IEnumerable<Element> ComputeExtensionSequenceAsEnumerable(int pseudoPeriodIndex, ReadOnlyElementList periodicElements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         bool doParallel = settings.UseParallelComputeExtensionSequences;
@@ -3747,11 +3747,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
         else
         {
-            periodicSegmentsCopy = periodicElements
-                .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
+            periodicSegmentsCopy = CopyPeriod();
         }
 
         return periodicSegmentsCopy;
+
+        // reads the period by index, without an interface call per element
+        IEnumerable<Element> CopyPeriod()
+        {
+            for (int i = 0; i < periodicElements.Count; i++)
+                yield return GetPseudoPeriodicCopy(periodicElements[i], pseudoPeriodIndex);
+        }
 
         //local function used to copy elements
         Element GetPseudoPeriodicCopy(
