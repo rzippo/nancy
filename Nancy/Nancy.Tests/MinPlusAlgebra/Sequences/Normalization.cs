@@ -38,6 +38,24 @@ public class Normalization
         Assert.True(cut.IsNormalized, $"Cut of {curve.GetType().Name} is not normalized");
     }
 
+    /// <summary>
+    /// A curve whose period starts inside a segment, so its base sequence keeps a breakpoint there: 1 + t, with the period from 5.
+    /// </summary>
+    private static readonly Curve SplitAtThePeriodStart = new(
+        new Sequence([new Point(0, 1), new Segment(0, 5, 1, 1), new Point(5, 6), new Segment(5, 6, 6, 1)]),
+        pseudoPeriodStart: 5, pseudoPeriodLength: 1, pseudoPeriodHeight: 1);
+
+    [Fact]
+    public void CutAcrossThePeriodStartIsNormalized()
+    {
+        // within the base sequence, and past it
+        Assert.False(SplitAtThePeriodStart.BaseSequence.IsNormalized);
+        Assert.True(SplitAtThePeriodStart.Cut(0, new Rational(11, 2)).IsNormalized);
+        Assert.True(SplitAtThePeriodStart.Cut(0, 8).IsNormalized);
+        Assert.True(SplitAtThePeriodStart.CutAsEnumerable(0, new Rational(11, 2)).ToSequence().IsNormalized);
+        Assert.True(SplitAtThePeriodStart.CutAsEnumerable(0, 8).ToSequence().IsNormalized);
+    }
+
     [Theory]
     [MemberData(nameof(Curves))]
     public void SubtractionIsNormalized(Curve curve)

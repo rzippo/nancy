@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
@@ -68,6 +69,17 @@ public class Cut
         Point.Zero(50)
     });
 
+    //Start closed, end open, with slopes and a jump at every breakpoint
+    private static Sequence v = new Sequence(new Element[]
+    {
+        new Point(0, 1),
+        new Segment(0, 10, 2, 1),
+        new Point(10, 5),
+        new Segment(10, 20, 7, new Rational(-1, 2)),
+        new Point(20, 4),
+        new Segment(20, 30, 0, 2)
+    });
+
     public static IEnumerable<object[]> GetSuccessTestCases()
     {
         var testCases =
@@ -105,6 +117,31 @@ public class Cut
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartIncluded: false, isEndIncluded: false),
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartIncluded: false, isEndIncluded: true),
                     (sequence: e, cutStart: 15, cutEnd: 45, isStartIncluded: true, isEndIncluded: true),
+
+                    // Within one segment
+                    (sequence: a, cutStart: 12, cutEnd: 18, isStartIncluded: true, isEndIncluded: false),
+                    (sequence: a, cutStart: 12, cutEnd: 18, isStartIncluded: false, isEndIncluded: false),
+                    (sequence: a, cutStart: 12, cutEnd: 18, isStartIncluded: false, isEndIncluded: true),
+                    (sequence: a, cutStart: 12, cutEnd: 18, isStartIncluded: true, isEndIncluded: true),
+
+                    // Within one segment, one side at its endpoint
+                    (sequence: a, cutStart: 10, cutEnd: 15, isStartIncluded: false, isEndIncluded: true),
+                    (sequence: a, cutStart: 10, cutEnd: 15, isStartIncluded: true, isEndIncluded: false),
+                    (sequence: a, cutStart: 12, cutEnd: 20, isStartIncluded: true, isEndIncluded: false),
+                    (sequence: a, cutStart: 12, cutEnd: 20, isStartIncluded: false, isEndIncluded: true),
+
+                    // With slopes and jumps
+                    (sequence: v, cutStart: 0, cutEnd: 30, isStartIncluded: true, isEndIncluded: false),
+                    (sequence: v, cutStart: 5, cutEnd: 25, isStartIncluded: true, isEndIncluded: true),
+                    (sequence: v, cutStart: 5, cutEnd: 25, isStartIncluded: false, isEndIncluded: false),
+                    (sequence: v, cutStart: 10, cutEnd: 20, isStartIncluded: true, isEndIncluded: true),
+                    (sequence: v, cutStart: 10, cutEnd: 20, isStartIncluded: false, isEndIncluded: false),
+                    (sequence: v, cutStart: 12, cutEnd: 18, isStartIncluded: true, isEndIncluded: true),
+                    (sequence: v, cutStart: 12, cutEnd: 18, isStartIncluded: false, isEndIncluded: false),
+                    (sequence: v, cutStart: 10, cutEnd: 15, isStartIncluded: false, isEndIncluded: true),
+                    (sequence: v, cutStart: 12, cutEnd: 20, isStartIncluded: true, isEndIncluded: false),
+                    (sequence: v, cutStart: 12, cutEnd: 20, isStartIncluded: false, isEndIncluded: true),
+                    (sequence: v, cutStart: 20, cutEnd: 20, isStartIncluded: true, isEndIncluded: true),
 
                     // Matching, both inclusive
                     (sequence: a, cutStart: 20, cutEnd: 20, isStartIncluded: true, isEndIncluded: true)
@@ -197,6 +234,33 @@ public class Cut
     {
         Sequence cut = sequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         Assert.True(cut.Elements.AreUninterruptedSequence());
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSuccessTestCases))]
+    [MemberData(nameof(FromOtherTests))]
+    public void CutAgreesWithTheSequenceInsideTheInterval(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    {
+        // At the breakpoints of the sequence and the endpoints of the cut, and halfway between them: values inside, and limits from inside.
+        Sequence cut = sequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+        var times = sequence.EnumerateBreakpoints()
+            .Select(breakpoint => breakpoint.center.Time)
+            .Concat([sequence.DefinedFrom, sequence.DefinedUntil, cutStart, cutEnd])
+            .Where(t => t >= cutStart && t <= cutEnd)
+            .Distinct()
+            .OrderBy(t => t)
+            .ToList();
+        times = times.Concat(times.Zip(times.Skip(1), (x, y) => (x + y) / 2)).ToList();
+        foreach (var t in times)
+        {
+            var inside = (t > cutStart || isStartIncluded) && (t < cutEnd || isEndIncluded);
+            if (inside)
+                Assert.Equal(sequence.ValueAt(t), cut.ValueAt(t));
+            if (t < cutEnd)
+                Assert.Equal(sequence.RightLimitAt(t), cut.RightLimitAt(t));
+            if (t > cutStart)
+                Assert.Equal(sequence.LeftLimitAt(t), cut.LeftLimitAt(t));
+        }
     }
 
     [Theory]
