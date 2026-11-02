@@ -44,6 +44,17 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     private readonly ReadOnlyElementList _elements;
 
     /// <summary>
+    /// The elements of <see cref="Elements"/> as a span, without copying.
+    /// </summary>
+    public ReadOnlySpan<Element> AsSpan() => _elements.AsSpan();
+
+    /// <summary>
+    /// The elements of <see cref="Elements"/> as a read-only memory region, without copying.
+    /// </summary>
+    /// <remarks>Unlike the span of <see cref="AsSpan"/>, it can be kept in a field, captured by a lambda or held across an await.</remarks>
+    public ReadOnlyMemory<Element> AsMemory() => _elements.AsMemory();
+
+    /// <summary>
     /// Left endpoint of the support of the sequence.
     /// Can be either inclusive or exclusive, see <see cref="IsLeftClosed"/> or <see cref="IsLeftOpen"/>.
     /// </summary>
