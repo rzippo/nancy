@@ -111,6 +111,46 @@ public class TransientReduction
                     pseudoPeriodHeight: 1
                 ),
                 expectedStart: 2
+            ),
+            // The period starts inside a segment, which the curve splits there.
+            // Reduction then reads the last segment of each cut as stored, one side of that split, rather than the whole segment.
+            (
+                // 1 + t up to 5, continued by the period
+                reducibleCurve: new Curve(
+                    baseSequence: new Sequence(new List<Element>
+                    {
+                        new Point(0, 1),
+                        new Segment(0, 5, 1, 1),
+                        new Point(5, 6),
+                        new Segment(5, new Rational(11, 2), 6, 1),
+                        new Point(new Rational(11, 2), 5),
+                        new Segment(new Rational(11, 2), new Rational(13, 2), 5, 1)
+                    }),
+                    pseudoPeriodStart: 5,
+                    pseudoPeriodLength: new Rational(3, 2),
+                    pseudoPeriodHeight: 0
+                ),
+                expectedStart: 4
+            ),
+            (
+                // constant at -1 from 1 to 4, across the period start
+                reducibleCurve: new Curve(
+                    baseSequence: new Sequence(new List<Element>
+                    {
+                        new Point(0, 0),
+                        new Segment(0, 1, 0, 0),
+                        new Point(1, 0),
+                        new Segment(1, new Rational(7, 2), -1, 0),
+                        new Point(new Rational(7, 2), -1),
+                        new Segment(new Rational(7, 2), 4, -1, 0),
+                        new Point(4, 2),
+                        new Segment(4, new Rational(13, 2), 1, 0)
+                    }),
+                    pseudoPeriodStart: new Rational(7, 2),
+                    pseudoPeriodLength: 3,
+                    pseudoPeriodHeight: 2
+                ),
+                expectedStart: 1
             )
         };
 
