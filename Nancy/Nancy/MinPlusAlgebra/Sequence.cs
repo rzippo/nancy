@@ -569,6 +569,23 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     #endregion
 
+
+    #region Known properties
+
+    /// <summary>
+    /// <see cref="IsLeftContinuous"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? LeftContinuousIfKnown
+        => Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsRightContinuous"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? RightContinuousIfKnown
+        => Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    #endregion
+
     #region Constructors
 
     /// <summary>
@@ -1970,13 +1987,19 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes a left-continuous version of this sequence.
     /// </summary>
     public Sequence ToLeftContinuous()
-        => Elements.ToLeftContinuous().ToSequence();
+        => LeftContinuousIfKnown == true
+            ? this
+            : Elements.ToLeftContinuous()
+                .ToSequence();
 
     /// <summary>
     /// Computes a right-continuous version of this sequence.
     /// </summary>
     public Sequence ToRightContinuous()
-        => Elements.ToRightContinuous().ToSequence();
+        => RightContinuousIfKnown == true
+            ? this
+            : Elements.ToRightContinuous()
+                .ToSequence();
 
     /// <summary>
     /// Enforces $f(t) = f(t^+)$, i.e. right-continuity at <paramref name="time"/>.
