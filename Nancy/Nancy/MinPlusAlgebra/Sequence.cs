@@ -3250,19 +3250,24 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
         settings ??= ComputationSettings.Default();
 
-        var elementPairs = a.Elements
+        IEnumerable<(Element a, Element b)> elementPairs = a.Elements
             .SelectMany(ea => b.Elements
                 .Select(eb => (a: ea, b: eb))
             )
             // in $f \oslash g$ the two operands play opposite roles, since $g$ contributes its opposite:
             // $+\infty$ in $f$ and $-\infty$ in $g$ both win the maximum, and are kept
             .Where(pair => !pair.a.IsMinusInfinite && !pair.b.IsPlusInfinite)
-            .Where(pair => cutStart == null || pair.a.EndTime - pair.b.StartTime >= cutStart)
-            .ToList();
-        var pairsCount = elementPairs.Count;
+            .Where(pair => cutStart == null || pair.a.EndTime - pair.b.StartTime >= cutStart);
+        var useParallel = settings.UseParallelDeconvolution;
+        if (useParallel)
+        {
+            var pairs = elementPairs.ToList();
+            elementPairs = pairs;
+            useParallel = pairs.Count > settings.DeconvolutionParallelizationThreshold;
+        }
 
         List<Element> result;
-        if (settings.UseParallelDeconvolution && pairsCount > settings.DeconvolutionParallelizationThreshold)
+        if (useParallel)
             result = ParallelDeconvolution();
         else
             result = SerialDeconvolution();
