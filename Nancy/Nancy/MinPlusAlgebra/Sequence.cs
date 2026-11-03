@@ -357,6 +357,52 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     internal Lazy<bool>? _isIncreasing;
 
     /// <summary>
+    /// True if for any $t > s$, $f(t) \le f(s)$.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsNonIncreasing
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isNonIncreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsNonIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isNonIncreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsNonIncreasing"/>.
+    /// </summary>
+    internal Lazy<bool>? _isNonIncreasing;
+
+    /// <summary>
+    /// True if for any $t > s$, $f(t) &lt; f(s)$.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsDecreasing
+    {
+        get
+        {
+            var cache = Volatile.Read(ref _isDecreasing);
+            if (cache is null)
+            {
+                var candidate = new Lazy<bool>(() => Elements.IsDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
+                cache = Interlocked.CompareExchange(ref _isDecreasing, candidate, null) ?? candidate;
+            }
+            return cache.Value;
+        }
+    }
+
+    /// <summary>
+    /// Private cache field for <see cref="IsDecreasing"/>.
+    /// </summary>
+    internal Lazy<bool>? _isDecreasing;
+
+    /// <summary>
     /// True if <see cref="DefinedFrom"/> is exclusive.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
@@ -517,6 +563,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         Interlocked.Exchange(ref _isRightContinuous, null);
         Interlocked.Exchange(ref _isNonDecreasing, null);
         Interlocked.Exchange(ref _isIncreasing, null);
+        Interlocked.Exchange(ref _isNonIncreasing, null);
+        Interlocked.Exchange(ref _isDecreasing, null);
     }
 
     #endregion
