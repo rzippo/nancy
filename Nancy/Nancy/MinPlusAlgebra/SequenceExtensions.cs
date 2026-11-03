@@ -2952,9 +2952,13 @@ public static partial class SequenceExtensions
 
     /// <summary>
     /// Computes the lower pseudo-inverse function,
-    /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
+    /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
-    /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\downarrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$: the heights from 0 up to the first value of the sequence are first reached at its start.</param>
+    /// <param name="startFromZero">
+    /// If true, $f^{-1}_\downarrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.
+    /// At a height from 0 below $Image(f)$, the result is the start of the support.
+    /// If every value of the sequence is negative, the result is a point at height 0 with value $+\infty$.
+    /// </param>
     /// <exception cref="ArgumentException">If the elements are not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous.
@@ -2973,7 +2977,13 @@ public static partial class SequenceExtensions
         using var enumerator = merged.GetEnumerator();
 
         if (!enumerator.MoveNext())
-            throw new ArgumentException("Elements is an empty collection");
+        {
+            if (!startFromZero)
+                throw new ArgumentException("Elements is an empty collection");
+            // no value reaches 0: no instant has f(t) >= 0, and the infimum of the empty set is +inf
+            yield return Point.PlusInfinite(0);
+            yield break;
+        }
 
         Rational previousValue = startFromZero ? Rational.Zero : Rational.MinusInfinity;
         bool? wasPreviousPoint = null;

@@ -2309,9 +2309,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     /// <summary>
     /// Computes the lower pseudo-inverse of the sequence,
-    /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) >= x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
+    /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
-    /// <param name="startFromZero">If true, it is assumed that $f^{-1}_\downarrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$: the heights from 0 up to the first value of the sequence are first reached at its start.</param>
+    /// <param name="startFromZero">
+    /// If true, $f^{-1}_\downarrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.
+    /// At a height from 0 below $Image(f)$, the result is the start of the support.
+    /// If every value of the sequence is negative, the result is a point at height 0 with value $+\infty$.
+    /// </param>
     /// <exception cref="ArgumentException">If the sequence is not non-decreasing.</exception>
     /// <remarks>
     /// The result of this operation is left-continuous, thus is revertible, i.e. $\left(f^{-1}_\downarrow\right)^{-1}_\downarrow = f$, only if $f$ is left-continuous, see [DNC18] § 3.2.1 .
