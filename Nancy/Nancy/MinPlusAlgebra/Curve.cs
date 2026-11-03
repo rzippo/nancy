@@ -3389,7 +3389,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     }
 
                     result = elements
-                        .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+                        .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
             }
@@ -3422,7 +3422,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     }
 
                     result = elements
-                        .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+                        .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
                 else
@@ -3453,7 +3453,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         BaseSequence.Elements.Concat(extensionElements);
 
                     result = elements
-                        .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+                        .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                         .ToSequence();
                 }
             }
@@ -3463,7 +3463,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             // the base sequence is split at the pseudo-period start, which a cut across it must not keep
             result = cutStart < PseudoPeriodStart && cutEnd > PseudoPeriodStart
                 ? BaseSequence.Elements
-                    .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+                    .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                     .ToSequence()
                 : BaseSequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
@@ -3567,7 +3567,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     }
 
                     return elements
-                        .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                        .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
                 }
             }
             else
@@ -3584,7 +3584,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
                     var elements = ExtendPeriods(indexes);
 
-                    return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                    return elements.CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
                 }
                 else
                 {
@@ -3598,14 +3598,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
                     var elements = BaseSequence.Elements.Concat(extensionElements);
 
-                    return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                    return elements.CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
                 }
             }
         }
         else
         {
-            return BaseSequence
-                .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+            return BaseSequence.Elements
+                .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
 
         IEnumerable<Element> ExtendPeriods(IEnumerable<int> indexes)
@@ -5068,7 +5068,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (reusePeriod)
             elements = RepeatPseudoPeriod(elements, inversePeriodStart, PseudoPeriodHeight, PseudoPeriodLength);
 
-        return elements.Cut(0, end, isStartIncluded: true, isEndIncluded: true);
+        // the copies of the period may meet in a line, which the result must not keep split
+        return elements.CutAndMerge(0, end, isStartIncluded: true, isEndIncluded: true);
     }
 
     // todo: add reference about $f(t) > 0$ for $t > 0$
@@ -5187,7 +5188,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (reusePeriod)
             elements = RepeatPseudoPeriod(elements, inversePeriodStart, PseudoPeriodHeight, PseudoPeriodLength);
 
-        return elements.Cut(0, end, isStartIncluded: true, isEndIncluded: true);
+        // the copies of the period may meet in a line, which the result must not keep split
+        return elements.CutAndMerge(0, end, isStartIncluded: true, isEndIncluded: true);
     }
 
     /// <summary>

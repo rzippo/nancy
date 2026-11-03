@@ -1128,10 +1128,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// True if the <paramref name="a"/> and <paramref name="b"/> are ordered sequences of elements representing the same function, over the same interval. 
     /// </summary>
     /// <remarks>Optimized for minimal allocations</remarks>
+    /// <exception cref="ArgumentException">If either stream is empty.</exception>
     public static bool Equivalent(IEnumerable<Element> a, IEnumerable<Element> b)
     {
-        using var enA = a.GetEnumerator();
-        using var enB = b.GetEnumerator();
+        // the same function has one merged representation, which is compared element by element
+        using var enA = a.MergeAsEnumerable().GetEnumerator();
+        using var enB = b.MergeAsEnumerable().GetEnumerator();
         while (true)
         {
             var aNext = enA.MoveNext();

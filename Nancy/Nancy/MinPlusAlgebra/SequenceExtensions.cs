@@ -59,6 +59,29 @@ public static partial class SequenceExtensions
         bool isStartIncluded = true,
         bool isEndIncluded = false
     )
+        => Cut(elements, cutStart, cutEnd, isStartIncluded, isEndIncluded, merge: false);
+
+    /// <summary>
+    /// Returns a cut of the sequence for a smaller support, merging the elements of the cut as <see cref="MergeAsEnumerable"/> does.
+    /// </summary>
+    /// <remarks>Merging while cutting is cheaper than merging the cut afterwards, for elements that come from joined pieces.</remarks>
+    internal static IEnumerable<Element> CutAndMerge(
+        this IEnumerable<Element> elements,
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false
+    )
+        => Cut(elements, cutStart, cutEnd, isStartIncluded, isEndIncluded, merge: true);
+
+    private static IEnumerable<Element> Cut(
+        IEnumerable<Element> elements,
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded,
+        bool isEndIncluded,
+        bool merge
+    )
     {
         using var enumerator = new ElementCursor(elements);
         if (!enumerator.MoveNext())
@@ -148,7 +171,7 @@ public static partial class SequenceExtensions
 
         // At the start of each iteration, left is the current segment
         // first we check if it's the last
-        // otherwise, we fetch a point and a segment, check for merging, and restore the initial condition
+        // otherwise, we take the next point and segment, merge them into it if asked and possible, or else return it and its end point
         while (true)
         {
             if (left.StartTime == cutEnd)
@@ -181,23 +204,21 @@ public static partial class SequenceExtensions
                 throw new ArgumentException("Cut limits are out of the sequence support.");
             var right = (Segment)enumerator.Current;
 
-            // check for merging, comparing the left limit last, as it needs a multiplication
-            if (left.Slope == right.Slope && center.Value == right.RightLimitAtStartTime && left.LeftLimitAtEndTime == center.Value)
+            if (merge && CanMergeAdjoining(left, center, right))
             {
-                left = new Segment(
-                    startTime: left.StartTime,
-                    endTime: right.EndTime,
-                    rightLimitAtStartTime: left.RightLimitAtStartTime,
-                    slope: left.Slope
-                );
+                left = new Segment(left.StartTime, right.EndTime, left.RightLimitAtStartTime, left.Slope);
+                continue;
             }
-            else
-            {
-                yield return left;
-                yield return center;
-                left = right;
-            }
+            yield return left;
+            yield return center;
+            left = right;
         }
+
+        // The cursor has checked that the three adjoin, so only their graphs are compared, as CanMergeTriplet does.
+        static bool CanMergeAdjoining(Segment left, Point point, Segment right)
+            => left.Slope == right.Slope &&
+               point.Value == right.RightLimitAtStartTime &&
+               left.LeftLimitAtEndTime == point.Value;
     }
 
     /// <summary>
