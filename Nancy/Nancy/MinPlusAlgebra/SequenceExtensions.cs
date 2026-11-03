@@ -713,7 +713,7 @@ public static partial class SequenceExtensions
     /// Returns the <see cref="Segment"/> that describes the sequence before <paramref name="time"/>.
     /// </summary>
     /// <param name="time">Time of the sample.</param>
-    /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
+    /// <exception cref="ArgumentException">Thrown if the given time $-\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a linear search, $O(n)$</remarks>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
@@ -722,13 +722,15 @@ public static partial class SequenceExtensions
     public static Segment GetSegmentBefore(this IEnumerable<Element> elements, Rational time)
     {
         using var cursor = new ElementCursor(elements);
-        Segment? found = null;
         while (cursor.MoveNext())
         {
-            if (cursor.Current is Segment segment && segment.EndTime <= time)
-                found = segment;
+            if (cursor.Current.EndTime < time)
+                continue;
+            if (cursor.Current is Segment segment && segment.StartTime < time)
+                return segment;
+            break;
         }
-        return found ?? throw new ArgumentException("Sequence is not defined before the given time.", nameof(time));
+        throw new ArgumentException("Sequence is not defined before the given time.", nameof(time));
     }
 
     /// <summary>

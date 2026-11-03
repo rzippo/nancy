@@ -1339,6 +1339,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
     public Segment GetSegmentBefore(Rational time)
     {
+        if (!IsDefinedBefore(time))
+            throw new ArgumentException("Sequence is not defined before given time");
+
         var targetIndex = FindFirstIndex(element => element.EndTime >= time);
         if (targetIndex == -1 || targetIndex >= Count || Elements[targetIndex] is Point)
             throw new ArgumentException("Sequence is not defined before given time");
@@ -1355,7 +1358,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
     public Segment GetSegmentAfter(Rational time)
     {
-        
+        if (!IsDefinedAfter(time))
+            throw new ArgumentException("Sequence is not defined after given time");
+
         var targetIndex = FindLastIndex(element => element.StartTime <= time);
         if (targetIndex == -1 || targetIndex >= Count || Elements[targetIndex] is Point)
             throw new ArgumentException("Sequence is not defined after given time");
