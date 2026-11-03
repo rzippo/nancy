@@ -181,8 +181,8 @@ public static partial class SequenceExtensions
                 throw new ArgumentException("Cut limits are out of the sequence support.");
             var right = (Segment)enumerator.Current;
 
-            // check for merging
-            if (left.Slope == right.Slope && left.LeftLimitAtEndTime == center.Value && center.Value == right.RightLimitAtStartTime)
+            // check for merging, comparing the left limit last, as it needs a multiplication
+            if (left.Slope == right.Slope && center.Value == right.RightLimitAtStartTime && left.LeftLimitAtEndTime == center.Value)
             {
                 left = new Segment(
                     startTime: left.StartTime,
@@ -351,12 +351,13 @@ public static partial class SequenceExtensions
     /// </summary>
     internal static bool CanMergeTriplet(Segment left, Point point, Segment right)
     {
+        // the slope and the value at the point are compared before the left limit, which needs a multiplication
         return 
             left.EndTime == point.Time &&
             point.Time == right.StartTime &&
-            left.LeftLimitAtEndTime == point.Value &&
+            left.Slope == right.Slope &&
             point.Value == right.RightLimitAtStartTime &&
-            left.Slope == right.Slope;
+            left.LeftLimitAtEndTime == point.Value;
     }
 
     /// <summary>
@@ -412,7 +413,7 @@ public static partial class SequenceExtensions
 
             if (enumerator.Current is Segment right && CanMergeTriplet(left, center, right))
             {
-                pending = MergeTriplet(left, center, right);
+                pending = new Segment(left.StartTime, right.EndTime, left.RightLimitAtStartTime, left.Slope);
             }
             else
             {
