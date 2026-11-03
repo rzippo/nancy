@@ -1581,7 +1581,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         => Elements.SupValue();
 
     /// <summary>
-    /// If the sequence has a maximum, i.e., exist $x and t^*$ such that $f(t) \le x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// If the sequence has a maximum, i.e., exist $x and t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
     public Rational? MaxValue()
@@ -1595,7 +1595,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         => Elements.InfValue();
 
     /// <summary>
-    /// If the sequence has a minimum, i.e., exist $x and t^*$ such that $f(t) \ge x$ for any $t \ge 0$ and $f(t^*) = x$, returns $x$.
+    /// If the sequence has a minimum, i.e., exist $x and t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
     /// Otherwise, returns null.
     /// </summary>
     public Rational? MinValue()
