@@ -3147,7 +3147,7 @@ public static partial class SequenceExtensions
 
     /// <summary>
     /// Computes the upper pseudo-inverse function,
-    /// $f^{-1}_\uparrow(x) = \inf \left\{ t : f(t) > x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
+    /// $f^{-1}_\uparrow(x) = \sup \left\{ t : f(t) \le x \right\}$, where $t \in Support(f)$ and $x \in Image(f)$.
     /// </summary>
     /// <param name="startFromZero">
     /// If true, $f^{-1}_\uparrow(x)$ is defined from $x = 0$, rather than only in $Image(f)$.
