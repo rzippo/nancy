@@ -224,7 +224,7 @@ public class SequenceExtensionsEdgeCases
 
     [Theory]
     [MemberData(nameof(GetMissingPreviousSegmentCases))]
-    public void GetSegmentBefore_WhenNoSegmentEndsBeforeTime_Throws(List<Element> elements, Rational time)
+    public void GetSegmentBefore_AtTheStartOfTheSupport_Throws(List<Element> elements, Rational time)
     {
         Assert.Throws<ArgumentException>(() => elements.GetSegmentBefore(time));
     }

@@ -142,6 +142,7 @@ public class GetElement
             var viaBinarySearch = s.GetSegmentBefore(time);
             var (viaLinearSearch, i) = s.GetSegmentBefore_Linear(time, index);
             Assert.Equal(viaBinarySearch, viaLinearSearch);
+            Assert.Equal(viaBinarySearch, s.Elements.GetSegmentBefore(time));
             index = i;
         }
     }
@@ -171,6 +172,7 @@ public class GetElement
             var viaBinarySearch = s.GetSegmentAfter(time);
             var (viaLinearSearch, i) = s.GetSegmentAfter_Linear(time, index);
             Assert.Equal(viaBinarySearch, viaLinearSearch);
+            Assert.Equal(viaBinarySearch, s.Elements.GetSegmentAfter(time));
             index = i;
         }
     }
@@ -274,6 +276,7 @@ public class GetElement
         (LeftOpenSequence, 2, new Segment(2, 4, 1, 1)),
         (LeftOpenSequence, 3, new Segment(2, 4, 1, 1)),
         (LeftOpenSequence, 4, new Segment(4, 6, 3, new Rational(1, 2))),
+        (LeftOpenSequence, 5, new Segment(4, 6, 3, new Rational(1, 2))),
         (RightOpenSequence, 2, new Segment(2, 4, 1, 1)),
         (RightOpenSequence, 4, new Segment(4, 6, 3, new Rational(1, 2))),
     ];
@@ -285,8 +288,41 @@ public class GetElement
         (RightOpenSequence, 4, new Segment(2, 4, 1, 1)),
         (RightOpenSequence, 3, new Segment(2, 4, 1, 1)),
         (LeftOpenSequence, 6, new Segment(4, 6, 3, new Rational(1, 2))),
+        (LeftOpenSequence, 5, new Segment(4, 6, 3, new Rational(1, 2))),
         (LeftOpenSequence, 4, new Segment(2, 4, 1, 1)),
     ];
+
+    /// <summary>
+    /// Times where the sequence is not defined after (respectively, before) them:
+    /// the closed or open end, past the end, and before the start.
+    /// </summary>
+    public static List<(Sequence s, Rational time)> UndefinedAfter =
+    [
+        (LeftOpenSequence, 6),
+        (LeftOpenSequence, 7),
+        (LeftOpenSequence, 1),
+        (RightOpenSequence, 6),
+        (RightOpenSequence, 7),
+    ];
+
+    /// <summary>
+    /// Times where the sequence is not defined before them:
+    /// the open or closed start, before the start, and past the end.
+    /// </summary>
+    public static List<(Sequence s, Rational time)> UndefinedBefore =
+    [
+        (LeftOpenSequence, 2),
+        (LeftOpenSequence, 1),
+        (LeftOpenSequence, 7),
+        (RightOpenSequence, 2),
+        (RightOpenSequence, 1),
+    ];
+
+    public static IEnumerable<object[]> UndefinedAfterTestCases
+        => UndefinedAfter.ToXUnitTestCases();
+
+    public static IEnumerable<object[]> UndefinedBeforeTestCases
+        => UndefinedBefore.ToXUnitTestCases();
 
     public static IEnumerable<object[]> KnownSegmentsAfterTestCases
         => KnownSegmentsAfter.ToXUnitTestCases();
@@ -302,6 +338,7 @@ public class GetElement
         Assert.Equal(expected, s.GetSegmentAfter(time));
         var (viaLinearSearch, _) = s.GetSegmentAfter_Linear(time);
         Assert.Equal(expected, viaLinearSearch);
+        Assert.Equal(expected, s.Elements.GetSegmentAfter(time));
     }
 
     [Theory]
@@ -312,5 +349,50 @@ public class GetElement
         Assert.Equal(expected, s.GetSegmentBefore(time));
         var (viaLinearSearch, _) = s.GetSegmentBefore_Linear(time);
         Assert.Equal(expected, viaLinearSearch);
+        Assert.Equal(expected, s.Elements.GetSegmentBefore(time));
+    }
+
+    [Theory]
+    [MemberData(nameof(UndefinedAfterTestCases))]
+    public void SegmentAfterOutOfSupport_Throws(Sequence s, Rational time)
+    {
+        Assert.False(s.IsDefinedAfter(time));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter(time));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(time));
+        Assert.Throws<ArgumentException>(() => s.Elements.GetSegmentAfter(time));
+    }
+
+    [Theory]
+    [MemberData(nameof(UndefinedBeforeTestCases))]
+    public void SegmentBeforeOutOfSupport_Throws(Sequence s, Rational time)
+    {
+        Assert.False(s.IsDefinedBefore(time));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore(time));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(time));
+        Assert.Throws<ArgumentException>(() => s.Elements.GetSegmentBefore(time));
+    }
+
+    /// <summary>
+    /// The unit ramp $f(t) = t$ over $[0, 3]$, which throws if read past its end.
+    /// </summary>
+    private static IEnumerable<Element> RampThenThrow()
+    {
+        yield return Point.Origin();
+        for (var i = 0; i < 3; i++)
+        {
+            yield return new Segment(i, i + 1, i, 1);
+            yield return new Point(i + 1, i + 1);
+        }
+        throw new InvalidOperationException("The stream was read past the requested time.");
+    }
+
+    [Fact]
+    public void StreamSegmentLookupsStopAtTheRequestedTime()
+    {
+        var half = new Rational(5, 2);
+        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentBefore(half));
+        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentAfter(half));
+        Assert.Equal(new Segment(1, 2, 1, 1), RampThenThrow().GetSegmentBefore(2));
+        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentAfter(2));
     }
 }
