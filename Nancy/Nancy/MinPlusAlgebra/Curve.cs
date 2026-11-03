@@ -6149,15 +6149,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public Rational? MaxValue(ComputationSettings? settings = null)
     {
-        if (PseudoPeriodSlope <= 0)
-        {
-            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
-            return cut.MaxValue();
-        }
-        else
-        {
-            return null;
-        }
+        var max = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings)
+            .MaxValue();
+        return PseudoPeriodSlope > 0 && max?.IsPlusInfinite != true
+            ? null
+            : max;
     }
 
     /// <summary>
@@ -6166,15 +6162,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public Rational? MaxArg(ComputationSettings? settings = null)
     {
-        if (PseudoPeriodSlope <= 0)
-        {
-            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
-            return cut.MaxArg();
-        }
-        else
-        {
+        var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+        if (PseudoPeriodSlope > 0 && cut.MaxValue()?.IsPlusInfinite != true)
             return null;
-        }
+        return cut.MaxArg();
     }
 
     /// <summary>
@@ -6219,15 +6210,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public Rational? MinValue(ComputationSettings? settings = null)
     {
-        if (PseudoPeriodSlope >= 0)
-        {
-            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
-            return cut.MinValue();
-        }
-        else
-        {
-            return null;
-        }
+        var min = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings)
+            .MinValue();
+        return PseudoPeriodSlope < 0 && min?.IsMinusInfinite != true
+            ? null
+            : min;
     }
 
     /// <summary>
@@ -6236,15 +6223,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public Rational? MinArg(ComputationSettings? settings = null)
     {
-        if (PseudoPeriodSlope >= 0)
-        {
-            var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
-            return cut.MinArg();
-        }
-        else
-        {
+        var cut = CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true, settings: settings);
+        if (PseudoPeriodSlope < 0 && cut.MinValue()?.IsMinusInfinite != true)
             return null;
-        }
+        return cut.MinArg();
     }
 
     private static void ThrowIfIntervalIsInfinite(Rational cutStart, Rational cutEnd)
