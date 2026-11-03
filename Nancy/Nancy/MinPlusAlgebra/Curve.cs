@@ -88,8 +88,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public Rational PseudoPeriodSlope =>
-        PseudoPeriodicSequence.IsInfinite
-            ? (PseudoPeriodicElements.First().IsPlusInfinite ? Rational.PlusInfinity : Rational.MinusInfinity)
+        PseudoPeriodicSequence is { IsInfinite: true } period
+            ? (period.Elements[0].IsPlusInfinite ? Rational.PlusInfinity : Rational.MinusInfinity)
             : PseudoPeriodHeight / PseudoPeriodLength;
 
     /// <summary>
@@ -1623,9 +1623,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Sequence describing the pseudo-periodic behavior of the curve in $[T, T + d[$.
     /// </summary>
+    /// <remarks>It shares the elements of <see cref="BaseSequence"/>, and keeps them in memory as long as it is kept.</remarks>
     [System.Text.Json.Serialization.JsonIgnore]
     public Sequence PseudoPeriodicSequence =>
-        BaseSequence.Cut(PseudoPeriodStart, FirstPseudoPeriodEnd);
+        BaseSequence.SuffixFrom(PseudoPeriodStart, FirstPseudoPeriodEnd)
+        ?? BaseSequence.Cut(PseudoPeriodStart, FirstPseudoPeriodEnd);
 
     /// <summary>
     /// Elements describing the pseudo-periodic behavior of the curve in $[T, T + d[$.
