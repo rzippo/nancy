@@ -270,7 +270,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>
     /// A normalized sequence uses one element per stretch over which the graph is a single line, whatever breakpoints the operands it came from had.
     /// This is what lets a caller read a maximal run off the elements: a run that arrived split would be indistinguishable from two runs with a gap between them.
-    /// Results of operations are normalized unless documented otherwise, while <see cref="Curve.BaseSequence"/> is not, since a breakpoint is forced at the pseudo-period start.
+    /// Results of operations are not guaranteed to be normalized, and <see cref="Curve.BaseSequence"/> is not, since a breakpoint is forced at the pseudo-period start.
     /// Use <see cref="SequenceExtensions.Merge"/> to normalize a set of elements.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
