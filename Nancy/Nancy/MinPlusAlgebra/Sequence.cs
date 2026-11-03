@@ -1681,6 +1681,21 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
+    /// The elements from the point at <paramref name="start"/> on, sharing this sequence's storage without copying it,
+    /// if the sequence has a point at <paramref name="start"/> and ends, excluded, at <paramref name="end"/>; null otherwise.
+    /// </summary>
+    /// <remarks>Where it is not null, it is the cut over $[start, end[$.</remarks>
+    internal Sequence? SuffixFrom(Rational start, Rational end)
+    {
+        if (IsRightClosed || DefinedUntil != end || start < DefinedFrom || start >= end)
+            return null;
+        var index = FindFirstIndex(element => element.StartTime >= start);
+        if (index < 0 || _elements[index] is not Point point || point.Time != start)
+            return null;
+        return new Sequence(_elements.Slice(index, Count - index));
+    }
+
+    /// <summary>
     /// Returns a cut of the sequence for a smaller support.
     /// </summary>
     /// <param name="interval">The new support.</param>
