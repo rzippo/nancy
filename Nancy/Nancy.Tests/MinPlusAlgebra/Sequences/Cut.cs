@@ -266,13 +266,13 @@ public class Cut
     [Theory]
     [MemberData(nameof(GetSuccessTestCases))]
     [MemberData(nameof(FromOtherTests))]
-    public void CutIsEquivalentToTheStreamedCut(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    public void CutIsTheStreamedCut(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
     {
-        // The two cuts may differ in representation, as the streamed one can join segments across a breakpoint.
+        // Both keep the stored elements, splitting only the two at the ends of the cut.
         var streamed = sequence.Elements
             .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
             .ToSequence();
-        Assert.True(Sequence.Equivalent(streamed, sequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)));
+        Assert.Equal(streamed, sequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded));
     }
 
     [Theory]

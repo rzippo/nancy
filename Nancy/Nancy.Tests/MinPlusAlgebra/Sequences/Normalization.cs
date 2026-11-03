@@ -56,6 +56,20 @@ public class Normalization
         Assert.True(SplitAtThePeriodStart.CutAsEnumerable(0, 8).ToSequence().IsNormalized);
     }
 
+    /// <summary>
+    /// Slopes 1, 2 and 1 over each period of length 3: the inverse has slopes 1, 1/2 and 1, so its consecutive periods meet in a line.
+    /// </summary>
+    private static readonly Curve InversePeriodsMeetInALine = new(
+        new Sequence([new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, 1), new Segment(1, 2, 1, 2), new Point(2, 3), new Segment(2, 3, 3, 1)]),
+        pseudoPeriodStart: 0, pseudoPeriodLength: 3, pseudoPeriodHeight: 4);
+
+    [Fact]
+    public void StreamedPseudoInversesAreNormalized()
+    {
+        Assert.True(InversePeriodsMeetInALine.LowerPseudoInverseAsEnumerable(20).ToSequence().IsNormalized);
+        Assert.True(InversePeriodsMeetInALine.UpperPseudoInverseAsEnumerable(20).ToSequence().IsNormalized);
+    }
+
     [Theory]
     [MemberData(nameof(Curves))]
     public void SubtractionIsNormalized(Curve curve)
