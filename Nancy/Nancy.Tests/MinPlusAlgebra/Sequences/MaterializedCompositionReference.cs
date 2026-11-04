@@ -185,11 +185,11 @@ internal static class MaterializedCompositionReference
                         }
 
                         var gRightLimit = g.RightLimitAt(pTime);
-                        var (gSegment, gIndex) = g.GetSegmentAfter_Linear(pTime, lastIndexG);
+                        var (gSegment, gIndex) = g.GetSegmentAfter_Linear(pTime, lastIndexG, cutToTime: false);
                         lastIndexG = gIndex;
                         if (gSegment.Slope != 0)
                         {
-                            var (fSegment, fIndex) = f.GetSegmentAfter_Linear(gRightLimit, lastIndexF);
+                            var (fSegment, fIndex) = f.GetSegmentAfter_Linear(gRightLimit, lastIndexF, cutToTime: false);
                             lastIndexF = fIndex;
                             var s = new Segment(
                                 pTime,

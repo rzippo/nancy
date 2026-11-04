@@ -67,14 +67,14 @@ public partial class ConvolutionIsomorphismOverInterval
 
         var T_f = f.PseudoPeriodStart;
         var f_rightCont_at_T_f = f.IsRightContinuousAt(T_f);
-        var f_firstPeriodSegment = f.GetSegmentAfter(T_f);
+        var f_firstPeriodSegment = f.GetSegmentAfter(T_f, cutToTime: false);
         var T_f_prime = f_rightCont_at_T_f && f_firstPeriodSegment.IsConstant ? 
             f_firstPeriodSegment.EndTime : T_f;
         var (_, f_p) =  f.Decompose(T_f);
 
         var T_g = g.PseudoPeriodStart;
         var g_rightCont_at_T_g = g.IsRightContinuousAt(T_g);
-        var g_firstPeriodSegment = g.GetSegmentAfter(T_g);
+        var g_firstPeriodSegment = g.GetSegmentAfter(T_g, cutToTime: false);
         var T_g_prime = g_rightCont_at_T_g && g_firstPeriodSegment.IsConstant ?
             g_firstPeriodSegment.EndTime : T_g;
         var (_, g_p) = g.Decompose(T_g);
@@ -119,14 +119,14 @@ public partial class ConvolutionIsomorphismOverInterval
 
         var T_f = f.PseudoPeriodStart;
         var f_rightCont_at_T_f = f.IsRightContinuousAt(T_f);
-        var f_firstPeriodSegment = f.GetSegmentAfter(T_f);
+        var f_firstPeriodSegment = f.GetSegmentAfter(T_f, cutToTime: false);
         var T_f_prime = f_rightCont_at_T_f && f_firstPeriodSegment.IsConstant ? 
             f_firstPeriodSegment.EndTime : T_f;
         var (_, f_p) =  f.Decompose(T_f);
 
         var T_g = g.PseudoPeriodStart;
         var g_rightCont_at_T_g = g.IsRightContinuousAt(T_g);
-        var g_firstPeriodSegment = g.GetSegmentAfter(T_g);
+        var g_firstPeriodSegment = g.GetSegmentAfter(T_g, cutToTime: false);
         var T_g_prime = g_rightCont_at_T_g && g_firstPeriodSegment.IsConstant ?
             g_firstPeriodSegment.EndTime : T_g;
         // var T_g_prime = T_g; will not work
@@ -190,7 +190,7 @@ public partial class ConvolutionIsomorphismOverInterval
 
         var T_f = f.PseudoPeriodStart;
         var f_rightCont_at_T_f = f.IsRightContinuousAt(T_f);
-        var f_firstPeriodSegment = f.GetSegmentAfter(T_f);
+        var f_firstPeriodSegment = f.GetSegmentAfter(T_f, cutToTime: false);
         var T_f_prime = f_rightCont_at_T_f && f_firstPeriodSegment.IsConstant ? 
             f_firstPeriodSegment.EndTime : T_f;
         // var T_f_prime = T_f; will not work
@@ -198,7 +198,7 @@ public partial class ConvolutionIsomorphismOverInterval
 
         var T_g = g.PseudoPeriodStart;
         var g_rightCont_at_T_g = g.IsRightContinuousAt(T_g);
-        var g_firstPeriodSegment = g.GetSegmentAfter(T_g);
+        var g_firstPeriodSegment = g.GetSegmentAfter(T_g, cutToTime: false);
         var T_g_prime = g_rightCont_at_T_g && g_firstPeriodSegment.IsConstant ?
             g_firstPeriodSegment.EndTime : T_g;
         // var T_g_prime = T_g; will not work
@@ -241,13 +241,13 @@ public partial class ConvolutionIsomorphismOverInterval
         var (_, g_p) = g.Decompose(T_g);
 
         var f_rightCont_at_T_f = f.IsRightContinuousAt(T_f);
-        var f_firstPeriodSegment = f.GetSegmentAfter(T_f);
+        var f_firstPeriodSegment = f.GetSegmentAfter(T_f, cutToTime: false);
         var T_f_prime = f_rightCont_at_T_f && f_firstPeriodSegment.IsConstant ? 
             f_firstPeriodSegment.EndTime : T_f;
         var (_, f_p_prime) =  f.Decompose(T_f_prime);
 
         var g_rightCont_at_T_g = g.IsRightContinuousAt(T_g);
-        var g_firstPeriodSegment = g.GetSegmentAfter(T_g);
+        var g_firstPeriodSegment = g.GetSegmentAfter(T_g, cutToTime: false);
         var T_g_prime = g_rightCont_at_T_g && g_firstPeriodSegment.IsConstant ?
             g_firstPeriodSegment.EndTime : T_g;
         var (_, g_p_prime) = g.Decompose(T_g_prime);
@@ -314,13 +314,13 @@ public partial class ConvolutionIsomorphismOverInterval
 
         // New method, using the isomorphism only over the pp convolution
         var f_rightCont_at_T_f = f.IsRightContinuousAt(T_f);
-        var f_firstPeriodSegment = f.GetSegmentAfter(T_f);
+        var f_firstPeriodSegment = f.GetSegmentAfter(T_f, cutToTime: false);
         var T_f_prime = f_rightCont_at_T_f && f_firstPeriodSegment.IsConstant ? 
             f_firstPeriodSegment.EndTime : T_f;
         var (_, f_p_prime) =  f.Decompose(T_f_prime);
 
         var g_rightCont_at_T_g = g.IsRightContinuousAt(T_g);
-        var g_firstPeriodSegment = g.GetSegmentAfter(T_g);
+        var g_firstPeriodSegment = g.GetSegmentAfter(T_g, cutToTime: false);
         var T_g_prime = g_rightCont_at_T_g && g_firstPeriodSegment.IsConstant ?
             g_firstPeriodSegment.EndTime : T_g;
         var (_, g_p_prime) = g.Decompose(T_g_prime);

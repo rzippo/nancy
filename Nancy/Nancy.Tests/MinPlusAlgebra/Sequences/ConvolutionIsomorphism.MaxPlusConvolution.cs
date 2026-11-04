@@ -143,7 +143,7 @@ public partial class ConvolutionIsomorphism
             if (tb_f_prime < f.DefinedUntil)
             {
                 var pf = f.GetElementAt(tb_f_prime);
-                var sf = f.GetSegmentAfter(tb_f_prime);
+                var sf = f.GetSegmentAfter(tb_f_prime, cutToTime: false);
                 foreach (var eg in g.Elements)
                 {
                     missingElements.AddRange(Element.MaxPlusConvolution(pf, eg));
@@ -154,7 +154,7 @@ public partial class ConvolutionIsomorphism
             if (tb_g_prime < g.DefinedUntil)
             {
                 var pg = g.GetElementAt(tb_g_prime);
-                var sg = g.GetSegmentAfter(tb_g_prime);
+                var sg = g.GetSegmentAfter(tb_g_prime, cutToTime: false);
                 foreach (var ef in f.Elements)
                 {
                     missingElements.AddRange(Element.MaxPlusConvolution(ef, pg));
@@ -270,7 +270,7 @@ public partial class ConvolutionIsomorphism
             if (tb_f_prime < tb_f)
             {
                 var pf = f.GetElementAt(tb_f_prime);
-                var sf = f.GetSegmentAfter(tb_f_prime);
+                var sf = f.GetSegmentAfter(tb_f_prime, cutToTime: false);
                 foreach (var eg in g.Elements)
                 {
                     missingElements.AddRange(Element.MaxPlusConvolution(pf, eg));
@@ -281,7 +281,7 @@ public partial class ConvolutionIsomorphism
             if (tb_g_prime < tb_g)
             {
                 var pg = g.GetElementAt(tb_g_prime);
-                var sg = g.GetSegmentAfter(tb_g_prime);
+                var sg = g.GetSegmentAfter(tb_g_prime, cutToTime: false);
                 foreach (var ef in f.Elements)
                 {
                     missingElements.AddRange(Element.MaxPlusConvolution(ef, pg));

@@ -139,10 +139,10 @@ public class GetElement
         var index = 0;
         foreach (var time in times.Skip(1))
         {
-            var viaBinarySearch = s.GetSegmentBefore(time);
-            var (viaLinearSearch, i) = s.GetSegmentBefore_Linear(time, index);
+            var viaBinarySearch = s.GetSegmentBefore(time, cutToTime: false);
+            var (viaLinearSearch, i) = s.GetSegmentBefore_Linear(time, index, cutToTime: false);
             Assert.Equal(viaBinarySearch, viaLinearSearch);
-            Assert.Equal(viaBinarySearch, s.Elements.GetSegmentBefore(time));
+            Assert.Equal(viaBinarySearch, s.Elements.GetSegmentBefore(time, cutToTime: false));
             index = i;
         }
     }
@@ -169,10 +169,10 @@ public class GetElement
         var index = 0;
         foreach (var time in times.Skip(1))
         {
-            var viaBinarySearch = s.GetSegmentAfter(time);
-            var (viaLinearSearch, i) = s.GetSegmentAfter_Linear(time, index);
+            var viaBinarySearch = s.GetSegmentAfter(time, cutToTime: false);
+            var (viaLinearSearch, i) = s.GetSegmentAfter_Linear(time, index, cutToTime: false);
             Assert.Equal(viaBinarySearch, viaLinearSearch);
-            Assert.Equal(viaBinarySearch, s.Elements.GetSegmentAfter(time));
+            Assert.Equal(viaBinarySearch, s.Elements.GetSegmentAfter(time, cutToTime: false));
             index = i;
         }
     }
@@ -209,7 +209,7 @@ public class GetElement
             new Point(0, 0),
             new Segment(0, 10, 0, 1)
         });
-        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(20));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(20, cutToTime: false));
     }
 
     [Fact]
@@ -222,7 +222,7 @@ public class GetElement
             new Point(0, 0),
             new Segment(0, 10, 0, 1)
         });
-        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(0));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(0, cutToTime: false));
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public class GetElement
             new Point(0, 0),
             new Segment(0, 10, 0, 1)
         });
-        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(20));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(20, cutToTime: false));
     }
 
     [Fact]
@@ -248,7 +248,7 @@ public class GetElement
             new Point(5, 0),
             new Segment(5, 10, 0, 0)
         });
-        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(2, startingIndex: 2));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(2, startingIndex: 2, cutToTime: false));
     }
 
     /// <summary>
@@ -335,10 +335,10 @@ public class GetElement
     public void KnownSegmentAfter(Sequence s, Rational time, Segment expected)
     {
         Assert.True(s.IsDefinedAfter(time));
-        Assert.Equal(expected, s.GetSegmentAfter(time));
-        var (viaLinearSearch, _) = s.GetSegmentAfter_Linear(time);
+        Assert.Equal(expected, s.GetSegmentAfter(time, cutToTime: false));
+        var (viaLinearSearch, _) = s.GetSegmentAfter_Linear(time, cutToTime: false);
         Assert.Equal(expected, viaLinearSearch);
-        Assert.Equal(expected, s.Elements.GetSegmentAfter(time));
+        Assert.Equal(expected, s.Elements.GetSegmentAfter(time, cutToTime: false));
     }
 
     [Theory]
@@ -346,10 +346,10 @@ public class GetElement
     public void KnownSegmentBefore(Sequence s, Rational time, Segment expected)
     {
         Assert.True(s.IsDefinedBefore(time));
-        Assert.Equal(expected, s.GetSegmentBefore(time));
-        var (viaLinearSearch, _) = s.GetSegmentBefore_Linear(time);
+        Assert.Equal(expected, s.GetSegmentBefore(time, cutToTime: false));
+        var (viaLinearSearch, _) = s.GetSegmentBefore_Linear(time, cutToTime: false);
         Assert.Equal(expected, viaLinearSearch);
-        Assert.Equal(expected, s.Elements.GetSegmentBefore(time));
+        Assert.Equal(expected, s.Elements.GetSegmentBefore(time, cutToTime: false));
     }
 
     [Theory]
@@ -357,9 +357,9 @@ public class GetElement
     public void SegmentAfterOutOfSupport_Throws(Sequence s, Rational time)
     {
         Assert.False(s.IsDefinedAfter(time));
-        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter(time));
-        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(time));
-        Assert.Throws<ArgumentException>(() => s.Elements.GetSegmentAfter(time));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter(time, cutToTime: false));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentAfter_Linear(time, cutToTime: false));
+        Assert.Throws<ArgumentException>(() => s.Elements.GetSegmentAfter(time, cutToTime: false));
     }
 
     [Theory]
@@ -367,9 +367,9 @@ public class GetElement
     public void SegmentBeforeOutOfSupport_Throws(Sequence s, Rational time)
     {
         Assert.False(s.IsDefinedBefore(time));
-        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore(time));
-        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(time));
-        Assert.Throws<ArgumentException>(() => s.Elements.GetSegmentBefore(time));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore(time, cutToTime: false));
+        Assert.Throws<ArgumentException>(() => s.GetSegmentBefore_Linear(time, cutToTime: false));
+        Assert.Throws<ArgumentException>(() => s.Elements.GetSegmentBefore(time, cutToTime: false));
     }
 
     /// <summary>
@@ -390,9 +390,9 @@ public class GetElement
     public void StreamSegmentLookupsStopAtTheRequestedTime()
     {
         var half = new Rational(5, 2);
-        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentBefore(half));
-        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentAfter(half));
-        Assert.Equal(new Segment(1, 2, 1, 1), RampThenThrow().GetSegmentBefore(2));
-        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentAfter(2));
+        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentBefore(half, cutToTime: false));
+        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentAfter(half, cutToTime: false));
+        Assert.Equal(new Segment(1, 2, 1, 1), RampThenThrow().GetSegmentBefore(2, cutToTime: false));
+        Assert.Equal(new Segment(2, 3, 2, 1), RampThenThrow().GetSegmentAfter(2, cutToTime: false));
     }
 }

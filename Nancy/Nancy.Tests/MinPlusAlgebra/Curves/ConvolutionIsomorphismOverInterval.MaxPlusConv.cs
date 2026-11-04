@@ -51,12 +51,12 @@ public partial class ConvolutionIsomorphismOverInterval
         Assert.True(f.IsNonDecreasing && g.IsNonDecreasing);
         Assert.True(f.IsNonNegative && g.IsNonNegative);
 
-        // var f_firstPeriodSegment = f.GetSegmentAfter(f.PseudoPeriodStart);
+        // var f_firstPeriodSegment = f.GetSegmentAfter(f.PseudoPeriodStart, cutToTime: false);
         // var T_f = f_firstPeriodSegment.IsConstant ? f_firstPeriodSegment.EndTime : f.PseudoPeriodStart;
         var T_f = f.PseudoPeriodStart;
         var (_, f_p) =  f.Decompose(T_f, minDecomposition: false);
 
-        // var g_firstPeriodSegment = g.GetSegmentAfter(g.PseudoPeriodStart);
+        // var g_firstPeriodSegment = g.GetSegmentAfter(g.PseudoPeriodStart, cutToTime: false);
         // var T_g = g_firstPeriodSegment.IsConstant ? g_firstPeriodSegment.EndTime : g.PseudoPeriodStart;
         var T_g = g.PseudoPeriodStart;
         var (_, g_p) = g.Decompose(T_g, minDecomposition: false);

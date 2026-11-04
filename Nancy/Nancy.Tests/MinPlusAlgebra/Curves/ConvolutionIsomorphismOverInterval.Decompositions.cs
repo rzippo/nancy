@@ -75,7 +75,7 @@ public partial class ConvolutionIsomorphismOverInterval
         Assert.True(f.IsNonNegative);
 
         var T_f = f.PseudoPeriodStart;
-        var firstPeriodSegment = f.GetSegmentAfter(f.PseudoPeriodStart);
+        var firstPeriodSegment = f.GetSegmentAfter(f.PseudoPeriodStart, cutToTime: false);
         var T_f_prime = firstPeriodSegment.IsConstant ? firstPeriodSegment.EndTime : f.PseudoPeriodStart;
         var f_T_f_prime = f.ValueAt(T_f_prime);
 
@@ -177,9 +177,9 @@ public partial class ConvolutionIsomorphismOverInterval
         Assert.True(f.IsNonNegative);
 
         var T_f = f.PseudoPeriodStart;
-        var lastTransientSegment =  f.PseudoPeriodStart == 0 ? null : f.GetSegmentBefore(f.PseudoPeriodStart); 
-        var firstPeriodSegment = f.GetSegmentAfter(f.PseudoPeriodStart);
-        var secondPeriodSegment = f.GetSegmentAfter(firstPeriodSegment.EndTime);
+        var lastTransientSegment =  f.PseudoPeriodStart == 0 ? null : f.GetSegmentBefore(f.PseudoPeriodStart, cutToTime: false);
+        var firstPeriodSegment = f.GetSegmentAfter(f.PseudoPeriodStart, cutToTime: false);
+        var secondPeriodSegment = f.GetSegmentAfter(firstPeriodSegment.EndTime, cutToTime: false);
         var T_f_prime = 
             // we need to delay T_f to the right point if the transient exists or ends with a constant, and the curve is continuous at its end 
             lastTransientSegment != null && lastTransientSegment.IsConstant && f.IsContinuousAt(f.PseudoPeriodStart) ?

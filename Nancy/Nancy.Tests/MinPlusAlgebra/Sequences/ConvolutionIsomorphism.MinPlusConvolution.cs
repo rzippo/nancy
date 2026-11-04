@@ -24,7 +24,7 @@ public partial class ConvolutionIsomorphism
             var tg = g.PseudoPeriodStart;
             var T = tf + tg + lcm_d;
    
-            var fSegmentAfterTf = f.GetSegmentAfter(tf);
+            var fSegmentAfterTf = f.GetSegmentAfter(tf, cutToTime: false);
             var tf_prime = (f.IsRightContinuousAt(tf) && fSegmentAfterTf.IsConstant) ? fSegmentAfterTf.EndTime : tf;
             var fCutEnd_minp = tf + 2 * lcm_d;
             var fCutEnd_iso = tf_prime + 2 * k_c_f * f.PseudoPeriodLength;
@@ -32,7 +32,7 @@ public partial class ConvolutionIsomorphism
                 ? f.Cut(tf, fCutEnd_minp, isEndIncluded: false)
                 : f.Cut(tf, fCutEnd_iso, isEndIncluded: true);
 
-            var gSegmentAfterTg = g.GetSegmentAfter(tg);
+            var gSegmentAfterTg = g.GetSegmentAfter(tg, cutToTime: false);
             var tg_prime = (g.IsRightContinuousAt(tg) && gSegmentAfterTg.IsConstant) ? gSegmentAfterTg.EndTime : tg;
             var gCutEnd_minp = tg + 2 * lcm_d;
             var gCutEnd_iso = tg_prime + 2 * k_c_g * g.PseudoPeriodLength;
