@@ -6472,6 +6472,56 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Returns the earliest boundary location of the supremum over the specified interval.
+    /// Requires finite interval endpoints.
+    /// </summary>
+    /// <param name="cutStart">Start of the interval.</param>
+    /// <param name="cutEnd">End of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>The earliest time where the bound is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint; it need not attain the bound.</remarks>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
+    public Rational SupArgOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.SupArg();
+    }
+
+    /// <summary>
+    /// Returns the supremum and its earliest boundary location over the specified interval.
+    /// Requires finite interval endpoints.
+    /// </summary>
+    /// <param name="cutStart">Start of the interval.</param>
+    /// <param name="cutEnd">End of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint; it need not attain the bound.</remarks>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
+    public (Rational Value, Rational Time) SupValueAndArgOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.SupValueAndArg();
+    }
+
+    /// <summary>
     /// Returns the maximum value of the curve over the specified interval, or null if no maximum is attained.
     /// Requires finite interval endpoints.
     /// </summary>
@@ -6487,6 +6537,31 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ThrowIfIntervalIsInfinite(cutStart, cutEnd);
         var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
         return cut.MaxValue();
+    }
+
+    /// <summary>
+    /// Returns a time attaining the maximum over the specified interval, or null if no maximum is attained.
+    /// Requires finite interval endpoints.
+    /// </summary>
+    /// <param name="cutStart">Start of the interval.</param>
+    /// <param name="cutEnd">End of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>A time in the interval attaining the maximum, or null if unattained.</returns>
+    /// <remarks>An open plateau may have no earliest attaining time.</remarks>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
+    public Rational? MaxArgOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.MaxArg();
     }
 
     /// <summary>
@@ -6508,6 +6583,56 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Returns the earliest boundary location of the infimum over the specified interval.
+    /// Requires finite interval endpoints.
+    /// </summary>
+    /// <param name="cutStart">Start of the interval.</param>
+    /// <param name="cutEnd">End of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>The earliest time where the bound is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint; it need not attain the bound.</remarks>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
+    public Rational InfArgOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.InfArg();
+    }
+
+    /// <summary>
+    /// Returns the infimum and its earliest boundary location over the specified interval.
+    /// Requires finite interval endpoints.
+    /// </summary>
+    /// <param name="cutStart">Start of the interval.</param>
+    /// <param name="cutEnd">End of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
+    /// <remarks>The time may be an excluded endpoint; it need not attain the bound.</remarks>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
+    public (Rational Value, Rational Time) InfValueAndArgOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.InfValueAndArg();
+    }
+
+    /// <summary>
     /// Returns the minimum value of the curve over the specified interval, or null if no minimum is attained.
     /// Requires finite interval endpoints.
     /// </summary>
@@ -6523,6 +6648,31 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ThrowIfIntervalIsInfinite(cutStart, cutEnd);
         var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
         return cut.MinValue();
+    }
+
+    /// <summary>
+    /// Returns a time attaining the minimum over the specified interval, or null if no minimum is attained.
+    /// Requires finite interval endpoints.
+    /// </summary>
+    /// <param name="cutStart">Start of the interval.</param>
+    /// <param name="cutEnd">End of the interval.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <param name="settings">Optional computation settings.</param>
+    /// <returns>A time in the interval attaining the minimum, or null if unattained.</returns>
+    /// <remarks>An open plateau may have no earliest attaining time.</remarks>
+    /// <exception cref="ArgumentException">If the interval has an infinite endpoint, or is not valid.</exception>
+    public Rational? MinArgOverInterval(
+        Rational cutStart,
+        Rational cutEnd,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
+    )
+    {
+        ThrowIfIntervalIsInfinite(cutStart, cutEnd);
+        var cut = CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
+        return cut.MinArg();
     }
 
     /// <summary>
