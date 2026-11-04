@@ -56,13 +56,16 @@ public class Convolution
         }
     }
 
+    public static IEnumerable<object[]> DefinedDeconvolutionPairs() => ConvolutionPairs()
+        .Where(p => !p.Left.HasPlusInfinity || !p.Right.HasPlusInfinity)
+        .ToXUnitTestCases();
+
     [Theory]
-    [MemberData(nameof(Pairs))]
-    public void DeconvolutionEqualsTheEligibleElementPairEnvelope(Sequence a, Sequence b)
+    [MemberData(nameof(DefinedDeconvolutionPairs))]
+    public void DeconvolutionEqualsTheCompleteElementPairEnvelope(Sequence a, Sequence b)
     {
         var settings = new ComputationSettings { UseParallelism = false };
         var elements = a.Elements.SelectMany(ea => b.Elements.Select(eb => (a: ea, b: eb)))
-            .Where(p => !p.a.IsMinusInfinite && !p.b.IsPlusInfinite)
             .SelectMany(p => Element.Deconvolution(p.a, p.b))
             .ToList();
         var expected = elements.UpperEnvelope(settings)
