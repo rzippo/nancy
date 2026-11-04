@@ -41,6 +41,18 @@ public static partial class SequenceExtensions
     #region Cutting and filling
 
     /// <summary>
+    /// Returns a cut of the sequence over <paramref name="interval"/>.
+    /// </summary>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    /// <param name="interval">The new support, including its endpoint inclusion.</param>
+    /// <returns>The elements of the cut.</returns>
+    /// <remarks>The source is read as the result is enumerated.</remarks>
+    /// <exception cref="ArgumentException">During enumeration, if the interval is empty or is not a subset of the source support.</exception>
+    /// <exception cref="ArgumentException">During enumeration, if the stream is empty or an element read violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Cut(this IEnumerable<Element> elements, Interval interval)
+        => Cut(elements, interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded);
+
+    /// <summary>
     /// Returns a cut of the sequence for a smaller support.
     /// </summary>
     /// <param name="cutStart">Left endpoint of the new support.</param>

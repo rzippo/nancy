@@ -1919,6 +1919,21 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         => AsSpan().MinValue();
     
     /// <summary>
+    /// Fills the gaps of the set of elements within <paramref name="interval"/> with the given value, defaults to $+\infty$.
+    /// </summary>
+    /// <param name="elements">The set of elements, in time order and with non-overlapping supports.</param>
+    /// <param name="interval">The filling interval.</param>
+    /// <param name="fillWith">The value filled in; defaults to $+\infty$.</param>
+    /// <returns>The elements, with gaps within the filling interval filled with constant elements of value <paramref name="fillWith"/>.</returns>
+    /// <remarks>
+    /// Elements outside the filling interval are kept unchanged.
+    /// If the filling interval is empty, the elements are returned unchanged.
+    /// </remarks>
+    /// <exception cref="ArgumentException">During enumeration, if the elements are out of order or have overlapping supports.</exception>
+    public static IEnumerable<Element> Fill(IEnumerable<Element> elements, Interval interval, Rational? fillWith = null)
+        => Fill(elements, interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded, fillWith);
+
+    /// <summary>
     /// Fills the gaps of the set of elements within <paramref name="fillFrom"/> and <paramref name="fillTo"/> with the given value, defaults to $+\infty$.
     /// </summary>
     /// <param name="elements">The set of elements, in time order and with non-overlapping supports.</param>
