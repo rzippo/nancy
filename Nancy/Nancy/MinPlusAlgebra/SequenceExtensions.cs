@@ -741,7 +741,9 @@ public static partial class SequenceExtensions
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
-    public static Segment GetSegmentBefore(this IEnumerable<Element> elements, Rational time)
+    /// <param name="cutToTime">If true, cut the selected segment's end to <paramref name="time"/>; otherwise retain its bounds.</param>
+    /// <example>For a segment on $(2, 6)$ queried at $4$, the default returns $(2, 4)$; passing false retains $(2, 6)$.</example>
+    public static Segment GetSegmentBefore(this IEnumerable<Element> elements, Rational time, bool cutToTime = true)
     {
         using var cursor = new ElementCursor(elements);
         while (cursor.MoveNext())
@@ -749,7 +751,7 @@ public static partial class SequenceExtensions
             if (cursor.Current.EndTime < time)
                 continue;
             if (cursor.Current is Segment segment && segment.StartTime < time)
-                return segment;
+                return cutToTime ? segment.Cut(segment.StartTime, time) : segment;
             break;
         }
         throw new ArgumentException("Sequence is not defined before the given time.", nameof(time));
@@ -765,7 +767,9 @@ public static partial class SequenceExtensions
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
     /// <exception cref="ArgumentException">If the stream is empty.</exception>
     /// <exception cref="ArgumentException">If an element read during enumeration violates uninterrupted time order.</exception>
-    public static Segment GetSegmentAfter(this IEnumerable<Element> elements, Rational time)
+    /// <param name="cutToTime">If true, cut the selected segment's start to <paramref name="time"/>; otherwise retain its bounds.</param>
+    /// <example>For a segment on $(2, 6)$ queried at $4$, the default returns $(4, 6)$; passing false retains $(2, 6)$.</example>
+    public static Segment GetSegmentAfter(this IEnumerable<Element> elements, Rational time, bool cutToTime = true)
     {
         using var cursor = new ElementCursor(elements);
         while (cursor.MoveNext())
@@ -773,7 +777,7 @@ public static partial class SequenceExtensions
             if (cursor.Current.StartTime > time)
                 break;
             if (cursor.Current is Segment segment && segment.EndTime > time)
-                return segment;
+                return cutToTime ? segment.Cut(time, segment.EndTime) : segment;
         }
         throw new ArgumentException("Sequence is not defined after the given time.", nameof(time));
     }

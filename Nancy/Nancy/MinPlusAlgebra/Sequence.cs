@@ -762,7 +762,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             if(StartsWithPlateau)
                 return Elements
                     .MergeAsEnumerable()
-                    .GetSegmentAfter(DefinedFrom)
+                    .GetSegmentAfter(DefinedFrom, cutToTime: false)
                     .EndTime;
             else
                 return DefinedFrom;
@@ -781,7 +781,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             if(EndsWithPlateau)
                 return Elements
                     .MergeAsEnumerable()
-                    .GetSegmentBefore(DefinedUntil)
+                    .GetSegmentBefore(DefinedUntil, cutToTime: false)
                     .StartTime;
             else
                 return DefinedUntil;
@@ -1298,7 +1298,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <returns>The value of $f(t^+)$</returns>
     public Rational RightLimitAt(Rational time)
     {
-        Segment segment = GetSegmentAfter(time);
+        Segment segment = GetSegmentAfter(time, cutToTime: false);
         return segment.RightLimitAt(time);
     }
 
@@ -1309,7 +1309,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <returns>The value of $f(t^-)$</returns>
     public Rational LeftLimitAt(Rational time)
     {
-        Segment segment = GetSegmentBefore(time);
+        Segment segment = GetSegmentBefore(time, cutToTime: false);
         return segment.LeftLimitAt(time);
     }
 
@@ -1339,7 +1339,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">Thrown if the given <paramref name="time"/> $-\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence before <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
-    public Segment GetSegmentBefore(Rational time)
+    /// <param name="cutToTime">If true, cut the selected segment's end to <paramref name="time"/>; otherwise retain its bounds.</param>
+    /// <example>For a segment on $(2, 6)$ queried at $4$, the default returns $(2, 4)$; passing false retains $(2, 6)$.</example>
+    public Segment GetSegmentBefore(Rational time, bool cutToTime = true)
     {
         if (!IsDefinedBefore(time))
             throw new ArgumentException("Sequence is not defined before given time");
@@ -1348,7 +1350,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (targetIndex == -1 || targetIndex >= Count || Elements[targetIndex] is Point)
             throw new ArgumentException("Sequence is not defined before given time");
 
-        return (Segment) Elements[targetIndex];
+        var segment = (Segment) Elements[targetIndex];
+        return cutToTime ? segment.Cut(segment.StartTime, time) : segment;
     }
 
     /// <summary>
@@ -1358,7 +1361,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">Thrown if the given time $+\epsilon$ is out of sequence support.</exception>
     /// <returns>The <see cref="Segment"/> describing the sequence after <paramref name="time"/>.</returns>
     /// <remarks>This method is implemented using a binary search, $O(\log n)$</remarks>
-    public Segment GetSegmentAfter(Rational time)
+    /// <param name="cutToTime">If true, cut the selected segment's start to <paramref name="time"/>; otherwise retain its bounds.</param>
+    /// <example>For a segment on $(2, 6)$ queried at $4$, the default returns $(4, 6)$; passing false retains $(2, 6)$.</example>
+    public Segment GetSegmentAfter(Rational time, bool cutToTime = true)
     {
         if (!IsDefinedAfter(time))
             throw new ArgumentException("Sequence is not defined after given time");
@@ -1367,7 +1372,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (targetIndex == -1 || targetIndex >= Count || Elements[targetIndex] is Point)
             throw new ArgumentException("Sequence is not defined after given time");
         
-        return (Segment) Elements[targetIndex];
+        var segment = (Segment) Elements[targetIndex];
+        return cutToTime ? segment.Cut(time, segment.EndTime) : segment;
     }
 
     /// <summary>
@@ -1414,7 +1420,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// It should be used in place of <see cref="GetSegmentBefore"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
     /// Thus, the overall cost will be $O(n) &lt; O(n~\log~n)$.
     /// </remarks>
-    internal (Segment segment, int index) GetSegmentBefore_Linear(Rational time, int startingIndex = 0)
+    /// <param name="cutToTime">If true, cut the selected segment's end to <paramref name="time"/>; otherwise retain its bounds.</param>
+    /// <example>For a segment on $(2, 6)$ queried at $4$, the default returns $(2, 4)$; passing false retains $(2, 6)$.</example>
+    internal (Segment segment, int index) GetSegmentBefore_Linear(Rational time, int startingIndex = 0, bool cutToTime = true)
     {
         if(!IsDefinedBefore(time))
             throw new ArgumentException("The sequence is not defined before the given time.");
@@ -1426,7 +1434,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             var targetIndex = Enumerable.Range(startingIndex, Count - startingIndex)
                 .First(i => Elements[i].EndTime >= time);
-            return (segment: (Segment) Elements[targetIndex], index: targetIndex);
+            var segment = (Segment) Elements[targetIndex];
+            return (segment: cutToTime ? segment.Cut(segment.StartTime, time) : segment, index: targetIndex);
         }
         catch (InvalidCastException)
         {
@@ -1451,7 +1460,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// It should be used in place of <see cref="GetSegmentAfter"/> only for consecutive queries which traverse the sequence linearly, caching the index between calls.
     /// Thus, the overall cost will be $O(n) &lt; O(n \log n)$.
     /// </remarks>
-    internal (Segment segment, int index) GetSegmentAfter_Linear(Rational time, int startingIndex = 0)
+    /// <param name="cutToTime">If true, cut the selected segment's start to <paramref name="time"/>; otherwise retain its bounds.</param>
+    /// <example>For a segment on $(2, 6)$ queried at $4$, the default returns $(4, 6)$; passing false retains $(2, 6)$.</example>
+    internal (Segment segment, int index) GetSegmentAfter_Linear(Rational time, int startingIndex = 0, bool cutToTime = true)
     {
         if(!IsDefinedAfter(time))
             throw new ArgumentException("The sequence is not defined after the given time.");
@@ -1463,7 +1474,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             var targetIndex = Enumerable.Range(startingIndex, Count - startingIndex)
                 .First(i => Elements[i] is Segment s && s.EndTime > time && s.StartTime <= time);
-            return (segment: (Segment) Elements[targetIndex], index: targetIndex);
+            var segment = (Segment) Elements[targetIndex];
+            return (segment: cutToTime ? segment.Cut(time, segment.EndTime) : segment, index: targetIndex);
         }
         catch (InvalidOperationException)
         {
@@ -1674,13 +1686,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
         if (leftNeighbourhood && IsDefinedBefore(cutStart))
         {
-            cutStart = GetSegmentBefore(cutStart).StartTime;
+            cutStart = GetSegmentBefore(cutStart, cutToTime: false).StartTime;
             isStartIncluded = IsDefinedAt(cutStart);
         }
 
         if (rightNeighbourhood && IsDefinedAfter(cutEnd))
         {
-            cutEnd = GetSegmentAfter(cutEnd).EndTime;
+            cutEnd = GetSegmentAfter(cutEnd, cutToTime: false).EndTime;
             isEndIncluded = IsDefinedAt(cutEnd);
         }
 
@@ -3746,7 +3758,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                         if (tb_f_prime < f.DefinedUntil)
                         {
                             var pf = f.GetElementAt(tb_f_prime);
-                            var sf = f.GetSegmentAfter(tb_f_prime);
+                            var sf = f.GetSegmentAfter(tb_f_prime, cutToTime: false);
                             foreach (var eg in g.Elements)
                             {
                                 missingElements.AddRange(Element.MaxPlusConvolution(pf, eg));
@@ -3757,7 +3769,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                         if (tb_g_prime < g.DefinedUntil)
                         {
                             var pg = g.GetElementAt(tb_g_prime);
-                            var sg = g.GetSegmentAfter(tb_g_prime);
+                            var sg = g.GetSegmentAfter(tb_g_prime, cutToTime: false);
                             foreach (var ef in f.Elements)
                             {
                                 missingElements.AddRange(Element.MaxPlusConvolution(ef, pg));

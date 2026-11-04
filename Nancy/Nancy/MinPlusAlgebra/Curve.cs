@@ -2802,7 +2802,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return sign;
 
         // the limits coincide, so the slopes decide which side is above just before t
-        return -a.GetSegmentBefore(t).Slope.CompareTo(b.GetSegmentBefore(t).Slope);
+        return -a.GetSegmentBefore(t, cutToTime: false).Slope.CompareTo(b.GetSegmentBefore(t, cutToTime: false).Slope);
     }
 
     /// <summary>
@@ -2819,7 +2819,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return sign;
 
         // the limits coincide, so the slopes decide which side is above just after t
-        return a.GetSegmentAfter(t, autoMerge: false).Slope.CompareTo(b.GetSegmentAfter(t, autoMerge: false).Slope);
+        return a.GetSegmentAfter(t, autoMerge: false, cutToTime: false).Slope.CompareTo(b.GetSegmentAfter(t, autoMerge: false, cutToTime: false).Slope);
     }
 
     /// <summary>
@@ -3133,7 +3133,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (time.IsPlusInfinite)
             throw new ArgumentException("Cannot sample a curve at t = +infinity");
 
-        var segment = GetSegmentAfter(time, false);
+        var segment = GetSegmentAfter(time, false, cutToTime: false);
         return (segment.StartTime == time) ?
             segment.RightLimitAtStartTime
             : segment.ValueAt(time);
@@ -3153,7 +3153,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (time.IsPlusInfinite)
             throw new ArgumentException("Cannot sample a curve at t = +infinity");
 
-        Segment segment = GetSegmentBefore(time);
+        Segment segment = GetSegmentBefore(time, cutToTime: false);
         return (segment.EndTime == time) ?
             segment.LeftLimitAtEndTime
             : segment.ValueAt(time);
@@ -3186,8 +3186,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
     /// <exception cref="ArgumentException">Thrown if time 0 is given, as a curve is not defined before 0.</exception>
-    /// <returns>The <see cref="Segment"/> describing the curve before time t, or null if there is none.</returns>
-    public Segment GetSegmentBefore(Rational time)
+    /// <returns>The <see cref="Segment"/> describing the curve before time t.</returns>
+    /// <param name="cutToTime">If true, cut the selected segment's end to <paramref name="time"/>; otherwise retain its bounds.</param>
+    /// <example>For a segment on $(2, 6)$ queried at $4$, the default returns $(2, 4)$; passing false retains $(2, 6)$.</example>
+    public Segment GetSegmentBefore(Rational time, bool cutToTime = true)
     {
         if (time == 0)
             throw new ArgumentException("A curve is not defined for t < 0");
@@ -3196,10 +3198,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw new ArgumentException("Cannot sample a curve at t = +infinity");
 
         if (time <= FirstPseudoPeriodEnd)
-            return BaseSequence.GetSegmentBefore(time);
+            return BaseSequence.GetSegmentBefore(time, cutToTime: cutToTime);
 
         //otherwise
-        return GetExtensionSequenceBefore(time).GetSegmentBefore(time);
+        return GetExtensionSequenceBefore(time).GetSegmentBefore(time, cutToTime: cutToTime);
     }
 
     /// <summary>
@@ -3211,7 +3213,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// such that either $f$ is not differentiable at its end time or the segment length extends to $+\infty$.
     /// </param>
     /// <returns>The <see cref="Segment"/> describing the curve after time t.</returns>
-    public Segment GetSegmentAfter(Rational time, bool autoMerge = true)
+    /// <param name="cutToTime">If true, cut the selected segment's start to <paramref name="time"/>; otherwise retain its bounds.</param>
+    /// <example>For a segment on $(2, 6)$ queried at $4$, the default returns $(4, 6)$; passing false retains $(2, 6)$.</example>
+    public Segment GetSegmentAfter(Rational time, bool autoMerge = true, bool cutToTime = true)
     {
         if (time.IsPlusInfinite)
             throw new ArgumentException("Cannot sample a curve at t = +infinity");
@@ -3219,20 +3223,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (!autoMerge)
         {
             if (time < FirstPseudoPeriodEnd)
-                return BaseSequence.GetSegmentAfter(time);
+                return BaseSequence.GetSegmentAfter(time, cutToTime: cutToTime);
             else
-                return GetExtensionSequenceAt(time).GetSegmentAfter(time);
+                return GetExtensionSequenceAt(time).GetSegmentAfter(time, cutToTime: cutToTime);
         }
         else
         {
             var segment = (time < FirstPseudoPeriodEnd)
-                ? BaseSequence.GetSegmentAfter(time)
-                : GetExtensionSequenceAt(time).GetSegmentAfter(time);
+                ? BaseSequence.GetSegmentAfter(time, cutToTime: false)
+                : GetExtensionSequenceAt(time).GetSegmentAfter(time, cutToTime: false);
             var t = segment.EndTime;
 
             // avoid infinite extensions
             if (t >= PseudoPeriodStart && (IsUltimatelyAffine || IsUltimatelyInfinite))
-                return segment;
+                return cutToTime ? segment.Cut(time, segment.EndTime) : segment;
 
             // try merging with the next segment, until a non-differentiable time is reached
             bool try_merge;
@@ -3241,7 +3245,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 try_merge = false;
                 if (IsContinuousAt(t))
                 {
-                    var nextSegment = GetSegmentAfter(t, false);
+                    var nextSegment = GetSegmentAfter(t, false, cutToTime: false);
                     if (nextSegment.Slope == segment.Slope)
                     {
                         t = nextSegment.EndTime;
@@ -3252,9 +3256,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
             if (t > segment.EndTime)
                 // reconstruct and return the merged segment
-                return new Segment(segment.StartTime, t, segment.RightLimitAtStartTime, segment.Slope);
+                return new Segment(
+                    cutToTime ? time : segment.StartTime, t,
+                    cutToTime ? segment.RightLimitAt(time) : segment.RightLimitAtStartTime, segment.Slope);
             else
-                return segment;
+                return cutToTime ? segment.Cut(time, segment.EndTime) : segment;
         }
     }
 
@@ -3645,10 +3651,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     )
     {
         if (leftNeighbourhood && cutStart > 0)
-            cutStart = GetSegmentBefore(cutStart).StartTime;
+            cutStart = GetSegmentBefore(cutStart, cutToTime: false).StartTime;
 
         if (rightNeighbourhood)
-            cutEnd = GetSegmentAfter(cutEnd).EndTime;
+            cutEnd = GetSegmentAfter(cutEnd, cutToTime: false).EndTime;
 
         return Cut(cutStart, cutEnd, true, true, settings);
     }
@@ -5421,7 +5427,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var lpi_raw = cut
                 .LowerPseudoInverse(startFromZero)
                 .ToList();
-            var lpiShouldEndWithPoint = isEndIncluded || GetSegmentBefore(_end).IsConstant;
+            var lpiShouldEndWithPoint = isEndIncluded || GetSegmentBefore(_end, cutToTime: false).IsConstant;
             var lpi = lpi_raw.Last() is Point && !lpiShouldEndWithPoint
                 ? lpi_raw.SkipLast(1).ToSequence()
                 : lpi_raw.ToSequence();
@@ -5484,7 +5490,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 // f(T_I) can be above the left limit: the heights in between are first reached at T_I too
                 // if the interval starts at T_I, there is no left limit in it, and the heights are those from f(T_I) on
                 var lastFiniteValue = isStartBeforeLastFinite ? LeftLimitAt(lastFiniteTime) : ValueAt(lastFiniteTime); // L
-                var isLastFiniteConstant = isStartBeforeLastFinite && GetSegmentBefore(lastFiniteTime).IsConstant;
+                var isLastFiniteConstant = isStartBeforeLastFinite && GetSegmentBefore(lastFiniteTime, cutToTime: false).IsConstant;
                 var transient_lpi = isStartBeforeLastFinite
                     ? BaseSequence.CutAsEnumerable(start, lastFiniteTime)
                         .LowerPseudoInverse(startFromZero)
@@ -5593,7 +5599,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var upi_raw = cut
                 .UpperPseudoInverse()
                 .ToList();
-            var upiShouldEndWithPoint = isEndIncluded || GetSegmentBefore(_end).IsConstant;
+            var upiShouldEndWithPoint = isEndIncluded || GetSegmentBefore(_end, cutToTime: false).IsConstant;
             var upi = upi_raw.Last() is Point && !upiShouldEndWithPoint
                 ? upi_raw.SkipLast(1).ToSequence()
                 : upi_raw.ToSequence();
@@ -5649,7 +5655,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 // f(T_I) can be above the left limit: every height from the left limit on is first exceeded at T_I
                 // if the interval starts at T_I, there is no left limit in it, and the heights are those from f(T_I) on
                 var lastFiniteValue = isStartBeforeLastFinite ? LeftLimitAt(lastFiniteTime) : ValueAt(lastFiniteTime); // L
-                var isLastFiniteConstant = isStartBeforeLastFinite && GetSegmentBefore(lastFiniteTime).IsConstant;
+                var isLastFiniteConstant = isStartBeforeLastFinite && GetSegmentBefore(lastFiniteTime, cutToTime: false).IsConstant;
                 var transient_upi = isStartBeforeLastFinite
                     ? BaseSequence.CutAsEnumerable(start, lastFiniteTime, isStartIncluded)
                         .UpperPseudoInverse()
@@ -6746,7 +6752,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
                 // The last point and segment of the cut over [start, end[, located by binary search instead of reading the whole cut.
                 Sequence Tail(Rational start, Rational end)
-                    => sequence.Cut(Rational.Max(start, sequence.GetSegmentBefore(end).StartTime), end);
+                    => sequence.Cut(Rational.Max(start, sequence.GetSegmentBefore(end, cutToTime: false).StartTime), end);
             }
         }
     }
@@ -8011,7 +8017,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     $"Convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
                 #endif
 
-                var fSegmentAfterTf = f.GetSegmentAfter(tf);
+                var fSegmentAfterTf = f.GetSegmentAfter(tf, cutToTime: false);
                 var tf_prime = (f.IsRightContinuousAt(tf) && fSegmentAfterTf.IsConstant) ? fSegmentAfterTf.EndTime : tf;
                 var fCutEnd_minp = tf + lcm_d + d;
                 var fCutEnd_iso = tf_prime + 2 * k_c_f * d_f;
@@ -8019,7 +8025,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     ? f.Cut(tf, fCutEnd_minp, isEndIncluded: false, settings: settings)
                     : f.Cut(tf, fCutEnd_iso, isEndIncluded: true, settings: settings);
 
-                var gSegmentAfterTg = g.GetSegmentAfter(tg);
+                var gSegmentAfterTg = g.GetSegmentAfter(tg, cutToTime: false);
                 var tg_prime = (g.IsRightContinuousAt(tg) && gSegmentAfterTg.IsConstant) ? gSegmentAfterTg.EndTime : tg;
                 var gCutEnd_minp = tg + lcm_d + d;
                 var gCutEnd_iso = tg_prime + 2 * k_c_g * d_g;
@@ -8194,8 +8200,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         var h_t = h.ValueAt(time, settings: settings);
 
         // for simplicity, just take everything
-        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true, settings: settings);
-        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true, settings: settings);
+        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time, cutToTime: false).EndTime, isEndIncluded: true, settings: settings);
+        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time, cutToTime: false).EndTime, isEndIncluded: true, settings: settings);
 
         var convolutionPairs = fCut.SelectMany(e_f =>
                 gCut.Select(e_g => (e_f, e_g))
@@ -8459,7 +8465,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     $"Estimate convolution: extending from T1 {tf} d1 {f.PseudoPeriodLength}  T2 {tg} d2 {g.PseudoPeriodLength} to T {T} d {d}");
                 #endif
 
-                var fSegmentAfterTf = f.GetSegmentAfter(tf);
+                var fSegmentAfterTf = f.GetSegmentAfter(tf, cutToTime: false);
                 var tf_prime = (f.IsRightContinuousAt(tf) && fSegmentAfterTf.IsConstant) ? fSegmentAfterTf.EndTime : tf;
                 var fCutEnd_minp = tf + 2 * lcm_d;
                 var fCutEnd_iso = tf_prime + 2 * k_c_f * f.PseudoPeriodLength;
@@ -8467,7 +8473,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     ? f.Cut(tf, fCutEnd_minp, isEndIncluded: false, settings: settings)
                     : f.Cut(tf, fCutEnd_iso, isEndIncluded: true, settings: settings);
 
-                var gSegmentAfterTg = g.GetSegmentAfter(tg);
+                var gSegmentAfterTg = g.GetSegmentAfter(tg, cutToTime: false);
                 var tg_prime = (g.IsRightContinuousAt(tg) && gSegmentAfterTg.IsConstant) ? gSegmentAfterTg.EndTime : tg;
                 var gCutEnd_minp = tg + 2 * lcm_d;
                 var gCutEnd_iso = tg_prime + 2 * k_c_g * g.PseudoPeriodLength;
@@ -8720,7 +8726,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         settings ??= ComputationSettings.Default();
 
-        if (settings.UseZeroClosureShortcut && GetSegmentAfter(0, autoMerge: false) is { RightLimitAtStartTime.IsZero: true, Slope.IsZero: true } && IsNonNegative)
+        if (settings.UseZeroClosureShortcut && GetSegmentAfter(0, autoMerge: false, cutToTime: false) is { RightLimitAtStartTime.IsZero: true, Slope.IsZero: true } && IsNonNegative)
             return new SubAdditiveCurve(Zero(), false);
 
         var transientClosures = TransientElements
@@ -8773,7 +8779,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     "The sub-additive closure does not support curves that take both +infinity and -infinity.");
             // the closure is -infinity at every t that splits into finitely many parts at which f is not +infinity, as parts of length 0 each add f(0) < 0;
             // if f is not +infinity right after 0, parts that short sum to every t, and if it is, the times right after 0 do not split at all
-            if (GetSegmentAfter(0, autoMerge: false).IsPlusInfinite)
+            if (GetSegmentAfter(0, autoMerge: false, cutToTime: false).IsPlusInfinite)
                 throw new UndeterminedResultException(
                     "The sub-additive closure of this curve, with f(0) < 0, is -infinity at some times and +infinity at others, so its sub-additivity is undefined.");
             return MinusInfinite();
@@ -9416,8 +9422,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         var h_t = h.ValueAt(time, settings: settings);
 
         // for simplicity, just take everything
-        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time).EndTime, isEndIncluded: true, settings: settings);
-        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time).EndTime, isEndIncluded: true, settings: settings);
+        var fCut = f.CutAsEnumerable(0, f.GetSegmentAfter(time, cutToTime: false).EndTime, isEndIncluded: true, settings: settings);
+        var gCut = g.CutAsEnumerable(0, g.GetSegmentAfter(time, cutToTime: false).EndTime, isEndIncluded: true, settings: settings);
 
         var convolutionPairs = fCut.SelectMany(e_f =>
             gCut.Select(e_g => (e_f, e_g))
@@ -9540,7 +9546,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     "The super-additive closure does not support curves that take both +infinity and -infinity.");
             // the closure is +infinity at every t that splits into finitely many parts at which f is not -infinity, as parts of length 0 each add f(0) > 0;
             // if f is not -infinity right after 0, parts that short sum to every t, and if it is, the times right after 0 do not split at all
-            if (GetSegmentAfter(0, autoMerge: false).IsMinusInfinite)
+            if (GetSegmentAfter(0, autoMerge: false, cutToTime: false).IsMinusInfinite)
                 throw new UndeterminedResultException(
                     "The super-additive closure of this curve, with f(0) > 0, is +infinity at some times and -infinity at others, so its super-additivity is undefined.");
             return PlusInfinite();
@@ -9597,7 +9603,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             .ValueAt(f.PseudoPeriodStart, settings: settings);
         if (T_due_f.IsFinite && !g.IsRightContinuousAt(T_due_f))
             // it suffices to use \lpi{g}(T_f) + epsilon, for any epsilon > 0
-            T_due_f = g.GetSegmentAfter(T_due_f).EndTime;
+            T_due_f = g.GetSegmentAfter(T_due_f, cutToTime: false).EndTime;
 
         // initialized with non-optimal values
         var T = Rational.Max(T_due_g, T_due_f);
