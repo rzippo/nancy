@@ -656,6 +656,70 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>Cached value of <see cref="IsNonPositive"/>.</summary>
     internal Lazy<bool>? _isNonPositive;
 
+    /// <summary>
+    /// True if the curve is non-positive over the given interval, i.e. $f(t) \le 0$ for every included time $t$.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed; ignored when the end is $+\infty$.</param>
+    /// <returns>True if every value in the interval is non-positive.</returns>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNonPositiveOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false
+    )
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        var _end = end ?? Rational.PlusInfinity;
+        if (start == _end && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+        if (NonPositiveIfKnown == true)
+            return true;
+
+        if(start == 0 && isStartIncluded && _end == Rational.PlusInfinity)
+            return IsNonPositive;
+        else if(start == _end)
+        {
+            return ValueAt(start) <= 0;
+        }
+        else if(_end < Rational.PlusInfinity)
+        {
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            return cut.IsNonPositive();
+        }
+        else
+        {
+            if (PseudoPeriodHeight > 0)
+            {
+                // A positive pseudo-period height makes every finite periodic value eventually positive.
+                var periodStart = Rational.Max(start, PseudoPeriodStart);
+                var periodCut = CutAsEnumerable(periodStart, periodStart + PseudoPeriodLength, true, true);
+                if (!periodCut.IsMinusInfinite())
+                    return false;
+
+                // The periodic part is $-\infty$, so only the transient can violate the sign condition.
+                if (start < PseudoPeriodStart)
+                    return CutAsEnumerable(start, PseudoPeriodStart, isStartIncluded, true).IsNonPositive();
+                return true;
+            }
+            else
+            {
+                // With non-positive height, the worst case is in the transient and the first period.
+                var cutEnd = Rational.Max(start + PseudoPeriodLength, PseudoPeriodStart + PseudoPeriodLength);
+                var cut = CutAsEnumerable(start, cutEnd, isStartIncluded, true);
+                return cut.IsNonPositive();
+            }
+        }
+    }
+
     /// <summary>True if every defined value is strictly positive, including plus infinity.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsPositive
@@ -675,6 +739,70 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>Cached value of <see cref="IsPositive"/>.</summary>
     internal Lazy<bool>? _isPositive;
 
+    /// <summary>
+    /// True if the curve is strictly positive over the given interval, i.e. $f(t) > 0$ for every included time $t$.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed; ignored when the end is $+\infty$.</param>
+    /// <returns>True if every value in the interval is strictly positive.</returns>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsPositiveOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false
+    )
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        var _end = end ?? Rational.PlusInfinity;
+        if (start == _end && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+        if (PositiveIfKnown == true)
+            return true;
+
+        if(start == 0 && isStartIncluded && _end == Rational.PlusInfinity)
+            return IsPositive;
+        else if(start == _end)
+        {
+            return ValueAt(start) > 0;
+        }
+        else if(_end < Rational.PlusInfinity)
+        {
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            return cut.IsPositive();
+        }
+        else
+        {
+            if (PseudoPeriodHeight < 0)
+            {
+                // A negative pseudo-period height makes every finite periodic value eventually negative.
+                var periodStart = Rational.Max(start, PseudoPeriodStart);
+                var periodCut = CutAsEnumerable(periodStart, periodStart + PseudoPeriodLength, true, true);
+                if (!periodCut.IsPlusInfinite())
+                    return false;
+
+                // The periodic part is $+\infty$, so only the transient can violate the sign condition.
+                if (start < PseudoPeriodStart)
+                    return CutAsEnumerable(start, PseudoPeriodStart, isStartIncluded, true).IsPositive();
+                return true;
+            }
+            else
+            {
+                // With non-negative height, the worst case is in the transient and the first period.
+                var cutEnd = Rational.Max(start + PseudoPeriodLength, PseudoPeriodStart + PseudoPeriodLength);
+                var cut = CutAsEnumerable(start, cutEnd, isStartIncluded, true);
+                return cut.IsPositive();
+            }
+        }
+    }
+
     /// <summary>True if every defined value is strictly negative, including minus infinity.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsNegative
@@ -693,6 +821,70 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <summary>Cached value of <see cref="IsNegative"/>.</summary>
     internal Lazy<bool>? _isNegative;
+
+    /// <summary>
+    /// True if the curve is strictly negative over the given interval, i.e. $f(t) &lt; 0$ for every included time $t$.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed; ignored when the end is $+\infty$.</param>
+    /// <returns>True if every value in the interval is strictly negative.</returns>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNegativeOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false
+    )
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+
+        var _end = end ?? Rational.PlusInfinity;
+        if (start == _end && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+        if (NegativeIfKnown == true)
+            return true;
+
+        if(start == 0 && isStartIncluded && _end == Rational.PlusInfinity)
+            return IsNegative;
+        else if(start == _end)
+        {
+            return ValueAt(start) < 0;
+        }
+        else if(_end < Rational.PlusInfinity)
+        {
+            var cut = CutAsEnumerable(start, _end, isStartIncluded, isEndIncluded);
+            return cut.IsNegative();
+        }
+        else
+        {
+            if (PseudoPeriodHeight > 0)
+            {
+                // A positive pseudo-period height makes every finite periodic value eventually positive.
+                var periodStart = Rational.Max(start, PseudoPeriodStart);
+                var periodCut = CutAsEnumerable(periodStart, periodStart + PseudoPeriodLength, true, true);
+                if (!periodCut.IsMinusInfinite())
+                    return false;
+
+                // The periodic part is $-\infty$, so only the transient can violate the sign condition.
+                if (start < PseudoPeriodStart)
+                    return CutAsEnumerable(start, PseudoPeriodStart, isStartIncluded, true).IsNegative();
+                return true;
+            }
+            else
+            {
+                // With non-positive height, the worst case is in the transient and the first period.
+                var cutEnd = Rational.Max(start + PseudoPeriodLength, PseudoPeriodStart + PseudoPeriodLength);
+                var cut = CutAsEnumerable(start, cutEnd, isStartIncluded, true);
+                return cut.IsNegative();
+            }
+        }
+    }
 
     /// <summary>True if one constant value, possibly infinite, holds on the whole support.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
@@ -1719,6 +1911,24 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     private bool? NonNegativeIfKnown
         => Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsNonPositive"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? NonPositiveIfKnown
+        => Volatile.Read(ref _isNonPositive) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsPositive"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? PositiveIfKnown
+        => Volatile.Read(ref _isPositive) is { IsValueCreated: true } cache ? cache.Value : null;
+
+    /// <summary>
+    /// <see cref="IsNegative"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? NegativeIfKnown
+        => Volatile.Read(ref _isNegative) is { IsValueCreated: true } cache ? cache.Value : null;
 
     /// <summary>
     /// <see cref="IsNonDecreasing"/> if already cached, without forcing the check.
