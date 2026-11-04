@@ -115,13 +115,13 @@ public class WithContinuityAt
             Assert.Same(f, f.WithLeftContinuousAt(t));
     }
 
-    [Theory]
-    [MemberData(nameof(WithValueAt.GridData), MemberType = typeof(WithValueAt))]
-    public void AtTheOriginItIsWithOriginRightContinuous(Curve f, Rational t)
-    {
-        if (t != 0)
-            return;
+    public static IEnumerable<object[]> OriginCases()
+        => WithValueAt.GridCurves.ToXUnitTestCases();
 
+    [Theory]
+    [MemberData(nameof(OriginCases))]
+    public void AtTheOriginItIsWithOriginRightContinuous(Curve f)
+    {
         Assert.True(Curve.Equivalent(f.WithOriginRightContinuous(), f.WithRightContinuousAt(0)));
     }
 
