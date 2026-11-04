@@ -3916,13 +3916,21 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         settings = settings ?? new ComputationSettings();
 
         var periodicElements = PseudoPeriodicSequence.Elements;
-        IEnumerable<Element> pseudoPeriodicElements = settings.UseParallelComputeExtensionSequences &&
-            periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold ?
-            periodicElements.AsParallel().AsOrdered() :
-            periodicElements;
-
-        var periodicSegmentsCopy = pseudoPeriodicElements
-            .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
+        bool doParallel = settings.UseParallelComputeExtensionSequences &&
+            periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold;
+        IEnumerable<Element> periodicSegmentsCopy;
+        if (doParallel)
+        {
+            periodicSegmentsCopy = periodicElements
+                .AsParallel().AsOrdered()
+                .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex))
+                .WithoutAggregateException();
+        }
+        else
+        {
+            periodicSegmentsCopy = periodicElements
+                .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
+        }
 
         var extensionSequence = new Sequence(periodicSegmentsCopy);
         return extensionSequence;
