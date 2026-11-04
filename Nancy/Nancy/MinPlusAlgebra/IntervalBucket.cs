@@ -1621,8 +1621,6 @@ internal static class IntervalExtensions
     internal static IReadOnlyList<IntervalBucket> SortIntervals(this IReadOnlyList<IntervalBucket> intervals, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        const int ParallelizationThreshold = 10_000;
-
         #if DO_LOG
         var sortStopwatch = Stopwatch.StartNew();
         #endif
@@ -1637,7 +1635,7 @@ internal static class IntervalExtensions
         }
         else
         {
-            var doParallel = settings.UseParallelComputeIntervals && intervals.Count >= ParallelizationThreshold;
+            var doParallel = settings.UseParallelComputeIntervals && intervals.Count >= settings.SortIntervalsParallelizationThreshold;
             List<IntervalBucket> sorted;
             if (doParallel)
             {

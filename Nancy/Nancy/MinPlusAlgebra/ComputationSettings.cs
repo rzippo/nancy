@@ -50,9 +50,33 @@ public record ComputationSettings
     public bool UseParallelLowerEnvelope { get; set; } = true;
 
     /// <summary>
+    /// The lower envelope of a list of elements is processed in parallel if it has at least this number of elements.
+    /// Requires <see cref="UseParallelLowerEnvelope"/>.
+    /// </summary>
+    public int ElementsLowerEnvelopeParallelizationThreshold { get; set; } = 0;
+
+    /// <summary>
+    /// The lower envelope of two sequences is processed in parallel if they have at least this number of elements in all.
+    /// Requires <see cref="UseParallelLowerEnvelope"/>.
+    /// </summary>
+    public int SequenceLowerEnvelopeParallelizationThreshold { get; set; } = 0;
+
+    /// <summary>
     /// If true, long sequence maximums are processed in parallel.
     /// </summary>
     public bool UseParallelUpperEnvelope { get; set; } = true;
+
+    /// <summary>
+    /// The upper envelope of a list of elements is processed in parallel if it has at least this number of elements.
+    /// Requires <see cref="UseParallelUpperEnvelope"/>.
+    /// </summary>
+    public int ElementsUpperEnvelopeParallelizationThreshold { get; set; } = 0;
+
+    /// <summary>
+    /// The upper envelope of two sequences is processed in parallel if they have at least this number of elements in all.
+    /// Requires <see cref="UseParallelUpperEnvelope"/>.
+    /// </summary>
+    public int SequenceUpperEnvelopeParallelizationThreshold { get; set; } = 0;
 
     /// <summary>
     /// If true, additions of long lists of curves are processed in parallel
@@ -60,9 +84,41 @@ public record ComputationSettings
     public bool UseParallelListAddition { get; set; } = true;
 
     /// <summary>
+    /// The addition of a list of curves is processed in parallel if it has at least this number of curves.
+    /// </summary>
+    public int ListAdditionParallelizationThreshold { get; set; } = 8;
+
+    /// <summary>
+    /// When <see cref="UseParallelListAddition"/> is enabled, this is the minimum number of curves for the complexity criterion.
+    /// Their average number of base sequence elements must also reach <see cref="ListAdditionComplexityThreshold"/>.
+    /// </summary>
+    public int ListAdditionComplexityMinimumCount { get; set; } = 4;
+
+    /// <summary>
+    /// Minimum average number of base sequence elements per curve for the complexity criterion, which also requires at least <see cref="ListAdditionComplexityMinimumCount"/> curves.
+    /// </summary>
+    public int ListAdditionComplexityThreshold { get; set; } = 5_000;
+
+    /// <summary>
     /// If true, minimums of long lists of curves are processed in parallel
     /// </summary>
     public bool UseParallelListMinimum { get; set; } = true;
+
+    /// <summary>
+    /// The minimum of a list of curves is processed in parallel if it has at least this number of curves.
+    /// </summary>
+    public int ListMinimumParallelizationThreshold { get; set; } = 8;
+
+    /// <summary>
+    /// When <see cref="UseParallelListMinimum"/> is enabled, this is the minimum number of curves for the complexity criterion.
+    /// Their average number of base sequence elements must also reach <see cref="ListMinimumComplexityThreshold"/>.
+    /// </summary>
+    public int ListMinimumComplexityMinimumCount { get; set; } = 4;
+
+    /// <summary>
+    /// Minimum average number of base sequence elements per curve for the complexity criterion, which also requires at least <see cref="ListMinimumComplexityMinimumCount"/> curves.
+    /// </summary>
+    public int ListMinimumComplexityThreshold { get; set; } = 5_000;
 
     /// <summary>
     /// If true, maximums of long lists of curves are processed in parallel
@@ -70,9 +126,37 @@ public record ComputationSettings
     public bool UseParallelListMaximum { get; set; } = true;
 
     /// <summary>
-    /// If true, convolutions of long lists of curves are processed in parallel
+    /// The maximum of a list of curves is processed in parallel if it has at least this number of curves.
+    /// </summary>
+    public int ListMaximumParallelizationThreshold { get; set; } = 8;
+
+    /// <summary>
+    /// When <see cref="UseParallelListMaximum"/> is enabled, this is the minimum number of curves for the complexity criterion.
+    /// Their average number of base sequence elements must also reach <see cref="ListMaximumComplexityThreshold"/>.
+    /// </summary>
+    public int ListMaximumComplexityMinimumCount { get; set; } = 4;
+
+    /// <summary>
+    /// Minimum average number of base sequence elements per curve for the complexity criterion, which also requires at least <see cref="ListMaximumComplexityMinimumCount"/> curves.
+    /// </summary>
+    public int ListMaximumComplexityThreshold { get; set; } = 5_000;
+
+    /// <summary>
+    /// If true, (min,+) and (max,+) convolutions of long lists of curves are processed in parallel.
     /// </summary>
     public bool UseParallelListConvolution { get; set; } = true;
+
+    /// <summary>
+    /// The convolution of a list of curves is processed in parallel if it has more than this number of curves.
+    /// Requires <see cref="UseParallelListConvolution"/>.
+    /// </summary>
+    public int ListConvolutionParallelizationThreshold { get; set; } = 8;
+
+    /// <summary>
+    /// The (max,+) convolution of a list of curves is processed in parallel if it has more than this number of curves.
+    /// Requires <see cref="UseParallelListConvolution"/>.
+    /// </summary>
+    public int ListMaxPlusConvolutionParallelizationThreshold { get; set; } = 8;
 
     /// <summary>
     /// If true, minimums of long lists of curves are processed in parallel
@@ -80,9 +164,19 @@ public record ComputationSettings
     public bool UseParallelListLowerEnvelope { get; set; } = true;
 
     /// <summary>
+    /// The lower envelope of a list of sequences is processed in parallel if it has more than this number of sequences.
+    /// </summary>
+    public int ListLowerEnvelopeParallelizationThreshold { get; set; } = 8;
+
+    /// <summary>
     /// If true, maximums of long lists of curves are processed in parallel
     /// </summary>
     public bool UseParallelListUpperEnvelope { get; set; } = true;
+
+    /// <summary>
+    /// The upper envelope of a list of sequences is processed in parallel if it has more than this number of sequences.
+    /// </summary>
+    public int ListUpperEnvelopeParallelizationThreshold { get; set; } = 8;
 
     /// <summary>
     /// If true, long sequence convolutions are processed in parallel
@@ -105,7 +199,7 @@ public record ComputationSettings
     public int ConvolutionPartitioningThreshold { get; set; } = 50_000;
 
     /// <summary>
-    /// If true, Interval.ComputeIntervals may use parallel implementation
+    /// If true, Interval.ComputeIntervals may use parallel implementation, including the sort of the endpoints.
     /// </summary>
     public bool UseParallelComputeIntervals { get; set; } = true;
 
@@ -113,6 +207,11 @@ public record ComputationSettings
     /// Interval.ComputeIntervals is done with parallel implementation if the number of elements is above this threshold.
     /// </summary>
     public int ParallelComputeIntervalsThreshold { get; set; } = 5_000;
+
+    /// <summary>
+    /// Intervals are sorted in parallel, if <see cref="UseParallelComputeIntervals"/> is true, when there are at least this number of them.
+    /// </summary>
+    public int SortIntervalsParallelizationThreshold { get; set; } = 10_000;
 
     /// <summary>
     /// In parallel Interval.ComputeIntervals, do element-in-interval insertion in parallel too.
@@ -135,14 +234,33 @@ public record ComputationSettings
     public bool UseParallelExtend { get; set; } = true;
 
     /// <summary>
+    /// Minimum number of complete pseudo-periods for outer parallel execution in materialized curve cuts and extensions.
+    /// Requires <see cref="UseParallelExtend"/>.
+    /// </summary>
+    /// <remarks>Parallel execution also depends on <see cref="ExtensionMinimumElementsPerPartition"/> and available parallelism.</remarks>
+    public int ExtendParallelizationThreshold { get; set; } = 0;
+
+    /// <summary>
     /// In Curve.ComputeExtensionSequences, compute elements of the sequence in parallel.
     /// </summary>
     public bool UseParallelComputeExtensionSequences { get; set; } = true;
 
     /// <summary>
+    /// Minimum number of selected period elements for inner parallel execution in curve cuts and extensions, materialized or streamed.
+    /// Requires <see cref="UseParallelComputeExtensionSequences"/>.
+    /// </summary>
+    /// <remarks>Parallel execution also depends on <see cref="ExtensionMinimumElementsPerPartition"/> and available parallelism.</remarks>
+    public int ComputeExtensionSequencesParallelizationThreshold { get; set; } = 0;
+
+    /// <summary>
     /// In Extensions.SortElements, sort the elements in parallel.
     /// </summary>
     public bool UseParallelSortElements { get; set; } = true;
+
+    /// <summary>
+    /// Elements are sorted in parallel, if <see cref="UseParallelSortElements"/> is true, when there are at least this number of them.
+    /// </summary>
+    public int SortElementsParallelizationThreshold { get; set; } = 10_000;
 
     /// <summary>
     /// If true, when two Curves have the same slope the convolution is done in a single pass

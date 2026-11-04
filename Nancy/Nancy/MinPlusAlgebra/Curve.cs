@@ -3622,7 +3622,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
 
                     IEnumerable<Element> elements;
-                    if (settings.UseParallelExtend)
+                    if (settings.UseParallelExtend && indexes.Count() >= settings.ExtendParallelizationThreshold)
                     {
                         elements = indexes
                             .AsParallel().AsOrdered()
@@ -3650,7 +3650,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     var indexes = Enumerable.Range(1, endingPseudoPeriodIndex);
 
                     IEnumerable<Element> extensionElements;
-                    if (settings.UseParallelExtend)
+                    if (settings.UseParallelExtend && indexes.Count() >= settings.ExtendParallelizationThreshold)
                     {
                         extensionElements = indexes
                             .AsParallel().AsOrdered()
@@ -3915,9 +3915,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         settings = settings ?? new ComputationSettings();
 
-        var pseudoPeriodicElements = settings.UseParallelComputeExtensionSequences ?
-            PseudoPeriodicElements.AsParallel().AsOrdered() :
-            PseudoPeriodicElements;
+        var periodicElements = PseudoPeriodicSequence.Elements;
+        IEnumerable<Element> pseudoPeriodicElements = settings.UseParallelComputeExtensionSequences &&
+            periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold ?
+            periodicElements.AsParallel().AsOrdered() :
+            periodicElements;
 
         var periodicSegmentsCopy = pseudoPeriodicElements
             .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
@@ -3954,7 +3956,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     private IEnumerable<Element> ComputeExtensionSequenceAsEnumerable(int pseudoPeriodIndex, ReadOnlyElementList periodicElements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        bool doParallel = settings.UseParallelComputeExtensionSequences;
+        bool doParallel = settings.UseParallelComputeExtensionSequences &&
+            periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold;
         IEnumerable<Element> periodicSegmentsCopy;
         if (doParallel)
         {
@@ -7198,12 +7201,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         settings ??= ComputationSettings.Default();
 
-        //todo: move these to ComputationSettings
-        const int Parallelization_CountThreshold = 8;
-
-        const int Parallelization_ComplexityMinimumCount = 4;
-        const int Parallelization_ComplexityThreshold = 5_000;
-
         if (!curves.Any())
             throw new ArgumentException("The enumerable is empty");
         if (curves.Count == 1)
@@ -7213,11 +7210,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         bool parallelizeDueCount =
             settings.UseParallelListAddition &&
-            curves.Count >= Parallelization_CountThreshold;
+            curves.Count >= settings.ListAdditionParallelizationThreshold;
         bool parallelizeDueComplexity =
             settings.UseParallelListAddition &&
-            curves.Count >= Parallelization_ComplexityMinimumCount &&
-            curves.Average(c => c.BaseSequence.Count) >= Parallelization_ComplexityThreshold;
+            curves.Count >= settings.ListAdditionComplexityMinimumCount &&
+            curves.Average(c => c.BaseSequence.Count) >= settings.ListAdditionComplexityThreshold;
 
         if (parallelizeDueCount || parallelizeDueComplexity)
         {
@@ -7555,12 +7552,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         settings ??= ComputationSettings.Default();
 
-        //todo: move these to ComputationSettings
-        const int Parallelization_CountThreshold = 8;
-
-        const int Parallelization_ComplexityMinimumCount = 4;
-        const int Parallelization_ComplexityThreshold = 5_000;
-
         if (!curves.Any())
             throw new ArgumentException("The enumerable is empty");
         if (curves.Count == 1)
@@ -7570,11 +7561,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         bool parallelizeDueCount =
             settings.UseParallelListMinimum &&
-            curves.Count >= Parallelization_CountThreshold;
+            curves.Count >= settings.ListMinimumParallelizationThreshold;
         bool parallelizeDueComplexity =
             settings.UseParallelListMinimum &&
-            curves.Count >= Parallelization_ComplexityMinimumCount &&
-            curves.Average(c => c.BaseSequence.Count) >= Parallelization_ComplexityThreshold;
+            curves.Count >= settings.ListMinimumComplexityMinimumCount &&
+            curves.Average(c => c.BaseSequence.Count) >= settings.ListMinimumComplexityThreshold;
 
         if (parallelizeDueCount || parallelizeDueComplexity)
         {
@@ -7828,12 +7819,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         settings ??= ComputationSettings.Default();
 
-        //todo: move these to ComputationSettings
-        const int Parallelization_CountThreshold = 8;
-
-        const int Parallelization_ComplexityMinimumCount = 4;
-        const int Parallelization_ComplexityThreshold = 5_000;
-
         if (!curves.Any())
             throw new ArgumentException("The enumerable is empty");
         if (curves.Count == 1)
@@ -7843,11 +7828,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         bool parallelizeDueCount =
             settings.UseParallelListMaximum &&
-            curves.Count >= Parallelization_CountThreshold;
+            curves.Count >= settings.ListMaximumParallelizationThreshold;
         bool parallelizeDueComplexity =
             settings.UseParallelListMaximum &&
-            curves.Count >= Parallelization_ComplexityMinimumCount &&
-            curves.Average(c => c.BaseSequence.Count) >= Parallelization_ComplexityThreshold;
+            curves.Count >= settings.ListMaximumComplexityMinimumCount &&
+            curves.Average(c => c.BaseSequence.Count) >= settings.ListMaximumComplexityThreshold;
 
         if (parallelizeDueCount || parallelizeDueComplexity)
         {
@@ -8487,13 +8472,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public static Curve Convolution(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        const int ParallelizationThreshold = 8;
-
         #if DO_LOG
         logger.Debug($"Generic list convolution, {curves.Count} curves");
         #endif
 
-        if (settings.UseParallelListConvolution && curves.Count > ParallelizationThreshold)
+        if (settings.UseParallelListConvolution && curves.Count > settings.ListConvolutionParallelizationThreshold)
         {
             return curves
                 .AsParallel()
@@ -9723,13 +9706,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public static Curve MaxPlusConvolution(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        const int ParallelizationThreshold = 8;
-
         #if DO_LOG
         logger.Debug($"Generic list max-plus convolution, {curves.Count} curves");
         #endif
 
-        if (settings.UseParallelListConvolution && curves.Count > ParallelizationThreshold)
+        if (settings.UseParallelListConvolution && curves.Count > settings.ListMaxPlusConvolutionParallelizationThreshold)
         {
             return curves
                 .AsParallel()

@@ -1023,8 +1023,6 @@ public static partial class SequenceExtensions
         if (elements.Count == 0)
             throw new ArgumentException("The element collection is empty.", nameof(elements));
         settings ??= ComputationSettings.Default();
-        const int ParallelizationThreshold = 10_000;
-
         #if DO_LOG
         var sortStopwatch = Stopwatch.StartNew();
         #endif
@@ -1039,7 +1037,7 @@ public static partial class SequenceExtensions
         }
         else
         {
-            var doParallel = settings.UseParallelSortElements && elements.Count >= ParallelizationThreshold;
+            var doParallel = settings.UseParallelSortElements && elements.Count >= settings.SortElementsParallelizationThreshold;
             List<Element> result;
             if (doParallel)
             {
@@ -3638,7 +3636,8 @@ public static partial class SequenceExtensions
         var lowerEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
         List<Element> lowerElements;
-        bool doParallel = settings.UseParallelLowerEnvelope;
+        bool doParallel = settings.UseParallelLowerEnvelope &&
+            elements.Count >= settings.ElementsLowerEnvelopeParallelizationThreshold;
         if (doParallel)
         {
             lowerElements = intervals
@@ -3676,9 +3675,7 @@ public static partial class SequenceExtensions
         else
         {
             settings ??= ComputationSettings.Default();
-            const int ParallelizationThreshold = 8;
-
-            bool doParallel = settings.UseParallelListLowerEnvelope && sequences.Count > ParallelizationThreshold;
+            bool doParallel = settings.UseParallelListLowerEnvelope && sequences.Count > settings.ListLowerEnvelopeParallelizationThreshold;
             if (doParallel)
             {
                 return sequences
@@ -3721,7 +3718,8 @@ public static partial class SequenceExtensions
         var upperEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
         List<Element> upperElements;
-        bool doParallel = settings.UseParallelUpperEnvelope;
+        bool doParallel = settings.UseParallelUpperEnvelope &&
+            elements.Count >= settings.ElementsUpperEnvelopeParallelizationThreshold;
         if (doParallel)
         {
             upperElements = intervals
@@ -3758,9 +3756,7 @@ public static partial class SequenceExtensions
         else
         {
             settings ??= ComputationSettings.Default();
-            const int ParallelizationThreshold = 8;
-
-            bool doParallel = settings.UseParallelListUpperEnvelope && sequences.Count > ParallelizationThreshold;
+            bool doParallel = settings.UseParallelListUpperEnvelope && sequences.Count > settings.ListUpperEnvelopeParallelizationThreshold;
             if (doParallel)
             {
                 return sequences

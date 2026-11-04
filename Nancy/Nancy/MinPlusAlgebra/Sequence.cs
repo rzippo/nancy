@@ -2842,7 +2842,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     public static Sequence Minimum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        if (cutToOverlap && !settings.UseParallelLowerEnvelope)
+        if (cutToOverlap && (!settings.UseParallelLowerEnvelope ||
+            (long)a.Count + b.Count < settings.SequenceLowerEnvelopeParallelizationThreshold))
             return a.Elements.Minimum(b.Elements)
                 .MergeAsEnumerable()
                 .ToSequence();
@@ -2889,7 +2890,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         settings ??= ComputationSettings.Default();
         var intervals = IntervalBucket.ComputeIntervals(a, b);
         List<Element> lowerElements;
-        if (settings.UseParallelLowerEnvelope)
+        if (settings.UseParallelLowerEnvelope &&
+            (long)a.Count + b.Count >= settings.SequenceLowerEnvelopeParallelizationThreshold)
         {
             lowerElements = intervals
                 .AsParallel().AsOrdered()
@@ -2923,7 +2925,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     public static Sequence Maximum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        if (cutToOverlap && !settings.UseParallelUpperEnvelope)
+        if (cutToOverlap && (!settings.UseParallelUpperEnvelope ||
+            (long)a.Count + b.Count < settings.SequenceUpperEnvelopeParallelizationThreshold))
             return a.Elements.Maximum(b.Elements)
                 .MergeAsEnumerable()
                 .ToSequence();
@@ -2974,7 +2977,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         var intervals = IntervalBucket.ComputeIntervals(a, b);
 
         List<Element> upperElements;
-        if (settings.UseParallelUpperEnvelope)
+        if (settings.UseParallelUpperEnvelope &&
+            (long)a.Count + b.Count >= settings.SequenceUpperEnvelopeParallelizationThreshold)
         {
             upperElements = intervals
                 .AsParallel().AsOrdered()
