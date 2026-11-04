@@ -8600,7 +8600,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The result is not forced to have $f(0) = 0$, see <see cref="WithZeroOrigin"/> to have this property.
     /// Described in [BT08] Section 4.5 .
     /// </remarks>
-    /// <exception cref="UndeterminedResultException">If both operands reach the same infinity, since its difference with itself is undefined.</exception>
+    /// <exception cref="UndeterminedResultException">If $f(t+u)$ and $g(u)$ are the same infinity for some $t,u \ge 0$.</exception>
     public virtual Curve Deconvolution(Curve curve, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -8614,12 +8614,27 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         // We do not adopt the absorbing conventions i.e. $(\pm\infty) - (\pm\infty) = +\infty$ in (min,+) and $-\infty$ in (max,+) (see [DNC18] Proposition 2.1).
         // Instead, as in [BT08] p. 7, we consider these cases not well-defined and throw.
-        if (f.HasPlusInfinity && g.HasPlusInfinity ||
-            f.HasMinusInfinity && g.HasMinusInfinity)
-            throw new UndeterminedResultException(
-                "The deconvolution of two curves reaching the same infinity is undefined.");
+        if (f.HasPlusInfinity && g.HasPlusInfinity || f.HasMinusInfinity && g.HasMinusInfinity)
+        {
+            var firstPlus = g.BaseSequence.Elements.FirstOrDefault(e => e.IsPlusInfinite);
+            var firstMinus = g.BaseSequence.Elements.FirstOrDefault(e => e.IsMinusInfinite);
+            foreach (var element in f.BaseSequence.Elements)
+            {
+                if (element.IsFinite)
+                    continue;
+                var first = element.IsPlusInfinite ? firstPlus : firstMinus;
+                if (first is null)
+                    continue;
 
-        // with no shared infinity left, an $f$ ultimately $+\infty$, or a $g$ ultimately $-\infty$,
+                // An infinite value in $f$'s period recurs arbitrarily late.
+                // For transient elements, compare the time bounds and whether equality is attained.
+                if (element.StartTime >= f.PseudoPeriodStart || element.EndTime > first.StartTime ||
+                    element.EndTime == first.StartTime && element is Point && first is Point)
+                    throw new UndeterminedResultException("Deconvolution is undefined because it requires subtracting two infinities of the same sign.");
+            }
+        }
+
+        // with undefined pairs excluded, an $f$ ultimately $+\infty$, or a $g$ ultimately $-\infty$,
         // makes the terms at large $u$ reach $+\infty$, which wins the supremum
         if (f.IsUltimatelyPlusInfinite || g.IsUltimatelyMinusInfinite)
             return PlusInfinite();
@@ -8662,7 +8677,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The result is not forced to have $f(0) = 0$, see <see cref="WithZeroOrigin"/> to have this property.
     /// Described in [BT08] Section 4.5 .
     /// </remarks>
-    /// <exception cref="UndeterminedResultException">If both operands reach the same infinity, since its difference with itself is undefined.</exception>
+    /// <exception cref="UndeterminedResultException">If $f(t+u)$ and $g(u)$ are the same infinity for some $t,u \ge 0$.</exception>
     public static Curve Deconvolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Deconvolution(b, settings);
 
@@ -9458,7 +9473,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus deconvolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
-    /// <exception cref="UndeterminedResultException">If both operands reach the same infinity, since its difference with itself is undefined.</exception>
+    /// <exception cref="UndeterminedResultException">If $f(t+u)$ and $g(u)$ are the same infinity for some $t,u \ge 0$.</exception>
     public virtual Curve MaxPlusDeconvolution(Curve curve, ComputationSettings? settings = null)
     {
         #if DO_LOG
@@ -9475,7 +9490,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus deconvolution</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
-    /// <exception cref="UndeterminedResultException">If both operands reach the same infinity, since its difference with itself is undefined.</exception>
+    /// <exception cref="UndeterminedResultException">If $f(t+u)$ and $g(u)$ are the same infinity for some $t,u \ge 0$.</exception>
     public static Curve MaxPlusDeconvolution(Curve a, Curve b, ComputationSettings? settings = null)
         => a.MaxPlusDeconvolution(b, settings);
 

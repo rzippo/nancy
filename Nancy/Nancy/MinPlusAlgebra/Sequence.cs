@@ -3520,11 +3520,19 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
-    /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
+    /// <param name="cutStart">If not null, the result is cut or filled with $-\infty$ from this time, endpoint included.</param>
     /// <param name="cutEnd">If not null, the result is cut or filled with $-\infty$ up to this time, endpoint excluded.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the deconvolution.</returns>
-    /// <remarks>Described in [BT08], Section 4.5</remarks>
+    /// <remarks>
+    /// Described in [BT08], Section 4.5.
+    /// Element deconvolutions outside the requested interval are skipped.
+    /// Within that interval, subtracting two infinities of the same sign is undefined and throws <see cref="UndeterminedResultException"/>.
+    /// Portions of the requested interval outside the support of every element deconvolution are filled with $-\infty$.
+    /// Without explicit bounds, the result covers the full support of the element deconvolutions, preserving endpoint inclusion.
+    /// </remarks>
+    /// <exception cref="UndeterminedResultException">If an element deconvolution within the requested interval requires subtracting two infinities of the same sign.</exception>
+    /// <exception cref="ArgumentException">If the requested output interval is reversed or empty.</exception>
     public static Sequence Deconvolution(
         Sequence a, Sequence b, 
         Rational? cutStart = null, Rational? cutEnd = null, 
@@ -3537,14 +3545,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
         settings ??= ComputationSettings.Default();
 
-        IEnumerable<(Element a, Element b)> elementPairs = a.Elements
-            .SelectMany(ea => b.Elements
-                .Select(eb => (a: ea, b: eb))
-            )
-            // in $f \oslash g$ the two operands play opposite roles, since $g$ contributes its opposite:
-            // $+\infty$ in $f$ and $-\infty$ in $g$ both win the maximum, and are kept
-            .Where(pair => !pair.a.IsMinusInfinite && !pair.b.IsPlusInfinite)
-            .Where(pair => cutStart == null || pair.a.EndTime - pair.b.StartTime >= cutStart);
+        var start = cutStart ?? a.DefinedFrom - b.DefinedUntil;
+        var end = cutEnd ?? a.DefinedUntil - b.DefinedFrom;
+        var isStartIncluded = start.IsFinite && (cutStart != null || a.IsLeftClosed && b.IsRightClosed);
+        var isEndIncluded = end.IsFinite && cutEnd == null && a.IsRightClosed && b.IsLeftClosed;
+        if (start > end || start == end && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("The requested deconvolution interval is reversed or empty.");
+
+        IEnumerable<(Element a, Element b)> elementPairs = GetElementPairs();
         var useParallel = settings.UseParallelDeconvolution;
         if (useParallel)
         {
@@ -3559,25 +3567,35 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         else
             result = SerialDeconvolution();
 
-        var resultStart = result.First().StartTime;
-        var resultEnd = result.Last().EndTime;
+        // a time no pair covers has no term in the supremum, hence $-\infty$:
+        // the pairs left out are the ones that would have provided it
+        // Neutral candidates may be omitted from the supremum, but their domains must remain.
+        return result
+            .Fill(start, end, isStartIncluded, isEndIncluded, Rational.MinusInfinity)
+            .Cut(start, end, isStartIncluded, isEndIncluded)
+            .ToSequence();
 
-        if (cutStart != null || cutEnd != null)
+        IEnumerable<(Element a, Element b)> GetElementPairs()
         {
-            IEnumerable<Element> cutResult = result;
-            // a time no pair covers has no term in the supremum, hence $-\infty$:
-            // the pairs left out are the ones that would have provided it
-            if (cutEnd != null)
-                cutResult = cutResult.Fill(resultStart, cutEnd.Value, fillWith: Rational.MinusInfinity);
+            foreach (var ea in a.Elements)
+            foreach (var eb in b.Elements)
+            {
+                var pairStart = ea.StartTime - eb.EndTime;
+                var pairEnd = ea.EndTime - eb.StartTime;
+                var isPointPair = ea is Point && eb is Point;
+                // A segment's endpoints are open; only two points attain either difference endpoint.
+                if (pairEnd < start || pairEnd == start && !(isPointPair && isStartIncluded) ||
+                    pairStart > end || pairStart == end && !(isPointPair && isEndIncluded))
+                    continue;
 
-            var start = cutStart ?? resultStart;
-            var end = cutEnd ?? resultEnd;
-            cutResult = cutResult.Cut(start, end);
-            return cutResult.ToSequence();
-        }
-        else
-        {
-            return result.ToSequence();
+                if (ea.IsPlusInfinite && eb.IsPlusInfinite || ea.IsMinusInfinite && eb.IsMinusInfinite)
+                    throw new UndeterminedResultException("Deconvolution is undefined because it requires subtracting two infinities of the same sign.");
+
+                // in $f \oslash g$ the two operands play opposite roles, since $g$ contributes its opposite:
+                // $+\infty$ in $f$ and $-\infty$ in $g$ both win the maximum, and are kept
+                if (!ea.IsMinusInfinite && !eb.IsPlusInfinite)
+                    yield return (ea, eb);
+            }
         }
 
         List<Element> SerialDeconvolution()
@@ -3586,8 +3604,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 .SelectMany( pair => Element.Deconvolution(pair.a, pair.b))
                 .ToList();
 
-            return deconvolutionElements
-                .UpperEnvelope(settings);
+            return deconvolutionElements.Count == 0
+                ? []
+                : deconvolutionElements.UpperEnvelope(settings);
         }
 
         List<Element> ParallelDeconvolution()
@@ -3597,8 +3616,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 .SelectMany( pair => Element.Deconvolution(pair.a, pair.b))
                 .ToList();
 
-            return deconvolutionElements
-                .UpperEnvelope(settings);
+            return deconvolutionElements.Count == 0
+                ? []
+                : deconvolutionElements.UpperEnvelope(settings);
         }
     }
 
@@ -3606,11 +3626,19 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Computes the deconvolution of two sequences, $f \oslash g$.
     /// </summary>
     /// <param name="sequence">The sequence to process.</param>
-    /// <param name="cutStart">If not null, element deconvolutions whose result ends strictly before this time are skipped.</param>
+    /// <param name="cutStart">If not null, the result is cut or filled with $-\infty$ from this time, endpoint included.</param>
     /// <param name="cutEnd">If not null, the result is cut or filled with $-\infty$ up to this time, endpoint excluded.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the deconvolution.</returns>
-    /// <remarks>Described in [BT08], Section 4.5</remarks>
+    /// <remarks>
+    /// Described in [BT08], Section 4.5.
+    /// Element deconvolutions outside the requested interval are skipped.
+    /// Within that interval, subtracting two infinities of the same sign is undefined and throws <see cref="UndeterminedResultException"/>.
+    /// Portions of the requested interval outside the support of every element deconvolution are filled with $-\infty$.
+    /// Without explicit bounds, the result covers the full support of the element deconvolutions, preserving endpoint inclusion.
+    /// </remarks>
+    /// <exception cref="UndeterminedResultException">If an element deconvolution within the requested interval requires subtracting two infinities of the same sign.</exception>
+    /// <exception cref="ArgumentException">If the requested output interval is reversed or empty.</exception>
     public Sequence Deconvolution(Sequence sequence, Rational? cutStart = null, Rational? cutEnd = null, ComputationSettings? settings = null)
         => Deconvolution(a: this, b: sequence, cutStart, cutEnd, settings);
 
@@ -4055,13 +4083,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         => MaxPlusConvolution(this, sequence, settings, cutEnd);
 
     /// <summary>
-    /// Computes the max-plus convolution of two sequences.
+    /// Computes the max-plus deconvolution of two sequences.
     /// </summary>
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus deconvolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
+    /// <exception cref="UndeterminedResultException">If an element deconvolution requires subtracting two infinities of the same sign.</exception>
     public static Sequence MaxPlusDeconvolution(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
         #if DO_LOG
@@ -4071,12 +4100,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
-    /// Computes the max-plus convolution of two sequences.
+    /// Computes the max-plus deconvolution of two sequences.
     /// </summary>
     /// <param name="sequence">The sequence to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result of the max-plus deconvolution.</returns>
     /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
+    /// <exception cref="UndeterminedResultException">If an element deconvolution requires subtracting two infinities of the same sign.</exception>
     public Sequence MaxPlusDeconvolution(Sequence sequence, ComputationSettings? settings = null)
     {
         #if DO_LOG
