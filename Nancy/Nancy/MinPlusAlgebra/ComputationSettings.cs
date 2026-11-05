@@ -22,7 +22,8 @@ public record ComputationSettings
                 UseParallelListConvolution || UseParallelListMinimum || UseParallelListAddition || UseParallelListLowerEnvelope ||
                 UseParallelListMaximum || UseParallelListUpperEnvelope ||
                 UseParallelExtend || UseParallelComputeExtensionSequences ||
-                UseParallelComputeIntervals || UseParallelInsertionComputeIntervals || UseParallelSortElements;
+                UseParallelComputeIntervals || UseParallelInsertionComputeIntervals || UseParallelSortElements ||
+                UseParallelSubAdditiveClosure;
         }
         set 
         {
@@ -41,6 +42,7 @@ public record ComputationSettings
             UseParallelComputeIntervals = value;
             UseParallelInsertionComputeIntervals = value;
             UseParallelSortElements = value;
+            UseParallelSubAdditiveClosure = value;
         }
     }
 
@@ -261,6 +263,17 @@ public record ComputationSettings
     /// Elements are sorted in parallel, if <see cref="UseParallelSortElements"/> is true, when there are at least this number of them.
     /// </summary>
     public int SortElementsParallelizationThreshold { get; set; } = 10_000;
+
+    /// <summary>
+    /// Enables parallel computation of the element closures in <see cref="Curve.SubAdditiveClosure(ComputationSettings)"/>.
+    /// </summary>
+    public bool UseParallelSubAdditiveClosure { get; set; } = false;
+
+    /// <summary>
+    /// Minimum number of base-sequence elements for parallel computation of element closures.
+    /// Requires <see cref="UseParallelSubAdditiveClosure"/>.
+    /// </summary>
+    public int SubAdditiveClosureParallelizationThreshold { get; set; } = 0;
 
     /// <summary>
     /// If true, when two Curves have the same slope the convolution is done in a single pass

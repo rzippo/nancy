@@ -9095,20 +9095,41 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (settings.UseZeroClosureShortcut && GetSegmentAfter(0, autoMerge: false, cutToTime: false) is { RightLimitAtStartTime.IsZero: true, Slope.IsZero: true } && IsNonNegative)
             return new SubAdditiveCurve(Zero(), false);
 
-        var transientClosures = TransientElements
-            .Select(element => element.SubAdditiveClosure(settings));
+        List<SubAdditiveCurve> elementClosures;
+        if (settings.UseParallelSubAdditiveClosure &&
+            BaseSequence.Count >= settings.SubAdditiveClosureParallelizationThreshold)
+        {
+            var transientClosures = TransientElements
+                .AsParallel()
+                .AsOrdered()
+                .Select(element => element.SubAdditiveClosure(settings));
+            var periodicClosures = PseudoPeriodicElements
+                .AsParallel()
+                .AsOrdered()
+                .Select(element => element.SubAdditiveClosure(
+                    pseudoPeriodHeight: PseudoPeriodHeight,
+                    pseudoPeriodLength: PseudoPeriodLength,
+                    settings: settings
+                ));
 
-        var periodicClosures = PseudoPeriodicElements
-            .Select(element => element.SubAdditiveClosure(
-                pseudoPeriodHeight: PseudoPeriodHeight,
-                pseudoPeriodLength: PseudoPeriodLength,
-                settings: settings
-            ));
+            elementClosures = transientClosures.Concat(periodicClosures)
+                .WithoutAggregateException()
+                .ToList();
+        }
+        else
+        {
+            var transientClosures = TransientElements
+                .Select(element => element.SubAdditiveClosure(settings));
+            var periodicClosures = PseudoPeriodicElements
+                .Select(element => element.SubAdditiveClosure(
+                    pseudoPeriodHeight: PseudoPeriodHeight,
+                    pseudoPeriodLength: PseudoPeriodLength,
+                    settings: settings
+                ));
 
-        var elementClosuresEnumerable = Enumerable.Concat(transientClosures, periodicClosures);
-        var elementClosures = settings.UseParallelism
-            ? elementClosuresEnumerable.AsParallel().ToList()
-            : elementClosuresEnumerable.ToList();
+            elementClosures = transientClosures.Concat(periodicClosures)
+                .ToList();
+        }
 
         #if DO_LOG
         logger.Debug($"Computed individual closures, next is convolution step.");
