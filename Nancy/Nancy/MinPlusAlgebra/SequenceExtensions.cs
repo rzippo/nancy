@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Unipi.Nancy.Numerics;
 
 namespace Unipi.Nancy.MinPlusAlgebra;
@@ -3613,6 +3614,17 @@ public static partial class SequenceExtensions
     #region Envelopes
 
     /// <summary>
+    /// Enumerates ordered bucket envelopes without materializing their concatenation.
+    /// </summary>
+    /// <remarks>Iterate each List directly to avoid boxing one list enumerator per bucket.</remarks>
+    internal static IEnumerable<Element> FlattenEnvelopes(this IEnumerable<List<Element>> envelopes)
+    {
+        foreach (var envelope in envelopes)
+            foreach (var element in envelope)
+                yield return element;
+    }
+
+    /// <summary>
     /// Computes the lower envelope of the set of elements given.
     /// $O(n \cdot \log(n))$ complexity.
     /// </summary>
@@ -3635,26 +3647,25 @@ public static partial class SequenceExtensions
         #if DO_LOG
         var lowerEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
-        List<Element> lowerElements;
+        IEnumerable<Element> lowerElements;
         bool doParallel = settings.UseParallelLowerEnvelope &&
             elements.Count >= settings.ElementsLowerEnvelopeParallelizationThreshold;
         if (doParallel)
         {
-            lowerElements = intervals
-                .AsParallel().AsOrdered()
-                .Select(i => i.LowerEnvelope())
-                .SelectMany(element => element)
-                .ToList();
+            var envelopes = new List<Element>[intervals.Count];
+            Parallel.For(0, intervals.Count, i => envelopes[i] = intervals[i].LowerEnvelope());
+
+            lowerElements = envelopes.FlattenEnvelopes();
         }
         else
         {
             lowerElements = intervals
-                .Select(i => i.LowerEnvelope())
-                .SelectMany(element => element)
-                .ToList();
+                .Select(interval => interval.LowerEnvelope())
+                .FlattenEnvelopes();
         }
 
-        var sequence = lowerElements.Merge(settings: settings);
+        var sequence = lowerElements.MergeAsEnumerable()
+            .ToList();
         #if DO_LOG
         lowerEnvelopeStopwatch.Stop();
         logger.Debug($"Lower envelopes computed: {elements.Count} elements, {lowerEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
@@ -3717,26 +3728,25 @@ public static partial class SequenceExtensions
         #if DO_LOG
         var upperEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
-        List<Element> upperElements;
+        IEnumerable<Element> upperElements;
         bool doParallel = settings.UseParallelUpperEnvelope &&
             elements.Count >= settings.ElementsUpperEnvelopeParallelizationThreshold;
         if (doParallel)
         {
-            upperElements = intervals
-                .AsParallel().AsOrdered()
-                .Select(i => i.UpperEnvelope())
-                .SelectMany(element => element)
-                .ToList();
+            var envelopes = new List<Element>[intervals.Count];
+            Parallel.For(0, intervals.Count, i => envelopes[i] = intervals[i].UpperEnvelope());
+
+            upperElements = envelopes.FlattenEnvelopes();
         }
         else
         {
             upperElements = intervals
-                .Select(i => i.UpperEnvelope())
-                .SelectMany(element => element)
-                .ToList();
+                .Select(interval => interval.UpperEnvelope())
+                .FlattenEnvelopes();
         }
 
-        var sequence = upperElements.Merge(settings: settings);
+        var sequence = upperElements.MergeAsEnumerable()
+            .ToList();
         #if DO_LOG
         upperEnvelopeStopwatch.Stop();
         logger.Debug($"Lower envelopes computed: {elements.Count} elements, {upperEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
