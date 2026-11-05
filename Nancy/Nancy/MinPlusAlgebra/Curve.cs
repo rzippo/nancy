@@ -4029,7 +4029,80 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         bool isEndIncluded = false
     )
     {
-        return CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded).Count();
+        // Arithmetic counting requires a positive-width finite window and finite period parameters.
+        // Other requests retain the cut operation's handling, including point-only cuts and validation.
+        if (!cutStart.IsFinite || !cutEnd.IsFinite || cutStart < 0 || cutStart >= cutEnd ||
+            !PseudoPeriodStart.IsFinite || !PseudoPeriodLength.IsFinite || !PseudoPeriodHeight.IsFinite)
+            return CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+                .Count();
+
+        var elements = BaseSequence.ElementList;
+        int periodStartIndex = PseudoPeriodStart == 0 ? 0 :
+            BaseSequence.FindFirstIndex(element => element.StartTime >= PseudoPeriodStart);
+        int periodPointCount = (elements.Count - periodStartIndex) / 2;
+
+        int endpointCount = (isStartIncluded ? 1 : 0) + (isEndIncluded ? 1 : 0);
+        bool mergeJoin = false;
+        if (cutEnd > FirstPseudoPeriodEnd)
+        {
+            var last = (Segment)elements[elements.Count - 1];
+            var firstPoint = (Point)elements[periodStartIndex];
+            var first = (Segment)elements[periodStartIndex + 1];
+            // Repeated joins compare the preceding period's left limit with the next period's point.
+            mergeJoin = last.Slope == first.Slope &&
+                firstPoint.Value == first.RightLimitAtStartTime &&
+                last.LeftLimitAtEndTime == firstPoint.Value + PseudoPeriodHeight;
+            // A one-segment period with mergeable joins remains one segment throughout the tail.
+            if (mergeJoin && periodPointCount == 1 && cutStart >= PseudoPeriodStart)
+                return 1 + endpointCount;
+        }
+
+        // Complete periods contribute their stored point count; partial portions use boundary indices.
+        Rational interiorPoints = CountPoints(cutEnd, includeEnd: false) - CountPoints(cutStart, includeEnd: true);
+
+        // Construction normalizes the base sequence, except for its forced split at $T$.
+        if (cutStart < PseudoPeriodStart && PseudoPeriodStart < cutEnd &&
+            SequenceExtensions.CanMergeTriplet((Segment)elements[periodStartIndex - 1],
+                (Point)elements[periodStartIndex], (Segment)elements[periodStartIndex + 1]))
+            interiorPoints--;
+
+        if (mergeJoin)
+        {
+            Rational firstJoin = Rational.Max(1, ((cutStart - PseudoPeriodStart) / PseudoPeriodLength).Floor() + 1);
+            Rational lastJoin = ((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1;
+            interiorPoints -= Rational.Max(0, lastJoin - firstJoin + 1);
+        }
+
+        // Each retained interior point separates two segments; endpoint points are counted independently.
+        return checked(1 + endpointCount + 2 * (int)interiorPoints);
+
+        Rational CountPoints(Rational time, bool includeEnd)
+        {
+            Rational periods = 0;
+            if (time > FirstPseudoPeriodEnd || (includeEnd && time == FirstPseudoPeriodEnd))
+            {
+                periods = ((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
+                time -= periods * PseudoPeriodLength;
+            }
+
+            int points;
+            if (time == 0)
+                points = includeEnd ? 1 : 0;
+            else if (time == FirstPseudoPeriodEnd)
+                points = elements.Count / 2;
+            else if (time == PseudoPeriodStart)
+                points = periodStartIndex / 2 + (includeEnd ? 1 : 0);
+            else
+            {
+                int index = includeEnd
+                    ? BaseSequence.FindLastIndex(element => element.StartTime <= time)
+                    : BaseSequence.FindLastIndex(element => element.StartTime < time);
+                // The stored sequence alternates points and segments, starting with a point.
+                points = (index + 1) / 2;
+            }
+
+            return periods * periodPointCount + points;
+        }
     }
 
     /// <summary>
