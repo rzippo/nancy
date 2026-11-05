@@ -3611,6 +3611,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
             else
             {
+                var periodicSequence = PseudoPeriodicSequence;
+                Sequence ExtendPeriod(int index) => ComputeExtensionSequence(index, settings,
+                    GetPeriodElementsForCut(periodicSequence, index, cutStart, cutEnd, isStartIncluded, isEndIncluded));
+
                 if (cutStart >= BaseSequence.DefinedUntil)
                 {
                     var startingPseudoPeriodIndex = (int)((cutStart - PseudoPeriodStart) / PseudoPeriodLength).Floor();
@@ -3627,14 +3631,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     {
                         elements = indexes
                             .AsParallel().AsOrdered()
-                            .Select(i => ComputeExtensionSequence(i, settings))
+                            .Select(ExtendPeriod)
                             .SelectMany(seq => seq.Elements)
                             .WithoutAggregateException();
                     }
                     else
                     {
                         elements = indexes
-                            .Select(i => ComputeExtensionSequence(i, settings))
+                            .Select(ExtendPeriod)
                             .SelectMany(seq => seq.Elements);
                     }
 
@@ -3656,14 +3660,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     {
                         extensionElements = indexes
                             .AsParallel().AsOrdered()
-                            .Select(i => ComputeExtensionSequence(i, settings))
+                            .Select(ExtendPeriod)
                             .SelectMany(seq => seq.Elements)
                             .WithoutAggregateException();
                     }
                     else
                     {
                         extensionElements = indexes
-                            .Select(i => ComputeExtensionSequence(i, settings))
+                            .Select(ExtendPeriod)
                             .SelectMany(seq => seq.Elements);
                     }
 
@@ -3830,9 +3834,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         IEnumerable<Element> ExtendPeriods(IEnumerable<int> indexes)
         {
-            var periodicElements = PseudoPeriodicSequence.ElementList;
+            var periodicSequence = PseudoPeriodicSequence;
             foreach (var index in indexes)
             {
+                var periodicElements = GetPeriodElementsForCut(periodicSequence, index,
+                    cutStart, cutEnd, isStartIncluded, isEndIncluded);
                 foreach (var element in ComputeExtensionSequenceAsEnumerable(index, periodicElements, settings))
                     yield return element;
             }
@@ -3915,11 +3921,38 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public Sequence Extend(Rational targetEnd, ComputationSettings? settings = null)
         => Cut(0, targetEnd, settings: settings);
 
-    private Sequence ComputeExtensionSequence(int pseudoPeriodIndex, ComputationSettings? settings = null)
+    /// <summary>
+    /// Selects the stored elements intersecting a cut before translating their period copy.
+    /// </summary>
+    private ReadOnlyElementList GetPeriodElementsForCut(Sequence period, int periodIndex,
+        Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    {
+        var offset = periodIndex * PseudoPeriodLength;
+        var start = cutStart - offset;
+        var end = cutEnd - offset;
+        int first = start < period.DefinedFrom || (start == period.DefinedFrom && isStartIncluded)
+            ? 0
+            : period.FindFirstIndex(element => element is Point point
+                ? (isStartIncluded ? point.Time >= start : point.Time > start)
+                : element.EndTime > start);
+        int last = end >= period.DefinedUntil
+            ? period.Count - 1
+            : period.FindLastIndex(element => element is Point point
+                ? (isEndIncluded ? point.Time <= end : point.Time < end)
+                : element.StartTime < end);
+
+        // Boundary segments remain intact here; the final cut clips them and normalizes period joins.
+        return first == 0 && last == period.Count - 1
+            ? period.ElementList
+            : period.ElementList.Slice(first, last - first + 1);
+    }
+
+    private Sequence ComputeExtensionSequence(int pseudoPeriodIndex, ComputationSettings? settings = null,
+        ReadOnlyElementList? periodicElements = null)
     {
         settings = settings ?? new ComputationSettings();
 
-        var periodicElements = PseudoPeriodicSequence.Elements;
+        periodicElements ??= PseudoPeriodicSequence.ElementList;
         bool doParallel = settings.UseParallelComputeExtensionSequences &&
             periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold;
         IEnumerable<Element> periodicSegmentsCopy;
