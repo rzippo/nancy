@@ -3611,12 +3611,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
             else
             {
-                if (cutStart > BaseSequence.DefinedUntil)
+                if (cutStart >= BaseSequence.DefinedUntil)
                 {
                     var startingPseudoPeriodIndex = (int)((cutStart - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                    var endingPseudoPeriodIndex = (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                    if (isEndIncluded)
-                        endingPseudoPeriodIndex++;
+                    // A right-open cut ending at a period boundary does not need the following period.
+                    var endingPseudoPeriodIndex = isEndIncluded
+                        ? (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor()
+                        : (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
 
                     var indexes = Enumerable.Range(startingPseudoPeriodIndex,
                         (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
@@ -3643,9 +3644,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 }
                 else
                 {
-                    var endingPseudoPeriodIndex = (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                    if (isEndIncluded)
-                        endingPseudoPeriodIndex++;
+                    // A right-open cut ending at a period boundary does not need the following period.
+                    var endingPseudoPeriodIndex = isEndIncluded
+                        ? (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor()
+                        : (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
 
                     var indexes = Enumerable.Range(1, endingPseudoPeriodIndex);
 
@@ -3788,12 +3790,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
             else
             {
-                if (cutStart > BaseSequence.DefinedUntil)
+                if (cutStart >= BaseSequence.DefinedUntil)
                 {
                     var startingPseudoPeriodIndex = (int)((cutStart - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                    var endingPseudoPeriodIndex = (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                    if (isEndIncluded)
-                        endingPseudoPeriodIndex++;
+                    // A right-open cut ending at a period boundary does not need the following period.
+                    var endingPseudoPeriodIndex = isEndIncluded
+                        ? (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor()
+                        : (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
 
                     var indexes = Enumerable.Range(startingPseudoPeriodIndex,
                         endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1);
@@ -3804,9 +3807,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 }
                 else
                 {
-                    var endingPseudoPeriodIndex = (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                    if (isEndIncluded)
-                        endingPseudoPeriodIndex++;
+                    // A right-open cut ending at a period boundary does not need the following period.
+                    var endingPseudoPeriodIndex = isEndIncluded
+                        ? (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor()
+                        : (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
 
                     var indexes = Enumerable.Range(1, endingPseudoPeriodIndex);
 
