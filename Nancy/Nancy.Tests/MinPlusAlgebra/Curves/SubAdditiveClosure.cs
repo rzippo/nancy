@@ -515,7 +515,11 @@ public class SubAdditiveClosure
 
     public static IEnumerable<object[]> ClosuresOfCurveTakingBothInfinities()
     {
-        yield return new object[] { nameof(Curve.SubAdditiveClosure), (Func<Curve, Curve>) (f => f.SubAdditiveClosure()) };
+        yield return new object[] { nameof(Curve.SubAdditiveClosure), (Func<Curve, Curve>) (f => f.SubAdditiveClosure(new ComputationSettings
+        {
+            UseParallelSubAdditiveClosure = true,
+            SubAdditiveClosureParallelizationThreshold = 0
+        })) };
         yield return new object[] { nameof(Curve.GeneralSubAdditiveClosure), (Func<Curve, Curve>) (f => f.GeneralSubAdditiveClosure()) };
         yield return new object[] { nameof(Curve.SuperAdditiveClosure), (Func<Curve, Curve>) (f => (-f).SuperAdditiveClosure()) };
         yield return new object[] { nameof(Curve.GeneralSuperAdditiveClosure), (Func<Curve, Curve>) (f => (-f).GeneralSuperAdditiveClosure()) };
@@ -563,7 +567,26 @@ public class SubAdditiveClosure
         Curve expected,
         bool useConvolutionOptimizations)
     {
-        var settings = new ComputationSettings { UseSubAdditiveConvolutionOptimizations = useConvolutionOptimizations };
+        var settings = new ComputationSettings
+        {
+            UseSubAdditiveConvolutionOptimizations = useConvolutionOptimizations,
+            UseParallelSubAdditiveClosure = true,
+            SubAdditiveClosureParallelizationThreshold = 0
+        };
         Assert.True(Curve.Equivalent(expected, operand.SubAdditiveClosure(settings)));
     }
+
+    [Fact]
+    public void ParallelismSwitchIncludesElementClosures()
+    {
+        var settings = new ComputationSettings { UseParallelism = false };
+        Assert.False(settings.UseParallelSubAdditiveClosure);
+        settings.UseParallelSubAdditiveClosure = true;
+        Assert.True(settings.UseParallelism);
+        settings.UseParallelism = false;
+        Assert.False(settings.UseParallelSubAdditiveClosure);
+        settings.UseParallelism = true;
+        Assert.True(settings.UseParallelSubAdditiveClosure);
+    }
+
 }
