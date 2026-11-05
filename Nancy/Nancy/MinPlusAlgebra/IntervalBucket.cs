@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -417,10 +418,13 @@ internal class IntervalBucket
         if (!elements.Any())
             throw new Exception("Computing interval of no elements");
 
+        bool doParallel = settings.UseParallelComputeIntervals &&
+                          elements.Count >= settings.ParallelComputeIntervalsThreshold;
+
         #if DO_LOG
         var prebuildStopwatch = Stopwatch.StartNew();
         #endif
-        var intervalTree = new IntervalBucketTree(GetPrebuiltIntervals(), settings);
+        var intervalTree = new IntervalBucketTree(GetPrebuiltIntervals());
         #if DO_LOG
         prebuildStopwatch.Stop();
         logger.Trace(
@@ -430,8 +434,6 @@ internal class IntervalBucket
         #if DO_LOG
         var processingStopwatch = Stopwatch.StartNew();
         #endif
-        bool doParallel = settings.UseParallelComputeIntervals &&
-                          elements.Count >= settings.ParallelComputeIntervalsThreshold;
         if (doParallel)
         {
             #if DO_LOG
@@ -469,87 +471,59 @@ internal class IntervalBucket
 
         List<IntervalBucket> GetPrebuiltIntervals()
         {
-            var doParallel = settings.UseParallelComputeIntervals &&
-                             elements.Count > settings.ParallelComputeIntervalsThreshold;
+            Rational[] times;
             if (doParallel)
             {
-                //parallel algorithm
-                var times = elements
-                    .AsParallel()
-                    .SelectMany(GetTimes)
-                    .GroupBy(t => t)
-                    .Select(grp => grp.Key)
-                    .ToList();
+                var endpoints = new ConcurrentDictionary<Rational, byte>(Environment.ProcessorCount, 31);
+                Parallel.For(0, elements.Count, i =>
+                {
+                    var element = elements[i];
+                    if (element is not Point && element is not Segment)
+                        throw new InvalidCastException();
 
-                var orderedTimes = times
-                    .AsParallel()
-                    .OrderBy(t => t)
-                    .ToList();
+                    // Existing endpoints need only a lookup; insertion locks are needed for new keys.
+                    endpoints.GetOrAdd(element.StartTime, 0);
+                    if (element is Segment)
+                        endpoints.GetOrAdd(element.EndTime, 0);
+                });
 
-                var timePairs = orderedTimes
-                    .Zip(orderedTimes.Skip(1), (a, b) => (a, b));
-
-                var prebuiltIntervals = timePairs
-                    .AsParallel()
-                    .SelectMany(pair => new[]
-                    {
-                        new IntervalBucket(pair.a),
-                        new IntervalBucket(pair.a, pair.b)
-                    })
-                    .Append(new IntervalBucket(orderedTimes.Last())) //tail interval
-                    .ToList();
-
-                return prebuiltIntervals;
+                // All writers have joined before enumeration starts.
+                times = new Rational[endpoints.Count];
+                int index = 0;
+                foreach (var endpoint in endpoints)
+                    times[index++] = endpoint.Key;
             }
             else
             {
-                //single thread algorithm
-                var times = elements
-                    .SelectMany(GetTimes)
-                    .GroupBy(t => t)
-                    .Select(grp => grp.First())
-                    .ToList();
-
-                var orderedTimes = times
-                    .OrderBy(t => t)
-                    .ToList();
-
-                var timePairs = Enumerable
-                    .Zip(orderedTimes, orderedTimes.Skip(1), (a, b) => (a, b));
-
-                var prebuiltIntervals = timePairs
-                    .SelectMany(pair => new[]
-                    {
-                        new IntervalBucket(pair.a),
-                        new IntervalBucket(pair.a, pair.b)
-                    })
-                    .Append(new IntervalBucket(orderedTimes.Last())) //tail interval
-                    .ToList();
-
-                return prebuiltIntervals;
-            }
-
-            IEnumerable<Rational> GetTimes(Element e)
-            {
-                switch (e)
+                var endpoints = new HashSet<Rational>();
+                foreach (var element in elements)
                 {
-                    case Point p:
-                    {
-                        yield return p.Time;
-                        yield break;
-                    }
-
-                    case Segment s:
-                    {
-                        yield return s.StartTime;
-                        yield return e.EndTime;
-                        yield break;
-                    }
-
-                    default:
+                    if (element is not Point && element is not Segment)
                         throw new InvalidCastException();
+
+                    endpoints.Add(element.StartTime);
+                    if (element is Segment)
+                        endpoints.Add(element.EndTime);
                 }
+                times = endpoints.ToArray();
             }
+
+            // The threshold counts the singleton and open buckets induced by the distinct endpoints.
+            var intervalCount = 2L * times.Length - 1;
+            if (settings.UseParallelComputeIntervals &&
+                intervalCount >= settings.SortIntervalsParallelizationThreshold)
+                IntervalEndpointSorter.Sort(times);
+            else
+                Array.Sort(times);
+
+            var intervals = new List<IntervalBucket>(checked((int)intervalCount));
+            for (int i = 0; i < times.Length; i++)
+            {
+                intervals.Add(new IntervalBucket(times[i]));
+                if (i + 1 < times.Length)
+                    intervals.Add(new IntervalBucket(times[i], times[i + 1]));
+            }
+            return intervals;
         }
 
         void SerialProcessing()
@@ -1547,9 +1521,6 @@ internal class IntervalBucket
 /// </summary>
 internal static class IntervalExtensions
 {
-    #if DO_LOG
-    private static Logger logger = LogManager.GetCurrentClassLogger();
-    #endif
 
     /// <summary>
     /// Checks if time order is respected, i.e. they are ordered first by start, then by end
@@ -1615,53 +1586,4 @@ internal static class IntervalExtensions
         return true;
     }
 
-    /// <summary>
-    /// Sorts the intervals in time order
-    /// </summary>
-    internal static IReadOnlyList<IntervalBucket> SortIntervals(this IReadOnlyList<IntervalBucket> intervals, ComputationSettings? settings = null)
-    {
-        settings ??= ComputationSettings.Default();
-        #if DO_LOG
-        var sortStopwatch = Stopwatch.StartNew();
-        #endif
-
-        if (intervals.AreInTimeOrder())
-        {
-            #if DO_LOG
-            sortStopwatch.Stop();
-            logger.Trace($"SortIntervals: took {sortStopwatch.Elapsed}, already sorted");
-            #endif
-            return intervals;
-        }
-        else
-        {
-            var doParallel = settings.UseParallelComputeIntervals && intervals.Count >= settings.SortIntervalsParallelizationThreshold;
-            List<IntervalBucket> sorted;
-            if (doParallel)
-            {
-                sorted = intervals
-                    .AsParallel()
-                    .OrderBy(i => i.Start)
-                    .ThenBy(i => i.End)
-                    .ToList();
-            }
-            else
-            {
-                sorted = intervals
-                    .OrderBy(i => i.Start)
-                    .ThenBy(i => i.End)
-                    .ToList();
-            }
-
-            #if DO_LOG
-            sortStopwatch.Stop();
-            #endif
-            var alg = doParallel ? "parallel" : "serial";
-            #if DO_LOG
-            logger.Trace($"SortIntervals: took {sortStopwatch.Elapsed}, {alg} sort");
-            #endif
-            return sorted;
-        }
-    }
-
-} 
+}

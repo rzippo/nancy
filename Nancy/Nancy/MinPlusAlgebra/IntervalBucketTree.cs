@@ -18,10 +18,13 @@ internal class IntervalBucketTree
 
     public int Count => Intervals.Count;
 
-    public IntervalBucketTree(IReadOnlyList<IntervalBucket> intervals, ComputationSettings? settings = null)
+    /// <summary>
+    /// Builds a query tree over buckets already in chronological, non-overlapping order.
+    /// </summary>
+    /// <param name="intervals">Ordered buckets produced by <see cref="IntervalBucket.ComputeIntervals(IReadOnlyList{Element}, ComputationSettings)"/>.</param>
+    public IntervalBucketTree(IReadOnlyList<IntervalBucket> intervals)
     {
-        Intervals = intervals
-            .SortIntervals(settings);
+        Intervals = intervals;
 
 #if DEBUG
         if (!Intervals.AreInTimeSequence())

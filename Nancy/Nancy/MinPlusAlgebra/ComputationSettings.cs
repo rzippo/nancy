@@ -206,12 +206,13 @@ public record ComputationSettings
     public bool UseParallelComputeIntervals { get; set; } = true;
 
     /// <summary>
-    /// Interval.ComputeIntervals is done with parallel implementation if the number of elements is above this threshold.
+    /// Interval.ComputeIntervals uses parallel endpoint collection and insertion if the number of elements is at least this threshold and <see cref="UseParallelComputeIntervals"/> is true.
     /// </summary>
     public int ParallelComputeIntervalsThreshold { get; set; } = 5_000;
 
     /// <summary>
-    /// Intervals are sorted in parallel, if <see cref="UseParallelComputeIntervals"/> is true, when there are at least this number of them.
+    /// Distinct endpoints may be sorted in parallel, if <see cref="UseParallelComputeIntervals"/> is true, when they induce at least this number of interval buckets.
+    /// Each endpoint induces a singleton bucket, and each consecutive pair induces an open bucket.
     /// </summary>
     public int SortIntervalsParallelizationThreshold { get; set; } = 10_000;
 
