@@ -7522,7 +7522,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         Sequence minSequence;
-        if (!settings.UseParallelLowerEnvelope)
+        if (!settings.UseParallelLowerEnvelope ||
+            (settings.SequenceLowerEnvelopeParallelizationThreshold > 0 &&
+             (long)a.Count(0, T + d) + b.Count(0, T + d) < settings.SequenceLowerEnvelopeParallelizationThreshold))
         {
             minSequence = a.CutAsEnumerable(0, T + d, settings: settings)
                 .Minimum(b.CutAsEnumerable(0, T + d, settings: settings))
@@ -7834,7 +7836,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         Sequence maxSequence;
-        if (!settings.UseParallelUpperEnvelope)
+        if (!settings.UseParallelUpperEnvelope ||
+            (settings.SequenceUpperEnvelopeParallelizationThreshold > 0 &&
+             (long)a.Count(0, T + d) + b.Count(0, T + d) < settings.SequenceUpperEnvelopeParallelizationThreshold))
         {
             maxSequence = a.CutAsEnumerable(0, T + d, settings: settings)
                 .Maximum(b.CutAsEnumerable(0, T + d, settings: settings))
