@@ -3614,66 +3614,66 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             else
             {
                 var periodicSequence = PseudoPeriodicSequence;
-                Sequence ExtendPeriod(int index) => ComputeExtensionSequence(index, settings,
-                    GetPeriodElementsForCut(periodicSequence, index, cutStart, cutEnd, isStartIncluded, isEndIncluded));
-
-                if (cutStart >= BaseSequence.DefinedUntil)
+                var cutInterval = new Interval(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                var startsAfterBaseSequence = cutStart >= BaseSequence.DefinedUntil;
+                var startPeriodPosition = startsAfterBaseSequence
+                    ? (cutStart - PseudoPeriodStart) / PseudoPeriodLength
+                    : 1;
+                var endPeriodPosition = (cutEnd - PseudoPeriodStart) / PseudoPeriodLength;
+                var firstPeriodIndex = (int)startPeriodPosition.Floor();
+                // A right-open cut ending at a period boundary does not need the following period.
+                var lastPeriodIndex = isEndIncluded
+                    ? (int)endPeriodPosition.Floor()
+                    : (int)(endPeriodPosition.Ceil() - 1);
+                var remainingPeriodCount = lastPeriodIndex - firstPeriodIndex + 1;
+                IEnumerable<Element> prefixElements;
+                if (!startsAfterBaseSequence)
                 {
-                    var startingPseudoPeriodIndex = (int)((cutStart - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                    // A right-open cut ending at a period boundary does not need the following period.
-                    var endingPseudoPeriodIndex = isEndIncluded
-                        ? (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor()
-                        : (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
-
-                    var indexes = Enumerable.Range(startingPseudoPeriodIndex,
-                        (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
-
-                    IEnumerable<Element> elements;
-                    if (settings.UseParallelExtend && indexes.Count() > 1 &&
-                        indexes.Count() >= settings.ExtendParallelizationThreshold)
-                    {
-                        elements = ExtendPeriodsInParallel(startingPseudoPeriodIndex, indexes.Count(), ExtendPeriod);
-                    }
-                    else
-                    {
-                        elements = indexes
-                            .Select(ExtendPeriod)
-                            .SelectMany(seq => seq.Elements);
-                    }
-
-                    result = elements
-                        .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded)
-                        .ToSequence();
+                    prefixElements = BaseSequence.Elements;
+                }
+                else if (startPeriodPosition != firstPeriodIndex || !isStartIncluded)
+                {
+                    // A partial first period is selected before translating its elements.
+                    var firstPeriodElements = GetPeriodElementsForCut(periodicSequence, firstPeriodIndex, cutInterval);
+                    prefixElements = ComputeExtensionSequence(firstPeriodIndex, settings, firstPeriodElements).Elements;
+                    remainingPeriodCount--;
+                    if (remainingPeriodCount > 0)
+                        firstPeriodIndex++;
                 }
                 else
                 {
-                    // A right-open cut ending at a period boundary does not need the following period.
-                    var endingPseudoPeriodIndex = isEndIncluded
-                        ? (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor()
-                        : (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
-
-                    var indexes = Enumerable.Range(1, endingPseudoPeriodIndex);
-
-                    IEnumerable<Element> extensionElements;
-                    if (settings.UseParallelExtend && indexes.Count() > 1 &&
-                        indexes.Count() >= settings.ExtendParallelizationThreshold)
-                    {
-                        extensionElements = ExtendPeriodsInParallel(1, indexes.Count(), ExtendPeriod);
-                    }
-                    else
-                    {
-                        extensionElements = indexes
-                            .Select(ExtendPeriod)
-                            .SelectMany(seq => seq.Elements);
-                    }
-
-                    var elements =
-                        BaseSequence.Elements.Concat(extensionElements);
-
-                    result = elements
-                        .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded)
-                        .ToSequence();
+                    prefixElements = [];
                 }
+
+                // Separate the partial last period from the complete periods to extend.
+                // An included endpoint on a period boundary needs the next period's initial point.
+                IEnumerable<Element> suffixElements;
+                if (remainingPeriodCount > 0 && (isEndIncluded || endPeriodPosition != endPeriodPosition.Floor()))
+                {
+                    var lastPeriodElements = GetPeriodElementsForCut(periodicSequence, lastPeriodIndex, cutInterval);
+                    suffixElements = ComputeExtensionSequence(lastPeriodIndex, settings, lastPeriodElements).Elements;
+                    remainingPeriodCount--;
+                }
+                else
+                {
+                    suffixElements = [];
+                }
+
+                IEnumerable<Element> completePeriodElements;
+                if (remainingPeriodCount > 0)
+                {
+                    completePeriodElements = ExtendPeriods(periodicSequence, firstPeriodIndex, remainingPeriodCount, settings);
+                }
+                else
+                {
+                    completePeriodElements = [];
+                }
+
+                result = prefixElements
+                    .Concat(completePeriodElements)
+                    .Concat(suffixElements)
+                    .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+                    .ToSequence();
             }
         }
         else
@@ -3790,54 +3790,70 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
             else
             {
-                if (cutStart >= BaseSequence.DefinedUntil)
+                var periodicSequence = PseudoPeriodicSequence;
+                var cutInterval = new Interval(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                var startsAfterBaseSequence = cutStart >= BaseSequence.DefinedUntil;
+                var startPeriodPosition = startsAfterBaseSequence
+                    ? (cutStart - PseudoPeriodStart) / PseudoPeriodLength
+                    : 1;
+                var endPeriodPosition = (cutEnd - PseudoPeriodStart) / PseudoPeriodLength;
+                var firstPeriodIndex = (int)startPeriodPosition.Floor();
+                // A right-open cut ending at a period boundary does not need the following period.
+                var lastPeriodIndex = isEndIncluded
+                    ? (int)endPeriodPosition.Floor()
+                    : (int)(endPeriodPosition.Ceil() - 1);
+                var remainingPeriodCount = lastPeriodIndex - firstPeriodIndex + 1;
+                IEnumerable<Element> prefixElements;
+                if (!startsAfterBaseSequence)
                 {
-                    var startingPseudoPeriodIndex = (int)((cutStart - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                    // A right-open cut ending at a period boundary does not need the following period.
-                    var endingPseudoPeriodIndex = isEndIncluded
-                        ? (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor()
-                        : (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
-
-                    var indexes = Enumerable.Range(startingPseudoPeriodIndex,
-                        endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1);
-
-                    var elements = ExtendPeriods(indexes);
-
-                    return elements.CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                    prefixElements = BaseSequence.Elements;
+                }
+                else if (startPeriodPosition != firstPeriodIndex || !isStartIncluded)
+                {
+                    // A partial first period is selected before translating its elements.
+                    prefixElements = CopyPeriodForCutAsEnumerable(periodicSequence, firstPeriodIndex, cutInterval, settings);
+                    remainingPeriodCount--;
+                    if (remainingPeriodCount > 0)
+                        firstPeriodIndex++;
                 }
                 else
                 {
-                    // A right-open cut ending at a period boundary does not need the following period.
-                    var endingPseudoPeriodIndex = isEndIncluded
-                        ? (int)((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor()
-                        : (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
-
-                    var indexes = Enumerable.Range(1, endingPseudoPeriodIndex);
-
-                    var extensionElements = ExtendPeriods(indexes);
-
-                    var elements = BaseSequence.Elements.Concat(extensionElements);
-
-                    return elements.CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                    prefixElements = [];
                 }
+
+                // Separate the partial last period from the complete periods to extend.
+                // An included endpoint on a period boundary needs the next period's initial point.
+                IEnumerable<Element> suffixElements;
+                if (remainingPeriodCount > 0 && (isEndIncluded || endPeriodPosition != endPeriodPosition.Floor()))
+                {
+                    suffixElements = CopyPeriodForCutAsEnumerable(periodicSequence, lastPeriodIndex, cutInterval, settings);
+                    remainingPeriodCount--;
+                }
+                else
+                {
+                    suffixElements = [];
+                }
+
+                IEnumerable<Element> completePeriodElements;
+                if (remainingPeriodCount > 0)
+                {
+                    completePeriodElements = ExtendPeriodsAsEnumerable(periodicSequence, firstPeriodIndex, remainingPeriodCount, settings);
+                }
+                else
+                {
+                    completePeriodElements = [];
+                }
+
+                return prefixElements
+                    .Concat(completePeriodElements)
+                    .Concat(suffixElements)
+                    .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
             }
         }
         else
         {
             return BaseSequence.Elements
                 .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
-        }
-
-        IEnumerable<Element> ExtendPeriods(IEnumerable<int> indexes)
-        {
-            var periodicSequence = PseudoPeriodicSequence;
-            foreach (var index in indexes)
-            {
-                var periodicElements = GetPeriodElementsForCut(periodicSequence, index,
-                    cutStart, cutEnd, isStartIncluded, isEndIncluded);
-                foreach (var element in ComputeExtensionSequenceAsEnumerable(index, periodicElements, settings))
-                    yield return element;
-            }
         }
     }
 
@@ -3920,21 +3936,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Selects the stored elements intersecting a cut before translating their period copy.
     /// </summary>
-    private ReadOnlyElementList GetPeriodElementsForCut(Sequence period, int periodIndex,
-        Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
+    private ReadOnlyElementList GetPeriodElementsForCut(Sequence period, int periodIndex, Interval cutInterval)
     {
         var offset = periodIndex * PseudoPeriodLength;
-        var start = cutStart - offset;
-        var end = cutEnd - offset;
-        int first = start < period.DefinedFrom || (start == period.DefinedFrom && isStartIncluded)
+        var start = cutInterval.Lower - offset;
+        var end = cutInterval.Upper - offset;
+        int first = start < period.DefinedFrom || (start == period.DefinedFrom && cutInterval.IsLowerIncluded)
             ? 0
             : period.FindFirstIndex(element => element is Point point
-                ? (isStartIncluded ? point.Time >= start : point.Time > start)
+                ? (cutInterval.IsLowerIncluded ? point.Time >= start : point.Time > start)
                 : element.EndTime > start);
         int last = end >= period.DefinedUntil
             ? period.Count - 1
             : period.FindLastIndex(element => element is Point point
-                ? (isEndIncluded ? point.Time <= end : point.Time < end)
+                ? (cutInterval.IsUpperIncluded ? point.Time <= end : point.Time < end)
                 : element.StartTime < end);
 
         // Boundary segments remain intact here; the final cut clips them and normalizes period joins.
@@ -3944,19 +3959,46 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// Translates consecutive periods into independent slots and enumerates them in chronological order.
+    /// Translates complete consecutive periods, distributing work within the available processor budget.
     /// </summary>
-    /// <param name="firstIndex">Index of the first period to translate.</param>
-    /// <param name="count">Number of consecutive periods, greater than one.</param>
-    /// <param name="extendPeriod">Translation of one period.</param>
+    /// <param name="period">The stored pseudo-period.</param>
+    /// <param name="firstPeriodIndex">Index of the first period to translate.</param>
+    /// <param name="periodCount">Number of consecutive periods, greater than zero.</param>
+    /// <param name="settings">Settings for outer and inner parallel execution.</param>
     /// <returns>The translated elements in period order.</returns>
-    private static IEnumerable<Element> ExtendPeriodsInParallel(int firstIndex, int count,
-        Func<int, Sequence> extendPeriod)
+    /// <remarks>Outer parallel execution completes all requested period copies before yielding their elements.</remarks>
+    private IEnumerable<Element> ExtendPeriods(Sequence period, int firstPeriodIndex, int periodCount,
+        ComputationSettings settings)
     {
-        var periods = new Sequence[count];
+        var periodIndexes = Enumerable.Range(firstPeriodIndex, periodCount);
+        var availableParallelism = Environment.ProcessorCount;
+        var partitionCount = settings.UseParallelExtend && periodCount >= settings.ExtendParallelizationThreshold
+            ? GetExtensionPartitionCount(
+                elementCount: (long)periodCount * period.Count,
+                itemCount: periodCount,
+                minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
+                maximumParallelism: availableParallelism)
+            : 1;
+        if (partitionCount == 1)
+        {
+            foreach (var index in periodIndexes)
+                foreach (var element in ComputeExtensionSequence(index, settings, period.ElementList, availableParallelism).Elements)
+                    yield return element;
+            yield break;
+        }
+
+        var periods = new Sequence[periodCount];
+        // Outer partitions share the processor budget with their inner element copies.
+        var parallelismPerPeriod = Math.Max(1, availableParallelism / partitionCount);
         try
         {
-            Parallel.For(0, count, i => periods[i] = extendPeriod(firstIndex + i));
+            Parallel.For(0, partitionCount, partition =>
+            {
+                var start = (int)((long)partition * periodCount / partitionCount);
+                var end = (int)((long)(partition + 1) * periodCount / partitionCount);
+                for (int i = start; i < end; i++)
+                    periods[i] = ComputeExtensionSequence(firstPeriodIndex + i, settings, period.ElementList, parallelismPerPeriod);
+            });
         }
         catch (AggregateException aggregate)
         {
@@ -3965,24 +4007,58 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             throw;
         }
 
-        foreach (var period in periods)
-            foreach (var element in period.Elements)
+        foreach (var extension in periods)
+            foreach (var element in extension.Elements)
                 yield return element;
+    }
+
+    /// <summary>
+    /// Translates complete consecutive periods as they are consumed, with parallel copying within each period.
+    /// </summary>
+    /// <param name="period">The stored pseudo-period.</param>
+    /// <param name="firstPeriodIndex">Index of the first period to translate.</param>
+    /// <param name="periodCount">Number of consecutive periods, greater than zero.</param>
+    /// <param name="settings">Settings for inner parallel execution.</param>
+    /// <returns>The translated elements in period order.</returns>
+    private IEnumerable<Element> ExtendPeriodsAsEnumerable(Sequence period, int firstPeriodIndex, int periodCount,
+        ComputationSettings settings)
+    {
+        foreach (var index in Enumerable.Range(firstPeriodIndex, periodCount))
+            foreach (var element in ComputeExtensionSequenceAsEnumerable(index, period.ElementList, settings))
+                yield return element;
+    }
+
+    /// <summary>
+    /// Selects and translates the elements of one period intersecting a cut, when consumed.
+    /// </summary>
+    /// <remarks>Boundary segments remain intact for the caller to clip and normalize.</remarks>
+    private IEnumerable<Element> CopyPeriodForCutAsEnumerable(Sequence period, int periodIndex,
+        Interval cutInterval, ComputationSettings settings)
+    {
+        var elements = GetPeriodElementsForCut(period, periodIndex, cutInterval);
+        foreach (var element in ComputeExtensionSequenceAsEnumerable(periodIndex, elements, settings))
+            yield return element;
     }
 
     /// <summary>
     /// Translates selected period elements into independent slots and enumerates them in source order.
     /// </summary>
     /// <param name="elements">The selected period elements, containing more than one element.</param>
-    /// <param name="copy">Translation of one element.</param>
+    /// <param name="periodIndex">Index of the translated period.</param>
+    /// <param name="partitionCount">Number of contiguous work partitions.</param>
     /// <returns>The translated elements in source order.</returns>
-    private static IEnumerable<Element> CopyPeriodInParallel(ReadOnlyElementList elements,
-        Func<Element, Element> copy)
+    private IEnumerable<Element> CopyPeriodInParallel(ReadOnlyElementList elements, int periodIndex, int partitionCount)
     {
         var copies = new Element[elements.Count];
         try
         {
-            Parallel.For(0, elements.Count, i => copies[i] = copy(elements[i]));
+            Parallel.For(0, partitionCount, partition =>
+            {
+                var start = (int)((long)partition * elements.Count / partitionCount);
+                var end = (int)((long)(partition + 1) * elements.Count / partitionCount);
+                for (int i = start; i < end; i++)
+                    copies[i] = GetPseudoPeriodicCopy(elements[i], periodIndex);
+            });
         }
         catch (AggregateException aggregate)
         {
@@ -3995,103 +4071,124 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             yield return element;
     }
 
+    /// <summary>
+    /// Limits contiguous work partitions by the selected elements and available parallelism.
+    /// </summary>
+    /// <param name="elementCount">Total number of elements to translate across the items.</param>
+    /// <param name="itemCount">Number of periods for outer partitioning, or elements for inner partitioning.</param>
+    /// <param name="minimumElementsPerPartition">Minimum average workload per parallel partition, treated as one when smaller.</param>
+    /// <param name="maximumParallelism">Available partition budget, greater than zero.</param>
+    /// <returns>The number of work partitions; one selects serial execution at this level.</returns>
+    private static int GetExtensionPartitionCount(long elementCount, int itemCount,
+        int minimumElementsPerPartition, int maximumParallelism)
+    {
+        var minimumWork = Math.Max(1, minimumElementsPerPartition);
+        var partitionsAllowedByWork = elementCount / minimumWork;
+        var partitionsAllowedByParallelism = Math.Min(itemCount, maximumParallelism);
+        var partitionCount = Math.Min(partitionsAllowedByWork, partitionsAllowedByParallelism);
+
+        return (int)Math.Max(1, partitionCount);
+    }
+
+    /// <summary>
+    /// Translates period elements and materializes them as a sequence.
+    /// </summary>
+    /// <param name="pseudoPeriodIndex">Index of the translated period.</param>
+    /// <param name="settings">Settings for inner parallel execution.</param>
+    /// <param name="periodicElements">Elements selected from the stored pseudo-period; null selects the complete period.</param>
+    /// <param name="maximumParallelism">Upper bound on inner work partitions, shared with any outer period partitions.</param>
+    /// <returns>The translated sequence.</returns>
     private Sequence ComputeExtensionSequence(int pseudoPeriodIndex, ComputationSettings? settings = null,
-        ReadOnlyElementList? periodicElements = null)
+        ReadOnlyElementList? periodicElements = null, int maximumParallelism = int.MaxValue)
     {
         settings = settings ?? new ComputationSettings();
 
         periodicElements ??= PseudoPeriodicSequence.ElementList;
-        bool doParallel = settings.UseParallelComputeExtensionSequences && periodicElements.Count > 1 &&
+        var availableParallelism = Math.Min(maximumParallelism, Environment.ProcessorCount);
+        var partitionCount = GetExtensionPartitionCount(
+            elementCount: periodicElements.Count,
+            itemCount: periodicElements.Count,
+            minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
+            maximumParallelism: availableParallelism);
+        bool doParallel = settings.UseParallelComputeExtensionSequences && partitionCount > 1 &&
             periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold;
-        IEnumerable<Element> periodicSegmentsCopy;
+        IEnumerable<Element> copiedElements;
         if (doParallel)
         {
-            periodicSegmentsCopy = CopyPeriodInParallel(periodicElements,
-                element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
+            copiedElements = CopyPeriodInParallel(periodicElements, pseudoPeriodIndex, partitionCount);
         }
         else
         {
-            periodicSegmentsCopy = periodicElements
-                .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
+            copiedElements = CopyPeriodElements(periodicElements, pseudoPeriodIndex);
         }
 
-        var extensionSequence = new Sequence(periodicSegmentsCopy);
+        var extensionSequence = new Sequence(copiedElements);
         return extensionSequence;
-
-        //local function used to copy elements
-        Element GetPseudoPeriodicCopy(
-            Element element,
-            int periodIndex)
-        {
-            switch (element)
-            {
-                case Point point:
-                    return new Point(
-                        time: point.Time + PseudoPeriodLength * periodIndex,
-                        value: point.Value + PseudoPeriodHeight * periodIndex
-                    );
-                case Segment segment:
-                    return new Segment(
-                        startTime: segment.StartTime + PseudoPeriodLength * pseudoPeriodIndex,
-                        endTime: segment.EndTime + PseudoPeriodLength * pseudoPeriodIndex,
-                        rightLimitAtStartTime: segment.RightLimitAtStartTime + PseudoPeriodHeight * pseudoPeriodIndex,
-                        slope: segment.Slope
-                    );
-
-                default:
-                    throw new InvalidCastException();
-            }
-        }
     }
 
-    private IEnumerable<Element> ComputeExtensionSequenceAsEnumerable(int pseudoPeriodIndex, ReadOnlyElementList periodicElements, ComputationSettings? settings = null)
+    /// <summary>
+    /// Translates the supplied period elements as they are consumed.
+    /// </summary>
+    /// <remarks>
+    /// Parallel copying fills the selected-element buffer before yielding its elements.
+    /// Serial copying translates one element at a time.
+    /// </remarks>
+    private IEnumerable<Element> ComputeExtensionSequenceAsEnumerable(int pseudoPeriodIndex,
+        ReadOnlyElementList periodicElements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        bool doParallel = settings.UseParallelComputeExtensionSequences && periodicElements.Count > 1 &&
+        var partitionCount = GetExtensionPartitionCount(
+            elementCount: periodicElements.Count,
+            itemCount: periodicElements.Count,
+            minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
+            maximumParallelism: Environment.ProcessorCount);
+        bool doParallel = settings.UseParallelComputeExtensionSequences && partitionCount > 1 &&
             periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold;
-        IEnumerable<Element> periodicSegmentsCopy;
+        IEnumerable<Element> copiedElements;
         if (doParallel)
         {
-            periodicSegmentsCopy = CopyPeriodInParallel(periodicElements,
-                element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
+            copiedElements = CopyPeriodInParallel(periodicElements, pseudoPeriodIndex, partitionCount);
         }
         else
         {
-            periodicSegmentsCopy = CopyPeriod();
+            copiedElements = CopyPeriodElements(periodicElements, pseudoPeriodIndex);
         }
 
-        return periodicSegmentsCopy;
+        return copiedElements;
+    }
 
+    /// <summary>
+    /// Translates selected period elements in source order as they are consumed.
+    /// </summary>
+    private IEnumerable<Element> CopyPeriodElements(ReadOnlyElementList elements, int periodIndex)
+    {
         // reads the period by index, without an interface call per element
-        IEnumerable<Element> CopyPeriod()
-        {
-            for (int i = 0; i < periodicElements.Count; i++)
-                yield return GetPseudoPeriodicCopy(periodicElements[i], pseudoPeriodIndex);
-        }
+        for (int i = 0; i < elements.Count; i++)
+            yield return GetPseudoPeriodicCopy(elements[i], periodIndex);
+    }
 
-        //local function used to copy elements
-        Element GetPseudoPeriodicCopy(
-            Element element,
-            int periodIndex)
+    /// <summary>
+    /// Translates one stored element to the specified pseudo-period.
+    /// </summary>
+    private Element GetPseudoPeriodicCopy(Element element, int periodIndex)
+    {
+        switch (element)
         {
-            switch (element)
-            {
-                case Point point:
-                    return new Point(
-                        time: point.Time + PseudoPeriodLength * periodIndex,
-                        value: point.Value + PseudoPeriodHeight * periodIndex
-                    );
-                case Segment segment:
-                    return new Segment(
-                        startTime: segment.StartTime + PseudoPeriodLength * pseudoPeriodIndex,
-                        endTime: segment.EndTime + PseudoPeriodLength * pseudoPeriodIndex,
-                        rightLimitAtStartTime: segment.RightLimitAtStartTime + PseudoPeriodHeight * pseudoPeriodIndex,
-                        slope: segment.Slope
-                    );
+            case Point point:
+                return new Point(
+                    time: point.Time + PseudoPeriodLength * periodIndex,
+                    value: point.Value + PseudoPeriodHeight * periodIndex
+                );
+            case Segment segment:
+                return new Segment(
+                    startTime: segment.StartTime + PseudoPeriodLength * periodIndex,
+                    endTime: segment.EndTime + PseudoPeriodLength * periodIndex,
+                    rightLimitAtStartTime: segment.RightLimitAtStartTime + PseudoPeriodHeight * periodIndex,
+                    slope: segment.Slope
+                );
 
-                default:
-                    throw new InvalidCastException();
-            }
+            default:
+                throw new InvalidCastException();
         }
     }
 

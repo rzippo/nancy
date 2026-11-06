@@ -232,7 +232,7 @@ public record ComputationSettings
     public int DeconvolutionParallelizationThreshold { get; set; } = 1_000;
 
     /// <summary>
-    /// In Curve.Extend, compute extension sequences in parallel.
+    /// Enable parallel translation of complete pseudo-periods in materialized curve cuts and extensions.
     /// </summary>
     public bool UseParallelExtend { get; set; } = true;
 
@@ -244,7 +244,7 @@ public record ComputationSettings
     public int ExtendParallelizationThreshold { get; set; } = 0;
 
     /// <summary>
-    /// In Curve.ComputeExtensionSequences, compute elements of the sequence in parallel.
+    /// Enable parallel translation of elements within a pseudo-period.
     /// </summary>
     public bool UseParallelComputeExtensionSequences { get; set; } = true;
 
@@ -254,6 +254,15 @@ public record ComputationSettings
     /// </summary>
     /// <remarks>Parallel execution also depends on <see cref="ExtensionMinimumElementsPerPartition"/> and available parallelism.</remarks>
     public int ComputeExtensionSequencesParallelizationThreshold { get; set; } = 0;
+
+    /// <summary>
+    /// Minimum average number of translated elements per parallel work partition in curve extensions.
+    /// </summary>
+    /// <remarks>
+    /// The extension parallelism switches and thresholds still govern eligibility.
+    /// Values less than one are treated as one.
+    /// </remarks>
+    public int ExtensionMinimumElementsPerPartition { get; set; } = 1_024;
 
     /// <summary>
     /// In Extensions.SortElements, sort the elements in parallel.
