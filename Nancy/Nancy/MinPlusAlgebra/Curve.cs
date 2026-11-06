@@ -1,4 +1,6 @@
 using System.Threading;
+using System.Threading.Tasks;
+using System.Runtime.ExceptionServices;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -3627,13 +3629,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         (endingPseudoPeriodIndex - startingPseudoPeriodIndex + 1));
 
                     IEnumerable<Element> elements;
-                    if (settings.UseParallelExtend && indexes.Count() >= settings.ExtendParallelizationThreshold)
+                    if (settings.UseParallelExtend && indexes.Count() > 1 &&
+                        indexes.Count() >= settings.ExtendParallelizationThreshold)
                     {
-                        elements = indexes
-                            .AsParallel().AsOrdered()
-                            .Select(ExtendPeriod)
-                            .SelectMany(seq => seq.Elements)
-                            .WithoutAggregateException();
+                        elements = ExtendPeriodsInParallel(startingPseudoPeriodIndex, indexes.Count(), ExtendPeriod);
                     }
                     else
                     {
@@ -3656,13 +3655,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     var indexes = Enumerable.Range(1, endingPseudoPeriodIndex);
 
                     IEnumerable<Element> extensionElements;
-                    if (settings.UseParallelExtend && indexes.Count() >= settings.ExtendParallelizationThreshold)
+                    if (settings.UseParallelExtend && indexes.Count() > 1 &&
+                        indexes.Count() >= settings.ExtendParallelizationThreshold)
                     {
-                        extensionElements = indexes
-                            .AsParallel().AsOrdered()
-                            .Select(ExtendPeriod)
-                            .SelectMany(seq => seq.Elements)
-                            .WithoutAggregateException();
+                        extensionElements = ExtendPeriodsInParallel(1, indexes.Count(), ExtendPeriod);
                     }
                     else
                     {
@@ -3947,21 +3943,71 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             : period.ElementList.Slice(first, last - first + 1);
     }
 
+    /// <summary>
+    /// Translates consecutive periods into independent slots and enumerates them in chronological order.
+    /// </summary>
+    /// <param name="firstIndex">Index of the first period to translate.</param>
+    /// <param name="count">Number of consecutive periods, greater than one.</param>
+    /// <param name="extendPeriod">Translation of one period.</param>
+    /// <returns>The translated elements in period order.</returns>
+    private static IEnumerable<Element> ExtendPeriodsInParallel(int firstIndex, int count,
+        Func<int, Sequence> extendPeriod)
+    {
+        var periods = new Sequence[count];
+        try
+        {
+            Parallel.For(0, count, i => periods[i] = extendPeriod(firstIndex + i));
+        }
+        catch (AggregateException aggregate)
+        {
+            // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+            ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+            throw;
+        }
+
+        foreach (var period in periods)
+            foreach (var element in period.Elements)
+                yield return element;
+    }
+
+    /// <summary>
+    /// Translates selected period elements into independent slots and enumerates them in source order.
+    /// </summary>
+    /// <param name="elements">The selected period elements, containing more than one element.</param>
+    /// <param name="copy">Translation of one element.</param>
+    /// <returns>The translated elements in source order.</returns>
+    private static IEnumerable<Element> CopyPeriodInParallel(ReadOnlyElementList elements,
+        Func<Element, Element> copy)
+    {
+        var copies = new Element[elements.Count];
+        try
+        {
+            Parallel.For(0, elements.Count, i => copies[i] = copy(elements[i]));
+        }
+        catch (AggregateException aggregate)
+        {
+            // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+            ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+            throw;
+        }
+
+        foreach (var element in copies)
+            yield return element;
+    }
+
     private Sequence ComputeExtensionSequence(int pseudoPeriodIndex, ComputationSettings? settings = null,
         ReadOnlyElementList? periodicElements = null)
     {
         settings = settings ?? new ComputationSettings();
 
         periodicElements ??= PseudoPeriodicSequence.ElementList;
-        bool doParallel = settings.UseParallelComputeExtensionSequences &&
+        bool doParallel = settings.UseParallelComputeExtensionSequences && periodicElements.Count > 1 &&
             periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold;
         IEnumerable<Element> periodicSegmentsCopy;
         if (doParallel)
         {
-            periodicSegmentsCopy = periodicElements
-                .AsParallel().AsOrdered()
-                .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex))
-                .WithoutAggregateException();
+            periodicSegmentsCopy = CopyPeriodInParallel(periodicElements,
+                element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
         }
         else
         {
@@ -4001,15 +4047,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     private IEnumerable<Element> ComputeExtensionSequenceAsEnumerable(int pseudoPeriodIndex, ReadOnlyElementList periodicElements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        bool doParallel = settings.UseParallelComputeExtensionSequences &&
+        bool doParallel = settings.UseParallelComputeExtensionSequences && periodicElements.Count > 1 &&
             periodicElements.Count >= settings.ComputeExtensionSequencesParallelizationThreshold;
         IEnumerable<Element> periodicSegmentsCopy;
         if (doParallel)
         {
-            periodicSegmentsCopy = periodicElements
-                .AsParallel().AsOrdered()
-                .Select(element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex))
-                .WithoutAggregateException();
+            periodicSegmentsCopy = CopyPeriodInParallel(periodicElements,
+                element => GetPseudoPeriodicCopy(element, pseudoPeriodIndex));
         }
         else
         {
