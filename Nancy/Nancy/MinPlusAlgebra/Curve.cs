@@ -4158,7 +4158,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The translated sequence.</returns>
     private Sequence ComputeExtensionSequence(int pseudoPeriodIndex, ComputationSettings? settings = null)
     {
-        settings = settings ?? new ComputationSettings();
+        settings ??= ComputationSettings.Default();
         var copiedElements = TranslatePeriodElements(PseudoPeriodicSequence.ElementList, pseudoPeriodIndex, settings,
             maximumParallelism: Environment.ProcessorCount);
         return new Sequence(copiedElements);
@@ -7462,7 +7462,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks> Algorithm defined in [BT08] Section 4.2 </remarks>
     public virtual Curve Addition(Curve b, ComputationSettings? settings = null)
     {
-        settings ??= new ComputationSettings();
+        settings ??= ComputationSettings.Default();
         
         Rational T = Rational.Max(PseudoPeriodStart, b.PseudoPeriodStart);
         Rational d = Rational.LeastCommonMultiple(PseudoPeriodLength, b.PseudoPeriodLength);
