@@ -99,6 +99,17 @@ internal sealed class ReadOnlyElementList : IList<Element>, IReadOnlyList<Elemen
         return new ReadOnlyElementList(storage, start + index, length);
     }
 
+    /// <summary>Returns the suffix starting at <paramref name="index"/>, sharing this list's array without copying it.</summary>
+    /// <param name="index">Inclusive zero-based index of the first element.</param>
+    /// <returns>The nonempty suffix.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">If <paramref name="index"/> does not identify an element of this list.</exception>
+    public ReadOnlyElementList Slice(int index)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, count);
+        return new ReadOnlyElementList(storage, start + index, count - index);
+    }
+
     /// <summary>Copies the elements into a new list, which does not share this list's array.</summary>
     public ReadOnlyElementList Copy() => new(AsSpan().ToArray());
 

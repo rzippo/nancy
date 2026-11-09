@@ -1457,7 +1457,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="isStartIncluded">If true, the support is left-closed.</param>
     /// <param name="isEndIncluded">If true, the support is right-closed.</param>
     /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
-    /// <remarks>Optimized for minimal allocations.</remarks>
+    /// <remarks>
+    /// Optimized for minimal allocations.
+    /// A binary search skips the prefix; the streamed cut clips the boundaries and stops at the requested end without copying the interior.
+    /// Bounds are validated before returning the enumerable.
+    /// </remarks>
     public IEnumerable<Element> CutAsEnumerable(
         Rational cutStart,
         Rational cutEnd,
@@ -1465,7 +1469,32 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         bool isEndIncluded = false
     )
     {
-        return Elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+        if (cutStart > cutEnd)
+            throw new ArgumentException("Cut start cannot be after end.");
+
+        if (cutStart < DefinedFrom || cutEnd > DefinedUntil)
+            throw new ArgumentException("Cut limits are out of the sequence support.");
+
+        if (isStartIncluded && !IsDefinedAt(cutStart) || isEndIncluded && !IsDefinedAt(cutEnd))
+            throw new ArgumentException("Cut includes endpoints that sequence does not.");
+
+        if (cutStart == cutEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Cut endpoints, if equal, must be both inclusive.");
+
+        if (cutStart == DefinedFrom && cutEnd == DefinedUntil)
+        {
+            // Only endpoint points can be excluded when the time bounds are unchanged.
+            var start = IsLeftClosed && !isStartIncluded ? 1 : 0;
+            var count = Count - start - (IsRightClosed && !isEndIncluded ? 1 : 0);
+            return count == Count ? _elements : _elements.Slice(start, count);
+        }
+        else
+        {
+            // Keep the element touching the start; the streamed cut handles inclusion and stops at the requested end.
+            var start = cutStart == DefinedFrom ? 0 : FindFirstIndex(element => element.EndTime >= cutStart);
+            var elements = start == 0 ? _elements : _elements.Slice(start);
+            return elements.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+        }
     }
 
     /// <summary>
@@ -1521,7 +1550,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         var index = FindFirstIndex(element => element.StartTime >= start);
         if (index < 0 || _elements[index] is not Point point || point.Time != start)
             return null;
-        return new Sequence(_elements.Slice(index, Count - index));
+        return new Sequence(_elements.Slice(index));
     }
 
     /// <summary>
