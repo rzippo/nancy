@@ -2699,25 +2699,26 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     {
         settings ??= ComputationSettings.Default();
         var intervals = IntervalBucket.ComputeIntervals(a, b);
-        List<Element> lowerElements;
+        IEnumerable<Element> lowerElements;
         if (settings.UseParallelLowerEnvelope &&
             (long)a.Count + b.Count >= settings.SequenceLowerEnvelopeParallelizationThreshold)
         {
             lowerElements = intervals
-                .AsParallel().AsOrdered()
+                .AsParallel()
+                .AsOrdered()
                 .Select(i => i.LowerEnvelope())
-                .SelectMany(element => element)
-                .ToList();
+                .AsSequential()
+                .FlattenEnvelopes();
         }
         else
         {
             lowerElements = intervals
-                .Select(i => i.LowerEnvelope())
-                .SelectMany(element => element)
-                .ToList();
+                .Select(interval => interval.LowerEnvelope())
+                .FlattenEnvelopes();
         }
 
-        return lowerElements.Merge(settings: settings);
+        return lowerElements.MergeAsEnumerable()
+            .ToList();
     }
 
     #endregion Minimum operator
@@ -2786,25 +2787,26 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         settings ??= ComputationSettings.Default();
         var intervals = IntervalBucket.ComputeIntervals(a, b);
 
-        List<Element> upperElements;
+        IEnumerable<Element> upperElements;
         if (settings.UseParallelUpperEnvelope &&
             (long)a.Count + b.Count >= settings.SequenceUpperEnvelopeParallelizationThreshold)
         {
             upperElements = intervals
-                .AsParallel().AsOrdered()
+                .AsParallel()
+                .AsOrdered()
                 .Select(i => i.UpperEnvelope())
-                .SelectMany(element => element)
-                .ToList();
+                .AsSequential()
+                .FlattenEnvelopes();
         }
         else
         {
             upperElements = intervals
-                .Select(i => i.UpperEnvelope())
-                .SelectMany(element => element)
-                .ToList();
+                .Select(interval => interval.UpperEnvelope())
+                .FlattenEnvelopes();
         }
 
-        return upperElements.Merge(settings: settings);
+        return upperElements.MergeAsEnumerable()
+            .ToList();
     }
 
     #endregion Maximum operator
