@@ -294,10 +294,14 @@ public class Cut
     [MemberData(nameof(FromOtherTests))]
     public void EquivalenceToExpected_AsEnumerable(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
     {
+        var expected = sequence.Elements
+            .Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded)
+            .ToArray();
         Sequence cut = sequence
             .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded)
             .ToSequence();
 
+        Assert.Equal(expected, cut.Elements);
         Assert.Equal(cutStart, cut.DefinedFrom);
         Assert.Equal(cutEnd, cut.DefinedUntil);
         Assert.Equal(isStartIncluded, cut.IsLeftClosed);
@@ -318,6 +322,25 @@ public class Cut
         Assert.Equal(cutEnd, cut.DefinedUntil);
         Assert.Equal(isStartIncluded, cut.IsLeftClosed);
         Assert.Equal(isEndIncluded, cut.IsRightClosed);
+    }
+
+    public static IEnumerable<object[]> FullBoundsEndpointCases()
+        => new (bool isStartIncluded, bool isEndIncluded)[]
+        {
+            (false, true),
+            (true, false),
+            (false, false)
+        }.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(FullBoundsEndpointCases))]
+    public void StreamedCutOverFullBoundsExcludesRequestedEndpoints(bool isStartIncluded, bool isEndIncluded)
+    {
+        var expected = d.Elements
+            .Cut(d.DefinedFrom, d.DefinedUntil, isStartIncluded, isEndIncluded)
+            .ToArray();
+        var cut = d.CutAsEnumerable(d.DefinedFrom, d.DefinedUntil, isStartIncluded, isEndIncluded);
+        Assert.Equal(expected, cut);
     }
 
     public static IEnumerable<object[]> GetThrowingTestCases()
@@ -367,10 +390,7 @@ public class Cut
     [MemberData(nameof(GetThrowingTestCases))]
     public void Checks_AsEnumerable(Sequence sequence, Rational cutStart, Rational cutEnd, bool isStartIncluded, bool isEndIncluded)
     {
-        Assert.Throws<ArgumentException>(() => sequence
-            .CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded)
-            .ToSequence()
-        );
+        Assert.Throws<ArgumentException>(() => sequence.CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded));
     }
 
     /// <summary>

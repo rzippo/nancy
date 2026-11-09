@@ -75,8 +75,15 @@ public class ReadOnlyElementListCreation
     [Fact]
     public void SliceKeepsTheElementsFromTheIndex()
     {
-        var slice = Of(Elements).Slice(2, 2);
+        var list = Of(Elements);
+        var slice = list.Slice(2, 2);
+        var suffix = list.Slice(2);
 
+        Assert.Equal(Elements, list.Slice(0));
+        Assert.Equal(Elements[2..], suffix);
+        Assert.True(System.Runtime.InteropServices.MemoryMarshal.TryGetArray(list.AsMemory(), out var storage));
+        Assert.True(System.Runtime.InteropServices.MemoryMarshal.TryGetArray(suffix.AsMemory(), out var suffixStorage));
+        Assert.Same(storage.Array, suffixStorage.Array);
         Assert.Equal(Elements[2..], slice);
         Assert.Equal(2, slice.Count);
         Assert.Same(Elements[2], slice[0]);
@@ -96,6 +103,7 @@ public class ReadOnlyElementListCreation
         var slice = Of(Elements).Slice(1, 3).Slice(2, 1);
 
         Assert.Equal(Elements[3..], slice);
+        Assert.Equal(Elements[2..3], Of(Elements).Slice(1, 2).Slice(1));
     }
 
     [Fact]
@@ -103,6 +111,10 @@ public class ReadOnlyElementListCreation
     {
         var list = Of(Elements);
 
+        Assert.Throws<ArgumentOutOfRangeException>(() => list.Slice(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => list.Slice(int.MinValue));
+        Assert.Throws<ArgumentOutOfRangeException>(() => list.Slice(Elements.Length));
+        Assert.Throws<ArgumentOutOfRangeException>(() => list.Slice(int.MaxValue));
         Assert.Throws<ArgumentOutOfRangeException>(() => list.Slice(Elements.Length, 0));
         Assert.Throws<ArgumentOutOfRangeException>(() => list.Slice(-1, 1));
         Assert.Throws<ArgumentOutOfRangeException>(() => list.Slice(2, 3));
