@@ -31,12 +31,18 @@ public class UnionSupport
     {
         var streamed = left.Elements.Minimum(right.Elements, cutToOverlap: false)
             .ToSequence();
-        var materialized = Sequence.Minimum(left, right, cutToOverlap: false);
+        var materialized = Sequence.Minimum(left, right, cutToOverlap: false, settings: new ComputationSettings
+        {
+            UseParallelLowerEnvelope = true,
+            SequenceLowerEnvelopeParallelizationThreshold = 0
+        });
+        var serial = Sequence.Minimum(left, right, cutToOverlap: false,
+            settings: new ComputationSettings { UseParallelism = false });
         var many = new[] { left.Elements, right.Elements }.Minimum()
             .ToSequence();
         var fold = new[] { left, right }.LowerEnvelope()
             .ToSequence();
-        foreach (var result in new[] { streamed, materialized, many, fold })
+        foreach (var result in new[] { streamed, materialized, serial, many, fold })
         {
             CheckSupport(left, right, result);
             foreach (var time in SampleTimes(result))
@@ -54,12 +60,18 @@ public class UnionSupport
     {
         var streamed = left.Elements.Maximum(right.Elements, cutToOverlap: false)
             .ToSequence();
-        var materialized = Sequence.Maximum(left, right, cutToOverlap: false);
+        var materialized = Sequence.Maximum(left, right, cutToOverlap: false, settings: new ComputationSettings
+        {
+            UseParallelUpperEnvelope = true,
+            SequenceUpperEnvelopeParallelizationThreshold = 0
+        });
+        var serial = Sequence.Maximum(left, right, cutToOverlap: false,
+            settings: new ComputationSettings { UseParallelism = false });
         var many = new[] { left.Elements, right.Elements }.Maximum()
             .ToSequence();
         var fold = new[] { left, right }.UpperEnvelope()
             .ToSequence();
-        foreach (var result in new[] { streamed, materialized, many, fold })
+        foreach (var result in new[] { streamed, materialized, serial, many, fold })
         {
             CheckSupport(left, right, result);
             foreach (var time in SampleTimes(result))
