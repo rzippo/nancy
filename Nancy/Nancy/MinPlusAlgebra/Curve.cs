@@ -3685,13 +3685,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         var periodIndexes = Enumerable.Range(firstPeriodIndex, periodCount);
         var availableParallelism = Environment.ProcessorCount;
-        var partitionCount = settings.UseParallelExtend && periodCount >= settings.ExtendParallelizationThreshold
-            ? GetExtensionPartitionCount(
-                elementCount: (long)periodCount * period.Count,
-                itemCount: periodCount,
-                minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
-                maximumParallelism: availableParallelism)
-            : 1;
+        var partitionCount = GetPeriodExtensionPartitionCount(period.Count, periodCount, settings, availableParallelism);
 
         if (partitionCount == 1)
         {
@@ -3802,6 +3796,44 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
 
         return copies;
+    }
+
+    /// <summary>Chooses outer partitions for complete-period translation, using the extension settings and work budget.</summary>
+    /// <param name="periodElementCount">Number of stored elements per period.</param>
+    /// <param name="periodCount">Number of complete periods to translate, greater than zero.</param>
+    /// <param name="settings">Settings for outer extension parallelism.</param>
+    /// <param name="availableParallelism">Available processor budget, greater than zero.</param>
+    /// <returns>The number of outer partitions; one selects serial traversal across periods.</returns>
+    private static int GetPeriodExtensionPartitionCount(int periodElementCount, int periodCount,
+        ComputationSettings settings, int availableParallelism)
+    {
+        return settings.UseParallelExtend && periodCount >= settings.ExtendParallelizationThreshold
+            ? GetExtensionPartitionCount(
+                elementCount: (long)periodCount * periodElementCount,
+                itemCount: periodCount,
+                minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
+                maximumParallelism: availableParallelism)
+            : 1;
+    }
+
+    /// <summary>Determines whether materializing the cut preserves useful parallelism across complete periods.</summary>
+    /// <param name="cutEnd">Excluded endpoint of a cut starting at zero.</param>
+    /// <param name="settings">Settings for extension parallelism.</param>
+    /// <returns>True when the materialized cut would use multiple outer period partitions.</returns>
+    private bool ShouldMaterializeForParallelExtension(Rational cutEnd, ComputationSettings settings)
+    {
+        if (!settings.UseParallelExtend || Environment.ProcessorCount == 1 || !cutEnd.IsFinite ||
+            cutEnd <= FirstPseudoPeriodEnd ||
+            IsUltimatelyAffine || IsUltimatelyInfinite)
+            return false;
+
+        // The base sequence supplies the first period; a partial last period is translated separately.
+        int completePeriodCount = (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor() - 1);
+        if (completePeriodCount <= 0)
+            return false;
+
+        return GetPeriodExtensionPartitionCount(PseudoPeriodicSequence.Count, completePeriodCount,
+            settings, Environment.ProcessorCount) > 1;
     }
 
     /// <summary>
@@ -7443,17 +7475,30 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         Sequence minSequence;
-        if (!settings.UseParallelLowerEnvelope ||
+        if (!settings.UseParallelLowerEnvelope || Environment.ProcessorCount == 1 ||
             (settings.SequenceLowerEnvelopeParallelizationThreshold > 0 &&
              (long)a.Count(0, T + d) + b.Count(0, T + d) < settings.SequenceLowerEnvelopeParallelizationThreshold))
         {
-            minSequence = a.CutAsEnumerable(0, T + d, settings: settings)
-                .Minimum(b.CutAsEnumerable(0, T + d, settings: settings))
+            // A serial envelope may still benefit from parallel extension of either operand.
+            IEnumerable<Element> left;
+            if (a.ShouldMaterializeForParallelExtension(T + d, settings))
+                left = a.Extend(T + d, settings).Elements;
+            else
+                left = a.CutAsEnumerable(0, T + d, settings: settings);
+
+            IEnumerable<Element> right;
+            if (b.ShouldMaterializeForParallelExtension(T + d, settings))
+                right = b.Extend(T + d, settings).Elements;
+            else
+                right = b.CutAsEnumerable(0, T + d, settings: settings);
+
+            minSequence = left.Minimum(right)
                 .MergeAsEnumerable()
                 .ToSequence();
         }
         else
         {
+            // Indexed chunks require both operands to be materialized.
             var extendedSegmentsF1 = a.Extend(T + d, settings);
             var extendedSegmentsF2 = b.Extend(T + d, settings);
             minSequence = extendedSegmentsF1.Minimum(extendedSegmentsF2, settings: settings);
@@ -7757,17 +7802,30 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         Sequence maxSequence;
-        if (!settings.UseParallelUpperEnvelope ||
+        if (!settings.UseParallelUpperEnvelope || Environment.ProcessorCount == 1 ||
             (settings.SequenceUpperEnvelopeParallelizationThreshold > 0 &&
              (long)a.Count(0, T + d) + b.Count(0, T + d) < settings.SequenceUpperEnvelopeParallelizationThreshold))
         {
-            maxSequence = a.CutAsEnumerable(0, T + d, settings: settings)
-                .Maximum(b.CutAsEnumerable(0, T + d, settings: settings))
+            // A serial envelope may still benefit from parallel extension of either operand.
+            IEnumerable<Element> left;
+            if (a.ShouldMaterializeForParallelExtension(T + d, settings))
+                left = a.Extend(T + d, settings).Elements;
+            else
+                left = a.CutAsEnumerable(0, T + d, settings: settings);
+
+            IEnumerable<Element> right;
+            if (b.ShouldMaterializeForParallelExtension(T + d, settings))
+                right = b.Extend(T + d, settings).Elements;
+            else
+                right = b.CutAsEnumerable(0, T + d, settings: settings);
+
+            maxSequence = left.Maximum(right)
                 .MergeAsEnumerable()
                 .ToSequence();
         }
         else
         {
+            // Indexed chunks require both operands to be materialized.
             var extendedSegmentsF1 = a.Extend(T + d, settings);
             var extendedSegmentsF2 = b.Extend(T + d, settings);
             maxSequence = extendedSegmentsF1.Maximum(extendedSegmentsF2, settings: settings);

@@ -61,6 +61,10 @@ public record ComputationSettings
     /// The lower envelope of two sequences is processed in parallel if they have at least this number of elements in all.
     /// Requires <see cref="UseParallelLowerEnvelope"/>.
     /// </summary>
+    /// <remarks>
+    /// For curve minimum, the threshold applies to the element counts of the required cuts.
+    /// Operand extension may still use parallelism under its own settings when the envelope is computed serially.
+    /// </remarks>
     public int SequenceLowerEnvelopeParallelizationThreshold { get; set; } = 0;
 
     /// <summary>
@@ -78,6 +82,10 @@ public record ComputationSettings
     /// The upper envelope of two sequences is processed in parallel if they have at least this number of elements in all.
     /// Requires <see cref="UseParallelUpperEnvelope"/>.
     /// </summary>
+    /// <remarks>
+    /// For curve maximum, the threshold applies to the element counts of the required cuts.
+    /// Operand extension may still use parallelism under its own settings when the envelope is computed serially.
+    /// </remarks>
     public int SequenceUpperEnvelopeParallelizationThreshold { get; set; } = 0;
 
     /// <summary>

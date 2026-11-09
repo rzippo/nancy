@@ -1,4 +1,6 @@
 using System.Threading;
+using System.Threading.Tasks;
+using System.Runtime.ExceptionServices;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -2675,133 +2677,47 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="a">First operand.</param>
     /// <param name="b">Second operand.</param>
-    /// <param name="cutToOverlap">If set, the minimum is performed over the overlapping part.</param>
+    /// <param name="cutToOverlap">If set, the minimum is performed over the overlapping part; otherwise, from the earliest start through the latest end.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The sequence resulting from the minimum.</returns>
+    /// <remarks>
+    /// With <paramref name="cutToOverlap"/> false, where only one operand is defined its value is used, and times where neither is defined, such as a gap between disjoint supports, have value $+\infty$.
+    /// Each outer endpoint is included exactly when an operand defines a value there.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If <paramref name="cutToOverlap"/> is set and the supports share no time.</exception>
     public static Sequence Minimum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
     {
+        if (cutToOverlap && Interval.Intersection(a.Support, b.Support) is null)
+            throw new ArgumentException("The sequences share no time.");
+
         settings ??= ComputationSettings.Default();
-        if (cutToOverlap && (!settings.UseParallelLowerEnvelope ||
-            (long)a.Count + b.Count < settings.SequenceLowerEnvelopeParallelizationThreshold))
-            return a.Elements.Minimum(b.Elements)
+        if (!settings.UseParallelLowerEnvelope || Environment.ProcessorCount == 1 ||
+            (long)a.Count + b.Count < settings.SequenceLowerEnvelopeParallelizationThreshold)
+        {
+            return a.Elements.Minimum(b.Elements, cutToOverlap)
                 .MergeAsEnumerable()
                 .ToSequence();
-
-        if (cutToOverlap)
-        {
-            var overlap = Interval.Intersection(a.Support, b.Support)
-                ?? throw new ArgumentException("The sequences do not overlap.");
-            a = a.Cut(overlap);
-            b = b.Cut(overlap);
         }
-
-        var lowerEnvelopeElements = LowerEnvelope(a, b, settings);
-
-        if (cutToOverlap)
-            return new Sequence(lowerEnvelopeElements);
         else
-            return lowerEnvelopeElements.Fill(
-                    Rational.Min(a.DefinedFrom, b.DefinedFrom),
-                    Rational.Max(a.DefinedUntil, b.DefinedUntil),
-                    isFromIncluded: lowerEnvelopeElements.First() is Point,
-                    isToIncluded: lowerEnvelopeElements.Last() is Point,
-                    fillWith: Rational.PlusInfinity)
-                .ToSequence();
+        {
+            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Lower);
+        }
     }
 
     /// <summary>
     /// Computes minimum of two sequences.
     /// </summary>
     /// <param name="b">Second operand.</param>
-    /// <param name="cutToOverlap">If set, the minimum is performed over the overlapping part.</param>
+    /// <param name="cutToOverlap">If set, the minimum is performed over the overlapping part; otherwise, from the earliest start through the latest end.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The sequence resulting from the minimum.</returns>
+    /// <remarks>
+    /// With <paramref name="cutToOverlap"/> false, where only one operand is defined its value is used, and times where neither is defined, such as a gap between disjoint supports, have value $+\infty$.
+    /// Each outer endpoint is included exactly when an operand defines a value there.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If <paramref name="cutToOverlap"/> is set and the supports share no time.</exception>
     public Sequence Minimum(Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
         => Minimum(this, b, cutToOverlap, settings);
-
-    /// <summary>
-    /// Computes the lower envelope of the pair of sequences given.
-    /// $O(n)$ complexity.
-    /// </summary>
-    /// <remarks>Used for minimum</remarks>
-    public static List<Element> LowerEnvelope(Sequence a, Sequence b, ComputationSettings? settings = null)
-    {
-        settings ??= ComputationSettings.Default();
-        var intervals = IntervalBucket.ComputeIntervals(a, b);
-        IEnumerable<Element> lowerElements;
-        if (settings.UseParallelLowerEnvelope &&
-            (long)a.Count + b.Count >= settings.SequenceLowerEnvelopeParallelizationThreshold)
-        {
-            lowerElements = intervals
-                .AsParallel()
-                .AsOrdered()
-                .Select(i => i.LowerEnvelope())
-                .AsSequential()
-                .FlattenEnvelopes();
-        }
-        else
-        {
-            lowerElements = intervals
-                .Select(interval => interval.LowerEnvelope())
-                .FlattenEnvelopes();
-        }
-
-        return lowerElements.MergeAsEnumerable()
-            .ToList();
-    }
-
-    #endregion Minimum operator
-
-    #region Maximum operator
-
-    /// <summary>
-    /// Computes maximum of two sequences, over their overlapping parts.
-    /// </summary>
-    /// <param name="a">First operand.</param>
-    /// <param name="b">Second operand.</param>
-    /// <param name="cutToOverlap">If set, the maximum is performed over the overlapping part.</param>
-    /// <param name="settings">Optional settings for the operation.</param>
-    /// <returns>The sequence resulting from the maximum.</returns>
-    public static Sequence Maximum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
-    {
-        settings ??= ComputationSettings.Default();
-        if (cutToOverlap && (!settings.UseParallelUpperEnvelope ||
-            (long)a.Count + b.Count < settings.SequenceUpperEnvelopeParallelizationThreshold))
-            return a.Elements.Maximum(b.Elements)
-                .MergeAsEnumerable()
-                .ToSequence();
-
-        if (cutToOverlap)
-        {
-            var overlap = Interval.Intersection(a.Support, b.Support)
-                ?? throw new ArgumentException("The sequences do not overlap.");
-            a = a.Cut(overlap);
-            b = b.Cut(overlap);
-        }
-
-        var upperEnvelopeElements = UpperEnvelope(a, b, settings);
-
-        if (cutToOverlap)
-            return new Sequence(upperEnvelopeElements);
-        else
-            return upperEnvelopeElements.Fill(
-                    Rational.Min(a.DefinedFrom, b.DefinedFrom),
-                    Rational.Max(a.DefinedUntil, b.DefinedUntil),
-                    isFromIncluded: upperEnvelopeElements.First() is Point,
-                    isToIncluded: upperEnvelopeElements.Last() is Point,
-                    fillWith: Rational.MinusInfinity)
-                .ToSequence();
-    }
-
-    /// <summary>
-    /// Computes maximum of two sequences, over their overlapping parts.
-    /// </summary>
-    /// <param name="b">Second operand.</param>
-    /// <param name="cutToOverlap">If set, the maximum is performed over the overlapping part.</param>
-    /// <param name="settings">Optional settings for the operation.</param>
-    /// <returns>The sequence resulting from the maximum.</returns>
-    public Sequence Maximum(Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
-        => Maximum(a: this, b, cutToOverlap, settings);
 
     /// <summary>
     /// Computes the lower envelope of the pair of sequences given.
@@ -2810,35 +2726,240 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
-    /// <remarks>Used for maximum.</remarks>
-    public static List<Element> UpperEnvelope(Sequence a, Sequence b, ComputationSettings? settings = null)
+    /// <returns>The normalized envelope over the union of the operand supports.</returns>
+    /// <remarks>The result is defined exactly where an operand is: times in neither support, such as a gap between disjoint supports, are left out.</remarks>
+    public static List<Element> LowerEnvelope(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
-        settings ??= ComputationSettings.Default();
-        var intervals = IntervalBucket.ComputeIntervals(a, b);
-
-        IEnumerable<Element> upperElements;
-        if (settings.UseParallelUpperEnvelope &&
-            (long)a.Count + b.Count >= settings.SequenceUpperEnvelopeParallelizationThreshold)
+        if (Interval.Intersection(a.Support, b.Support) is null)
         {
-            upperElements = intervals
-                .AsParallel()
-                .AsOrdered()
-                .Select(i => i.UpperEnvelope())
-                .AsSequential()
-                .FlattenEnvelopes();
+            var (first, second) = a.DefinedUntil <= b.DefinedFrom ? (a, b) : (b, a);
+            return first.Elements.Concat(second.Elements)
+                .MergeAsEnumerable()
+                .ToList();
         }
         else
         {
-            upperElements = intervals
-                .Select(interval => interval.UpperEnvelope())
-                .FlattenEnvelopes();
+            return Minimum(a, b, cutToOverlap: false, settings).Elements
+                .ToList();
         }
+    }
 
-        return upperElements.MergeAsEnumerable()
-            .ToList();
+    #endregion Minimum operator
+
+    #region Maximum operator
+
+    /// <summary>
+    /// Computes maximum of two sequences.
+    /// </summary>
+    /// <param name="a">First operand.</param>
+    /// <param name="b">Second operand.</param>
+    /// <param name="cutToOverlap">If set, the maximum is performed over the overlapping part; otherwise, from the earliest start through the latest end.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The sequence resulting from the maximum.</returns>
+    /// <remarks>
+    /// With <paramref name="cutToOverlap"/> false, where only one operand is defined its value is used, and times where neither is defined, such as a gap between disjoint supports, have value $-\infty$.
+    /// Each outer endpoint is included exactly when an operand defines a value there.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If <paramref name="cutToOverlap"/> is set and the supports share no time.</exception>
+    public static Sequence Maximum(Sequence a, Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
+    {
+        if (cutToOverlap && Interval.Intersection(a.Support, b.Support) is null)
+            throw new ArgumentException("The sequences share no time.");
+
+        settings ??= ComputationSettings.Default();
+        if (!settings.UseParallelUpperEnvelope || Environment.ProcessorCount == 1 ||
+            (long)a.Count + b.Count < settings.SequenceUpperEnvelopeParallelizationThreshold)
+        {
+            return a.Elements.Maximum(b.Elements, cutToOverlap)
+                .MergeAsEnumerable()
+                .ToSequence();
+        }
+        else
+        {
+            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Upper);
+        }
+    }
+
+    /// <summary>
+    /// Computes maximum of two sequences.
+    /// </summary>
+    /// <param name="b">Second operand.</param>
+    /// <param name="cutToOverlap">If set, the maximum is performed over the overlapping part; otherwise, from the earliest start through the latest end.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The sequence resulting from the maximum.</returns>
+    /// <remarks>
+    /// With <paramref name="cutToOverlap"/> false, where only one operand is defined its value is used, and times where neither is defined, such as a gap between disjoint supports, have value $-\infty$.
+    /// Each outer endpoint is included exactly when an operand defines a value there.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If <paramref name="cutToOverlap"/> is set and the supports share no time.</exception>
+    public Sequence Maximum(Sequence b, bool cutToOverlap = true, ComputationSettings? settings = null)
+        => Maximum(a: this, b, cutToOverlap, settings);
+
+    /// <summary>
+    /// Computes the upper envelope of the pair of sequences given.
+    /// $O(n)$ complexity.
+    /// </summary>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The normalized envelope over the union of the operand supports.</returns>
+    /// <remarks>The result is defined exactly where an operand is: times in neither support, such as a gap between disjoint supports, are left out.</remarks>
+    public static List<Element> UpperEnvelope(Sequence a, Sequence b, ComputationSettings? settings = null)
+    {
+        if (Interval.Intersection(a.Support, b.Support) is null)
+        {
+            var (first, second) = a.DefinedUntil <= b.DefinedFrom ? (a, b) : (b, a);
+            return first.Elements.Concat(second.Elements)
+                .MergeAsEnumerable()
+                .ToList();
+        }
+        else
+        {
+            return Maximum(a, b, cutToOverlap: false, settings).Elements
+                .ToList();
+        }
     }
 
     #endregion Maximum operator
+
+    #region Parallel pair envelopes
+
+    /// <summary>
+    /// Computes a pair envelope through independent chronological merges over contiguous chunks.
+    /// </summary>
+    /// <param name="a">First meaningful sequence.</param>
+    /// <param name="b">Second meaningful sequence.</param>
+    /// <param name="cutToOverlap">Whether to restrict the result to the common support.</param>
+    /// <param name="kind">Lower or upper envelope.</param>
+    /// <returns>The normalized envelope in chronological order.</returns>
+    private static Sequence ComputePairEnvelopeInParallel(Sequence a, Sequence b, bool cutToOverlap, EnvelopeKind kind)
+    {
+        Interval support;
+        if (cutToOverlap)
+        {
+            // The callers reject supports that share no time.
+            support = Interval.Intersection(a.Support, b.Support)!.Value;
+        }
+        else
+        {
+            var start = Rational.Min(a.DefinedFrom, b.DefinedFrom);
+            var end = Rational.Max(a.DefinedUntil, b.DefinedUntil);
+            support = new Interval(start, end,
+                a.IsDefinedAt(start) || b.IsDefinedAt(start),
+                a.IsDefinedAt(end) || b.IsDefinedAt(end));
+        }
+
+        var boundaries = GetPairEnvelopeBoundaries(a, b, support);
+        if (boundaries.Length <= 2)
+        {
+            return (kind == EnvelopeKind.Lower ? a.Elements.Minimum(b.Elements, cutToOverlap) : a.Elements.Maximum(b.Elements, cutToOverlap))
+                .MergeAsEnumerable()
+                .ToSequence();
+        }
+        else
+        {
+            var results = new Element[boundaries.Length - 1][];
+            // Internal boundary points belong only to the chunk on their right.
+            void MergeChunk(int i)
+            {
+                var chunk = new Interval(boundaries[i], boundaries[i + 1],
+                    i == 0 ? support.IsLowerIncluded : true,
+                    i == results.Length - 1 ? support.IsUpperIncluded : false);
+                var neutral = kind == EnvelopeKind.Lower ? Rational.PlusInfinity : Rational.MinusInfinity;
+                var left = cutToOverlap ? a.CutAsEnumerable(chunk) : GetFilledEnvelopeOperand(a, chunk, neutral);
+                var right = cutToOverlap ? b.CutAsEnumerable(chunk) : GetFilledEnvelopeOperand(b, chunk, neutral);
+                results[i] = (kind == EnvelopeKind.Lower ? left.Minimum(right) : left.Maximum(right))
+                    .MergeAsEnumerable()
+                    .ToArray();
+            }
+
+            try
+            {
+                Parallel.For(0, results.Length, MergeChunk);
+            }
+            catch (AggregateException aggregate)
+            {
+                // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                throw;
+            }
+
+            // Reconcile artificial boundaries while consuming the completed slots in chronological order.
+            return results.SelectMany(elements => elements)
+                .MergeAsEnumerable()
+                .ToSequence();
+        }
+    }
+
+    /// <summary>
+    /// Samples the relevant element ranks of both operands to partition work across dense regions of either input.
+    /// </summary>
+    /// <param name="a">First meaningful sequence.</param>
+    /// <param name="b">Second meaningful sequence.</param>
+    /// <param name="support">The nonempty result support.</param>
+    /// <returns>Sorted distinct boundaries, including the support endpoints.</returns>
+    private static Rational[] GetPairEnvelopeBoundaries(Sequence a, Sequence b, Interval support)
+    {
+        if (support.Lower == support.Upper)
+            return [support.Lower];
+
+        var boundaries = new List<Rational> { support.Lower, support.Upper };
+        AddPairEnvelopeBoundaries(a, support, boundaries);
+        AddPairEnvelopeBoundaries(b, support, boundaries);
+        boundaries.Sort();
+        return boundaries.Distinct()
+            .ToArray();
+    }
+
+    /// <summary>Adds interior time boundaries sampled from the operand's relevant element range.</summary>
+    /// <param name="sequence">The meaningful operand sequence.</param>
+    /// <param name="support">The nonempty result support.</param>
+    /// <param name="boundaries">The boundary collection to append to, before sorting and deduplication.</param>
+    private static void AddPairEnvelopeBoundaries(Sequence sequence, Interval support, List<Rational> boundaries)
+    {
+        var overlap = Interval.Intersection(sequence.Support, support);
+        if (overlap is null)
+            return;
+
+        int start = overlap.Value.Lower == sequence.DefinedFrom ? 0 :
+            sequence.FindFirstIndex(element => element.EndTime >= overlap.Value.Lower);
+        int end = overlap.Value.Upper == sequence.DefinedUntil ? sequence.Count - 1 :
+            sequence.FindLastIndex(element => element.StartTime <= overlap.Value.Upper, start);
+        int count = end - start + 1;
+        int partitions = Environment.ProcessorCount;
+        for (int i = 1; i < partitions; i++)
+        {
+            int index = start + (int)((long)i * count / partitions);
+            var time = sequence.Elements[index].StartTime;
+            if (time > support.Lower && time < support.Upper)
+                boundaries.Add(time);
+        }
+    }
+
+    /// <summary>Restricts an operand to a chunk and fills missing support with the envelope's neutral value.</summary>
+    /// <param name="sequence">The meaningful operand sequence.</param>
+    /// <param name="chunk">A positive-width chunk of the result support.</param>
+    /// <param name="neutral">Positive infinity for minimum, or negative infinity for maximum.</param>
+    /// <returns>A meaningful sequence over the whole chunk, consumed as an enumerable.</returns>
+    private static IEnumerable<Element> GetFilledEnvelopeOperand(Sequence sequence, Interval chunk, Rational neutral)
+    {
+        var overlap = Interval.Intersection(sequence.Support, chunk);
+        if (overlap is null)
+        {
+            return Constant(neutral, chunk.Lower, chunk.Upper, chunk.IsLowerIncluded, chunk.IsUpperIncluded).Elements;
+        }
+        else if (overlap.Value.SetEquals(chunk))
+        {
+            return sequence.CutAsEnumerable(chunk);
+        }
+        else
+        {
+            return sequence.CutAsEnumerable(overlap.Value)
+                .Fill(chunk, neutral);
+        }
+    }
+
+    #endregion Parallel pair envelopes
 
     #region Convolution operator
 
