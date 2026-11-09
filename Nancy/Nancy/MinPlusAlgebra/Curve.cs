@@ -125,19 +125,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve has finite value for any $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsFinite
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isFinite);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => BaseSequence.IsFinite, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isFinite, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsFinite => KnownProperties.Get(ref _isFinite, this, static self => self.ComputeIsFinite());
+
+    /// <summary>Computes <see cref="IsFinite"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsFinite() => BaseSequence.IsFinite;
 
     /// <summary>Cached value of <see cref="IsFinite"/>.</summary>
     internal Lazy<bool>? _isFinite;
@@ -226,19 +217,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve is 0 for all $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsZero
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isZero);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => BaseSequence.IsZero && PseudoPeriodHeight.IsZero, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isZero, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsZero => KnownProperties.Get(ref _isZero, this, static self => self.ComputeIsZero());
+
+    /// <summary>Computes <see cref="IsZero"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsZero() => BaseSequence.IsZero && PseudoPeriodHeight.IsZero;
 
     /// <summary>Cached value of <see cref="IsZero"/>.</summary>
     internal Lazy<bool>? _isZero;
@@ -247,19 +229,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve has $+\infty$ value for any $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPlusInfinite
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isPlusInfinite);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => this.Equivalent(PlusInfinite()), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isPlusInfinite, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsPlusInfinite => KnownProperties.Get(ref _isPlusInfinite, this, static self => self.ComputeIsPlusInfinite());
+
+    /// <summary>Computes <see cref="IsPlusInfinite"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsPlusInfinite() => this.Equivalent(PlusInfinite());
 
     /// <summary>Cached value of <see cref="IsPlusInfinite"/>.</summary>
     internal Lazy<bool>? _isPlusInfinite;
@@ -268,19 +241,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve has $-\infty$ value for any $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsMinusInfinite
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isMinusInfinite);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => this.Equivalent(MinusInfinite()), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isMinusInfinite, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsMinusInfinite => KnownProperties.Get(ref _isMinusInfinite, this, static self => self.ComputeIsMinusInfinite());
+
+    /// <summary>Computes <see cref="IsMinusInfinite"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsMinusInfinite() => this.Equivalent(MinusInfinite());
 
     /// <summary>Cached value of <see cref="IsMinusInfinite"/>.</summary>
     internal Lazy<bool>? _isMinusInfinite;
@@ -292,19 +256,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// It is enough to look at <see cref="BaseSequence"/>, since the pseudo-periodic extension repeats its elements and adding a finite <see cref="PseudoPeriodHeight"/> does not change an infinity.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool HasPlusInfinity
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _hasPlusInfinity);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => BaseSequence.HasPlusInfinity, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _hasPlusInfinity, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool HasPlusInfinity => KnownProperties.Get(ref _hasPlusInfinity, this, static self => self.ComputeHasPlusInfinity());
+
+    /// <summary>Computes <see cref="HasPlusInfinity"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeHasPlusInfinity() => BaseSequence.HasPlusInfinity;
 
     // Lazy publishes a complete value and serializes its computation within each holder.
     internal Lazy<bool>? _hasPlusInfinity;
@@ -314,19 +269,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <inheritdoc cref="HasPlusInfinity" path="/remarks"/>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool HasMinusInfinity
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _hasMinusInfinity);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => BaseSequence.HasMinusInfinity, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _hasMinusInfinity, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool HasMinusInfinity => KnownProperties.Get(ref _hasMinusInfinity, this, static self => self.ComputeHasMinusInfinity());
+
+    /// <summary>Computes <see cref="HasMinusInfinity"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeHasMinusInfinity() => BaseSequence.HasMinusInfinity;
 
     internal Lazy<bool>? _hasMinusInfinity;
 
@@ -334,19 +280,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPassingThroughOrigin
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isPassingThroughOrigin);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => ValueAt(0) == 0, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isPassingThroughOrigin, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsPassingThroughOrigin => KnownProperties.Get(ref _isPassingThroughOrigin, this, static self => self.ComputeIsPassingThroughOrigin());
+
+    /// <summary>Computes <see cref="IsPassingThroughOrigin"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsPassingThroughOrigin() => ValueAt(0) == 0;
 
     internal Lazy<bool>? _isPassingThroughOrigin;
 
@@ -354,29 +291,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if values and one-sided limits agree throughout the curve, including matching infinite values.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsContinuous
+    public bool IsContinuous => KnownProperties.Get(ref _isContinuous, this, static self => self.ComputeIsContinuous());
+
+    /// <summary>Computes <see cref="IsContinuous"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsContinuous()
     {
-        get
-        {
-            var cache = Volatile.Read(ref _isContinuous);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() =>
-                {
-                    if (!BaseSequence.IsContinuous)
-                        return false;
+        if (!BaseSequence.IsContinuous)
+            return false;
 
-                    Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
-                    Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
+        Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
+        Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
 
-                    bool isPeriodicContinuous = pseudoPeriodStartValue + PseudoPeriodHeight == pseudoPeriodLastValue;
+        bool isPeriodicContinuous = pseudoPeriodStartValue + PseudoPeriodHeight == pseudoPeriodLastValue;
 
-                    return isPeriodicContinuous;
-                }, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isContinuous, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
+        return isPeriodicContinuous;
     }
 
     /// <summary>Cached value of <see cref="IsContinuous"/>.</summary>
@@ -386,35 +314,26 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if there is no discontinuity within the curve, except at most in origin.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsContinuousExceptOrigin
+    public bool IsContinuousExceptOrigin => KnownProperties.Get(ref _isContinuousExceptOrigin, this, static self => self.ComputeIsContinuousExceptOrigin());
+
+    /// <summary>Computes <see cref="IsContinuousExceptOrigin"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsContinuousExceptOrigin()
     {
-        get
-        {
-            var cache = Volatile.Read(ref _isContinuousExceptOrigin);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() =>
-                {
-                    if (!BaseSequence
-                            .Cut(0, BaseSequence.DefinedUntil, isStartIncluded: false)
-                            .IsContinuous)
-                        return false;
+        if (!BaseSequence
+                .Cut(0, BaseSequence.DefinedUntil, isStartIncluded: false)
+                .IsContinuous)
+            return false;
 
-                    // with the pseudo-period starting at 0, a jump right after 0 repeats right after the end of each pseudo-period
-                    if (PseudoPeriodStart == 0 && !IsRightContinuousAt(0))
-                        return false;
+        // with the pseudo-period starting at 0, a jump right after 0 repeats right after the end of each pseudo-period
+        if (PseudoPeriodStart == 0 && !IsRightContinuousAt(0))
+            return false;
 
-                    Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
-                    Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
+        Rational pseudoPeriodStartValue = ((Point)PseudoPeriodicElements.First()).Value;
+        Rational pseudoPeriodLastValue = ((Segment)PseudoPeriodicElements.Last()).LeftLimitAtEndTime;
 
-                    bool isPeriodicContinuous = pseudoPeriodStartValue + PseudoPeriodHeight == pseudoPeriodLastValue;
+        bool isPeriodicContinuous = pseudoPeriodStartValue + PseudoPeriodHeight == pseudoPeriodLastValue;
 
-                    return isPeriodicContinuous;
-                }, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isContinuousExceptOrigin, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
+        return isPeriodicContinuous;
     }
 
     /// <summary>Cached value of <see cref="IsContinuousExceptOrigin"/>.</summary>
@@ -424,20 +343,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if there is no left-discontinuity within the curve.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsLeftContinuous
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isLeftContinuous);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
-                    .IsLeftContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isLeftContinuous, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsLeftContinuous => KnownProperties.Get(ref _isLeftContinuous, this, static self => self.ComputeIsLeftContinuous());
+
+    /// <summary>Computes <see cref="IsLeftContinuous"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsLeftContinuous() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+        .IsLeftContinuous();
 
     /// <summary>
     /// Private cache field for <see cref="IsLeftContinuous"/>
@@ -448,20 +358,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if there is no right-discontinuity within the curve.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsRightContinuous
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isRightContinuous);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
-                    .IsRightContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isRightContinuous, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsRightContinuous => KnownProperties.Get(ref _isRightContinuous, this, static self => self.ComputeIsRightContinuous());
+
+    /// <summary>Computes <see cref="IsRightContinuous"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsRightContinuous() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+        .IsRightContinuous();
 
     /// <summary>
     /// Private cache field for <see cref="IsRightContinuous"/>
@@ -491,19 +392,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve is non-negative, i.e. $f(t) \ge 0$ for any $t$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNonNegative
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isNonNegative);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => InfValue() >= 0, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNonNegative, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsNonNegative => KnownProperties.Get(ref _isNonNegative, this, static self => self.ComputeIsNonNegative());
+
+    /// <summary>Computes <see cref="IsNonNegative"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsNonNegative() => InfValue() >= 0;
 
     /// <summary>
     /// Private cache field for <see cref="IsNonNegative"/>
@@ -641,19 +533,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <summary>True if every defined value is non-positive.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNonPositive
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isNonPositive);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => BaseSequence.IsNonPositive && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite)), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNonPositive, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsNonPositive => KnownProperties.Get(ref _isNonPositive, this, static self => self.ComputeIsNonPositive());
+
+    /// <summary>Computes <see cref="IsNonPositive"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsNonPositive() => BaseSequence.IsNonPositive && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
 
     /// <summary>Cached value of <see cref="IsNonPositive"/>.</summary>
     internal Lazy<bool>? _isNonPositive;
@@ -724,19 +607,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <summary>True if every defined value is strictly positive, including plus infinity.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPositive
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isPositive);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => BaseSequence.IsPositive && (PseudoPeriodSlope >= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite)), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isPositive, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsPositive => KnownProperties.Get(ref _isPositive, this, static self => self.ComputeIsPositive());
+
+    /// <summary>Computes <see cref="IsPositive"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsPositive() => BaseSequence.IsPositive && (PseudoPeriodSlope >= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
 
     /// <summary>Cached value of <see cref="IsPositive"/>.</summary>
     internal Lazy<bool>? _isPositive;
@@ -807,19 +681,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <summary>True if every defined value is strictly negative, including minus infinity.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNegative
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isNegative);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => BaseSequence.IsNegative && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite)), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNegative, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsNegative => KnownProperties.Get(ref _isNegative, this, static self => self.ComputeIsNegative());
+
+    /// <summary>Computes <see cref="IsNegative"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsNegative() => BaseSequence.IsNegative && (PseudoPeriodSlope <= 0 || !PseudoPeriodicElements.Any(e => e.IsFinite));
 
     /// <summary>Cached value of <see cref="IsNegative"/>.</summary>
     internal Lazy<bool>? _isNegative;
@@ -890,38 +755,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <summary>True if one constant value, possibly infinite, holds on the whole support.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsConstant
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isConstant);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => BaseSequence.IsConstant && (PseudoPeriodHeight == 0 || IsUltimatelyInfinite), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isConstant, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsConstant => KnownProperties.Get(ref _isConstant, this, static self => self.ComputeIsConstant());
+
+    /// <summary>Computes <see cref="IsConstant"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsConstant() => BaseSequence.IsConstant && (PseudoPeriodHeight == 0 || IsUltimatelyInfinite);
 
     /// <summary>Cached value of <see cref="IsConstant"/>.</summary>
     internal Lazy<bool>? _isConstant;
 
     /// <summary>True if finite coefficients define one affine function on the whole support.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsAffine
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isAffine);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsUltimatelyAffine && BaseSequence.IsAffine, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isAffine, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsAffine => KnownProperties.Get(ref _isAffine, this, static self => self.ComputeIsAffine());
+
+    /// <summary>Computes <see cref="IsAffine"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsAffine() => IsUltimatelyAffine && BaseSequence.IsAffine;
 
     /// <summary>Cached value of <see cref="IsAffine"/>.</summary>
     internal Lazy<bool>? _isAffine;
@@ -930,20 +777,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if for any $t > s$, $f(t) \ge f(s)$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNonDecreasing
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isNonDecreasing);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
-                    .IsNonDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNonDecreasing, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsNonDecreasing => KnownProperties.Get(ref _isNonDecreasing, this, static self => self.ComputeIsNonDecreasing());
+
+    /// <summary>Computes <see cref="IsNonDecreasing"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsNonDecreasing() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+        .IsNonDecreasing();
 
     /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>
@@ -953,20 +791,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// True if for any $t > s$, $f(t) > f(s)$.
     /// </summary>
-    public bool IsIncreasing
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isIncreasing);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
-                    .IsIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isIncreasing, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsIncreasing => KnownProperties.Get(ref _isIncreasing, this, static self => self.ComputeIsIncreasing());
+
+    /// <summary>Computes <see cref="IsIncreasing"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsIncreasing() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+        .IsIncreasing();
 
     /// <summary>
     /// Private cache field for <see cref="IsIncreasing"/>
@@ -977,20 +806,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if for any $t > s$, $f(t) \le f(s)$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsNonIncreasing
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isNonIncreasing);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
-                    .IsNonIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNonIncreasing, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsNonIncreasing => KnownProperties.Get(ref _isNonIncreasing, this, static self => self.ComputeIsNonIncreasing());
+
+    /// <summary>Computes <see cref="IsNonIncreasing"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsNonIncreasing() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+        .IsNonIncreasing();
 
     /// <summary>
     /// Private cache field for <see cref="IsNonIncreasing"/>.
@@ -1001,20 +821,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if for any $t > s$, $f(t) &lt; f(s)$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsDecreasing
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isDecreasing);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
-                    .IsDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isDecreasing, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsDecreasing => KnownProperties.Get(ref _isDecreasing, this, static self => self.ComputeIsDecreasing());
+
+    /// <summary>Computes <see cref="IsDecreasing"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsDecreasing() => CutAsEnumerable(0, FirstPseudoPeriodEnd, isEndIncluded: true)
+        .IsDecreasing();
 
     /// <summary>
     /// Private cache field for <see cref="IsDecreasing"/>.
@@ -1315,19 +1126,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// This property does not check if $f(t), t &lt;$ <see cref="PseudoPeriodStart"/> is either infinite, finite or both.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyFinite
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isUltimatelyFinite);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => PseudoPeriodicElements.All(elem => elem.IsFinite), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyFinite, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsUltimatelyFinite => KnownProperties.Get(ref _isUltimatelyFinite, this, static self => self.ComputeIsUltimatelyFinite());
+
+    /// <summary>Computes <see cref="IsUltimatelyFinite"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsUltimatelyFinite() => PseudoPeriodicElements.All(elem => elem.IsFinite);
 
     /// <summary>Cached value of <see cref="IsUltimatelyFinite"/>.</summary>
     internal Lazy<bool>? _isUltimatelyFinite;
@@ -1336,19 +1138,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if, for some $T$, $f(t) = +\infty$ for all $t \ge T$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyPlusInfinite
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isUltimatelyPlusInfinite);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsPlusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyPlusInfinite, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsUltimatelyPlusInfinite => KnownProperties.Get(ref _isUltimatelyPlusInfinite, this, static self => self.ComputeIsUltimatelyPlusInfinite());
+
+    /// <summary>Computes <see cref="IsUltimatelyPlusInfinite"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsUltimatelyPlusInfinite() => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsPlusInfinite();
 
     /// <summary>Cached value of <see cref="IsUltimatelyPlusInfinite"/>.</summary>
     internal Lazy<bool>? _isUltimatelyPlusInfinite;
@@ -1357,19 +1150,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if, for some $T$, $f(t) = -\infty$ for all $t \ge T$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyMinusInfinite
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isUltimatelyMinusInfinite);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyMinusInfinite, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsUltimatelyMinusInfinite => KnownProperties.Get(ref _isUltimatelyMinusInfinite, this, static self => self.ComputeIsUltimatelyMinusInfinite());
+
+    /// <summary>Computes <see cref="IsUltimatelyMinusInfinite"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsUltimatelyMinusInfinite() => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite();
 
     /// <summary>Cached value of <see cref="IsUltimatelyMinusInfinite"/>.</summary>
     internal Lazy<bool>? _isUltimatelyMinusInfinite;
@@ -1378,19 +1162,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if, for $b \in \{-\infty, +\infty\}$ and some $T$, $f(t) = b$ for all $t \ge T$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyInfinite
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isUltimatelyInfinite);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyInfinite, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsUltimatelyInfinite => KnownProperties.Get(ref _isUltimatelyInfinite, this, static self => self.ComputeIsUltimatelyInfinite());
+
+    /// <summary>Computes <see cref="IsUltimatelyInfinite"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsUltimatelyInfinite() => IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite;
 
     /// <summary>Cached value of <see cref="IsUltimatelyInfinite"/>.</summary>
     internal Lazy<bool>? _isUltimatelyInfinite;
@@ -1402,19 +1177,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Defined in [BT08], Definition 1.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyPlain
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isUltimatelyPlain);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsUltimatelyFinite || IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyPlain, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsUltimatelyPlain => KnownProperties.Get(ref _isUltimatelyPlain, this, static self => self.ComputeIsUltimatelyPlain());
+
+    /// <summary>Computes <see cref="IsUltimatelyPlain"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsUltimatelyPlain() => IsUltimatelyFinite || IsUltimatelyPlusInfinite || IsUltimatelyMinusInfinite;
 
     /// <summary>Cached value of <see cref="IsUltimatelyPlain"/>.</summary>
     internal Lazy<bool>? _isUltimatelyPlain;
@@ -1429,33 +1195,24 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Formally defined in [BT08], Definition 1.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsPlain
+    public bool IsPlain => KnownProperties.Get(ref _isPlain, this, static self => self.ComputeIsPlain());
+
+    /// <summary>Computes <see cref="IsPlain"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsPlain()
     {
-        get
-        {
-            var cache = Volatile.Read(ref _isPlain);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() =>
-                {
-                    if (IsFinite)
-                        return true;
+        if (IsFinite)
+            return true;
 
-                    var ti = PseudoPeriodStartInfimum;
-                    var transientIsFinite =  ti == 0 || CutAsEnumerable(0, ti, true, false).IsFinite();
-                    var periodIsPlainlyInfinite =
-                        ValueAt(ti).IsFinite
-                            ? (CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsMinusInfinite() ||
-                               CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsPlusInfinite())
-                            : (CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsMinusInfinite() ||
-                               CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsPlusInfinite());
+        var ti = PseudoPeriodStartInfimum;
+        var transientIsFinite =  ti == 0 || CutAsEnumerable(0, ti, true, false).IsFinite();
+        var periodIsPlainlyInfinite =
+            ValueAt(ti).IsFinite
+                ? (CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsMinusInfinite() ||
+                   CutAsEnumerable(ti, SecondPseudoPeriodEnd, false).IsPlusInfinite())
+                : (CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsMinusInfinite() ||
+                   CutAsEnumerable(ti, SecondPseudoPeriodEnd).IsPlusInfinite());
 
-                    return transientIsFinite && periodIsPlainlyInfinite;
-                }, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isPlain, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
+        return transientIsFinite && periodIsPlainlyInfinite;
     }
 
     /// <summary>Cached value of <see cref="IsPlain"/>.</summary>
@@ -1465,22 +1222,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if for all $t \ge$ <see cref="PseudoPeriodStart"/> the curve is finite and affine.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyAffine
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isUltimatelyAffine);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsUltimatelyFinite
-                    && PseudoPeriodicElements.Count() == 2
-                    && ((Segment)PseudoPeriodicElements.Last()).Slope == PseudoPeriodSlope
-                    && IsContinuousAt(FirstPseudoPeriodEnd), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyAffine, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsUltimatelyAffine => KnownProperties.Get(ref _isUltimatelyAffine, this, static self => self.ComputeIsUltimatelyAffine());
+
+    /// <summary>Computes <see cref="IsUltimatelyAffine"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsUltimatelyAffine() => IsUltimatelyFinite
+        && PseudoPeriodicElements.Count() == 2
+        && ((Segment)PseudoPeriodicElements.Last()).Slope == PseudoPeriodSlope
+        && IsContinuousAt(FirstPseudoPeriodEnd);
 
     /// <summary>Cached value of <see cref="IsUltimatelyAffine"/>.</summary>
     internal Lazy<bool>? _isUltimatelyAffine;
@@ -1489,19 +1237,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if for $t \ge$ <see cref="PseudoPeriodStart"/> the curve has one finite constant value.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsUltimatelyConstant
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isUltimatelyConstant);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsUltimatelyAffine && PseudoPeriodSlope == 0, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyConstant, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsUltimatelyConstant => KnownProperties.Get(ref _isUltimatelyConstant, this, static self => self.ComputeIsUltimatelyConstant());
+
+    /// <summary>Computes <see cref="IsUltimatelyConstant"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsUltimatelyConstant() => IsUltimatelyAffine && PseudoPeriodSlope == 0;
 
     /// <summary>Cached value of <see cref="IsUltimatelyConstant"/>.</summary>
     internal Lazy<bool>? _isUltimatelyConstant;
@@ -1515,34 +1254,23 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public virtual bool IsSubAdditive
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _IsSubAdditive);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsSubAdditive(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _IsSubAdditive, candidate, null) ?? candidate;
-            }
-            return cache.Value;
+    public virtual bool IsSubAdditive => KnownProperties.Get(ref _IsSubAdditive, this, static self => self.ComputeIsSubAdditive());
 
-            bool CheckIsSubAdditive()
-            {
-                if (ValueAt(0) >= 0)
-                {
-                    // the operand is copied to a plain Curve: a subclass would shortcut the convolution
-                    // through the very property being checked, making the check circular
-                    var f_circ = new Curve(WithZeroOrigin());
-                    var selfConv = Convolution(f_circ, f_circ);
-                    return Equivalent(f_circ, selfConv);
-                }
-                else
-                {
-                    // this check is more restrictive than the property described in [DNC18]
-                    return Equivalent(MinusInfinite());
-                }
-            }
+    /// <summary>Computes <see cref="IsSubAdditive"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsSubAdditive()
+    {
+        if (ValueAt(0) >= 0)
+        {
+            // the operand is copied to a plain Curve: a subclass would shortcut the convolution
+            // through the very property being checked, making the check circular
+            var f_circ = new Curve(WithZeroOrigin());
+            var selfConv = Convolution(f_circ, f_circ);
+            return Equivalent(f_circ, selfConv);
+        }
+        else
+        {
+            // this check is more restrictive than the property described in [DNC18]
+            return Equivalent(MinusInfinite());
         }
     }
 
@@ -1555,19 +1283,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve is subadditive with $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsRegularSubAdditive
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isRegularSubAdditive);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsSubAdditive && IsPassingThroughOrigin, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isRegularSubAdditive, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsRegularSubAdditive => KnownProperties.Get(ref _isRegularSubAdditive, this, static self => self.ComputeIsRegularSubAdditive());
+
+    /// <summary>Computes <see cref="IsRegularSubAdditive"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsRegularSubAdditive() => IsSubAdditive && IsPassingThroughOrigin;
 
     /// <summary>Cached value of <see cref="IsRegularSubAdditive"/>.</summary>
     internal Lazy<bool>? _isRegularSubAdditive;
@@ -1583,36 +1302,25 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Can be computationally expensive the first time it is invoked, the result is cached afterwards.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public virtual bool IsSuperAdditive
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _IsSuperAdditive);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsSuperAdditive(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _IsSuperAdditive, candidate, null) ?? candidate;
-            }
-            return cache.Value;
+    public virtual bool IsSuperAdditive => KnownProperties.Get(ref _IsSuperAdditive, this, static self => self.ComputeIsSuperAdditive());
 
-            bool CheckIsSuperAdditive()
-            {
-                if(ValueAt(0) <= 0)
-                {
-                    // $f$ is super-additive iff the curve with the origin raised to 0 is, and the characterization below holds for that one:
-                    // raising is the max-plus dual of the lowering that WithZeroOrigin performs for the sub-additive check.
-                    // The operand is copied to a plain Curve: a subclass would shortcut the max-plus convolution
-                    // through the very property being checked, making the check circular
-                    var f_circ = new Curve(WithOriginAt(0));
-                    var selfConv = MaxPlusConvolution(f_circ, f_circ);
-                    return Equivalent(f_circ, selfConv);
-                }
-                else
-                {
-                    // this check may be more restrictive than necessary
-                    return Equivalent(PlusInfinite());
-                }
-            }
+    /// <summary>Computes <see cref="IsSuperAdditive"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsSuperAdditive()
+    {
+        if(ValueAt(0) <= 0)
+        {
+            // $f$ is super-additive iff the curve with the origin raised to 0 is, and the characterization below holds for that one:
+            // raising is the max-plus dual of the lowering that WithZeroOrigin performs for the sub-additive check.
+            // The operand is copied to a plain Curve: a subclass would shortcut the max-plus convolution
+            // through the very property being checked, making the check circular
+            var f_circ = new Curve(WithOriginAt(0));
+            var selfConv = MaxPlusConvolution(f_circ, f_circ);
+            return Equivalent(f_circ, selfConv);
+        }
+        else
+        {
+            // this check may be more restrictive than necessary
+            return Equivalent(PlusInfinite());
         }
     }
 
@@ -1625,19 +1333,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if the curve is super-additive with $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsRegularSuperAdditive
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isRegularSuperAdditive);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsSuperAdditive && IsPassingThroughOrigin, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isRegularSuperAdditive, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsRegularSuperAdditive => KnownProperties.Get(ref _isRegularSuperAdditive, this, static self => self.ComputeIsRegularSuperAdditive());
+
+    /// <summary>Computes <see cref="IsRegularSuperAdditive"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsRegularSuperAdditive() => IsSuperAdditive && IsPassingThroughOrigin;
 
     /// <summary>Cached value of <see cref="IsRegularSuperAdditive"/>.</summary>
     internal Lazy<bool>? _isRegularSuperAdditive;
@@ -1652,37 +1351,28 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// b) $f$ is composed of segments with decreasing slopes.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsConcave
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isConcave);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() =>
-                {
-                    if (IsContinuousExceptOrigin && ValueAt(0) <= RightLimitAt(0) && IsUltimatelyAffine)
-                    {
-                        var prevSlope = Rational.PlusInfinity;
-                        foreach (var element in BaseSequence.Elements)
-                        {
-                            if (element is Segment s)
-                            {
-                                if (s.Slope > prevSlope)
-                                    return false;
-                                prevSlope = s.Slope;
-                            }
-                        }
+    public bool IsConcave => KnownProperties.Get(ref _isConcave, this, static self => self.ComputeIsConcave());
 
-                        return true;
-                    }
-                    else
+    /// <summary>Computes <see cref="IsConcave"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsConcave()
+    {
+        if (IsContinuousExceptOrigin && ValueAt(0) <= RightLimitAt(0) && IsUltimatelyAffine)
+        {
+            var prevSlope = Rational.PlusInfinity;
+            foreach (var element in BaseSequence.Elements)
+            {
+                if (element is Segment s)
+                {
+                    if (s.Slope > prevSlope)
                         return false;
-                }, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isConcave, candidate, null) ?? candidate;
+                    prevSlope = s.Slope;
+                }
             }
-            return cache.Value;
+
+            return true;
         }
+        else
+            return false;
     }
 
     /// <summary>Cached value of <see cref="IsConcave"/>.</summary>
@@ -1692,19 +1382,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Tests if the curve is concave with $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsRegularConcave
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isRegularConcave);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsConcave && IsPassingThroughOrigin, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isRegularConcave, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsRegularConcave => KnownProperties.Get(ref _isRegularConcave, this, static self => self.ComputeIsRegularConcave());
+
+    /// <summary>Computes <see cref="IsRegularConcave"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsRegularConcave() => IsConcave && IsPassingThroughOrigin;
 
     /// <summary>Cached value of <see cref="IsRegularConcave"/>.</summary>
     internal Lazy<bool>? _isRegularConcave;
@@ -1719,37 +1400,28 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// b) $f$ is composed of segments with increasing slopes.
     /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsConvex
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isConvex);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() =>
-                {
-                    if (IsContinuousExceptOrigin && ValueAt(0) >= RightLimitAt(0) && IsUltimatelyAffine)
-                    {
-                        var prevSlope = Rational.MinusInfinity;
-                        foreach (var element in BaseSequence.Elements)
-                        {
-                            if (element is Segment s)
-                            {
-                                if (s.Slope < prevSlope)
-                                    return false;
-                                prevSlope = s.Slope;
-                            }
-                        }
+    public bool IsConvex => KnownProperties.Get(ref _isConvex, this, static self => self.ComputeIsConvex());
 
-                        return true;
-                    }
-                    else
+    /// <summary>Computes <see cref="IsConvex"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsConvex()
+    {
+        if (IsContinuousExceptOrigin && ValueAt(0) >= RightLimitAt(0) && IsUltimatelyAffine)
+        {
+            var prevSlope = Rational.MinusInfinity;
+            foreach (var element in BaseSequence.Elements)
+            {
+                if (element is Segment s)
+                {
+                    if (s.Slope < prevSlope)
                         return false;
-                }, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isConvex, candidate, null) ?? candidate;
+                    prevSlope = s.Slope;
+                }
             }
-            return cache.Value;
+
+            return true;
         }
+        else
+            return false;
     }
 
     /// <summary>Cached value of <see cref="IsConvex"/>.</summary>
@@ -1759,19 +1431,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Tests if the curve is convex with $f(0) = 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool IsRegularConvex
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isRegularConvex);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => IsConvex && IsPassingThroughOrigin, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isRegularConvex, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool IsRegularConvex => KnownProperties.Get(ref _isRegularConvex, this, static self => self.ComputeIsRegularConvex());
+
+    /// <summary>Computes <see cref="IsRegularConvex"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeIsRegularConvex() => IsConvex && IsPassingThroughOrigin;
 
     /// <summary>Cached value of <see cref="IsRegularConvex"/>.</summary>
     internal Lazy<bool>? _isRegularConvex;
@@ -1780,19 +1443,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// True if pseudo-periodic behavior starts at $T > 0$.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool HasTransient
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _hasTransient);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => PseudoPeriodStart > 0, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _hasTransient, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+    public bool HasTransient => KnownProperties.Get(ref _hasTransient, this, static self => self.ComputeHasTransient());
+
+    /// <summary>Computes <see cref="HasTransient"/> from the curve, without reading or writing its cache.</summary>
+    internal bool ComputeHasTransient() => PseudoPeriodStart > 0;
 
     /// <summary>Cached value of <see cref="HasTransient"/>.</summary>
     internal Lazy<bool>? _hasTransient;
@@ -1894,67 +1548,67 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <see cref="IsContinuous"/> if already cached, without forcing the check.
     /// </summary>
     private bool? ContinuousIfKnown
-        => Volatile.Read(ref _isContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isContinuous);
 
     /// <summary>
     /// <see cref="IsLeftContinuous"/> if already cached, without forcing the check.
     /// </summary>
     private bool? LeftContinuousIfKnown
-        => Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isLeftContinuous);
 
     /// <summary>
     /// <see cref="IsRightContinuous"/> if already cached, without forcing the check.
     /// </summary>
     private bool? RightContinuousIfKnown
-        => Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isRightContinuous);
 
     /// <summary>
     /// <see cref="IsNonNegative"/> if already cached, without forcing the check.
     /// </summary>
     private bool? NonNegativeIfKnown
-        => Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isNonNegative);
 
     /// <summary>
     /// <see cref="IsNonPositive"/> if already cached, without forcing the check.
     /// </summary>
     private bool? NonPositiveIfKnown
-        => Volatile.Read(ref _isNonPositive) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isNonPositive);
 
     /// <summary>
     /// <see cref="IsPositive"/> if already cached, without forcing the check.
     /// </summary>
     private bool? PositiveIfKnown
-        => Volatile.Read(ref _isPositive) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isPositive);
 
     /// <summary>
     /// <see cref="IsNegative"/> if already cached, without forcing the check.
     /// </summary>
     private bool? NegativeIfKnown
-        => Volatile.Read(ref _isNegative) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isNegative);
 
     /// <summary>
     /// <see cref="IsNonDecreasing"/> if already cached, without forcing the check.
     /// </summary>
     private bool? NonDecreasingIfKnown
-        => Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isNonDecreasing);
 
     /// <summary>
     /// <see cref="IsNonIncreasing"/> if already cached, without forcing the check.
     /// </summary>
     private bool? NonIncreasingIfKnown
-        => Volatile.Read(ref _isNonIncreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isNonIncreasing);
 
     /// <summary>
     /// <see cref="IsIncreasing"/> if already cached, without forcing the check.
     /// </summary>
     private bool? IncreasingIfKnown
-        => Volatile.Read(ref _isIncreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isIncreasing);
 
     /// <summary>
     /// <see cref="IsDecreasing"/> if already cached, without forcing the check.
     /// </summary>
     private bool? DecreasingIfKnown
-        => Volatile.Read(ref _isDecreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+        => KnownProperties.GetIfKnown(ref _isDecreasing);
 
     #endregion
 
@@ -3706,26 +3360,27 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 .ToSequence();
         }
 
-        if (Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } known_isNonDecreasing && known_isNonDecreasing.Value)
-            result._isNonDecreasing = known_isNonDecreasing;
-        if (Volatile.Read(ref _isIncreasing) is { IsValueCreated: true } known_isIncreasing && known_isIncreasing.Value)
-            result._isIncreasing = known_isIncreasing;
-        if (Volatile.Read(ref _isNonIncreasing) is { IsValueCreated: true } known_isNonIncreasing && known_isNonIncreasing.Value)
-            result._isNonIncreasing = known_isNonIncreasing;
-        if (Volatile.Read(ref _isDecreasing) is { IsValueCreated: true } known_isDecreasing && known_isDecreasing.Value)
-            result._isDecreasing = known_isDecreasing;
-        if (Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } known_isNonNegative && known_isNonNegative.Value)
-            result._isNonNegative = known_isNonNegative;
-        if (Volatile.Read(ref _isNonPositive) is { IsValueCreated: true } known_isNonPositive && known_isNonPositive.Value)
-            result._isNonPositive = known_isNonPositive;
-        if (Volatile.Read(ref _isPositive) is { IsValueCreated: true } known_isPositive && known_isPositive.Value)
-            result._isPositive = known_isPositive;
-        if (Volatile.Read(ref _isNegative) is { IsValueCreated: true } known_isNegative && known_isNegative.Value)
-            result._isNegative = known_isNegative;
-        if (Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } known_isLeftContinuous && known_isLeftContinuous.Value)
-            result._isLeftContinuous = known_isLeftContinuous;
-        if (Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } known_isRightContinuous && known_isRightContinuous.Value)
-            result._isRightContinuous = known_isRightContinuous;
+        // A cut keeps what the whole determines for every part: a property that holds everywhere, when true,
+        // and one that holds somewhere, when false.
+        KnownProperties.CopyIfKnown(ref _isFinite, ref result._isFinite, true);
+        KnownProperties.CopyIfKnown(ref _isPlusInfinite, ref result._isPlusInfinite, true);
+        KnownProperties.CopyIfKnown(ref _isMinusInfinite, ref result._isMinusInfinite, true);
+        KnownProperties.CopyIfKnown(ref _isZero, ref result._isZero, true);
+        KnownProperties.CopyIfKnown(ref _isConstant, ref result._isConstant, true);
+        KnownProperties.CopyIfKnown(ref _isAffine, ref result._isAffine, true);
+        KnownProperties.CopyIfKnown(ref _isContinuous, ref result._isContinuous, true);
+        KnownProperties.CopyIfKnown(ref _isLeftContinuous, ref result._isLeftContinuous, true);
+        KnownProperties.CopyIfKnown(ref _isRightContinuous, ref result._isRightContinuous, true);
+        KnownProperties.CopyIfKnown(ref _isNonNegative, ref result._isNonNegative, true);
+        KnownProperties.CopyIfKnown(ref _isNonPositive, ref result._isNonPositive, true);
+        KnownProperties.CopyIfKnown(ref _isPositive, ref result._isPositive, true);
+        KnownProperties.CopyIfKnown(ref _isNegative, ref result._isNegative, true);
+        KnownProperties.CopyIfKnown(ref _isNonDecreasing, ref result._isNonDecreasing, true);
+        KnownProperties.CopyIfKnown(ref _isIncreasing, ref result._isIncreasing, true);
+        KnownProperties.CopyIfKnown(ref _isNonIncreasing, ref result._isNonIncreasing, true);
+        KnownProperties.CopyIfKnown(ref _isDecreasing, ref result._isDecreasing, true);
+        KnownProperties.CopyIfKnown(ref _hasPlusInfinity, ref result._hasPlusInfinity, false);
+        KnownProperties.CopyIfKnown(ref _hasMinusInfinity, ref result._hasMinusInfinity, false);
 
         return result;
     }
