@@ -1141,7 +1141,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public bool IsUltimatelyPlusInfinite => KnownProperties.Get(ref _isUltimatelyPlusInfinite, this, static self => self.ComputeIsUltimatelyPlusInfinite());
 
     /// <summary>Computes <see cref="IsUltimatelyPlusInfinite"/> from the curve, without reading or writing its cache.</summary>
-    internal bool ComputeIsUltimatelyPlusInfinite() => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsPlusInfinite();
+    internal bool ComputeIsUltimatelyPlusInfinite()
+    {
+        // The normalized base sequence ends with a segment preceded by its starting point.
+        // If that segment starts at T, these two elements describe the entire stored period.
+        var elements = BaseSequence.Elements;
+        var last = (Segment)elements[^1];
+        return last.StartTime == PseudoPeriodStart && last.IsPlusInfinite &&
+            elements[^2].IsPlusInfinite &&
+            (PseudoPeriodHeight.IsFinite || PseudoPeriodHeight.IsPlusInfinite);
+    }
 
     /// <summary>Cached value of <see cref="IsUltimatelyPlusInfinite"/>.</summary>
     internal Lazy<bool>? _isUltimatelyPlusInfinite;
@@ -1153,7 +1162,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     public bool IsUltimatelyMinusInfinite => KnownProperties.Get(ref _isUltimatelyMinusInfinite, this, static self => self.ComputeIsUltimatelyMinusInfinite());
 
     /// <summary>Computes <see cref="IsUltimatelyMinusInfinite"/> from the curve, without reading or writing its cache.</summary>
-    internal bool ComputeIsUltimatelyMinusInfinite() => CutAsEnumerable(PseudoPeriodStart, SecondPseudoPeriodEnd).IsMinusInfinite();
+    internal bool ComputeIsUltimatelyMinusInfinite()
+    {
+        // The normalized base sequence ends with a segment preceded by its starting point.
+        // If that segment starts at T, these two elements describe the entire stored period.
+        var elements = BaseSequence.Elements;
+        var last = (Segment)elements[^1];
+        return last.StartTime == PseudoPeriodStart && last.IsMinusInfinite &&
+            elements[^2].IsMinusInfinite &&
+            (PseudoPeriodHeight.IsFinite || PseudoPeriodHeight.IsMinusInfinite);
+    }
 
     /// <summary>Cached value of <see cref="IsUltimatelyMinusInfinite"/>.</summary>
     internal Lazy<bool>? _isUltimatelyMinusInfinite;
@@ -3232,7 +3250,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 result = BaseSequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
             }
         }
-        else if (IsUltimatelyAffine)
+        else if (IsUltimatelyAffine || IsUltimatelyInfinite)
         {
             if (cutStart >= PseudoPeriodStart)
             {
@@ -3423,7 +3441,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return BaseSequence.Elements
                 .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
-        else if (IsUltimatelyAffine)
+        else if (IsUltimatelyAffine || IsUltimatelyInfinite)
         {
             if (cutStart >= PseudoPeriodStart)
             {
