@@ -10,19 +10,18 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// </summary>
 internal static class IntervalEndpointSorter
 {
-    private const int MinimumChunkLength = 4096;
-
     /// <summary>
-    /// Sorts the array in place, using serial sorting for small arrays or a single processor.
+    /// Sorts the array in place, using serial sorting for small arrays or a degree of parallelism of one.
     /// </summary>
     /// <param name="values">The endpoint array to sort in place.</param>
-    /// <param name="parallel">Whether independent sorting and merging work may execute concurrently.</param>
+    /// <param name="degreeOfParallelism">The number of chunks and of concurrent sorts and merges; one sorts serially.</param>
+    /// <param name="minimumChunkLength">The minimum number of values per chunk and per merge tile, treated as one when smaller.</param>
     /// <remarks>Comparison failures are reported as their underlying exception in both execution modes.</remarks>
-    internal static void Sort(Rational[] values, bool parallel = true)
+    internal static void Sort(Rational[] values, int degreeOfParallelism = 1, int minimumChunkLength = 1)
     {
-        int workers = Environment.ProcessorCount;
+        minimumChunkLength = Math.Max(1, minimumChunkLength);
         int count = values.Length;
-        if (!parallel || count <= MinimumChunkLength || workers == 1)
+        if (count <= minimumChunkLength || degreeOfParallelism == 1)
         {
             try
             {
@@ -36,8 +35,8 @@ internal static class IntervalEndpointSorter
         }
         else
         {
-            var options = new ParallelOptions { MaxDegreeOfParallelism = workers };
-            int width = Math.Max(MinimumChunkLength, 1 + (count - 1) / workers);
+            var options = new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism };
+            int width = Math.Max(minimumChunkLength, 1 + (count - 1) / degreeOfParallelism);
             int chunks = 1 + (count - 1) / width;
             try
             {
@@ -69,7 +68,7 @@ internal static class IntervalEndpointSorter
             {
                 int pairWidth = (int)Math.Min(2L * width, count);
                 int pairs = 1 + (count - 1) / pairWidth;
-                int tiles = Math.Min(workers, 1 + (pairWidth - 1) / MinimumChunkLength);
+                int tiles = Math.Min(degreeOfParallelism, 1 + (pairWidth - 1) / minimumChunkLength);
                 int currentWidth = width;
                 var currentSource = source;
                 var currentTarget = target;

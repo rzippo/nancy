@@ -1071,6 +1071,7 @@ public static partial class SequenceExtensions
             {
                 result = elements
                     .AsParallel()
+                    .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                     .OrderBy(element => element.StartTime)
                     .ThenBy(element => element.EndTime)
                     .WithoutAggregateException()
@@ -3862,7 +3863,8 @@ public static partial class SequenceExtensions
             var envelopes = new List<Element>[intervals.Count];
             try
             {
-                Parallel.For(0, intervals.Count, i => envelopes[i] = intervals[i].LowerEnvelope());
+                Parallel.For(0, intervals.Count, new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism },
+                    i => envelopes[i] = intervals[i].LowerEnvelope());
             }
             catch (AggregateException aggregate)
             {
@@ -3909,7 +3911,7 @@ public static partial class SequenceExtensions
             settings ??= ComputationSettings.Default();
             bool doParallel = settings.UseParallelListLowerEnvelope && sequences.Count >= settings.ListLowerEnvelopeParallelizationThreshold;
             return BalancedReduction.Aggregate(sequences,
-                    (a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings), doParallel)
+                    (a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings), doParallel ? settings.DegreeOfParallelism : 1)
                 .Elements;
         }
     }
@@ -3948,7 +3950,8 @@ public static partial class SequenceExtensions
             var envelopes = new List<Element>[intervals.Count];
             try
             {
-                Parallel.For(0, intervals.Count, i => envelopes[i] = intervals[i].UpperEnvelope());
+                Parallel.For(0, intervals.Count, new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism },
+                    i => envelopes[i] = intervals[i].UpperEnvelope());
             }
             catch (AggregateException aggregate)
             {
@@ -3992,7 +3995,7 @@ public static partial class SequenceExtensions
             settings ??= ComputationSettings.Default();
             bool doParallel = settings.UseParallelListUpperEnvelope && sequences.Count >= settings.ListUpperEnvelopeParallelizationThreshold;
             return BalancedReduction.Aggregate(sequences,
-                    (a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings), doParallel)
+                    (a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings), doParallel ? settings.DegreeOfParallelism : 1)
                 .Elements;
         }
     }

@@ -476,10 +476,10 @@ internal class IntervalBucket
             Rational[] times;
             if (doParallel)
             {
-                var endpoints = new ConcurrentDictionary<Rational, byte>(Environment.ProcessorCount, 31);
+                var endpoints = new ConcurrentDictionary<Rational, byte>(settings.DegreeOfParallelism, 31);
                 try
                 {
-                    Parallel.For(0, elements.Count, i =>
+                    Parallel.For(0, elements.Count, new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism }, i =>
                     {
                         var element = elements[i];
                         if (element is not Point && element is not Segment)
@@ -523,7 +523,8 @@ internal class IntervalBucket
             var intervalCount = 2L * times.Length - 1;
             bool parallelSort = settings.UseParallelComputeIntervals &&
                 intervalCount >= settings.SortIntervalsParallelizationThreshold;
-            IntervalEndpointSorter.Sort(times, parallelSort);
+            IntervalEndpointSorter.Sort(times, parallelSort ? settings.DegreeOfParallelism : 1,
+                settings.SortIntervalsMinimumEndpointsPerPartition);
 
             var intervals = new List<IntervalBucket>(checked((int)intervalCount));
             for (int i = 0; i < times.Length; i++)
@@ -547,7 +548,7 @@ internal class IntervalBucket
         {
             try
             {
-                Parallel.ForEach(elements, ProcessElement);
+                Parallel.ForEach(elements, new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism }, ProcessElement);
             }
             catch (AggregateException aggregate)
             {

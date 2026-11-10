@@ -3316,8 +3316,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 // The entire cut lies in one translated period, including the case of a complete right-open period.
                 var selectedElements = GetPeriodElementsForCut(periodicSequence, firstPeriodIndex, cutInterval);
-                cutElements = TranslatePeriodElements(selectedElements, firstPeriodIndex, settings,
-                    maximumParallelism: Environment.ProcessorCount);
+                cutElements = TranslatePeriodElements(selectedElements, firstPeriodIndex, settings);
             }
             else
             {
@@ -3334,8 +3333,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 {
                     // A partial first period is separate from the complete-period range.
                     var firstPeriodElements = GetPeriodElementsForCut(periodicSequence, firstPeriodIndex, cutInterval);
-                    prefixElements = TranslatePeriodElements(firstPeriodElements, firstPeriodIndex, settings,
-                        maximumParallelism: Environment.ProcessorCount);
+                    prefixElements = TranslatePeriodElements(firstPeriodElements, firstPeriodIndex, settings);
                     firstCompletePeriodIndex++;
                 }
                 else
@@ -3348,8 +3346,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 {
                     // A partial last period also supplies an included endpoint at the next period's start.
                     var lastPeriodElements = GetPeriodElementsForCut(periodicSequence, lastPeriodIndex, cutInterval);
-                    suffixElements = TranslatePeriodElements(lastPeriodElements, lastPeriodIndex, settings,
-                        maximumParallelism: Environment.ProcessorCount);
+                    suffixElements = TranslatePeriodElements(lastPeriodElements, lastPeriodIndex, settings);
                     lastCompletePeriodIndex--;
                 }
                 else
@@ -3675,7 +3672,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
-    /// Translates complete consecutive periods, distributing work within the available processor budget.
+    /// Translates complete consecutive periods, distributing work within the degree of parallelism.
     /// </summary>
     /// <param name="period">The stored pseudo-period.</param>
     /// <param name="firstPeriodIndex">Index of the first period to translate.</param>
@@ -3687,15 +3684,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ComputationSettings settings)
     {
         var periodIndexes = Enumerable.Range(firstPeriodIndex, periodCount);
-        var availableParallelism = Environment.ProcessorCount;
-        var partitionCount = GetPeriodExtensionPartitionCount(period.Count, periodCount, settings, availableParallelism);
+        var partitionCount = GetPeriodExtensionPartitionCount(period.Count, periodCount, settings);
 
         if (partitionCount == 1)
         {
             // Translate periods in order; element translation within each period may still run in parallel.
             foreach (var index in periodIndexes)
-                foreach (var element in TranslatePeriodElements(period.ElementList, index, settings,
-                             maximumParallelism: availableParallelism))
+                foreach (var element in TranslatePeriodElements(period.ElementList, index, settings))
                     yield return element;
         }
         else
@@ -3703,8 +3698,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             // Translate independent ranges of complete periods in parallel.
 
             var periods = new Element[periodCount][];
-            // Outer partitions share the processor budget with their inner element copies.
-            var parallelismPerPeriod = Math.Max(1, availableParallelism / partitionCount);
+            // Outer partitions share the degree of parallelism with their inner element copies.
+            var parallelismPerPeriod = Math.Max(1, settings.DegreeOfParallelism / partitionCount);
             var partitionsPerPeriod = GetPeriodTranslationPartitionCount(period.Count, settings,
                 maximumParallelism: parallelismPerPeriod);
             try
@@ -3743,8 +3738,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ComputationSettings settings)
     {
         foreach (var index in Enumerable.Range(firstPeriodIndex, periodCount))
-            foreach (var element in TranslatePeriodElements(period.ElementList, index, settings,
-                         maximumParallelism: Environment.ProcessorCount))
+            foreach (var element in TranslatePeriodElements(period.ElementList, index, settings))
                 yield return element;
     }
 
@@ -3756,8 +3750,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Interval cutInterval, ComputationSettings settings)
     {
         var elements = GetPeriodElementsForCut(period, periodIndex, cutInterval);
-        foreach (var element in TranslatePeriodElements(elements, periodIndex, settings,
-                     maximumParallelism: Environment.ProcessorCount))
+        foreach (var element in TranslatePeriodElements(elements, periodIndex, settings))
             yield return element;
     }
 
@@ -3804,18 +3797,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>Chooses outer partitions for complete-period translation, using the extension settings and work budget.</summary>
     /// <param name="periodElementCount">Number of stored elements per period.</param>
     /// <param name="periodCount">Number of complete periods to translate, greater than zero.</param>
-    /// <param name="settings">Settings for outer extension parallelism.</param>
-    /// <param name="availableParallelism">Available processor budget, greater than zero.</param>
+    /// <param name="settings">Settings for outer extension parallelism and its degree.</param>
     /// <returns>The number of outer partitions; one selects serial traversal across periods.</returns>
     private static int GetPeriodExtensionPartitionCount(int periodElementCount, int periodCount,
-        ComputationSettings settings, int availableParallelism)
+        ComputationSettings settings)
     {
         return settings.UseParallelExtend && periodCount >= settings.ExtendParallelizationThreshold
             ? GetExtensionPartitionCount(
                 elementCount: (long)periodCount * periodElementCount,
                 itemCount: periodCount,
                 minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
-                maximumParallelism: availableParallelism)
+                maximumParallelism: settings.DegreeOfParallelism)
             : 1;
     }
 
@@ -3825,7 +3817,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>True when the materialized cut would use multiple outer period partitions.</returns>
     private bool ShouldMaterializeForParallelExtension(Rational cutEnd, ComputationSettings settings)
     {
-        if (!settings.UseParallelExtend || Environment.ProcessorCount == 1 || !cutEnd.IsFinite ||
+        if (!settings.UseParallelExtend || settings.DegreeOfParallelism == 1 || !cutEnd.IsFinite ||
             cutEnd <= FirstPseudoPeriodEnd ||
             IsUltimatelyAffine || IsUltimatelyInfinite)
             return false;
@@ -3836,7 +3828,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return false;
 
         return GetPeriodExtensionPartitionCount(PseudoPeriodicSequence.Count, completePeriodCount,
-            settings, Environment.ProcessorCount) > 1;
+            settings) > 1;
     }
 
     /// <summary>
@@ -3867,13 +3859,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     private Sequence ComputeExtensionSequence(int pseudoPeriodIndex, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        var copiedElements = TranslatePeriodElements(PseudoPeriodicSequence.ElementList, pseudoPeriodIndex, settings,
-            maximumParallelism: Environment.ProcessorCount);
+        var copiedElements = TranslatePeriodElements(PseudoPeriodicSequence.ElementList, pseudoPeriodIndex, settings);
         return new Sequence(copiedElements);
     }
 
     /// <summary>
-    /// Selects inner work partitions using the element threshold and the caller's processor budget.
+    /// Selects inner work partitions using the element threshold and the caller's partition budget.
     /// </summary>
     private static int GetPeriodTranslationPartitionCount(int elementCount, ComputationSettings settings,
         int maximumParallelism)
@@ -3888,7 +3879,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 elementCount: elementCount,
                 itemCount: elementCount,
                 minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
-                maximumParallelism: Math.Min(maximumParallelism, Environment.ProcessorCount));
+                maximumParallelism: maximumParallelism);
         }
     }
 
@@ -3898,7 +3889,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="elements">The selected period elements.</param>
     /// <param name="periodIndex">Index of the translated period.</param>
     /// <param name="settings">Settings for inner parallel execution and minimum work per partition.</param>
-    /// <param name="maximumParallelism">Available inner partition budget, greater than zero.</param>
     /// <returns>The translated elements in source order, computed when consumed.</returns>
     /// <remarks>
     /// Times are shifted by the period index times the pseudo-period length, and values by the period index times the pseudo-period height.
@@ -3907,9 +3897,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The inner parallelism switch and threshold and the available work budget determine which execution is used.
     /// </remarks>
     internal IEnumerable<Element> TranslatePeriodElements(ReadOnlyElementList elements, int periodIndex,
-        ComputationSettings settings, int maximumParallelism)
+        ComputationSettings settings)
     {
-        var partitionCount = GetPeriodTranslationPartitionCount(elements.Count, settings, maximumParallelism);
+        var partitionCount = GetPeriodTranslationPartitionCount(elements.Count, settings, settings.DegreeOfParallelism);
         if (partitionCount == 1)
         {
             return TranslatePeriodElementsSerially(elements, periodIndex);
@@ -7245,7 +7235,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             operands.Average(c => c.BaseSequence.Count) >= settings.ListAdditionComplexityThreshold;
 
         return BalancedReduction.Aggregate(operands, (a, b) => Addition(a, b, settings),
-            parallelizeDueCount || parallelizeDueComplexity);
+            parallelizeDueCount || parallelizeDueComplexity ? settings.DegreeOfParallelism : 1);
     }
 
     /// <summary>
@@ -7460,7 +7450,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         Sequence minSequence;
-        if (!settings.UseParallelLowerEnvelope || Environment.ProcessorCount == 1 ||
+        if (!settings.UseParallelLowerEnvelope || settings.DegreeOfParallelism == 1 ||
             (settings.SequenceLowerEnvelopeParallelizationThreshold > 0 &&
              (long)a.Count(0, T + d) + b.Count(0, T + d) < settings.SequenceLowerEnvelopeParallelizationThreshold))
         {
@@ -7603,7 +7593,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Trace($"Minimum reduction of {operands.Count} curves");
         #endif
         return BalancedReduction.Aggregate(operands, (a, b) => Minimum(a, b, settings),
-            parallelizeDueCount || parallelizeDueComplexity);
+            parallelizeDueCount || parallelizeDueComplexity ? settings.DegreeOfParallelism : 1);
     }
 
     /// <summary>
@@ -7760,7 +7750,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         Sequence maxSequence;
-        if (!settings.UseParallelUpperEnvelope || Environment.ProcessorCount == 1 ||
+        if (!settings.UseParallelUpperEnvelope || settings.DegreeOfParallelism == 1 ||
             (settings.SequenceUpperEnvelopeParallelizationThreshold > 0 &&
              (long)a.Count(0, T + d) + b.Count(0, T + d) < settings.SequenceUpperEnvelopeParallelizationThreshold))
         {
@@ -7859,7 +7849,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Trace($"Maximum reduction of {operands.Count} curves");
         #endif
         return BalancedReduction.Aggregate(operands, (a, b) => Maximum(a, b, settings),
-            parallelizeDueCount || parallelizeDueComplexity);
+            parallelizeDueCount || parallelizeDueComplexity ? settings.DegreeOfParallelism : 1);
     }
 
     /// <summary>
@@ -8476,7 +8466,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         return BalancedReduction.Aggregate(operands, (a, b) => Convolution(a, b, settings),
-            settings.UseParallelListConvolution && operands.Count >= settings.ListConvolutionParallelizationThreshold);
+            settings.UseParallelListConvolution && operands.Count >= settings.ListConvolutionParallelizationThreshold
+                ? settings.DegreeOfParallelism : 1);
     }
 
     /// <summary>
@@ -9087,6 +9078,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 ));
 
             elementClosures = transientClosures.Concat(periodicClosures)
+                .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                 .WithoutAggregateException()
                 .ToList();
         }
@@ -9720,7 +9712,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         return BalancedReduction.Aggregate(operands, (a, b) => MaxPlusConvolution(a, b, settings),
-            settings.UseParallelListConvolution && operands.Count >= settings.ListMaxPlusConvolutionParallelizationThreshold);
+            settings.UseParallelListConvolution && operands.Count >= settings.ListMaxPlusConvolutionParallelizationThreshold
+                ? settings.DegreeOfParallelism : 1);
     }
 
     /// <summary>

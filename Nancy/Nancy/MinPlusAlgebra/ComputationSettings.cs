@@ -47,6 +47,30 @@ public record ComputationSettings
     }
 
     /// <summary>
+    /// The largest number of concurrent tasks a parallel stage may use, or -1 for the processor count.
+    /// </summary>
+    /// <remarks>
+    /// The limit applies to each parallel stage on its own, not to a computation as a whole: a stage nested in another, such as the envelope of each pair in a parallel list minimum, may use as many again.
+    /// Stages that split their work into chunks also size the split by this value, so a value above the processor count exercises them on any host.
+    /// A value of one disables parallel execution.
+    /// </remarks>
+    /// <exception cref="System.ArgumentOutOfRangeException">If set to zero, to less than -1, or to more than 512, the limit of PLINQ.</exception>
+    public int MaxDegreeOfParallelism
+    {
+        get;
+        set => field = value is -1 or (>= 1 and <= 512)
+            ? value
+            : throw new System.ArgumentOutOfRangeException(nameof(MaxDegreeOfParallelism), value,
+                "The degree of parallelism must be -1, or between 1 and 512.");
+    } = -1;
+
+    /// <summary>
+    /// <see cref="MaxDegreeOfParallelism"/>, with -1 resolved to the processor count.
+    /// </summary>
+    internal int DegreeOfParallelism =>
+        MaxDegreeOfParallelism == -1 ? System.Math.Min(System.Environment.ProcessorCount, 512) : MaxDegreeOfParallelism;
+
+    /// <summary>
     /// If true, long sequence minimums are processed in parallel.
     /// </summary>
     public bool UseParallelLowerEnvelope { get; set; } = true;
@@ -235,6 +259,12 @@ public record ComputationSettings
     public int SortIntervalsParallelizationThreshold { get; set; } = 10_000;
 
     /// <summary>
+    /// Minimum number of endpoints per chunk sort and per merge tile when interval endpoints are sorted in parallel.
+    /// </summary>
+    /// <remarks>Values less than one are treated as one.</remarks>
+    public int SortIntervalsMinimumEndpointsPerPartition { get; set; } = 4_096;
+
+    /// <summary>
     /// In parallel Interval.ComputeIntervals, do element-in-interval insertion in parallel too.
     /// </summary>
     public bool UseParallelInsertionComputeIntervals { get; set; } = true;
@@ -258,7 +288,7 @@ public record ComputationSettings
     /// Minimum number of complete pseudo-periods for outer parallel execution in materialized curve cuts and extensions.
     /// Requires <see cref="UseParallelExtend"/>.
     /// </summary>
-    /// <remarks>Parallel execution also depends on <see cref="ExtensionMinimumElementsPerPartition"/> and available parallelism.</remarks>
+    /// <remarks>Parallel execution also depends on <see cref="ExtensionMinimumElementsPerPartition"/> and <see cref="MaxDegreeOfParallelism"/>.</remarks>
     public int ExtendParallelizationThreshold { get; set; } = 0;
 
     /// <summary>
@@ -270,7 +300,7 @@ public record ComputationSettings
     /// Minimum number of selected period elements for inner parallel execution in curve cuts and extensions, materialized or streamed.
     /// Requires <see cref="UseParallelComputeExtensionSequences"/>.
     /// </summary>
-    /// <remarks>Parallel execution also depends on <see cref="ExtensionMinimumElementsPerPartition"/> and available parallelism.</remarks>
+    /// <remarks>Parallel execution also depends on <see cref="ExtensionMinimumElementsPerPartition"/> and <see cref="MaxDegreeOfParallelism"/>.</remarks>
     public int ComputeExtensionSequencesParallelizationThreshold { get; set; } = 0;
 
     /// <summary>

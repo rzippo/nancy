@@ -2706,7 +2706,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The sequences share no time.");
 
         settings ??= ComputationSettings.Default();
-        if (!settings.UseParallelLowerEnvelope || Environment.ProcessorCount == 1 ||
+        if (!settings.UseParallelLowerEnvelope || settings.DegreeOfParallelism == 1 ||
             (long)a.Count + b.Count < settings.SequenceLowerEnvelopeParallelizationThreshold)
         {
             return a.Elements.Minimum(b.Elements, cutToOverlap)
@@ -2715,7 +2715,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         }
         else
         {
-            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Lower);
+            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Lower, settings);
         }
     }
 
@@ -2782,7 +2782,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The sequences share no time.");
 
         settings ??= ComputationSettings.Default();
-        if (!settings.UseParallelUpperEnvelope || Environment.ProcessorCount == 1 ||
+        if (!settings.UseParallelUpperEnvelope || settings.DegreeOfParallelism == 1 ||
             (long)a.Count + b.Count < settings.SequenceUpperEnvelopeParallelizationThreshold)
         {
             return a.Elements.Maximum(b.Elements, cutToOverlap)
@@ -2791,7 +2791,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         }
         else
         {
-            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Upper);
+            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Upper, settings);
         }
     }
 
@@ -2846,8 +2846,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="b">Second meaningful sequence.</param>
     /// <param name="cutToOverlap">Whether to restrict the result to the common support.</param>
     /// <param name="kind">Lower or upper envelope.</param>
+    /// <param name="settings">Settings for the degree of parallelism, which is also the number of chunks.</param>
     /// <returns>The normalized envelope in chronological order.</returns>
-    private static Sequence ComputePairEnvelopeInParallel(Sequence a, Sequence b, bool cutToOverlap, EnvelopeKind kind)
+    private static Sequence ComputePairEnvelopeInParallel(Sequence a, Sequence b, bool cutToOverlap, EnvelopeKind kind,
+        ComputationSettings settings)
     {
         Interval support;
         if (cutToOverlap)
@@ -2864,7 +2866,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 a.IsDefinedAt(end) || b.IsDefinedAt(end));
         }
 
-        var boundaries = GetPairEnvelopeBoundaries(a, b, support);
+        var boundaries = GetPairEnvelopeBoundaries(a, b, support, settings.DegreeOfParallelism);
         if (boundaries.Length <= 2)
         {
             return (kind == EnvelopeKind.Lower ? a.Elements.Minimum(b.Elements, cutToOverlap) : a.Elements.Maximum(b.Elements, cutToOverlap))
@@ -2890,7 +2892,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
             try
             {
-                Parallel.For(0, results.Length, MergeChunk);
+                Parallel.For(0, results.Length, new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism }, MergeChunk);
             }
             catch (AggregateException aggregate)
             {
@@ -2912,17 +2914,18 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="a">First meaningful sequence.</param>
     /// <param name="b">Second meaningful sequence.</param>
     /// <param name="support">The nonempty result support.</param>
+    /// <param name="partitions">The number of chunks to sample each operand for.</param>
     /// <returns>Sorted distinct boundaries, including the support endpoints.</returns>
-    private static Rational[] GetPairEnvelopeBoundaries(Sequence a, Sequence b, Interval support)
+    private static Rational[] GetPairEnvelopeBoundaries(Sequence a, Sequence b, Interval support, int partitions)
     {
         if (support.Lower == support.Upper)
             return [support.Lower];
 
         var boundaries = new List<Rational> { support.Lower, support.Upper };
-        AddPairEnvelopeBoundaries(a, support, boundaries);
-        AddPairEnvelopeBoundaries(b, support, boundaries);
+        AddPairEnvelopeBoundaries(a, support, partitions, boundaries);
+        AddPairEnvelopeBoundaries(b, support, partitions, boundaries);
         var sorted = boundaries.ToArray();
-        IntervalEndpointSorter.Sort(sorted, parallel: false);
+        IntervalEndpointSorter.Sort(sorted);
         return sorted.Distinct()
             .ToArray();
     }
@@ -2930,8 +2933,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <summary>Adds interior time boundaries sampled from the operand's relevant element range.</summary>
     /// <param name="sequence">The meaningful operand sequence.</param>
     /// <param name="support">The nonempty result support.</param>
+    /// <param name="partitions">The number of chunks to sample the operand for.</param>
     /// <param name="boundaries">The boundary collection to append to, before sorting and deduplication.</param>
-    private static void AddPairEnvelopeBoundaries(Sequence sequence, Interval support, List<Rational> boundaries)
+    private static void AddPairEnvelopeBoundaries(Sequence sequence, Interval support, int partitions, List<Rational> boundaries)
     {
         var overlap = Interval.Intersection(sequence.Support, support);
         if (overlap is null)
@@ -2942,7 +2946,6 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         int end = overlap.Value.Upper == sequence.DefinedUntil ? sequence.Count - 1 :
             sequence.FindLastIndex(element => element.StartTime <= overlap.Value.Upper, start);
         int count = end - start + 1;
-        int partitions = Environment.ProcessorCount;
         for (int i = 1; i < partitions; i++)
         {
             int index = start + (int)((long)i * count / partitions);
@@ -3265,6 +3268,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
             var convolutionElements = GetElementPairs()
                 .AsParallel()
+                .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                 .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
                 .WithoutAggregateException()
                 .ToList();
@@ -3339,6 +3343,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                     {
                         convolutionElements = partition
                             .AsParallel()
+                            .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                             .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
                             .WithoutAggregateException()
                             .ToList();
@@ -3610,6 +3615,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             var deconvolutionElements = elementPairs
                 .AsParallel()
+                .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                 .SelectMany( pair => Element.Deconvolution(pair.a, pair.b))
                 .WithoutAggregateException()
                 .ToList();
@@ -3974,6 +3980,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
             var convolutionElements = GetElementPairs()
                 .AsParallel()
+                .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                 .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
                 .WithoutAggregateException()
                 .ToList();
@@ -4051,6 +4058,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                     {
                         convolutionElements = partition
                             .AsParallel()
+                            .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                             .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
                             .WithoutAggregateException()
                             .ToList();

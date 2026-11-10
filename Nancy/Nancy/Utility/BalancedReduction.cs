@@ -16,7 +16,7 @@ internal static class BalancedReduction
     /// </summary>
     /// <param name="source">A nonempty sequence whose indexed storage, if present, remains unchanged during reduction.</param>
     /// <param name="combine">The binary operation, safe for concurrent calls when parallel execution is enabled.</param>
-    /// <param name="parallel">Whether independent pairs may execute concurrently.</param>
+    /// <param name="degreeOfParallelism">The largest number of pairs combined concurrently; one runs serially.</param>
     /// <returns>The result of the fixed reduction tree.</returns>
     /// <remarks>
     /// Each round owns its result array, so workers never overwrite operands needed by another pair.
@@ -24,7 +24,7 @@ internal static class BalancedReduction
     /// Only operand references are copied when reducing reference types.
     /// Grouping does not depend on the number of workers or on the completion order of their calls.
     /// </remarks>
-    internal static T Aggregate<T>(IEnumerable<T> source, Func<T, T, T> combine, bool parallel)
+    internal static T Aggregate<T>(IEnumerable<T> source, Func<T, T, T> combine, int degreeOfParallelism)
     {
         var operands = GetIndexedOperands(source);
 
@@ -35,11 +35,11 @@ internal static class BalancedReduction
         {
             int pairCount = operands.Count / 2;
             var results = new T[pairCount + operands.Count % 2];
-            if (parallel && pairCount > 1)
+            if (degreeOfParallelism > 1 && pairCount > 1)
             {
                 try
                 {
-                    Parallel.For(0, pairCount, i =>
+                    Parallel.For(0, pairCount, new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism }, i =>
                         results[i] = combine(operands[2 * i], operands[2 * i + 1]));
                 }
                 catch (AggregateException aggregate)

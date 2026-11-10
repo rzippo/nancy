@@ -424,6 +424,7 @@ public class SubAdditiveCurve : Curve
                 #endif
                 List<Element> convolutionElements = GetElementPairs()
                     .AsParallel()
+                    .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                     .SelectMany(pair => pair.ea.Convolution(pair.eb))
                     .WithoutAggregateException()
                     .ToList();
@@ -505,6 +506,7 @@ public class SubAdditiveCurve : Curve
                         {
                             convolutionElements = partition
                                 .AsParallel()
+                                .WithDegreeOfParallelism(settings.DegreeOfParallelism)
                                 .SelectMany(pair => pair.ea.Convolution(pair.eb))
                                 .WithoutAggregateException()
                                 .ToList();
