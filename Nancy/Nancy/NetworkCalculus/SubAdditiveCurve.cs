@@ -507,15 +507,13 @@ public class SubAdditiveCurve : Curve
                                 .AsParallel()
                                 .SelectMany(pair => pair.ea.Convolution(pair.eb))
                                 .WithoutAggregateException()
-                                .ToList()
-                                .SortElements(settings);
+                                .ToList();
                         }
                         else
                         {
                             convolutionElements = partition
                                 .SelectMany(pair => pair.ea.Convolution(pair.eb))
-                                .ToList()
-                                .SortElements(settings);
+                                .ToList();
                         }
 
                         yield return convolutionElements;

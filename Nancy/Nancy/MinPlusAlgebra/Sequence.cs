@@ -3341,15 +3341,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                             .AsParallel()
                             .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
                             .WithoutAggregateException()
-                            .ToList()
-                            .SortElements(settings);
+                            .ToList();
                     }
                     else
                     {
                         convolutionElements = partition
                             .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
-                            .ToList()
-                            .SortElements(settings);
+                            .ToList();
                     }
 
                     yield return convolutionElements;
@@ -4055,15 +4053,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                             .AsParallel()
                             .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
                             .WithoutAggregateException()
-                            .ToList()
-                            .SortElements(settings);
+                            .ToList();
                     }
                     else
                     {
                         convolutionElements = partition
                             .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
-                            .ToList()
-                            .SortElements(settings);
+                            .ToList();
                     }
 
                     yield return convolutionElements;
