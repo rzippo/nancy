@@ -127,9 +127,10 @@ public class SubAdditiveCurve : Curve
     /// </remarks>
     public override Curve Addition(Curve b, ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
         var sum = base.Addition(b, settings);
         if (b is SubAdditiveCurve)
-            return new SubAdditiveCurve(sum, false);
+            return new SubAdditiveCurve(sum, !settings.UseKnownPropertyPropagation);
         else
             return sum;
     }
@@ -137,7 +138,8 @@ public class SubAdditiveCurve : Curve
     /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
     public SubAdditiveCurve Addition(SubAdditiveCurve b, ComputationSettings? settings = null)
     {
-        return new SubAdditiveCurve(base.Addition(b, settings), false);
+        settings ??= ComputationSettings.Default();
+        return new SubAdditiveCurve(base.Addition(b, settings), !settings.UseKnownPropertyPropagation);
     }
 
     #region Convolution
@@ -189,11 +191,11 @@ public class SubAdditiveCurve : Curve
         // so a pair reaching opposite infinities is left to the general algorithm, which reports it
         if (HasPlusInfinity && curve.HasMinusInfinity ||
             HasMinusInfinity && curve.HasPlusInfinity)
-            return new SubAdditiveCurve(base.Convolution(curve, settings), false);
+            return new SubAdditiveCurve(base.Convolution(curve, settings), !settings.UseKnownPropertyPropagation);
 
         // This implementation relies on the minimum of the two curves being correctly computed using Curve.Minimum()
         if (!Curve.IsMinimumUltimatelyPseudoPeriodic(this, curve))
-            return new SubAdditiveCurve(base.Convolution(curve, settings), false);
+            return new SubAdditiveCurve(base.Convolution(curve, settings), !settings.UseKnownPropertyPropagation);
 
         #if DO_LOG
         var stopwatch = Stopwatch.StartNew();
@@ -220,7 +222,7 @@ public class SubAdditiveCurve : Curve
         else if (HasMinusInfinity || curve.HasMinusInfinity)
         {
             // [ZS23, Theorem 2] needs the dominated operand above -inf, and the specialized convolution pairs finite elements only
-            return new SubAdditiveCurve(base.Convolution(curve, settings), false);
+            return new SubAdditiveCurve(base.Convolution(curve, settings), !settings.UseKnownPropertyPropagation);
         }
         else
         {
@@ -282,7 +284,7 @@ public class SubAdditiveCurve : Curve
                 }
                 else
                 {
-                    return new SubAdditiveCurve(base.Convolution(curve, settings), false);
+                    return new SubAdditiveCurve(base.Convolution(curve, settings), !settings.UseKnownPropertyPropagation);
                 }
             }
             else if(
@@ -300,7 +302,7 @@ public class SubAdditiveCurve : Curve
         stopwatch.Stop();
         logger.Trace($"Optimization failed, wasted {stopwatch.Elapsed}");
         #endif
-        return new SubAdditiveCurve(base.Convolution(curve, settings), false);
+        return new SubAdditiveCurve(base.Convolution(curve, settings), !settings.UseKnownPropertyPropagation);
     }
 
     private static SubAdditiveCurve SpecializedConvolution(SubAdditiveCurve a, SubAdditiveCurve b, Curve minimum, ComputationSettings? settings)

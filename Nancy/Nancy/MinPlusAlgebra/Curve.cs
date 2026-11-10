@@ -3247,7 +3247,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             }
             else
             {
-                result = BaseSequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded);
+                result = BaseSequence.Cut(cutStart, cutEnd, isStartIncluded, isEndIncluded, settings);
             }
         }
         else if (IsUltimatelyAffine || IsUltimatelyInfinite)
@@ -3377,6 +3377,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded)
                 .ToSequence();
         }
+
+        if (!settings.UseKnownPropertyPropagation)
+            return result;
 
         // A cut keeps what the whole determines for every part: a property that holds everywhere, when true,
         // and one that holds somewhere, when false.
@@ -9048,6 +9051,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     public virtual SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
         #if DO_LOG
         logger.Debug($"Computing closure of {TransientElements.Count()} transient and {PseudoPeriodicElements.Count()} pseudo-periodic elements.");
         #endif
@@ -9058,12 +9062,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         // The general algorithm would convolve the origin's closure, which is $+\infty$ for $t > 0$, with the first segment's closure, which is $-\infty$ there.
         // Return the known closure directly to avoid the undefined sum $(+\infty) + (-\infty)$.
         if (RightLimitAt(0) < 0)
-            return new SubAdditiveCurve(MinusInfinite().WithOriginAt(0), false);
+            return new SubAdditiveCurve(MinusInfinite().WithOriginAt(0), !settings.UseKnownPropertyPropagation);
 
         settings ??= ComputationSettings.Default();
 
         if (settings.UseZeroClosureShortcut && GetSegmentAfter(0, autoMerge: false, cutToTime: false) is { RightLimitAtStartTime.IsZero: true, Slope.IsZero: true } && IsNonNegative)
-            return new SubAdditiveCurve(Zero(), false);
+            return new SubAdditiveCurve(Zero(), !settings.UseKnownPropertyPropagation);
 
         List<SubAdditiveCurve> elementClosures;
         if (settings.UseParallelSubAdditiveClosure &&
@@ -9108,7 +9112,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (settings.UseSubAdditiveConvolutionOptimizations)
             return SubAdditiveCurve.Convolution(elementClosures, settings);
         else
-            return new SubAdditiveCurve(Curve.Convolution(elementClosures, settings), false);
+            return new SubAdditiveCurve(Curve.Convolution(elementClosures, settings), !settings.UseKnownPropertyPropagation);
     }
 
     /// <summary>
@@ -9850,6 +9854,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </exception>
     public virtual SuperAdditiveCurve SuperAdditiveClosure(ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
         #if DO_LOG
         logger.Trace("Computing super-additive closure");
         #endif
@@ -9859,10 +9864,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         // Return the known closure directly to avoid negating the operand and the result.
         if (RightLimitAt(0) > 0)
-            return new SuperAdditiveCurve(PlusInfinite().WithOriginAt(0), false);
+            return new SuperAdditiveCurve(PlusInfinite().WithOriginAt(0), !settings.UseKnownPropertyPropagation);
 
         var result = -((-this).SubAdditiveClosure(settings));
-        return new SuperAdditiveCurve(result, false);
+        return new SuperAdditiveCurve(result, !settings.UseKnownPropertyPropagation);
     }
 
     /// <summary>

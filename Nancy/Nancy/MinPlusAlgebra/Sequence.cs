@@ -1308,12 +1308,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="cutEnd">Right endpoint of the new support.</param>
     /// <param name="isStartIncluded">If true, the support is left-closed.</param>
     /// <param name="isEndIncluded">If true, the support is right-closed.</param>
+    /// <param name="settings">Optional settings for the operation; <see cref="ComputationSettings.UseKnownPropertyPropagation"/> applies.</param>
     /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
     public Sequence Cut(
         Rational cutStart, 
         Rational cutEnd,
         bool isStartIncluded = true,
-        bool isEndIncluded = false
+        bool isEndIncluded = false,
+        ComputationSettings? settings = null
     )
     {
         if (cutStart > cutEnd)
@@ -1424,6 +1426,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             _ => throw new InvalidOperationException("A cut has at least one element.")
         });
 
+        settings ??= ComputationSettings.Default();
+        if (!settings.UseKnownPropertyPropagation)
+            return result;
+
         // A cut keeps what the whole determines for every part: a property that holds everywhere, when true,
         // and one that holds somewhere, when false.
         KnownProperties.CopyIfKnown(ref _isFinite, ref result._isFinite, true);
@@ -1510,7 +1516,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <remarks>
     /// The interval is closed, and the result contains it:
     /// a neighbourhood of a set is one whose interior contains that set, so there is nothing to decide about the endpoints.
-    /// A plain <see cref="Cut(Rational, Rational, bool, bool)"/> over $[a, b]$ cannot answer for the one-sided limits at $a$ and $b$, which lie outside it.
+    /// A plain <see cref="Cut(Rational, Rational, bool, bool, ComputationSettings?)"/> over $[a, b]$ cannot answer for the one-sided limits at $a$ and $b$, which lie outside it.
     /// This one extends by the element beyond each endpoint, so that <see cref="LeftLimitAt"/> and <see cref="RightLimitAt"/> are answerable there.
     /// The neighbourhood is relative to the sequence's own support:
     /// where the sequence is not defined beyond an endpoint there is nothing to add, and none is added.
@@ -1559,9 +1565,10 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Returns a cut of the sequence for a smaller support.
     /// </summary>
     /// <param name="interval">The new support.</param>
+    /// <param name="settings">Optional settings for the operation; <see cref="ComputationSettings.UseKnownPropertyPropagation"/> applies.</param>
     /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
-    public Sequence Cut(Interval interval)
-        => Cut(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded);
+    public Sequence Cut(Interval interval, ComputationSettings? settings = null)
+        => Cut(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded, settings);
 
     /// <summary>
     /// Returns a cut of the sequence for a smaller support.

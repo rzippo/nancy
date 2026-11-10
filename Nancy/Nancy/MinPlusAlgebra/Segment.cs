@@ -1776,7 +1776,7 @@ public sealed class Segment : Element, IEquatable<Segment>
             var sign = RightLimitAtStartTime.Sign;
             if(sign < 0)
                 // the closure is minus infinite everywhere except origin 
-                return new SubAdditiveCurve(Curve.MinusInfinite().WithOriginAt(0), false);
+                return new SubAdditiveCurve(Curve.MinusInfinite().WithOriginAt(0), !settings.UseKnownPropertyPropagation);
             else if(sign == 0)
                 // the closure is just a half line
                 return new SigmaRhoArrivalCurve(0, Slope);
@@ -1865,7 +1865,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 pseudoPeriodStart: periodStartTime,
                 pseudoPeriodLength: StartTime,
                 pseudoPeriodHeight: RightLimitAtStartTime,
-                doTest: false
+                doTest: !settings.UseKnownPropertyPropagation
             );
         }
 
@@ -1928,7 +1928,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 pseudoPeriodStart: periodStartTime,
                 pseudoPeriodLength: EndTime,
                 pseudoPeriodHeight: LeftLimitAtEndTime,
-                doTest: false
+                doTest: !settings.UseKnownPropertyPropagation
             );
         }
         
@@ -1986,7 +1986,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 pseudoPeriodStart: periodStartTime,
                 pseudoPeriodLength: 1,
                 pseudoPeriodHeight: Slope,
-                doTest: false
+                doTest: !settings.UseKnownPropertyPropagation
             );
         }
     }
@@ -2027,7 +2027,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         }
 
         if (settings.UseRepresentationMinimization)
-            return new SubAdditiveCurve(closure.Optimize(), false);
+            return new SubAdditiveCurve(closure.Optimize(), !settings.UseKnownPropertyPropagation);
         else
             return closure;
 

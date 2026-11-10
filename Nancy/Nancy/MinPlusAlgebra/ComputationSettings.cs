@@ -304,6 +304,16 @@ public record ComputationSettings
     public bool UseRepresentationMinimization { get; set; } = true;
 
     /// <summary>
+    /// If set, properties known of the operands are carried to the result where they determine it, without checking.
+    /// </summary>
+    /// <remarks>
+    /// A cut, <see cref="Curve.Cut(Numerics.Rational, Numerics.Rational, bool, bool, ComputationSettings?)"/> or <see cref="Sequence.Cut(Numerics.Rational, Numerics.Rational, bool, bool, ComputationSettings?)"/>, keeps the cached properties of its source that hold everywhere, when true, and those that hold somewhere, when false.
+    /// Closures and the sums and convolutions of sub-additive or super-additive curves assert that property of their result.
+    /// If not set, a cut computes every property from its elements when first read, and those results check the property they would assert, throwing if it does not hold.
+    /// </remarks>
+    public bool UseKnownPropertyPropagation { get; set; } = true;
+
+    /// <summary>
     /// If set, convolutions between sub-additive curves are optimized
     /// </summary>
     public bool UseSubAdditiveConvolutionOptimizations { get; set; } = true;

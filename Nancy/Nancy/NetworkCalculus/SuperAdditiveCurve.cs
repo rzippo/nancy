@@ -120,9 +120,10 @@ public class SuperAdditiveCurve : Curve
     /// </remarks>
     public override Curve Addition(Curve b, ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
         var sum = base.Addition(b, settings);
         if (b is SuperAdditiveCurve)
-            return new SuperAdditiveCurve(sum, false);
+            return new SuperAdditiveCurve(sum, !settings.UseKnownPropertyPropagation);
         else
             return sum;
     }
@@ -130,6 +131,7 @@ public class SuperAdditiveCurve : Curve
     /// <inheritdoc cref="Curve.Addition(Curve, ComputationSettings)"/>
     public SuperAdditiveCurve Addition(SuperAdditiveCurve b, ComputationSettings? settings = null)
     {
-        return new SuperAdditiveCurve(base.Addition(b, settings), false);
+        settings ??= ComputationSettings.Default();
+        return new SuperAdditiveCurve(base.Addition(b, settings), !settings.UseKnownPropertyPropagation);
     }
 }

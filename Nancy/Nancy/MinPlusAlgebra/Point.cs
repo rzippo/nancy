@@ -1065,6 +1065,7 @@ public sealed class Point : Element, IEquatable<Point>
     /// <remarks>Described in [BT07] Section 4.6 as algorithm 8.</remarks>
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
         if (Time == Rational.Zero)
         {
             if (Value < 0)
@@ -1072,7 +1073,7 @@ public sealed class Point : Element, IEquatable<Point>
                 throw new NotImplementedException("Sub-additive closure of negative point is not implemented.");
             }
 
-            return new SubAdditiveCurve(new DelayServiceCurve(0), false);
+            return new SubAdditiveCurve(new DelayServiceCurve(0), !settings.UseKnownPropertyPropagation);
         }
         else
         {
@@ -1086,7 +1087,7 @@ public sealed class Point : Element, IEquatable<Point>
                 pseudoPeriodStart: 0,
                 pseudoPeriodLength: Time,
                 pseudoPeriodHeight: Value,
-                doTest: false
+                doTest: !settings.UseKnownPropertyPropagation
             );
         }
     }
@@ -1106,12 +1107,13 @@ public sealed class Point : Element, IEquatable<Point>
         ComputationSettings? settings = null
     )
     {
+        settings ??= ComputationSettings.Default();
         if (pseudoPeriodLength <= 0)
             throw new ArgumentException("Period must be > 0");
 
         if (Time == 0)
         {
-            return PeriodicPointClosureType0(pseudoPeriodLength, pseudoPeriodHeight);
+            return PeriodicPointClosureType0(pseudoPeriodLength, pseudoPeriodHeight, settings);
         }
         else
         {
@@ -1123,13 +1125,13 @@ public sealed class Point : Element, IEquatable<Point>
             else if (PointSlope < iterationSlope)
                 closure = PeriodicPointClosureTypeB(pseudoPeriodLength, pseudoPeriodHeight, settings);
             else // pointSlope == iterationSlope
-                closure = PeriodicPointClosureTypeC(pseudoPeriodLength, pseudoPeriodHeight);
+                closure = PeriodicPointClosureTypeC(pseudoPeriodLength, pseudoPeriodHeight, settings);
 
             settings ??= ComputationSettings.Default();
             if (settings.UseRepresentationMinimization)
-                return new SubAdditiveCurve(closure.Optimize(), false);
+                return new SubAdditiveCurve(closure.Optimize(), !settings.UseKnownPropertyPropagation);
             else
-                return new SubAdditiveCurve(closure, false);
+                return new SubAdditiveCurve(closure, !settings.UseKnownPropertyPropagation);
         }
     }
 
@@ -1138,9 +1140,11 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     /// <param name="pseudoPeriodLength">Lenght of the pseudo-period</param>
     /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period</param>
+    /// <param name="settings">Settings for the operation.</param>
     private SubAdditiveCurve PeriodicPointClosureType0(
         Rational pseudoPeriodLength,
-        Rational pseudoPeriodHeight)
+        Rational pseudoPeriodHeight,
+        ComputationSettings settings)
     {
         var sequence = new Sequence(
             elements: new[] {
@@ -1156,7 +1160,7 @@ public sealed class Point : Element, IEquatable<Point>
             pseudoPeriodStart: pseudoPeriodLength,
             pseudoPeriodLength: pseudoPeriodLength,
             pseudoPeriodHeight: pseudoPeriodHeight,
-            doTest: false
+            doTest: !settings.UseKnownPropertyPropagation
         );
     }
 
@@ -1257,10 +1261,12 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     /// <param name="pseudoPeriodLength">Lenght of the pseudo-period</param>
     /// <param name="pseudoPeriodHeight">Step gained after each pseudo-period</param>
+    /// <param name="settings">Settings for the operation.</param>
     /// <remarks>From [BT07], third case of algorithm 9</remarks>
     private SubAdditiveCurve PeriodicPointClosureTypeC(
         Rational pseudoPeriodLength,
-        Rational pseudoPeriodHeight    
+        Rational pseudoPeriodHeight,
+        ComputationSettings settings
     )
     {
         Rational slope = Value / Time;
@@ -1303,7 +1309,7 @@ public sealed class Point : Element, IEquatable<Point>
             pseudoPeriodStart: closurePeriodStart,
             pseudoPeriodLength: closurePeriodLenght,
             pseudoPeriodHeight: closurePeriodHeight,
-            doTest: false
+            doTest: !settings.UseKnownPropertyPropagation
         );
 
         Rational Frobenius(Rational a, Rational b)

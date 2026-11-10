@@ -120,9 +120,10 @@ public class ConstantCurve : Curve
     /// </remarks>
     public override SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
     {
+        settings ??= ComputationSettings.Default();
         if (Value.IsFinite && Value.IsNegative)
             return base.SubAdditiveClosure(settings);
-        return new SubAdditiveCurve(this, false);
+        return new SubAdditiveCurve(this, !settings.UseKnownPropertyPropagation);
     }
 
     /// <inheritdoc cref="Curve.VerticalShift(Rational, bool, ComputationSettings?)"/>
