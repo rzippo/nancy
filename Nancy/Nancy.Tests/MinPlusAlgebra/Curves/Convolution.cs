@@ -452,7 +452,10 @@ public class Convolution
     public void CollectionConvolution_Empty()
     {
         var emptyCollection = new List<Curve>();
-        Assert.Throws<InvalidOperationException>(() => Curve.Convolution(emptyCollection, settings));
+        var collection = Assert.Throws<ArgumentException>("curves", () => Curve.Convolution(emptyCollection, settings));
+        var enumerable = Assert.Throws<ArgumentException>("curves", () => Curve.Convolution((IEnumerable<Curve>) emptyCollection, settings));
+        Assert.StartsWith("The collection of curves is empty.", collection.Message);
+        Assert.StartsWith("The collection of curves is empty.", enumerable.Message);
     }
 
     [Theory]

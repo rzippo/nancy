@@ -208,9 +208,8 @@ public class ElementPropertyTests
     [Fact]
     public void Addition_IEnumerable_Empty_Throws()
     {
-        Assert.Throws<InvalidOperationException>(
-            () => Element.Addition(Array.Empty<Element>())
-        );
+        var error = Assert.Throws<ArgumentException>("elements", () => Element.Addition(Array.Empty<Element>()));
+        Assert.StartsWith("The set of elements is empty.", error.Message);
     }
 
     [Fact]
@@ -242,9 +241,8 @@ public class ElementPropertyTests
     [Fact]
     public void Subtraction_IEnumerable_Empty_Throws()
     {
-        Assert.Throws<InvalidOperationException>(
-            () => Element.Subtraction(Array.Empty<Element>())
-        );
+        var error = Assert.Throws<ArgumentException>("elements", () => Element.Subtraction(Array.Empty<Element>()));
+        Assert.StartsWith("The set of elements is empty.", error.Message);
     }
 
     #endregion

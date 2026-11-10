@@ -84,7 +84,8 @@ public class PointMax
     [Fact]
     public void Points_EmptyList()
     {
-        Assert.Throws<InvalidOperationException>(() => Point.Maximum(new Point[] { }));
+        var error = Assert.Throws<ArgumentException>("points", () => Point.Maximum(Array.Empty<Point>()));
+        Assert.StartsWith("The set of points is empty.", error.Message);
     }
 
     [Fact]

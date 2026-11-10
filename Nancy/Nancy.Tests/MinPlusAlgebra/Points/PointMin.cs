@@ -84,7 +84,8 @@ public class PointMin
     [Fact]
     public void Points_EmptyList()
     {
-        Assert.Throws<InvalidOperationException>(() => Point.Minimum(new Point[] { }));
+        var error = Assert.Throws<ArgumentException>("points", () => Point.Minimum(Array.Empty<Point>()));
+        Assert.StartsWith("The set of points is empty.", error.Message);
     }
 
     [Fact]
