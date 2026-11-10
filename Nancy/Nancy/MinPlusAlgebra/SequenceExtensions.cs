@@ -3907,7 +3907,7 @@ public static partial class SequenceExtensions
         else
         {
             settings ??= ComputationSettings.Default();
-            bool doParallel = settings.UseParallelListLowerEnvelope && sequences.Count > settings.ListLowerEnvelopeParallelizationThreshold;
+            bool doParallel = settings.UseParallelListLowerEnvelope && sequences.Count >= settings.ListLowerEnvelopeParallelizationThreshold;
             return BalancedReduction.Aggregate(sequences,
                     (a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings), doParallel)
                 .Elements;
@@ -3990,7 +3990,7 @@ public static partial class SequenceExtensions
         else
         {
             settings ??= ComputationSettings.Default();
-            bool doParallel = settings.UseParallelListUpperEnvelope && sequences.Count > settings.ListUpperEnvelopeParallelizationThreshold;
+            bool doParallel = settings.UseParallelListUpperEnvelope && sequences.Count >= settings.ListUpperEnvelopeParallelizationThreshold;
             return BalancedReduction.Aggregate(sequences,
                     (a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings), doParallel)
                 .Elements;

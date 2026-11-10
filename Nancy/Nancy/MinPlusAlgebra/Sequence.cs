@@ -3138,7 +3138,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
             result = PartitionedConvolution();
         else
-        if (settings.UseParallelConvolution && pairsCount > settings.ConvolutionParallelizationThreshold)
+        if (settings.UseParallelConvolution && pairsCount >= settings.ConvolutionParallelizationThreshold)
             result = ParallelConvolution();
         else
             result = SerialConvolution();
@@ -3542,7 +3542,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             var pairs = elementPairs.ToList();
             elementPairs = pairs;
-            useParallel = pairs.Count > settings.DeconvolutionParallelizationThreshold;
+            useParallel = pairs.Count >= settings.DeconvolutionParallelizationThreshold;
         }
 
         List<Element> result;
@@ -3840,7 +3840,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
             result = PartitionedConvolution();
         else
-        if (settings.UseParallelConvolution && pairsCount > settings.ConvolutionParallelizationThreshold)
+        if (settings.UseParallelConvolution && pairsCount >= settings.ConvolutionParallelizationThreshold)
             result = ParallelConvolution();
         else
             result = SerialConvolution();

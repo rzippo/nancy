@@ -8473,7 +8473,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         return BalancedReduction.Aggregate(operands, (a, b) => Convolution(a, b, settings),
-            settings.UseParallelListConvolution && operands.Count > settings.ListConvolutionParallelizationThreshold);
+            settings.UseParallelListConvolution && operands.Count >= settings.ListConvolutionParallelizationThreshold);
     }
 
     /// <summary>
@@ -9716,7 +9716,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         return BalancedReduction.Aggregate(operands, (a, b) => MaxPlusConvolution(a, b, settings),
-            settings.UseParallelListConvolution && operands.Count > settings.ListMaxPlusConvolutionParallelizationThreshold);
+            settings.UseParallelListConvolution && operands.Count >= settings.ListMaxPlusConvolutionParallelizationThreshold);
     }
 
     /// <summary>

@@ -157,13 +157,13 @@ public record ComputationSettings
     public bool UseParallelListConvolution { get; set; } = true;
 
     /// <summary>
-    /// The convolution of a list of curves is processed in parallel if it has more than this number of curves.
+    /// The convolution of a list of curves is processed in parallel if it has at least this number of curves.
     /// Requires <see cref="UseParallelListConvolution"/>.
     /// </summary>
     public int ListConvolutionParallelizationThreshold { get; set; } = 8;
 
     /// <summary>
-    /// The (max,+) convolution of a list of curves is processed in parallel if it has more than this number of curves.
+    /// The (max,+) convolution of a list of curves is processed in parallel if it has at least this number of curves.
     /// Requires <see cref="UseParallelListConvolution"/>.
     /// </summary>
     public int ListMaxPlusConvolutionParallelizationThreshold { get; set; } = 8;
@@ -174,7 +174,7 @@ public record ComputationSettings
     public bool UseParallelListLowerEnvelope { get; set; } = true;
 
     /// <summary>
-    /// The lower envelope of a list of sequences is processed in parallel if it has more than this number of sequences.
+    /// The lower envelope of a list of sequences is processed in parallel if it has at least this number of sequences.
     /// </summary>
     public int ListLowerEnvelopeParallelizationThreshold { get; set; } = 8;
 
@@ -184,7 +184,7 @@ public record ComputationSettings
     public bool UseParallelListUpperEnvelope { get; set; } = true;
 
     /// <summary>
-    /// The upper envelope of a list of sequences is processed in parallel if it has more than this number of sequences.
+    /// The upper envelope of a list of sequences is processed in parallel if it has at least this number of sequences.
     /// </summary>
     public int ListUpperEnvelopeParallelizationThreshold { get; set; } = 8;
 
@@ -194,7 +194,7 @@ public record ComputationSettings
     public bool UseParallelConvolution { get; set; } = true;
 
     /// <summary>
-    /// Convolution parallelization is done if the number of element convolutions is above this threshold.
+    /// Convolution parallelization is done if the number of element convolutions is at least this threshold.
     /// </summary>
     public int ConvolutionParallelizationThreshold { get; set; } = 2_000;
 
@@ -235,7 +235,7 @@ public record ComputationSettings
     public bool UseParallelDeconvolution { get; set; } = true;
 
     /// <summary>
-    /// Deconvolution parallelization is done if the number of element deconvolutions is above this threshold.
+    /// Deconvolution parallelization is done if the number of element deconvolutions is at least this threshold.
     /// </summary>
     public int DeconvolutionParallelizationThreshold { get; set; } = 1_000;
 

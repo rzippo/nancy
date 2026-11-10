@@ -366,7 +366,7 @@ public class SubAdditiveCurve : Curve
             if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
                 return PartitionedConvolution();
             else
-            if (settings.UseParallelConvolution && pairsCount > settings.ConvolutionParallelizationThreshold)
+            if (settings.UseParallelConvolution && pairsCount >= settings.ConvolutionParallelizationThreshold)
                 return ParallelConvolution();
             else
                 return SerialConvolution();
