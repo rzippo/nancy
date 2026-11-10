@@ -2560,9 +2560,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">If the supports share no time.</exception>
     /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
     public static Sequence Addition(Sequence a, Sequence b)
-        => a.Elements.Addition(b.Elements)
+    {
+        if (Interval.Intersection(a.Support, b.Support) is null)
+            throw new ArgumentException("The sequences share no time.");
+        return a.Elements.Addition(b.Elements)
             .MergeAsEnumerable()
             .ToSequence();
+    }
 
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
@@ -2602,9 +2606,13 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">If the supports share no time.</exception>
     /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time.</exception>
     public static Sequence Subtraction(Sequence a, Sequence b)
-        => a.Elements.Subtraction(b.Elements)
+    {
+        if (Interval.Intersection(a.Support, b.Support) is null)
+            throw new ArgumentException("The sequences share no time.");
+        return a.Elements.Subtraction(b.Elements)
             .MergeAsEnumerable()
             .ToSequence();
+    }
 
     /// <summary>
     /// Subtracts two sequences, over their overlapping parts.
