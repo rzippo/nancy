@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.NetworkCalculus;
 
@@ -107,7 +108,7 @@ public static class ConcaveCurveExtensions
 {
     /// <inheritdoc cref="Curve.Minimum(IEnumerable{Curve}, ComputationSettings?)"/>
     public static ConcaveCurve Minimum(this IEnumerable<ConcaveCurve> curves, ComputationSettings? settings = null)
-        => curves.Aggregate((a, b) => a.Minimum(b, settings));
+        => BalancedReduction.Aggregate(curves, (a, b) => a.Minimum(b, settings), parallel: false);
 
     /// <inheritdoc cref="Curve.Minimum(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConcaveCurve Minimum(this IReadOnlyCollection<ConcaveCurve> curves, ComputationSettings? settings = null)

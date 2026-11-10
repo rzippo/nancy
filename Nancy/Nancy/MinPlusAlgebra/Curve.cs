@@ -7205,24 +7205,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The curves to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall addition.</returns>
+    /// <remarks>
+    /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
+    /// </remarks>
     public static Curve Addition(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        bool doParallel = settings.UseParallelListAddition;
-        Curve result;
-        if (doParallel)
-        {
-            result = curves
-                .AsParallel()
-                .Aggregate((f, g) => Addition(f, g, settings));
-        }
-        else
-        {
-            result = curves
-                .Aggregate((f, g) => Addition(f, g, settings));
-        }
-
-        return result;
+        return BalancedReduction.Aggregate(curves, (a, b) => Addition(a, b, settings),
+            settings.UseParallelListAddition);
     }
 
     /// <summary>
@@ -7250,17 +7240,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             curves.Count >= settings.ListAdditionComplexityMinimumCount &&
             curves.Average(c => c.BaseSequence.Count) >= settings.ListAdditionComplexityThreshold;
 
-        if (parallelizeDueCount || parallelizeDueComplexity)
-        {
-            return curves
-                .AsParallel()
-                .Aggregate((f, g) => Addition(f, g, settings));
-        }
-        else
-        {
-            return curves
-                .Aggregate((f, g) => Addition(f, g, settings));
-        }
+        return BalancedReduction.Aggregate(curves, (a, b) => Addition(a, b, settings),
+            parallelizeDueCount || parallelizeDueComplexity);
     }
 
     /// <summary>
@@ -7616,28 +7597,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             curves.Count >= settings.ListMinimumComplexityMinimumCount &&
             curves.Average(c => c.BaseSequence.Count) >= settings.ListMinimumComplexityThreshold;
 
-        if (parallelizeDueCount || parallelizeDueComplexity)
-        {
-            return curves
-                .AsParallel()
-                .Aggregate((f, g) => Minimum(f, g, settings));
-        }
-        else
-        {
-            #if DO_LOG
-            Curve current = curves.First();
-            int i = 1;
-            foreach (var curve in curves.Skip(1))
-            {
-                logger.Trace($"Minimum {i} of {curves.Count - 1}");
-                i++;
-                current = Minimum(current, curve, settings);
-            }
-            return current;
-            #else
-            return curves.Aggregate((f, g) => Minimum(f, g, settings));
-            #endif
-        }
+        #if DO_LOG
+        logger.Trace($"Minimum reduction of {curves.Count} curves");
+        #endif
+        return BalancedReduction.Aggregate(curves, (f, g) => Minimum(f, g, settings),
+            parallelizeDueCount || parallelizeDueComplexity);
     }
 
     /// <summary>
@@ -7648,25 +7612,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The curve resulting from the overall minimum.</returns>
     /// <remarks>
     /// It combines two curves at a time, and is known to be correct when <see cref="IsMinimumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
+    /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
     /// </remarks>
     public static Curve Minimum(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        bool doParallel = settings.UseParallelListMinimum;
-        Curve result;
-        if (doParallel)
-        {
-            result = curves
-                .AsParallel()
-                .Aggregate((a, b) => Minimum(a, b, settings));
-        }
-        else
-        {
-            result = curves
-                .Aggregate((a, b) => Minimum(a, b, settings));
-        }
-
-        return result;
+        return BalancedReduction.Aggregate(curves, (f, g) => Minimum(f, g, settings),
+            settings.UseParallelListMinimum);
     }
 
     /// <summary>
@@ -7898,28 +7850,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             curves.Count >= settings.ListMaximumComplexityMinimumCount &&
             curves.Average(c => c.BaseSequence.Count) >= settings.ListMaximumComplexityThreshold;
 
-        if (parallelizeDueCount || parallelizeDueComplexity)
-        {
-            return curves
-                .AsParallel()
-                .Aggregate((f, g) => Maximum(f, g, settings));
-        }
-        else
-        {
-            #if DO_LOG
-            Curve current = curves.First();
-            int i = 1;
-            foreach (var curve in curves.Skip(1))
-            {
-                logger.Trace($"Maximum {i} of {curves.Count - 1}");
-                i++;
-                current = Maximum(current, curve, settings);
-            }
-            return current;
-            #else
-            return curves.Aggregate((f, g) => Maximum(f, g, settings));
-            #endif
-        }
+        #if DO_LOG
+        logger.Trace($"Maximum reduction of {curves.Count} curves");
+        #endif
+        return BalancedReduction.Aggregate(curves, (f, g) => Maximum(f, g, settings),
+            parallelizeDueCount || parallelizeDueComplexity);
     }
 
     /// <summary>
@@ -7930,25 +7865,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The curve resulting from the overall maximum.</returns>
     /// <remarks>
     /// It combines two curves at a time, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
+    /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
     /// </remarks>
     public static Curve Maximum(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
-        bool doParallel = settings.UseParallelListMaximum;
-        Curve result;
-        if (doParallel)
-        {
-            result = curves
-                .AsParallel()
-                .Aggregate((a, b) => Maximum(a, b, settings));
-        }
-        else
-        {
-            result = curves
-                .Aggregate((a, b) => Maximum(a, b, settings));
-        }
-
-        return result;
+        return BalancedReduction.Aggregate(curves, (f, g) => Maximum(f, g, settings),
+            settings.UseParallelListMaximum);
     }
 
     /// <summary>
@@ -8540,17 +8463,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Generic list convolution, {curves.Count} curves");
         #endif
 
-        if (settings.UseParallelListConvolution && curves.Count > settings.ListConvolutionParallelizationThreshold)
-        {
-            return curves
-                .AsParallel()
-                .Aggregate((a , b) => Convolution(a, b, settings));
-        }
-        else
-        {
-            return curves
-                .Aggregate((a , b) => Convolution(a, b, settings));
-        }
+        return BalancedReduction.Aggregate(curves, (a, b) => Convolution(a, b, settings),
+            settings.UseParallelListConvolution && curves.Count > settings.ListConvolutionParallelizationThreshold);
     }
 
     /// <summary>
@@ -8559,7 +8473,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The set of curves to be convolved.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall convolution.</returns>
-    /// <remarks>Optimized for minimal allocations.</remarks>
+    /// <remarks>
+    /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
+    /// </remarks>
     public static Curve Convolution(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -8568,17 +8484,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Generic list convolution, IEnumerable");
         #endif
 
-        if (settings.UseParallelListConvolution)
-        {
-            return curves
-                .AsParallel()
-                .Aggregate((a , b) => Convolution(a, b, settings));
-        }
-        else
-        {
-            return curves
-                .Aggregate((a , b) => Convolution(a, b, settings));
-        }
+        return BalancedReduction.Aggregate(curves, (a, b) => Convolution(a, b, settings),
+            settings.UseParallelListConvolution);
     }
 
     /// <exclude />
@@ -9787,7 +9694,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The set of curves to be convolved.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall max-plus convolution.</returns>
-    /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
+    /// <remarks>
+    /// Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4
+    /// </remarks>
     public static Curve MaxPlusConvolution(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -9795,17 +9704,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Generic list max-plus convolution, {curves.Count} curves");
         #endif
 
-        if (settings.UseParallelListConvolution && curves.Count > settings.ListMaxPlusConvolutionParallelizationThreshold)
-        {
-            return curves
-                .AsParallel()
-                .Aggregate((a , b) => MaxPlusConvolution(a, b, settings));
-        }
-        else
-        {
-            return curves
-                .Aggregate((a , b) => MaxPlusConvolution(a, b, settings));
-        }
+        return BalancedReduction.Aggregate(curves, (a, b) => MaxPlusConvolution(a, b, settings),
+            settings.UseParallelListConvolution && curves.Count > settings.ListMaxPlusConvolutionParallelizationThreshold);
     }
 
     /// <summary>
@@ -9814,8 +9714,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The set of curves to be convolved.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall max-plus convolution.</returns>
-    /// <remarks>Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4</remarks>
-    /// <remarks>Optimized for minimal allocations</remarks>
+    /// <remarks>
+    /// Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4
+    /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
+    /// </remarks>
     public static Curve MaxPlusConvolution(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -9824,17 +9726,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Generic list max-plus convolution, IEnumerable");
         #endif
 
-        if (settings.UseParallelListConvolution)
-        {
-            return curves
-                .AsParallel()
-                .Aggregate((a , b) => MaxPlusConvolution(a, b, settings));
-        }
-        else
-        {
-            return curves
-                .Aggregate((a , b) => MaxPlusConvolution(a, b, settings));
-        }
+        return BalancedReduction.Aggregate(curves, (a, b) => MaxPlusConvolution(a, b, settings),
+            settings.UseParallelListConvolution);
     }
 
     /// <exclude />

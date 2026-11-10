@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
@@ -3676,7 +3677,9 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Computes the lower envelope of the set of sequences given.
     /// </summary>
-    /// <remarks>Used for partitioned convolution.</remarks>
+    /// <remarks>
+    /// Used for partitioned convolution.
+    /// </remarks>
     public static IReadOnlyList<Element> LowerEnvelope(this IReadOnlyList<Sequence> sequences, ComputationSettings? settings = null)
     {
         if (sequences.Count == 1)
@@ -3687,19 +3690,9 @@ public static partial class SequenceExtensions
         {
             settings ??= ComputationSettings.Default();
             bool doParallel = settings.UseParallelListLowerEnvelope && sequences.Count > settings.ListLowerEnvelopeParallelizationThreshold;
-            if (doParallel)
-            {
-                return sequences
-                    .AsParallel()
-                    .Aggregate((a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings))
-                    .Elements;
-            }
-            else
-            {
-                return sequences
-                    .Aggregate((a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings))
-                    .Elements;
-            }
+            return BalancedReduction.Aggregate(sequences,
+                    (a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings), doParallel)
+                .Elements;
         }
     }
 
@@ -3755,7 +3748,7 @@ public static partial class SequenceExtensions
     }
 
     /// <summary>
-    /// Computes the lower envelope of the set of sequences given.
+    /// Computes the upper envelope of the set of sequences given.
     /// </summary>
     public static IReadOnlyList<Element> UpperEnvelope(this IReadOnlyList<Sequence> sequences, ComputationSettings? settings = null)
     {
@@ -3767,19 +3760,9 @@ public static partial class SequenceExtensions
         {
             settings ??= ComputationSettings.Default();
             bool doParallel = settings.UseParallelListUpperEnvelope && sequences.Count > settings.ListUpperEnvelopeParallelizationThreshold;
-            if (doParallel)
-            {
-                return sequences
-                    .AsParallel()
-                    .Aggregate((a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings))
-                    .Elements;
-            }
-            else
-            {
-                return sequences
-                    .Aggregate((a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings))
-                    .Elements;
-            }
+            return BalancedReduction.Aggregate(sequences,
+                    (a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings), doParallel)
+                .Elements;
         }
     }
     #endregion

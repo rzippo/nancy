@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
 
 namespace Unipi.Nancy.NetworkCalculus;
     
@@ -101,7 +102,7 @@ public static class ConvexCurveExtensions
 {
     /// <inheritdoc cref="Curve.Maximum(IEnumerable{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Maximum(this IEnumerable<ConvexCurve> curves, ComputationSettings? settings = null)
-        => curves.Aggregate((a, b) => a.Maximum(b, settings));
+        => BalancedReduction.Aggregate(curves, (a, b) => a.Maximum(b, settings), parallel: false);
 
     /// <inheritdoc cref="Curve.Maximum(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Maximum(this IReadOnlyCollection<ConvexCurve> curves, ComputationSettings? settings = null)
@@ -109,7 +110,7 @@ public static class ConvexCurveExtensions
 
     /// <inheritdoc cref="Curve.Convolution(IEnumerable{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Convolution(this IEnumerable<ConvexCurve> curves, ComputationSettings? settings = null)
-        => curves.Aggregate((a, b) => a.Convolution(b, settings));
+        => BalancedReduction.Aggregate(curves, (a, b) => a.Convolution(b, settings), parallel: false);
 
     /// <inheritdoc cref="Curve.Convolution(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Convolution(this IReadOnlyCollection<ConvexCurve> curves, ComputationSettings? settings = null)
