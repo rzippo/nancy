@@ -40,7 +40,7 @@ public class ParallelFailureContracts
         Assert.Same(failure, Assert.Throws<ArithmeticException>(() => IntervalBucket.ComputeIntervals(elements,
             new ComputationSettings { UseParallelism = false })));
         Assert.Same(failure, Assert.Throws<ArithmeticException>(() => IntervalBucket.ComputeIntervals(elements,
-            new ComputationSettings { UseParallelComputeIntervals = true, ParallelComputeIntervalsThreshold = 0 })));
+            new ComputationSettings { UseParallelComputeIntervals = true, ComputeIntervalsParallelizationThreshold = 0 })));
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class ParallelFailureContracts
         Assert.Same(failure, Assert.Throws<ArithmeticException>(() => IntervalBucket.ComputeIntervals(new FailingInsertion(failure),
             new ComputationSettings { UseParallelism = false })));
         Assert.Same(failure, Assert.Throws<ArithmeticException>(() => IntervalBucket.ComputeIntervals(new FailingInsertion(failure),
-            new ComputationSettings { UseParallelComputeIntervals = true, ParallelComputeIntervalsThreshold = 0 })));
+            new ComputationSettings { UseParallelComputeIntervals = true, ComputeIntervalsParallelizationThreshold = 0 })));
     }
 
     [Fact]

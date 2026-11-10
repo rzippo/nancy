@@ -49,7 +49,7 @@ public class JsonComputeIntervalBuckets
         var settings = new ComputationSettings
         {
             UseParallelComputeIntervals = true,
-            ParallelComputeIntervalsThreshold = 1_000
+            ComputeIntervalsParallelizationThreshold = 1_000
         };
         var intervals = IntervalBucket.ComputeIntervals(elements, settings);
 

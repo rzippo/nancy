@@ -58,7 +58,7 @@ public class RangeTree
 
         var settings = new ComputationSettings
         {
-            ParallelComputeIntervalsThreshold = 100
+            ComputeIntervalsParallelizationThreshold = 100
         };
 
         var intervals = IntervalBucket.ComputeIntervals(elements, settings);
