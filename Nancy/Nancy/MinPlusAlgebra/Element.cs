@@ -297,11 +297,18 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="elements">The elements to be summed.</param>
     /// <exception cref="ArgumentException">Thrown if the elements do not overlap.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the set of elements is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if the set of elements is empty.</exception>
     /// <returns>The result of the overall sum.</returns>
     public static Element Addition(IEnumerable<Element> elements)
     {
-        return elements.Aggregate(Addition);
+        ArgumentNullException.ThrowIfNull(elements);
+        using var enumerator = elements.GetEnumerator();
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
+        var result = enumerator.Current;
+        while (enumerator.MoveNext())
+            result = Addition(result, enumerator.Current);
+        return result;
     }
 
     /// <summary>
@@ -336,7 +343,7 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="elements">The elements to be summed.</param>
     /// <exception cref="ArgumentException">Thrown if the elements do not overlap.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the set of elements is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if the set of elements is empty.</exception>
     /// <returns>The result of the overall subtraction.</returns>
     /// <remarks>
     /// The operation does not enforce non-negative values.
@@ -344,7 +351,14 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     public static Element Subtraction(IEnumerable<Element> elements)
     {
-        return elements.Aggregate(Subtraction);
+        ArgumentNullException.ThrowIfNull(elements);
+        using var enumerator = elements.GetEnumerator();
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
+        var result = enumerator.Current;
+        while (enumerator.MoveNext())
+            result = Subtraction(result, enumerator.Current);
+        return result;
     }
 
     #endregion Addition and Subtraction operators
@@ -372,12 +386,12 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="elements">Elements of which the minimum has to be computed.</param>
     /// <exception cref="ArgumentException">Thrown if the elements do not overlap.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the set of elements is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if the set of elements is empty.</exception>
     /// <returns>The result of the overall minimum.</returns>
     public static List<Element> Minimum(IReadOnlyList<Element> elements)
     {
         if (!elements.Any())
-            throw new InvalidOperationException("The enumerable is empty.");
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
         if (elements.Count() == 1)
             return elements.ToList();
         if (elements.Count() == 2)
@@ -486,12 +500,12 @@ public abstract class Element : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="elements">Elements of which the maximum has to be computed.</param>
     /// <exception cref="ArgumentException">Thrown if the elements do not overlap.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the set of elements is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if the set of elements is empty.</exception>
     /// <returns>The result of the overall maximum.</returns>
     public static List<Element> Maximum(IReadOnlyList<Element> elements)
     {
         if (!elements.Any())
-            throw new InvalidOperationException("The enumerable is empty.");
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
         if (elements.Count() == 1)
             return elements.ToList();
         if (elements.Count() == 2)

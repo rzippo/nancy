@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -232,9 +233,12 @@ public class RateLatencyServiceCurve : ConvexCurve
     /// <remarks>
     /// Optimized as a <see cref="RateLatencyServiceCurve"/> with the sum of the delays and the minimum of the rates.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static RateLatencyServiceCurve Convolution(IReadOnlyCollection<RateLatencyServiceCurve> curves,
         ComputationSettings? settings = null)
     {
+        if (curves.Count == 0)
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         return new RateLatencyServiceCurve(rate: curves.Min(c => c.Rate), latency: curves.Sum(c => c.Latency));
     }
 
@@ -246,7 +250,7 @@ public class RateLatencyServiceCurve : ConvexCurve
 /// </summary>
 public static class RateLatencyServiceCurveExtensions
 {
-    /// <inheritdoc cref="RateLatencyServiceCurve.Convolution(RateLatencyServiceCurve, ComputationSettings?)"/>
+    /// <inheritdoc cref="RateLatencyServiceCurve.Convolution(IReadOnlyCollection{RateLatencyServiceCurve}, ComputationSettings?)"/>
     public static RateLatencyServiceCurve Convolution(this IReadOnlyCollection<RateLatencyServiceCurve> curves, ComputationSettings? settings = null)
         => RateLatencyServiceCurve.Convolution(curves, settings);
 }

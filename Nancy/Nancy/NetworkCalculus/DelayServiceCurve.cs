@@ -178,8 +178,18 @@ public class DelayServiceCurve : SuperAdditiveCurve
     /// <remarks>
     /// Optimized as a <see cref="DelayServiceCurve"/> with the sum of the delays.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static DelayServiceCurve Convolution(IEnumerable<DelayServiceCurve> curves, ComputationSettings? settings = null)
-        => new DelayServiceCurve(curves.Sum(c => c.Delay));
+    {
+        ArgumentNullException.ThrowIfNull(curves);
+        using var enumerator = curves.GetEnumerator();
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
+        var delay = enumerator.Current.Delay;
+        while (enumerator.MoveNext())
+            delay += enumerator.Current.Delay;
+        return new DelayServiceCurve(delay);
+    }
 }
 
 /// <summary>
@@ -187,7 +197,7 @@ public class DelayServiceCurve : SuperAdditiveCurve
 /// </summary>
 public static class DelayServiceCurveExtensions
 {    
-    /// <inheritdoc cref="DelayServiceCurve.Convolution(DelayServiceCurve, ComputationSettings?)"/>
+    /// <inheritdoc cref="DelayServiceCurve.Convolution(IEnumerable{DelayServiceCurve}, ComputationSettings?)"/>
     public static DelayServiceCurve Convolution(this IEnumerable<DelayServiceCurve> curves, ComputationSettings? settings = null)
         => DelayServiceCurve.Convolution(curves, settings);
 }

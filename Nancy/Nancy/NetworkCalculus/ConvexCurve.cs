@@ -106,7 +106,7 @@ public static class ConvexCurveExtensions
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
         if (operands.Count == 0)
-            throw new InvalidOperationException("Sequence contains no elements");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
 
         return Maximum(operands, settings);
     }
@@ -124,7 +124,7 @@ public static class ConvexCurveExtensions
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
         if (operands.Count == 0)
-            throw new InvalidOperationException("Sequence contains no elements");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
 
         return Convolution(operands, settings);
     }

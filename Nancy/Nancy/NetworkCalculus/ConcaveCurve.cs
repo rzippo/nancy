@@ -112,7 +112,7 @@ public static class ConcaveCurveExtensions
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
         if (operands.Count == 0)
-            throw new InvalidOperationException("Sequence contains no elements");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
 
         return Minimum(operands, settings);
     }

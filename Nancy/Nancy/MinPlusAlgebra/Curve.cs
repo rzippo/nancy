@@ -1855,7 +1855,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         using var enumerator = curves.GetEnumerator();
         if (!enumerator.MoveNext())
-            throw new ArgumentException("The set of curves is empty");
+            throw new ArgumentException("The set of curves is empty.", nameof(curves));
 
         var reference = enumerator.Current;
         while (enumerator.MoveNext())
@@ -7208,12 +7208,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve Addition(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
         if (operands.Count == 0)
-            throw new InvalidOperationException("Sequence contains no elements");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         return Addition(operands, settings);
     }
 
@@ -7223,13 +7224,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The curves to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall addition.</returns>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve Addition(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
 
         if (operands.Count == 0)
-            throw new ArgumentException("The enumerable is empty");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
 
         bool parallelizeDueCount =
             settings.UseParallelListAddition &&
@@ -7577,13 +7579,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// It combines two curves at a time, and is known to be correct when <see cref="IsMinimumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve Minimum(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
 
         if (operands.Count == 0)
-            throw new ArgumentException("The enumerable is empty");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
 
         bool parallelizeDueCount =
             settings.UseParallelListMinimum &&
@@ -7610,12 +7613,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// It combines two curves at a time, and is known to be correct when <see cref="IsMinimumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
     /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve Minimum(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
         if (operands.Count == 0)
-            throw new InvalidOperationException("Sequence contains no elements");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         return Minimum(operands, settings);
     }
 
@@ -7831,13 +7835,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// It combines two curves at a time, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve Maximum(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
 
         if (operands.Count == 0)
-            throw new ArgumentException("The enumerable is empty");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
 
         bool parallelizeDueCount =
             settings.UseParallelListMaximum &&
@@ -7864,12 +7869,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// It combines two curves at a time, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds at every step.
     /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve Maximum(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
         if (operands.Count == 0)
-            throw new InvalidOperationException("Sequence contains no elements");
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         return Maximum(operands, settings);
     }
 
@@ -8455,9 +8461,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="curves">The set of curves to be convolved.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall convolution.</returns>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve Convolution(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
+        if (curves.Count == 0)
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         var operands = BalancedReduction.GetIndexedOperands(curves);
         #if DO_LOG
         logger.Debug($"Generic list convolution, {operands.Count} curves");
@@ -8476,10 +8485,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve Convolution(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
+        if (operands.Count == 0)
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         return Convolution(operands, settings);
     }
 
@@ -9692,9 +9704,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve MaxPlusConvolution(IReadOnlyCollection<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
+        if (curves.Count == 0)
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         var operands = BalancedReduction.GetIndexedOperands(curves);
         #if DO_LOG
         logger.Debug($"Generic list max-plus convolution, {operands.Count} curves");
@@ -9714,10 +9729,13 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4
     /// Indexed input is read directly; other input is fully consumed and its operand references buffered before the reduction.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static Curve MaxPlusConvolution(IEnumerable<Curve> curves, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         var operands = BalancedReduction.GetIndexedOperands(curves);
+        if (operands.Count == 0)
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         return MaxPlusConvolution(operands, settings);
     }
 

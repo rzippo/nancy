@@ -660,12 +660,12 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     /// <param name="points">Points of which the minimum has to be computed.</param>
     /// <exception cref="ArgumentException">Thrown if the points do not overlap.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the set of points is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if the set of points is empty.</exception>
     /// <returns>The point resulting from the overall minimum.</returns>
     public static Point Minimum(IReadOnlyList<Point> points)
     {
         if(!points.Any())
-            throw new InvalidOperationException("The enumerable is empty.");
+            throw new ArgumentException("The set of points is empty.", nameof(points));
         if (points.Count() == 1)
             return points.Single();
 
@@ -752,12 +752,12 @@ public sealed class Point : Element, IEquatable<Point>
     /// </summary>
     /// <param name="points">Points of which the maximum has to be computed.</param>
     /// <exception cref="ArgumentException">Thrown if the points do not overlap.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the set of points is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if the set of points is empty.</exception>
     /// <returns>The point resulting from the overall maximum.</returns>
     public static Point Maximum(IReadOnlyList<Point> points)
     {
         if(!points.Any())
-            throw new InvalidOperationException("The enumerable is empty.");
+            throw new ArgumentException("The set of points is empty.", nameof(points));
         if (points.Count() == 1)
             return points.Single();
 

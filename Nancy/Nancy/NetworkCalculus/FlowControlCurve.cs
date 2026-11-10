@@ -163,6 +163,7 @@ public class FlowControlCurve : SubAdditiveCurve
     /// <param name="curves">The set of staircase curves to be convolved.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall convolution.</returns>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static SubAdditiveCurve Convolution(IEnumerable<FlowControlCurve> curves, ComputationSettings? settings = null)
         => SubAdditiveCurve.Convolution(curves, settings);
 }

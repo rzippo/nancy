@@ -3360,7 +3360,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     private static IEnumerable<Element> MergePartialEnvelopes(IEnumerable<Sequence> partials, EnvelopeKind extremum)
     {
         using var enumerator = partials.GetEnumerator();
-        if (!enumerator.MoveNext()) throw new ArgumentException("The partial-envelope stream is empty.");
+        if (!enumerator.MoveNext()) throw new ArgumentException("The partial-envelope stream is empty.", nameof(partials));
         var current = enumerator.Current;
         while (enumerator.MoveNext())
         {

@@ -104,7 +104,7 @@ public static partial class SequenceExtensions
     {
         using var enumerator = new ElementCursor(elements);
         if (!enumerator.MoveNext())
-            throw new ArgumentException("Elements is an empty collection");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
 
         if (cutStart > cutEnd)
             throw new ArgumentException("Invalid interval.");
@@ -691,8 +691,10 @@ public static partial class SequenceExtensions
     {
         using var cursorA = new ElementCursor(a);
         using var cursorB = new ElementCursor(b);
-        if (!cursorA.MoveNext() || !cursorB.MoveNext())
-            throw new ArgumentException("An operand is empty.");
+        if (!cursorA.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(a));
+        if (!cursorB.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(b));
 
         var t = Rational.Max(cursorA.Current.StartTime, cursorB.Current.StartTime);
         // The overlap includes its start unless an operand that starts there is open.
@@ -815,10 +817,14 @@ public static partial class SequenceExtensions
     public static bool AreInTimeOrder(this IEnumerable<Element> elements)
     {
         if (TryGetSpan(elements, out var span))
+        {
+            if (span.IsEmpty)
+                throw new ArgumentException("The element collection is empty.", nameof(elements));
             return AreInTimeOrder(span);
+        }
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
-            throw new ArgumentException("The element stream is empty.", nameof(elements));
+            throw new ArgumentException("The element collection is empty.", nameof(elements));
         var previous = enumerator.Current;
         while (enumerator.MoveNext())
         {
@@ -838,7 +844,7 @@ public static partial class SequenceExtensions
     public static bool AreInTimeOrder(this ReadOnlySpan<Element> elements)
     {
         if (elements.IsEmpty)
-            throw new ArgumentException("The element stream is empty.", nameof(elements));
+            throw new ArgumentException("The element span is empty.", nameof(elements));
         var previous = elements[0];
         for (var i = 1; i < elements.Length; i++)
         {
@@ -859,6 +865,8 @@ public static partial class SequenceExtensions
     public static bool AreInTimeOrder(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return AreInTimeOrder((ReadOnlySpan<Element>) elements);
     }
 
@@ -873,10 +881,14 @@ public static partial class SequenceExtensions
     public static bool AreInTimeSequence(this IEnumerable<Element> elements)
     {
         if (TryGetSpan(elements, out var span))
+        {
+            if (span.IsEmpty)
+                throw new ArgumentException("The element collection is empty.", nameof(elements));
             return AreInTimeSequence(span);
+        }
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
-            throw new ArgumentException("The element stream is empty.", nameof(elements));
+            throw new ArgumentException("The element collection is empty.", nameof(elements));
         var previous = enumerator.Current;
         while (enumerator.MoveNext())
         {
@@ -897,7 +909,7 @@ public static partial class SequenceExtensions
     public static bool AreInTimeSequence(this ReadOnlySpan<Element> elements)
     {
         if (elements.IsEmpty)
-            throw new ArgumentException("The element stream is empty.", nameof(elements));
+            throw new ArgumentException("The element span is empty.", nameof(elements));
         var previous = elements[0];
         for (var i = 1; i < elements.Length; i++)
         {
@@ -919,6 +931,8 @@ public static partial class SequenceExtensions
     public static bool AreInTimeSequence(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return AreInTimeSequence((ReadOnlySpan<Element>) elements);
     }
 
@@ -932,10 +946,14 @@ public static partial class SequenceExtensions
     public static bool AreUninterruptedSequence(this IEnumerable<Element> elements)
     {
         if (TryGetSpan(elements, out var span))
+        {
+            if (span.IsEmpty)
+                throw new ArgumentException("The element collection is empty.", nameof(elements));
             return AreUninterruptedSequence(span);
+        }
         using var enumerator = elements.GetEnumerator();
         if (!enumerator.MoveNext())
-            throw new ArgumentException("The element stream is empty.", nameof(elements));
+            throw new ArgumentException("The element collection is empty.", nameof(elements));
 
         Rational lastDefinedTime = enumerator.Current.EndTime;
         bool lastElementWasPoint = enumerator.Current is Point;
@@ -964,7 +982,7 @@ public static partial class SequenceExtensions
     public static bool AreUninterruptedSequence(this ReadOnlySpan<Element> elements)
     {
         if (elements.IsEmpty)
-            throw new ArgumentException("The element stream is empty.", nameof(elements));
+            throw new ArgumentException("The element span is empty.", nameof(elements));
 
         Rational lastDefinedTime = elements[0].EndTime;
         bool lastElementWasPoint = elements[0] is Point;
@@ -994,6 +1012,8 @@ public static partial class SequenceExtensions
     public static bool AreUninterruptedSequence(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return AreUninterruptedSequence((ReadOnlySpan<Element>) elements);
     }
 
@@ -1094,7 +1114,7 @@ public static partial class SequenceExtensions
     {
         using var enumerator = new ElementCursor(elements);
         if (!enumerator.MoveNext())
-            throw new ArgumentException("Elements is an empty collection");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
 
         Segment? left = null;
         Point center;
@@ -1243,7 +1263,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsContinuous(this ReadOnlySpan<Element> elements)
-        => IsContinuous(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsContinuous(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if there is no discontinuity within the sequence.
@@ -1256,6 +1280,8 @@ public static partial class SequenceExtensions
     public static bool IsContinuous(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsContinuous((ReadOnlySpan<Element>) elements);
     }
 
@@ -1264,7 +1290,7 @@ public static partial class SequenceExtensions
         elements.ThrowIfStarted();
         using var reader = elements;
         if(!reader.MoveNext())
-            throw new ArgumentException("Elements is an empty collection");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
 
         Rational lastValue = reader.Current is Point p ?
             p.Value :
@@ -1318,7 +1344,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsLeftContinuous(this ReadOnlySpan<Element> elements)
-        => IsLeftContinuous(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsLeftContinuous(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if there is no left-discontinuity within the sequence.
@@ -1331,6 +1361,8 @@ public static partial class SequenceExtensions
     public static bool IsLeftContinuous(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsLeftContinuous((ReadOnlySpan<Element>) elements);
     }
 
@@ -1372,7 +1404,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsRightContinuous(this ReadOnlySpan<Element> elements)
-        => IsRightContinuous(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsRightContinuous(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if there is no right-discontinuity within the sequence.
@@ -1385,6 +1421,8 @@ public static partial class SequenceExtensions
     public static bool IsRightContinuous(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsRightContinuous((ReadOnlySpan<Element>) elements);
     }
 
@@ -1422,7 +1460,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsZero(this ReadOnlySpan<Element> elements)
-        => IsZero(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsZero(new ElementReader(elements));
+    }
 
     /// <summary>True if every defined value is zero.</summary>
     /// <returns>True if every element is zero.</returns>
@@ -1433,6 +1475,8 @@ public static partial class SequenceExtensions
     public static bool IsZero(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsZero((ReadOnlySpan<Element>) elements);
     }
 
@@ -1467,7 +1511,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsInfinite(this ReadOnlySpan<Element> elements)
-        => IsInfinite(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsInfinite(new ElementReader(elements));
+    }
 
     /// <summary>True if every defined value is infinite, with either sign.</summary>
     /// <returns>True if every element is infinite.</returns>
@@ -1478,6 +1526,8 @@ public static partial class SequenceExtensions
     public static bool IsInfinite(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsInfinite((ReadOnlySpan<Element>) elements);
     }
 
@@ -1512,7 +1562,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool HasPlusInfinity(this ReadOnlySpan<Element> elements)
-        => HasPlusInfinity(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return HasPlusInfinity(new ElementReader(elements));
+    }
 
     /// <summary>True if some defined value is plus infinity.</summary>
     /// <returns>True if an element is plus infinite.</returns>
@@ -1523,6 +1577,8 @@ public static partial class SequenceExtensions
     public static bool HasPlusInfinity(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return HasPlusInfinity((ReadOnlySpan<Element>) elements);
     }
 
@@ -1557,7 +1613,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool HasMinusInfinity(this ReadOnlySpan<Element> elements)
-        => HasMinusInfinity(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return HasMinusInfinity(new ElementReader(elements));
+    }
 
     /// <summary>True if some defined value is minus infinity.</summary>
     /// <returns>True if an element is minus infinite.</returns>
@@ -1568,6 +1628,8 @@ public static partial class SequenceExtensions
     public static bool HasMinusInfinity(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return HasMinusInfinity((ReadOnlySpan<Element>) elements);
     }
 
@@ -1602,7 +1664,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsNonPositive(this ReadOnlySpan<Element> elements)
-        => IsNonPositive(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsNonPositive(new ElementReader(elements));
+    }
 
     /// <summary>True if every defined value is non-positive.</summary>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
@@ -1613,6 +1679,8 @@ public static partial class SequenceExtensions
     public static bool IsNonPositive(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsNonPositive((ReadOnlySpan<Element>) elements);
     }
 
@@ -1656,7 +1724,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsPositive(this ReadOnlySpan<Element> elements)
-        => IsPositive(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsPositive(new ElementReader(elements));
+    }
 
     /// <summary>True if every defined value is strictly positive.</summary>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
@@ -1668,6 +1740,8 @@ public static partial class SequenceExtensions
     public static bool IsPositive(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsPositive((ReadOnlySpan<Element>) elements);
     }
 
@@ -1713,7 +1787,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsNegative(this ReadOnlySpan<Element> elements)
-        => IsNegative(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsNegative(new ElementReader(elements));
+    }
 
     /// <summary>True if every defined value is strictly negative.</summary>
     /// <returns>Whether the sign condition holds, including infinite values in the extended order.</returns>
@@ -1725,6 +1803,8 @@ public static partial class SequenceExtensions
     public static bool IsNegative(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsNegative((ReadOnlySpan<Element>) elements);
     }
 
@@ -1768,7 +1848,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsConstant(this ReadOnlySpan<Element> elements)
-        => IsConstant(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsConstant(new ElementReader(elements));
+    }
 
     /// <summary>True if all defined values equal one constant, possibly infinite.</summary>
     /// <returns>Whether every element has the same constant value.</returns>
@@ -1779,6 +1863,8 @@ public static partial class SequenceExtensions
     public static bool IsConstant(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsConstant((ReadOnlySpan<Element>) elements);
     }
 
@@ -1825,7 +1911,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsAffine(this ReadOnlySpan<Element> elements)
-        => IsAffine(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsAffine(new ElementReader(elements));
+    }
 
     /// <summary>True if finite coefficients $a$ and $b$ exist such that $f(t)=at+b$ throughout the support.</summary>
     /// <returns>Whether the represented function is affine.</returns>
@@ -1840,6 +1930,8 @@ public static partial class SequenceExtensions
     public static bool IsAffine(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsAffine((ReadOnlySpan<Element>) elements);
     }
 
@@ -1873,7 +1965,7 @@ public static partial class SequenceExtensions
             }
         }
         if (previousEndValue is null)
-            throw new ArgumentException("Elements is an empty collection");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
         return true;
     }
 
@@ -1898,7 +1990,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsNonNegative(this ReadOnlySpan<Element> elements)
-        => IsNonNegative(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsNonNegative(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
@@ -1911,6 +2007,8 @@ public static partial class SequenceExtensions
     public static bool IsNonNegative(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsNonNegative((ReadOnlySpan<Element>) elements);
     }
 
@@ -1956,7 +2054,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsNonDecreasing(this ReadOnlySpan<Element> elements)
-        => IsNonDecreasing(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsNonDecreasing(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if for any $t > s$, $f(t) \ge f(s)$.
@@ -1969,6 +2071,8 @@ public static partial class SequenceExtensions
     public static bool IsNonDecreasing(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsNonDecreasing((ReadOnlySpan<Element>) elements);
     }
 
@@ -1998,7 +2102,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsIncreasing(this ReadOnlySpan<Element> elements)
-        => IsIncreasing(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsIncreasing(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if for any $t > s$, $f(t) > f(s)$.
@@ -2011,6 +2119,8 @@ public static partial class SequenceExtensions
     public static bool IsIncreasing(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsIncreasing((ReadOnlySpan<Element>) elements);
     }
 
@@ -2040,7 +2150,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsNonIncreasing(this ReadOnlySpan<Element> elements)
-        => IsNonIncreasing(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsNonIncreasing(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if for any $t > s$, $f(t) \le f(s)$.
@@ -2053,6 +2167,8 @@ public static partial class SequenceExtensions
     public static bool IsNonIncreasing(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsNonIncreasing((ReadOnlySpan<Element>) elements);
     }
 
@@ -2082,7 +2198,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsDecreasing(this ReadOnlySpan<Element> elements)
-        => IsDecreasing(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsDecreasing(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if for any $t > s$, $f(t) &lt; f(s)$.
@@ -2095,6 +2215,8 @@ public static partial class SequenceExtensions
     public static bool IsDecreasing(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsDecreasing((ReadOnlySpan<Element>) elements);
     }
 
@@ -2155,7 +2277,7 @@ public static partial class SequenceExtensions
                 previous = start;
         }
         if (previous is null)
-            throw new ArgumentException("Elements is an empty collection");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
         return true;
     }
 
@@ -2180,7 +2302,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsFinite(this ReadOnlySpan<Element> elements)
-        => IsFinite(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsFinite(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if for any $t$, $\left|f(t)\right| &lt; +\infty$.
@@ -2193,6 +2319,8 @@ public static partial class SequenceExtensions
     public static bool IsFinite(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsFinite((ReadOnlySpan<Element>) elements);
     }
 
@@ -2231,7 +2359,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsMinusInfinite(this ReadOnlySpan<Element> elements)
-        => IsMinusInfinite(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsMinusInfinite(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if for any $t$, $f(t) = -\infty$.
@@ -2244,6 +2376,8 @@ public static partial class SequenceExtensions
     public static bool IsMinusInfinite(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsMinusInfinite((ReadOnlySpan<Element>) elements);
     }
 
@@ -2282,7 +2416,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static bool IsPlusInfinite(this ReadOnlySpan<Element> elements)
-        => IsPlusInfinite(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return IsPlusInfinite(new ElementReader(elements));
+    }
 
     /// <summary>
     /// True if for any $t$, $f(t) = +\infty$.
@@ -2295,6 +2433,8 @@ public static partial class SequenceExtensions
     public static bool IsPlusInfinite(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return IsPlusInfinite((ReadOnlySpan<Element>) elements);
     }
 
@@ -2345,7 +2485,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static (Rational Value, Rational Time) SupValueAndArg(this ReadOnlySpan<Element> elements)
-        => SupValueAndArg(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return SupValueAndArg(new ElementReader(elements));
+    }
 
     /// <summary>Finds the supremum and its earliest boundary location in one traversal.</summary>
     /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
@@ -2357,6 +2501,8 @@ public static partial class SequenceExtensions
     public static (Rational Value, Rational Time) SupValueAndArg(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return SupValueAndArg((ReadOnlySpan<Element>) elements);
     }
 
@@ -2382,7 +2528,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static (Rational Value, Rational Time) InfValueAndArg(this ReadOnlySpan<Element> elements)
-        => InfValueAndArg(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return InfValueAndArg(new ElementReader(elements));
+    }
 
     /// <summary>Finds the infimum and its earliest boundary location in one traversal.</summary>
     /// <returns>The bound and the earliest time where it is a value or a one-sided limit.</returns>
@@ -2394,6 +2544,8 @@ public static partial class SequenceExtensions
     public static (Rational Value, Rational Time) InfValueAndArg(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return InfValueAndArg((ReadOnlySpan<Element>) elements);
     }
 
@@ -2421,7 +2573,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static Rational SupValue(this ReadOnlySpan<Element> elements)
-        => SupValue(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return SupValue(new ElementReader(elements));
+    }
 
     /// <summary>
     /// If the sequence is upper-bounded, i.e., exists $x$ such that $f(t) \le x$ for every $t$ in the support, returns $\inf x$.
@@ -2434,6 +2590,8 @@ public static partial class SequenceExtensions
     public static Rational SupValue(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return SupValue((ReadOnlySpan<Element>) elements);
     }
 
@@ -2459,7 +2617,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static Rational SupArg(this ReadOnlySpan<Element> elements)
-        => SupArg(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return SupArg(new ElementReader(elements));
+    }
 
     /// <summary>Returns the earliest boundary location of the supremum.</summary>
     /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
@@ -2470,6 +2632,8 @@ public static partial class SequenceExtensions
     public static Rational SupArg(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return SupArg((ReadOnlySpan<Element>) elements);
     }
 
@@ -2501,7 +2665,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static Rational? MaxValue(this ReadOnlySpan<Element> elements)
-        => MaxValue(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return MaxValue(new ElementReader(elements));
+    }
 
     /// <summary>
     /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
@@ -2515,6 +2683,8 @@ public static partial class SequenceExtensions
     public static Rational? MaxValue(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return MaxValue((ReadOnlySpan<Element>) elements);
     }
 
@@ -2558,7 +2728,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static Rational? MaxArg(this ReadOnlySpan<Element> elements)
-        => MaxArg(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return MaxArg(new ElementReader(elements));
+    }
 
     /// <summary>
     /// If the sequence has a maximum, i.e., exist $x$ and $t^*$ such that $f(t) \le x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
@@ -2573,6 +2747,8 @@ public static partial class SequenceExtensions
     public static Rational? MaxArg(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return MaxArg((ReadOnlySpan<Element>) elements);
     }
 
@@ -2624,7 +2800,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static Rational InfValue(this ReadOnlySpan<Element> elements)
-        => InfValue(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return InfValue(new ElementReader(elements));
+    }
 
     /// <summary>
     /// If the sequence is lower-bounded, i.e., exists $x$ such that $f(t) \ge x$ for every $t$ in the support, returns $\sup x$.
@@ -2637,6 +2817,8 @@ public static partial class SequenceExtensions
     public static Rational InfValue(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return InfValue((ReadOnlySpan<Element>) elements);
     }
 
@@ -2662,7 +2844,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static Rational InfArg(this ReadOnlySpan<Element> elements)
-        => InfArg(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return InfArg(new ElementReader(elements));
+    }
 
     /// <summary>Returns the earliest boundary location of the infimum.</summary>
     /// <returns>The earliest time where the bound is a value or a one-sided limit, including excluded endpoints.</returns>
@@ -2673,6 +2859,8 @@ public static partial class SequenceExtensions
     public static Rational InfArg(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return InfArg((ReadOnlySpan<Element>) elements);
     }
 
@@ -2704,7 +2892,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static Rational? MinValue(this ReadOnlySpan<Element> elements)
-        => MinValue(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return MinValue(new ElementReader(elements));
+    }
 
     /// <summary>
     /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $x$.
@@ -2718,6 +2910,8 @@ public static partial class SequenceExtensions
     public static Rational? MinValue(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return MinValue((ReadOnlySpan<Element>) elements);
     }
 
@@ -2761,7 +2955,11 @@ public static partial class SequenceExtensions
     /// <exception cref="ArgumentException">If the span is empty.</exception>
     /// <exception cref="ArgumentException">If an element read violates uninterrupted time order.</exception>
     public static Rational? MinArg(this ReadOnlySpan<Element> elements)
-        => MinArg(new ElementReader(elements));
+    {
+        if (elements.IsEmpty)
+            throw new ArgumentException("The element span is empty.", nameof(elements));
+        return MinArg(new ElementReader(elements));
+    }
 
     /// <summary>
     /// If the sequence has a minimum, i.e., exist $x$ and $t^*$ such that $f(t) \ge x$ for every $t$ in the support and $f(t^*) = x$, returns $t^*$.
@@ -2776,6 +2974,8 @@ public static partial class SequenceExtensions
     public static Rational? MinArg(this Element[] elements)
     {
         ArgumentNullException.ThrowIfNull(elements);
+        if (elements.Length == 0)
+            throw new ArgumentException("The element array is empty.", nameof(elements));
         return MinArg((ReadOnlySpan<Element>) elements);
     }
 
@@ -2949,7 +3149,7 @@ public static partial class SequenceExtensions
             }
         }
         if (!seen)
-            throw new ArgumentException("Elements is an empty collection");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
     }
 
     /// <summary>
@@ -2963,7 +3163,7 @@ public static partial class SequenceExtensions
     {
         using var cursor = new ElementCursor(elements);
         if (!cursor.MoveNext())
-            throw new ArgumentException("Elements is an empty collection");
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
 
         do
         {
@@ -3020,7 +3220,7 @@ public static partial class SequenceExtensions
         if (!enumerator.MoveNext())
         {
             if (!startFromZero)
-                throw new ArgumentException("Elements is an empty collection");
+                throw new ArgumentException("The element stream is empty.", nameof(elements));
             // no value reaches 0: no instant has f(t) >= 0, and the infimum of the empty set is +inf
             yield return Point.PlusInfinite(0);
             yield break;
@@ -3293,7 +3493,7 @@ public static partial class SequenceExtensions
             using var enumerator = merged.GetEnumerator();
 
             if (!enumerator.MoveNext())
-                throw new ArgumentException("Elements is an empty collection");
+                throw new ArgumentException("The element stream is empty.", nameof(elements));
 
             Rational previousValue = Rational.MinusInfinity;
             bool? wasPreviousPoint = null;
@@ -3633,11 +3833,12 @@ public static partial class SequenceExtensions
     /// $O(n \cdot \log(n))$ complexity.
     /// </summary>
     /// <remarks>Used for convolution</remarks>
+    /// <exception cref="ArgumentException">If the set of elements is empty.</exception>
     public static List<Element> LowerEnvelope(this IReadOnlyList<Element> elements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         if (!elements.Any())
-            throw new ArgumentException("The set of elements is empty");
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
 
         #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
@@ -3683,8 +3884,11 @@ public static partial class SequenceExtensions
     /// <remarks>
     /// Used for partitioned convolution.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the set of sequences is empty.</exception>
     public static IReadOnlyList<Element> LowerEnvelope(this IReadOnlyList<Sequence> sequences, ComputationSettings? settings = null)
     {
+        if (sequences.Count == 0)
+            throw new ArgumentException("The set of sequences is empty.", nameof(sequences));
         if (sequences.Count == 1)
             return sequences.First().Elements;
         else if(sequences.Count == 2)
@@ -3706,11 +3910,12 @@ public static partial class SequenceExtensions
     /// <param name="elements">The elements to process.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <remarks>Used for deconvolution</remarks>
+    /// <exception cref="ArgumentException">If the set of elements is empty.</exception>
     public static List<Element> UpperEnvelope(this IReadOnlyList<Element> elements, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
         if (!elements.Any())
-            throw new ArgumentException("The set of elements is empty");
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
 
         #if DO_LOG
         var intervalsStopwatch = Stopwatch.StartNew();
@@ -3753,8 +3958,11 @@ public static partial class SequenceExtensions
     /// <summary>
     /// Computes the upper envelope of the set of sequences given.
     /// </summary>
+    /// <exception cref="ArgumentException">If the set of sequences is empty.</exception>
     public static IReadOnlyList<Element> UpperEnvelope(this IReadOnlyList<Sequence> sequences, ComputationSettings? settings = null)
     {
+        if (sequences.Count == 0)
+            throw new ArgumentException("The set of sequences is empty.", nameof(sequences));
         if (sequences.Count == 1)
             return sequences.First().Elements;
         else if(sequences.Count == 2)

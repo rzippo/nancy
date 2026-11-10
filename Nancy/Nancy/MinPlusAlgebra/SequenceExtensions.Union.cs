@@ -82,14 +82,14 @@ public static partial class SequenceExtensions
         }
         if (result is null)
         {
-            throw new ArgumentException("The operand collection is empty.");
+            throw new ArgumentException("The operand collection is empty.", nameof(streams));
         }
 
         // This cursor also validates the single-operand case, where no binary sweep was created.
         using var cursor = new ElementCursor(result);
         if (!cursor.MoveNext())
         {
-            throw new ArgumentException("An operand is empty.");
+            throw new ArgumentException("An operand stream is empty.", nameof(streams));
         }
         do
         {
@@ -119,7 +119,7 @@ public static partial class SequenceExtensions
         var hasRight = right.MoveNext();
         if (!hasLeft || !hasRight)
         {
-            throw new ArgumentException("An operand is empty.");
+            throw new ArgumentException("The element stream is empty.", !hasLeft ? nameof(a) : nameof(b));
         }
         var undefinedValue = kind == EnvelopeKind.Upper ? Rational.MinusInfinity : Rational.PlusInfinity;
         var start = Rational.Min(left.Current.StartTime, right.Current.StartTime);

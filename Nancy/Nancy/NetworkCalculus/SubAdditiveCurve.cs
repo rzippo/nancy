@@ -527,6 +527,7 @@ public class SubAdditiveCurve : Curve
     /// <param name="curves">The set of sub-additive curves to be convolved.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the overall convolution.</returns>
+    /// <exception cref="ArgumentException">If the collection of curves is empty.</exception>
     public static SubAdditiveCurve Convolution(IEnumerable<SubAdditiveCurve> curves, ComputationSettings? settings = null)
     {
         #if DO_LOG
@@ -536,6 +537,8 @@ public class SubAdditiveCurve : Curve
             .OrderByDescending(c => c.RightLimitAt(0))
             .ThenByDescending(c => c.PseudoPeriodSlope)
             .ToList();
+        if (ordered.Count == 0)
+            throw new ArgumentException("The collection of curves is empty.", nameof(curves));
         var current = ordered.Last();   //initialize current with the candidate lowest curve
 
         int i = 1;

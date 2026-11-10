@@ -1122,12 +1122,12 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     /// <param name="segments">Segments of which the minimum has to be computed.</param>
     /// <exception cref="ArgumentException">Thrown if the segments do not overlap.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the set of segments is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if the set of segments is empty.</exception>
     /// <returns>The result of the overall minimum.</returns>
     public static List<Element> Minimum(IReadOnlyList<Segment> segments)
     {
         if (!segments.Any())
-            throw new InvalidOperationException("The enumerable is empty.");
+            throw new ArgumentException("The set of segments is empty.", nameof(segments));
 
         if (!SameSize())
         {
@@ -1307,12 +1307,12 @@ public sealed class Segment : Element, IEquatable<Segment>
     /// </summary>
     /// <param name="segments">Segments of which the maximum has to be computed.</param>
     /// <exception cref="ArgumentException">Thrown if the segments do not overlap.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the set of segments is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if the set of segments is empty.</exception>
     /// <returns>The result of the overall maximum.</returns>
     public static List<Element> Maximum(IReadOnlyList<Segment> segments)
     {
         if (!segments.Any())
-            throw new InvalidOperationException("The enumerable is empty.");
+            throw new ArgumentException("The set of segments is empty.", nameof(segments));
 
         if (!SameSize())
         {

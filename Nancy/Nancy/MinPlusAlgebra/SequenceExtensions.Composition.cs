@@ -30,7 +30,7 @@ public static partial class SequenceExtensions
     {
         using var outer = new ElementCursor(f);
         if (!outer.MoveNext())
-            throw new ArgumentException("The outer operand is empty.");
+            throw new ArgumentException("The outer operand is empty.", nameof(f));
 
         Point SampleOuter(Rational time)
         {
@@ -112,6 +112,6 @@ public static partial class SequenceExtensions
             previousInnerValue = inner.LeftLimitAtEndTime;
         }
         if (previousInnerValue is null)
-            throw new ArgumentException("The inner operand is empty.");
+            throw new ArgumentException("The inner operand is empty.", nameof(g));
     }
 }

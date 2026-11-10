@@ -409,6 +409,7 @@ internal class IntervalBucket
     /// <param name="elements">The set of elements to group by overlaps</param>
     /// <param name="settings">Computation settings, to fine-tune algorithm performance</param>
     /// <returns>A set of intervals grouping up the elements by their overlaps</returns>
+    /// <exception cref="ArgumentException">If the set of elements is empty.</exception>
     public static List<IntervalBucket> ComputeIntervals(
         IReadOnlyList<Element> elements,
         ComputationSettings? settings = null)
@@ -416,7 +417,7 @@ internal class IntervalBucket
         settings ??= ComputationSettings.Default();
 
         if (!elements.Any())
-            throw new Exception("Computing interval of no elements");
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
 
         bool doParallel = settings.UseParallelComputeIntervals &&
                           elements.Count >= settings.ParallelComputeIntervalsThreshold;
