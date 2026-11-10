@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 using Unipi.Nancy.Numerics;
 using Unipi.Nancy.Utility;
 
+#if DO_LOG
+using System.Diagnostics;
+using NLog;
+#endif
+
 namespace Unipi.Nancy.MinPlusAlgebra;
 
 /// <summary>
@@ -1059,9 +1064,7 @@ public static partial class SequenceExtensions
 
             #if DO_LOG
             sortStopwatch.Stop();
-            #endif
             var alg = doParallel ? "parallel" : "serial";
-            #if DO_LOG
             logger.Trace($"SortElements: took {sortStopwatch.Elapsed}, {alg} sort");
             #endif
             return result;
@@ -3742,7 +3745,7 @@ public static partial class SequenceExtensions
             .ToList();
         #if DO_LOG
         upperEnvelopeStopwatch.Stop();
-        logger.Debug($"Lower envelopes computed: {elements.Count} elements, {upperEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
+        logger.Debug($"Upper envelopes computed: {elements.Count} elements, {upperEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
         #endif
         return sequence;
     }

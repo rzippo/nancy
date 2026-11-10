@@ -7649,11 +7649,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the maximum.</returns>
     /// <remarks>
+    /// Adapted from the minimum algorithm described in [BT08] Section 4.3.
     /// The result is computed whatever the operands, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of them.
     /// </remarks>
     public virtual Curve Maximum(Curve curve, ComputationSettings? settings = null)
     {
-        // Renaming for simmetry
+        // Renaming for symmetry
         var a = this;
         var b = curve;
 
@@ -7811,6 +7812,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the maximum.</returns>
     /// <remarks>
+    /// Adapted from the minimum algorithm described in [BT08] Section 4.3.
     /// The result is computed whatever the operands, and is known to be correct when <see cref="IsMaximumUltimatelyPseudoPeriodic(Curve, Curve)"/> holds of them.
     /// </remarks>
     public static Curve Maximum(Curve? a, Curve? b, ComputationSettings? settings = null)

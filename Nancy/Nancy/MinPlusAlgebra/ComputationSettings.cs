@@ -169,7 +169,7 @@ public record ComputationSettings
     public int ListMaxPlusConvolutionParallelizationThreshold { get; set; } = 8;
 
     /// <summary>
-    /// If true, minimums of long lists of curves are processed in parallel
+    /// If true, lower envelopes of long lists of sequences are processed in parallel.
     /// </summary>
     public bool UseParallelListLowerEnvelope { get; set; } = true;
 
@@ -179,7 +179,7 @@ public record ComputationSettings
     public int ListLowerEnvelopeParallelizationThreshold { get; set; } = 8;
 
     /// <summary>
-    /// If true, maximums of long lists of curves are processed in parallel
+    /// If true, upper envelopes of long lists of sequences are processed in parallel.
     /// </summary>
     public bool UseParallelListUpperEnvelope { get; set; } = true;
 
