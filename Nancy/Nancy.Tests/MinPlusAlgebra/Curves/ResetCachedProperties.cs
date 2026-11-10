@@ -151,16 +151,25 @@ public class ResetCachedProperties
 
         var cut = curve.Cut(0, 10);
 
-        Assert.Null(cut._isNonDecreasing);
-        Assert.Null(cut._isIncreasing);
-        Assert.Null(cut._isNonIncreasing);
-        Assert.Null(cut._isDecreasing);
+        Assert.Null(cut._isFinite);
+        Assert.Null(cut._isPlusInfinite);
+        Assert.Null(cut._isMinusInfinite);
+        Assert.Null(cut._hasPlusInfinity);
+        Assert.Null(cut._hasMinusInfinity);
+        Assert.Null(cut._isZero);
+        Assert.Null(cut._isConstant);
+        Assert.Null(cut._isAffine);
+        Assert.Null(cut._isContinuous);
+        Assert.Null(cut._isLeftContinuous);
+        Assert.Null(cut._isRightContinuous);
         Assert.Null(cut._isNonNegative);
         Assert.Null(cut._isNonPositive);
         Assert.Null(cut._isPositive);
         Assert.Null(cut._isNegative);
-        Assert.Null(cut._isLeftContinuous);
-        Assert.Null(cut._isRightContinuous);
+        Assert.Null(cut._isNonDecreasing);
+        Assert.Null(cut._isIncreasing);
+        Assert.Null(cut._isNonIncreasing);
+        Assert.Null(cut._isDecreasing);
     }
 
     [Fact]
