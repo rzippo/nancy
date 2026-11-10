@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus.Json;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
 
 #if DO_LOG
 using NLog;
@@ -419,9 +420,10 @@ public class SubAdditiveCurve : Curve
                 #if DO_LOG
                 logger.Trace($"Running parallel specialized-convolution, {pairsCount} pairs.");
                 #endif
-                var convolutionElements = GetElementPairs()
+                List<Element> convolutionElements = GetElementPairs()
                     .AsParallel()
-                    .SelectMany(pair => pair.ea.Convolution(pair.eb))                        
+                    .SelectMany(pair => pair.ea.Convolution(pair.eb))
+                    .WithoutAggregateException()
                     .ToList();
 
                 if (sa.IsFinite && sb.IsFinite)
@@ -502,8 +504,9 @@ public class SubAdditiveCurve : Curve
                             convolutionElements = partition
                                 .AsParallel()
                                 .SelectMany(pair => pair.ea.Convolution(pair.eb))
+                                .WithoutAggregateException()
                                 .ToList()
-                                .SortElements(settings);    
+                                .SortElements(settings);
                         }
                         else
                         {

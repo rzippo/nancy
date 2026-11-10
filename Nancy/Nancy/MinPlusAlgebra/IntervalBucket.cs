@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.ExceptionServices;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -176,9 +177,9 @@ internal class IntervalBucket
                     bool lockTaken = false;
                     while(!lockTaken)
                         Lock.Enter(ref lockTaken);
-                    
+
                     ElementBag.Add(s);
-                    
+
                     Lock.Exit();
                     break;
                 }
@@ -476,17 +477,26 @@ internal class IntervalBucket
             if (doParallel)
             {
                 var endpoints = new ConcurrentDictionary<Rational, byte>(Environment.ProcessorCount, 31);
-                Parallel.For(0, elements.Count, i =>
+                try
                 {
-                    var element = elements[i];
-                    if (element is not Point && element is not Segment)
-                        throw new InvalidCastException();
+                    Parallel.For(0, elements.Count, i =>
+                    {
+                        var element = elements[i];
+                        if (element is not Point && element is not Segment)
+                            throw new InvalidCastException();
 
-                    // Existing endpoints need only a lookup; insertion locks are needed for new keys.
-                    endpoints.GetOrAdd(element.StartTime, 0);
-                    if (element is Segment)
-                        endpoints.GetOrAdd(element.EndTime, 0);
-                });
+                        // Existing endpoints need only a lookup; insertion locks are needed for new keys.
+                        endpoints.GetOrAdd(element.StartTime, 0);
+                        if (element is Segment)
+                            endpoints.GetOrAdd(element.EndTime, 0);
+                    });
+                }
+                catch (AggregateException aggregate)
+                {
+                    // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                    ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                    throw;
+                }
 
                 // All writers have joined before enumeration starts.
                 times = new Rational[endpoints.Count];
@@ -511,11 +521,9 @@ internal class IntervalBucket
 
             // The threshold counts the singleton and open buckets induced by the distinct endpoints.
             var intervalCount = 2L * times.Length - 1;
-            if (settings.UseParallelComputeIntervals &&
-                intervalCount >= settings.SortIntervalsParallelizationThreshold)
-                IntervalEndpointSorter.Sort(times);
-            else
-                Array.Sort(times);
+            bool parallelSort = settings.UseParallelComputeIntervals &&
+                intervalCount >= settings.SortIntervalsParallelizationThreshold;
+            IntervalEndpointSorter.Sort(times, parallelSort);
 
             var intervals = new List<IntervalBucket>(checked((int)intervalCount));
             for (int i = 0; i < times.Length; i++)
@@ -537,7 +545,16 @@ internal class IntervalBucket
 
         void ParallelProcessing()
         {
-            Parallel.ForEach(elements, ProcessElement);
+            try
+            {
+                Parallel.ForEach(elements, ProcessElement);
+            }
+            catch (AggregateException aggregate)
+            {
+                // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                throw;
+            }
         }
         
         // Finds the overlapping intervals and adds the element to them.

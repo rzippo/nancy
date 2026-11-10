@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.ExceptionServices;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,8 +37,17 @@ internal static class BalancedReduction
             var results = new T[pairCount + operands.Count % 2];
             if (parallel && pairCount > 1)
             {
-                Parallel.For(0, pairCount, i =>
-                    results[i] = combine(operands[2 * i], operands[2 * i + 1]));
+                try
+                {
+                    Parallel.For(0, pairCount, i =>
+                        results[i] = combine(operands[2 * i], operands[2 * i + 1]));
+                }
+                catch (AggregateException aggregate)
+                {
+                    // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                    ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                    throw;
+                }
             }
             else
             {

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.ExceptionServices;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -1072,6 +1073,7 @@ public static partial class SequenceExtensions
                     .AsParallel()
                     .OrderBy(element => element.StartTime)
                     .ThenBy(element => element.EndTime)
+                    .WithoutAggregateException()
                     .ToList();
             }
             else
@@ -3858,7 +3860,16 @@ public static partial class SequenceExtensions
         if (doParallel)
         {
             var envelopes = new List<Element>[intervals.Count];
-            Parallel.For(0, intervals.Count, i => envelopes[i] = intervals[i].LowerEnvelope());
+            try
+            {
+                Parallel.For(0, intervals.Count, i => envelopes[i] = intervals[i].LowerEnvelope());
+            }
+            catch (AggregateException aggregate)
+            {
+                // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                throw;
+            }
 
             lowerElements = envelopes.FlattenEnvelopes();
         }
@@ -3935,7 +3946,16 @@ public static partial class SequenceExtensions
         if (doParallel)
         {
             var envelopes = new List<Element>[intervals.Count];
-            Parallel.For(0, intervals.Count, i => envelopes[i] = intervals[i].UpperEnvelope());
+            try
+            {
+                Parallel.For(0, intervals.Count, i => envelopes[i] = intervals[i].UpperEnvelope());
+            }
+            catch (AggregateException aggregate)
+            {
+                // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                throw;
+            }
 
             upperElements = envelopes.FlattenEnvelopes();
         }

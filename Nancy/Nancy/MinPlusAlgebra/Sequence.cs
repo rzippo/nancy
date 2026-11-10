@@ -2906,8 +2906,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         var boundaries = new List<Rational> { support.Lower, support.Upper };
         AddPairEnvelopeBoundaries(a, support, boundaries);
         AddPairEnvelopeBoundaries(b, support, boundaries);
-        boundaries.Sort();
-        return boundaries.Distinct()
+        var sorted = boundaries.ToArray();
+        IntervalEndpointSorter.Sort(sorted, parallel: false);
+        return sorted.Distinct()
             .ToArray();
     }
 
@@ -3250,6 +3251,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var convolutionElements = GetElementPairs()
                 .AsParallel()
                 .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
+                .WithoutAggregateException()
                 .ToList();
 
             var lowerEnvelope = convolutionElements.LowerEnvelope(settings);
@@ -3323,8 +3325,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                         convolutionElements = partition
                             .AsParallel()
                             .SelectMany(pair => Element.Convolution(pair.ea, pair.eb, cutEnd, cutCeiling))
+                            .WithoutAggregateException()
                             .ToList()
-                            .SortElements(settings);    
+                            .SortElements(settings);
                     }
                     else
                     {
@@ -3595,6 +3598,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var deconvolutionElements = elementPairs
                 .AsParallel()
                 .SelectMany( pair => Element.Deconvolution(pair.a, pair.b))
+                .WithoutAggregateException()
                 .ToList();
 
             return deconvolutionElements.Count == 0
@@ -3958,6 +3962,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var convolutionElements = GetElementPairs()
                 .AsParallel()
                 .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
+                .WithoutAggregateException()
                 .ToList();
 
             var upperEnvelope = convolutionElements.UpperEnvelope(settings);
@@ -4034,8 +4039,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                         convolutionElements = partition
                             .AsParallel()
                             .SelectMany(pair => Element.MaxPlusConvolution(pair.ea, pair.eb, cutEnd))
+                            .WithoutAggregateException()
                             .ToList()
-                            .SortElements(settings);    
+                            .SortElements(settings);
                     }
                     else
                     {
