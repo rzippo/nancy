@@ -108,11 +108,21 @@ public static class ConcaveCurveExtensions
 {
     /// <inheritdoc cref="Curve.Minimum(IEnumerable{Curve}, ComputationSettings?)"/>
     public static ConcaveCurve Minimum(this IEnumerable<ConcaveCurve> curves, ComputationSettings? settings = null)
-        => BalancedReduction.Aggregate(curves, (a, b) => a.Minimum(b, settings), parallel: false);
+    {
+        settings ??= ComputationSettings.Default();
+        var operands = BalancedReduction.GetIndexedOperands(curves);
+        if (operands.Count == 0)
+            throw new InvalidOperationException("Sequence contains no elements");
+
+        return Minimum(operands, settings);
+    }
 
     /// <inheritdoc cref="Curve.Minimum(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConcaveCurve Minimum(this IReadOnlyCollection<ConcaveCurve> curves, ComputationSettings? settings = null)
-        => new ConcaveCurve(Curve.Minimum(curves, settings));
+    {
+        var minimum = Curve.Minimum(curves, settings);
+        return minimum as ConcaveCurve ?? new ConcaveCurve(minimum);
+    }
 
     /// <inheritdoc cref="Curve.Convolution(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConcaveCurve Convolution(this IEnumerable<ConcaveCurve> curves, ComputationSettings? settings = null)

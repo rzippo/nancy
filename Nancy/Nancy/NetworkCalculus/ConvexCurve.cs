@@ -102,17 +102,37 @@ public static class ConvexCurveExtensions
 {
     /// <inheritdoc cref="Curve.Maximum(IEnumerable{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Maximum(this IEnumerable<ConvexCurve> curves, ComputationSettings? settings = null)
-        => BalancedReduction.Aggregate(curves, (a, b) => a.Maximum(b, settings), parallel: false);
+    {
+        settings ??= ComputationSettings.Default();
+        var operands = BalancedReduction.GetIndexedOperands(curves);
+        if (operands.Count == 0)
+            throw new InvalidOperationException("Sequence contains no elements");
+
+        return Maximum(operands, settings);
+    }
 
     /// <inheritdoc cref="Curve.Maximum(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Maximum(this IReadOnlyCollection<ConvexCurve> curves, ComputationSettings? settings = null)
-        => new ConvexCurve(Curve.Maximum(curves, settings));
+    {
+        var maximum = Curve.Maximum(curves, settings);
+        return maximum as ConvexCurve ?? new ConvexCurve(maximum);
+    }
 
     /// <inheritdoc cref="Curve.Convolution(IEnumerable{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Convolution(this IEnumerable<ConvexCurve> curves, ComputationSettings? settings = null)
-        => BalancedReduction.Aggregate(curves, (a, b) => a.Convolution(b, settings), parallel: false);
+    {
+        settings ??= ComputationSettings.Default();
+        var operands = BalancedReduction.GetIndexedOperands(curves);
+        if (operands.Count == 0)
+            throw new InvalidOperationException("Sequence contains no elements");
+
+        return Convolution(operands, settings);
+    }
 
     /// <inheritdoc cref="Curve.Convolution(IReadOnlyCollection{Curve}, ComputationSettings?)"/>
     public static ConvexCurve Convolution(this IReadOnlyCollection<ConvexCurve> curves, ComputationSettings? settings = null)
-        => new ConvexCurve(Curve.Convolution(curves, settings));
+    {
+        var convolution = Curve.Convolution(curves, settings);
+        return convolution as ConvexCurve ?? new ConvexCurve(convolution);
+    }
 }

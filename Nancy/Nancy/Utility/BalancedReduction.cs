@@ -25,11 +25,7 @@ internal static class BalancedReduction
     /// </remarks>
     internal static T Aggregate<T>(IEnumerable<T> source, Func<T, T, T> combine, bool parallel)
     {
-        IReadOnlyList<T> operands;
-        if (source is IReadOnlyList<T> indexed)
-            operands = indexed;
-        else
-            operands = source.ToArray();
+        var operands = GetIndexedOperands(source);
 
         if (operands.Count == 0)
             throw new InvalidOperationException("Sequence contains no elements");
@@ -56,4 +52,18 @@ internal static class BalancedReduction
 
         return operands[0];
     }
+
+    /// <summary>
+    /// Returns indexed input directly, or consumes other input once into an array.
+    /// </summary>
+    /// <param name="source">The operands to make available by index.</param>
+    /// <returns>The existing indexed storage or a new array of operands.</returns>
+    internal static IReadOnlyList<T> GetIndexedOperands<T>(IEnumerable<T> source)
+    {
+        if (source is IReadOnlyList<T> indexed)
+            return indexed;
+        else
+            return source.ToArray();
+    }
+
 }
