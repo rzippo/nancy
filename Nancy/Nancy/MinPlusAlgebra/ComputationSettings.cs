@@ -216,7 +216,17 @@ public record ComputationSettings
     /// <summary>
     /// Interval.ComputeIntervals uses parallel endpoint collection and insertion if the number of elements is at least this threshold and <see cref="UseParallelComputeIntervals"/> is true.
     /// </summary>
-    public int ParallelComputeIntervalsThreshold { get; set; } = 5_000;
+    public int ComputeIntervalsParallelizationThreshold { get; set; } = 5_000;
+
+    /// <summary>
+    /// The former name of <see cref="ComputeIntervalsParallelizationThreshold"/>.
+    /// </summary>
+    [System.Obsolete("Use ComputeIntervalsParallelizationThreshold.")]
+    public int ParallelComputeIntervalsThreshold
+    {
+        get => ComputeIntervalsParallelizationThreshold;
+        set => ComputeIntervalsParallelizationThreshold = value;
+    }
 
     /// <summary>
     /// Distinct endpoints may be sorted in parallel, if <see cref="UseParallelComputeIntervals"/> is true, when they induce at least this number of interval buckets.

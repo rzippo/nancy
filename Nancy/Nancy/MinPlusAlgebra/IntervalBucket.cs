@@ -421,7 +421,7 @@ internal class IntervalBucket
             throw new ArgumentException("The set of elements is empty.", nameof(elements));
 
         bool doParallel = settings.UseParallelComputeIntervals &&
-                          elements.Count >= settings.ParallelComputeIntervalsThreshold;
+                          elements.Count >= settings.ComputeIntervalsParallelizationThreshold;
 
         #if DO_LOG
         var prebuildStopwatch = Stopwatch.StartNew();
