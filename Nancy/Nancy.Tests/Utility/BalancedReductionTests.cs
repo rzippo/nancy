@@ -29,12 +29,12 @@ public class BalancedReductionTests
         {
             serialCalls++;
             return $"({a}{b})";
-        }, false);
+        }, 1);
         string parallel = BalancedReduction.Aggregate(input, (a, b) =>
         {
             Interlocked.Increment(ref parallelCalls);
             return $"({a}{b})";
-        }, true);
+        }, 4);
 
         Assert.Equal(expected, serial);
         Assert.Equal(expected, parallel);
@@ -47,8 +47,8 @@ public class BalancedReductionTests
     public void IndexedInputIsReadWithoutEnumeration()
     {
         var input = new IndexedInput();
-        Assert.Equal("(((AB)(CD))E)", BalancedReduction.Aggregate(input, (a, b) => $"({a}{b})", false));
-        Assert.Equal("(((AB)(CD))E)", BalancedReduction.Aggregate(input, (a, b) => $"({a}{b})", true));
+        Assert.Equal("(((AB)(CD))E)", BalancedReduction.Aggregate(input, (a, b) => $"({a}{b})", 1));
+        Assert.Equal("(((AB)(CD))E)", BalancedReduction.Aggregate(input, (a, b) => $"({a}{b})", 4));
     }
 
     private sealed class IndexedInput : IReadOnlyList<string>
@@ -65,9 +65,9 @@ public class BalancedReductionTests
     {
         var operand = new object();
         Assert.Same(operand, BalancedReduction.Aggregate(new[] { operand },
-            (_, _) => throw new InvalidOperationException(), false));
+            (_, _) => throw new InvalidOperationException(), 1));
         Assert.Same(operand, BalancedReduction.Aggregate(new[] { operand },
-            (_, _) => throw new InvalidOperationException(), true));
+            (_, _) => throw new InvalidOperationException(), 4));
     }
 
     [Fact]
@@ -90,11 +90,11 @@ public class BalancedReductionTests
             }
         }
 
-        Assert.Equal(6, BalancedReduction.Aggregate(Source(), (a, b) => a + b, true));
+        Assert.Equal(6, BalancedReduction.Aggregate(Source(), (a, b) => a + b, 4));
         Assert.Equal(1, disposals);
         Assert.Throws<InvalidOperationException>(() =>
-            BalancedReduction.Aggregate(Array.Empty<int>(), (a, b) => a + b, false));
+            BalancedReduction.Aggregate(Array.Empty<int>(), (a, b) => a + b, 1));
         Assert.Throws<InvalidOperationException>(() =>
-            BalancedReduction.Aggregate(Array.Empty<int>(), (a, b) => a + b, true));
+            BalancedReduction.Aggregate(Array.Empty<int>(), (a, b) => a + b, 4));
     }
 }

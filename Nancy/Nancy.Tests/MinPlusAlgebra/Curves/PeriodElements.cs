@@ -93,10 +93,10 @@ public class PeriodElements
         {
             UseParallelism = parallel,
             ComputeExtensionSequencesParallelizationThreshold = 0,
-            ExtensionMinimumElementsPerPartition = 1
+            ExtensionMinimumElementsPerPartition = 1,
+            MaxDegreeOfParallelism = 4
         };
-        var translated = curve.TranslatePeriodElements(selected, periodIndex, settings,
-            maximumParallelism: 4);
+        var translated = curve.TranslatePeriodElements(selected, periodIndex, settings);
 
         Assert.Equal(expected, translated.ToArray());
         Assert.Equal(expected, translated.ToArray());

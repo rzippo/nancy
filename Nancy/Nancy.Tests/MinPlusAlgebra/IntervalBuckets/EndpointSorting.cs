@@ -42,7 +42,7 @@ public class EndpointSorting
         Array.Sort(expected);
         var actual = (Rational[])input.Clone();
 
-        IntervalEndpointSorter.Sort(actual);
+        IntervalEndpointSorter.Sort(actual, 4, 4096);
 
         Assert.Equal(expected, actual);
     }

@@ -14,9 +14,9 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra;
 public class ParallelFailureContracts
 {
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void ReductionPreservesTheWorkerException(bool parallel)
+    [InlineData(1)]
+    [InlineData(4)]
+    public void ReductionPreservesTheWorkerException(int degreeOfParallelism)
     {
         var failure = new ArithmeticException("Reduction failure");
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -28,7 +28,7 @@ public class ParallelFailureContracts
         }
 
         Assert.Same(failure, Assert.Throws<ArithmeticException>(() =>
-            BalancedReduction.Aggregate(new[] { 1, 2, 3, 4 }, Combine, parallel)));
+            BalancedReduction.Aggregate(new[] { 1, 2, 3, 4 }, Combine, degreeOfParallelism)));
         Assert.Contains(nameof(Combine), failure.StackTrace);
     }
 
@@ -128,7 +128,7 @@ public class ParallelFailureContracts
     {
         var values = Enumerable.Repeat(new Rational(long.MaxValue, 2), 8192).ToArray();
         Assert.Throws<OverflowException>(() => IntervalEndpointSorter.Sort(values[..2]));
-        Assert.Throws<OverflowException>(() => IntervalEndpointSorter.Sort((Rational[]) values.Clone()));
+        Assert.Throws<OverflowException>(() => IntervalEndpointSorter.Sort((Rational[]) values.Clone(), 4, 4096));
     }
     [Fact]
     public void EndpointMergingPreservesComparisonFailure()
@@ -137,7 +137,7 @@ public class ParallelFailureContracts
             .Concat(Enumerable.Repeat(new Rational(1, long.MaxValue), 4096))
             .ToArray();
         Assert.Throws<OverflowException>(() => IntervalEndpointSorter.Sort([values[0], values[^1]]));
-        Assert.Throws<OverflowException>(() => IntervalEndpointSorter.Sort(values));
+        Assert.Throws<OverflowException>(() => IntervalEndpointSorter.Sort(values, 4, 4096));
     }
     #endif
 
