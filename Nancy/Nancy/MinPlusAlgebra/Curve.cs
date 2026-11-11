@@ -9026,7 +9026,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Sequence gCut = g.Cut(0, T, settings: settings);
 
         var cutEnd = f.FirstPseudoPeriodEnd;
-        var cutDeconvolution = Sequence.Deconvolution(fCut, gCut, 0, cutEnd, settings).Optimize();
+        var cutDeconvolution = Sequence.Deconvolution(fCut, gCut, 0, cutEnd, settings).Optimize(settings);
 
         return new Curve(
             baseSequence: cutDeconvolution,

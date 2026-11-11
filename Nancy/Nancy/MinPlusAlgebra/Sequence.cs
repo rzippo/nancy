@@ -664,6 +664,12 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     private bool? NonNegativeIfKnown
         => KnownProperties.GetIfKnown(ref _isNonNegative);
 
+    /// <summary>
+    /// <see cref="IsNormalized"/> if already cached, without forcing the check.
+    /// </summary>
+    private bool? NormalizedIfKnown
+        => KnownProperties.GetIfKnown(ref _isNormalized);
+
     #endregion
 
     #region Constructors
@@ -1309,6 +1315,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="isStartIncluded">If true, the support is left-closed.</param>
     /// <param name="isEndIncluded">If true, the support is right-closed.</param>
     /// <param name="settings">Optional settings for the operation; <see cref="ComputationSettings.UseKnownPropertyPropagation"/> applies.</param>
+    /// <returns>The cut; with <see cref="ComputationSettings.UseKnownPropertyPropagation"/>, this sequence if the new support is the current one, with the same endpoints included.</returns>
     /// <exception cref="ArgumentException">Thrown if the new support is not a subset of the current one.</exception>
     public Sequence Cut(
         Rational cutStart, 
@@ -1340,6 +1347,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 p = (e as Segment)!.Sample(cutStart);
             return new Sequence([p]);
         }
+
+        // The cut of the whole support would copy every element unchanged, and carry the known properties over;
+        // without that propagation, a cut must compute its properties anew, so it is still built.
+        settings ??= ComputationSettings.Default();
+        if (settings.UseKnownPropertyPropagation &&
+            cutStart == DefinedFrom && cutEnd == DefinedUntil &&
+            isStartIncluded == IsLeftClosed && isEndIncluded == IsRightClosed)
+            return this;
 
         // binary search for cut start
         int cutStartIndex = FindFirstIndex(IsPastStart);
@@ -1426,7 +1441,6 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             _ => throw new InvalidOperationException("A cut has at least one element.")
         });
 
-        settings ??= ComputationSettings.Default();
         if (!settings.UseKnownPropertyPropagation)
             return result;
 
@@ -1668,15 +1682,31 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <remarks>
     /// The result is a well-formed sequence [ZS23].
-    /// The result is normalized, see <see cref="IsNormalized"/>.
+    /// The result is normalized, see <see cref="IsNormalized"/>: this sequence if it already is, otherwise a sequence of the merged elements.
+    /// With <see cref="ComputationSettings.UseKnownPropertyPropagation"/>, the merged sequence is known to be normalized; without it, the merged sequence is checked, as other operations check what they would assert, and its <see cref="IsNormalized"/> is computed when first read.
     /// </remarks>
-    public Sequence Optimize()
+    /// <param name="settings">Optional settings for the operation; <see cref="ComputationSettings.UseKnownPropertyPropagation"/> applies.</param>
+    /// <exception cref="InvalidOperationException">If the setting is off and the merged elements can still merge.</exception>
+    public Sequence Optimize(ComputationSettings? settings = null)
     {
-        var mergedElements = Elements.Merge();
-        if (Elements.SequenceEqual(mergedElements))
+        // The check of IsNormalized looks for the segment-point-segment triplets that Merge would merge, with the same test, without copying;
+        // run directly, it leaves an unknown cache as it is.
+        if (NormalizedIfKnown ?? ComputeIsNormalized())
             return this;
-        else
-            return new Sequence(mergedElements);
+
+        var result = new Sequence(Elements.Merge());
+        settings ??= ComputationSettings.Default();
+        if (settings.UseKnownPropertyPropagation)
+        {
+            // Merge leaves no triplet that can merge.
+            result._isNormalized = KnownProperties.True;
+        }
+        else if (!result.ComputeIsNormalized())
+        {
+            throw new InvalidOperationException("The merged elements can still merge.");
+        }
+
+        return result;
     }
 
     /// <summary>
