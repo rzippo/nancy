@@ -1720,28 +1720,22 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if(!IsDefinedAt(time))
             throw new ArgumentException("The sequence is not defined for the given split time.");
 
-        Element target = GetElementAt(time);
-        if (target is Point)
+        // The first element that ends after the time, or starts at it, is the point at the time or the segment across it.
+        int index = FindFirstIndex(element => element.EndTime > time || element.StartTime == time);
+        if (Elements[index] is not Segment segment)
             return this;
-        else
+
+        // The elements around the segment are slices of this valid list; the split is checked, and so is each seam.
+        var (left, point, right) = segment.Split(time);
+        var split = ReadOnlyElementList.CopyOf([left, point, right]);
+        var elements = (index > 0, index < Count - 1) switch
         {
-            var splitResult = ((Segment)target).Split(time);
-            var segments = new List<Element>();
-
-            foreach (Element element in Elements)
-            {
-                if(element != target)
-                    segments.Add(element);
-                else
-                {
-                    segments.Add(splitResult.leftSegment);
-                    segments.Add(splitResult.point);
-                    segments.Add(splitResult.rightSegment);
-                }
-            }
-
-            return new Sequence(segments);
-        }
+            (true, true) => ReadOnlyElementList.Concat(_elements.Slice(0, index), split, _elements.Slice(index + 1)),
+            (true, false) => ReadOnlyElementList.Concat(_elements.Slice(0, index), split),
+            (false, true) => ReadOnlyElementList.Concat(split, _elements.Slice(index + 1)),
+            (false, false) => split
+        };
+        return new Sequence(elements);
     }
 
     /// <summary>Returns the earliest boundary location of the supremum.</summary>
