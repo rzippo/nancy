@@ -3068,6 +3068,31 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Returns the element at position <paramref name="index"/> in the unmerged extension of the curve:
+    /// the elements of <see cref="BaseSequence"/>, followed by copies of those of <see cref="PseudoPeriodicSequence"/>, each translated by one more pseudo-period.
+    /// </summary>
+    /// <param name="index">The zero-based position of the element, which can exceed the number of stored elements.</param>
+    /// <returns>The element at that position.</returns>
+    /// <remarks>
+    /// As <see cref="GetElementAt"/> does, it translates only the element it returns, without building the extension.
+    /// Elements are not merged at the joins between periods, so positions can differ from those in the result of <see cref="Extend"/>.
+    /// </remarks>
+    internal Element GetElementByIndex(int index)
+    {
+        var elements = BaseSequence.Elements;
+        if (index < elements.Count)
+            return elements[index];
+
+        // Read the element from the stored period and translate only that element.
+        int transientCount = PseudoPeriodStart == 0 ? 0 :
+            BaseSequence.FindFirstIndex(element => element.StartTime >= PseudoPeriodStart);
+        int periodElementCount = elements.Count - transientCount;
+        int periodIndex = (index - transientCount) / periodElementCount;
+        int offset = (index - transientCount) % periodElementCount;
+        return TranslatePeriodElement(elements[transientCount + offset], periodIndex);
+    }
+
+    /// <summary>
     /// Returns the <see cref="Segment"/> that describes the curve before time t.
     /// </summary>
     /// <param name="time">Time t of the sample.</param>
@@ -3820,26 +3845,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
                 maximumParallelism: settings.DegreeOfParallelism)
             : 1;
-    }
-
-    /// <summary>Determines whether materializing the cut preserves useful parallelism across complete periods.</summary>
-    /// <param name="cutEnd">Excluded endpoint of a cut starting at zero.</param>
-    /// <param name="settings">Settings for extension parallelism.</param>
-    /// <returns>True when the materialized cut would use multiple outer period partitions.</returns>
-    private bool ShouldMaterializeForParallelExtension(Rational cutEnd, ComputationSettings settings)
-    {
-        if (!settings.UseParallelExtend || settings.DegreeOfParallelism == 1 || !cutEnd.IsFinite ||
-            cutEnd <= FirstPseudoPeriodEnd ||
-            IsUltimatelyAffine || IsUltimatelyInfinite)
-            return false;
-
-        // The base sequence supplies the first period; a partial last period is translated separately.
-        int completePeriodCount = (int)(((cutEnd - PseudoPeriodStart) / PseudoPeriodLength).Floor() - 1);
-        if (completePeriodCount <= 0)
-            return false;
-
-        return GetPeriodExtensionPartitionCount(PseudoPeriodicSequence.Count, completePeriodCount,
-            settings) > 1;
     }
 
     /// <summary>
@@ -7148,6 +7153,47 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     #endregion Optimization
 
+    #region Parallel pointwise pair operations
+
+    /// <summary>
+    /// Chooses chunk boundaries at the start times of evenly spaced elements in the unmerged extensions of both curves, as <see cref="GetElementByIndex"/> counts them, so that each chunk holds a similar number of elements of either operand.
+    /// </summary>
+    /// <param name="a">The first curve.</param>
+    /// <param name="b">The second curve.</param>
+    /// <param name="end">The positive finite excluded endpoint of the result, which starts at zero.</param>
+    /// <param name="partitions">The positive number of chunks to sample each operand for.</param>
+    /// <returns>Sorted distinct boundaries including zero and the result endpoint.</returns>
+    private static Rational[] GetPointwisePairBoundaries(
+        Curve a,
+        Curve b,
+        Rational end,
+        int partitions
+    )
+    {
+        var boundaries = new List<Rational> { 0, end };
+        AddBoundaries(a);
+        AddBoundaries(b);
+
+        var sorted = boundaries.ToArray();
+        IntervalEndpointSorter.Sort(sorted);
+        return sorted.Distinct()
+            .ToArray();
+
+        void AddBoundaries(Curve curve)
+        {
+            int count = curve.Count(0, end);
+            for (int i = 1; i < partitions; i++)
+            {
+                int index = (int)((long)i * count / partitions);
+                var time = curve.GetElementByIndex(index).StartTime;
+                if (time > 0 && time < end)
+                    boundaries.Add(time);
+            }
+        }
+    }
+
+    #endregion Parallel pointwise pair operations
+
     #region Addition and Subtraction operators
 
     /// <summary>
@@ -7165,14 +7211,32 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Rational d = Rational.LeastCommonMultiple(PseudoPeriodLength, b.PseudoPeriodLength);
         Rational c = d * (PseudoPeriodSlope + b.PseudoPeriodSlope);
 
+        var doParallel = settings.UseParallelAddition && settings.DegreeOfParallelism > 1 &&
+            (settings.AdditionParallelizationThreshold <= 0 ||
+             (long)Count(0, T + d) + b.Count(0, T + d) >= settings.AdditionParallelizationThreshold);
+
         Sequence baseSequence;
-        if (settings.UseParallelExtend || settings.UseParallelComputeExtensionSequences)
-            baseSequence = Sequence.Addition(Extend(T + d, settings), b.Extend(T + d, settings));
+        if (doParallel)
+        {
+            baseSequence = Sequence.ComputePointwisePairOperationInParallel(
+                support: new Interval(0, T + d, true, false),
+                boundaries: GetPointwisePairBoundaries(this, b, T + d, settings.DegreeOfParallelism),
+                leftSource: chunk => CutAsEnumerable(chunk, settings),
+                rightSource: chunk => b.CutAsEnumerable(chunk, settings),
+                operation: (left, right) => left.Addition(right),
+                settings: settings
+            );
+        }
         else
-            baseSequence = CutAsEnumerable(0, T + d, settings: settings)
-                .Addition(b.CutAsEnumerable(0, T + d, settings: settings))
+        {
+            var aCutEnumerable = CutAsEnumerable(0, T + d, settings: settings);
+            var bCutEnumerable = b.CutAsEnumerable(0, T + d, settings: settings);
+            baseSequence = aCutEnumerable
+                .Addition(bCutEnumerable)
                 .MergeAsEnumerable()
                 .ToSequence();
+        }
+
         var result = new Curve(
             baseSequence: baseSequence,
             pseudoPeriodStart: T,
@@ -7448,34 +7512,30 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Minimum: extending from T1 {a.PseudoPeriodStart} d1 {a.PseudoPeriodLength}  T2 {b.PseudoPeriodStart} d2 {b.PseudoPeriodLength} to T {T} d {d}");
         #endif
 
+        var doParallel = settings.UseParallelLowerEnvelope && settings.DegreeOfParallelism > 1 &&
+            (settings.SequenceLowerEnvelopeParallelizationThreshold <= 0 ||
+             (long)a.Count(0, T + d) + b.Count(0, T + d) >= settings.SequenceLowerEnvelopeParallelizationThreshold);
+
         Sequence minSequence;
-        if (!settings.UseParallelLowerEnvelope || settings.DegreeOfParallelism == 1 ||
-            (settings.SequenceLowerEnvelopeParallelizationThreshold > 0 &&
-             (long)a.Count(0, T + d) + b.Count(0, T + d) < settings.SequenceLowerEnvelopeParallelizationThreshold))
+        if (doParallel)
         {
-            // A serial envelope may still benefit from parallel extension of either operand.
-            IEnumerable<Element> left;
-            if (a.ShouldMaterializeForParallelExtension(T + d, settings))
-                left = a.Extend(T + d, settings).Elements;
-            else
-                left = a.CutAsEnumerable(0, T + d, settings: settings);
-
-            IEnumerable<Element> right;
-            if (b.ShouldMaterializeForParallelExtension(T + d, settings))
-                right = b.Extend(T + d, settings).Elements;
-            else
-                right = b.CutAsEnumerable(0, T + d, settings: settings);
-
-            minSequence = left.Minimum(right)
-                .MergeAsEnumerable()
-                .ToSequence();
+            minSequence = Sequence.ComputePointwisePairOperationInParallel(
+                support: new Interval(0, T + d, true, false),
+                boundaries: GetPointwisePairBoundaries(a, b, T + d, settings.DegreeOfParallelism),
+                leftSource: chunk => a.CutAsEnumerable(chunk, settings),
+                rightSource: chunk => b.CutAsEnumerable(chunk, settings),
+                operation: (left, right) => left.Minimum(right),
+                settings: settings
+            );
         }
         else
         {
-            // Indexed chunks require both operands to be materialized.
-            var extendedSegmentsF1 = a.Extend(T + d, settings);
-            var extendedSegmentsF2 = b.Extend(T + d, settings);
-            minSequence = extendedSegmentsF1.Minimum(extendedSegmentsF2, settings: settings);
+            var aCutEnumerable = a.CutAsEnumerable(0, T + d, settings: settings);
+            var bCutEnumerable = b.CutAsEnumerable(0, T + d, settings: settings);
+            minSequence = aCutEnumerable
+                .Minimum(bCutEnumerable)
+                .MergeAsEnumerable()
+                .ToSequence();
         }
 
         Curve result = new Curve
@@ -7748,34 +7808,30 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Maximum: extending from T1 {a.PseudoPeriodStart} d1 {a.PseudoPeriodLength}  T2 {b.PseudoPeriodStart} d2 {b.PseudoPeriodLength} to T {T} d {d}");
         #endif
 
+        var doParallel = settings.UseParallelUpperEnvelope && settings.DegreeOfParallelism > 1 &&
+            (settings.SequenceUpperEnvelopeParallelizationThreshold <= 0 ||
+             (long)a.Count(0, T + d) + b.Count(0, T + d) >= settings.SequenceUpperEnvelopeParallelizationThreshold);
+
         Sequence maxSequence;
-        if (!settings.UseParallelUpperEnvelope || settings.DegreeOfParallelism == 1 ||
-            (settings.SequenceUpperEnvelopeParallelizationThreshold > 0 &&
-             (long)a.Count(0, T + d) + b.Count(0, T + d) < settings.SequenceUpperEnvelopeParallelizationThreshold))
+        if (doParallel)
         {
-            // A serial envelope may still benefit from parallel extension of either operand.
-            IEnumerable<Element> left;
-            if (a.ShouldMaterializeForParallelExtension(T + d, settings))
-                left = a.Extend(T + d, settings).Elements;
-            else
-                left = a.CutAsEnumerable(0, T + d, settings: settings);
-
-            IEnumerable<Element> right;
-            if (b.ShouldMaterializeForParallelExtension(T + d, settings))
-                right = b.Extend(T + d, settings).Elements;
-            else
-                right = b.CutAsEnumerable(0, T + d, settings: settings);
-
-            maxSequence = left.Maximum(right)
-                .MergeAsEnumerable()
-                .ToSequence();
+            maxSequence = Sequence.ComputePointwisePairOperationInParallel(
+                support: new Interval(0, T + d, true, false),
+                boundaries: GetPointwisePairBoundaries(a, b, T + d, settings.DegreeOfParallelism),
+                leftSource: chunk => a.CutAsEnumerable(chunk, settings),
+                rightSource: chunk => b.CutAsEnumerable(chunk, settings),
+                operation: (left, right) => left.Maximum(right),
+                settings: settings
+            );
         }
         else
         {
-            // Indexed chunks require both operands to be materialized.
-            var extendedSegmentsF1 = a.Extend(T + d, settings);
-            var extendedSegmentsF2 = b.Extend(T + d, settings);
-            maxSequence = extendedSegmentsF1.Maximum(extendedSegmentsF2, settings: settings);
+            var aCutEnumerable = a.CutAsEnumerable(0, T + d, settings: settings);
+            var bCutEnumerable = b.CutAsEnumerable(0, T + d, settings: settings);
+            maxSequence = aCutEnumerable
+                .Maximum(bCutEnumerable)
+                .MergeAsEnumerable()
+                .ToSequence();
         }
 
         Curve result = new Curve

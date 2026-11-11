@@ -100,7 +100,6 @@ public record ComputationSettings
     /// </summary>
     /// <remarks>
     /// For curve minimum, the threshold applies to the element counts of the required cuts.
-    /// Operand extension may still use parallelism under its own settings when the envelope is computed serially.
     /// </remarks>
     public int SequenceLowerEnvelopeParallelizationThreshold { get; set; } = 0;
 
@@ -121,7 +120,6 @@ public record ComputationSettings
     /// </summary>
     /// <remarks>
     /// For curve maximum, the threshold applies to the element counts of the required cuts.
-    /// Operand extension may still use parallelism under its own settings when the envelope is computed serially.
     /// </remarks>
     public int SequenceUpperEnvelopeParallelizationThreshold { get; set; } = 0;
 
