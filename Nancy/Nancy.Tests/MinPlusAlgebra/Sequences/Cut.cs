@@ -524,4 +524,29 @@ public class Cut
         Assert.Equal(6, neighbourhood.DefinedUntil);
         Assert.Equal(5, neighbourhood.RightLimitAt(3));
     }
+
+    public static IEnumerable<object[]> WholeSupports()
+        => new[] { a, b, c, d }.Select(sequence => new object[] { sequence });
+
+    [Theory]
+    [MemberData(nameof(WholeSupports))]
+    public void CutOfTheWholeSupportIsTheSequence(Sequence sequence)
+    {
+        var cut = sequence.Cut(sequence.DefinedFrom, sequence.DefinedUntil, sequence.IsLeftClosed, sequence.IsRightClosed);
+        Assert.Same(sequence, cut);
+    }
+
+    /// <summary>
+    /// Without propagation, a cut computes its properties anew, so it cannot be the sequence with its cache.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(WholeSupports))]
+    public void CutOfTheWholeSupportWithoutPropagationIsBuilt(Sequence sequence)
+    {
+        var cut = sequence.Cut(sequence.DefinedFrom, sequence.DefinedUntil, sequence.IsLeftClosed, sequence.IsRightClosed,
+            new ComputationSettings { UseKnownPropertyPropagation = false });
+        Assert.NotSame(sequence, cut);
+        Assert.Equal(sequence.Elements, cut.Elements);
+    }
+
 }

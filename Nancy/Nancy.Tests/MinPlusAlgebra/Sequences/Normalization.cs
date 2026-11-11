@@ -158,4 +158,32 @@ public class Normalization
             curve.BaseSequence.IsNormalized,
             "BaseSequence is documented as not normalized; if it now is, the remark on it is stale");
     }
+
+    // The constructor's gates on the base sequence: merged, cut to [0, T + d[, split at T.
+
+    [Fact]
+    public void ConstructorMergesTheBaseSequence()
+    {
+        var curve = new Curve(new Sequence([new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, 1), new Segment(1, 2, 1, 1)]),
+            pseudoPeriodStart: 0, pseudoPeriodLength: 2, pseudoPeriodHeight: 2);
+        Assert.Equal(new Sequence([new Point(0, 0), new Segment(0, 2, 0, 1)]), curve.BaseSequence);
+    }
+
+    [Fact]
+    public void ConstructorCutsThePointAtTheEndOfTheBaseSequence()
+    {
+        var curve = new Curve(new Sequence([new Point(0, 0), new Segment(0, 2, 0, 1), new Point(2, 2)]),
+            pseudoPeriodStart: 0, pseudoPeriodLength: 2, pseudoPeriodHeight: 2);
+        Assert.Equal(new Sequence([new Point(0, 0), new Segment(0, 2, 0, 1)]), curve.BaseSequence);
+    }
+
+    [Fact]
+    public void ConstructorSplitsTheBaseSequenceAtThePeriodStart()
+    {
+        var curve = new Curve(new Sequence([new Point(0, 1), new Segment(0, 6, 1, 1)]),
+            pseudoPeriodStart: 5, pseudoPeriodLength: 1, pseudoPeriodHeight: 1);
+        Assert.Equal(SplitAtThePeriodStart.BaseSequence, curve.BaseSequence);
+        Assert.Equal(4, curve.BaseSequence.Count);
+    }
+
 }

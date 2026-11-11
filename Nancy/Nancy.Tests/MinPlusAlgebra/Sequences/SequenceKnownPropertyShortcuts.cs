@@ -133,4 +133,54 @@ public class SequenceKnownPropertyShortcuts
         Assert.True(Sequence.Equivalent(coldResult, warmResult));
     }
 
+    [Fact]
+    public void OptimizeReusesAnInputKnownToBeNormalized()
+    {
+        var source = new Sequence([new Point(0, 0), new Segment(0, 1, 0, 1)]);
+        Assert.True(source.IsNormalized);
+        Assert.Same(source, source.Optimize());
+    }
+
+    [Fact]
+    public void OptimizeDoesNotInitializeAnUnknownPredicate()
+    {
+        var source = new Sequence([new Point(0, 0), new Segment(0, 1, 0, 1)]);
+        source._isNormalized = new Lazy<bool>(() => throw new InvalidOperationException("Predicate was evaluated."),
+            LazyThreadSafetyMode.ExecutionAndPublication);
+        Assert.Same(source, source.Optimize());
+        Assert.False(source._isNormalized.IsValueCreated);
+    }
+
+    [Fact]
+    public void OptimizeDoesNotReadAFaultedPredicate()
+    {
+        var source = new Sequence([new Point(0, 0), new Segment(0, 1, 0, 1)]);
+        source._isNormalized = new Lazy<bool>(() => throw new InvalidOperationException("Cached failure."),
+            LazyThreadSafetyMode.ExecutionAndPublication);
+        Assert.Throws<InvalidOperationException>(() => source.IsNormalized);
+        Assert.Same(source, source.Optimize());
+        Assert.Throws<InvalidOperationException>(() => source.IsNormalized);
+    }
+
+    [Fact]
+    public void OptimizeMergesAnInputKnownNotToBeNormalizedAndMarksTheResult()
+    {
+        var source = new Sequence([new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, 1), new Segment(1, 2, 1, 1)]);
+        Assert.False(source.IsNormalized);
+        var result = source.Optimize();
+        Assert.Equal(new Sequence([new Point(0, 0), new Segment(0, 2, 0, 1)]), result);
+        Assert.True(KnownProperties.GetIfKnown(ref result._isNormalized));
+        Assert.True(result.ComputeIsNormalized());
+    }
+
+    [Fact]
+    public void OptimizeWithoutPropagationChecksTheResultAndLeavesItUnknown()
+    {
+        var source = new Sequence([new Point(0, 0), new Segment(0, 1, 0, 1), new Point(1, 1), new Segment(1, 2, 1, 1)]);
+        var result = source.Optimize(new ComputationSettings { UseKnownPropertyPropagation = false });
+        Assert.Equal(new Sequence([new Point(0, 0), new Segment(0, 2, 0, 1)]), result);
+        Assert.Null(KnownProperties.GetIfKnown(ref result._isNormalized));
+        Assert.True(result.IsNormalized);
+    }
+
 }
