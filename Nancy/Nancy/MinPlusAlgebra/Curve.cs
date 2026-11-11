@@ -1645,6 +1645,27 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Rational pseudoPeriodStart,
         Rational pseudoPeriodLength,
         Rational pseudoPeriodHeight
+    ) : this(baseSequence, pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight, settings: null)
+    {
+    }
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="baseSequence">Describes the curve in $[0, T + d[$.</param>
+    /// <param name="pseudoPeriodStart">Time from which the curve is pseudo-periodic, $T$.</param>
+    /// <param name="pseudoPeriodLength">Length of each pseudo-period, $d$.</param>
+    /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
+    /// <param name="settings">Optional settings for the normalization of <paramref name="baseSequence"/>; <see cref="ComputationSettings.UseKnownPropertyPropagation"/> applies.</param>
+    /// <remarks>
+    /// The base sequence is normalized to the invariants of a curve: merged, defined over $[0, T + d[$, and split at $T$.
+    /// </remarks>
+    public Curve(
+        Sequence baseSequence,
+        Rational pseudoPeriodStart,
+        Rational pseudoPeriodLength,
+        Rational pseudoPeriodHeight,
+        ComputationSettings? settings
     )
     {
         if (pseudoPeriodLength <= 0)
@@ -1669,8 +1690,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
 
         BaseSequence = baseSequence
-            .Optimize()
-            .Cut(cutStart: 0, cutEnd: pseudoPeriodStart + pseudoPeriodLength, isStartIncluded: true, isEndIncluded: false)
+            .Optimize(settings)
+            .Cut(cutStart: 0, cutEnd: pseudoPeriodStart + pseudoPeriodLength, isStartIncluded: true, isEndIncluded: false, settings: settings)
             .EnforceSplitAt(pseudoPeriodStart);
         PseudoPeriodStart = pseudoPeriodStart;
         PseudoPeriodLength = pseudoPeriodLength;
@@ -1685,12 +1706,14 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="pseudoPeriodLength">Length of each pseudo-period, $d$.</param>
     /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
     /// <param name="isPartialCurve">True if the curve is partially described, and should be filled by pre- and post-pending $+\infty$ to <see cref="BaseSequence"/>.</param>
+    /// <param name="settings">Optional settings for the normalization of <paramref name="baseSequence"/>; <see cref="ComputationSettings.UseKnownPropertyPropagation"/> applies.</param>
     public Curve(
         Sequence baseSequence,
         Rational pseudoPeriodStart,
         Rational pseudoPeriodLength,
         Rational pseudoPeriodHeight,
-        bool isPartialCurve
+        bool isPartialCurve,
+        ComputationSettings? settings = null
     )
     {
         if (pseudoPeriodLength <= 0)
@@ -1725,8 +1748,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
 
         BaseSequence = baseSequence
-            .Optimize()
-            .Cut(cutStart: 0, cutEnd: pseudoPeriodStart + pseudoPeriodLength, isStartIncluded: true, isEndIncluded: false)
+            .Optimize(settings)
+            .Cut(cutStart: 0, cutEnd: pseudoPeriodStart + pseudoPeriodLength, isStartIncluded: true, isEndIncluded: false, settings: settings)
             .EnforceSplitAt(pseudoPeriodStart);
         PseudoPeriodStart = pseudoPeriodStart;
         PseudoPeriodLength = pseudoPeriodLength;
@@ -4432,7 +4455,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: BaseSequence.VerticalShift(shift, exceptOrigin),
                 pseudoPeriodStart: PseudoPeriodStart,
                 pseudoPeriodLength: PseudoPeriodLength,
-                pseudoPeriodHeight: PseudoPeriodHeight
+                pseudoPeriodHeight: PseudoPeriodHeight,
+                settings: settings
             );
         }
     }
@@ -4593,7 +4617,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: new Sequence(elements),
                 pseudoPeriodStart: time + 1,
                 pseudoPeriodLength: 1,
-                pseudoPeriodHeight: 0
+                pseudoPeriodHeight: 0,
+                settings: settings
             );
         }
 
@@ -4621,7 +4646,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: new Sequence(elements),
                 pseudoPeriodStart: time + length,
                 pseudoPeriodLength: length,
-                pseudoPeriodHeight: height
+                pseudoPeriodHeight: height,
+                settings: settings
             );
         }
     }
@@ -4729,7 +4755,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: elements.ToSequence(),
                 pseudoPeriodStart: time + 1,
                 pseudoPeriodLength: 1,
-                pseudoPeriodHeight: 0
+                pseudoPeriodHeight: 0,
+                settings: settings
             );
         }
 
@@ -4762,7 +4789,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: elements.ToSequence(),
                 pseudoPeriodStart: time,
                 pseudoPeriodLength: PseudoPeriodLength,
-                pseudoPeriodHeight: PseudoPeriodHeight
+                pseudoPeriodHeight: PseudoPeriodHeight,
+                settings: settings
             );
         }
     }
@@ -4892,7 +4920,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: new Sequence(elements),
                 pseudoPeriodStart: time + 1,
                 pseudoPeriodLength: 1,
-                pseudoPeriodHeight: 0
+                pseudoPeriodHeight: 0,
+                settings: settings
             );
         }
 
@@ -4920,7 +4949,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: new Sequence(elements),
                 pseudoPeriodStart: time + length,
                 pseudoPeriodLength: length,
-                pseudoPeriodHeight: height
+                pseudoPeriodHeight: height,
+                settings: settings
             );
         }
     }
@@ -5032,7 +5062,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: elements.ToSequence(),
                 pseudoPeriodStart: time + 1,
                 pseudoPeriodLength: 1,
-                pseudoPeriodHeight: 0
+                pseudoPeriodHeight: 0,
+                settings: settings
             );
         }
 
@@ -5065,7 +5096,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: elements.ToSequence(),
                 pseudoPeriodStart: time,
                 pseudoPeriodLength: PseudoPeriodLength,
-                pseudoPeriodHeight: PseudoPeriodHeight
+                pseudoPeriodHeight: PseudoPeriodHeight,
+                settings: settings
             );
         }
     }
@@ -7241,7 +7273,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: baseSequence,
             pseudoPeriodStart: T,
             pseudoPeriodLength: d,
-            pseudoPeriodHeight: c
+            pseudoPeriodHeight: c,
+            settings: settings
         );
 
         return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -7543,7 +7576,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: minSequence,
             pseudoPeriodStart: T,
             pseudoPeriodLength: d,
-            pseudoPeriodHeight: c
+            pseudoPeriodHeight: c,
+            settings: settings
         );
 
         var retVal = settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -7839,7 +7873,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: maxSequence,
             pseudoPeriodStart: T,
             pseudoPeriodLength: d,
-            pseudoPeriodHeight: c
+            pseudoPeriodHeight: c,
+            settings: settings
         );
 
         var retVal = settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -7938,7 +7973,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: s,
             pseudoPeriodStart: e.EndTime + 1,
             pseudoPeriodLength: 1,
-            pseudoPeriodHeight: 0
+            pseudoPeriodHeight: 0,
+            settings: settings
         );
         return this.Minimum(ce, settings);
     }
@@ -7964,7 +8000,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: minS,
             pseudoPeriodStart: periodStart,
             pseudoPeriodLength: PseudoPeriodLength,
-            pseudoPeriodHeight: PseudoPeriodHeight
+            pseudoPeriodHeight: PseudoPeriodHeight,
+            settings: settings
         );
         return result.Optimize();
     }
@@ -7987,7 +8024,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: s,
             pseudoPeriodStart: e.EndTime + 1,
             pseudoPeriodLength: 1,
-            pseudoPeriodHeight: 0
+            pseudoPeriodHeight: 0,
+            settings: settings
         );
         return this.Maximum(ce, settings);
     }
@@ -8013,7 +8051,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: maxS,
             pseudoPeriodStart: periodStart,
             pseudoPeriodLength: PseudoPeriodLength,
-            pseudoPeriodHeight: PseudoPeriodHeight
+            pseudoPeriodHeight: PseudoPeriodHeight,
+            settings: settings
         );
         return result.Optimize();
     }
@@ -8194,7 +8233,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: sequence.Cut(0, cutEnd),
                 pseudoPeriodStart: T,
                 pseudoPeriodLength: d,
-                pseudoPeriodHeight: c
+                pseudoPeriodHeight: c,
+                settings: settings
             );
             if (settings.UseRepresentationMinimization)
                 result = result.Optimize();
@@ -8239,7 +8279,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 pseudoPeriodStart: periodStart,
                 pseudoPeriodLength: 1,
                 // the periodic part is $-\infty$ throughout, so the height is 0, as in Curve.MinusInfinite()
-                pseudoPeriodHeight: 0
+                pseudoPeriodHeight: 0,
+                settings: settings
             );
 
             // what a curve does from its first $-\infty$ on does not affect the result before it,
@@ -8259,7 +8300,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         .ToSequence(),
                     pseudoPeriodStart: from,
                     pseudoPeriodLength: 1,
-                    pseudoPeriodHeight: 0
+                    pseudoPeriodHeight: 0,
+                    settings: settings
                 );
             }
         }
@@ -8292,7 +8334,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: extendedConvolution,
                 pseudoPeriodStart: T,
                 pseudoPeriodLength: d,
-                pseudoPeriodHeight: Rational.PlusInfinity
+                pseudoPeriodHeight: Rational.PlusInfinity,
+                settings: settings
             );
 
             return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -8321,7 +8364,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 pseudoPeriodStart: T,
                 pseudoPeriodLength: d,
                 pseudoPeriodHeight: c,
-                isPartialCurve: true
+                isPartialCurve: true,
+                settings: settings
             );
 
             return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -8360,7 +8404,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     pseudoPeriodStart: T,
                     pseudoPeriodLength: d,
                     pseudoPeriodHeight: c,
-                    isPartialCurve: true
+                    isPartialCurve: true,
+                    settings: settings
                 );
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -8443,7 +8488,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     baseSequence: baseSequence,
                     pseudoPeriodStart: minT,
                     pseudoPeriodLength: d,
-                    pseudoPeriodHeight: c
+                    pseudoPeriodHeight: c,
+                    settings: settings
                 );
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -8483,7 +8529,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     pseudoPeriodStart: T,
                     pseudoPeriodLength: d,
                     pseudoPeriodHeight: c,
-                    isPartialCurve: true
+                    isPartialCurve: true,
+                    settings: settings
                 );
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -9032,7 +9079,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: cutDeconvolution,
             pseudoPeriodStart: f.PseudoPeriodStart,
             pseudoPeriodLength: f.PseudoPeriodLength,
-            pseudoPeriodHeight: f.PseudoPeriodHeight
+            pseudoPeriodHeight: f.PseudoPeriodHeight,
+            settings: settings
         );
     }
 
@@ -9376,7 +9424,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: sequence.Cut(0, minT + d),
                 pseudoPeriodStart: minT,
                 pseudoPeriodLength: d,
-                pseudoPeriodHeight: c
+                pseudoPeriodHeight: c,
+                settings: settings
             );
             if (settings.UseRepresentationMinimization)
                 result = result.Optimize();
@@ -9421,7 +9470,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 pseudoPeriodStart: periodStart,
                 pseudoPeriodLength: 1,
                 // the periodic part is $+\infty$ throughout, so the height is 0, as in Curve.PlusInfinite()
-                pseudoPeriodHeight: 0
+                pseudoPeriodHeight: 0,
+                settings: settings
             );
 
             // what a curve does from its first $+\infty$ on does not affect the result before it,
@@ -9441,7 +9491,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         .ToSequence(),
                     pseudoPeriodStart: from,
                     pseudoPeriodLength: 1,
-                    pseudoPeriodHeight: 0
+                    pseudoPeriodHeight: 0,
+                    settings: settings
                 );
             }
         }
@@ -9475,7 +9526,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: extendedConvolution,
                 pseudoPeriodStart: T,
                 pseudoPeriodLength: d,
-                pseudoPeriodHeight: Rational.MinusInfinity
+                pseudoPeriodHeight: Rational.MinusInfinity,
+                settings: settings
             );
 
             return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -9509,7 +9561,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 baseSequence: sequence,
                 pseudoPeriodStart: T,
                 pseudoPeriodLength: d,
-                pseudoPeriodHeight: c
+                pseudoPeriodHeight: c,
+                settings: settings
             );
 
             return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -9556,7 +9609,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     baseSequence: sequence,
                     pseudoPeriodStart: T,
                     pseudoPeriodLength: d,
-                    pseudoPeriodHeight: c
+                    pseudoPeriodHeight: c,
+                    settings: settings
                 );
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -9601,7 +9655,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         fpstarCut,
                         tstar_f,
                         f.PseudoPeriodLength,
-                        f.PseudoPeriodHeight
+                        f.PseudoPeriodHeight,
+                        settings: settings
                     );
 
                     var gpstarCut = g
@@ -9612,7 +9667,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                         gpstarCut,
                         tstar_g,
                         g.PseudoPeriodLength,
-                        g.PseudoPeriodHeight
+                        g.PseudoPeriodHeight,
+                        settings: settings
                     );
                     return MaxPlusConvolution(fpstar, gpstar, settings);
                 }
@@ -9682,7 +9738,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     baseSequence: baseSequence,
                     pseudoPeriodStart: minT,
                     pseudoPeriodLength: d,
-                    pseudoPeriodHeight: c
+                    pseudoPeriodHeight: c,
+                    settings: settings
                 );
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -9725,7 +9782,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     baseSequence: sequence,
                     pseudoPeriodStart: T,
                     pseudoPeriodLength: d,
-                    pseudoPeriodHeight: c
+                    pseudoPeriodHeight: c,
+                    settings: settings
                 );
 
                 return settings.UseRepresentationMinimization ? result.Optimize() : result;
@@ -9990,7 +10048,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 ]),
                 pseudoPeriodStart: 0,
                 pseudoPeriodLength: 1,
-                pseudoPeriodHeight: 0
+                pseudoPeriodHeight: 0,
+                settings: settings
             );
         }
 
@@ -10059,7 +10118,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             baseSequence: sequence,
             pseudoPeriodStart: T,
             pseudoPeriodLength: d,
-            pseudoPeriodHeight: c
+            pseudoPeriodHeight: c,
+            settings: settings
         );
 
         return settings.UseRepresentationMinimization ? result.Optimize() : result;

@@ -1198,7 +1198,8 @@ public sealed class Point : Element, IEquatable<Point>
                     fillTo: pointK.Time + pseudoPeriodLength),
                 pseudoPeriodStart: pointK.Time,
                 pseudoPeriodLength: pseudoPeriodLength,
-                pseudoPeriodHeight: pseudoPeriodHeight
+                pseudoPeriodHeight: pseudoPeriodHeight,
+                settings: settings
             );
 
             iteratedPoints.Add(iteratedPointK);
@@ -1244,7 +1245,8 @@ public sealed class Point : Element, IEquatable<Point>
                     fillTo: pointK.Time + Time),
                 pseudoPeriodStart: pointK.Time,
                 pseudoPeriodLength: Time,
-                pseudoPeriodHeight: Value
+                pseudoPeriodHeight: Value,
+                settings: settings
             );
 
             curves.Add(iteratedPointK);
