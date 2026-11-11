@@ -12,6 +12,99 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra.Sequences.Streams;
 /// </summary>
 public class Envelopes
 {
+    public static IEnumerable<object[]> ManyOperands()
+    {
+        foreach (var count in new[] { 1, 2, 3, 5, 32 })
+        {
+            yield return new object[] { Enumerable.Range(0, count)
+                .Select(i => new Sequence(new Element[] { new Point(0, i), new Segment(0, 4, i, count - i) }))
+                .ToArray() };
+            yield return new object[] { Enumerable.Range(0, count)
+                .Select(i => new Sequence(new Element[] { new Segment(3 * i, 3 * i + 1, i, 1) }))
+                .ToArray() };
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ManyOperands))]
+    public void ManyMinimumMatchesMaterializedEnvelope(Sequence[] operands)
+    {
+        var expected = operands.LowerEnvelope(new ComputationSettings { UseParallelism = false });
+        var actual = operands.Select(s => ValidationCases.SingleUse(s.Elements))
+            .Minimum()
+            .ToArray();
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [MemberData(nameof(ManyOperands))]
+    public void ManyMaximumMatchesMaterializedEnvelope(Sequence[] operands)
+    {
+        var expected = operands.UpperEnvelope(new ComputationSettings { UseParallelism = false });
+        var actual = operands.Select(s => ValidationCases.SingleUse(s.Elements))
+            .Maximum()
+            .ToArray();
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ManyMinimumDisposesEveryOperandAfterTheFirstPoint()
+    {
+        var pulls = 0;
+        var disposed = 0;
+        IEnumerable<Element> Source()
+        {
+            try
+            {
+                pulls++;
+                yield return new Point(0, 1);
+                throw new InvalidOperationException("The tail must not be read.");
+            }
+            finally { disposed++; }
+        }
+        var streams = Enumerable.Range(0, 5).Select(_ => ValidationCases.SingleUse(Source()));
+        Assert.Single(streams.Minimum().Take(1));
+        Assert.Equal(5, pulls);
+        Assert.Equal(5, disposed);
+    }
+
+    [Fact]
+    public void ManyMaximumDisposesEveryOperandAfterTheFirstPoint()
+    {
+        var pulls = 0;
+        var disposed = 0;
+        IEnumerable<Element> Source()
+        {
+            try
+            {
+                pulls++;
+                yield return new Point(0, 1);
+                throw new InvalidOperationException("The tail must not be read.");
+            }
+            finally { disposed++; }
+        }
+        var streams = Enumerable.Range(0, 5).Select(_ => ValidationCases.SingleUse(Source()));
+        Assert.Single(streams.Maximum().Take(1));
+        Assert.Equal(5, pulls);
+        Assert.Equal(5, disposed);
+    }
+
+    [Fact]
+    public void ManyMinimumValidatesAnOperandWhenReached()
+    {
+        IEnumerable<Element>[] streams = [new Element[] { new Point(0, 0), new Point(1, 0) }, ValidationCases.ValidInput(), ValidationCases.ValidInput()];
+        Assert.Single(streams.Minimum().Take(1));
+        Assert.Throws<ArgumentException>(() => streams.Minimum().ToArray());
+    }
+
+    [Fact]
+    public void ManyMaximumValidatesAnOperandWhenReached()
+    {
+        IEnumerable<Element>[] streams = [new Element[] { new Point(0, 0), new Point(1, 0) }, ValidationCases.ValidInput(), ValidationCases.ValidInput()];
+        Assert.Single(streams.Maximum().Take(1));
+        Assert.Throws<ArgumentException>(() => streams.Maximum().ToArray());
+    }
+
     public static IEnumerable<(string Name, Sequence Left, Sequence Right)> OperandCases()
     {
         foreach (var data in Addition.FiniteOperandCases().Concat(Addition.InfiniteOperandCases()))
