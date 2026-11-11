@@ -112,24 +112,23 @@ public static partial class SequenceExtensions
         => EnvelopeMany(streams, EnvelopeKind.Upper);
 
     /// <summary>
-    /// Combines a finite collection of streams into a lower or upper envelope through successive binary sweeps.
+    /// Combines a finite collection of streams into a lower or upper envelope through a balanced tree of binary sweeps.
     /// </summary>
     /// <param name="streams">Nonempty uninterrupted streams in time order.</param>
     /// <param name="kind">Whether to compute the lower or upper envelope.</param>
-    /// <returns>The unmerged envelope with state proportional to the operand count.</returns>
+    /// <returns>The envelope merged at each binary node, with state proportional to the operand count.</returns>
     /// <remarks>A single operand retains its original support; two or more operands use the filled span of <see cref="EnvelopeUnion"/>.</remarks>
     /// <exception cref="ArgumentException">If the collection or a consumed operand is empty, or a consumed element violates uninterrupted time order.</exception>
     private static IEnumerable<Element> EnvelopeMany(IEnumerable<IEnumerable<Element>> streams, EnvelopeKind kind)
     {
-        IEnumerable<Element>? result = null;
-        foreach (var stream in streams)
-        {
-            result = result is null ? stream : EnvelopeUnion(result, stream, kind);
-        }
-        if (result is null)
+        var operands = BalancedReduction.GetIndexedOperands(streams);
+        if (operands.Count == 0)
         {
             throw new ArgumentException("The operand collection is empty.", nameof(streams));
         }
+
+        var result = BalancedReduction.Aggregate(operands,
+            (left, right) => EnvelopeUnion(left, right, kind).MergeAsEnumerable(), degreeOfParallelism: 1);
 
         // This cursor also validates the single-operand case, where no binary sweep was created.
         using var cursor = new ElementCursor(result);
