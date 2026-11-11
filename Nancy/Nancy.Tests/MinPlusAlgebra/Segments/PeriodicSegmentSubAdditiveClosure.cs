@@ -4,6 +4,10 @@ using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
+#if BIG_RATIONAL
+using System.Numerics;
+#endif
+
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Segments;
 
 public class PeriodicSegmentSubAdditiveClosure
@@ -451,6 +455,32 @@ public class PeriodicSegmentSubAdditiveClosure
         _testOutputHelper.WriteLine($"var result = {result.ToCodeString()};");
         Assert.True(Curve.Equivalent(closure, result));
     }
+
+    #if BIG_RATIONAL
+    /// <summary>
+    /// Type A with $s / d = 1 + \varepsilon$, $\varepsilon = 10^{-30}$: $K = 1$ fails the test of [BT07], since $\lceil 1 + \varepsilon \rceil = 2 > \tfrac32 (1 + \varepsilon)$, so $K = 2$.
+    /// At $4s$, three iterates of the segment adding up to $\varepsilon$ past $3s$, and one period, give $\tfrac32 s + 2\varepsilon + 1 = \tfrac52 + \tfrac72 \varepsilon$.
+    /// </summary>
+    [Fact]
+    public void TypeA_StartTimeJustPastThePeriod()
+    {
+        var epsilon = new Rational(BigInteger.One, BigInteger.Pow(10, 30));
+        var start = 1 + epsilon;
+        var segment = new Segment(
+            startTime: start,
+            endTime: start + new Rational(1, 2),
+            rightLimitAtStartTime: start / 2,
+            slope: 2
+        );
+
+        var closure = segment.SubAdditiveClosure(
+            pseudoPeriodLength: 1,
+            pseudoPeriodHeight: 1
+        );
+
+        Assert.Equal(new Rational(5, 2) + new Rational(7, 2) * epsilon, closure.ValueAt(4 * start));
+    }
+    #endif
 
     [Fact]
     public void SubAdditiveClosure_RejectsZeroLength()
