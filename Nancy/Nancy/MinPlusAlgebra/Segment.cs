@@ -2036,13 +2036,13 @@ public sealed class Segment : Element, IEquatable<Segment>
         //In [BT07], first leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeA()
         {
-            int k0 = (int)Math.Floor((decimal)(pseudoPeriodLength / Length)) + 1;
+            int k0 = (int)(pseudoPeriodLength / Length).Floor() + 1;
 
             int bigK = 1;
             while (!CheckValidK(bigK))
                 bigK++;
 
-            int i0 = (int)Math.Ceiling((decimal)(bigK * StartTime / pseudoPeriodLength));
+            int i0 = (int)(bigK * StartTime / pseudoPeriodLength).Ceil();
 
             #if DO_LOG
             logger.Trace($"Periodic segment closure type A. k0: {k0} ; bigK: {bigK} ; i0: {i0}");
@@ -2080,7 +2080,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             bool CheckValidK(int candidateK)
             {
-                Rational leftSide = Math.Ceiling((decimal)(candidateK * StartTime / pseudoPeriodLength))
+                Rational leftSide = (candidateK * StartTime / pseudoPeriodLength).Ceil()
                                     * (Slope - (pseudoPeriodHeight / pseudoPeriodLength));
                 Rational rightSide =
                     (candidateK * StartTime / pseudoPeriodLength) * (Slope - RightLimitAtStartTime / StartTime);
@@ -2092,7 +2092,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         //In [BT07], second leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeB()
         {
-            int k0 = (int)Math.Floor((decimal)(pseudoPeriodLength / Length)) + 1;
+            int k0 = (int)(pseudoPeriodLength / Length).Floor() + 1;
 
             int bigK = 1;
             while (!CheckValidK(bigK))
@@ -2126,7 +2126,7 @@ public sealed class Segment : Element, IEquatable<Segment>
                 if (StartTime == 0)
                     return true;
 
-                Rational leftSide = Math.Floor((decimal)(candidateK * StartTime / pseudoPeriodLength))
+                Rational leftSide = (candidateK * StartTime / pseudoPeriodLength).Floor()
                                     * (Slope - (pseudoPeriodHeight / pseudoPeriodLength));
                 Rational rightSide =
                     (candidateK * StartTime / pseudoPeriodLength) * (Slope - StartSlope);
@@ -2138,13 +2138,13 @@ public sealed class Segment : Element, IEquatable<Segment>
         //In [BT07], third leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeC()
         {
-            int k0 = (int)Math.Floor((decimal)(pseudoPeriodLength / Length)) + 1;
+            int k0 = (int)(pseudoPeriodLength / Length).Floor() + 1;
 
             int bigK = 1;
             while (!CheckValidK(bigK))
                 bigK++;
 
-            int i0 = (int)Math.Floor((decimal)(bigK * EndTime / pseudoPeriodLength));
+            int i0 = (int)(bigK * EndTime / pseudoPeriodLength).Floor();
 
             #if DO_LOG
             logger.Trace($"Periodic segment closure type C. k0: {k0} ; bigK: {bigK} ; i0: {i0}");
@@ -2197,7 +2197,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             bool CheckValidK(int candidateK)
             {
-                Rational leftSide = Math.Floor((decimal)(candidateK * EndTime / pseudoPeriodLength))
+                Rational leftSide = (candidateK * EndTime / pseudoPeriodLength).Floor()
                                     * ((pseudoPeriodHeight / pseudoPeriodLength) - Slope);
                 Rational rightSide =
                     (candidateK * EndTime / pseudoPeriodLength) * ((LeftLimitAtEndTime / EndTime) - Slope);
@@ -2209,7 +2209,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         //In [BT07], fourth leaf branch of algorithm 11.
         SubAdditiveCurve PeriodicSegmentClosureTypeD()
         {
-            int k0 = (int)Math.Floor((decimal)(pseudoPeriodLength / Length)) + 1;
+            int k0 = (int)(pseudoPeriodLength / Length).Floor() + 1;
 
             int bigK = 1;
             while (!CheckValidK(bigK))
@@ -2240,7 +2240,7 @@ public sealed class Segment : Element, IEquatable<Segment>
 
             bool CheckValidK(int candidateK)
             {
-                Rational leftSide = Math.Ceiling((decimal)(candidateK * EndTime / pseudoPeriodLength))
+                Rational leftSide = (candidateK * EndTime / pseudoPeriodLength).Ceil()
                                     * ((pseudoPeriodHeight / pseudoPeriodLength) - Slope);
                 Rational rightSide =
                     (candidateK * EndTime / pseudoPeriodLength) * ((LeftLimitAtEndTime / EndTime) - Slope);
@@ -2394,7 +2394,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         Rational pseudoPeriodHeight,
         uint i)
     {
-        Rational k0 = Math.Floor((decimal) (pseudoPeriodLength / Length)) + 1;
+        Rational k0 = (pseudoPeriodLength / Length).Floor() + 1;
         Rational pseudoPeriodicSlope = pseudoPeriodHeight / pseudoPeriodLength;
 
         if (pseudoPeriodicSlope <= Slope)
@@ -2518,7 +2518,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         Curve TransversalViewTypeC()
         {
             Rational bigK0 = Rational.Max(
-                Math.Floor((decimal) (StartTime / Length)) + 1,
+                (StartTime / Length).Floor() + 1,
                 k0);
 
             List<Element> elements = [];
@@ -2563,7 +2563,7 @@ public sealed class Segment : Element, IEquatable<Segment>
         Curve TransversalViewTypeD()
         {
             Rational bigK0 = Rational.Max(
-                Math.Floor((decimal)(StartTime / Length)) + 1,
+                (StartTime / Length).Floor() + 1,
                 k0);
 
             List<Element> elements = [];

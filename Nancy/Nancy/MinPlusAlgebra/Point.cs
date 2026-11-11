@@ -1276,8 +1276,8 @@ public sealed class Point : Element, IEquatable<Point>
         Rational closurePeriodHeight = slope * closurePeriodLenght;
 
         Rational rightClosureEndpoint = closurePeriodStart + closurePeriodLenght;
-        int maxK = (int)Math.Floor((decimal)(rightClosureEndpoint / Time)) - 1;
-        int maxI = (int)Math.Floor((decimal)((rightClosureEndpoint - Time) / pseudoPeriodLength));
+        int maxK = (int)(rightClosureEndpoint / Time).Floor() - 1;
+        int maxI = (int)((rightClosureEndpoint - Time) / pseudoPeriodLength).Floor();
 
         #if DO_LOG
         logger.Trace($"Periodic point closure type C. maxK: {maxK} ; maxI: {maxI} ; complexity: {maxK * maxI}");
