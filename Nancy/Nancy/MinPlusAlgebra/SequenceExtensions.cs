@@ -108,7 +108,7 @@ public static partial class SequenceExtensions
             throw new ArgumentException("The element stream is empty.", nameof(elements));
 
         if (cutStart > cutEnd)
-            throw new ArgumentException("Invalid interval.");
+            throw new ArgumentException("Cut start cannot be after end.");
 
         if(cutStart < enumerator.Current.StartTime)
             throw new ArgumentException("Cut limits are out of the sequence support.");
