@@ -420,7 +420,7 @@ internal class IntervalBucket
         if (!elements.Any())
             throw new ArgumentException("The set of elements is empty.", nameof(elements));
 
-        bool doParallel = settings.UseParallelComputeIntervals &&
+        bool doParallel = settings.UseParallelComputeIntervals && settings.DegreeOfParallelism > 1 &&
                           elements.Count >= settings.ComputeIntervalsParallelizationThreshold;
 
         #if DO_LOG

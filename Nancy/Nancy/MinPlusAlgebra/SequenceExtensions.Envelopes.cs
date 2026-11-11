@@ -273,7 +273,7 @@ public static partial class SequenceExtensions
         var lowerEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
         IEnumerable<Element> lowerElements;
-        bool doParallel = settings.UseParallelLowerEnvelope &&
+        bool doParallel = settings.UseParallelLowerEnvelope && settings.DegreeOfParallelism > 1 &&
             elements.Count >= settings.ElementsLowerEnvelopeParallelizationThreshold;
         if (doParallel)
         {
@@ -360,7 +360,7 @@ public static partial class SequenceExtensions
         var upperEnvelopeStopwatch = Stopwatch.StartNew();
         #endif
         IEnumerable<Element> upperElements;
-        bool doParallel = settings.UseParallelUpperEnvelope &&
+        bool doParallel = settings.UseParallelUpperEnvelope && settings.DegreeOfParallelism > 1 &&
             elements.Count >= settings.ElementsUpperEnvelopeParallelizationThreshold;
         if (doParallel)
         {

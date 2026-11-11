@@ -3691,7 +3691,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The requested deconvolution interval is reversed or empty.");
 
         IEnumerable<(Element a, Element b)> elementPairs = GetElementPairs();
-        var useParallel = settings.UseParallelDeconvolution;
+        var useParallel = settings.UseParallelDeconvolution && settings.DegreeOfParallelism > 1;
         if (useParallel)
         {
             var pairs = elementPairs.ToList();
