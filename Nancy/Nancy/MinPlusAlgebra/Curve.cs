@@ -3061,8 +3061,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (time < FirstPseudoPeriodEnd)
             return BaseSequence.GetElementAt(time);
 
-        //otherwise
-        return GetExtensionSequenceAt(time, settings).GetElementAt(time);
+        // Read the element from the stored period and translate only that element.
+        var periodIndex = (int)((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
+        var element = BaseSequence.GetElementAt(time - periodIndex * PseudoPeriodLength);
+        return TranslatePeriodElement(element, periodIndex);
     }
 
     /// <summary>
@@ -3084,8 +3086,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (time <= FirstPseudoPeriodEnd)
             return BaseSequence.GetSegmentBefore(time, cutToTime: cutToTime);
 
-        //otherwise
-        return GetExtensionSequenceBefore(time).GetSegmentBefore(time, cutToTime: cutToTime);
+        // Read the segment from the stored period and translate only that segment.
+        // At a period boundary the segment before it belongs to the period ending there.
+        var periodIndex = (int)(((time - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
+        var segment = BaseSequence.GetSegmentBefore(time - periodIndex * PseudoPeriodLength, cutToTime: cutToTime);
+        return (Segment)TranslatePeriodElement(segment, periodIndex);
     }
 
     /// <summary>
@@ -3107,15 +3112,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (!autoMerge)
         {
             if (time < FirstPseudoPeriodEnd)
+            {
                 return BaseSequence.GetSegmentAfter(time, cutToTime: cutToTime);
+            }
             else
-                return GetExtensionSequenceAt(time).GetSegmentAfter(time, cutToTime: cutToTime);
+            {
+                // Read the segment from the stored period and translate only that segment.
+                var periodIndex = (int)((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
+                var periodSegment = BaseSequence.GetSegmentAfter(time - periodIndex * PseudoPeriodLength, cutToTime: cutToTime);
+                return (Segment)TranslatePeriodElement(periodSegment, periodIndex);
+            }
         }
         else
         {
-            var segment = (time < FirstPseudoPeriodEnd)
-                ? BaseSequence.GetSegmentAfter(time, cutToTime: false)
-                : GetExtensionSequenceAt(time).GetSegmentAfter(time, cutToTime: false);
+            var segment = GetSegmentAfter(time, autoMerge: false, cutToTime: false);
             var t = segment.EndTime;
 
             // avoid infinite extensions
@@ -3179,18 +3189,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     {
         return sequence.Elements
             .All(e => Match(e, settings));
-    }
-
-    private Sequence GetExtensionSequenceAt(Rational time, ComputationSettings? settings = null)
-    {
-        int targetPeriodIndex = (int)Math.Floor((decimal)((time - FirstPseudoPeriodEnd) / PseudoPeriodLength)) + 1;
-        return ComputeExtensionSequence(targetPeriodIndex, settings);
-    }
-
-    private Sequence GetExtensionSequenceBefore(Rational time)
-    {
-        int targetPeriodIndex = (int)Math.Ceiling((decimal)((time - FirstPseudoPeriodEnd) / PseudoPeriodLength));
-        return ComputeExtensionSequence(targetPeriodIndex);
     }
 
     /// <summary>
@@ -3850,18 +3848,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         return (int)Math.Max(1, partitionCount);
     }
 
-    /// <summary>
-    /// Translates a complete period and materializes it for sequence queries.
-    /// </summary>
-    /// <param name="pseudoPeriodIndex">Index of the translated period.</param>
-    /// <param name="settings">Settings for inner parallel execution.</param>
-    /// <returns>The translated sequence.</returns>
-    private Sequence ComputeExtensionSequence(int pseudoPeriodIndex, ComputationSettings? settings = null)
-    {
-        settings ??= ComputationSettings.Default();
-        var copiedElements = TranslatePeriodElements(PseudoPeriodicSequence.ElementList, pseudoPeriodIndex, settings);
-        return new Sequence(copiedElements);
-    }
 
     /// <summary>
     /// Selects inner work partitions using the element threshold and the caller's partition budget.
