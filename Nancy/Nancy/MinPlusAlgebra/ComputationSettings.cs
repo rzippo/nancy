@@ -17,7 +17,7 @@ public record ComputationSettings
         get
         {
             return
-                UseParallelLowerEnvelope || UseParallelUpperEnvelope ||
+                UseParallelAddition || UseParallelLowerEnvelope || UseParallelUpperEnvelope ||
                 UseParallelConvolution || UseParallelDeconvolution ||
                 UseParallelListConvolution || UseParallelListMinimum || UseParallelListAddition || UseParallelListLowerEnvelope ||
                 UseParallelListMaximum || UseParallelListUpperEnvelope ||
@@ -27,6 +27,7 @@ public record ComputationSettings
         }
         set 
         {
+            UseParallelAddition = value;
             UseParallelLowerEnvelope = value;
             UseParallelUpperEnvelope = value;
             UseParallelConvolution = value;
@@ -69,6 +70,18 @@ public record ComputationSettings
     /// </summary>
     internal int DegreeOfParallelism =>
         MaxDegreeOfParallelism == -1 ? System.Math.Min(System.Environment.ProcessorCount, 512) : MaxDegreeOfParallelism;
+
+    /// <summary>
+    /// If true, long sequence additions are processed in parallel.
+    /// </summary>
+    public bool UseParallelAddition { get; set; } = true;
+
+    /// <summary>
+    /// The addition of two sequences is processed in parallel if they have at least this number of elements in all.
+    /// Requires <see cref="UseParallelAddition"/>.
+    /// </summary>
+    /// <remarks>For curve addition, the threshold applies to the element counts of the required cuts.</remarks>
+    public int AdditionParallelizationThreshold { get; set; } = 0;
 
     /// <summary>
     /// If true, long sequence minimums are processed in parallel.

@@ -2567,12 +2567,42 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="ArgumentException">If the supports share no time.</exception>
     /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
     public static Sequence Addition(Sequence a, Sequence b)
+        => Addition(a, b, null);
+
+    /// <summary>Adds two sequences over their overlapping parts.</summary>
+    /// <param name="a">The first operand.</param>
+    /// <param name="b">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The normalized sequence resulting from the sum.</returns>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
+    public static Sequence Addition(Sequence a, Sequence b, ComputationSettings? settings = null)
     {
-        if (Interval.Intersection(a.Support, b.Support) is null)
+        var support = Interval.Intersection(a.Support, b.Support);
+        if (support is null)
             throw new ArgumentException("The sequences share no time.");
-        return a.Elements.Addition(b.Elements)
-            .MergeAsEnumerable()
-            .ToSequence();
+
+        settings ??= ComputationSettings.Default();
+        var doParallel = settings.UseParallelAddition && settings.DegreeOfParallelism > 1 &&
+            (long)a.Count + b.Count >= settings.AdditionParallelizationThreshold;
+
+        if (doParallel)
+        {
+            return ComputePointwisePairOperationInParallel(
+                support: support.Value,
+                boundaries: GetPointwisePairBoundaries(a, b, support.Value, settings.DegreeOfParallelism),
+                leftSource: chunk => a.CutAsEnumerable(chunk),
+                rightSource: chunk => b.CutAsEnumerable(chunk),
+                operation: (left, right) => left.Addition(right),
+                settings: settings
+            );
+        }
+        else
+        {
+            return a.Elements.Addition(b.Elements)
+                .MergeAsEnumerable()
+                .ToSequence();
+        }
     }
 
     /// <summary>
@@ -2587,6 +2617,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
     public Sequence Addition(Sequence b)
         => Addition(this, b);
+
+    /// <summary>Adds two sequences over their overlapping parts.</summary>
+    /// <param name="b">The second operand.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The normalized sequence resulting from the sum.</returns>
+    /// <exception cref="ArgumentException">If the supports share no time.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time.</exception>
+    public Sequence Addition(Sequence b, ComputationSettings? settings = null)
+        => Addition(this, b, settings);
 
     /// <summary>
     /// Adds two sequences, over their overlapping parts.
