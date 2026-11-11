@@ -3204,6 +3204,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
     /// If the two endpoints coincide they must both be included, and the result is the single point of the curve at that time.
     /// </remarks>
+    /// <exception cref="ArgumentException">Thrown if the interval starts before zero, has an infinite endpoint, starts after its end, or has equal endpoints that are not both included.</exception>
     public Sequence Cut(
         Rational cutStart,
         Rational cutEnd,
@@ -3414,6 +3415,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Optimized for minimal allocations.
     /// If the two endpoints coincide they must both be included, and the result is the single point of the curve at that time.
     /// </remarks>
+    /// <exception cref="ArgumentException">Thrown if the interval starts before zero, has an infinite endpoint, starts after its end, or has equal endpoints that are not both included.</exception>
     public IEnumerable<Element> CutAsEnumerable(
         Rational cutStart,
         Rational cutEnd,
@@ -3422,6 +3424,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ComputationSettings? settings = null
     )
     {
+        if (cutStart < 0)
+            throw new ArgumentException("Cannot cut from before zero");
+
+        if (cutEnd.IsInfinite || cutStart.IsInfinite)
+            throw new ArgumentException("Cannot cut to infinity");
+
+        if (cutStart > cutEnd)
+            throw new ArgumentException("Cut start cannot be after end.");
+
         settings ??= ComputationSettings.Default();
 
         // A zero-width window describes a single point of the curve, and the branches that follow build the cut out of segments.
@@ -3602,6 +3613,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// The result is normalized, see <see cref="Sequence.IsNormalized"/>.
     /// </remarks>
+    /// <exception cref="ArgumentException">Thrown if the interval starts before zero, has an infinite endpoint, starts after its end, or has equal endpoints that are not both included.</exception>
     public Sequence Cut(
         Interval interval,
         ComputationSettings? settings = null
@@ -3614,6 +3626,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A sequence equivalently defined within the given interval.</returns>
     /// <remarks>Optimized for minimal allocations.</remarks>
+    /// <exception cref="ArgumentException">Thrown if the interval starts before zero, has an infinite endpoint, starts after its end, or has equal endpoints that are not both included.</exception>
     public IEnumerable<Element> CutAsEnumerable(
         Interval interval,
         ComputationSettings? settings = null
