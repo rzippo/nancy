@@ -1,11 +1,57 @@
 using System;
+using System.Runtime.ExceptionServices;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Unipi.Nancy.Numerics;
+using Unipi.Nancy.Utility;
+
+#if DO_LOG
+using System.Diagnostics;
+using NLog;
+#endif
 
 namespace Unipi.Nancy.MinPlusAlgebra;
 
 public static partial class SequenceExtensions
 {
+    /// <summary>
+    /// Computes the pointwise minimum of two streams over the intersection of their supports.
+    /// </summary>
+    /// <param name="a">The first operand, nonempty, uninterrupted and in time order.</param>
+    /// <param name="b">The second operand, nonempty, uninterrupted and in time order.</param>
+    /// <returns>The elements of the minimum in time order.</returns>
+    /// <remarks>
+    /// Within the intersection, the result has a point at each breakpoint of either operand and at each segment crossing, with segments between consecutive points.
+    /// Use <see cref="MergeAsEnumerable"/> to merge adjacent compatible elements.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time, when enumeration begins.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Minimum(this IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+            foreach (var element in Element.Minimum(left, right))
+                yield return element;
+    }
+
+    /// <summary>
+    /// Computes the pointwise maximum of two streams over the intersection of their supports.
+    /// </summary>
+    /// <param name="a">The first operand, nonempty, uninterrupted and in time order.</param>
+    /// <param name="b">The second operand, nonempty, uninterrupted and in time order.</param>
+    /// <returns>The elements of the maximum in time order.</returns>
+    /// <remarks>
+    /// Within the intersection, the result has a point at each breakpoint of either operand and at each segment crossing, with segments between consecutive points.
+    /// Use <see cref="MergeAsEnumerable"/> to merge adjacent compatible elements.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time, when enumeration begins.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Maximum(this IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+            foreach (var element in Element.Maximum(left, right))
+                yield return element;
+    }
 
     /// <summary>
     /// Enumerates the pointwise minimum of two streams, over their overlapping support or their full combined time span.
@@ -189,6 +235,186 @@ public static partial class SequenceExtensions
                 yield return element;
             }
             time = end;
+        }
+    }
+
+    /// <summary>
+    /// Enumerates ordered bucket envelopes without materializing their concatenation.
+    /// </summary>
+    /// <remarks>Iterate each List directly to avoid boxing one list enumerator per bucket.</remarks>
+    internal static IEnumerable<Element> FlattenEnvelopes(this IEnumerable<List<Element>> envelopes)
+    {
+        foreach (var envelope in envelopes)
+            foreach (var element in envelope)
+                yield return element;
+    }
+
+    /// <summary>
+    /// Computes the lower envelope of the set of elements given.
+    /// $O(n \cdot \log(n))$ complexity.
+    /// </summary>
+    /// <remarks>Used for convolution</remarks>
+    /// <exception cref="ArgumentException">If the set of elements is empty.</exception>
+    public static List<Element> LowerEnvelope(this IReadOnlyList<Element> elements, ComputationSettings? settings = null)
+    {
+        settings ??= ComputationSettings.Default();
+        if (!elements.Any())
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
+
+        #if DO_LOG
+        var intervalsStopwatch = Stopwatch.StartNew();
+        #endif
+        var intervals = IntervalBucket.ComputeIntervals(elements, settings);
+        #if DO_LOG
+        intervalsStopwatch.Stop();
+        logger.Debug($"Intervals computed: {elements.Count} elements, {intervalsStopwatch.ElapsedMilliseconds} milliseconds ");
+        #endif
+
+        #if DO_LOG
+        var lowerEnvelopeStopwatch = Stopwatch.StartNew();
+        #endif
+        IEnumerable<Element> lowerElements;
+        bool doParallel = settings.UseParallelLowerEnvelope &&
+            elements.Count >= settings.ElementsLowerEnvelopeParallelizationThreshold;
+        if (doParallel)
+        {
+            var envelopes = new List<Element>[intervals.Count];
+            try
+            {
+                Parallel.For(0, intervals.Count, new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism },
+                    i => envelopes[i] = intervals[i].LowerEnvelope());
+            }
+            catch (AggregateException aggregate)
+            {
+                // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                throw;
+            }
+
+            lowerElements = envelopes.FlattenEnvelopes();
+        }
+        else
+        {
+            lowerElements = intervals
+                .Select(interval => interval.LowerEnvelope())
+                .FlattenEnvelopes();
+        }
+
+        var sequence = lowerElements.MergeAsEnumerable()
+            .ToList();
+        #if DO_LOG
+        lowerEnvelopeStopwatch.Stop();
+        logger.Debug($"Lower envelopes computed: {elements.Count} elements, {lowerEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
+        #endif
+        return sequence;
+    }
+
+    /// <summary>
+    /// Computes the lower envelope of the set of sequences given.
+    /// </summary>
+    /// <remarks>
+    /// Used for partitioned convolution.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If the set of sequences is empty.</exception>
+    public static IReadOnlyList<Element> LowerEnvelope(this IReadOnlyList<Sequence> sequences, ComputationSettings? settings = null)
+    {
+        if (sequences.Count == 0)
+            throw new ArgumentException("The set of sequences is empty.", nameof(sequences));
+        if (sequences.Count == 1)
+            return sequences.First().Elements;
+        else if(sequences.Count == 2)
+            return Sequence.Minimum(sequences.First(), sequences.Last(), cutToOverlap: false, settings).Elements;
+        else
+        {
+            settings ??= ComputationSettings.Default();
+            bool doParallel = settings.UseParallelListLowerEnvelope && sequences.Count >= settings.ListLowerEnvelopeParallelizationThreshold;
+            return BalancedReduction.Aggregate(sequences,
+                    (a, b) => Sequence.Minimum(a, b, cutToOverlap: false, settings), doParallel ? settings.DegreeOfParallelism : 1)
+                .Elements;
+        }
+    }
+
+    /// <summary>
+    /// Computes the upper envelope of the set of elements given.
+    /// $O(n \cdot \log(n))$ complexity.
+    /// </summary>
+    /// <param name="elements">The elements to process.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <remarks>Used for deconvolution</remarks>
+    /// <exception cref="ArgumentException">If the set of elements is empty.</exception>
+    public static List<Element> UpperEnvelope(this IReadOnlyList<Element> elements, ComputationSettings? settings = null)
+    {
+        settings ??= ComputationSettings.Default();
+        if (!elements.Any())
+            throw new ArgumentException("The set of elements is empty.", nameof(elements));
+
+        #if DO_LOG
+        var intervalsStopwatch = Stopwatch.StartNew();
+        #endif
+        var intervals = IntervalBucket.ComputeIntervals(elements, settings);
+        #if DO_LOG
+        intervalsStopwatch.Stop();
+        logger.Debug($"Intervals computed: {elements.Count} elements, {intervalsStopwatch.ElapsedMilliseconds} milliseconds ");
+        #endif
+
+        #if DO_LOG
+        var upperEnvelopeStopwatch = Stopwatch.StartNew();
+        #endif
+        IEnumerable<Element> upperElements;
+        bool doParallel = settings.UseParallelUpperEnvelope &&
+            elements.Count >= settings.ElementsUpperEnvelopeParallelizationThreshold;
+        if (doParallel)
+        {
+            var envelopes = new List<Element>[intervals.Count];
+            try
+            {
+                Parallel.For(0, intervals.Count, new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism },
+                    i => envelopes[i] = intervals[i].UpperEnvelope());
+            }
+            catch (AggregateException aggregate)
+            {
+                // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                throw;
+            }
+
+            upperElements = envelopes.FlattenEnvelopes();
+        }
+        else
+        {
+            upperElements = intervals
+                .Select(interval => interval.UpperEnvelope())
+                .FlattenEnvelopes();
+        }
+
+        var sequence = upperElements.MergeAsEnumerable()
+            .ToList();
+        #if DO_LOG
+        upperEnvelopeStopwatch.Stop();
+        logger.Debug($"Upper envelopes computed: {elements.Count} elements, {upperEnvelopeStopwatch.ElapsedMilliseconds} milliseconds ");
+        #endif
+        return sequence;
+    }
+
+    /// <summary>
+    /// Computes the upper envelope of the set of sequences given.
+    /// </summary>
+    /// <exception cref="ArgumentException">If the set of sequences is empty.</exception>
+    public static IReadOnlyList<Element> UpperEnvelope(this IReadOnlyList<Sequence> sequences, ComputationSettings? settings = null)
+    {
+        if (sequences.Count == 0)
+            throw new ArgumentException("The set of sequences is empty.", nameof(sequences));
+        if (sequences.Count == 1)
+            return sequences.First().Elements;
+        else if(sequences.Count == 2)
+            return Sequence.Maximum(sequences.First(), sequences.Last(), cutToOverlap: false, settings).Elements;
+        else
+        {
+            settings ??= ComputationSettings.Default();
+            bool doParallel = settings.UseParallelListUpperEnvelope && sequences.Count >= settings.ListUpperEnvelopeParallelizationThreshold;
+            return BalancedReduction.Aggregate(sequences,
+                    (a, b) => Sequence.Maximum(a, b, cutToOverlap: false, settings), doParallel ? settings.DegreeOfParallelism : 1)
+                .Elements;
         }
     }
 }

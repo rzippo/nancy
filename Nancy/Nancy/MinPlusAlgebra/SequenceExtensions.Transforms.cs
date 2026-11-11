@@ -7,6 +7,45 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 public static partial class SequenceExtensions
 {
     /// <summary>
+    /// Adds two streams of elements over the intersection of their supports.
+    /// </summary>
+    /// <param name="a">The first operand, in time order and uninterrupted, as the elements of a <see cref="Sequence"/>.</param>
+    /// <param name="b">The second operand, as <paramref name="a"/>.</param>
+    /// <returns>The elements of the sum in time order.</returns>
+    /// <remarks>
+    /// Within the intersection, the result has a point at each breakpoint of either operand and a segment between consecutive breakpoints.
+    /// Use <see cref="MergeAsEnumerable"/> to merge adjacent compatible elements.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time, when the result is first enumerated.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are opposite infinities at a shared time, when the result reaches it.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Addition(this IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+            yield return Element.Addition(left, right);
+    }
+
+    /// <summary>
+    /// Subtracts two streams of elements over the intersection of their supports.
+    /// </summary>
+    /// <param name="a">The first operand, in time order and uninterrupted, as the elements of a <see cref="Sequence"/>.</param>
+    /// <param name="b">The second operand, as <paramref name="a"/>.</param>
+    /// <returns>The elements of the difference in time order.</returns>
+    /// <remarks>
+    /// Within the intersection, the result has a point at each breakpoint of either operand and a segment between consecutive breakpoints.
+    /// Use <see cref="MergeAsEnumerable"/> to merge adjacent compatible elements.
+    /// The result may contain negative values.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time, when the result is first enumerated.</exception>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at a shared time, when the result reaches it.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    public static IEnumerable<Element> Subtraction(this IEnumerable<Element> a, IEnumerable<Element> b)
+    {
+        foreach (var (left, right) in OverlappingElements(a, b))
+            yield return Element.Subtraction(left, right);
+    }
+
+    /// <summary>
     /// Negates each element of a stream.
     /// </summary>
     /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
@@ -232,6 +271,73 @@ public static partial class SequenceExtensions
             else
                 foreach (var result in Segment.Maximum((Segment) element, Segment.Zero(element.StartTime, element.EndTime)))
                     yield return result;
+        } while (cursor.MoveNext());
+    }
+
+    /// <summary>
+    /// Computes a left-continuous version of this sequence.
+    /// </summary>
+    /// <returns>Elements in time order, with each point set to the left limit where one exists.</returns>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    public static IEnumerable<Element> ToLeftContinuous(this IEnumerable<Element> elements)
+    {
+        using var cursor = new ElementCursor(elements);
+        Segment? left = null;
+        var seen = false;
+        while (cursor.MoveNext())
+        {
+            seen = true;
+            if (cursor.Current is Segment segment)
+            {
+                left = segment;
+                yield return segment;
+            }
+            else
+            {
+                var point = (Point) cursor.Current;
+                yield return left is not null && left.LeftLimitAtEndTime != point.Value
+                    ? new Point(point.Time, left.LeftLimitAtEndTime)
+                    : point;
+            }
+        }
+        if (!seen)
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+    }
+
+    /// <summary>
+    /// Computes a right-continuous version of this sequence.
+    /// </summary>
+    /// <returns>Elements in time order, with each point set to the right limit where one exists.</returns>
+    /// <exception cref="ArgumentException">If the stream is empty.</exception>
+    /// <exception cref="ArgumentException">If a consumed element violates uninterrupted time order.</exception>
+    /// <param name="elements">A nonempty stream in uninterrupted time order, as described by <see cref="Sequence.Elements"/>.</param>
+    public static IEnumerable<Element> ToRightContinuous(this IEnumerable<Element> elements)
+    {
+        using var cursor = new ElementCursor(elements);
+        if (!cursor.MoveNext())
+            throw new ArgumentException("The element stream is empty.", nameof(elements));
+
+        do
+        {
+            if (cursor.Current is Segment initial)
+            {
+                yield return initial;
+                continue;
+            }
+
+            var point = (Point) cursor.Current;
+            if (!cursor.MoveNext())
+            {
+                yield return point;
+                yield break;
+            }
+            var right = (Segment) cursor.Current;
+            yield return right.RightLimitAtStartTime != point.Value
+                ? new Point(point.Time, right.RightLimitAtStartTime)
+                : point;
+            yield return right;
         } while (cursor.MoveNext());
     }
 }
