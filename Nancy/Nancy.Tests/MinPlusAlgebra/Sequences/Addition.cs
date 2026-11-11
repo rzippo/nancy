@@ -2,12 +2,65 @@ using System;
 using System.Collections.Generic;
 using Unipi.Nancy.MinPlusAlgebra;
 using Unipi.Nancy.NetworkCalculus;
+using Unipi.Nancy.Numerics;
 using Xunit;
 
 namespace Unipi.Nancy.Tests.MinPlusAlgebra.Sequences;
 
 public class Addition
 {
+    private static readonly ComputationSettings SerialSettings = new() { UseParallelism = false };
+
+    private static readonly ComputationSettings ParallelSettings = new()
+    {
+        UseParallelism = false, UseParallelAddition = true,
+        MaxDegreeOfParallelism = 4, AdditionParallelizationThreshold = 0
+    };
+
+    public static IEnumerable<object[]> ParallelOperands()
+    {
+        foreach (var pair in Streams.Addition.FiniteOperandCases())
+            yield return new object[] { pair.Left, pair.Right };
+        foreach (var pair in Streams.Addition.InfiniteOperandCases())
+            yield return new object[] { pair.Left, pair.Right };
+    }
+
+    [Theory]
+    [MemberData(nameof(ParallelOperands))]
+    public void ParallelAdditionMatchesSerial(Sequence left, Sequence right)
+    {
+        var serial = left.Addition(right, SerialSettings);
+        var parallel = left.Addition(right, ParallelSettings);
+        Assert.Equal(serial.Elements, parallel.Elements);
+    }
+
+    /// <summary>
+    /// Sixteen unit steps give the boundary sampling interior times, so the opposite infinities from time 16 meet in the last of several chunks, inside a worker.
+    /// </summary>
+    [Fact]
+    public void ParallelAdditionThrowsTheSerialExceptionFromAWorkerChunk()
+    {
+        static Sequence StepsThen(Point infinitePoint, Segment infiniteSegment)
+        {
+            var elements = new List<Element>();
+            for (int i = 0; i < 16; i++)
+            {
+                elements.Add(new Point(i, i));
+                elements.Add(new Segment(i, i + 1, i, 0));
+            }
+            elements.Add(infinitePoint);
+            elements.Add(infiniteSegment);
+            return new Sequence(elements);
+        }
+
+        var left = StepsThen(Point.PlusInfinite(16), Segment.PlusInfinite(16, 20));
+        var right = StepsThen(Point.MinusInfinite(16), Segment.MinusInfinite(16, 20));
+
+        var serial = Assert.Throws<UndeterminedResultException>(() => left.Addition(right, SerialSettings));
+        var parallel = Assert.Throws<UndeterminedResultException>(() => left.Addition(right, ParallelSettings));
+        Assert.Equal(serial.Message, parallel.Message);
+    }
+
     [Fact]
     public void Add()
     {
