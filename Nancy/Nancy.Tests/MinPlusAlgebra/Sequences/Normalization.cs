@@ -186,4 +186,21 @@ public class Normalization
         Assert.Equal(4, curve.BaseSequence.Count);
     }
 
+    /// <summary>
+    /// A base sequence that meets every invariant, with a property known: with propagation, the constructor keeps it, known property included;
+    /// without, its cut is built anew, and computes its properties when read.
+    /// </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ConstructorNormalizesWithTheSettingsGiven(bool propagation)
+    {
+        var baseSequence = new Sequence([new Point(0, 0), new Segment(0, 2, 0, 1)]);
+        Assert.True(baseSequence.IsFinite);
+        var curve = new Curve(baseSequence, pseudoPeriodStart: 0, pseudoPeriodLength: 2, pseudoPeriodHeight: 2,
+            settings: new ComputationSettings { UseKnownPropertyPropagation = propagation });
+        Assert.Equal(propagation, ReferenceEquals(baseSequence, curve.BaseSequence));
+        Assert.Equal(propagation ? true : null, KnownProperties.GetIfKnown(ref curve.BaseSequence._isFinite));
+    }
+
 }

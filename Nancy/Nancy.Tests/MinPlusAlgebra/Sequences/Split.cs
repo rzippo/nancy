@@ -122,4 +122,44 @@ public class Split
     {
         Assert.Throws<ArgumentException>(() => sequence.EnforceSplitAt(splitTime));
     }
+
+    /// <summary>
+    /// The split segment in the middle, first, last and alone, with the elements the split must give.
+    /// </summary>
+    public static IEnumerable<object[]> SegmentPositions()
+    {
+        yield return [a, new Rational(15), new Element[]
+        {
+            Point.Origin(), Segment.Zero(0, 10), Point.Zero(10), Segment.Zero(10, 15), Point.Zero(15), Segment.Zero(15, 20),
+            Point.Zero(20), Segment.Zero(20, 30)
+        }];
+        yield return [b, new Rational(5), new Element[]
+        {
+            Segment.Zero(0, 5), Point.Zero(5), Segment.Zero(5, 10), Point.Zero(10), Segment.Zero(10, 20), Point.Zero(20),
+            Segment.Zero(20, 30)
+        }];
+        yield return [a, new Rational(25), new Element[]
+        {
+            Point.Origin(), Segment.Zero(0, 10), Point.Zero(10), Segment.Zero(10, 20), Point.Zero(20), Segment.Zero(20, 25),
+            Point.Zero(25), Segment.Zero(25, 30)
+        }];
+        yield return [new Sequence(new Element[] { new Segment(0, 2, 1, 1) }), new Rational(1), new Element[]
+        {
+            new Segment(0, 1, 1, 1), new Point(1, 2), new Segment(1, 2, 2, 1)
+        }];
+    }
+
+    [Theory]
+    [MemberData(nameof(SegmentPositions))]
+    public void EnforceSplitAtGivesTheSplitElements(Sequence sequence, Rational splitTime, Element[] expected)
+    {
+        Assert.Equal(expected, sequence.EnforceSplitAt(splitTime).Elements);
+    }
+
+    [Fact]
+    public void EnforceSplitAtAnExistingPointIsTheSequence()
+    {
+        Assert.Same(a, a.EnforceSplitAt(10));
+    }
+
 }
