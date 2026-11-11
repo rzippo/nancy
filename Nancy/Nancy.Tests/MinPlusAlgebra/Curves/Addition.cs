@@ -8,6 +8,34 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class Addition
 {
+    /// <summary>Curve pairs for comparing the parallel pointwise operations with the serial ones; Min and Max use them too.</summary>
+    public static IEnumerable<object[]> ParallelPointwisePairs()
+    {
+        yield return [new StairCurve(127, 127), new StairCurve(128, 128)];
+        yield return [new Curve(new StairCurve(127, 127).Cut(0, 381), 254, 127, 127),
+            new Curve(new StairCurve(128, 128).Cut(0, 384), 256, 128, 128)];
+        yield return [new StairCurve(2, 3), Curve.PlusInfinite()];
+        yield return [new StairCurve(2, 3), Curve.MinusInfinite()];
+        yield return [new StairCurve(2, 3), new RateLatencyServiceCurve(1, 5)];
+    }
+
+    [Theory]
+    [MemberData(nameof(ParallelPointwisePairs))]
+    public void ParallelAdditionMatchesSerial(Curve left, Curve right)
+    {
+        var serial = left.Addition(right, new ComputationSettings { UseParallelism = false, UseRepresentationMinimization = false });
+        var parallel = left.Addition(right, new ComputationSettings
+        {
+            UseParallelism = false, UseParallelAddition = true,
+            MaxDegreeOfParallelism = 4, AdditionParallelizationThreshold = 0,
+            UseRepresentationMinimization = false
+        });
+        Assert.Equal(serial.BaseSequence.Elements, parallel.BaseSequence.Elements);
+        Assert.Equal(serial.PseudoPeriodStart, parallel.PseudoPeriodStart);
+        Assert.Equal(serial.PseudoPeriodLength, parallel.PseudoPeriodLength);
+        Assert.Equal(serial.PseudoPeriodHeight, parallel.PseudoPeriodHeight);
+    }
+
     private readonly ITestOutputHelper _testOutputHelper;
 
     public Addition(ITestOutputHelper testOutputHelper)

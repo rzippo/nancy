@@ -9,6 +9,23 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class Min
 {
+    [Theory]
+    [MemberData(nameof(Addition.ParallelPointwisePairs), MemberType = typeof(Addition))]
+    public void ParallelMinimumMatchesSerial(Curve left, Curve right)
+    {
+        var serial = left.Minimum(right, new ComputationSettings { UseParallelism = false, UseRepresentationMinimization = false });
+        var parallel = left.Minimum(right, new ComputationSettings
+        {
+            UseParallelism = false, UseParallelLowerEnvelope = true,
+            MaxDegreeOfParallelism = 4, SequenceLowerEnvelopeParallelizationThreshold = 0,
+            UseRepresentationMinimization = false
+        });
+        Assert.Equal(serial.BaseSequence.Elements, parallel.BaseSequence.Elements);
+        Assert.Equal(serial.PseudoPeriodStart, parallel.PseudoPeriodStart);
+        Assert.Equal(serial.PseudoPeriodLength, parallel.PseudoPeriodLength);
+        Assert.Equal(serial.PseudoPeriodHeight, parallel.PseudoPeriodHeight);
+    }
+
     [Fact]
     public void SigmaRho_RateLatency()
     {

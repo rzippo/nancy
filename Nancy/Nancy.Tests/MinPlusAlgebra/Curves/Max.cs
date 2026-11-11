@@ -10,6 +10,23 @@ namespace Unipi.Nancy.Tests.MinPlusAlgebra.Curves;
 
 public class Max
 {
+    [Theory]
+    [MemberData(nameof(Addition.ParallelPointwisePairs), MemberType = typeof(Addition))]
+    public void ParallelMaximumMatchesSerial(Curve left, Curve right)
+    {
+        var serial = left.Maximum(right, new ComputationSettings { UseParallelism = false, UseRepresentationMinimization = false });
+        var parallel = left.Maximum(right, new ComputationSettings
+        {
+            UseParallelism = false, UseParallelUpperEnvelope = true,
+            MaxDegreeOfParallelism = 4, SequenceUpperEnvelopeParallelizationThreshold = 0,
+            UseRepresentationMinimization = false
+        });
+        Assert.Equal(serial.BaseSequence.Elements, parallel.BaseSequence.Elements);
+        Assert.Equal(serial.PseudoPeriodStart, parallel.PseudoPeriodStart);
+        Assert.Equal(serial.PseudoPeriodLength, parallel.PseudoPeriodLength);
+        Assert.Equal(serial.PseudoPeriodHeight, parallel.PseudoPeriodHeight);
+    }
+
     public static IEnumerable<object[]> GetPairTestCases()
     {
         var testCases = new List<(Curve a, Curve b)>

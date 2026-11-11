@@ -72,6 +72,22 @@ public class PeriodLookups
         Assert.Equal(extension.GetSegmentAfter(time), curve.GetSegmentAfter(time));
     }
 
+    /// <summary>
+    /// Positions in the transient, at the end of the stored period, at the joins of later periods and deep in the tail.
+    /// </summary>
+    public static IEnumerable<object[]> PositionsInExtension()
+        => new[] { 0, 1, 2, 5, 6, 9, 10, 130, 257 }
+            .Select(index => new object[] { index });
+
+    [Theory]
+    [MemberData(nameof(PositionsInExtension))]
+    public void ElementByIndexMatchesExtension(int index)
+    {
+        var curve = JumpingPeriod();
+        var extension = curve.Extend(300);
+        Assert.Equal(extension.Elements[index], curve.GetElementByIndex(index));
+    }
+
     #if BIG_RATIONAL
     // The period index of a time is a quotient of rationals; next to a boundary it differs from an integer
     // by less than a decimal can represent, here $1 / (3 \cdot 10^{28})$ of a period.
