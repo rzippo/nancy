@@ -2706,16 +2706,18 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The sequences share no time.");
 
         settings ??= ComputationSettings.Default();
-        if (!settings.UseParallelLowerEnvelope || settings.DegreeOfParallelism == 1 ||
-            (long)a.Count + b.Count < settings.SequenceLowerEnvelopeParallelizationThreshold)
+        var doParallel = settings.UseParallelLowerEnvelope && settings.DegreeOfParallelism > 1 &&
+            (long)a.Count + b.Count >= settings.SequenceLowerEnvelopeParallelizationThreshold;
+
+        if (doParallel)
+        {
+            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Lower, settings);
+        }
+        else
         {
             return a.Elements.Minimum(b.Elements, cutToOverlap)
                 .MergeAsEnumerable()
                 .ToSequence();
-        }
-        else
-        {
-            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Lower, settings);
         }
     }
 
@@ -2782,16 +2784,18 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The sequences share no time.");
 
         settings ??= ComputationSettings.Default();
-        if (!settings.UseParallelUpperEnvelope || settings.DegreeOfParallelism == 1 ||
-            (long)a.Count + b.Count < settings.SequenceUpperEnvelopeParallelizationThreshold)
+        var doParallel = settings.UseParallelUpperEnvelope && settings.DegreeOfParallelism > 1 &&
+            (long)a.Count + b.Count >= settings.SequenceUpperEnvelopeParallelizationThreshold;
+
+        if (doParallel)
+        {
+            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Upper, settings);
+        }
+        else
         {
             return a.Elements.Maximum(b.Elements, cutToOverlap)
                 .MergeAsEnumerable()
                 .ToSequence();
-        }
-        else
-        {
-            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Upper, settings);
         }
     }
 
@@ -2837,7 +2841,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
 
     #endregion Maximum operator
 
-    #region Parallel pair envelopes
+    #region Parallel pointwise pair operations
 
     /// <summary>
     /// Computes a pair envelope through independent chronological merges over contiguous chunks.
@@ -2846,10 +2850,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="b">Second meaningful sequence.</param>
     /// <param name="cutToOverlap">Whether to restrict the result to the common support.</param>
     /// <param name="kind">Lower or upper envelope.</param>
-    /// <param name="settings">Settings for the degree of parallelism, which is also the number of chunks.</param>
+    /// <param name="settings">Settings controlling concurrency and the number of boundaries sampled from each operand.</param>
     /// <returns>The normalized envelope in chronological order.</returns>
-    private static Sequence ComputePairEnvelopeInParallel(Sequence a, Sequence b, bool cutToOverlap, EnvelopeKind kind,
-        ComputationSettings settings)
+    private static Sequence ComputePairEnvelopeInParallel(
+        Sequence a,
+        Sequence b,
+        bool cutToOverlap,
+        EnvelopeKind kind,
+        ComputationSettings settings
+    )
     {
         Interval support;
         if (cutToOverlap)
@@ -2866,10 +2875,48 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 a.IsDefinedAt(end) || b.IsDefinedAt(end));
         }
 
-        var boundaries = GetPairEnvelopeBoundaries(a, b, support, settings.DegreeOfParallelism);
+        var boundaries = GetPointwisePairBoundaries(a, b, support, settings.DegreeOfParallelism);
+        var neutral = kind == EnvelopeKind.Lower ? Rational.PlusInfinity : Rational.MinusInfinity;
+
+        return ComputePointwisePairOperationInParallel(
+            support: support,
+            boundaries: boundaries,
+            leftSource: chunk => cutToOverlap ? a.CutAsEnumerable(chunk) : GetFilledEnvelopeOperand(a, chunk, neutral),
+            rightSource: chunk => cutToOverlap ? b.CutAsEnumerable(chunk) : GetFilledEnvelopeOperand(b, chunk, neutral),
+            operation: (left, right) => kind == EnvelopeKind.Lower ? left.Minimum(right) : left.Maximum(right),
+            settings: settings
+        );
+    }
+
+    /// <summary>Computes a pointwise pair operation over contiguous chunks and merges their results.</summary>
+    /// <param name="support">The nonempty result support.</param>
+    /// <param name="boundaries">Sorted distinct boundaries including both support endpoints, or one boundary for a singleton support.</param>
+    /// <param name="leftSource">Supplies the first operand over a chunk, safe for concurrent calls.</param>
+    /// <param name="rightSource">Supplies the second operand over a chunk, safe for concurrent calls.</param>
+    /// <param name="operation">The binary stream operation, safe for concurrent calls.</param>
+    /// <param name="settings">Settings controlling the degree of parallelism.</param>
+    /// <returns>The normalized result in chronological order.</returns>
+    internal static Sequence ComputePointwisePairOperationInParallel(
+        Interval support,
+        Rational[] boundaries,
+        Func<Interval, IEnumerable<Element>> leftSource,
+        Func<Interval, IEnumerable<Element>> rightSource,
+        Func<IEnumerable<Element>, IEnumerable<Element>, IEnumerable<Element>> operation,
+        ComputationSettings settings
+    )
+    {
+        ValidateChunkBoundaries(support, boundaries);
+        ArgumentNullException.ThrowIfNull(leftSource);
+        ArgumentNullException.ThrowIfNull(rightSource);
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(settings);
+
         if (boundaries.Length <= 2)
         {
-            return (kind == EnvelopeKind.Lower ? a.Elements.Minimum(b.Elements, cutToOverlap) : a.Elements.Maximum(b.Elements, cutToOverlap))
+            var leftElements = leftSource(support);
+            var rightElements = rightSource(support);
+
+            return operation(leftElements, rightElements)
                 .MergeAsEnumerable()
                 .ToSequence();
         }
@@ -2877,22 +2924,28 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         {
             var results = new Element[boundaries.Length - 1][];
             // Internal boundary points belong only to the chunk on their right.
-            void MergeChunk(int i)
+            void ComputeChunk(int i)
             {
                 var chunk = new Interval(boundaries[i], boundaries[i + 1],
                     i == 0 ? support.IsLowerIncluded : true,
                     i == results.Length - 1 ? support.IsUpperIncluded : false);
-                var neutral = kind == EnvelopeKind.Lower ? Rational.PlusInfinity : Rational.MinusInfinity;
-                var left = cutToOverlap ? a.CutAsEnumerable(chunk) : GetFilledEnvelopeOperand(a, chunk, neutral);
-                var right = cutToOverlap ? b.CutAsEnumerable(chunk) : GetFilledEnvelopeOperand(b, chunk, neutral);
-                results[i] = (kind == EnvelopeKind.Lower ? left.Minimum(right) : left.Maximum(right))
+
+                var leftElements = leftSource(chunk);
+                var rightElements = rightSource(chunk);
+
+                results[i] = operation(leftElements, rightElements)
                     .MergeAsEnumerable()
                     .ToArray();
             }
 
             try
             {
-                Parallel.For(0, results.Length, new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism }, MergeChunk);
+                Parallel.For(
+                    fromInclusive: 0,
+                    toExclusive: results.Length,
+                    parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism },
+                    body: ComputeChunk
+                );
             }
             catch (AggregateException aggregate)
             {
@@ -2908,56 +2961,76 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         }
     }
 
+    /// <summary>Validates that the boundaries partition the nonempty support into contiguous chunks.</summary>
+    /// <param name="support">The interval to partition.</param>
+    /// <param name="boundaries">Sorted distinct boundaries spanning the support.</param>
+    /// <exception cref="ArgumentException">The support is empty or the boundaries do not partition it.</exception>
+    private static void ValidateChunkBoundaries(Interval support, Rational[] boundaries)
+    {
+        ArgumentNullException.ThrowIfNull(boundaries);
+        if (support.IsEmpty)
+            throw new ArgumentException("The support must be nonempty.", nameof(support));
+        if (boundaries.Length == 0 || boundaries[0] != support.Lower || boundaries[^1] != support.Upper)
+            throw new ArgumentException("The boundaries must include both support endpoints.", nameof(boundaries));
+        for (int i = 1; i < boundaries.Length; i++)
+        {
+            if (boundaries[i] <= boundaries[i - 1])
+                throw new ArgumentException("The boundaries must be sorted and distinct.", nameof(boundaries));
+        }
+    }
+
     /// <summary>
-    /// Samples the relevant element ranks of both operands to partition work across dense regions of either input.
+    /// Chooses chunk boundaries at the start times of evenly spaced elements of both operands, so that each chunk holds a similar number of elements of either operand.
     /// </summary>
     /// <param name="a">First meaningful sequence.</param>
     /// <param name="b">Second meaningful sequence.</param>
     /// <param name="support">The nonempty result support.</param>
     /// <param name="partitions">The number of chunks to sample each operand for.</param>
     /// <returns>Sorted distinct boundaries, including the support endpoints.</returns>
-    private static Rational[] GetPairEnvelopeBoundaries(Sequence a, Sequence b, Interval support, int partitions)
+    private static Rational[] GetPointwisePairBoundaries(
+        Sequence a,
+        Sequence b,
+        Interval support,
+        int partitions
+    )
     {
         if (support.Lower == support.Upper)
             return [support.Lower];
 
         var boundaries = new List<Rational> { support.Lower, support.Upper };
-        AddPairEnvelopeBoundaries(a, support, partitions, boundaries);
-        AddPairEnvelopeBoundaries(b, support, partitions, boundaries);
+        AddBoundaries(a);
+        AddBoundaries(b);
+
         var sorted = boundaries.ToArray();
         IntervalEndpointSorter.Sort(sorted);
         return sorted.Distinct()
             .ToArray();
-    }
 
-    /// <summary>Adds interior time boundaries sampled from the operand's relevant element range.</summary>
-    /// <param name="sequence">The meaningful operand sequence.</param>
-    /// <param name="support">The nonempty result support.</param>
-    /// <param name="partitions">The number of chunks to sample the operand for.</param>
-    /// <param name="boundaries">The boundary collection to append to, before sorting and deduplication.</param>
-    private static void AddPairEnvelopeBoundaries(Sequence sequence, Interval support, int partitions, List<Rational> boundaries)
-    {
-        var overlap = Interval.Intersection(sequence.Support, support);
-        if (overlap is null)
-            return;
-
-        int start = overlap.Value.Lower == sequence.DefinedFrom ? 0 :
-            sequence.FindFirstIndex(element => element.EndTime >= overlap.Value.Lower);
-        int end = overlap.Value.Upper == sequence.DefinedUntil ? sequence.Count - 1 :
-            sequence.FindLastIndex(element => element.StartTime <= overlap.Value.Upper, start);
-        int count = end - start + 1;
-        for (int i = 1; i < partitions; i++)
+        // Adds, as interior boundaries, the start times of evenly spaced elements among those of the operand that overlap the support.
+        void AddBoundaries(Sequence sequence)
         {
-            int index = start + (int)((long)i * count / partitions);
-            var time = sequence.Elements[index].StartTime;
-            if (time > support.Lower && time < support.Upper)
-                boundaries.Add(time);
+            var overlap = Interval.Intersection(sequence.Support, support);
+            if (overlap is null)
+                return;
+
+            int start = overlap.Value.Lower == sequence.DefinedFrom ? 0 :
+                sequence.FindFirstIndex(element => element.EndTime >= overlap.Value.Lower);
+            int end = overlap.Value.Upper == sequence.DefinedUntil ? sequence.Count - 1 :
+                sequence.FindLastIndex(element => element.StartTime <= overlap.Value.Upper, start);
+            int count = end - start + 1;
+            for (int i = 1; i < partitions; i++)
+            {
+                int index = start + (int)((long)i * count / partitions);
+                var time = sequence.Elements[index].StartTime;
+                if (time > support.Lower && time < support.Upper)
+                    boundaries.Add(time);
+            }
         }
     }
 
     /// <summary>Restricts an operand to a chunk and fills missing support with the envelope's neutral value.</summary>
     /// <param name="sequence">The meaningful operand sequence.</param>
-    /// <param name="chunk">A positive-width chunk of the result support.</param>
+    /// <param name="chunk">A nonempty chunk of the result support.</param>
     /// <param name="neutral">Positive infinity for minimum, or negative infinity for maximum.</param>
     /// <returns>A meaningful sequence over the whole chunk, consumed as an enumerable.</returns>
     private static IEnumerable<Element> GetFilledEnvelopeOperand(Sequence sequence, Interval chunk, Rational neutral)
@@ -2978,7 +3051,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         }
     }
 
-    #endregion Parallel pair envelopes
+    #endregion Parallel pointwise pair operations
 
     #region Convolution operator
 
