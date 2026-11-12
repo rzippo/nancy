@@ -370,7 +370,7 @@ public record ComputationSettings
     /// A parallel operation uses at most one chunk per 64 input elements, and at least two.
     /// The chunks are of equal height, at most <see cref="MaxDegreeOfParallelism"/> of them, or the processor count if it is -1.
     /// </remarks>
-    public int HorizontalDeviationParallelizationThreshold { get; set; } = 0;
+    public int HorizontalDeviationParallelizationThreshold { get; set; } = 128;
 
     /// <summary>
     /// If true, long vertical deviations are processed in parallel, over chunks of time.
@@ -385,7 +385,7 @@ public record ComputationSettings
     /// For curves, the count is that of both operands over the window of time the deviation is measured on; for sequences, that of both operands.
     /// A parallel operation uses at most one chunk per 64 input elements, and at least two.
     /// </remarks>
-    public int VerticalDeviationParallelizationThreshold { get; set; } = 0;
+    public int VerticalDeviationParallelizationThreshold { get; set; } = 128;
 
     /// <summary>
     /// If true, when two Curves have the same slope the convolution is done in a single pass
