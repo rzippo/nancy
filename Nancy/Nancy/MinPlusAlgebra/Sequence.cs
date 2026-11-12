@@ -2372,10 +2372,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             case HorizontalDeviationStrategy.PseudoInverseDeconvolution:
             {
                 // The height form of [TBP-SEQ-DEV] § 4.5: the largest gap between the lower pseudo-inverses over the overlap of the images, or 0 if every gap is negative.
-                var gLpiCut = g.Elements.LowerPseudoInverse()
-                    .Cut(imageOverlap.Lower, imageOverlap.Upper, imageOverlap.IsLowerIncluded, imageOverlap.IsUpperIncluded);
-                var fLpiCut = f.Elements.LowerPseudoInverse()
-                    .Cut(imageOverlap.Lower, imageOverlap.Upper, imageOverlap.IsLowerIncluded, imageOverlap.IsUpperIncluded);
+                // Each pseudo-inverse is taken over the elements of its sequence that cover the shared heights.
+                var gLpiCut = GetHeightWindow(g, imageOverlap).LowerPseudoInverse()
+                    .Cut(imageOverlap);
+                var fLpiCut = GetHeightWindow(f, imageOverlap).LowerPseudoInverse()
+                    .Cut(imageOverlap);
                 return Rational.Max(gLpiCut.Subtraction(fLpiCut)
                     .SupValue(), 0);
             }
@@ -2384,7 +2385,30 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 throw new ArgumentOutOfRangeException(nameof(settings), settings.HorizontalDeviationStrategy, "Unknown horizontal deviation strategy.");
         }
     }
-    
+
+    /// <summary>
+    /// Returns the elements that cover the given heights.
+    /// The domain of their <see cref="LowerPseudoInverse(bool)"/> contains <paramref name="heights"/>.
+    /// </summary>
+    /// <param name="sequence">A non-decreasing sequence whose image contains <paramref name="heights"/>.</param>
+    /// <param name="heights">A finite interval of heights within the image.</param>
+    /// <returns>
+    /// The elements from the one before the first that reaches the lowest height, if any, to the first that reaches the highest, or the one after it if the highest is only its left limit.
+    /// </returns>
+    private static ReadOnlyElementList GetHeightWindow(Sequence sequence, Interval heights)
+    {
+        // The largest value an element takes or approaches; it grows along a non-decreasing sequence, so a binary search finds where it reaches a height.
+        static Rational Reach(Element element)
+            => element is Point point ? point.Value : ((Segment)element).LeftLimitAtEndTime;
+
+        // The element before the first that reaches the lowest height puts a jump over that height among the elements returned.
+        int first = Math.Max(sequence.FindFirstIndex(element => Reach(element) >= heights.Lower) - 1, 0);
+        int reached = sequence.FindFirstIndex(element => Reach(element) >= heights.Upper);
+        // A segment that only approaches the highest height is followed by a point that reaches it.
+        int last = reached == -1 ? sequence.Count - 1 : Math.Min(reached + 1, sequence.Count - 1);
+        return sequence.ElementList.Slice(first, last - first + 1);
+    }
+
     /// <summary>
     /// Computes the vertical deviation between the two sequences, $vDev(f, g)$.
     /// It is measured over the times both sequences are defined at, the intersection of their supports, and is undefined where the supports do not intersect.
