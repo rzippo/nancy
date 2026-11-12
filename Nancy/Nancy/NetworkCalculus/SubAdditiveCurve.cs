@@ -368,7 +368,8 @@ public class SubAdditiveCurve : Curve
             if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
                 return PartitionedConvolution();
             else
-            if (settings.UseParallelConvolution && pairsCount >= settings.ConvolutionParallelizationThreshold)
+            if (settings.UseParallelConvolution && settings.DegreeOfParallelism > 1 &&
+                pairsCount >= settings.ConvolutionParallelizationThreshold)
                 return ParallelConvolution();
             else
                 return SerialConvolution();
@@ -502,7 +503,7 @@ public class SubAdditiveCurve : Curve
                     foreach (var partition in partitions)
                     {
                         IReadOnlyList<Element> convolutionElements;
-                        if (settings.UseParallelConvolution)
+                        if (settings.UseParallelConvolution && settings.DegreeOfParallelism > 1)
                         {
                             convolutionElements = partition
                                 .AsParallel()

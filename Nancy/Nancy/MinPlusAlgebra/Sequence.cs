@@ -3332,7 +3332,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
             result = PartitionedConvolution();
         else
-        if (settings.UseParallelConvolution && pairsCount >= settings.ConvolutionParallelizationThreshold)
+        if (settings.UseParallelConvolution && settings.DegreeOfParallelism > 1 &&
+            pairsCount >= settings.ConvolutionParallelizationThreshold)
             result = ParallelConvolution();
         else
             result = SerialConvolution();
@@ -3515,7 +3516,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 foreach (var partition in partitions)
                 {
                     IReadOnlyList<Element> convolutionElements;
-                    if (settings.UseParallelConvolution)
+                    if (settings.UseParallelConvolution && settings.DegreeOfParallelism > 1)
                     {
                         convolutionElements = partition
                             .AsParallel()
@@ -4035,7 +4036,8 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
             result = PartitionedConvolution();
         else
-        if (settings.UseParallelConvolution && pairsCount >= settings.ConvolutionParallelizationThreshold)
+        if (settings.UseParallelConvolution && settings.DegreeOfParallelism > 1 &&
+            pairsCount >= settings.ConvolutionParallelizationThreshold)
             result = ParallelConvolution();
         else
             result = SerialConvolution();
@@ -4230,7 +4232,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 foreach (var partition in partitions)
                 {
                     IReadOnlyList<Element> convolutionElements;
-                    if (settings.UseParallelConvolution)
+                    if (settings.UseParallelConvolution && settings.DegreeOfParallelism > 1)
                     {
                         convolutionElements = partition
                             .AsParallel()
