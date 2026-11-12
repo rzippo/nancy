@@ -338,6 +338,33 @@ public readonly struct Interval : IToCodeString
     public bool Overlaps(Interval other) => Intersection(this, other) is not null;
 
     /// <summary>
+    /// Returns the pairwise sum $\{x + y : x \in a, y \in b\}$, or null if either interval is empty.
+    /// </summary>
+    /// <param name="a">The first interval.</param>
+    /// <param name="b">The second interval.</param>
+    /// <returns>The interval containing all pairwise sums, with their endpoint inclusion.</returns>
+    /// <exception cref="ArgumentException">The intervals contain opposite infinities, whose sum is undefined.</exception>
+    public static Interval? PairwiseSum(Interval a, Interval b)
+    {
+        if (a.IsEmpty || b.IsEmpty)
+            return null;
+        if (a.Contains(Rational.MinusInfinity) && b.Contains(Rational.PlusInfinity) ||
+            a.Contains(Rational.PlusInfinity) && b.Contains(Rational.MinusInfinity))
+            throw new ArgumentException("The pairwise sum of opposite included infinities is undefined.");
+
+        if (a.Lower == a.Upper && a.Lower.IsInfinite)
+            return a;
+        if (b.Lower == b.Upper && b.Lower.IsInfinite)
+            return b;
+
+        var lower = a.Lower + b.Lower;
+        var upper = a.Upper + b.Upper;
+        return new Interval(lower, upper,
+            lower.IsFinite ? a.IsLowerIncluded && b.IsLowerIncluded : a.Contains(lower) || b.Contains(lower),
+            upper.IsFinite ? a.IsUpperIncluded && b.IsUpperIncluded : a.Contains(upper) || b.Contains(upper));
+    }
+
+    /// <summary>
     /// Intersection of two intervals.
     /// Returns null if the intersection is empty.
     /// </summary>
