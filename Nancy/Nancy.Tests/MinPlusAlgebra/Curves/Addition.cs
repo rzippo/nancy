@@ -11,6 +11,7 @@ public class Addition
     /// <summary>Curve pairs for comparing the parallel pointwise operations with the serial ones; Min and Max use them too.</summary>
     public static IEnumerable<object[]> ParallelPointwisePairs()
     {
+        yield return [new StairCurve(19, 19), new StairCurve(23, 23)];
         yield return [new StairCurve(127, 127), new StairCurve(128, 128)];
         yield return [new Curve(new StairCurve(127, 127).Cut(0, 381), 254, 127, 127),
             new Curve(new StairCurve(128, 128).Cut(0, 384), 256, 128, 128)];
