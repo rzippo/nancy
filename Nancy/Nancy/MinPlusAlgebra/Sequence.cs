@@ -2607,14 +2607,16 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The sequences share no time.");
 
         settings ??= ComputationSettings.Default();
-        var doParallel = settings.UseParallelAddition && settings.DegreeOfParallelism > 1 &&
-            (long)a.Count + b.Count >= settings.AdditionParallelizationThreshold;
+        var chunkBudget = settings.UseParallelAddition && settings.DegreeOfParallelism > 1
+            ? GetPointwisePairChunkBudget((long)a.Count + b.Count, settings.AdditionParallelizationThreshold)
+            : 1;
+        var doParallel = chunkBudget > 1;
 
         if (doParallel)
         {
             return ComputePointwisePairOperationInParallel(
                 support: support.Value,
-                boundaries: GetPointwisePairBoundaries(a, b, support.Value, settings.DegreeOfParallelism),
+                boundaries: GetPointwisePairBoundaries(a, b, support.Value, settings.DegreeOfParallelism, chunkBudget),
                 leftSource: chunk => a.CutAsEnumerable(chunk),
                 rightSource: chunk => b.CutAsEnumerable(chunk),
                 operation: (left, right) => left.Addition(right),
@@ -2769,12 +2771,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The sequences share no time.");
 
         settings ??= ComputationSettings.Default();
-        var doParallel = settings.UseParallelLowerEnvelope && settings.DegreeOfParallelism > 1 &&
-            (long)a.Count + b.Count >= settings.SequenceLowerEnvelopeParallelizationThreshold;
+        var chunkBudget = settings.UseParallelLowerEnvelope && settings.DegreeOfParallelism > 1
+            ? GetPointwisePairChunkBudget((long)a.Count + b.Count, settings.SequenceLowerEnvelopeParallelizationThreshold)
+            : 1;
+        var doParallel = chunkBudget > 1;
 
         if (doParallel)
         {
-            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Lower, settings);
+            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Lower, chunkBudget, settings);
         }
         else
         {
@@ -2847,12 +2851,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             throw new ArgumentException("The sequences share no time.");
 
         settings ??= ComputationSettings.Default();
-        var doParallel = settings.UseParallelUpperEnvelope && settings.DegreeOfParallelism > 1 &&
-            (long)a.Count + b.Count >= settings.SequenceUpperEnvelopeParallelizationThreshold;
+        var chunkBudget = settings.UseParallelUpperEnvelope && settings.DegreeOfParallelism > 1
+            ? GetPointwisePairChunkBudget((long)a.Count + b.Count, settings.SequenceUpperEnvelopeParallelizationThreshold)
+            : 1;
+        var doParallel = chunkBudget > 1;
 
         if (doParallel)
         {
-            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Upper, settings);
+            return ComputePairEnvelopeInParallel(a, b, cutToOverlap, EnvelopeKind.Upper, chunkBudget, settings);
         }
         else
         {
@@ -2913,6 +2919,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// <param name="b">Second meaningful sequence.</param>
     /// <param name="cutToOverlap">Whether to restrict the result to the common support.</param>
     /// <param name="kind">Lower or upper envelope.</param>
+    /// <param name="chunkBudget">The maximum number of chunks, at least two.</param>
     /// <param name="settings">Settings controlling concurrency and the number of boundaries sampled from each operand.</param>
     /// <returns>The normalized envelope in chronological order.</returns>
     private static Sequence ComputePairEnvelopeInParallel(
@@ -2920,6 +2927,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         Sequence b,
         bool cutToOverlap,
         EnvelopeKind kind,
+        int chunkBudget,
         ComputationSettings settings
     )
     {
@@ -2938,7 +2946,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 a.IsDefinedAt(end) || b.IsDefinedAt(end));
         }
 
-        var boundaries = GetPointwisePairBoundaries(a, b, support, settings.DegreeOfParallelism);
+        var boundaries = GetPointwisePairBoundaries(a, b, support, settings.DegreeOfParallelism, chunkBudget);
         var neutral = kind == EnvelopeKind.Lower ? Rational.PlusInfinity : Rational.MinusInfinity;
 
         return ComputePointwisePairOperationInParallel(
@@ -3043,31 +3051,41 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     }
 
     /// <summary>
-    /// Chooses chunk boundaries at the start times of evenly spaced elements of both operands, so that each chunk holds a similar number of elements of either operand.
+    /// Chooses the number of chunks of a parallel pointwise pair operation, about one per 64 input elements.
+    /// </summary>
+    /// <param name="count">The number of input elements of both operands.</param>
+    /// <param name="threshold">The minimum count for parallel execution.</param>
+    /// <returns>One below the threshold; otherwise at least two, so that a low threshold still permits parallel execution.</returns>
+    internal static int GetPointwisePairChunkBudget(long count, int threshold)
+        => count < threshold ? 1 : (int)Math.Max(2, Math.Min(int.MaxValue, count / 64));
+
+    /// <summary>
+    /// Chooses chunk boundaries at the start times of evenly spaced elements of both operands, then keeps at most the budgeted number of chunks.
+    /// Element counts estimate the work; the chunks need not hold equal numbers of elements.
     /// </summary>
     /// <param name="a">First meaningful sequence.</param>
     /// <param name="b">Second meaningful sequence.</param>
     /// <param name="support">The nonempty result support.</param>
-    /// <param name="partitions">The number of chunks to sample each operand for.</param>
+    /// <param name="partitions">The number of chunks to sample each operand for, before the budget.</param>
+    /// <param name="chunkBudget">The maximum number of chunks.</param>
     /// <returns>Sorted distinct boundaries, including the support endpoints.</returns>
     private static Rational[] GetPointwisePairBoundaries(
         Sequence a,
         Sequence b,
         Interval support,
-        int partitions
+        int partitions,
+        int chunkBudget
     )
     {
         if (support.Lower == support.Upper)
             return [support.Lower];
 
+        // No operand needs more samples than the chunks that can be kept.
+        int samples = Math.Min(partitions, chunkBudget);
         var boundaries = new List<Rational> { support.Lower, support.Upper };
         AddBoundaries(a);
         AddBoundaries(b);
-
-        var sorted = boundaries.ToArray();
-        IntervalEndpointSorter.Sort(sorted);
-        return sorted.Distinct()
-            .ToArray();
+        return SelectPointwisePairBoundaries(boundaries, chunkBudget);
 
         // Adds, as interior boundaries, the start times of evenly spaced elements among those of the operand that overlap the support.
         void AddBoundaries(Sequence sequence)
@@ -3081,14 +3099,36 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             int end = overlap.Value.Upper == sequence.DefinedUntil ? sequence.Count - 1 :
                 sequence.FindLastIndex(element => element.StartTime <= overlap.Value.Upper, start);
             int count = end - start + 1;
-            for (int i = 1; i < partitions; i++)
+            for (int i = 1; i < samples; i++)
             {
-                int index = start + (int)((long)i * count / partitions);
+                int index = start + (int)((long)i * count / samples);
                 var time = sequence.Elements[index].StartTime;
                 if (time > support.Lower && time < support.Upper)
                     boundaries.Add(time);
             }
         }
+    }
+
+    /// <summary>
+    /// Sorts the candidate boundaries, removes duplicates, and keeps evenly spaced ones if they make more chunks than the budget.
+    /// </summary>
+    /// <param name="boundaries">The candidate boundaries, including the support endpoints.</param>
+    /// <param name="chunkBudget">The maximum number of chunks.</param>
+    /// <returns>Sorted distinct boundaries, including the first and the last.</returns>
+    internal static Rational[] SelectPointwisePairBoundaries(List<Rational> boundaries, int chunkBudget)
+    {
+        var sorted = boundaries.ToArray();
+        IntervalEndpointSorter.Sort(sorted);
+        var distinct = sorted.Distinct()
+            .ToArray();
+        int chunks = distinct.Length - 1;
+        if (chunks <= chunkBudget)
+            return distinct;
+
+        var selected = new Rational[chunkBudget + 1];
+        for (int i = 0; i <= chunkBudget; i++)
+            selected[i] = distinct[(int)(((long)i * chunks + chunkBudget / 2) / chunkBudget)];
+        return selected;
     }
 
     /// <summary>Restricts an operand to a chunk and fills missing support with the envelope's neutral value.</summary>

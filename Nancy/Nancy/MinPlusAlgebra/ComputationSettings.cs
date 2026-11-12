@@ -4,6 +4,10 @@ namespace Unipi.Nancy.MinPlusAlgebra;
 /// Used to specify the computation settings of most operations.
 /// If left unspecified, the default settings are used.
 /// </summary>
+/// <remarks>
+/// The default thresholds of the parallel paths are rough values, chosen in November 2026 from benchmarks on a few x64 and ARM processors with the .NET 10 runtime.
+/// They aim to be reasonable on common machines rather than best on any; other processors, runtimes, including the net8.0 and net9.0 targets, and workloads may favor other values.
+/// </remarks>
 public record ComputationSettings
 {
     //todo: reference the affected methods, where makes sense
@@ -80,8 +84,11 @@ public record ComputationSettings
     /// The addition of two sequences is processed in parallel if they have at least this number of elements in all.
     /// Requires <see cref="UseParallelAddition"/>.
     /// </summary>
-    /// <remarks>For curve addition, the threshold applies to the element counts of the required cuts.</remarks>
-    public int AdditionParallelizationThreshold { get; set; } = 0;
+    /// <remarks>
+    /// For curve addition, the threshold applies to the element counts of the required cuts.
+    /// A parallel operation uses at most one chunk per 64 input elements, and at least two.
+    /// </remarks>
+    public int AdditionParallelizationThreshold { get; set; } = 150;
 
     /// <summary>
     /// If true, long sequence minimums are processed in parallel.
@@ -92,7 +99,7 @@ public record ComputationSettings
     /// The lower envelope of a list of elements is processed in parallel if it has at least this number of elements.
     /// Requires <see cref="UseParallelLowerEnvelope"/>.
     /// </summary>
-    public int ElementsLowerEnvelopeParallelizationThreshold { get; set; } = 0;
+    public int ElementsLowerEnvelopeParallelizationThreshold { get; set; } = 16;
 
     /// <summary>
     /// The lower envelope of two sequences is processed in parallel if they have at least this number of elements in all.
@@ -100,8 +107,9 @@ public record ComputationSettings
     /// </summary>
     /// <remarks>
     /// For curve minimum, the threshold applies to the element counts of the required cuts.
+    /// A parallel operation uses at most one chunk per 64 input elements, and at least two.
     /// </remarks>
-    public int SequenceLowerEnvelopeParallelizationThreshold { get; set; } = 0;
+    public int SequenceLowerEnvelopeParallelizationThreshold { get; set; } = 150;
 
     /// <summary>
     /// If true, long sequence maximums are processed in parallel.
@@ -112,7 +120,7 @@ public record ComputationSettings
     /// The upper envelope of a list of elements is processed in parallel if it has at least this number of elements.
     /// Requires <see cref="UseParallelUpperEnvelope"/>.
     /// </summary>
-    public int ElementsUpperEnvelopeParallelizationThreshold { get; set; } = 0;
+    public int ElementsUpperEnvelopeParallelizationThreshold { get; set; } = 16;
 
     /// <summary>
     /// The upper envelope of two sequences is processed in parallel if they have at least this number of elements in all.
@@ -120,8 +128,9 @@ public record ComputationSettings
     /// </summary>
     /// <remarks>
     /// For curve maximum, the threshold applies to the element counts of the required cuts.
+    /// A parallel operation uses at most one chunk per 64 input elements, and at least two.
     /// </remarks>
-    public int SequenceUpperEnvelopeParallelizationThreshold { get; set; } = 0;
+    public int SequenceUpperEnvelopeParallelizationThreshold { get; set; } = 150;
 
     /// <summary>
     /// If true, additions of long lists of curves are processed in parallel
@@ -251,7 +260,7 @@ public record ComputationSettings
     /// <summary>
     /// Interval.ComputeIntervals uses parallel endpoint collection and insertion if the number of elements is at least this threshold and <see cref="UseParallelComputeIntervals"/> is true.
     /// </summary>
-    public int ComputeIntervalsParallelizationThreshold { get; set; } = 5_000;
+    public int ComputeIntervalsParallelizationThreshold { get; set; } = 500;
 
     /// <summary>
     /// The former name of <see cref="ComputeIntervalsParallelizationThreshold"/>.

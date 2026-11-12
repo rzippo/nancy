@@ -7188,35 +7188,36 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     #region Parallel pointwise pair operations
 
     /// <summary>
-    /// Chooses chunk boundaries at the start times of evenly spaced elements in the unmerged extensions of both curves, as <see cref="GetElementByIndex"/> counts them, so that each chunk holds a similar number of elements of either operand.
+    /// Chooses chunk boundaries at the start times of evenly spaced elements in the unmerged extensions of both curves, as <see cref="GetElementByIndex"/> counts them, then keeps at most the budgeted number of chunks.
+    /// Element counts estimate the work; the chunks need not hold equal numbers of elements.
     /// </summary>
     /// <param name="a">The first curve.</param>
     /// <param name="b">The second curve.</param>
     /// <param name="end">The positive finite excluded endpoint of the result, which starts at zero.</param>
-    /// <param name="partitions">The positive number of chunks to sample each operand for.</param>
+    /// <param name="partitions">The positive number of chunks to sample each operand for, before the budget.</param>
+    /// <param name="chunkBudget">The maximum number of chunks.</param>
     /// <returns>Sorted distinct boundaries including zero and the result endpoint.</returns>
     private static Rational[] GetPointwisePairBoundaries(
         Curve a,
         Curve b,
         Rational end,
-        int partitions
+        int partitions,
+        int chunkBudget
     )
     {
+        // No operand needs more samples than the chunks that can be kept.
+        int samples = Math.Min(partitions, chunkBudget);
         var boundaries = new List<Rational> { 0, end };
         AddBoundaries(a);
         AddBoundaries(b);
-
-        var sorted = boundaries.ToArray();
-        IntervalEndpointSorter.Sort(sorted);
-        return sorted.Distinct()
-            .ToArray();
+        return Sequence.SelectPointwisePairBoundaries(boundaries, chunkBudget);
 
         void AddBoundaries(Curve curve)
         {
             int count = curve.Count(0, end);
-            for (int i = 1; i < partitions; i++)
+            for (int i = 1; i < samples; i++)
             {
-                int index = (int)((long)i * count / partitions);
+                int index = (int)((long)i * count / samples);
                 var time = curve.GetElementByIndex(index).StartTime;
                 if (time > 0 && time < end)
                     boundaries.Add(time);
@@ -7243,16 +7244,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Rational d = Rational.LeastCommonMultiple(PseudoPeriodLength, b.PseudoPeriodLength);
         Rational c = d * (PseudoPeriodSlope + b.PseudoPeriodSlope);
 
-        var doParallel = settings.UseParallelAddition && settings.DegreeOfParallelism > 1 &&
-            (settings.AdditionParallelizationThreshold <= 0 ||
-             (long)Count(0, T + d) + b.Count(0, T + d) >= settings.AdditionParallelizationThreshold);
+        var chunkBudget = settings.UseParallelAddition && settings.DegreeOfParallelism > 1
+            ? Sequence.GetPointwisePairChunkBudget((long)Count(0, T + d) + b.Count(0, T + d), settings.AdditionParallelizationThreshold)
+            : 1;
+        var doParallel = chunkBudget > 1;
 
         Sequence baseSequence;
         if (doParallel)
         {
             baseSequence = Sequence.ComputePointwisePairOperationInParallel(
                 support: new Interval(0, T + d, true, false),
-                boundaries: GetPointwisePairBoundaries(this, b, T + d, settings.DegreeOfParallelism),
+                boundaries: GetPointwisePairBoundaries(this, b, T + d, settings.DegreeOfParallelism, chunkBudget),
                 leftSource: chunk => CutAsEnumerable(chunk, settings),
                 rightSource: chunk => b.CutAsEnumerable(chunk, settings),
                 operation: (left, right) => left.Addition(right),
@@ -7545,16 +7547,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Minimum: extending from T1 {a.PseudoPeriodStart} d1 {a.PseudoPeriodLength}  T2 {b.PseudoPeriodStart} d2 {b.PseudoPeriodLength} to T {T} d {d}");
         #endif
 
-        var doParallel = settings.UseParallelLowerEnvelope && settings.DegreeOfParallelism > 1 &&
-            (settings.SequenceLowerEnvelopeParallelizationThreshold <= 0 ||
-             (long)a.Count(0, T + d) + b.Count(0, T + d) >= settings.SequenceLowerEnvelopeParallelizationThreshold);
+        var chunkBudget = settings.UseParallelLowerEnvelope && settings.DegreeOfParallelism > 1
+            ? Sequence.GetPointwisePairChunkBudget((long)a.Count(0, T + d) + b.Count(0, T + d), settings.SequenceLowerEnvelopeParallelizationThreshold)
+            : 1;
+        var doParallel = chunkBudget > 1;
 
         Sequence minSequence;
         if (doParallel)
         {
             minSequence = Sequence.ComputePointwisePairOperationInParallel(
                 support: new Interval(0, T + d, true, false),
-                boundaries: GetPointwisePairBoundaries(a, b, T + d, settings.DegreeOfParallelism),
+                boundaries: GetPointwisePairBoundaries(a, b, T + d, settings.DegreeOfParallelism, chunkBudget),
                 leftSource: chunk => a.CutAsEnumerable(chunk, settings),
                 rightSource: chunk => b.CutAsEnumerable(chunk, settings),
                 operation: (left, right) => left.Minimum(right),
@@ -7842,16 +7845,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         logger.Debug($"Maximum: extending from T1 {a.PseudoPeriodStart} d1 {a.PseudoPeriodLength}  T2 {b.PseudoPeriodStart} d2 {b.PseudoPeriodLength} to T {T} d {d}");
         #endif
 
-        var doParallel = settings.UseParallelUpperEnvelope && settings.DegreeOfParallelism > 1 &&
-            (settings.SequenceUpperEnvelopeParallelizationThreshold <= 0 ||
-             (long)a.Count(0, T + d) + b.Count(0, T + d) >= settings.SequenceUpperEnvelopeParallelizationThreshold);
+        var chunkBudget = settings.UseParallelUpperEnvelope && settings.DegreeOfParallelism > 1
+            ? Sequence.GetPointwisePairChunkBudget((long)a.Count(0, T + d) + b.Count(0, T + d), settings.SequenceUpperEnvelopeParallelizationThreshold)
+            : 1;
+        var doParallel = chunkBudget > 1;
 
         Sequence maxSequence;
         if (doParallel)
         {
             maxSequence = Sequence.ComputePointwisePairOperationInParallel(
                 support: new Interval(0, T + d, true, false),
-                boundaries: GetPointwisePairBoundaries(a, b, T + d, settings.DegreeOfParallelism),
+                boundaries: GetPointwisePairBoundaries(a, b, T + d, settings.DegreeOfParallelism, chunkBudget),
                 leftSource: chunk => a.CutAsEnumerable(chunk, settings),
                 rightSource: chunk => b.CutAsEnumerable(chunk, settings),
                 operation: (left, right) => left.Maximum(right),
