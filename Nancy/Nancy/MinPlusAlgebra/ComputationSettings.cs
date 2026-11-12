@@ -204,7 +204,7 @@ public record ComputationSettings
     /// The convolution of a list of curves is processed in parallel if it has at least this number of curves.
     /// Requires <see cref="UseParallelListConvolution"/>.
     /// </summary>
-    public int ListConvolutionParallelizationThreshold { get; set; } = 8;
+    public int ListConvolutionParallelizationThreshold { get; set; } = 4;
 
     /// <summary>
     /// The (max,+) convolution of a list of curves is processed in parallel if it has at least this number of curves.
