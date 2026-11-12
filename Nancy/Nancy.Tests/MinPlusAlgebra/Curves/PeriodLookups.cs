@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Unipi.Nancy.MinPlusAlgebra;
+using Unipi.Nancy.NetworkCalculus;
 using Unipi.Nancy.Numerics;
 using Xunit;
 
@@ -86,6 +87,42 @@ public class PeriodLookups
         var curve = JumpingPeriod();
         var extension = curve.Extend(300);
         Assert.Equal(extension.Elements[index], curve.GetElementByIndex(index));
+    }
+
+    /// <summary>
+    /// The staircase $\lceil t \rceil$ has one period per unit of time, so at time $3 \cdot 10^9$ the period index is past the int range.
+    /// </summary>
+    private static readonly Rational PastAnIntPeriod = 3_000_000_000L;
+
+    [Fact]
+    public void ElementByIndexReachesPastAnIntPeriod()
+    {
+        // A point and a segment per period, so the segment that starts at time k is at position 2k + 1.
+        var stair = new StairCurve(1, 1);
+        Assert.Equal(new Segment(PastAnIntPeriod, PastAnIntPeriod + 1, PastAnIntPeriod + 1, 0), stair.GetElementByIndex(2 * 3_000_000_000L + 1));
+    }
+
+    [Fact]
+    public void LookupsByTimeReachPastAnIntPeriod()
+    {
+        var stair = new StairCurve(1, 1);
+        var segment = new Segment(PastAnIntPeriod, PastAnIntPeriod + 1, PastAnIntPeriod + 1, 0);
+        Assert.Equal(segment, stair.GetElementAt(PastAnIntPeriod + new Rational(1, 2)));
+        Assert.Equal(segment, stair.GetSegmentAfter(PastAnIntPeriod, autoMerge: false));
+        Assert.Equal(segment, stair.GetSegmentBefore(PastAnIntPeriod + 1));
+    }
+
+    [Fact]
+    public void CutsReachPastAnIntPeriod()
+    {
+        var stair = new StairCurve(1, 1);
+        Element[] expected =
+        [
+            new Point(PastAnIntPeriod, PastAnIntPeriod), new Segment(PastAnIntPeriod, PastAnIntPeriod + 1, PastAnIntPeriod + 1, 0),
+            new Point(PastAnIntPeriod + 1, PastAnIntPeriod + 1), new Segment(PastAnIntPeriod + 1, PastAnIntPeriod + 2, PastAnIntPeriod + 2, 0),
+        ];
+        Assert.Equal(expected, stair.Cut(PastAnIntPeriod, PastAnIntPeriod + 2).Elements);
+        Assert.Equal(expected, stair.CutAsEnumerable(PastAnIntPeriod, PastAnIntPeriod + 2).ToArray());
     }
 
     #if BIG_RATIONAL

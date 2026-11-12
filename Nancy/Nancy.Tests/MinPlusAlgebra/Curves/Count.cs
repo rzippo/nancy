@@ -65,4 +65,10 @@ public class Count
     {
         Assert.Equal(expected, curve.Count(start, end, includeStart, includeEnd));
     }
+
+    [Fact]
+    public void CountsCutsLongerThanAnIntHolds()
+    {
+        Assert.Equal(4_000_000_000L, new StairCurve(1, 1).Count(0, 2_000_000_000));
+    }
 }
