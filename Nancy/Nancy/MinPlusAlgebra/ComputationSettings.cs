@@ -27,7 +27,8 @@ public record ComputationSettings
                 UseParallelListMaximum || UseParallelListUpperEnvelope ||
                 UseParallelExtend || UseParallelComputeExtensionSequences ||
                 UseParallelComputeIntervals || UseParallelInsertionComputeIntervals || UseParallelSortElements ||
-                UseParallelSubAdditiveClosure;
+                UseParallelSubAdditiveClosure ||
+                UseParallelVerticalDeviation;
         }
         set 
         {
@@ -48,6 +49,7 @@ public record ComputationSettings
             UseParallelInsertionComputeIntervals = value;
             UseParallelSortElements = value;
             UseParallelSubAdditiveClosure = value;
+            UseParallelVerticalDeviation = value;
         }
     }
 
@@ -352,6 +354,21 @@ public record ComputationSettings
     /// Requires <see cref="UseParallelSubAdditiveClosure"/>.
     /// </summary>
     public int SubAdditiveClosureParallelizationThreshold { get; set; } = 0;
+
+    /// <summary>
+    /// If true, long vertical deviations are processed in parallel, over chunks of time.
+    /// </summary>
+    public bool UseParallelVerticalDeviation { get; set; } = true;
+
+    /// <summary>
+    /// A vertical deviation is processed in parallel if it scans at least this number of elements in all.
+    /// Requires <see cref="UseParallelVerticalDeviation"/>.
+    /// </summary>
+    /// <remarks>
+    /// For curves, the count is that of both operands over the window of time the deviation is measured on; for sequences, that of both operands.
+    /// A parallel operation uses at most one chunk per 64 input elements, and at least two.
+    /// </remarks>
+    public int VerticalDeviationParallelizationThreshold { get; set; } = 0;
 
     /// <summary>
     /// If true, when two Curves have the same slope the convolution is done in a single pass

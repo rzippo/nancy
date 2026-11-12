@@ -2423,10 +2423,39 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// Defined in [TBP-SEQ-DEV] Definition 16, as the counterpart for sequences of <see cref="Curve.VerticalDeviation(Curve,Curve,ComputationSettings?)"/>.
     /// It is the supremum of <see cref="Subtraction(Sequence,Sequence)"/>.
     /// For cuts of curves, it matches the vertical deviation between them, [TBP-SEQ-DEV] Theorem 17.
+    /// A long deviation is the largest of the suprema over chunks of the shared support, which partition it, see <see cref="ComputationSettings.UseParallelVerticalDeviation"/>.
     /// </remarks>
     public static Rational VerticalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
-        => f.Elements.Subtraction(g.Elements)
-            .SupValue();
+    {
+        var support = Interval.Intersection(f.Support, g.Support);
+        if (support is null)
+            throw new ArgumentException("The sequences share no time.");
+
+        settings ??= ComputationSettings.Default();
+        // The search goes through the elements of both sequences, so their total count measures the work.
+        var chunkBudget = settings.UseParallelVerticalDeviation && settings.DegreeOfParallelism > 1
+            ? GetPointwisePairChunkBudget((long)f.Count + g.Count, settings.VerticalDeviationParallelizationThreshold)
+            : 1;
+
+        if (chunkBudget > 1)
+        {
+            // The shared support is partitioned at the start times of evenly spaced elements of both operands, each chunk with its own supremum.
+            // The chunks are a partition of the shared support, so the largest of their suprema is the supremum of f - g.
+            return ComputeSupremumInParallel(
+                support: support.Value,
+                boundaries: GetPointwisePairBoundaries(f, g, support.Value, settings.DegreeOfParallelism, chunkBudget),
+                chunkSupremum: chunk => f.CutAsEnumerable(chunk)
+                    .Subtraction(g.CutAsEnumerable(chunk))
+                    .SupValue(),
+                settings: settings
+            );
+        }
+        else
+        {
+            return f.Elements.Subtraction(g.Elements)
+                .SupValue();
+        }
+    }
 
     /// <summary>
     /// Computes the horizontal deviation function between the two sequences, $hDev(f, g, t)$.
@@ -3072,6 +3101,53 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             if (boundaries[i] <= boundaries[i - 1])
                 throw new ArgumentException("The boundaries must be sorted and distinct.", nameof(boundaries));
         }
+    }
+
+    /// <summary>Computes a supremum over contiguous chunks of an interval, as the largest of the suprema over the chunks.</summary>
+    /// <param name="support">The nonempty interval.</param>
+    /// <param name="boundaries">Sorted distinct boundaries including both ends of <paramref name="support"/>, or one boundary for a singleton.</param>
+    /// <param name="chunkSupremum">Computes the supremum over one chunk, safe for concurrent calls.</param>
+    /// <param name="settings">Settings controlling the degree of parallelism.</param>
+    /// <returns>The supremum over <paramref name="support"/>.</returns>
+    /// <remarks>
+    /// The chunks partition the interval, and the supremum over a finite union is the largest of the suprema over its parts, whatever the function.
+    /// If workers fail, one of their exceptions is rethrown, with its own type and stack.
+    /// </remarks>
+    internal static Rational ComputeSupremumInParallel(
+        Interval support,
+        Rational[] boundaries,
+        Func<Interval, Rational> chunkSupremum,
+        ComputationSettings settings
+    )
+    {
+        ValidateChunkBoundaries(support, boundaries);
+        ArgumentNullException.ThrowIfNull(chunkSupremum);
+        ArgumentNullException.ThrowIfNull(settings);
+
+        if (boundaries.Length <= 2)
+            return chunkSupremum(support);
+
+        var results = new Rational[boundaries.Length - 1];
+        try
+        {
+            Parallel.For(
+                fromInclusive: 0,
+                toExclusive: results.Length,
+                parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = settings.DegreeOfParallelism },
+                // Internal boundary points belong only to the chunk on their right.
+                body: i => results[i] = chunkSupremum(new Interval(boundaries[i], boundaries[i + 1],
+                    i == 0 ? support.IsLowerIncluded : true,
+                    i == results.Length - 1 ? support.IsUpperIncluded : false))
+            );
+        }
+        catch (AggregateException aggregate)
+        {
+            // Rethrow one worker failure, unwrapped from any aggregate, preserving its original stack.
+            ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+            throw;
+        }
+
+        return results.Max();
     }
 
     /// <summary>

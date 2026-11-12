@@ -6301,6 +6301,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>A vertical deviation.</returns>
     /// <remarks>
     /// Following from the definition in [DNC18] p.100, the result may be negative.
+    /// For finite curves, a long deviation is the largest of the suprema over chunks of its window of time, which partition it, see <see cref="ComputationSettings.UseParallelVerticalDeviation"/>.
     /// </remarks>
     public static Rational VerticalDeviation(Curve f, Curve g, ComputationSettings? settings = null)
     {
@@ -6328,11 +6329,38 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var times = new Interval(0, end, isLowerIncluded: true, isUpperIncluded: true);
 
-            var fCut = f.CutAsEnumerable(times, settings);
-            var gCut = g.CutAsEnumerable(times, settings);
-            return fCut
-                .Subtraction(gCut)
-                .SupValue();
+            settings ??= ComputationSettings.Default();
+            // The search goes through the elements of both curves over the window, so their total count measures the work.
+            var chunkBudget = settings.UseParallelVerticalDeviation && settings.DegreeOfParallelism > 1
+                ? Sequence.GetPointwisePairChunkBudget(f.Count(times) + g.Count(times), settings.VerticalDeviationParallelizationThreshold)
+                : 1;
+
+            if (chunkBudget > 1)
+            {
+                // The window is partitioned at the start times of evenly spaced elements of both operands, each chunk with its own supremum.
+                // The chunks are a partition of the window, so the largest of their suprema is the supremum of f - g.
+                return Sequence.ComputeSupremumInParallel(
+                    support: times,
+                    boundaries: GetPointwisePairBoundaries(f, g, end, settings.DegreeOfParallelism, chunkBudget),
+                    chunkSupremum: chunk =>
+                    {
+                        var fChunk = f.CutAsEnumerable(chunk, settings);
+                        var gChunk = g.CutAsEnumerable(chunk, settings);
+                        return fChunk
+                            .Subtraction(gChunk)
+                            .SupValue();
+                    },
+                    settings: settings
+                );
+            }
+            else
+            {
+                var fCut = f.CutAsEnumerable(times, settings);
+                var gCut = g.CutAsEnumerable(times, settings);
+                return fCut
+                    .Subtraction(gCut)
+                    .SupValue();
+            }
         }
     }
 
@@ -7199,7 +7227,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="a">The first curve.</param>
     /// <param name="b">The second curve.</param>
-    /// <param name="end">The positive finite excluded endpoint of the result, which starts at zero.</param>
+    /// <param name="end">The positive finite end of the result, which starts at zero.</param>
     /// <param name="partitions">The positive number of chunks to sample each operand for, before the budget.</param>
     /// <param name="chunkBudget">The maximum number of chunks.</param>
     /// <returns>Sorted distinct boundaries including zero and the result endpoint.</returns>
