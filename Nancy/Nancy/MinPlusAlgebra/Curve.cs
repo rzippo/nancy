@@ -3492,10 +3492,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return [new Point(cutStart, ValueAt(cutStart, settings))];
         }
 
+        // A cut that starts in the base sequence seeks its first element there, rather than scanning from zero.
+        IEnumerable<Element> BaseElementsFromCutStart()
+            => cutStart <= BaseSequence.DefinedFrom
+                ? BaseSequence.ElementList
+                : BaseSequence.ElementList.Slice(BaseSequence.FindFirstIndex(element => element.EndTime >= cutStart));
+
         if (cutEnd < BaseSequence.DefinedUntil ||
             (cutEnd == BaseSequence.DefinedUntil && !isEndIncluded))
         {
-            return BaseSequence.Elements
+            return BaseElementsFromCutStart()
                 .CutAndMerge(cutStart, cutEnd, isStartIncluded, isEndIncluded);
         }
         else if (IsUltimatelyAffine || IsUltimatelyInfinite)
@@ -3528,7 +3534,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     rightLimitAtStartTime: bsLastSegment.RightLimitAtStartTime,
                     slope: bsLastSegment.Slope
                 );
-                var elements = BaseSequence.Elements
+                var elements = BaseElementsFromCutStart()
                     .SkipLast(1)
                     .Append(lastSegment);
 
@@ -3572,7 +3578,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 IEnumerable<Element> prefixElements;
                 if (!startsAfterBaseSequence)
                 {
-                    prefixElements = BaseSequence.Elements;
+                    prefixElements = BaseElementsFromCutStart();
                 }
                 else if (startPeriodPosition != firstPeriodIndex || !isStartIncluded)
                 {
