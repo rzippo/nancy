@@ -3192,6 +3192,9 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         settings ??= ComputationSettings.Default();
         cutEnd ??= Rational.PlusInfinity;
         cutCeiling ??= Rational.PlusInfinity;
+        var sumSupport = Interval.PairwiseSum(f.Support, g.Support)!.Value;
+        var resultSupport = Interval.Intersection(sumSupport, Interval.UnboundedBelow(cutEnd.Value, isEndIncluded))
+            ?? throw new ArgumentException("The convolution cut excludes the entire result support.", nameof(cutEnd));
 
         if (
             settings.UseBySequenceConvolutionIsospeedOptimization && 
@@ -3262,6 +3265,11 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 {
                     var ta_f_prime = f.FirstPlateauEnd;
                     var ta_g_prime = g.FirstPlateauEnd;
+                    var startValue = (f.IsLeftClosed ? f.ValueAt(f.DefinedFrom) : f.RightLimitAt(f.DefinedFrom)) +
+                        (g.IsLeftClosed ? g.ValueAt(g.DefinedFrom) : g.RightLimitAt(g.DefinedFrom));
+                    if (resultSupport.Upper <= ta_f_prime + ta_g_prime)
+                        return Finish(Sequence.Constant(startValue, sumSupport.Lower, ta_f_prime + ta_g_prime,
+                            isEndIncluded: (ta_f_prime + ta_g_prime).IsFinite));
 
                     var a_upi = f.UpperPseudoInverse(false);
                     var b_upi = g.UpperPseudoInverse(false);
@@ -3279,31 +3287,29 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                     }
                     else
                     {
-                        // note: does not handle left-open sequences
                         var ext = Sequence.Constant(
-                            f.ValueAt(f.DefinedFrom) + g.ValueAt(g.DefinedFrom),
+                            startValue,
                             f.DefinedFrom + g.DefinedFrom,
-                            ta_f_prime + ta_g_prime
+                            ta_f_prime + ta_g_prime,
+                            isEndIncluded: true
                         );
                         inverse = Sequence.Minimum(ext, inverse_raw, false, settings: settings);
                     }
 
-                    if (cutCeiling == Rational.PlusInfinity)
-                        return inverse;
-                    else
-                        return inverse.Elements
-                            .CutWithCeiling(cutCeiling, isCeilingIncluded)
+                    // The min-plus convolution is left-continuous at an interior time cut.
+                    if (resultSupport.IsUpperIncluded && inverse.DefinedUntil == resultSupport.Upper && inverse.IsRightOpen)
+                        inverse = inverse.Elements
+                            .Append(new Point(inverse.DefinedUntil, inverse.LeftLimitAt(inverse.DefinedUntil)))
                             .ToSequence();
+                    return Finish(inverse);
                 }
             }
         }
 
         if (f.IsPlusInfinite || g.IsPlusInfinite)
         {
-            var start = f.DefinedFrom + g.DefinedFrom;
-            var end = Rational.Min(f.DefinedUntil + g.DefinedUntil, cutEnd.Value);
-            return PlusInfinite(start, end);
-            // return PlusInfinite(start, end, isLeftClosed, isRightClosed);
+            return Sequence.Constant(Rational.PlusInfinity, resultSupport.Lower, resultSupport.Upper,
+                resultSupport.IsLowerIncluded, resultSupport.IsUpperIncluded);
         }
 
         var areSequenceEqual = Equivalent(f, g);
@@ -3319,15 +3325,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             logger.Trace($"Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
         #endif
 
-        if (cutEnd.Value.IsFinite)
-        {
-            var earliestElement = f.DefinedFrom + g.DefinedFrom;
-            #if DO_LOG
-            logger.Trace($"cutEnd set to {cutEnd}, earliest element will be {earliestElement}");
-            #endif
-            if(cutEnd < earliestElement)
-                throw new Exception("Convolution is cut before it starts");
-        }
+
         #if DO_LOG
         if(cutCeiling != Rational.PlusInfinity)
             logger.Trace($"cutCeiling set to {cutCeiling}");
@@ -3343,12 +3341,18 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         else
             result = SerialConvolution();
 
-        if (cutCeiling == Rational.PlusInfinity)
-            return result.ToSequence();
-        else
-            return result
+        return Finish(result.ToSequence());
+
+        Sequence Finish(Sequence sequence)
+        {
+            var support = cutCeiling == Rational.PlusInfinity ? resultSupport :
+                Interval.Intersection(sequence.Support, resultSupport)
+                ?? throw new ArgumentException("The convolution has no values within the requested support.");
+            var cut = sequence.Cut(support, settings);
+            return cutCeiling == Rational.PlusInfinity ? cut : cut.Elements
                 .CutWithCeiling(cutCeiling, isCeilingIncluded)
                 .ToSequence();
+        }
 
         // Returns the pairs to be involved in the convolution.
         // If fastIteration is true, some checks are skipped - this is mainly for counting purposes.
@@ -3436,10 +3440,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 return lowerEnvelope;
             else
                 // gaps may be expected
-                return lowerEnvelope.Fill(
-                    fillFrom: f.DefinedFrom + g.DefinedFrom,
-                    fillTo: f.DefinedUntil + g.DefinedUntil
-                );
+                return lowerEnvelope.Fill(resultSupport);
         }
 
         IEnumerable<Element> ParallelConvolution()
@@ -3460,10 +3461,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 return lowerEnvelope;
             else
                 // gaps may be expected
-                return lowerEnvelope.Fill(
-                    fillFrom: f.DefinedFrom + g.DefinedFrom,
-                    fillTo: f.DefinedUntil + g.DefinedUntil
-                );
+                return lowerEnvelope.Fill(resultSupport);
         }
 
         // The elementPairs are partitioned in smaller sets (without any ordering)
@@ -3479,10 +3477,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var partialConvolutions = PartitionConvolutionElements()
                 .Select(elements => 
                     elements.LowerEnvelope(settings)
-                    .Fill(
-                        fillFrom: f.DefinedFrom + g.DefinedFrom,
-                        fillTo: f.DefinedUntil + g.DefinedUntil
-                    )
+                    .Fill(resultSupport)
                     .ToSequence()
                 );
 
@@ -3501,10 +3496,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             else
             {
                 // gaps may be expected
-                return lowerEnvelope.Fill(
-                    fillFrom: f.DefinedFrom + g.DefinedFrom,
-                    fillTo: f.DefinedUntil + g.DefinedUntil
-                );
+                return lowerEnvelope.Fill(resultSupport);
             }
 
             IEnumerable<IReadOnlyList<Element>> PartitionConvolutionElements()
@@ -3870,9 +3862,14 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         settings ??= ComputationSettings.Default();
         cutEnd ??= Rational.PlusInfinity;
         cutCeiling ??= Rational.PlusInfinity;
+        var sumSupport = Interval.PairwiseSum(f.Support, g.Support)!.Value;
+        var resultSupport = Interval.Intersection(sumSupport, Interval.UnboundedBelow(cutEnd.Value, isEndIncluded))
+            ?? throw new ArgumentException("The convolution cut excludes the entire result support.", nameof(cutEnd));
 
         if (
             settings.UseBySequenceConvolutionIsospeedOptimization && 
+            // An excluded start can make the convolution fail right-continuity at an interior jump.
+            f.IsLeftClosed && g.IsLeftClosed &&
             f.IsRightContinuous && g.IsRightContinuous &&
             f.IsNonDecreasing && g.IsNonDecreasing &&
             // the isomorphism is computed on the lower pseudo-inverses of the heights both operands take, which -inf values do not
@@ -3951,17 +3948,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                         isEndIncluded: true, isCeilingIncluded: true,
                         settings: settings with {UseBySequenceConvolutionIsospeedOptimization = false});
                     var inverse_raw = minp.UpperPseudoInverse(false);
-                    if (inverse_raw.DefinedUntil < cutEnd)
+                    if (inverse_raw.DefinedUntil < resultSupport.Upper ||
+                        inverse_raw.DefinedUntil == resultSupport.Upper && resultSupport.IsUpperIncluded && inverse_raw.IsRightOpen)
                     {
-                        // this means that, in minp, there was a discontinuity over the cutCeiling
-                        // hence, there should be a constant segment until cutEnd
-                        var missingSegment = Segment.Constant(
-                            inverse_raw.DefinedUntil,
-                            (Rational) cutEnd,
-                            ((Point) inverse_raw.Elements.Last()).Value
-                        );
+                        var end = inverse_raw.DefinedUntil;
+                        var value = inverse_raw.IsRightClosed ? inverse_raw.ValueAt(end) : inverse_raw.LeftLimitAt(end);
+                        var extension = Sequence.Constant(value, end, resultSupport.Upper,
+                            isStartIncluded: inverse_raw.IsRightOpen, isEndIncluded: resultSupport.IsUpperIncluded);
                         inverse_raw = inverse_raw.Elements
-                            .Append(missingSegment)
+                            .Concat(extension.Elements)
                             .ToSequence();
                     }
 
@@ -4005,21 +4000,15 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                         inverse = Sequence.Maximum(ext, inverse_raw, false, settings: settings);
                     }
 
-                    if (cutCeiling == Rational.PlusInfinity)
-                        return inverse;
-                    else
-                        return inverse.Elements
-                            .CutWithCeiling(cutCeiling, isCeilingIncluded)
-                            .ToSequence();
+                    return Finish(inverse);
                 }
             }
         }
 
         if (f.IsMinusInfinite || g.IsMinusInfinite)
         {
-            var start = f.DefinedFrom + g.DefinedFrom;
-            var end = Rational.Min(f.DefinedUntil + g.DefinedUntil, cutEnd.Value);
-            return MinusInfinite(start, end);
+            return Sequence.Constant(Rational.MinusInfinity, resultSupport.Lower, resultSupport.Upper,
+                resultSupport.IsLowerIncluded, resultSupport.IsUpperIncluded);
         }
 
         var areSequenceEqual = Equivalent(f, g);
@@ -4032,15 +4021,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         logger.Trace($"Max-plus Convolution: counted {pairsCount} pairs in {countStopwatch.Elapsed}");
         #endif
 
-        if (cutEnd.Value.IsFinite)
-        {
-            var earliestElement = f.DefinedFrom + g.DefinedFrom;
-            #if DO_LOG
-            logger.Trace($"cutEnd set to {cutEnd}, earliest element will be {earliestElement}");
-            #endif
-            if(cutEnd < earliestElement)
-                throw new Exception("Convolution is cut before it starts");
-        }
+
 
         IEnumerable<Element> result;
         if (settings.UseConvolutionPartitioning && pairsCount > settings.ConvolutionPartitioningThreshold)
@@ -4052,12 +4033,18 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         else
             result = SerialConvolution();
 
-        if (cutCeiling == Rational.PlusInfinity)
-            return result.ToSequence();
-        else
-            return result
+        return Finish(result.ToSequence());
+
+        Sequence Finish(Sequence sequence)
+        {
+            var support = cutCeiling == Rational.PlusInfinity ? resultSupport :
+                Interval.Intersection(sequence.Support, resultSupport)
+                ?? throw new ArgumentException("The convolution has no values within the requested support.");
+            var cut = sequence.Cut(support, settings);
+            return cutCeiling == Rational.PlusInfinity ? cut : cut.Elements
                 .CutWithCeiling(cutCeiling, isCeilingIncluded)
                 .ToSequence();
+        }
 
         IEnumerable<(Element ea, Element eb)> GetElementPairs()
         {
@@ -4153,11 +4140,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 return upperEnvelope;
             else
                 // gaps may be expected
-                return upperEnvelope.Fill(
-                    fillFrom: f.DefinedFrom + g.DefinedFrom,
-                    fillTo: f.DefinedUntil + g.DefinedUntil,
-                    fillWith: Rational.MinusInfinity
-                );
+                return upperEnvelope.Fill(resultSupport, Rational.MinusInfinity);
         }
 
         IEnumerable<Element> ParallelConvolution()
@@ -4178,11 +4161,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 return upperEnvelope;
             else
                 // gaps may be expected
-                return upperEnvelope.Fill(
-                    fillFrom: f.DefinedFrom + g.DefinedFrom,
-                    fillTo: f.DefinedUntil + g.DefinedUntil,
-                    fillWith: Rational.MinusInfinity
-                );
+                return upperEnvelope.Fill(resultSupport, Rational.MinusInfinity);
         }
 
         // The elementPairs are partitioned in smaller sets (without any ordering)
@@ -4198,11 +4177,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             var partialConvolutions = PartitionConvolutionElements()
                 .Select(elements =>
                     elements.UpperEnvelope(settings)
-                    .Fill(
-                        fillFrom: f.DefinedFrom + g.DefinedFrom,
-                        fillTo: f.DefinedUntil + g.DefinedUntil,
-                        fillWith: Rational.MinusInfinity
-                    )
+                    .Fill(resultSupport, Rational.MinusInfinity)
                     .ToSequence()
                 );
 
@@ -4221,11 +4196,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             else
             {
                 // gaps may be expected
-                return upperEnvelope.Fill(
-                    fillFrom: f.DefinedFrom + g.DefinedFrom,
-                    fillTo: f.DefinedUntil + g.DefinedUntil,
-                    fillWith: Rational.MinusInfinity
-                );
+                return upperEnvelope.Fill(resultSupport, Rational.MinusInfinity);
             }
 
             IEnumerable<IReadOnlyList<Element>> PartitionConvolutionElements()
