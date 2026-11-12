@@ -3085,7 +3085,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             return BaseSequence.GetElementAt(time);
 
         // Read the element from the stored period and translate only that element.
-        var periodIndex = (int)((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
+        var periodIndex = (long)((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
         var element = BaseSequence.GetElementAt(time - periodIndex * PseudoPeriodLength);
         return TranslatePeriodElement(element, periodIndex);
     }
@@ -3100,18 +3100,18 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// As <see cref="GetElementAt"/> does, it translates only the element it returns, without building the extension.
     /// Elements are not merged at the joins between periods, so positions can differ from those in the result of <see cref="Extend"/>.
     /// </remarks>
-    internal Element GetElementByIndex(int index)
+    internal Element GetElementByIndex(long index)
     {
         var elements = BaseSequence.Elements;
         if (index < elements.Count)
-            return elements[index];
+            return elements[(int)index];
 
         // Read the element from the stored period and translate only that element.
         int transientCount = PseudoPeriodStart == 0 ? 0 :
             BaseSequence.FindFirstIndex(element => element.StartTime >= PseudoPeriodStart);
         int periodElementCount = elements.Count - transientCount;
-        int periodIndex = (index - transientCount) / periodElementCount;
-        int offset = (index - transientCount) % periodElementCount;
+        long periodIndex = (index - transientCount) / periodElementCount;
+        int offset = (int)((index - transientCount) % periodElementCount);
         return TranslatePeriodElement(elements[transientCount + offset], periodIndex);
     }
 
@@ -3136,7 +3136,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         // Read the segment from the stored period and translate only that segment.
         // At a period boundary the segment before it belongs to the period ending there.
-        var periodIndex = (int)(((time - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
+        var periodIndex = (long)(((time - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
         var segment = BaseSequence.GetSegmentBefore(time - periodIndex * PseudoPeriodLength, cutToTime: cutToTime);
         return (Segment)TranslatePeriodElement(segment, periodIndex);
     }
@@ -3166,7 +3166,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             else
             {
                 // Read the segment from the stored period and translate only that segment.
-                var periodIndex = (int)((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
+                var periodIndex = (long)((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
                 var periodSegment = BaseSequence.GetSegmentAfter(time - periodIndex * PseudoPeriodLength, cutToTime: cutToTime);
                 return (Segment)TranslatePeriodElement(periodSegment, periodIndex);
             }
@@ -3352,11 +3352,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 ? (cutStart - PseudoPeriodStart) / PseudoPeriodLength
                 : 1;
             var endPeriodPosition = (cutEnd - PseudoPeriodStart) / PseudoPeriodLength;
-            var firstPeriodIndex = (int)startPeriodPosition.Floor();
+            var firstPeriodIndex = (long)startPeriodPosition.Floor();
             // An excluded endpoint on a period boundary belongs to the preceding period.
             var lastPeriodIndex = isEndIncluded
-                ? (int)endPeriodPosition.Floor()
-                : (int)(endPeriodPosition.Ceil() - 1);
+                ? (long)endPeriodPosition.Floor()
+                : (long)(endPeriodPosition.Ceil() - 1);
 
             IEnumerable<Element> cutElements;
             if (startsAfterBaseSequence && firstPeriodIndex == lastPeriodIndex)
@@ -3405,7 +3405,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 IEnumerable<Element> completePeriodElements;
                 if (completePeriodCount > 0)
                 {
-                    completePeriodElements = ExtendPeriods(periodicSequence, firstCompletePeriodIndex, completePeriodCount, settings);
+                    // A materialized cut holds its periods in one array, so their count is an int.
+                    completePeriodElements = ExtendPeriods(periodicSequence, firstCompletePeriodIndex, (int)completePeriodCount, settings);
                 }
                 else
                 {
@@ -3557,11 +3558,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 ? (cutStart - PseudoPeriodStart) / PseudoPeriodLength
                 : 1;
             var endPeriodPosition = (cutEnd - PseudoPeriodStart) / PseudoPeriodLength;
-            var firstPeriodIndex = (int)startPeriodPosition.Floor();
+            var firstPeriodIndex = (long)startPeriodPosition.Floor();
             // An excluded endpoint on a period boundary belongs to the preceding period.
             var lastPeriodIndex = isEndIncluded
-                ? (int)endPeriodPosition.Floor()
-                : (int)(endPeriodPosition.Ceil() - 1);
+                ? (long)endPeriodPosition.Floor()
+                : (long)(endPeriodPosition.Ceil() - 1);
 
             IEnumerable<Element> cutElements;
             if (startsAfterBaseSequence && firstPeriodIndex == lastPeriodIndex)
@@ -3714,7 +3715,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Endpoint inclusion determines whether points on the cut boundaries are selected.
     /// Intersecting segments are returned intact; clipping is the caller's responsibility.
     /// </remarks>
-    internal ReadOnlyElementList GetPeriodElementsForCut(Sequence period, int periodIndex, Interval cutInterval)
+    internal ReadOnlyElementList GetPeriodElementsForCut(Sequence period, long periodIndex, Interval cutInterval)
     {
         var offset = periodIndex * PseudoPeriodLength;
         var start = cutInterval.Lower - offset;
@@ -3745,17 +3746,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Settings for outer and inner parallel execution.</param>
     /// <returns>The translated elements in period order.</returns>
     /// <remarks>Outer parallel execution completes all requested period copies before yielding their elements.</remarks>
-    private IEnumerable<Element> ExtendPeriods(Sequence period, int firstPeriodIndex, int periodCount,
+    private IEnumerable<Element> ExtendPeriods(Sequence period, long firstPeriodIndex, int periodCount,
         ComputationSettings settings)
     {
-        var periodIndexes = Enumerable.Range(firstPeriodIndex, periodCount);
         var partitionCount = GetPeriodExtensionPartitionCount(period.Count, periodCount, settings);
 
         if (partitionCount == 1)
         {
             // Translate periods in order; element translation within each period may still run in parallel.
-            foreach (var index in periodIndexes)
-                foreach (var element in TranslatePeriodElements(period.ElementList, index, settings))
+            for (int i = 0; i < periodCount; i++)
+                foreach (var element in TranslatePeriodElements(period.ElementList, firstPeriodIndex + i, settings))
                     yield return element;
         }
         else
@@ -3799,10 +3799,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="periodCount">Number of consecutive periods, greater than zero.</param>
     /// <param name="settings">Settings for inner parallel execution.</param>
     /// <returns>The translated elements in period order.</returns>
-    private IEnumerable<Element> ExtendPeriodsAsEnumerable(Sequence period, int firstPeriodIndex, int periodCount,
+    private IEnumerable<Element> ExtendPeriodsAsEnumerable(Sequence period, long firstPeriodIndex, long periodCount,
         ComputationSettings settings)
     {
-        foreach (var index in Enumerable.Range(firstPeriodIndex, periodCount))
+        for (long index = firstPeriodIndex; index < firstPeriodIndex + periodCount; index++)
             foreach (var element in TranslatePeriodElements(period.ElementList, index, settings))
                 yield return element;
     }
@@ -3811,7 +3811,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Selects and translates the elements of one period intersecting a cut, when consumed.
     /// </summary>
     /// <remarks>Boundary segments remain intact for the caller to clip and normalize.</remarks>
-    private IEnumerable<Element> TranslatePeriodElementsForCutAsEnumerable(Sequence period, int periodIndex,
+    private IEnumerable<Element> TranslatePeriodElementsForCutAsEnumerable(Sequence period, long periodIndex,
         Interval cutInterval, ComputationSettings settings)
     {
         var elements = GetPeriodElementsForCut(period, periodIndex, cutInterval);
@@ -3826,7 +3826,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="periodIndex">Index of the translated period.</param>
     /// <param name="partitionCount">Number of contiguous work partitions, between one and the element count; one selects serial execution, more than one selects parallel execution.</param>
     /// <returns>A new array exclusively owned by the caller.</returns>
-    private Element[] TranslatePeriodElementsToArray(ReadOnlyElementList elements, int periodIndex, int partitionCount)
+    private Element[] TranslatePeriodElementsToArray(ReadOnlyElementList elements, long periodIndex, int partitionCount)
     {
         var copies = new Element[elements.Count];
         if (partitionCount == 1)
@@ -3929,7 +3929,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Serial execution translates one element at a time; parallel execution fills the selected-element buffer before yielding.
     /// The inner parallelism switch and threshold and the available work budget determine which execution is used.
     /// </remarks>
-    internal IEnumerable<Element> TranslatePeriodElements(ReadOnlyElementList elements, int periodIndex,
+    internal IEnumerable<Element> TranslatePeriodElements(ReadOnlyElementList elements, long periodIndex,
         ComputationSettings settings)
     {
         var partitionCount = GetPeriodTranslationPartitionCount(elements.Count, settings, settings.DegreeOfParallelism);
@@ -3946,7 +3946,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Translates selected period elements one at a time, without a period buffer.
     /// </summary>
-    private IEnumerable<Element> TranslatePeriodElementsSerially(ReadOnlyElementList elements, int periodIndex)
+    private IEnumerable<Element> TranslatePeriodElementsSerially(ReadOnlyElementList elements, long periodIndex)
     {
         // reads the period by index, without an interface call per element
         for (int i = 0; i < elements.Count; i++)
@@ -3960,7 +3960,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="periodIndex">Index of the translated period.</param>
     /// <param name="partitionCount">Number of contiguous work partitions, between two and the element count.</param>
     /// <returns>The translated elements, computed when consumed.</returns>
-    private IEnumerable<Element> TranslatePeriodElementsInParallel(ReadOnlyElementList elements, int periodIndex,
+    private IEnumerable<Element> TranslatePeriodElementsInParallel(ReadOnlyElementList elements, long periodIndex,
         int partitionCount)
     {
         var copies = TranslatePeriodElementsToArray(elements, periodIndex, partitionCount);
@@ -3971,7 +3971,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <summary>
     /// Translates one stored element to the specified pseudo-period.
     /// </summary>
-    private Element TranslatePeriodElement(Element element, int periodIndex)
+    private Element TranslatePeriodElement(Element element, long periodIndex)
     {
         switch (element)
         {
@@ -4001,7 +4001,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
     /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
     /// <returns>The number of elements of the sequence equivalently defined within the given interval.</returns>
-    public int Count(
+    public long Count(
         Rational cutStart,
         Rational cutEnd,
         bool isStartIncluded = true,
@@ -4013,7 +4013,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (!cutStart.IsFinite || !cutEnd.IsFinite || cutStart < 0 || cutStart >= cutEnd ||
             !PseudoPeriodStart.IsFinite || !PseudoPeriodLength.IsFinite || !PseudoPeriodHeight.IsFinite)
             return CutAsEnumerable(cutStart, cutEnd, isStartIncluded, isEndIncluded)
-                .Count();
+                .LongCount();
 
         var elements = BaseSequence.ElementList;
         int periodStartIndex = PseudoPeriodStart == 0 ? 0 :
@@ -4053,7 +4053,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         }
 
         // Each retained interior point separates two segments; endpoint points are counted independently.
-        return checked(1 + endpointCount + 2 * (int)interiorPoints);
+        return checked(1 + endpointCount + 2 * (long)interiorPoints);
 
         Rational CountPoints(Rational time, bool includeEnd)
         {
@@ -4089,7 +4089,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <param name="interval">The interval to use.</param>
     /// <returns>The number of elements of the sequence equivalently defined within the given interval.</returns>
-    public int Count(Interval interval)
+    public long Count(Interval interval)
         => Count(interval.Lower, interval.Upper, interval.IsLowerIncluded, interval.IsUpperIncluded);
 
     /// <summary>
@@ -7220,10 +7220,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         void AddBoundaries(Curve curve)
         {
-            int count = curve.Count(0, end);
+            long count = curve.Count(0, end);
             for (int i = 1; i < samples; i++)
             {
-                int index = (int)((long)i * count / samples);
+                long index = i * count / samples;
                 var time = curve.GetElementByIndex(index).StartTime;
                 if (time > 0 && time < end)
                     boundaries.Add(time);
@@ -7251,7 +7251,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         Rational c = d * (PseudoPeriodSlope + b.PseudoPeriodSlope);
 
         var chunkBudget = settings.UseParallelAddition && settings.DegreeOfParallelism > 1
-            ? Sequence.GetPointwisePairChunkBudget((long)Count(0, T + d) + b.Count(0, T + d), settings.AdditionParallelizationThreshold)
+            ? Sequence.GetPointwisePairChunkBudget(Count(0, T + d) + b.Count(0, T + d), settings.AdditionParallelizationThreshold)
             : 1;
         var doParallel = chunkBudget > 1;
 
@@ -7554,7 +7554,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         var chunkBudget = settings.UseParallelLowerEnvelope && settings.DegreeOfParallelism > 1
-            ? Sequence.GetPointwisePairChunkBudget((long)a.Count(0, T + d) + b.Count(0, T + d), settings.SequenceLowerEnvelopeParallelizationThreshold)
+            ? Sequence.GetPointwisePairChunkBudget(a.Count(0, T + d) + b.Count(0, T + d), settings.SequenceLowerEnvelopeParallelizationThreshold)
             : 1;
         var doParallel = chunkBudget > 1;
 
@@ -7852,7 +7852,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         #endif
 
         var chunkBudget = settings.UseParallelUpperEnvelope && settings.DegreeOfParallelism > 1
-            ? Sequence.GetPointwisePairChunkBudget((long)a.Count(0, T + d) + b.Count(0, T + d), settings.SequenceUpperEnvelopeParallelizationThreshold)
+            ? Sequence.GetPointwisePairChunkBudget(a.Count(0, T + d) + b.Count(0, T + d), settings.SequenceUpperEnvelopeParallelizationThreshold)
             : 1;
         var doParallel = chunkBudget > 1;
 
