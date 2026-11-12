@@ -6014,6 +6014,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>A non-negative horizontal deviation.</returns>
     /// <remarks>
     /// The algorithm is chosen by <see cref="ComputationSettings.HorizontalDeviationStrategy"/>, see <see cref="Unipi.Nancy.MinPlusAlgebra.HorizontalDeviationStrategy"/>: each gives the same value, and they differ only in performance.
+    /// Under <see cref="HorizontalDeviationStrategy.PseudoInverseGap"/>, a long deviation is the largest of the suprema over chunks of the heights searched, which partition them, see <see cref="ComputationSettings.UseParallelHorizontalDeviation"/>.
     /// </remarks>
     public static Rational HorizontalDeviation(Curve f, Curve g, ComputationSettings? settings = null)
     {
@@ -6070,12 +6071,37 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     }
 
                     var heights = new Interval(0, end, isLowerIncluded: true, isUpperIncluded: true);
-                    var gLpiCut = gLpi.CutAsEnumerable(heights, settings);
-                    var fLpiCut = fLpi.CutAsEnumerable(heights, settings);
+                    // The search goes through the elements of both inverses over the heights, so their total count measures the work.
+                    var chunkBudget = settings.UseParallelHorizontalDeviation && settings.DegreeOfParallelism > 1
+                        ? Sequence.GetPointwisePairChunkBudget(fLpi.Count(heights) + gLpi.Count(heights), settings.HorizontalDeviationParallelizationThreshold)
+                        : 1;
 
-                    return gLpiCut
-                        .Subtraction(fLpiCut)
-                        .SupValue();
+                    if (chunkBudget > 1)
+                    {
+                        // The chunks are a partition of the heights interval, so the largest of their suprema is the supremum of the gap.
+                        return Sequence.ComputeSupremumInParallel(
+                            support: heights,
+                            boundaries: Sequence.GetEvenBoundaries(heights, settings.DegreeOfParallelism, chunkBudget),
+                            chunkSupremum: chunk =>
+                            {
+                                var gLpiChunk = gLpi.CutAsEnumerable(chunk, settings);
+                                var fLpiChunk = fLpi.CutAsEnumerable(chunk, settings);
+                                return gLpiChunk
+                                    .Subtraction(fLpiChunk)
+                                    .SupValue();
+                            },
+                            settings: settings
+                        );
+                    }
+                    else
+                    {
+                        var gLpiCut = gLpi.CutAsEnumerable(heights, settings);
+                        var fLpiCut = fLpi.CutAsEnumerable(heights, settings);
+
+                        return gLpiCut
+                            .Subtraction(fLpiCut)
+                            .SupValue();
+                    }
                 }
                 case HorizontalDeviationStrategy.PseudoInverseDeconvolution:
                 {

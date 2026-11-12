@@ -28,7 +28,7 @@ public record ComputationSettings
                 UseParallelExtend || UseParallelComputeExtensionSequences ||
                 UseParallelComputeIntervals || UseParallelInsertionComputeIntervals || UseParallelSortElements ||
                 UseParallelSubAdditiveClosure ||
-                UseParallelVerticalDeviation;
+                UseParallelHorizontalDeviation || UseParallelVerticalDeviation;
         }
         set 
         {
@@ -49,6 +49,7 @@ public record ComputationSettings
             UseParallelInsertionComputeIntervals = value;
             UseParallelSortElements = value;
             UseParallelSubAdditiveClosure = value;
+            UseParallelHorizontalDeviation = value;
             UseParallelVerticalDeviation = value;
         }
     }
@@ -354,6 +355,22 @@ public record ComputationSettings
     /// Requires <see cref="UseParallelSubAdditiveClosure"/>.
     /// </summary>
     public int SubAdditiveClosureParallelizationThreshold { get; set; } = 0;
+
+    /// <summary>
+    /// If true, long horizontal deviations under <see cref="HorizontalDeviationStrategy.PseudoInverseGap"/> are processed in parallel, over chunks of heights.
+    /// </summary>
+    public bool UseParallelHorizontalDeviation { get; set; } = true;
+
+    /// <summary>
+    /// A horizontal deviation is processed in parallel if it scans at least this number of elements in all.
+    /// Requires <see cref="UseParallelHorizontalDeviation"/>.
+    /// </summary>
+    /// <remarks>
+    /// For curves, the count is that of the lower pseudo-inverse of each operand over the heights searched; for sequences, that of the window of each that reaches the shared heights.
+    /// A parallel operation uses at most one chunk per 64 input elements, and at least two.
+    /// The chunks are of equal height, at most <see cref="MaxDegreeOfParallelism"/> of them, or the processor count if it is -1.
+    /// </remarks>
+    public int HorizontalDeviationParallelizationThreshold { get; set; } = 0;
 
     /// <summary>
     /// If true, long vertical deviations are processed in parallel, over chunks of time.

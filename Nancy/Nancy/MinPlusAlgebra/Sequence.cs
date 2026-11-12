@@ -2339,6 +2339,7 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// For the conditions under which it matches the deviation between curves, see [TBP-SEQ-DEV] Corollary 35.
     /// The operands may take the value $+\infty$, as cuts of a delay service curve do, [TBP-SEQ-DEV] Theorem 25.
     /// This deviation is not monotone in $g$, unlike the deviation between curves, [TBP-SEQ-DEV] Remark 22.
+    /// Under the pseudo-inverse strategies, a long deviation is the largest of the suprema over chunks of the shared heights, which partition them, see <see cref="ComputationSettings.UseParallelHorizontalDeviation"/>.
     /// </remarks>
     public static Rational HorizontalDeviation(Sequence f, Sequence g, ComputationSettings? settings = null)
     {
@@ -2371,14 +2372,42 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
             case HorizontalDeviationStrategy.PseudoInverseGap:
             case HorizontalDeviationStrategy.PseudoInverseDeconvolution:
             {
+                // If the images share a single height, the gap there is the only one.
+                if (imageOverlap.Lower == imageOverlap.Upper)
+                    return Rational.Max(g.LowerPseudoInverseAt(imageOverlap.Lower) - f.LowerPseudoInverseAt(imageOverlap.Lower), 0);
+
                 // The height form of [TBP-SEQ-DEV] § 4.5: the largest gap between the lower pseudo-inverses over the overlap of the images, or 0 if every gap is negative.
-                // Each pseudo-inverse is taken over the elements of its sequence that cover the shared heights.
-                var gLpiCut = GetHeightWindow(g, imageOverlap).LowerPseudoInverse()
-                    .Cut(imageOverlap);
-                var fLpiCut = GetHeightWindow(f, imageOverlap).LowerPseudoInverse()
-                    .Cut(imageOverlap);
-                return Rational.Max(gLpiCut.Subtraction(fLpiCut)
-                    .SupValue(), 0);
+                var fWindow = GetHeightWindow(f, imageOverlap);
+                var gWindow = GetHeightWindow(g, imageOverlap);
+                // The work is the inversion of the elements of each sequence that cover the shared heights.
+                var chunkBudget = settings.UseParallelHorizontalDeviation && settings.DegreeOfParallelism > 1
+                    ? GetPointwisePairChunkBudget((long)fWindow.Count + gWindow.Count, settings.HorizontalDeviationParallelizationThreshold)
+                    : 1;
+
+                if (chunkBudget > 1)
+                {
+                    // The chunks are a partition of the shared heights, so the largest of their suprema is the supremum of the gap.
+                    // Each chunk inverts only the elements of each sequence that cover its own heights.
+                    var chunkGapSupremum = ComputeSupremumInParallel(
+                        support: imageOverlap,
+                        boundaries: GetEvenBoundaries(imageOverlap, settings.DegreeOfParallelism, chunkBudget),
+                        chunkSupremum: chunk => GetHeightWindow(g, chunk).LowerPseudoInverse().Cut(chunk)
+                            .Subtraction(GetHeightWindow(f, chunk).LowerPseudoInverse().Cut(chunk))
+                            .SupValue(),
+                        settings: settings
+                    );
+                    return Rational.Max(chunkGapSupremum, 0);
+                }
+                else
+                {
+                    // Each pseudo-inverse is taken over the elements of its sequence that cover the shared heights.
+                    var gLpiCut = gWindow.LowerPseudoInverse()
+                        .Cut(imageOverlap);
+                    var fLpiCut = fWindow.LowerPseudoInverse()
+                        .Cut(imageOverlap);
+                    return Rational.Max(gLpiCut.Subtraction(fLpiCut)
+                        .SupValue(), 0);
+                }
             }
 
             default:
@@ -3148,6 +3177,25 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         }
 
         return results.Max();
+    }
+
+    /// <summary>Divides an interval into chunks of equal length, one per partition up to the budget.</summary>
+    /// <param name="interval">A finite interval of positive length.</param>
+    /// <param name="partitions">The number of chunks wanted, such as the degree of parallelism.</param>
+    /// <param name="chunkBudget">The maximum number of chunks.</param>
+    /// <returns>The boundaries of the chunks, from the lower end to the upper end.</returns>
+    internal static Rational[] GetEvenBoundaries(Interval interval, int partitions, int chunkBudget)
+    {
+        if (!interval.Lower.IsFinite || !interval.Upper.IsFinite || interval.Lower >= interval.Upper)
+            throw new ArgumentException("The interval must be finite and have positive length.", nameof(interval));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(partitions);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(chunkBudget);
+
+        int chunks = Math.Min(partitions, chunkBudget);
+        var length = interval.Upper - interval.Lower;
+        return Enumerable.Range(0, chunks + 1)
+            .Select(i => i == chunks ? interval.Upper : interval.Lower + length * i / chunks)
+            .ToArray();
     }
 
     /// <summary>
