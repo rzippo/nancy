@@ -632,6 +632,47 @@ public class Deviations
     {
         var result = Curve.HorizontalDeviation(a, b);
         Assert.Equal(expected, result);
+        Assert.Equal(expected, Curve.HorizontalDeviation(a, b, Chunked));
+    }
+
+    /// <summary>Settings that split every deviation into chunks, at a degree of parallelism of eight: as many as fit one chunk per 64 elements of work, and at least two.</summary>
+    private static readonly ComputationSettings Chunked = new()
+    {
+        MaxDegreeOfParallelism = 8,
+        UseParallelHorizontalDeviation = true, HorizontalDeviationParallelizationThreshold = 0,
+        UseParallelVerticalDeviation = true, VerticalDeviationParallelizationThreshold = 0
+    };
+
+    /// <summary>
+    /// Staircases whose work holds enough elements for eight chunks at each degree of parallelism up to eight, with plateaus and jumps at most chunk ends.
+    /// The first two pairs are finite, so both deviations are chunked; in the next two the second operand becomes $+\infty$ or starts at $-\infty$, so only the horizontal deviation is.
+    /// In the last two both operands are bounded, and the second reaches the maximum of the first in one and not in the other, where the horizontal deviation is $+\infty$.
+    /// Each degree moves the chunk boundaries: one is serial, two to eight cut the heights and times at different fractions of the window.
+    /// </summary>
+    public static IEnumerable<object[]> LongDeviationPairs()
+    {
+        Curve[][] pairs =
+        [
+            [new StairCurve(127, 127), new StairCurve(128, 128)],
+            [new StairCurve(127, 127), new StairCurve(128, 128).DelayBy(5)],
+            [new StairCurve(255, 255), Curve.Maximum(new StairCurve(256, 256), new DelayServiceCurve(255 * 256))],
+            [new StairCurve(255, 255), Curve.Minimum(new StairCurve(256, 256).DelayBy(5), MinusInfiniteBefore(3, isTimeIncluded: false))],
+            [Curve.Minimum(new StairCurve(127, 127), new ConstantCurve(127 * 256)), Curve.Minimum(new StairCurve(128, 128), new ConstantCurve(128 * 256))],
+            [Curve.Minimum(new StairCurve(127, 127), new ConstantCurve(127 * 256)), Curve.Minimum(new StairCurve(128, 128), new ConstantCurve(127 * 200))]
+        ];
+        foreach (var pair in pairs)
+            foreach (var degree in new[] { 1, 2, 3, 5, 8 })
+                yield return [pair[0], pair[1], degree];
+    }
+
+    [Theory]
+    [MemberData(nameof(LongDeviationPairs))]
+    public void ChunksOfLongWindowsGiveTheSerialDeviations(Curve f, Curve g, int degree)
+    {
+        var serial = new ComputationSettings { UseParallelism = false };
+        var chunked = Chunked with { MaxDegreeOfParallelism = degree };
+        Assert.Equal(Curve.HorizontalDeviation(f, g, serial), Curve.HorizontalDeviation(f, g, chunked));
+        Assert.Equal(Curve.VerticalDeviation(f, g, serial), Curve.VerticalDeviation(f, g, chunked));
     }
 
     [Theory]
@@ -708,6 +749,7 @@ public class Deviations
     {
         var result = Curve.VerticalDeviation(a, b);
         Assert.Equal(expected, result);
+        Assert.Equal(expected, Curve.VerticalDeviation(a, b, Chunked));
     }
 
     [Theory]
@@ -1030,8 +1072,10 @@ public class Deviations
 
     private static readonly ComputationSettings ByPseudoInverses = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.PseudoInverseGap };
     private static readonly ComputationSettings ByComposition = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.Composition };
+    // Every strategy, and the default one also over chunks of heights.
     private static readonly ComputationSettings[] EveryStrategy = Enum.GetValues<HorizontalDeviationStrategy>()
         .Select(strategy => new ComputationSettings { HorizontalDeviationStrategy = strategy })
+        .Append(Chunked)
         .ToArray();
 
     /// <summary>
@@ -1125,7 +1169,7 @@ public class Deviations
         foreach (var settings in EveryStrategy)
         {
             var result = Curve.HorizontalDeviation(f, g, settings);
-            Assert.True(result == expected, $"{id}: {result} by {settings.HorizontalDeviationStrategy}, not {expected}");
+            Assert.True(result == expected, $"{id}: {result} by {settings.HorizontalDeviationStrategy}{(settings == Chunked ? " over chunks" : "")}, not {expected}");
         }
     }
 
@@ -1159,17 +1203,19 @@ public class Deviations
                 Curve.Maximum(Curve.Minimum(g, MinusInfiniteBefore(1, isTimeIncluded: true)), new DelayServiceCurve(6)),
             });
         return fs.SelectMany(f => gs.Select(g => new object[] { f, g }));
-
-        // $-\infty$ before the time, or up to it, and $+\infty$ after.
-        static Curve MinusInfiniteBefore(Rational time, bool isTimeIncluded)
-            => new(
-                new Sequence([
-                    Point.MinusInfinite(0), Segment.MinusInfinite(0, time),
-                    isTimeIncluded ? Point.MinusInfinite(time) : Point.PlusInfinite(time), Segment.PlusInfinite(time, time + 1),
-                    Point.PlusInfinite(time + 1), Segment.PlusInfinite(time + 1, time + 2)
-                ]),
-                time + 1, 1, 0);
     }
+
+    /// <summary>
+    /// $-\infty$ before the time, or up to it, and $+\infty$ after: its minimum with a curve gives that curve a $-\infty$ prefix.
+    /// </summary>
+    private static Curve MinusInfiniteBefore(Rational time, bool isTimeIncluded)
+        => new(
+            new Sequence([
+                Point.MinusInfinite(0), Segment.MinusInfinite(0, time),
+                isTimeIncluded ? Point.MinusInfinite(time) : Point.PlusInfinite(time), Segment.PlusInfinite(time, time + 1),
+                Point.PlusInfinite(time + 1), Segment.PlusInfinite(time + 1, time + 2)
+            ]),
+            time + 1, 1, 0);
 
     /// <summary>
     /// The inverse gap agrees with the deconvolution of the pseudo-inverses on operands with infinite values, whose inverse tails it derives from the curves.

@@ -1598,8 +1598,8 @@ public class HorizontalDeviation
         {
             var h = Sequence.HorizontalDeviation(a, b, settings);
             var hLarger = Sequence.HorizontalDeviation(a, bLarger, settings);
-            Assert.True(h == expectedB, $"{id}: {h} by {settings.HorizontalDeviationStrategy}, not {expectedB}");
-            Assert.True(hLarger == expectedBLarger, $"{id}: {hLarger} by {settings.HorizontalDeviationStrategy}, not {expectedBLarger}");
+            Assert.True(h == expectedB, $"{id}: {h} by {settings.HorizontalDeviationStrategy}{(settings == Chunked ? " over chunks" : "")}, not {expectedB}");
+            Assert.True(hLarger == expectedBLarger, $"{id}: {hLarger} by {settings.HorizontalDeviationStrategy}{(settings == Chunked ? " over chunks" : "")}, not {expectedBLarger}");
             Assert.True(hLarger <= h);
         }
     }
@@ -1608,8 +1608,16 @@ public class HorizontalDeviation
 
     private static readonly ComputationSettings ByPseudoInverses = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.PseudoInverseGap };
     private static readonly ComputationSettings ByComposition = new() { HorizontalDeviationStrategy = HorizontalDeviationStrategy.Composition };
+    /// <summary>Settings that split every deviation into chunks of heights, at a degree of parallelism of eight: as many as fit one chunk per 64 elements of work, and at least two.</summary>
+    private static readonly ComputationSettings Chunked = new()
+    {
+        MaxDegreeOfParallelism = 8, UseParallelHorizontalDeviation = true, HorizontalDeviationParallelizationThreshold = 0
+    };
+
+    // Every strategy, and the default one also over chunks of heights.
     private static readonly ComputationSettings[] EveryStrategy = Enum.GetValues<HorizontalDeviationStrategy>()
         .Select(strategy => new ComputationSettings { HorizontalDeviationStrategy = strategy })
+        .Append(Chunked)
         .ToArray();
 
     /// <summary>
@@ -1696,8 +1704,78 @@ public class HorizontalDeviation
         foreach (var settings in EveryStrategy)
         {
             var result = Sequence.HorizontalDeviation(a, b, settings);
-            Assert.True(result == expected, $"{id}: {result} by {settings.HorizontalDeviationStrategy}, not {expected}");
+            Assert.True(result == expected, $"{id}: {result} by {settings.HorizontalDeviationStrategy}{(settings == Chunked ? " over chunks" : "")}, not {expected}");
         }
+    }
+
+    /// <summary>
+    /// Pairs whose images meet at the single height 1, where the gap between the lower pseudo-inverses is the only one.
+    /// </summary>
+    public static IEnumerable<object[]> ImagesMeetingAtOneHeight()
+    {
+        // t / 2 on [0, 2], reaching 1 at 2
+        var halfRate = new Sequence([Point.Origin(), new Segment(0, 2, 0, new Rational(1, 2)), new Point(2, 1)]);
+        // t on [0, 1], then 1 on [1, 4]: reaching 1 at 1
+        var rateThenPlateau = new Sequence([Point.Origin(), new Segment(0, 1, 0, 1), new Point(1, 1), Segment.Constant(1, 4, 1), new Point(4, 1)]);
+        // 1 + (t - 3) on [3, 5]: from 1 at 3
+        var fromThree = new Sequence([new Point(3, 1), new Segment(3, 5, 1, 1), new Point(5, 3)]);
+
+        yield return ["the second reaches 1 after the first", halfRate, fromThree, (Rational) 1];
+        yield return ["the second reaches 1 before the first", fromThree, halfRate, (Rational) 0];
+        yield return ["the first reaches 1 and stays", rateThenPlateau, fromThree, (Rational) 2];
+    }
+
+    [Theory]
+    [MemberData(nameof(ImagesMeetingAtOneHeight))]
+    public void HorizontalDeviationOverASingleSharedHeight(string id, Sequence a, Sequence b, Rational expected)
+    {
+        foreach (var settings in EveryStrategy)
+        {
+            var result = Sequence.HorizontalDeviation(a, b, settings);
+            Assert.True(result == expected, $"{id}: {result} by {settings.HorizontalDeviationStrategy}{(settings == Chunked ? " over chunks" : "")}, not {expected}");
+        }
+    }
+
+    /// <summary>
+    /// A first operand whose domain starts open, inside its plateau at the lowest shared height, where the deviation is attained.
+    /// The two chunks of heights, $[1, 2[$ and $[2, 3]$, must start the first operand's window no later than the time it first reaches 1, the open start 0.
+    /// </summary>
+    [Fact]
+    public void ChunksKeepAnOpenStartAtTheLowestSharedHeight()
+    {
+        var a = new Sequence([new Segment(0, 2, 1, 0), new Point(2, 1), new Segment(2, 4, 1, 1), new Point(4, 3)]);
+        var b = new RateLatencyServiceCurve(1, 0).Cut(0, 4, true, true);
+        Assert.Equal(1, Sequence.HorizontalDeviation(a, b));
+        Assert.Equal(1, Sequence.HorizontalDeviation(a, b, Chunked));
+    }
+
+    /// <summary>
+    /// Cuts of staircases whose windows over the shared heights hold enough elements, over a thousand, for eight chunks, with plateaus and jumps at most chunk ends, with closed or open ends.
+    /// </summary>
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void ChunksOfLongSequencesGiveTheSerialDeviation(bool isStartIncluded, bool isEndIncluded)
+    {
+        var a = new StairCurve(127, 127).Cut(0, 2 * 127 * 128, isStartIncluded, isEndIncluded);
+        var b = new StairCurve(128, 128).DelayBy(5).Cut(0, 2 * 127 * 128, isStartIncluded, isEndIncluded);
+        var serial = Sequence.HorizontalDeviation(a, b, new ComputationSettings { UseParallelism = false });
+        Assert.Equal(serial, Sequence.HorizontalDeviation(a, b, Chunked));
+    }
+
+    /// <summary>
+    /// Unit staircases sharing the heights $[0, 256]$: the eight chunks of 32 start and end at heights the operands jump to and stay on.
+    /// </summary>
+    [Fact]
+    public void ChunksEndingAtJumpsGiveTheSerialDeviation()
+    {
+        var a = new StairCurve(1, 1).Cut(0, 256, true, true);
+        var b = new StairCurve(1, 1).DelayBy(3).Cut(0, 259, true, true);
+        var serial = Sequence.HorizontalDeviation(a, b, new ComputationSettings { UseParallelism = false });
+        Assert.Equal(3, serial);
+        Assert.Equal(serial, Sequence.HorizontalDeviation(a, b, Chunked));
     }
 
     /// <summary>

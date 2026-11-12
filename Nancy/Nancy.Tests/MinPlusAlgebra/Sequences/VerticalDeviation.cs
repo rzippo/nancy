@@ -79,11 +79,58 @@ public class VerticalDeviation
 
     public static IEnumerable<object[]> KnownVDevsTestCases => KnownVDevs.ToXUnitTestCases();
 
+    /// <summary>Settings that split every vertical deviation into chunks, at a degree of parallelism of eight: as many as fit one chunk per 64 elements of work, and at least two.</summary>
+    private static readonly ComputationSettings Chunked = new()
+    {
+        MaxDegreeOfParallelism = 8, UseParallelVerticalDeviation = true, VerticalDeviationParallelizationThreshold = 0
+    };
+
     [Theory]
     [MemberData(nameof(KnownVDevsTestCases))]
     public void VerticalDeviationValues(Sequence a, Sequence b, Rational expected)
     {
         Assert.Equal(expected, Sequence.VerticalDeviation(a, b));
+        Assert.Equal(expected, Sequence.VerticalDeviation(a, b, Chunked));
+    }
+
+    /// <summary>
+    /// A deviation attained only at one point, above both of its one-sided limits, where the support is split between two chunks: the point belongs to one of them.
+    /// </summary>
+    [Fact]
+    public void ChunksKeepAValueIsolatedAtTheirEnd()
+    {
+        var a = new Sequence([new Point(0, 0), Segment.Zero(0, 1), new Point(1, 5), Segment.Zero(1, 2), new Point(2, 0)]);
+        var b = Sequence.Zero(0, 2, true, true);
+        Assert.Equal(5, Sequence.VerticalDeviation(a, b));
+        Assert.Equal(5, Sequence.VerticalDeviation(a, b, Chunked));
+    }
+
+    /// <summary>
+    /// A deviation attained only at the closed end of the support, above the left limit there: the last chunk must keep that end.
+    /// </summary>
+    [Fact]
+    public void ChunksKeepTheClosedEndOfTheSupport()
+    {
+        var a = new Sequence([new Point(0, 0), Segment.Zero(0, 1), new Point(1, 0), Segment.Zero(1, 2), new Point(2, 5)]);
+        var b = Sequence.Zero(0, 2, true, true);
+        Assert.Equal(5, Sequence.VerticalDeviation(a, b));
+        Assert.Equal(5, Sequence.VerticalDeviation(a, b, Chunked));
+    }
+
+    /// <summary>
+    /// Cuts of staircases with enough elements, over a thousand, for sixteen chunks, cut at the elements of both, with closed or open ends.
+    /// </summary>
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void ChunksOfLongSequencesGiveTheSerialDeviation(bool isStartIncluded, bool isEndIncluded)
+    {
+        var a = new StairCurve(128, 128).DelayBy(5).Cut(0, 2 * 127 * 128, isStartIncluded, isEndIncluded);
+        var b = new StairCurve(127, 127).Cut(0, 2 * 127 * 128, isStartIncluded, isEndIncluded);
+        var serial = Sequence.VerticalDeviation(a, b, new ComputationSettings { UseParallelism = false });
+        Assert.Equal(serial, Sequence.VerticalDeviation(a, b, Chunked));
     }
 
     private static Interval I(Rational lower, Rational upper, bool isLowerIncluded, bool isUpperIncluded)
@@ -164,6 +211,7 @@ public class VerticalDeviation
         {
             Assert.Throws<ArgumentException>(() => Sequence.Subtraction(a, b));
             Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b));
+            Assert.Throws<ArgumentException>(() => Sequence.VerticalDeviation(a, b, Chunked));
             return;
         }
 
@@ -208,6 +256,7 @@ public class VerticalDeviation
         foreach (var (t, v) in values)
             Assert.True(vdev.ValueAt(t) == v, $"{id}: {vdev.ValueAt(t)} at {t}, not {v}");
         Assert.True(Sequence.VerticalDeviation(a, b) == sup, $"{id}: supremum {Sequence.VerticalDeviation(a, b)}, not {sup}");
+        Assert.True(Sequence.VerticalDeviation(a, b, Chunked) == sup, $"{id}: chunked supremum {Sequence.VerticalDeviation(a, b, Chunked)}, not {sup}");
     }
 
     /// <summary>
@@ -231,6 +280,7 @@ public class VerticalDeviation
     {
         Assert.Throws<UndeterminedResultException>(() => Sequence.Subtraction(a, b));
         Assert.Throws<UndeterminedResultException>(() => Sequence.VerticalDeviation(a, b));
+        Assert.Throws<UndeterminedResultException>(() => Sequence.VerticalDeviation(a, b, Chunked));
     }
 
     /// <summary>
@@ -281,6 +331,7 @@ public class VerticalDeviation
         {
             Assert.Throws<UndeterminedResultException>(() => Sequence.Subtraction(a, b));
             Assert.Throws<UndeterminedResultException>(() => Sequence.VerticalDeviation(a, b));
+            Assert.Throws<UndeterminedResultException>(() => Sequence.VerticalDeviation(a, b, Chunked));
         }
     }
 
