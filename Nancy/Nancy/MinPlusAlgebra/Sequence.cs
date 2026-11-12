@@ -3232,26 +3232,31 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 var aPoints = f.Elements.Count(e => e is Point);
                 var aPointsNotKept = f.EndsWithPlateau ? aConstantSegments - 1 : aConstantSegments;
                 var aPointsKept = aPoints - aPointsNotKept;
-                var aKept = aNonConstantSegments + aPointsKept;
-                var aNotKept = aConstantSegments + aPointsNotKept;
+                var aKept = (long)aNonConstantSegments + aPointsKept;
+                var aNotKept = (long)aConstantSegments + aPointsNotKept;
 
                 var bConstantSegments = g.Elements.Count(e => e is Segment {IsConstant: true});
                 var bNonConstantSegments = g.Elements.Count(e => e is Segment {IsConstant: false});
                 var bPoints = g.Elements.Count(e => e is Point);
                 var bPointsNotKept = g.EndsWithPlateau ? bConstantSegments - 1 : bConstantSegments;
                 var bPointsKept = bPoints - bPointsNotKept;
-                var bKept = bNonConstantSegments + bPointsKept;
-                var bNotKept = bConstantSegments + bPointsNotKept;
+                var bKept = (long)bNonConstantSegments + bPointsKept;
+                var bNotKept = (long)bConstantSegments + bPointsNotKept;
 
                 var aDiscontinuities = f.EnumerateBreakpoints()
                     .Count(bp => bp.right != null && bp.center.Value != bp.right.RightLimitAtStartTime);
                 var bDiscontinuities = g.EnumerateBreakpoints()
                     .Count(bp => bp.right != null && bp.center.Value != bp.right.RightLimitAtStartTime);
-                var aReplaced = 2 * aDiscontinuities;
-                var bReplaced = 2 * bDiscontinuities;
+                var aReplaced = 2L * aDiscontinuities;
+                var bReplaced = 2L * bDiscontinuities;
 
                 var directCount = aNotKept * bNotKept + aNotKept * bKept + aKept * bNotKept;
-                var inverseCount = aReplaced * bReplaced + aReplaced * bKept + aKept * bReplaced;
+                // Stop accumulating once the inverse estimate cannot win, keeping the sum within long's range.
+                var inverseCount = aReplaced * bReplaced;
+                if (inverseCount < directCount)
+                    inverseCount += aReplaced * bKept;
+                if (inverseCount < directCount)
+                    inverseCount += aKept * bReplaced;
 
                 if (directCount > inverseCount)
                 {
@@ -3907,26 +3912,31 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
                 var aPoints = f.Elements.Count(e => e is Point);
                 var aPointsNotKept = f.EndsWithPlateau ? aConstantSegments - 1 : aConstantSegments;
                 var aPointsKept = aPoints - aPointsNotKept;
-                var aKept = aNonConstantSegments + aPointsKept;
-                var aNotKept = aConstantSegments + aPointsNotKept;
+                var aKept = (long)aNonConstantSegments + aPointsKept;
+                var aNotKept = (long)aConstantSegments + aPointsNotKept;
 
                 var bConstantSegments = g.Elements.Count(e => e is Segment {IsConstant: true});
                 var bNonConstantSegments = g.Elements.Count(e => e is Segment {IsConstant: false});
                 var bPoints = g.Elements.Count(e => e is Point);
                 var bPointsNotKept = g.EndsWithPlateau ? bConstantSegments - 1 : bConstantSegments;
                 var bPointsKept = bPoints - bPointsNotKept;
-                var bKept = bNonConstantSegments + bPointsKept;
-                var bNotKept = bConstantSegments + bPointsNotKept;
+                var bKept = (long)bNonConstantSegments + bPointsKept;
+                var bNotKept = (long)bConstantSegments + bPointsNotKept;
 
                 var aDiscontinuities = f.EnumerateBreakpoints()
                     .Count(bp => bp.right != null && bp.center.Value != bp.right.RightLimitAtStartTime);
                 var bDiscontinuities = g.EnumerateBreakpoints()
                     .Count(bp => bp.right != null && bp.center.Value != bp.right.RightLimitAtStartTime);
-                var aReplaced = 2 * aDiscontinuities;
-                var bReplaced = 2 * bDiscontinuities;
+                var aReplaced = 2L * aDiscontinuities;
+                var bReplaced = 2L * bDiscontinuities;
 
                 var directCount = aNotKept * bNotKept + aNotKept * bKept + aKept * bNotKept;
-                var inverseCount = aReplaced * bReplaced + aReplaced * bKept + aKept * bReplaced;
+                // Stop accumulating once the inverse estimate cannot win, keeping the sum within long's range.
+                var inverseCount = aReplaced * bReplaced;
+                if (inverseCount < directCount)
+                    inverseCount += aReplaced * bKept;
+                if (inverseCount < directCount)
+                    inverseCount += aKept * bReplaced;
 
                 if (directCount > inverseCount)
                 {
