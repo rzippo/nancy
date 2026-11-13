@@ -84,11 +84,13 @@ public class SignPredicatesOverInterval
         yield return (-transient, new Rational(1, 2), null, true, false, false, false, false);
         yield return (-transient, 1, null, true, false, true, false, true);
 
-        var mixed = new Curve(new Sequence([Point.MinusInfinite(0), Segment.PlusInfinite(0, 1)]), 0, 1, -1);
+        // -inf at 0 and +inf after, on an infinite period with a negative height.
+        var mixed = new Curve(new Sequence([Point.MinusInfinite(0), Segment.PlusInfinite(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)]), 1, 1, -1);
         yield return (mixed, 0, 1, false, false, false, true, false);
-        yield return (mixed, 0, null, false, false, false, false, false);
+        yield return (mixed, 0, null, false, false, false, true, false);
+        yield return (mixed, 0, 1, true, false, false, false, false);
         yield return (-mixed, 0, 1, false, false, true, false, true);
-        yield return (-mixed, 0, null, false, false, false, false, false);
+        yield return (-mixed, 0, null, false, false, true, false, true);
 
         // A finite point amid otherwise infinite values eventually changes sign.
         var finitePoint = new Curve(new Sequence([new Point(0, 100), Segment.PlusInfinite(0, 1)]), 0, 1, -1);

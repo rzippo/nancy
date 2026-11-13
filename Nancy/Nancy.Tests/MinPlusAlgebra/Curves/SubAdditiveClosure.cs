@@ -508,10 +508,10 @@ public class SubAdditiveClosure
     }
 
     /// <summary>
-    /// A curve that is 0 at the origin and takes both infinities afterwards is not rejected upfront, so the closures reach the sum of opposite infinities while they compute it.
+    /// A curve that is 0 at the origin, takes both infinities in its transient, and is 0 again from 2: the closures reach the sum of opposite infinities while they compute it.
     /// </summary>
     public static Curve BothInfinitiesAfterOrigin = new Curve(
-        new Sequence([Point.Origin(), Segment.PlusInfinite(0, 1), Point.PlusInfinite(1), Segment.MinusInfinite(1, 2), Point.MinusInfinite(2)]), 0, 2, 0);
+        new Sequence([Point.Origin(), Segment.PlusInfinite(0, 1), Point.PlusInfinite(1), Segment.MinusInfinite(1, 2), Point.Zero(2), Segment.Zero(2, 3)]), 2, 1, 0);
 
     public static IEnumerable<object[]> ClosuresOfCurveTakingBothInfinities()
     {

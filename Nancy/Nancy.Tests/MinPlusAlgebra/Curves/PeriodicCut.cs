@@ -62,11 +62,11 @@ public class PeriodicCut
         ]));
         yield return (new Curve(new Sequence([
             Point.Origin(), Segment.PlusInfinite(0, 1),
-            new Point(1, 5), Segment.MinusInfinite(1, 2)
+            new Point(1, 5), Segment.PlusInfinite(1, 2)
         ]), 0, 2, 0), new Sequence([
             new Point(new Rational(5, 2), Rational.PlusInfinity),
             Segment.PlusInfinite(new Rational(5, 2), 3),
-            new Point(3, 5), Segment.MinusInfinite(3, 4),
+            new Point(3, 5), Segment.PlusInfinite(3, 4),
             Point.Zero(4), Segment.PlusInfinite(4, new Rational(9, 2)),
             new Point(new Rational(9, 2), Rational.PlusInfinity)
         ]));
