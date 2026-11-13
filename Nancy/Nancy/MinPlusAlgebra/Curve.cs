@@ -176,40 +176,67 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Returns the minimum $T_L$ such that $f(t + d) = f(t) + c$ for all $t > T_L$.
     /// It is the infimum of all valid <see cref="PseudoPeriodStart"/>, i.e. $T_L = \inf\{ T | f(t + d) = f(t) + c \forall t \ge T \}$.
     /// </summary>
+    /// <remarks>
+    /// When the pseudo-period height $c$ is $+\infty$ or $-\infty$, the relation is read as $f(t + d) = f(t)$, that is, $f(t) = c$ for all $t > T_L$.
+    /// When $c$ is finite, $\pm\infty + c = \pm\infty$.
+    /// </remarks>
     [System.Text.Json.Serialization.JsonIgnore]
     public Rational PseudoPeriodStartInfimum
     {
         get
         {
+            // In the optimized curve, no segment, point and segment that continue each other are stored apart, except at its pseudo-period start.
             var opt = this.Optimize();
             if (!opt.HasTransient)
                 return 0;
-            
+
             var lastTransientSegment = (Segment) opt.TransientElements.Last();
             var lastPeriodSegment = (Segment) opt.PseudoPeriodicElements.Last();
+            var T = opt.PseudoPeriodStart;
+            var d = opt.PseudoPeriodLength;
+            // With an infinite height, every period element is the same infinity, as the constructors reject a period taking both, and the relation is $f(t + d) = f(t)$.
+            var c = opt.PseudoPeriodHeight.IsInfinite ? Rational.Zero : opt.PseudoPeriodHeight;
 
-            // since it is already a minimal curve, if the last transient segment matches
-            // we can infer right-discontinuity in $T_L$, and stop here
-            
-            if (IsUltimatelyFinite && lastTransientSegment.IsFinite)
+            // Whether the last transient segment, on $]a, T[$, and the last period segment, on $]b, T + d[$, lie on lines that the relation maps onto each other.
+            var segmentsMatch = lastTransientSegment.IsFinite
+                ? lastPeriodSegment.IsFinite &&
+                  lastTransientSegment.Slope == lastPeriodSegment.Slope &&
+                  lastTransientSegment.LeftLimitAtEndTime + c == lastPeriodSegment.LeftLimitAtEndTime
+                : (lastTransientSegment.IsPlusInfinite && lastPeriodSegment.IsPlusInfinite) ||
+                  (lastTransientSegment.IsMinusInfinite && lastPeriodSegment.IsMinusInfinite);
+
+            if (!segmentsMatch)
             {
-                var gapBeforePeriodStart = ValueAt(PseudoPeriodStart) - lastTransientSegment.LeftLimitAtEndTime;
-                var gapBeforeFirstPeriodEnd = ValueAt(FirstPseudoPeriodEnd) - lastPeriodSegment.LeftLimitAtEndTime;    
-                
-                if (lastTransientSegment.Slope == lastPeriodSegment.Slope &&
-                    gapBeforePeriodStart == gapBeforeFirstPeriodEnd
-                   )
-
-                    return lastTransientSegment.StartTime;    
+                // The relation fails at all but at most one time of $]\max(a, b - d), T[$, so the infimum is $T$.
+                return T;
             }
-            // infinities must be compared without gap computations, which are undefined
-            else if (IsUltimatelyPlusInfinite && lastTransientSegment.IsPlusInfinite)
-                return lastTransientSegment.StartTime;
-            else if (IsUltimatelyMinusInfinite && lastTransientSegment.IsMinusInfinite)
-                return lastTransientSegment.StartTime;
-            
-            // if all else fails, T = T_L
-            return opt.PseudoPeriodStart;
+            else
+            {
+                // The relation holds where $t$ and $t + d$ lie in the two segments, $]\max(a, b - d), T[$.
+                var a = lastTransientSegment.StartTime;
+                var overlapStart = lastPeriodSegment.StartTime - d;
+                if (overlapStart <= a || RepeatsFrom(a))
+                {
+                    // The relation fails at $a$ or just below it: the optimized curve does not continue the line of its last transient segment below $a$, and its transient reduction stopped at $a$.
+                    return a;
+                }
+                else
+                {
+                    // The relation fails at the overlap start or just below it, where $t + d$ leaves the last period segment.
+                    // If $b > T$, the curve does not continue that segment below $b$; if $b = T$, the transient segment repeats it only if the curve is one line over $]a, T + d[$, which RepeatsFrom rules out.
+                    return overlapStart;
+                }
+            }
+
+            // Whether $f(t + d) = f(t) + c$ for every $t$ in $]start, T[$.
+            bool RepeatsFrom(Rational start)
+            {
+                var transientPart = opt.Cut(start, T, isStartIncluded: false, isEndIncluded: false);
+                var periodPart = opt.Cut(start + d, T + d, isStartIncluded: false, isEndIncluded: false)
+                    .HorizontalShift(-d)
+                    .VerticalShift(-c);
+                return transientPart.Equivalent(periodPart);
+            }
         }
     }
 
