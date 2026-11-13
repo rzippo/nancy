@@ -22,6 +22,7 @@ public class CurveExpressionVisitors
             pseudoPeriodHeight: slope
         );
 
+    // Both infinities in the transient, then 0: a period cannot take both.
     private static Curve BothInfiniteCurve() =>
         new(
             new Sequence([
@@ -29,9 +30,11 @@ public class CurveExpressionVisitors
                 Segment.PlusInfinite(0, 1),
                 Point.MinusInfinite(1),
                 Segment.MinusInfinite(1, 2),
+                Point.Zero(2),
+                Segment.Zero(2, 3),
             ]),
-            pseudoPeriodStart: 0,
-            pseudoPeriodLength: 2,
+            pseudoPeriodStart: 2,
+            pseudoPeriodLength: 1,
             pseudoPeriodHeight: 0
         );
 
