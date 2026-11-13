@@ -1639,6 +1639,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="pseudoPeriodStart">Time from which the curve is pseudo-periodic, $T$.</param>
     /// <param name="pseudoPeriodLength">Length of each pseudo-period, $d$.</param>
     /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
+    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$.</exception>
     [System.Text.Json.Serialization.JsonConstructor]
     public Curve(
         Sequence baseSequence,
@@ -1660,6 +1661,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// The base sequence is normalized to the invariants of a curve: merged, defined over $[0, T + d[$, and split at $T$.
     /// </remarks>
+    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$.</exception>
     public Curve(
         Sequence baseSequence,
         Rational pseudoPeriodStart,
@@ -1696,6 +1698,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         PseudoPeriodStart = pseudoPeriodStart;
         PseudoPeriodLength = pseudoPeriodLength;
         PseudoPeriodHeight = pseudoPeriodHeight;
+        ThrowIfPeriodTakesBothInfinities();
     }
 
     /// <summary>
@@ -1707,6 +1710,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
     /// <param name="isPartialCurve">True if the curve is partially described, and should be filled by pre- and post-pending $+\infty$ to <see cref="BaseSequence"/>.</param>
     /// <param name="settings">Optional settings for the normalization of <paramref name="baseSequence"/>; <see cref="ComputationSettings.UseKnownPropertyPropagation"/> applies.</param>
+    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$.</exception>
     public Curve(
         Sequence baseSequence,
         Rational pseudoPeriodStart,
@@ -1754,6 +1758,25 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         PseudoPeriodStart = pseudoPeriodStart;
         PseudoPeriodLength = pseudoPeriodLength;
         PseudoPeriodHeight = pseudoPeriodHeight;
+        ThrowIfPeriodTakesBothInfinities();
+    }
+
+    /// <summary>
+    /// Rejects a curve whose pseudo-period takes both $+\infty$ and $-\infty$.
+    /// </summary>
+    /// <exception cref="ArgumentException">If the pseudo-period has both a $+\infty$ and a $-\infty$ element.</exception>
+    private void ThrowIfPeriodTakesBothInfinities()
+    {
+        var periodElements = PseudoPeriodicSequence.ElementList;
+        bool takesPlusInfinity = false, takesMinusInfinity = false;
+        for (int i = 0; i < periodElements.Count; i++)
+        {
+            takesPlusInfinity |= periodElements[i].IsPlusInfinite;
+            takesMinusInfinity |= periodElements[i].IsMinusInfinite;
+        }
+
+        if (takesPlusInfinity && takesMinusInfinity)
+            throw new ArgumentException("The pseudo-period cannot take both +infinity and -infinity.");
     }
 
     /// <summary>
@@ -7343,6 +7366,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The curve resulting from the sum.</returns>
     /// <remarks> Algorithm defined in [BT08] Section 4.2 </remarks>
+    /// <exception cref="UndeterminedResultException">If one operand is $+\infty$ and the other $-\infty$ at the same time, so that the sum is undefined.</exception>
+    /// <exception cref="ArgumentException">If the period of the sum would take both $+\infty$ and $-\infty$, which no curve can represent.</exception>
     public virtual Curve Addition(Curve b, ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -7394,6 +7419,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     /// <returns>The curve resulting from the sum.</returns>
     /// <remarks> Algorithm defined in [BT08] Section 4.2 </remarks>
+    /// <exception cref="UndeterminedResultException">If one operand is $+\infty$ and the other $-\infty$ at the same time, so that the sum is undefined.</exception>
+    /// <exception cref="ArgumentException">If the period of the sum would take both $+\infty$ and $-\infty$, which no curve can represent.</exception>
     public static Curve Addition(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Addition(b, settings);
 
@@ -7461,6 +7488,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The result may contain negative values. 
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
     /// </remarks>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at the same time, so that the difference is undefined.</exception>
+    /// <exception cref="ArgumentException">If the period of the difference would take both $+\infty$ and $-\infty$, which no curve can represent.</exception>
     public virtual Curve Subtraction(Curve b, ComputationSettings? settings = null)
         => Addition(-b, settings);
 
@@ -7475,6 +7504,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// The result may contain negative values. 
     /// Use <see cref="ToNonNegative"/> for a non-negative closure. 
     /// </remarks>
+    /// <exception cref="UndeterminedResultException">If the operands are the same infinity at the same time, so that the difference is undefined.</exception>
+    /// <exception cref="ArgumentException">If the period of the difference would take both $+\infty$ and $-\infty$, which no curve can represent.</exception>
     public static Curve Subtraction(Curve a, Curve b, ComputationSettings? settings = null)
         => a.Subtraction(b, settings);
 
