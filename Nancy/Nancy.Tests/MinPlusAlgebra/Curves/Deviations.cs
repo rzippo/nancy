@@ -711,6 +711,8 @@ public class Deviations
         {
             // after 1, f is +inf and the rate never is
             ("delay, rate", d1, rate, Rational.PlusInfinity, 1, [(half, 0), (2, Rational.PlusInfinity)]),
+            // up to 1, f = 0 and g reaches 0 at 1, after 1 - t; after 1, f is +inf and g, -inf before 1, never is
+            ("delay, -inf then rate", d1, MinusThenRate, Rational.PlusInfinity, 1, [(0, 1), (half, half), (2, Rational.PlusInfinity)]),
             // after 1, f is +inf, and g becomes so after 2
             ("delay, longer delay", d1, d2, 1, 1, [(half, 0), (new Rational(3, 2), half), (3, 0)]),
             ("delay, shorter delay", d2, d1, 0, 0, [(half, 0), (new Rational(3, 2), 0), (3, 0)]),
@@ -1132,6 +1134,8 @@ public class Deviations
             ("f jumps to +inf above its left limit, g never +inf", Curve.Maximum(rate.Floor(), new DelayServiceCurve(3)), new RateLatencyServiceCurve(2, 1), Rational.PlusInfinity),
             // f becomes +inf after 1, and g never does
             ("f reaches +inf, g bounded", new DelayServiceCurve(1), Curve.Minimum(rate, new ConstantCurve(3)), Rational.PlusInfinity),
+            // f becomes +inf after 1, and g, -inf before 1, never becomes +inf
+            ("f reaches +inf, g -inf at first", new DelayServiceCurve(1), MinusThenRate, Rational.PlusInfinity),
             // f is +inf everywhere, and g = delta_2 becomes so after 2
             ("f +inf everywhere", Curve.PlusInfinite(), new DelayServiceCurve(2), 2),
             ("f +inf everywhere, g never +inf", Curve.PlusInfinite(), rate, Rational.PlusInfinity),
@@ -1218,14 +1222,18 @@ public class Deviations
             time + 1, 1, 0);
 
     /// <summary>
-    /// The inverse gap agrees with the deconvolution of the pseudo-inverses on operands with infinite values, whose inverse tails it derives from the curves.
+    /// The strategies agree on operands with infinite values, whose inverse tails the inverse gap derives from the curves.
     /// </summary>
     [Theory]
     [MemberData(nameof(ExtendedRealOperandPairs))]
-    public void HorizontalDeviationOfExtendedRealOperandsIsTheSameByDeconvolution(Curve f, Curve g)
+    public void HorizontalDeviationOfExtendedRealOperandsIsTheSameUnderEveryStrategy(Curve f, Curve g)
     {
-        var byDeconvolution = Curve.HorizontalDeviation(f, g, new ComputationSettings { HorizontalDeviationStrategy = HorizontalDeviationStrategy.PseudoInverseDeconvolution });
-        Assert.Equal(byDeconvolution, Curve.HorizontalDeviation(f, g, ByPseudoInverses));
+        var expected = Curve.HorizontalDeviation(f, g, ByPseudoInverses);
+        foreach (var settings in EveryStrategy)
+        {
+            var result = Curve.HorizontalDeviation(f, g, settings);
+            Assert.True(result == expected, $"{result} by {settings.HorizontalDeviationStrategy}{(settings == Chunked ? " over chunks" : "")}, not {expected}");
+        }
     }
 
     /// <summary>
