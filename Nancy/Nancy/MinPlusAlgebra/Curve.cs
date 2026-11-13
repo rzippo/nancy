@@ -6257,9 +6257,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         var (fInfiniteFrom, fInfiniteAtStart) = FirstPlusInfiniteTime(f);
 
         // This function gives the horizontal deviation where $f(t) = +\infty$, and is zero elsewhere.
-        // There the deviation is the time remaining after $t$ until $g$ becomes $+\infty$, or $+\infty$ if it never does.
+        // There the deviation is the time remaining after $t$ until $g$ becomes $+\infty$, or $+\infty$ if it never does, which $-\infty$ values do not change.
         Curve deviationWhereFIsInfinite;
-        if (g.IsFinite)
+        if (!g.IsUltimatelyPlusInfinite)
             deviationWhereFIsInfinite = fInfiniteAtStart
                 ? new DelayServiceCurve(fInfiniteFrom).WithRightContinuousAt(fInfiniteFrom)
                 : new DelayServiceCurve(fInfiniteFrom);
