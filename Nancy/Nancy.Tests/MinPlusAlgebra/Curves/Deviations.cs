@@ -645,7 +645,8 @@ public class Deviations
 
     /// <summary>
     /// Staircases whose work holds enough elements for eight chunks at each degree of parallelism up to eight, with plateaus and jumps at most chunk ends.
-    /// The first two pairs are finite, so both deviations are chunked; in the next two the second operand becomes $+\infty$ or starts at $-\infty$, so only the horizontal deviation is.
+    /// The first two pairs are finite; in the next two the second operand becomes $+\infty$ or starts at $-\infty$.
+    /// Both deviations use chunked searches for these pairs.
     /// In the last two both operands are bounded, and the second reaches the maximum of the first in one and not in the other, where the horizontal deviation is $+\infty$.
     /// Each degree moves the chunk boundaries: one is serial, two to eight cut the heights and times at different fractions of the window.
     /// </summary>
@@ -1487,8 +1488,53 @@ public class Deviations
         }
     }
 
+    /// <summary>$+\infty$ on $[0, 1[$, then $3(t - 1)$.</summary>
+    private static readonly Curve PlusThenTripleRate = new(
+        new Sequence([Point.PlusInfinite(0), Segment.PlusInfinite(0, 1), new Point(1, 0), new Segment(1, 2, 0, 3)]),
+        1, 1, 3);
+
+    /// <summary>$+\infty$ on $[0, 1[$, then $t - 1$.</summary>
+    private static readonly Curve PlusThenRate = new(
+        new Sequence([Point.PlusInfinite(0), Segment.PlusInfinite(0, 1), new Point(1, 0), new Segment(1, 2, 0, 1)]),
+        1, 1, 1);
+
+    /// <summary>Growing at <paramref name="rate"/> from 0 up to <paramref name="time"/>, then $+\infty$, or $-\infty$, after it.</summary>
+    private static Curve RateThenInfinite(Rational time, Rational rate, bool plus)
+    {
+        var infinity = plus ? Rational.PlusInfinity : Rational.MinusInfinity;
+        return new Curve(
+            new Sequence([Point.Origin(), new Segment(0, time, 0, rate), new Point(time, rate * time),
+                Segment.Constant(time, time + 1, infinity), new Point(time + 1, infinity), Segment.Constant(time + 1, time + 2, infinity)]),
+            time + 1, 1, 0);
+    }
+
+    /// <summary>$-\infty$ on $[0, 1[$, 0 on $[1, 2[$, then $+\infty$.</summary>
+    private static readonly Curve MinusThenZeroThenPlus = new(
+        new Sequence([Point.MinusInfinite(0), Segment.MinusInfinite(0, 1), new Point(1, 0), Segment.Zero(1, 2), Point.PlusInfinite(2), Segment.PlusInfinite(2, 3)]),
+        2, 1, 0);
+
+    /// <summary>$+\infty$ on $[0, 1[$ and 1 on $[1, 2[$, with period 2 and height 2.</summary>
+    private static readonly Curve PlusInfiniteThenOne = new(
+        new Sequence([Point.PlusInfinite(0), Segment.PlusInfinite(0, 1), new Point(1, 1), Segment.Constant(1, 2, 1)]),
+        0, 2, 2);
+
+    /// <summary>0 on $[0, 1[$ and $+\infty$ on $[1, 2[$, with period 2 and height 0.</summary>
+    private static readonly Curve ZeroThenPlusInfinite = new(
+        new Sequence([Point.Origin(), Segment.Zero(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2)]),
+        0, 2, 0);
+
+    /// <summary>5 on $[0, 1[$, then from 1 with period 2, $-\infty$ on $[1, 2[$ and 0 on $[2, 3[$, with height 10.</summary>
+    private static readonly Curve FiveThenMinusInfiniteOrZero = new(
+        new Sequence([new Point(0, 5), Segment.Constant(0, 1, 5), Point.MinusInfinite(1), Segment.MinusInfinite(1, 2), new Point(2, 0), Segment.Zero(2, 3)]),
+        1, 2, 10);
+
+    /// <summary>0 on $[0, 1[$, then from 1 with period 2, 0 up to <paramref name="infiniteFrom"/> and $+\infty$ from it to 3, with the given height.</summary>
+    private static Curve ZeroThenPlusInfiniteFrom(Rational infiniteFrom, Rational height) => new(
+        new Sequence([Point.Origin(), Segment.Zero(0, 1), new Point(1, 0), Segment.Zero(1, infiniteFrom), Point.PlusInfinite(infiniteFrom), Segment.PlusInfinite(infiniteFrom, 3)]),
+        1, 2, height);
+
     /// <summary>
-    /// Pairs of curves taking the value $+\infty$ or $-\infty$, with their vertical deviation, [TBP-SEQ-DEV] § 3:
+    /// Pairs of curves taking the value $+\infty$ or $-\infty$, with their vertical deviation and the first time around which it is reached, [TBP-SEQ-DEV] § 3:
     /// where one curve alone is infinite, or the two are infinite with opposite signs, the difference is that of the infinite terms.
     /// </summary>
     public static IEnumerable<object[]> InfiniteVDevCases()
@@ -1496,30 +1542,77 @@ public class Deviations
         var rate = new RateLatencyServiceCurve(1, 0);
         var delta1 = new DelayServiceCurve(1);
         var delta2 = new DelayServiceCurve(2);
-        yield return ["g +inf after 2", rate, delta2, (Rational) 2];
-        yield return ["f +inf after 2", delta2, rate, Rational.PlusInfinity];
-        yield return ["f -inf before 1", MinusThenRate, rate, (Rational) 0];
-        yield return ["g -inf before 1", rate, MinusThenRate, Rational.PlusInfinity];
-        yield return ["f +inf after 1, g -inf before 1", delta1, MinusThenRate, Rational.PlusInfinity];
+        yield return ["g +inf after 2", rate, delta2, (Rational) 2, (Rational) 2];
+        yield return ["f +inf after 2", delta2, rate, Rational.PlusInfinity, (Rational) 2];
+        yield return ["f -inf before 1", MinusThenRate, rate, (Rational) 0, (Rational) 1];
+        yield return ["g -inf before 1", rate, MinusThenRate, Rational.PlusInfinity, (Rational) 0];
+        yield return ["f +inf after 1, g -inf before 1", delta1, MinusThenRate, Rational.PlusInfinity, (Rational) 0];
         // f(1) - g(1) = 1, and -inf before and after
-        yield return ["f -inf before 1, g +inf after 1", MinusThenRate, delta1, (Rational) 1];
+        yield return ["f -inf before 1, g +inf after 1", MinusThenRate, delta1, (Rational) 1, (Rational) 1];
+        yield return ["f -inf everywhere", Curve.MinusInfinite(), rate, Rational.MinusInfinity, (Rational) 0];
+        yield return ["g -inf everywhere", rate, Curve.MinusInfinite(), Rational.PlusInfinity, (Rational) 0];
+        // f +inf at first gives +inf from 0, though f also grows faster afterwards
+        yield return ["f +inf before 1, then faster", PlusThenTripleRate, rate, Rational.PlusInfinity, (Rational) 0];
+        yield return ["f +inf after 2, g -inf after 3", RateThenInfinite(2, 1, true), RateThenInfinite(3, 3, false), Rational.PlusInfinity, (Rational) 2];
+        // f - g is 2t up to 2, then -inf
+        yield return ["f -inf after 2", RateThenInfinite(2, 3, false), rate, (Rational) 4, (Rational) 2];
+        // f - g is 3t on [0, 1[, -inf on [1, 2[, 6 at 2, then -inf
+        yield return ["f -inf after 2, g +inf in its period", RateThenInfinite(2, 3, false), ZeroThenPlusInfinite, (Rational) 6, (Rational) 2];
+        // f - g is +inf on [0, 1[ and -inf on [1, 2[, a period no curve takes, nancy#175
+        yield return ["f - g takes both infinities in its period", PlusInfiniteThenOne, ZeroThenPlusInfinite, Rational.PlusInfinity, (Rational) 0];
+        // f - g is 5 on [0, 1[, then -inf: f grows faster, but never where both are finite
+        yield return ["f grows faster only where f - g is -inf", FiveThenMinusInfiniteOrZero, ZeroThenPlusInfiniteFrom(2, 0), (Rational) 5, (Rational) 0];
+        // f - g is 5 on [0, 1[, -inf on [1, 2[, then 0 on [2, 3[, gaining 8 every period of 2
+        yield return ["f grows faster where both are finite", FiveThenMinusInfiniteOrZero, rate, Rational.PlusInfinity, Rational.PlusInfinity];
+        // both are finite on [2, 5/2[ of each period, where f gains 10 against 0
+        yield return ["both mixed, f grows faster where both are finite", FiveThenMinusInfiniteOrZero, ZeroThenPlusInfiniteFrom(new Rational(5, 2), 0), Rational.PlusInfinity, Rational.PlusInfinity];
+        // as above, but g gains 20 a period, so f - g is largest at the start
+        yield return ["both mixed, g grows faster where both are finite", FiveThenMinusInfiniteOrZero, ZeroThenPlusInfiniteFrom(new Rational(5, 2), 20), (Rational) 5, (Rational) 0];
     }
 
     [Theory]
     [MemberData(nameof(InfiniteVDevCases))]
-    public void VerticalDeviationOverInfiniteValues(string id, Curve f, Curve g, Rational expected)
+    public void VerticalDeviationOverInfiniteValues(string id, Curve f, Curve g, Rational expected, Rational at)
     {
-        var vdev = Curve.VerticalDeviation(f, g);
-        Assert.True(vdev == expected, $"{id}: {vdev}, not {expected}");
+        foreach (var settings in new[] { new ComputationSettings { UseParallelism = false }, Chunked })
+        {
+            var vdev = Curve.VerticalDeviation(f, g, settings);
+            Assert.True(vdev == expected, $"{id}: {vdev}, not {expected}");
+            var measuredAt = Curve.VerticalDeviationMeasuredAt(f, g, settings);
+            Assert.True(measuredAt == at, $"{id}: measured at {measuredAt}, not {at}");
+        }
     }
 
     /// <summary>
-    /// [TBP-SEQ-DEV] § 3: where both curves are $+\infty$, or both $-\infty$, at some time, their difference there has no value, and neither has the deviation.
+    /// Pairs of curves that are both $+\infty$, or both $-\infty$, at some time, [TBP-SEQ-DEV] § 3: their difference there has no value, and neither has the deviation.
     /// </summary>
-    [Fact]
-    public void VerticalDeviationIsUndefinedWhereBothAreTheSameInfinity()
+    public static IEnumerable<object[]> UndefinedVDevCases()
     {
-        Assert.Throws<UndeterminedResultException>(() => Curve.VerticalDeviation(new DelayServiceCurve(1), new DelayServiceCurve(2)));
-        Assert.Throws<UndeterminedResultException>(() => Curve.VerticalDeviation(MinusThenRate, MinusThenRate));
+        yield return ["two delays", new DelayServiceCurve(1), new DelayServiceCurve(2)];
+        yield return ["-inf before 1, twice", MinusThenRate, MinusThenRate];
+        yield return ["+inf before 1, then different rates", PlusThenTripleRate, PlusThenRate];
+        yield return ["both +inf after a time", RateThenInfinite(2, 1, true), RateThenInfinite(3, 1, true)];
+        yield return ["-inf in the period, twice", FiveThenMinusInfiniteOrZero, FiveThenMinusInfiniteOrZero];
+        // f is +inf where g never is, but both are -inf before 1
+        yield return ["f +inf after 2, both -inf before 1", MinusThenZeroThenPlus, MinusThenRate];
+        // g is -inf where f never is, but both are +inf after 2
+        yield return ["g -inf before 1, both +inf after 2", new DelayServiceCurve(1), MinusThenZeroThenPlus];
+        // f is +inf on [2, 3[ + 3k, g on [4, 5[ + 2k from 3: both first at [8, 9[, past one period of either after 3
+        yield return ["both +inf first late in the common period",
+            new Curve(new Sequence([Point.Origin(), Segment.Zero(0, 2), Point.PlusInfinite(2), Segment.PlusInfinite(2, 3)]), 0, 3, 3),
+            new Curve(new Sequence([Point.Origin(), Segment.Zero(0, 3), new Point(3, 0), Segment.Zero(3, 4), Point.PlusInfinite(4), Segment.PlusInfinite(4, 5)]), 3, 2, 0)];
+    }
+
+    [Theory]
+    [MemberData(nameof(UndefinedVDevCases))]
+    public void VerticalDeviationIsUndefinedWhereBothAreTheSameInfinity(string id, Curve f, Curve g)
+    {
+        foreach (var settings in new[] { new ComputationSettings { UseParallelism = false }, Chunked })
+        {
+            var vdev = Record.Exception(() => Curve.VerticalDeviation(f, g, settings));
+            Assert.True(vdev is UndeterminedResultException, $"{id}: {vdev?.GetType().Name ?? "no exception"}");
+            var measuredAt = Record.Exception(() => Curve.VerticalDeviationMeasuredAt(f, g, settings));
+            Assert.True(measuredAt is UndeterminedResultException, $"{id}: measured at, {measuredAt?.GetType().Name ?? "no exception"}");
+        }
     }
 }
