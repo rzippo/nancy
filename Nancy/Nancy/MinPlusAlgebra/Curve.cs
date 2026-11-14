@@ -6325,9 +6325,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="g">The second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>A vertical deviation.</returns>
+    /// <exception cref="UndeterminedResultException">If both operands are $+\infty$, or both $-\infty$, at some time, where their difference is undefined.</exception>
     /// <remarks>
     /// Following from the definition in [DNC18] p.100, the result may be negative.
-    /// For finite curves, a long deviation is the largest of the suprema over chunks of its window of time, which partition it, see <see cref="ComputationSettings.UseParallelVerticalDeviation"/>.
+    /// A long deviation is the largest of the suprema over chunks of its window of time, which partition it, see <see cref="ComputationSettings.UseParallelVerticalDeviation"/>.
     /// </remarks>
     public static Rational VerticalDeviation(Curve f, Curve g, ComputationSettings? settings = null)
     {
@@ -6338,21 +6339,24 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             else
                 return Rational.PlusInfinity;
         }
-        else if (!f.IsFinite || !g.IsFinite)
-        {
-            // The window below holds for finite curves, [BT08] Proposition 4(4), so with infinite values the difference is computed in full.
-            var diff = f.Subtraction(g, settings);
-            return diff.SupValue(settings);
-        }
         else
         {
-            if (f.PseudoPeriodSlope > g.PseudoPeriodSlope)
+            // A finite f that ultimately grows faster than a finite g gets ever further above it.
+            if (f.IsFinite && g.IsFinite && f.PseudoPeriodSlope > g.PseudoPeriodSlope)
                 return Rational.PlusInfinity;
+            // Where f is $+\infty$ and g never is, f - g is $+\infty$, and so is the deviation, unless both are $-\infty$ at some time; likewise where g is $-\infty$ and f never is.
+            if ((f.HasPlusInfinity && !g.HasPlusInfinity && !(f.HasMinusInfinity && g.HasMinusInfinity))
+                || (g.HasMinusInfinity && !f.HasMinusInfinity && !(f.HasPlusInfinity && g.HasPlusInfinity)))
+                return Rational.PlusInfinity;
+            // Two curves that end at the same infinity have no difference from then on.
+            if ((f.IsUltimatelyPlusInfinite && g.IsUltimatelyPlusInfinite) || (f.IsUltimatelyMinusInfinite && g.IsUltimatelyMinusInfinite))
+                throw new UndeterminedResultException("The curves are both +infinity, or both -infinity, from some time on, where their difference is undefined.");
 
-            // The difference is ultimately pseudo-periodic and never grows from one period to the next, [BT08] Proposition 4(4).
-            // So it is enough to search up to one period past the later of the two pseudo-period starts, taking as period the least common multiple of their period lengths.
-            var end = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart)
-                + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+            // From the later of the two pseudo-period starts, both curves repeat over the least common multiple of their period lengths.
+            // Over each such period, f - g takes the same infinite values, and its finite values change by that length times the difference of the slopes, [TBP-CURVE-ORDER] Lemma 6.
+            // So it is enough to search up to one period past that start, for any time where both are the same infinity, and for the supremum unless f - g grows from one period to the next.
+            var periodStart = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart);
+            var end = periodStart + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var times = new Interval(0, end, isLowerIncluded: true, isUpperIncluded: true);
 
             settings ??= ComputationSettings.Default();
@@ -6361,11 +6365,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 ? Sequence.GetPointwisePairChunkBudget(f.Count(times) + g.Count(times), settings.VerticalDeviationParallelizationThreshold)
                 : 1;
 
+            Rational supremum;
             if (chunkBudget > 1)
             {
                 // The window is partitioned at the start times of evenly spaced elements of both operands, each chunk with its own supremum.
                 // The chunks are a partition of the window, so the largest of their suprema is the supremum of f - g.
-                return Sequence.ComputeSupremumInParallel(
+                supremum = Sequence.ComputeSupremumInParallel(
                     support: times,
                     boundaries: GetPointwisePairBoundaries(f, g, end, settings.DegreeOfParallelism, chunkBudget),
                     chunkSupremum: chunk =>
@@ -6383,9 +6388,30 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 var fCut = f.CutAsEnumerable(times, settings);
                 var gCut = g.CutAsEnumerable(times, settings);
-                return fCut
+                supremum = fCut
                     .Subtraction(gCut)
                     .SupValue();
+            }
+
+            // f - g grows from one period to the next only if f grows faster, and only where both are finite.
+            if (supremum.IsPlusInfinite || f.PseudoPeriodSlope <= g.PseudoPeriodSlope)
+                return supremum;
+            else
+            {
+                // Whether both are finite somewhere in the common period, [TBP-CURVE-ORDER] Proposition 14.
+                bool areBothFiniteInPeriod;
+                if (f.PseudoPeriodSlope.IsInfinite || g.PseudoPeriodSlope.IsInfinite)
+                    areBothFiniteInPeriod = false;
+                else if (f.IsUltimatelyFinite || g.IsUltimatelyFinite)
+                    areBothFiniteInPeriod = true;
+                else if (f.ValueAt(periodStart, settings).IsFinite && g.ValueAt(periodStart, settings).IsFinite)
+                    areBothFiniteInPeriod = true;
+                else
+                    areBothFiniteInPeriod = SequenceExtensions.OverlappingElements(
+                            f.CutAsEnumerable(periodStart, end, settings: settings),
+                            g.CutAsEnumerable(periodStart, end, settings: settings))
+                        .Any(pair => pair.left.IsFinite && pair.right.IsFinite);
+                return areBothFiniteInPeriod ? Rational.PlusInfinity : supremum;
             }
         }
     }
@@ -6397,6 +6423,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="f">The first operand.</param>
     /// <param name="g">The second operand.</param>
     /// <param name="settings">Optional settings for the operation.</param>
+    /// <exception cref="UndeterminedResultException">If both operands are $+\infty$, or both $-\infty$, at some time, where their difference is undefined.</exception>
     public static Rational VerticalDeviationMeasuredAt(Curve f, Curve g, ComputationSettings? settings = null)
     {
         if (f is SigmaRhoArrivalCurve sr && g is RateLatencyServiceCurve dr)
@@ -6409,28 +6436,48 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             else
                 return Rational.PlusInfinity;
         }
-        else if (!f.IsFinite || !g.IsFinite)
-        {
-            // The window below holds for finite curves, [BT08] Proposition 4(4), so with infinite values the difference is computed in full.
-            var diff = f.Subtraction(g, settings);
-            return diff.SupArg(settings);
-        }
         else
         {
-            if (f.PseudoPeriodSlope > g.PseudoPeriodSlope)
+            // A finite f that ultimately grows faster than a finite g gets ever further above it, and never reaches its supremum.
+            if (f.IsFinite && g.IsFinite && f.PseudoPeriodSlope > g.PseudoPeriodSlope)
                 return Rational.PlusInfinity;
+            // Two curves that end at the same infinity have no difference from then on.
+            if ((f.IsUltimatelyPlusInfinite && g.IsUltimatelyPlusInfinite) || (f.IsUltimatelyMinusInfinite && g.IsUltimatelyMinusInfinite))
+                throw new UndeterminedResultException("The curves are both +infinity, or both -infinity, from some time on, where their difference is undefined.");
 
-            // The difference is ultimately pseudo-periodic and never grows from one period to the next, [BT08] Proposition 4(4), so a later period ties the supremum at best, and only after its first location.
-            // So it is enough to search up to one period past the later of the two pseudo-period starts, taking as period the least common multiple of their period lengths.
-            var end = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart)
-                + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
+            // From the later of the two pseudo-period starts, both curves repeat over the least common multiple of their period lengths.
+            // Over each such period, f - g takes the same infinite values, and its finite values change by that length times the difference of the slopes, [TBP-CURVE-ORDER] Lemma 6.
+            // So it is enough to search up to one period past that start, for any time where both are the same infinity, and for the first location of the supremum unless f - g grows from one period to the next.
+            var periodStart = Rational.Max(f.PseudoPeriodStart, g.PseudoPeriodStart);
+            var end = periodStart + Rational.LeastCommonMultiple(f.PseudoPeriodLength, g.PseudoPeriodLength);
             var times = new Interval(0, end, isLowerIncluded: true, isUpperIncluded: true);
 
             var fCut = f.CutAsEnumerable(times, settings);
             var gCut = g.CutAsEnumerable(times, settings);
-            return fCut
+            var (supremum, time) = fCut
                 .Subtraction(gCut)
-                .SupArg();
+                .SupValueAndArg();
+
+            // f - g grows from one period to the next only if f grows faster, and only where both are finite; then its supremum is never reached.
+            if (supremum.IsPlusInfinite || f.PseudoPeriodSlope <= g.PseudoPeriodSlope)
+                return time;
+            else
+            {
+                // Whether both are finite somewhere in the common period, [TBP-CURVE-ORDER] Proposition 14.
+                bool areBothFiniteInPeriod;
+                if (f.PseudoPeriodSlope.IsInfinite || g.PseudoPeriodSlope.IsInfinite)
+                    areBothFiniteInPeriod = false;
+                else if (f.IsUltimatelyFinite || g.IsUltimatelyFinite)
+                    areBothFiniteInPeriod = true;
+                else if (f.ValueAt(periodStart, settings).IsFinite && g.ValueAt(periodStart, settings).IsFinite)
+                    areBothFiniteInPeriod = true;
+                else
+                    areBothFiniteInPeriod = SequenceExtensions.OverlappingElements(
+                            f.CutAsEnumerable(periodStart, end, settings: settings),
+                            g.CutAsEnumerable(periodStart, end, settings: settings))
+                        .Any(pair => pair.left.IsFinite && pair.right.IsFinite);
+                return areBothFiniteInPeriod ? Rational.PlusInfinity : time;
+            }
         }
     }
 

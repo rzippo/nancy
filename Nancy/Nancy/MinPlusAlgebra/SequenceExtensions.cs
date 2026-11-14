@@ -575,7 +575,7 @@ public static partial class SequenceExtensions
     /// <param name="b">The second stream.</param>
     /// <returns>Point pairs at shared times and segment pairs covering each shared open interval.</returns>
     /// <exception cref="ArgumentException">If an operand is empty or the streams share no time.</exception>
-    private static IEnumerable<(Element left, Element right)> OverlappingElements(IEnumerable<Element> a, IEnumerable<Element> b)
+    internal static IEnumerable<(Element left, Element right)> OverlappingElements(IEnumerable<Element> a, IEnumerable<Element> b)
     {
         using var cursorA = new ElementCursor(a);
         using var cursorB = new ElementCursor(b);
