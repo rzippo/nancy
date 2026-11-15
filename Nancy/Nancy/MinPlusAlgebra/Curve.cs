@@ -1666,7 +1666,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="pseudoPeriodStart">Time from which the curve is pseudo-periodic, $T$.</param>
     /// <param name="pseudoPeriodLength">Length of each pseudo-period, $d$.</param>
     /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
-    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$.</exception>
+    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$, or the height is the infinity opposite to one it takes.</exception>
     [System.Text.Json.Serialization.JsonConstructor]
     public Curve(
         Sequence baseSequence,
@@ -1688,7 +1688,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// The base sequence is normalized to the invariants of a curve: merged, defined over $[0, T + d[$, and split at $T$.
     /// </remarks>
-    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$.</exception>
+    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$, or the height is the infinity opposite to one it takes.</exception>
     public Curve(
         Sequence baseSequence,
         Rational pseudoPeriodStart,
@@ -1704,7 +1704,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             throw new ArgumentException("Base sequence must start at t = 0 and end at T + d");
         }
-        else if (
+
+        ThrowIfHeightIsOppositeToPeriod(baseSequence, pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight);
+        if (
             pseudoPeriodHeight.IsInfinite &&
             baseSequence
                 .CutAsEnumerable(pseudoPeriodStart, pseudoPeriodStart + pseudoPeriodLength)
@@ -1737,7 +1739,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="pseudoPeriodHeight">Height gained after each pseudo-period, $c$.</param>
     /// <param name="isPartialCurve">True if the curve is partially described, and should be filled by pre- and post-pending $+\infty$ to <see cref="BaseSequence"/>.</param>
     /// <param name="settings">Optional settings for the normalization of <paramref name="baseSequence"/>; <see cref="ComputationSettings.UseKnownPropertyPropagation"/> applies.</param>
-    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$.</exception>
+    /// <exception cref="ArgumentException">If the pseudo-period takes both $+\infty$ and $-\infty$, or the height is the infinity opposite to one it takes.</exception>
     public Curve(
         Sequence baseSequence,
         Rational pseudoPeriodStart,
@@ -1764,7 +1766,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 throw new ArgumentException("Base sequence must start at t = 0 and end at T + d");
             }
         }
-        else if (
+
+        ThrowIfHeightIsOppositeToPeriod(baseSequence, pseudoPeriodStart, pseudoPeriodLength, pseudoPeriodHeight);
+        if (
             pseudoPeriodHeight.IsInfinite &&
             baseSequence
                 .CutAsEnumerable(pseudoPeriodStart, pseudoPeriodStart + pseudoPeriodLength)
@@ -1786,6 +1790,20 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         PseudoPeriodLength = pseudoPeriodLength;
         PseudoPeriodHeight = pseudoPeriodHeight;
         ThrowIfPeriodTakesBothInfinities();
+    }
+
+    /// <summary>
+    /// Rejects an infinite pseudo-period height whose sign is opposite to an infinite value in the pseudo-period, since their sum has no value.
+    /// </summary>
+    /// <exception cref="ArgumentException">If the height is $+\infty$ and the pseudo-period takes $-\infty$, or the other way round.</exception>
+    private static void ThrowIfHeightIsOppositeToPeriod(
+        Sequence baseSequence, Rational pseudoPeriodStart, Rational pseudoPeriodLength, Rational pseudoPeriodHeight)
+    {
+        if (pseudoPeriodHeight.IsInfinite
+            && baseSequence
+                .CutAsEnumerable(pseudoPeriodStart, pseudoPeriodStart + pseudoPeriodLength)
+                .Any(e => e.IsInfinite && e.IsPlusInfinite != pseudoPeriodHeight.IsPlusInfinite))
+            throw new ArgumentException("The pseudo-period height cannot be the infinity opposite to an infinite value in the pseudo-period, as their sum is undefined.");
     }
 
     /// <summary>
