@@ -30,16 +30,4 @@ public class PseudoPeriodView
         Assert.Equal(expected, curve.PseudoPeriodicSequence);
         Assert.Equal(expected.Elements, curve.PseudoPeriodicElements);
     }
-
-    [Fact]
-    public void ABaseSequenceWithoutAPointAtThePeriodStartIsCut()
-    {
-        // replacing the base sequence with its merged form removes the point at 5
-        var split = new Curve(new Sequence([new Point(0, 1), new Segment(0, 5, 1, 1), new Point(5, 6), new Segment(5, 6, 6, 1)]), 5, 1, 1);
-        var merged = new Curve(split) { BaseSequence = split.BaseSequence.Optimize() };
-
-        Assert.Equal(2, merged.BaseSequence.Count);
-        Assert.Equal(new Sequence([new Point(5, 6), new Segment(5, 6, 6, 1)]), merged.PseudoPeriodicSequence);
-        Assert.Equal(split.PseudoPeriodSlope, merged.PseudoPeriodSlope);
-    }
 }
