@@ -60,7 +60,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     [JsonProperty(PropertyName = "pseudoPeriodStart")]
     [JsonPropertyName("pseudoPeriodStart")]
-    public Rational PseudoPeriodStart { get; init; }
+    public Rational PseudoPeriodStart { get; }
 
     /// <summary>
     /// Time length of each pseudo-period.
@@ -71,7 +71,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     [JsonProperty(PropertyName = "pseudoPeriodLength")]
     [JsonPropertyName("pseudoPeriodLength")]
-    public Rational PseudoPeriodLength { get; init; }
+    public Rational PseudoPeriodLength { get; }
 
     /// <summary>
     /// Static value gain applied after each pseudo-period.
@@ -82,7 +82,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     [JsonProperty(PropertyName = "pseudoPeriodHeight")]
     [JsonPropertyName("pseudoPeriodHeight")]
-    public Rational PseudoPeriodHeight { get; init; }
+    public Rational PseudoPeriodHeight { get; }
 
     /// <summary>
     /// Average slope of curve in pseudo-periodic behavior.
@@ -119,7 +119,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </remarks>
     [JsonProperty(PropertyName = "baseSequence")]
     [JsonPropertyName("baseSequence")]
-    public Sequence BaseSequence { get; init; }
+    public Sequence BaseSequence { get; }
 
     /// <summary>
     /// True if the curve has finite value for any $t$.
