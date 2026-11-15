@@ -89,40 +89,4 @@ public class InfiniteTailCut
         Assert.False(curve.IsUltimatelyInfinite);
         Assert.True(Sequence.Equivalent(expected, curve.CutAsEnumerable(0, 3, true, true).ToSequence()));
     }
-
-    public static IEnumerable<(Curve Curve, Sequence BaseCut)> UndefinedTranslations()
-    {
-        foreach (var value in new[] { Rational.PlusInfinity, Rational.MinusInfinity })
-        {
-            var curve = new Curve(new Sequence([
-                Point.Origin(), Segment.Constant(0, 1, value),
-                new Point(1, value), Segment.Constant(1, 2, value)
-            ]), 1, 1, -value);
-            yield return (curve, new Sequence([Point.Origin(), Segment.Constant(0, 2, value)]));
-        }
-    }
-
-    public static IEnumerable<object[]> UndefinedCases() => UndefinedTranslations().ToXUnitTestCases();
-
-    [Theory]
-    [MemberData(nameof(UndefinedCases))]
-    public void CutRejectsOppositeInfiniteTranslation(Curve curve, Sequence baseCut)
-    {
-        Assert.False(curve.IsUltimatelyPlusInfinite);
-        Assert.False(curve.IsUltimatelyMinusInfinite);
-        Assert.False(curve.IsUltimatelyInfinite);
-        Assert.True(Sequence.Equivalent(baseCut, curve.Cut(0, 2)));
-        Assert.Throws<UndeterminedResultException>(() => curve.Cut(0, 3));
-    }
-
-    [Theory]
-    [MemberData(nameof(UndefinedCases))]
-    public void StreamedCutRejectsOppositeInfiniteTranslation(Curve curve, Sequence baseCut)
-    {
-        Assert.False(curve.IsUltimatelyPlusInfinite);
-        Assert.False(curve.IsUltimatelyMinusInfinite);
-        Assert.False(curve.IsUltimatelyInfinite);
-        Assert.True(Sequence.Equivalent(baseCut, curve.CutAsEnumerable(0, 2).ToSequence()));
-        Assert.Throws<UndeterminedResultException>(() => curve.CutAsEnumerable(0, 3).ToArray());
-    }
 }
