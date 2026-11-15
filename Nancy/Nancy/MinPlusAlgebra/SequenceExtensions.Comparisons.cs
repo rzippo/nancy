@@ -14,13 +14,27 @@ public static partial class SequenceExtensions
     /// <returns>Whether the bound holds at every shared point and throughout every shared segment.</returns>
     /// <exception cref="ArgumentException">If an operand is empty or the streams share no time.</exception>
     internal static bool LessOrEqualOnOverlap(IEnumerable<Element> a, IEnumerable<Element> b)
+        => LessOrEqualOnOverlap(a, b, out _);
+
+    /// <summary>
+    /// Checks whether the first nonempty, uninterrupted stream bounds the second from below over their overlap, and whether the two are equal there.
+    /// </summary>
+    /// <param name="a">The first stream in time order.</param>
+    /// <param name="b">The second stream in time order.</param>
+    /// <param name="isEqual">Whether the streams are equal at every shared point and throughout every shared segment; meaningful only when the bound holds.</param>
+    /// <returns>Whether the bound holds at every shared point and throughout every shared segment.</returns>
+    /// <exception cref="ArgumentException">If an operand is empty or the streams share no time.</exception>
+    internal static bool LessOrEqualOnOverlap(IEnumerable<Element> a, IEnumerable<Element> b, out bool isEqual)
     {
+        isEqual = true;
         foreach (var (left, right) in OverlappingElements(a, b))
         {
             if (left is Point point)
             {
-                if (point.Value > ((Point) right).Value)
+                var value = ((Point) right).Value;
+                if (point.Value > value)
                     return false;
+                isEqual = isEqual && point.Value == value;
             }
             else
             {
@@ -35,9 +49,16 @@ public static partial class SequenceExtensions
                     // Equal limits at infinity can hide different slopes.
                     if (startA > startB || segmentA.Slope > segmentB.Slope)
                         return false;
+                    isEqual = isEqual && startA == startB && segmentA.Slope == segmentB.Slope;
                 }
-                else if (startA > startB || segmentA.LeftLimitAt(end) > segmentB.LeftLimitAt(end))
-                    return false;
+                else
+                {
+                    var endA = segmentA.LeftLimitAt(end);
+                    var endB = segmentB.LeftLimitAt(end);
+                    if (startA > startB || endA > endB)
+                        return false;
+                    isEqual = isEqual && startA == startB && endA == endB;
+                }
             }
         }
         return true;

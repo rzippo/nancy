@@ -1908,8 +1908,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (a.IsUltimatelyAffine != b.IsUltimatelyAffine)
             return false;
 
-        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart) 
-            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        // Equal up to two common periods past the later pseudo-period start, the curves are equal everywhere, [TBP-CURVE-ORDER] Theorem 20.
+        // One period is enough if both are finite at that start, [TBP-CURVE-ORDER] Theorem 16 (v).
+        var periodStart = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
+        var periodLength = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        Rational cutEnd;
+        if (a.ValueAt(periodStart, settings).IsFinite && b.ValueAt(periodStart, settings).IsFinite)
+            cutEnd = periodStart + periodLength;
+        else
+            cutEnd = periodStart + 2 * periodLength;
 
         var seqA = a.CutAsEnumerable(0, cutEnd, true, true, settings);
         var seqB = b.CutAsEnumerable(0, cutEnd, true, true, settings);
@@ -1951,8 +1958,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <param name="settings">Optional settings for the operation.</param>
     public static bool EquivalentAfter(Curve a, Curve b, Rational time, bool isStartIncluded = true, ComputationSettings? settings = null)
     {
-        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
-                            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        // Equal up to two common periods past the later of the pseudo-period starts and time, the curves are equal from time on, [TBP-CURVE-ORDER] Theorem 20.
+        // One period is enough if both are finite at that start, and time is included or before both pseudo-period starts, [TBP-CURVE-ORDER] Theorem 16 (v) and (vi).
+        var periodStart = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
+        var periodStartFromTime = Rational.Max(periodStart, time);
+        var periodLength = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        Rational cutEnd;
+        if ((isStartIncluded || time < periodStart)
+            && a.ValueAt(periodStartFromTime, settings).IsFinite && b.ValueAt(periodStartFromTime, settings).IsFinite)
+            cutEnd = periodStartFromTime + periodLength;
+        else
+            cutEnd = periodStartFromTime + 2 * periodLength;
 
         var seqA = a.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
         var seqB = b.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings);
@@ -1987,8 +2003,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </returns>
     public static Rational? FindFirstInequivalenceAfter(Curve a, Curve b, Rational time, bool isStartIncluded = true, ComputationSettings? settings = null)
     {
-        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart, time)
-            + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        // The first difference, if any, is within two common periods past the later of the pseudo-period starts and time, [TBP-CURVE-ORDER] Theorem 16 (iii).
+        // It is within one if both are finite at that start, and time is included or before both pseudo-period starts, [TBP-CURVE-ORDER] Theorem 16 (vii).
+        var periodStart = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
+        var periodStartFromTime = Rational.Max(periodStart, time);
+        var periodLength = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        Rational cutEnd;
+        if ((isStartIncluded || time < periodStart)
+            && a.ValueAt(periodStartFromTime, settings).IsFinite && b.ValueAt(periodStartFromTime, settings).IsFinite)
+            cutEnd = periodStartFromTime + periodLength;
+        else
+            cutEnd = periodStartFromTime + 2 * periodLength;
         return SequenceExtensions.FirstInequivalenceOnOverlap(
             a.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings),
             b.CutAsEnumerable(time, cutEnd, isStartIncluded, true, settings));
@@ -2005,8 +2030,15 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// </summary>
     public static bool EquivalentExceptOrigin(Curve a, Curve b, ComputationSettings? settings = null)
     {
-        var cutEnd = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
-                          + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        // Equal up to two common periods past the later pseudo-period start, the curves are equal after the origin, [TBP-CURVE-ORDER] Theorem 20.
+        // One period is enough if both are finite at that start, and it is after the origin, [TBP-CURVE-ORDER] Theorem 16 (vi).
+        var periodStart = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
+        var periodLength = Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        Rational cutEnd;
+        if (periodStart > 0 && a.ValueAt(periodStart, settings).IsFinite && b.ValueAt(periodStart, settings).IsFinite)
+            cutEnd = periodStart + periodLength;
+        else
+            cutEnd = periodStart + 2 * periodLength;
 
         var seqA = a.CutAsEnumerable(0, cutEnd, false, true, settings);
         var seqB = b.CutAsEnumerable(0, cutEnd, false, true, settings);
@@ -2027,17 +2059,32 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <inheritdoc cref="IsLowerBoundOf(Curve, ComputationSettings?)"/>
     public static bool IsLowerBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
     {
-        if (a.IsFinite && b.IsFinite)
+        // a is below b everywhere if and only if it is up to one common period past the later pseudo-period start,
+        // and a grows no faster than b where both are finite, [TBP-CURVE-ORDER] Theorem 20.
+        var periodStart = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
+        var end = periodStart + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        if (a.PseudoPeriodSlope > b.PseudoPeriodSlope)
         {
-            if (a.PseudoPeriodSlope > b.PseudoPeriodSlope)
+            // Whether both are finite somewhere in the common period, [TBP-CURVE-ORDER] Proposition 14.
+            bool areBothFiniteInPeriod;
+            if (a.PseudoPeriodSlope.IsInfinite || b.PseudoPeriodSlope.IsInfinite)
+                areBothFiniteInPeriod = false;
+            else if (a.IsUltimatelyFinite || b.IsUltimatelyFinite)
+                areBothFiniteInPeriod = true;
+            else if (a.ValueAt(periodStart, settings).IsFinite && b.ValueAt(periodStart, settings).IsFinite)
+                areBothFiniteInPeriod = true;
+            else
+                areBothFiniteInPeriod = SequenceExtensions.OverlappingElements(
+                        a.CutAsEnumerable(periodStart, end, settings: settings),
+                        b.CutAsEnumerable(periodStart, end, settings: settings))
+                    .Any(pair => pair.left.IsFinite && pair.right.IsFinite);
+            
+            if (areBothFiniteInPeriod)
                 return false;
-            var end = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
-                + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
-            return SequenceExtensions.LessOrEqualOnOverlap(
-                a.CutAsEnumerable(0, end, isEndIncluded: true, settings: settings),
-                b.CutAsEnumerable(0, end, isEndIncluded: true, settings: settings));
         }
-        return Equivalent(a, Minimum(a, b, settings), settings);
+        return SequenceExtensions.LessOrEqualOnOverlap(
+            a.CutAsEnumerable(0, end, isEndIncluded: true, settings: settings),
+            b.CutAsEnumerable(0, end, isEndIncluded: true, settings: settings));
     }
 
     /// <summary>
@@ -2064,7 +2111,37 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
     /// <inheritdoc cref="IsProperLowerBoundOf(Curve, ComputationSettings?)"/>
     public static bool IsProperLowerBoundOf(Curve a, Curve b, ComputationSettings? settings = null)
-        => IsLowerBoundOf(a, b, settings) && !Equivalent(a, b, settings);
+    {
+        // a is below b everywhere as in IsLowerBoundOf, [TBP-CURVE-ORDER] Theorem 20,
+        // and the two are equal everywhere if and only if they are equal over the same window and grow alike where both are finite, [TBP-CURVE-ORDER] Theorem 16.
+        // So one pass over that window decides both.
+        var periodStart = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
+        var end = periodStart + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        // The slopes differ where both are finite if they differ and both are finite somewhere in the common period, [TBP-CURVE-ORDER] Proposition 14.
+        bool doSlopesDifferWhereBothAreFinite;
+        if (a.PseudoPeriodSlope == b.PseudoPeriodSlope)
+            doSlopesDifferWhereBothAreFinite = false;
+        else if (a.PseudoPeriodSlope.IsInfinite || b.PseudoPeriodSlope.IsInfinite)
+            doSlopesDifferWhereBothAreFinite = false;
+        else if (a.IsUltimatelyFinite || b.IsUltimatelyFinite)
+            doSlopesDifferWhereBothAreFinite = true;
+        else if (a.ValueAt(periodStart, settings).IsFinite && b.ValueAt(periodStart, settings).IsFinite)
+            doSlopesDifferWhereBothAreFinite = true;
+        else
+            doSlopesDifferWhereBothAreFinite = SequenceExtensions.OverlappingElements(
+                    a.CutAsEnumerable(periodStart, end, settings: settings),
+                    b.CutAsEnumerable(periodStart, end, settings: settings))
+                .Any(pair => pair.left.IsFinite && pair.right.IsFinite);
+        
+        if (doSlopesDifferWhereBothAreFinite && a.PseudoPeriodSlope > b.PseudoPeriodSlope)
+            return false;
+        var isLowerBound = SequenceExtensions.LessOrEqualOnOverlap(
+            a.CutAsEnumerable(0, end, isEndIncluded: true, settings: settings),
+            b.CutAsEnumerable(0, end, isEndIncluded: true, settings: settings),
+            out var isEqualOverWindow);
+        // Equal over the window, the two differ later only if b grows faster where both are finite.
+        return isLowerBound && !(isEqualOverWindow && !doSlopesDifferWhereBothAreFinite);
+    }
 
     /// <summary>
     /// True if this curve is an upper bound for <paramref name="curve"/> and the two are not equivalent.
@@ -2118,25 +2195,34 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <inheritdoc cref="IsStrictLowerBoundOfExceptOrigin(Curve, ComputationSettings?)"/>
     public static bool IsStrictLowerBoundOfExceptOrigin(Curve a, Curve b, ComputationSettings? settings = null)
     {
-        if (a.IsFinite && b.IsFinite)
-        {
-            if (a.ValueAt(0, settings) > b.ValueAt(0, settings) || a.PseudoPeriodSlope > b.PseudoPeriodSlope)
-                return false;
+        if (a.ValueAt(0, settings) > b.ValueAt(0, settings))
+            return false;
 
-            // The gap b - a is ultimately pseudo-periodic and never shrinks from one period to the next, [BT08] Proposition 4(4).
-            // So it is enough to check up to one period past the later of the two pseudo-period starts, taking as period the least common multiple of their period lengths.
-            // The check leaves out 0, but includes the end of that period, where 0 repeats if both periods start there.
-            var end = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart)
-                + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
-            return SequenceExtensions.StrictlyLessOnOverlap(
-                a.CutAsEnumerable(0, end, false, true, settings),
-                b.CutAsEnumerable(0, end, false, true, settings));
-        }
-        else
+        // As in IsLowerBoundOf, with 0 left out and the end of the period included, [TBP-CURVE-ORDER] Theorem 20.
+        var periodStart = Rational.Max(a.PseudoPeriodStart, b.PseudoPeriodStart);
+        var end = periodStart + Rational.LeastCommonMultiple(a.PseudoPeriodLength, b.PseudoPeriodLength);
+        if (a.PseudoPeriodSlope > b.PseudoPeriodSlope)
         {
-            return IsLowerBoundOf(a, b, settings)
-                && a.GetIntersections(b, from: 0, isStartInclusive: false, settings: settings).IsEmpty;
+            // Whether both are finite somewhere in the common period, [TBP-CURVE-ORDER] Proposition 14.
+            bool areBothFiniteInPeriod;
+            if (a.PseudoPeriodSlope.IsInfinite || b.PseudoPeriodSlope.IsInfinite)
+                areBothFiniteInPeriod = false;
+            else if (a.IsUltimatelyFinite || b.IsUltimatelyFinite)
+                areBothFiniteInPeriod = true;
+            else if (a.ValueAt(periodStart, settings).IsFinite && b.ValueAt(periodStart, settings).IsFinite)
+                areBothFiniteInPeriod = true;
+            else
+                areBothFiniteInPeriod = SequenceExtensions.OverlappingElements(
+                        a.CutAsEnumerable(periodStart, end, settings: settings),
+                        b.CutAsEnumerable(periodStart, end, settings: settings))
+                    .Any(pair => pair.left.IsFinite && pair.right.IsFinite);
+            
+            if (areBothFiniteInPeriod)
+                return false;
         }
+        return SequenceExtensions.StrictlyLessOnOverlap(
+            a.CutAsEnumerable(0, end, false, true, settings),
+            b.CutAsEnumerable(0, end, false, true, settings));
     }
 
     /// <summary>
@@ -2175,19 +2261,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         if (a == b)
             return (true, a, b);
 
-        if (a.IsFinite && b.IsFinite)
-        {
-            if (IsLowerBoundOf(a, b, settings))
-                return (true, a, b);
-            if (IsLowerBoundOf(b, a, settings))
-                return (true, b, a);
-            return (false, a, b);
-        }
-
-        var minimum = Minimum(a, b, settings);
-        if (Equivalent(a, minimum, settings: settings))
+        if (IsLowerBoundOf(a, b, settings))
             return (true, a, b);
-        else if (Equivalent(b, minimum, settings: settings))
+        else if (IsLowerBoundOf(b, a, settings))
             return (true, b, a);
         else
             return (false, a, b);
