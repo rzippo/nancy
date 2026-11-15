@@ -1519,8 +1519,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>It shares the elements of <see cref="BaseSequence"/>, and keeps them in memory as long as it is kept.</remarks>
     [System.Text.Json.Serialization.JsonIgnore]
     public Sequence PseudoPeriodicSequence =>
-        BaseSequence.SuffixFrom(PseudoPeriodStart, FirstPseudoPeriodEnd)
-        ?? BaseSequence.Cut(PseudoPeriodStart, FirstPseudoPeriodEnd);
+        BaseSequence.SuffixFrom(PseudoPeriodStart, FirstPseudoPeriodEnd)!;
 
     /// <summary>
     /// Elements describing the pseudo-periodic behavior of the curve in $[T, T + d[$.
