@@ -235,7 +235,44 @@ public class Equivalence
         (StairOverPeriod(2), StairOverPeriod(3), 0, true, null),
         // the same staircase, but 7 at 5, in the last period before the least common multiple of the two
         (StairOverPeriod(2), StairOverPeriod(6, raisedPointAt: 5), 0, true, 5),
+        // both +inf at each integer, and 0 or k on ]k, k + 1[: equal over the first period, apart from ]1, 2[ on
+        (PlusInfiniteAtIntegers(0), PlusInfiniteAtIntegers(1), 0, true, 1),
+        (PlusInfiniteAtIntegers(0), PlusInfiniteAtIntegers(1), 1, false, 1),
+        // both finite at the period start 0, which is left out: equal on ]0, 1], apart from ]1, 2[ on
+        (new RateLatencyServiceCurve(1, 0), MinusOneThenSteeper, 0, false, 1),
     ];
+
+    /// <summary>
+    /// $2k - 1$ at each integer $k$, and $t + k$ on $]k, k + 1[$: equal to $t$ on $]0, 1]$ only.
+    /// </summary>
+    private static Curve MinusOneThenSteeper
+        => new Curve(new Sequence([new Point(0, -1), new Segment(0, 1, 0, 1)]), 0, 1, 2);
+
+    [Fact]
+    public void CurvesFiniteAtAnExcludedPeriodStartDifferAfterTheFirstPeriod()
+    {
+        var a = new RateLatencyServiceCurve(1, 0);
+        var b = MinusOneThenSteeper;
+        Assert.False(Curve.EquivalentExceptOrigin(a, b));
+        Assert.False(Curve.EquivalentAfter(a, b, 0, isStartIncluded: false));
+    }
+
+    /// <summary>
+    /// $+\infty$ at each integer $k$, and $k$ times <paramref name="pseudoPeriodHeight"/> on $]k, k + 1[$.
+    /// </summary>
+    private static Curve PlusInfiniteAtIntegers(Rational pseudoPeriodHeight)
+        => new Curve(new Sequence([Point.PlusInfinite(0), Segment.Zero(0, 1)]), 0, 1, pseudoPeriodHeight);
+
+    [Fact]
+    public void CurvesInfiniteAtThePeriodStartDifferAfterTheFirstPeriod()
+    {
+        var a = PlusInfiniteAtIntegers(0);
+        var b = PlusInfiniteAtIntegers(1);
+        Assert.False(Curve.Equivalent(a, b));
+        Assert.False(Curve.EquivalentExceptOrigin(a, b));
+        Assert.False(Curve.EquivalentAfter(a, b, 0));
+        Assert.False(Curve.EquivalentAfter(a, b, 1, isStartIncluded: false));
+    }
 
     /// <summary>
     /// The staircase with steps of 1 every 1, as a curve whose pseudo-period starts at 0 and spans <paramref name="periods"/> steps,

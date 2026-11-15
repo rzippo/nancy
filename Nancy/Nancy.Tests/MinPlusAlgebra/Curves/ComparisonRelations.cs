@@ -34,6 +34,8 @@ public class ComparisonRelations
         yield return Case(Ramp(2), Ramp(5), touchesAnywhere: true, touchesAfterOrigin: false);
         // meeting again at an interior stretch: a delay curve sits on zero, the ramp joins it there
         yield return Case(Ramp(1), new RateLatencyServiceCurve(rate: 1, latency: 0), touchesAnywhere: true, touchesAfterOrigin: true);
+        // k on [k, k + 1[ against t: equal at the start of each unit interval, apart before its end, with the same slope
+        yield return Case(new Curve(new Sequence([Point.Origin(), Segment.Zero(0, 1)]), 0, 1, 1), Ramp(1), touchesAnywhere: true, touchesAfterOrigin: true);
 
         static object[] Case(Curve lower, Curve upper, bool touchesAnywhere, bool touchesAfterOrigin)
             => [lower, upper, touchesAnywhere, touchesAfterOrigin];
@@ -222,6 +224,119 @@ public class ComparisonRelations
     {
         AssertEveryRelation(a, b, aBelowB, bBelowA, equivalent);
         AssertEveryRelation(b, a, bBelowA, aBelowB, equivalent);
+    }
+
+    // A curve constant on each unit interval, with the given values from 0 on, then repeating from pseudoPeriodStart.
+    private static Curve UnitSteps(Rational pseudoPeriodStart, Rational pseudoPeriodLength, Rational pseudoPeriodHeight, params Rational[] values)
+        => new Curve(
+            baseSequence: new Sequence(values.SelectMany((value, i) => new Element[]
+            {
+                new Point(i, value),
+                Segment.Constant(i, i + 1, value)
+            })),
+            pseudoPeriodStart: pseudoPeriodStart,
+            pseudoPeriodLength: pseudoPeriodLength,
+            pseudoPeriodHeight: pseudoPeriodHeight);
+
+    // 2k on [2k, 2k + 1[ and -inf on [2k + 1, 2k + 2[.
+    private static readonly Curve ZeroThenMinusInfinite = UnitSteps(0, 2, 2, 0, Rational.MinusInfinity);
+
+    // +inf at each integer k, and k times the height on ]k, k + 1[.
+    private static Curve PlusInfiniteAtIntegers(Rational pseudoPeriodHeight)
+        => new Curve(new Sequence([Point.PlusInfinite(0), Segment.Zero(0, 1)]), 0, 1, pseudoPeriodHeight);
+
+    // -inf at each integer k, and k on ]k, k + 1[.
+    private static readonly Curve MinusInfiniteAtIntegers
+        = new Curve(new Sequence([Point.MinusInfinite(0), Segment.Zero(0, 1)]), 0, 1, 1);
+
+    // k times the height at each integer k, and +inf between.
+    private static Curve FiniteAtIntegers(Rational pseudoPeriodHeight)
+        => new Curve(new Sequence([Point.Origin(), Segment.PlusInfinite(0, 1)]), 0, 1, pseudoPeriodHeight);
+
+    // In each pair below, one curve or both take +inf or -inf; in the last two, the minimum of the two is not ultimately pseudo-periodic.
+    // Cases: the first curve, the second, then whether the first is below the second and the other way round, strictly below, and strictly below except at the origin.
+    public static IEnumerable<object[]> PairsTakingInfinities()
+    {
+        // 2k on [2k, 2k + 1[ passes 10 at t = 12, after the first common period
+        yield return Case("2k or -inf, against 10", ZeroThenMinusInfinite, new ConstantCurve(10),
+            false, false, false, false, false, false);
+        yield return Case("2k or -inf, against 10 or +inf", ZeroThenMinusInfinite, UnitSteps(0, 2, 0, 10, Rational.PlusInfinity),
+            false, false, false, false, false, false);
+        // the two are +inf at the integers, and differ only from ]1, 2[ on
+        yield return Case("+inf at the integers, k or 0 between", PlusInfiniteAtIntegers(1), PlusInfiniteAtIntegers(0),
+            false, true, false, false, false, false);
+        // the first is -inf wherever the second is finite, and the second is +inf wherever the first is finite
+        yield return Case("-inf or k, against -k or +inf", MinusInfiniteAtIntegers, FiniteAtIntegers(-1),
+            true, false, true, false, true, false);
+        yield return Case("-inf or k, against 0 or +inf", MinusInfiniteAtIntegers, FiniteAtIntegers(0),
+            true, false, true, false, true, false);
+        // the second is 1, 5, 3, 5 on [0, 4[, then 2 and 5; the first is 4 > 2 at t = 4
+        yield return Case("2k or -inf, against a transient", ZeroThenMinusInfinite, UnitSteps(4, 2, 0, 1, 5, 3, 5, 2, 5),
+            false, false, false, false, false, false);
+        // the first is 5 on [5, 6[, where the second is 1: past one period of either, within their least common multiple
+        yield return Case("periods 3 and 2, crossing at t = 5", UnitSteps(0, 3, 0, 0, 0, 5), UnitSteps(0, 2, 0, Rational.PlusInfinity, 1),
+            false, false, false, false, false, false);
+
+        // the subadditive closures of a point: k at each integer k, and 3k at each 2k, +inf elsewhere
+        var closureOfOne = new Point(1, 1).SubAdditiveClosure(pseudoPeriodLength: 1, pseudoPeriodHeight: 1);
+        var closureOfTwo = new Point(2, 3).SubAdditiveClosure(pseudoPeriodLength: 2, pseudoPeriodHeight: 3);
+        // both +inf between the integers
+        yield return Case("closures of two points", closureOfOne, closureOfTwo,
+            true, false, false, false, false, false);
+        // equal at the integers
+        yield return Case("t, against the closure of a point", Ramp(1), closureOfOne,
+            true, false, false, false, false, false);
+        yield return Case("t / 2, against the closure of a point", Ramp(new Rational(1, 2)), closureOfOne,
+            true, false, false, false, true, false);
+        // both are finite only at the integers, where the closure grows faster: k passes 100 + k / 2 at k = 201
+        var slowerAtIntegers = new Curve(
+            new Sequence([Point.Origin(), Segment.PlusInfinite(0, 1), new Point(1, new Rational(201, 2)), Segment.PlusInfinite(1, 2)]),
+            1, 1, new Rational(1, 2));
+        yield return Case("the closure of a point, against 100 + k / 2 at the integers", closureOfOne, slowerAtIntegers,
+            false, false, false, false, false, false);
+
+        // t passes 100 at t = 101, where the first is finite
+        yield return Case("100 or +inf, against t",
+            new Curve(new Sequence([new Point(0, 100), Segment.PlusInfinite(0, 1)]), 0, 1, 0), Ramp(1),
+            false, false, false, false, false, false);
+        // neither is ultimately finite, so whether both are finite somewhere in the period takes a scan: k passes 100 on ]102, 103[
+        yield return Case("100 or +inf, against -inf or k",
+            UnitSteps(0, 2, 0, 100, Rational.PlusInfinity), MinusInfiniteAtIntegers,
+            false, false, false, false, false, false);
+
+        static object[] Case(string id, Curve a, Curve b,
+            bool aBelowB, bool bBelowA, bool aStrictlyBelowB, bool bStrictlyBelowA, bool aStrictlyBelowBExceptOrigin, bool bStrictlyBelowAExceptOrigin)
+            => [id, a, b, aBelowB, bBelowA, aStrictlyBelowB, bStrictlyBelowA, aStrictlyBelowBExceptOrigin, bStrictlyBelowAExceptOrigin];
+    }
+
+    [Theory]
+    [MemberData(nameof(PairsTakingInfinities))]
+    public void CurvesTakingInfinitiesAreOrderedByTheirValues(string id,
+        Curve a, Curve b, bool aBelowB, bool bBelowA, bool aStrictlyBelowB, bool bStrictlyBelowA, bool aStrictlyBelowBExceptOrigin, bool bStrictlyBelowAExceptOrigin)
+    {
+        _ = id;
+        var equivalent = aBelowB && bBelowA;
+        AssertEveryRelation(a, b, aBelowB, bBelowA, equivalent);
+        AssertEveryRelation(b, a, bBelowA, aBelowB, equivalent);
+
+        var settings = new ComputationSettings { UseParallelism = false };
+        Assert.Equal(aStrictlyBelowB, Curve.IsStrictLowerBoundOf(a, b, settings));
+        Assert.Equal(bStrictlyBelowA, Curve.IsStrictLowerBoundOf(b, a, settings));
+        Assert.Equal(aStrictlyBelowBExceptOrigin, Curve.IsStrictLowerBoundOfExceptOrigin(a, b, settings));
+        Assert.Equal(bStrictlyBelowAExceptOrigin, Curve.IsStrictLowerBoundOfExceptOrigin(b, a, settings));
+
+        var (verified, lower, upper) = Curve.Dominance(a, b, settings);
+        Assert.Equal(aBelowB || bBelowA, verified);
+        if (aBelowB)
+        {
+            Assert.Same(a, lower);
+            Assert.Same(b, upper);
+        }
+        else if (bBelowA)
+        {
+            Assert.Same(b, lower);
+            Assert.Same(a, upper);
+        }
     }
 
     private static void AssertEveryRelation(Curve x, Curve y, bool xBelowY, bool yBelowX, bool equivalent)
