@@ -8527,6 +8527,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             var time = starts.Min(start => start.Time);
             var isValueInfinite = starts.Any(start => start.Time == time && start.IsValueInfinite);
 
+            // If an operand is $-\infty$ at the origin, its value there reaches every time, so the result is $-\infty$ throughout.
+            if (time == 0 && isValueInfinite)
+                return MinusInfinite();
+
             // the periodic part must be infinite throughout, so it starts at the first infinite point:
             // the same time if the value there is infinite, the next one if it is still finite
             var periodStart = isValueInfinite ? time : time + 1;
@@ -9717,6 +9721,10 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
             var time = starts.Min(start => start.Time);
             var isValueInfinite = starts.Any(start => start.Time == time && start.IsValueInfinite);
+
+            // If an operand is $+\infty$ at the origin, its value there reaches every time, so the result is $+\infty$ throughout.
+            if (time == 0 && isValueInfinite)
+                return PlusInfinite();
 
             // the periodic part must be infinite throughout, so it starts at the first infinite point:
             // the same time if the value there is infinite, the next one if it is still finite
