@@ -941,7 +941,6 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
         }
     }
 
-    //todo: write tests
     /// <summary>
     /// Returns the first time around which the functions represented by the sequences differ.
     /// Returns null if the two sequences represent the same function.
@@ -949,46 +948,26 @@ public sealed class Sequence : IEquatable<Sequence>, IStableHashCode, IToCodeStr
     /// </summary>
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
-    /// <returns>The result.</returns>
-    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+    /// <returns>
+    /// The earliest time $t$ such that the sequences differ at $t$ or right after it, where one being defined and the other not is a difference; null if they are the same function.
+    /// </returns>
+    /// <remarks>The result does not depend on how either sequence is split into elements.</remarks>
     public static Rational? FindFirstInequivalence(Sequence a, Sequence b)
     {
-        var spotsA = GetSpots(a.Elements);
-        var spotsB = GetSpots(b.Elements);
-        var pairs = spotsA.Zip(spotsB);
+        // If the two start differently, they differ from the earlier start, where only one is defined.
+        if (a.DefinedFrom != b.DefinedFrom || a.IsLeftClosed != b.IsLeftClosed)
+            return Rational.Min(a.DefinedFrom, b.DefinedFrom);
 
-        foreach (var pair in pairs)
-        {
-            if (pair.First != pair.Second)
-                return Rational.Min(pair.First.Time, pair.Second.Time);
-        }
+        // Otherwise their supports share the start, and a difference where both are defined comes before any difference at the end.
+        var firstInequivalence = SequenceExtensions.FirstInequivalenceOnOverlap(a.Elements, b.Elements);
+        if (firstInequivalence is not null)
+            return firstInequivalence;
 
-        // multiple enumerations are preferred to materializing possibly long sequences
-        var spotsACount = spotsA.Count();
-        var spotsBCount = spotsB.Count();
-        if (spotsACount != spotsBCount)
-        {
-            if (spotsACount > spotsBCount)
-                return spotsA.ElementAt(spotsBCount).Time;
-            else
-                return spotsB.ElementAt(spotsACount).Time;
-        }
+        // If the two end differently, they differ from the earlier end, where only one is defined after it or at it.
+        if (a.DefinedUntil != b.DefinedUntil || a.IsRightClosed != b.IsRightClosed)
+            return Rational.Min(a.DefinedUntil, b.DefinedUntil);
 
         return null;
-
-        IEnumerable<Point> GetSpots(IEnumerable<Element> seq)
-        {
-            foreach (var element in seq)
-            {
-                if (element is Point p)
-                    yield return p;
-                else if (element is Segment s)
-                {
-                    yield return new Point(time: s.StartTime, value: s.RightLimitAtStartTime);
-                    yield return new Point(time: s.EndTime, value: s.LeftLimitAtEndTime);
-                }
-            }
-        }
     }
 
     /// <summary>
