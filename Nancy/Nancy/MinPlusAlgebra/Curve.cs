@@ -9399,14 +9399,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// Thrown if $f(0) &lt; 0$.
     /// For those cases, see <see cref="GeneralSubAdditiveClosure"/>.
     /// </exception>
+    /// <exception cref="UndeterminedResultException">If the curve takes $-\infty$ after the origin and is $+\infty$ right after it, a closure this method does not support.</exception>
     /// <remarks>
     /// This method assumes $f(0) \ge 0$ since it implies $f^*(0) = 0$,
     /// which allows many optimizations via the <see cref="SubAdditiveCurve"/> class.
     /// For a more general implementation, see <see cref="GeneralSubAdditiveClosure"/>. 
     /// Described in [BT08] Section 4.6 as algorithm 5.
-    /// The closure is $-\infty$ for every $t > 0$ iff $f(0^+) &lt; 0$, [TBP-CLOS-NEG] Corollary 5.6.
+    /// The closure is $-\infty$ for every $t > 0$ iff $f(0^+) &lt; 0$, [TBP-CLOS-INF] Corollary 5.6.
     /// This case is returned directly without running the general closure algorithm.
-    /// The closure is identically zero iff $f$ is non-negative and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-NEG] Theorem 5.2 and Corollary 5.6.
+    /// If the curve takes $-\infty$ after the origin and is finite right after it, the closure is that of its (min,+) restriction before its first $-\infty$, then $-\infty$, [TBP-CLOS-INF] Theorem 9.3, and Remark 11.3 if the curve also takes $+\infty$.
+    /// The closure is identically zero iff $f$ is non-negative and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-INF] Theorem 5.2 and Corollary 5.6.
     /// When <see cref="ComputationSettings.UseZeroClosureShortcut"/> is enabled, this case is also returned directly.
     /// </remarks>
     public virtual SubAdditiveCurve SubAdditiveClosure(ComputationSettings? settings = null)
@@ -9423,6 +9425,34 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         // Return the known closure directly to avoid the undefined sum $(+\infty) + (-\infty)$.
         if (RightLimitAt(0) < 0)
             return new SubAdditiveCurve(MinusInfinite().WithOriginAt(0), !settings.UseKnownPropertyPropagation);
+
+        // A curve taking $-\infty$ after the origin and finite right after it has the closure of its (min,+) restriction before its first $-\infty$, then $-\infty$, [TBP-CLOS-INF] Theorem 9.3 and Proposition 11.1;
+        // if it also takes $+\infty$, this holds in the convention the closures adopt, [TBP-CLOS-INF] Remark 11.3.
+        if (HasMinusInfinity)
+        {
+            if (RightLimitAt(0).IsPlusInfinite)
+                throw new UndeterminedResultException("The closure of a curve that is +infinity right after the origin and takes -infinity is not supported.");
+
+            // The closure is $-\infty$ from the start of its first $-\infty$ element, included if that element is a point.
+            var firstMinusInfinite = BaseSequence.Elements.First(element => element.IsMinusInfinite);
+            var time = firstMinusInfinite.StartTime;
+            var isValueInfinite = firstMinusInfinite is Point;
+            var restriction = Minimum(PlusInfinite(), Cut(0, time, isEndIncluded: !isValueInfinite, settings: settings), settings);
+            var restrictionClosure = restriction.SubAdditiveClosure(settings);
+            var periodStart = isValueInfinite ? time : time + 1;
+            return new SubAdditiveCurve(
+                new Curve(
+                    baseSequence: restrictionClosure
+                        .CutAsEnumerable(0, time, isEndIncluded: !isValueInfinite, settings: settings)
+                        .Fill(0, periodStart + 1, fillWith: Rational.MinusInfinity)
+                        .ToSequence(),
+                    pseudoPeriodStart: periodStart,
+                    pseudoPeriodLength: 1,
+                    pseudoPeriodHeight: 0,
+                    settings: settings
+                ),
+                !settings.UseKnownPropertyPropagation);
+        }
 
         settings ??= ComputationSettings.Default();
 
@@ -9488,8 +9518,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// This version does not assume $f^*(0) = 0$, making the result more general but at the cost of optimizations,
     /// since the result is not statically guaranteed to be a <see cref="SubAdditiveCurve"/>.
     /// Described in [BT08] Section 4.6 as algorithm 5.
-    /// For $f(0) &lt; 0$, the closure is $-\infty$ at 0 and takes only the values $-\infty$ and $+\infty$ elsewhere, [TBP-CLOS-NEG] Corollary 3.2.
-    /// It is $-\infty$ everywhere unless $f$ is $+\infty$ right after 0, [TBP-CLOS-NEG] Corollary 3.5.
+    /// For $f(0) &lt; 0$, the closure is $-\infty$ at 0 and takes only the values $-\infty$ and $+\infty$ elsewhere, [TBP-CLOS-INF] Corollary 3.2.
+    /// It is $-\infty$ everywhere unless $f$ is $+\infty$ right after 0, [TBP-CLOS-INF] Corollary 3.5.
     /// </remarks>
     public Curve GeneralSubAdditiveClosure(ComputationSettings? settings = null)
     {
@@ -10219,15 +10249,17 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The result of the super-additive closure.</returns>
     /// <remarks>
     /// Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4.
-    /// The closure is $+\infty$ for every $t > 0$ iff $f(0^+) > 0$, [TBP-CLOS-NEG] Corollary 5.8.
+    /// The closure is $+\infty$ for every $t > 0$ iff $f(0^+) > 0$, [TBP-CLOS-INF] Corollary 5.8.
     /// This case is returned directly without running the general closure algorithm.
-    /// The closure is identically zero iff $f$ is non-positive and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-NEG] Corollaries 5.7 and 5.8.
+    /// The closure is identically zero iff $f$ is non-positive and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-INF] Corollaries 5.7 and 5.8.
     /// When <see cref="ComputationSettings.UseZeroClosureShortcut"/> is enabled, this case is also returned directly.
+    /// If the curve takes $+\infty$ after the origin and is finite right after it, the closure is that of its (max,+) restriction before its first $+\infty$, then $+\infty$, [TBP-CLOS-INF] Theorem 10.1, and Remark 11.3 if the curve also takes $-\infty$.
     /// </remarks>
     /// <exception cref="InvalidOperationException">
     /// Thrown if $f(0) &gt; 0$.
     /// For those cases, see <see cref="GeneralSuperAdditiveClosure"/>.
     /// </exception>
+    /// <exception cref="UndeterminedResultException">If the curve takes $+\infty$ after the origin and is $-\infty$ right after it, a closure this method does not support.</exception>
     public virtual SuperAdditiveCurve SuperAdditiveClosure(ComputationSettings? settings = null)
     {
         settings ??= ComputationSettings.Default();
@@ -10257,8 +10289,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <remarks>
     /// This version does not assume $f_*(0) = 0$, making the result more general but at the cost of optimizations,
     /// since the result is not statically guaranteed to be a <see cref="SuperAdditiveCurve"/>.
-    /// For $f(0) > 0$, the closure is $+\infty$ at 0 and takes only the values $+\infty$ and $-\infty$ elsewhere, [TBP-CLOS-NEG] Theorem 4.3.
-    /// It is $+\infty$ everywhere unless $f$ is $-\infty$ right after 0, [TBP-CLOS-NEG] Corollary 4.4.
+    /// For $f(0) > 0$, the closure is $+\infty$ at 0 and takes only the values $+\infty$ and $-\infty$ elsewhere, [TBP-CLOS-INF] Theorem 4.3.
+    /// It is $+\infty$ everywhere unless $f$ is $-\infty$ right after 0, [TBP-CLOS-INF] Corollary 4.4.
     /// </remarks>
     public Curve GeneralSuperAdditiveClosure(ComputationSettings? settings = null)
     {
