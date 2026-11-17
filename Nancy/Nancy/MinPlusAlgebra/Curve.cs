@@ -9405,7 +9405,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// which allows many optimizations via the <see cref="SubAdditiveCurve"/> class.
     /// For a more general implementation, see <see cref="GeneralSubAdditiveClosure"/>. 
     /// Described in [BT08] Section 4.6 as algorithm 5.
-    /// The closure is $-\infty$ for every $t > 0$ iff $f(0^+) &lt; 0$, [TBP-CLOS-INF] Corollary 5.6.
+    /// The closure is $-\infty$ for every $t > 0$ iff $f(0^+) &lt; 0$, [TBP-CLOS-INF] Corollary 5.6, and in the convention of [TBP-CLOS-INF] Remark 11.3 if the curve takes both infinities.
     /// This case is returned directly without running the general closure algorithm.
     /// If the curve takes $-\infty$ after the origin and is finite right after it, the closure is that of its (min,+) restriction before its first $-\infty$, then $-\infty$, [TBP-CLOS-INF] Theorem 9.3, and Remark 11.3 if the curve also takes $+\infty$.
     /// The closure is identically zero iff $f$ is non-negative and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-INF] Theorem 5.2 and Corollary 5.6.
@@ -9519,22 +9519,27 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// since the result is not statically guaranteed to be a <see cref="SubAdditiveCurve"/>.
     /// Described in [BT08] Section 4.6 as algorithm 5.
     /// For $f(0) &lt; 0$, the closure is $-\infty$ at 0 and takes only the values $-\infty$ and $+\infty$ elsewhere, [TBP-CLOS-INF] Corollary 3.2.
-    /// It is $-\infty$ everywhere unless $f$ is $+\infty$ right after 0, [TBP-CLOS-INF] Corollary 3.5.
+    /// It is $-\infty$ everywhere unless $f$ is $+\infty$ right after 0, [TBP-CLOS-INF] Corollary 3.5, and in the convention of [TBP-CLOS-INF] Remark 11.3 if $f$ takes both infinities.
     /// </remarks>
     public Curve GeneralSubAdditiveClosure(ComputationSettings? settings = null)
     {
         if (ValueAt(0, settings: settings) < 0)
         {
-            // curves taking both infinities are not supported, see the remarks of Curve
-            if (HasPlusInfinity && HasMinusInfinity)
-                throw new UndeterminedResultException(
-                    "The sub-additive closure does not support curves that take both +infinity and -infinity.");
             // the closure is -infinity at every t that splits into finitely many parts at which f is not +infinity, as parts of length 0 each add f(0) < 0;
-            // if f is not +infinity right after 0, parts that short sum to every t, and if it is, the times right after 0 do not split at all
+            // if f is not +infinity right after 0, parts that short sum to every t, in the convention the closures adopt if f takes both infinities, [TBP-CLOS-INF] Remark 11.3,
+            // and if it is, the times right after 0 do not split at all
             if (GetSegmentAfter(0, autoMerge: false, cutToTime: false).IsPlusInfinite)
-                throw new UndeterminedResultException(
-                    "The sub-additive closure of this curve, with f(0) < 0, is -infinity at some times and +infinity at others, so its sub-additivity is undefined.");
-            return MinusInfinite();
+            {
+                // curves taking both infinities are not supported, see the remarks of Curve
+                if (HasMinusInfinity)
+                    throw new UndeterminedResultException(
+                        "The sub-additive closure does not support curves that take both +infinity and -infinity.");
+                else
+                    throw new UndeterminedResultException(
+                        "The sub-additive closure of this curve, with f(0) < 0, is -infinity at some times and +infinity at others, so its sub-additivity is undefined.");
+            }
+            else
+                return MinusInfinite();
         }
         else
             return SubAdditiveClosure(settings);
@@ -10249,7 +10254,7 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// <returns>The result of the super-additive closure.</returns>
     /// <remarks>
     /// Max-plus operators are defined through min-plus operators, see [DNC18] Section 2.4.
-    /// The closure is $+\infty$ for every $t > 0$ iff $f(0^+) > 0$, [TBP-CLOS-INF] Corollary 5.8.
+    /// The closure is $+\infty$ for every $t > 0$ iff $f(0^+) > 0$, [TBP-CLOS-INF] Corollary 5.8, and in the convention of [TBP-CLOS-INF] Remark 11.3 if the curve takes both infinities.
     /// This case is returned directly without running the general closure algorithm.
     /// The closure is identically zero iff $f$ is non-positive and $f(t) = 0$ on $(0, \varepsilon)$ for some $\varepsilon > 0$, [TBP-CLOS-INF] Corollaries 5.7 and 5.8.
     /// When <see cref="ComputationSettings.UseZeroClosureShortcut"/> is enabled, this case is also returned directly.
@@ -10290,22 +10295,27 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     /// This version does not assume $f_*(0) = 0$, making the result more general but at the cost of optimizations,
     /// since the result is not statically guaranteed to be a <see cref="SuperAdditiveCurve"/>.
     /// For $f(0) > 0$, the closure is $+\infty$ at 0 and takes only the values $+\infty$ and $-\infty$ elsewhere, [TBP-CLOS-INF] Theorem 4.3.
-    /// It is $+\infty$ everywhere unless $f$ is $-\infty$ right after 0, [TBP-CLOS-INF] Corollary 4.4.
+    /// It is $+\infty$ everywhere unless $f$ is $-\infty$ right after 0, [TBP-CLOS-INF] Corollary 4.4, and in the convention of [TBP-CLOS-INF] Remark 11.3 if $f$ takes both infinities.
     /// </remarks>
     public Curve GeneralSuperAdditiveClosure(ComputationSettings? settings = null)
     {
         if (ValueAt(0, settings: settings) > 0)
         {
-            // curves taking both infinities are not supported, see the remarks of Curve
-            if (HasPlusInfinity && HasMinusInfinity)
-                throw new UndeterminedResultException(
-                    "The super-additive closure does not support curves that take both +infinity and -infinity.");
             // the closure is +infinity at every t that splits into finitely many parts at which f is not -infinity, as parts of length 0 each add f(0) > 0;
-            // if f is not -infinity right after 0, parts that short sum to every t, and if it is, the times right after 0 do not split at all
+            // if f is not -infinity right after 0, parts that short sum to every t, in the convention the closures adopt if f takes both infinities, [TBP-CLOS-INF] Remark 11.3,
+            // and if it is, the times right after 0 do not split at all
             if (GetSegmentAfter(0, autoMerge: false, cutToTime: false).IsMinusInfinite)
-                throw new UndeterminedResultException(
-                    "The super-additive closure of this curve, with f(0) > 0, is +infinity at some times and -infinity at others, so its super-additivity is undefined.");
-            return PlusInfinite();
+            {
+                // curves taking both infinities are not supported, see the remarks of Curve
+                if (HasPlusInfinity)
+                    throw new UndeterminedResultException(
+                        "The super-additive closure does not support curves that take both +infinity and -infinity.");
+                else
+                    throw new UndeterminedResultException(
+                        "The super-additive closure of this curve, with f(0) > 0, is +infinity at some times and -infinity at others, so its super-additivity is undefined.");
+            }
+            else
+                return PlusInfinite();
         }
         else
             return SuperAdditiveClosure(settings);
