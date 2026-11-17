@@ -101,4 +101,16 @@ public class ClosureTakingAnInfinityAfterTheOrigin
         Assert.Throws<UndeterminedResultException>(() => f.SubAdditiveClosure());
         Assert.Throws<UndeterminedResultException>(() => f.Negate().SuperAdditiveClosure());
     }
+
+    /// <summary>
+    /// A curve negative at the origin and finite right after it has a closure $-\infty$ everywhere, in the convention the closures adopt, whether or not it takes both infinities.
+    /// </summary>
+    [Fact]
+    public void GeneralClosuresOfACurveNegativeAtTheOriginTakingBothInfinities()
+    {
+        // -1 at 0, 0 on ]0, 1[, +inf on [1, 2[, then -inf
+        var f = C([new Point(0, -1), Segment.Zero(0, 1), Point.PlusInfinite(1), Segment.PlusInfinite(1, 2), Point.MinusInfinite(2), Segment.MinusInfinite(2, 3)], 2, 1);
+        Assert.True(f.GeneralSubAdditiveClosure().Equivalent(Curve.MinusInfinite()));
+        Assert.True(f.Negate().GeneralSuperAdditiveClosure().Equivalent(Curve.PlusInfinite()));
+    }
 }
