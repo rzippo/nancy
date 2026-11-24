@@ -834,6 +834,22 @@ namespace Unipi.Nancy.Numerics
             }
             Simplify();
         }
+        #elif LONG_RATIONAL
+        /// <inheritdoc cref="LongRational(long, long, long)"/>
+        public Rational(long whole, long numerator, long denominator)
+        {
+            if (denominator == 0)
+                throw new DivideByZeroException();
+            else
+            {
+                // whole + n/d = (whole·d + n)/d, with the sign moved to the numerator before normalizing.
+                var sum = whole * denominator + numerator;
+                if (denominator < 0)
+                    this = new Rational(-sum, -denominator);
+                else
+                    this = new Rational(sum, denominator);
+            }
+        }
         #endif
 
         #endregion Constructors

@@ -543,6 +543,32 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
         Denominator = (long) denominator;
     }
 
+    /// <summary>
+    /// Constructs the rational $whole + numerator / denominator$, reduced and with a positive denominator.
+    /// </summary>
+    /// <param name="whole">The whole part.</param>
+    /// <param name="numerator">The numerator.</param>
+    /// <param name="denominator">The denominator.</param>
+    /// <remarks>
+    /// The value is that sum whatever the sign of each part: a negative denominator changes the sign of the fraction alone, so <c>new LongRational(1, 1, -2)</c> is $1/2$.
+    /// </remarks>
+    /// <exception cref="DivideByZeroException">The denominator is zero.</exception>
+    /// <exception cref="OverflowException">$whole \cdot denominator + numerator$ is outside the Int64 range, or the denominator is negative and that sum or the denominator has no Int64 opposite.</exception>
+    public LongRational(long whole, long numerator, long denominator)
+    {
+        if (denominator == 0)
+            throw new DivideByZeroException();
+        else
+        {
+            // whole + n/d = (whole·d + n)/d, with the sign moved to the numerator before normalizing.
+            var sum = whole * denominator + numerator;
+            if (denominator < 0)
+                this = new LongRational(-sum, -denominator);
+            else
+                this = new LongRational(sum, denominator);
+        }
+    }
+
     #endregion Constructors
 
     #region Public Static Methods
