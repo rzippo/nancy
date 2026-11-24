@@ -122,6 +122,26 @@ public class PrimitiveEdgeCases
         Assert.Throws<DivideByZeroException>(() => Rational.DivRem(dividend, divisor, out _));
     }
 
+    public static List<(Rational dividend, Rational divisor)> DivRemInfiniteCases =
+    [
+        (Rational.PlusInfinity, new Rational(1, 2)),
+        (Rational.MinusInfinity, new Rational(1, 2)),
+        (new Rational(7, 3), Rational.PlusInfinity),
+        (new Rational(7, 3), Rational.MinusInfinity),
+        (Rational.PlusInfinity, Rational.MinusInfinity)
+    ];
+
+    public static IEnumerable<object[]> DivRemInfiniteTestCases()
+        => DivRemInfiniteCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(DivRemInfiniteTestCases))]
+    public void DivRem_InfiniteOperand_ThrowsAsRemainder(Rational dividend, Rational divisor)
+    {
+        Assert.Throws<UndeterminedResultException>(() => dividend % divisor);
+        Assert.Throws<UndeterminedResultException>(() => Rational.DivRem(dividend, divisor, out _));
+    }
+
     public static List<(Rational dividend, Rational divisor)> DivRemIdentityCases =
     [
         (new Rational(7, 3), new Rational(1, 2)),

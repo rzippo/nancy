@@ -182,6 +182,26 @@ public class PrimitiveEdgeCases
         Assert.Throws<DivideByZeroException>(() => BigRational.DivRem(dividend, divisor, out _));
     }
 
+    public static List<(BigRational dividend, BigRational divisor)> DivRemInfiniteCases =
+    [
+        (BigRational.PlusInfinity, new BigRational(1, 2)),
+        (BigRational.MinusInfinity, new BigRational(1, 2)),
+        (new BigRational(7, 3), BigRational.PlusInfinity),
+        (new BigRational(7, 3), BigRational.MinusInfinity),
+        (BigRational.PlusInfinity, BigRational.MinusInfinity)
+    ];
+
+    public static IEnumerable<object[]> DivRemInfiniteTestCases()
+        => DivRemInfiniteCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(DivRemInfiniteTestCases))]
+    public void DivRem_InfiniteOperand_ThrowsAsRemainder(BigRational dividend, BigRational divisor)
+    {
+        Assert.Throws<UndeterminedResultException>(() => dividend % divisor);
+        Assert.Throws<UndeterminedResultException>(() => BigRational.DivRem(dividend, divisor, out _));
+    }
+
     [Theory]
     [MemberData(nameof(DivRemIdentityTestCases))]
     public void DivRemIdentity_Hold(BigRational dividend, BigRational divisor)

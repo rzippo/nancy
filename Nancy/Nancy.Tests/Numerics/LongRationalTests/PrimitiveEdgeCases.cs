@@ -163,6 +163,26 @@ public class PrimitiveEdgeCases
         Assert.Throws<DivideByZeroException>(() => LongRational.DivRem(dividend, divisor, out _));
     }
 
+    public static List<(LongRational dividend, LongRational divisor)> DivRemInfiniteCases =
+    [
+        (LongRational.PlusInfinity, new LongRational(1, 2)),
+        (LongRational.MinusInfinity, new LongRational(1, 2)),
+        (new LongRational(7, 3), LongRational.PlusInfinity),
+        (new LongRational(7, 3), LongRational.MinusInfinity),
+        (LongRational.PlusInfinity, LongRational.MinusInfinity)
+    ];
+
+    public static IEnumerable<object[]> DivRemInfiniteTestCases()
+        => DivRemInfiniteCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(DivRemInfiniteTestCases))]
+    public void DivRem_InfiniteOperand_ThrowsAsRemainder(LongRational dividend, LongRational divisor)
+    {
+        Assert.Throws<UndeterminedResultException>(() => dividend % divisor);
+        Assert.Throws<UndeterminedResultException>(() => LongRational.DivRem(dividend, divisor, out _));
+    }
+
     [Fact]
     public void DivRem_LargeDividend_ThrowsOverflow()
     {
