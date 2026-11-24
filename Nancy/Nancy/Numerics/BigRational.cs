@@ -565,34 +565,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
         else
         {
-            if (denominator.Sign == 0)
-            {
-                if (numerator < 0)
-                    Numerator = BigInteger.MinusOne;
-                else if (numerator > 0)
-                    Numerator = BigInteger.One;
-                else
-                    throw new UndeterminedResultException("Zero over zero");
-
-                Denominator = BigInteger.Zero;
-            }
-            else if (numerator.Sign == 0)
-            {
-                // 0/m -> 0/1
-                Numerator = BigInteger.Zero;
-                Denominator = BigInteger.One;
-            }
-            else if (denominator.Sign < 0)
-            {
-                Numerator = -numerator;
-                Denominator = -denominator;
-            }
-            else
-            {
-                Numerator = numerator;
-                Denominator = denominator;
-            }
-            Simplify();
+            this = new BigRational(numerator, denominator);
         }
     }
 
