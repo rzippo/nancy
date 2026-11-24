@@ -349,7 +349,8 @@ public class SubAdditiveCurve : Curve
             baseSequence: convolutionSequence.Cut(0, cutEnd),
             pseudoPeriodStart: T,
             pseudoPeriodLength: d,
-            pseudoPeriodHeight: c
+            pseudoPeriodHeight: c,
+            doTest: !settings.UseKnownPropertyPropagation
         );
         return settings.UseRepresentationMinimization ? new SubAdditiveCurve(result.Optimize(), false) : result;
 
