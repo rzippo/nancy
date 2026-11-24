@@ -35,7 +35,15 @@ public class PrimitiveEdgeCases
     [
         (1, 1, 2, new BigRational(3, 2)),
         (-1, 1, 2, new BigRational(-1, 2)),
-        (1, 1, -2, new BigRational(-3, 2)),
+        (1, 1, -2, new BigRational(1, 2)),
+        (1, -1, 2, new BigRational(1, 2)),
+        (1, -1, -2, new BigRational(3, 2)),
+        (-1, 1, -2, new BigRational(-3, 2)),
+        (-1, -1, 2, new BigRational(-3, 2)),
+        (-1, -1, -2, new BigRational(-1, 2)),
+        (2, 3, -4, new BigRational(5, 4)),
+        (0, 3, -4, new BigRational(-3, 4)),
+        (-2, 0, -5, new BigRational(-2)),
         (0, 0, 7, BigRational.Zero)
     ];
 

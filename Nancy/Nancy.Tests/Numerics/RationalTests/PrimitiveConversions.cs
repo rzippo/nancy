@@ -35,7 +35,15 @@ public class PrimitiveConversions
     [
         (1, 1, 2, new Rational(3, 2)),
         (-1, 1, 2, new Rational(-1, 2)),
-        (1, 1, -2, new Rational(-3, 2)),
+        (1, 1, -2, new Rational(1, 2)),
+        (1, -1, 2, new Rational(1, 2)),
+        (1, -1, -2, new Rational(3, 2)),
+        (-1, 1, -2, new Rational(-3, 2)),
+        (-1, -1, 2, new Rational(-3, 2)),
+        (-1, -1, -2, new Rational(-1, 2)),
+        (2, 3, -4, new Rational(5, 4)),
+        (0, 3, -4, new Rational(-3, 4)),
+        (-2, 0, -5, new Rational(-2)),
         (0, 0, 7, Rational.Zero)
     ];
 
