@@ -823,8 +823,9 @@ namespace Unipi.Nancy.Numerics
             }
             else if (denominator.Sign < 0)
             {
+                // whole + n/d = (whole·d + n)/d = (whole·|d| - n)/|d|.
                 Denominator = -denominator;
-                Numerator = (-whole * Denominator) - numerator;
+                Numerator = (whole * Denominator) - numerator;
             }
             else
             {

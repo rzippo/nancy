@@ -570,11 +570,14 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// Constructor.
+    /// Constructs the rational $whole + numerator / denominator$, reduced and with a positive denominator.
     /// </summary>
     /// <param name="whole">The whole part.</param>
     /// <param name="numerator">The numerator.</param>
     /// <param name="denominator">The denominator.</param>
+    /// <remarks>
+    /// The value is that sum whatever the sign of each part: a negative denominator changes the sign of the fraction alone, so <c>new BigRational(1, 1, -2)</c> is $1/2$.
+    /// </remarks>
     /// <exception cref="DivideByZeroException">The denominator is zero.</exception>
     public BigRational(BigInteger whole, BigInteger numerator, BigInteger denominator)
     {
@@ -589,8 +592,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
         else if (denominator.Sign < 0)
         {
+            // whole + n/d = (whole·d + n)/d = (whole·|d| - n)/|d|.
             Denominator = -denominator;
-            Numerator = (-whole * Denominator) - numerator;
+            Numerator = (whole * Denominator) - numerator;
         }
         else
         {
