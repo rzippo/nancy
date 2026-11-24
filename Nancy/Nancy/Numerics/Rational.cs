@@ -686,6 +686,32 @@ namespace Unipi.Nancy.Numerics
             );
         }
 
+        #if BIG_RATIONAL
+        [System.Runtime.CompilerServices.UnsafeAccessor(
+            System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_sign")]
+        private static extern ref int InlineSign(ref BigInteger value);
+
+        /// <summary>
+        /// Computes the greatest common divisor of two positive native magnitudes.
+        /// </summary>
+        /// <remarks>The caller must supply strictly positive arguments; no validation is performed.</remarks>
+        private static long GreatestCommonDivisorPositive(long left, long right)
+        {
+            ulong a = (ulong)left, b = (ulong)right;
+            int shift = BitOperations.TrailingZeroCount(a | b);
+            a >>= BitOperations.TrailingZeroCount(a);
+            do
+            {
+                b >>= BitOperations.TrailingZeroCount(b);
+                if (a > b)
+                    (a, b) = (b, a);
+                b -= a;
+            } while (b != 0);
+            return (long)(a << shift);
+        }
+
+        #endif
+
         /// <summary>
         /// Constructs a rational from the shortest round-trippable decimal representation of the given float.
         /// </summary>
@@ -1330,76 +1356,52 @@ namespace Unipi.Nancy.Numerics
             #if BIG_RATIONAL
             if (x.IsZero || y.IsZero)
                 return Rational.Zero;
-            if (x.IsInfinite || y.IsInfinite)
+            else if (x.IsInfinite || y.IsInfinite)
                 return x.Sign == y.Sign ? Rational.PlusInfinity : Rational.MinusInfinity;
+            // Otherwise both operands are finite and nonzero, and continue below.
 
-            var isXDenOne = x.Denominator.IsOne;
-            var isYDenOne = y.Denominator.IsOne;
-            // product between integers
-            if (isXDenOne && isYDenOne)
-                return new Rational(x.Numerator * y.Numerator);
-
-            var isXNumOne = x.Numerator.IsOne;
-            if (isXDenOne && isXNumOne)
-                return y;
-
-            var isYNumOne = y.Numerator.IsOne;
-            if (isYDenOne && isYNumOne)
-                return x;
-
-            // cross pattern, e.g. 3/1 * 1/2 = 3/2
-            if (isXNumOne && isYDenOne)
-                return new Rational(y.Numerator, x.Denominator);
-            if (isXDenOne && isYNumOne)
-                return new Rational(x.Numerator, y.Denominator);
-
-            // (a/b) * (c/d)  ->  ((a/g1)*(c/g2)) / ((b/g2)*(d/g1))
-            // where g1 = gcd(a, d), g2 = gcd(c, b)
-            // We cross-cancel before multiplication to avoid BigInteger expansion => two GCDs instead of one.
-            // If there is nothing to simplify, this will be worse. We bet on most products being simplifiable.
-            BigInteger a, b, c, d;
-            if (!isYDenOne && !isXNumOne && !(x.Numerator == -1))
+            // Each operand's units are tested once: an integer ±1 yields the other operand, and two integers multiply.
+            if (x.Denominator.IsOne)
             {
-                var g1 = BigInteger.GreatestCommonDivisor(x.Numerator, y.Denominator);
-                if (!g1.IsOne)
+                if (y.Denominator.IsOne)
                 {
-                    a = x.Numerator / g1;
-                    d = y.Denominator / g1;
+                    var xNumerator = x.Numerator;
+                    var yNumerator = y.Numerator;
+                    int xSign = InlineSign(ref xNumerator), ySign = InlineSign(ref yNumerator);
+                    // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
+                    if (xSign != 1 && xSign != -1 && ySign != 1 && ySign != -1)
+                        return new Rational((long)xSign * ySign, 1, skipNormalize: true);
+                    // Otherwise a numerator is ±1 or outside the sign field, and continues with the unit tests.
                 }
-                else
-                {
-                    a = x.Numerator;
-                    d = y.Denominator;
-                }
+                if (x.Numerator.IsOne)
+                    return y;
+                else if (x.Numerator == BigInteger.MinusOne)
+                    return -y;
+                // Otherwise x is an integer other than ±1, and continues with the tests on y.
+            }
+            if (y.Denominator.IsOne)
+            {
+                if (y.Numerator.IsOne)
+                    return x;
+                else if (y.Numerator == BigInteger.MinusOne)
+                    return -x;
+                else if (x.Denominator.IsOne)
+                    return new Rational(x.Numerator * y.Numerator);
+                // Otherwise x is a fraction and y an integer other than ±1, and they continue with the fraction tiers.
+            }
+
+            // Fractions go to non-inlined helpers, so that zero and integer products do not pay for their frames.
+            // This hotspot is an approved exception to the single-use helper rule.
+            if (IsInSignField(x.Numerator) && IsInSignField(x.Denominator) && IsInSignField(y.Numerator) && IsInSignField(y.Denominator))
+            {
+                var xn = x.Numerator;
+                var xd = x.Denominator;
+                var yn = y.Numerator;
+                var yd = y.Denominator;
+                return MultiplyInt32Fractions(InlineSign(ref xn), InlineSign(ref xd), InlineSign(ref yn), InlineSign(ref yd));
             }
             else
-            {
-                a = x.Numerator;
-                d = y.Denominator;
-            }
-
-            if (!isXDenOne && !isYNumOne && !(y.Numerator == -1))
-            {
-                var g2 = BigInteger.GreatestCommonDivisor(y.Numerator, x.Denominator);
-                if (!g2.IsOne)
-                {
-                    c = y.Numerator / g2;
-                    b = x.Denominator / g2;
-                }
-                else
-                {
-                    c = y.Numerator;
-                    b = x.Denominator;
-                }
-            }
-            else
-            {
-                c = y.Numerator;
-                b = x.Denominator;
-            }
-
-            // construct the result, skip simplify
-            return new Rational(a * c, b * d, true);
+                return MultiplyLargeFractions(x, y);
             #elif LONG_RATIONAL
             if (x.IsZero || y.IsZero)
             {
@@ -1416,6 +1418,188 @@ namespace Unipi.Nancy.Numerics
             }
             #endif
         }
+
+        #if BIG_RATIONAL
+
+        // Whether BigInteger keeps the value in its Int32 _sign field rather than in an array.
+        // It does for every Int32 except Int32.MinValue; a stored ±1 may instead be the sign of an array-backed value.
+        private static bool IsInSignField(BigInteger value)
+        {
+            int sign = InlineSign(ref value);
+            return sign == 1 ? value.IsOne : sign != -1 || value == BigInteger.MinusOne;
+        }
+
+        // The three fraction tiers below compute (a/b) * (c/d) as ((a/g1) * (c/g2)) / ((b/g2) * (d/g1)), with g1 = gcd(a, d) and g2 = gcd(c, b).
+        // Reduced operands with equal denominators or equal numerator magnitudes have both gcds equal to 1, so each tier skips the cancellation for them.
+
+        // Multiplies the reduced fractions a/b and c/d into a reduced fraction, with the products taken in Int64.
+        // The components are Int32 values other than Int32.MinValue.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static Rational MultiplyInt32Fractions(Int32 a, Int32 b, Int32 c, Int32 d)
+        {
+            if (b != d && a != c && a != -c)
+            {
+                CancelPair(ref a, ref d);
+                CancelPair(ref c, ref b);
+            }
+            return new Rational((Int64)a * c, (Int64)b * d, skipNormalize: true);
+        }
+
+        // Multiplies the reduced fractions a/b and c/d into a reduced fraction, with the products taken in 128 bits and stored as Int64 when they fit.
+        // The components are Int64 values other than Int64.MinValue.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static Rational MultiplyInt64Fractions(Int64 a, Int64 b, Int64 c, Int64 d)
+        {
+            if (b != d && a != c && a != -c)
+            {
+                CancelPair(ref a, ref d);
+                CancelPair(ref c, ref b);
+            }
+            Int64 numeratorHigh = Math.BigMul(a, c, out Int64 numerator);
+            Int64 denominatorHigh = Math.BigMul(b, d, out Int64 denominator);
+            // The products fit an Int64 when their high halves only extend the sign.
+            if (numeratorHigh == numerator >> 63 && denominatorHigh == 0 && denominator >= 0)
+                return new Rational(numerator, denominator, skipNormalize: true);
+            else
+                return new Rational((BigInteger)new Int128(unchecked((UInt64)numeratorHigh), unchecked((UInt64)numerator)),
+                    (BigInteger)new Int128(unchecked((UInt64)denominatorHigh), unchecked((UInt64)denominator)), skipNormalize: true);
+        }
+
+        // Multiplies two reduced fractions into a reduced fraction: ±1/b times an integer through ProductFromOnePair, components of at most 63 bits through MultiplyInt64Fractions, the rest by cancelling in BigInteger.
+        // At least one component is outside the sign field.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static Rational MultiplyLargeFractions(Rational x, Rational y)
+        {
+            // ±1/b times an integer c: one gcd, and on a miss both operands are reused.
+            if (y.Denominator.IsOne && (x.Numerator.IsOne || x.Numerator == BigInteger.MinusOne))
+                return ProductFromOnePair(x.Numerator.IsOne ? y.Numerator : -y.Numerator, x.Denominator);
+            else if (x.Denominator.IsOne && (y.Numerator.IsOne || y.Numerator == BigInteger.MinusOne))
+                return ProductFromOnePair(y.Numerator.IsOne ? x.Numerator : -x.Numerator, y.Denominator);
+            else if (x.Numerator.GetBitLength() <= 63 && x.Denominator.GetBitLength() <= 63 &&
+                y.Numerator.GetBitLength() <= 63 && y.Denominator.GetBitLength() <= 63)
+            {
+                Int64 xn = (Int64)x.Numerator, yn = (Int64)y.Numerator;
+                // Int64.MinValue has no positive counterpart, so it goes to the BigInteger branch.
+                if (xn != Int64.MinValue && yn != Int64.MinValue)
+                    return MultiplyInt64Fractions(xn, (Int64)x.Denominator, yn, (Int64)y.Denominator);
+                // Otherwise it continues with the BigInteger branch below.
+            }
+            // Otherwise the components are beyond Int64, and continue with the BigInteger branch.
+            BigInteger a = x.Numerator, b = x.Denominator, c = y.Numerator, d = y.Denominator;
+            if (b == d || BigInteger.Abs(a) == BigInteger.Abs(c))
+                return new Rational(a * c, b * d, skipNormalize: true);
+            else
+            {
+                // The pairs are written out here: a BigInteger CancelPair measured 5–7 ns slower on small-by-wide operands.
+                if (!d.IsOne && !a.IsOne && a != BigInteger.MinusOne)
+                {
+                    // An equal cross-pair cancels to ±1 and 1.
+                    if (BigInteger.Abs(a) == d)
+                    {
+                        a = a.Sign;
+                        d = BigInteger.One;
+                    }
+                    else
+                    {
+                        var g1 = BigInteger.GreatestCommonDivisor(a, d);
+                        if (!g1.IsOne)
+                        {
+                            a /= g1;
+                            d /= g1;
+                        }
+                    }
+                }
+                if (!b.IsOne && !c.IsOne && c != BigInteger.MinusOne)
+                {
+                    // An equal cross-pair cancels to ±1 and 1.
+                    if (BigInteger.Abs(c) == b)
+                    {
+                        c = c.Sign;
+                        b = BigInteger.One;
+                    }
+                    else
+                    {
+                        var g2 = BigInteger.GreatestCommonDivisor(c, b);
+                        if (!g2.IsOne)
+                        {
+                            c /= g2;
+                            b /= g2;
+                        }
+                    }
+                }
+                // A cross-pair cancelled to 1 leaves a factor to reuse rather than multiply.
+                return new Rational(a.IsOne ? c : c.IsOne ? a : a * c, b.IsOne ? d : d.IsOne ? b : b * d, skipNormalize: true);
+            }
+        }
+
+        // The product ±c/b of ±1/b and an integer c, with the sign already applied to c.
+        // Below 2^63 the gcd is taken in Int64 and a miss reuses both operands; beyond, the normalizing constructor cancels.
+        private static Rational ProductFromOnePair(BigInteger numerator, BigInteger denominator)
+        {
+            if (BigInteger.Abs(numerator).GetBitLength() <= 63 && denominator.GetBitLength() <= 63)
+            {
+                long n = (long)numerator, d = (long)denominator, originalDenominator = d;
+                CancelPair(ref n, ref d);
+                if (d == originalDenominator)
+                    return new Rational(numerator, denominator, skipNormalize: true);
+                else
+                    return new Rational(n, d, skipNormalize: true);
+            }
+            else
+                return new Rational(numerator, denominator);
+        }
+
+        // Each CancelPair divides a numerator and the denominator of the other operand by their gcd.
+        // Both are nonzero and the denominator is positive; a unit has nothing to cancel, and an equal pair cancels to ±1 and 1 without dividing.
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static void CancelPair(ref int numerator, ref int denominator)
+        {
+            if (denominator != 1 && numerator != 1 && numerator != -1)
+            {
+                if (Math.Abs(numerator) == denominator)
+                {
+                    numerator = Math.Sign(numerator);
+                    denominator = 1;
+                }
+                else
+                {
+                    // Inline storage excludes int.MinValue, so the magnitude fits.
+                    uint g = (uint)Math.Abs(numerator), remainder = (uint)denominator;
+                    while (remainder != 0)
+                        (g, remainder) = (remainder, g % remainder);
+                    if (g != 1)
+                    {
+                        numerator /= (int)g;
+                        denominator /= (int)g;
+                    }
+                }
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static void CancelPair(ref long numerator, ref long denominator)
+        {
+            if (denominator != 1 && numerator != 1 && numerator != -1)
+            {
+                if (Math.Abs(numerator) == denominator)
+                {
+                    numerator = Math.Sign(numerator);
+                    denominator = 1;
+                }
+                else
+                {
+                    long g = GreatestCommonDivisorPositive(Math.Abs(numerator), denominator);
+                    if (g != 1)
+                    {
+                        numerator /= g;
+                        denominator /= g;
+                    }
+                }
+            }
+        }
+
+        #endif
 
         /// <inheritdoc cref="Divide(Rational, Rational)" />
         public static Rational operator /(Rational x, Rational y)
