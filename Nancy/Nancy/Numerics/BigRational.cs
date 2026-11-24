@@ -661,9 +661,10 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         return new BigRational(BigInteger.Negate(r.Numerator), r.Denominator, skipNormalize: !r.Denominator.IsZero);
     }
 
+    // BigInteger's _sign field: the value itself when _bits is null, and its sign otherwise.
     [System.Runtime.CompilerServices.UnsafeAccessor(
         System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_sign")]
-    private static extern ref int InlineSign(ref BigInteger value);
+    private static extern ref int SignField(ref BigInteger value);
 
     /// <summary>
     /// Computes the greatest common divisor of two positive native magnitudes.
@@ -921,11 +922,11 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         var leftDenominator = left.Denominator;
         var rightNumerator = right.Numerator;
         var rightDenominator = right.Denominator;
-        if (InlineBits(ref leftNumerator) is null && InlineBits(ref leftDenominator) is null &&
-            InlineBits(ref rightNumerator) is null && InlineBits(ref rightDenominator) is null)
+        if (BitsField(ref leftNumerator) is null && BitsField(ref leftDenominator) is null &&
+            BitsField(ref rightNumerator) is null && BitsField(ref rightDenominator) is null)
         {
-            int a = InlineSign(ref leftNumerator), b = InlineSign(ref leftDenominator);
-            int c = InlineSign(ref rightNumerator), d = InlineSign(ref rightDenominator);
+            int a = SignField(ref leftNumerator), b = SignField(ref leftDenominator);
+            int c = SignField(ref rightNumerator), d = SignField(ref rightDenominator);
             if (b == d)
                 return a < c ? -1 : a > c ? 1 : 0;
             else
@@ -1088,9 +1089,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             var xd = r1.Denominator;
             var yn = r2.Numerator;
             var yd = r2.Denominator;
-            if (InlineBits(ref xn) is null && InlineBits(ref xd) is null &&
-                InlineBits(ref yn) is null && InlineBits(ref yd) is null)
-                return AddInt32Fractions(InlineSign(ref xn), InlineSign(ref xd), InlineSign(ref yn), InlineSign(ref yd));
+            if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
+                BitsField(ref yn) is null && BitsField(ref yd) is null)
+                return AddInt32Fractions(SignField(ref xn), SignField(ref xd), SignField(ref yn), SignField(ref yd));
             else
                 return AddLargeFractions(xn, xd, yn, yd);
         }
@@ -1118,7 +1119,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             {
                 var xNumerator = x.Numerator;
                 var yNumerator = y.Numerator;
-                int xSign = InlineSign(ref xNumerator), ySign = InlineSign(ref yNumerator);
+                int xSign = SignField(ref xNumerator), ySign = SignField(ref yNumerator);
                 // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
                 if (xSign != 1 && xSign != -1 && ySign != 1 && ySign != -1)
                     return new BigRational((long)xSign * ySign, 1, skipNormalize: true);
@@ -1143,28 +1144,29 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
 
         // Fractions go to non-inlined helpers, so that zero and integer products do not pay for their frames.
         // This hotspot is an approved exception to the single-use helper rule.
-        if (IsInSignField(x.Numerator) && IsInSignField(x.Denominator) && IsInSignField(y.Numerator) && IsInSignField(y.Denominator))
-        {
-            var xn = x.Numerator;
-            var xd = x.Denominator;
-            var yn = y.Numerator;
-            var yd = y.Denominator;
-            return MultiplyInt32Fractions(InlineSign(ref xn), InlineSign(ref xd), InlineSign(ref yn), InlineSign(ref yd));
-        }
+        // Components held in BigInteger's sign field are Int32 values, and their products are taken in Int64.
+        var xn = x.Numerator;
+        var xd = x.Denominator;
+        var yn = y.Numerator;
+        var yd = y.Denominator;
+        if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
+            BitsField(ref yn) is null && BitsField(ref yd) is null)
+            return MultiplyInt32Fractions(SignField(ref xn), SignField(ref xd), SignField(ref yn), SignField(ref yd));
         else
-            return MultiplyLargeFractions(x, y);
+            return MultiplyLargeFractions(xn, xd, yn, yd);
     }
 
+    // BigInteger's _bits field: null when the value is held in _sign, and otherwise its magnitude in 32-bit words, least significant first.
     [System.Runtime.CompilerServices.UnsafeAccessor(
         System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_bits")]
-    private static extern ref uint[]? InlineBits(ref BigInteger value);
+    private static extern ref uint[]? BitsField(ref BigInteger value);
 
     // Whether the value is an Int64 other than Int64.MinValue, and that value, read from BigInteger's _sign and _bits fields.
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     private static bool TryGetInt64(BigInteger value, out long result)
     {
-        uint[]? bits = InlineBits(ref value);
-        int signField = InlineSign(ref value);
+        uint[]? bits = BitsField(ref value);
+        int signField = SignField(ref value);
         if (bits is null)
         {
             result = signField;
@@ -1382,14 +1384,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
     }
 
-    // Whether BigInteger keeps the value in its Int32 _sign field rather than in an array.
-    // It does for every Int32 except Int32.MinValue; a stored ±1 may instead be the sign of an array-backed value.
-    private static bool IsInSignField(BigInteger value)
-    {
-        int sign = InlineSign(ref value);
-        return sign == 1 ? value.IsOne : sign != -1 || value == BigInteger.MinusOne;
-    }
-
     // The three fraction tiers below compute (a/b) * (c/d) as ((a/g1) * (c/g2)) / ((b/g2) * (d/g1)), with g1 = gcd(a, d) and g2 = gcd(c, b).
     // Reduced operands with equal denominators or equal numerator magnitudes have both gcds equal to 1, so each tier skips the cancellation for them.
 
@@ -1426,28 +1420,20 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
                 (BigInteger)new Int128(unchecked((UInt64)denominatorHigh), unchecked((UInt64)denominator)), skipNormalize: true);
     }
 
-    // Multiplies two reduced fractions into a reduced fraction: ±1/b times an integer through ProductFromOnePair, components of at most 63 bits through MultiplyInt64Fractions, the rest by cancelling in BigInteger.
-    // At least one component is outside the sign field.
+    // Multiplies the reduced fractions a/b and c/d into a reduced fraction: ±1 over a denominator times an integer through ProductFromOnePair, components that are Int64 values other than Int64.MinValue through MultiplyInt64Fractions, the rest by cancelling in BigInteger.
+    // At least one component is outside the sign field, and the denominators are positive.
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-    private static BigRational MultiplyLargeFractions(BigRational x, BigRational y)
+    private static BigRational MultiplyLargeFractions(BigInteger a, BigInteger b, BigInteger c, BigInteger d)
     {
-        // ±1/b times an integer c: one gcd, and on a miss both operands are reused.
-        if (y.Denominator.IsOne && (x.Numerator.IsOne || x.Numerator == BigInteger.MinusOne))
-            return ProductFromOnePair(x.Numerator.IsOne ? y.Numerator : -y.Numerator, x.Denominator);
-        else if (x.Denominator.IsOne && (y.Numerator.IsOne || y.Numerator == BigInteger.MinusOne))
-            return ProductFromOnePair(y.Numerator.IsOne ? x.Numerator : -x.Numerator, y.Denominator);
-        else if (x.Numerator.GetBitLength() <= 63 && x.Denominator.GetBitLength() <= 63 &&
-            y.Numerator.GetBitLength() <= 63 && y.Denominator.GetBitLength() <= 63)
-        {
-            Int64 xn = (Int64)x.Numerator, yn = (Int64)y.Numerator;
-            // Int64.MinValue has no positive counterpart, so it goes to the BigInteger branch.
-            if (xn != Int64.MinValue && yn != Int64.MinValue)
-                return MultiplyInt64Fractions(xn, (Int64)x.Denominator, yn, (Int64)y.Denominator);
-            // Otherwise it continues with the BigInteger branch below.
-        }
-        // Otherwise the components are beyond Int64, and continue with the BigInteger branch.
-        BigInteger a = x.Numerator, b = x.Denominator, c = y.Numerator, d = y.Denominator;
-        if (b == d || BigInteger.Abs(a) == BigInteger.Abs(c))
+        // ±1 over a denominator times an integer: one gcd, and on a miss both operands are reused.
+        if (d.IsOne && (a.IsOne || a == BigInteger.MinusOne))
+            return ProductFromOnePair(a.IsOne ? c : -c, b);
+        else if (b.IsOne && (c.IsOne || c == BigInteger.MinusOne))
+            return ProductFromOnePair(c.IsOne ? a : -a, d);
+        else if (TryGetInt64(a, out long a64) && TryGetInt64(b, out long b64) &&
+            TryGetInt64(c, out long c64) && TryGetInt64(d, out long d64))
+            return MultiplyInt64Fractions(a64, b64, c64, d64);
+        else if (b == d || BigInteger.Abs(a) == BigInteger.Abs(c))
             return new BigRational(a * c, b * d, skipNormalize: true);
         else
         {
@@ -1497,9 +1483,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     // Below 2^63 the gcd is taken in Int64 and a miss reuses both operands; beyond, the normalizing constructor cancels.
     private static BigRational ProductFromOnePair(BigInteger numerator, BigInteger denominator)
     {
-        if (BigInteger.Abs(numerator).GetBitLength() <= 63 && denominator.GetBitLength() <= 63)
+        if (TryGetInt64(numerator, out long n) && TryGetInt64(denominator, out long d))
         {
-            long n = (long)numerator, d = (long)denominator, originalDenominator = d;
+            long originalDenominator = d;
             CancelPair(ref n, ref d);
             if (d == originalDenominator)
                 return new BigRational(numerator, denominator, skipNormalize: true);
@@ -1525,7 +1511,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             }
             else
             {
-                // Inline storage excludes int.MinValue, so the magnitude fits.
+                // The numerator is not Int32.MinValue, so its magnitude fits.
                 uint g = (uint)Math.Abs(numerator), remainder = (uint)denominator;
                 while (remainder != 0)
                     (g, remainder) = (remainder, g % remainder);
@@ -1595,7 +1581,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             {
                 var xNumerator = x.Numerator;
                 var yDenominator = y.Denominator;
-                int xSign = InlineSign(ref xNumerator), dSign = InlineSign(ref yDenominator);
+                int xSign = SignField(ref xNumerator), dSign = SignField(ref yDenominator);
                 // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
                 if (xSign != 1 && xSign != -1 && dSign != 1 && dSign != -1)
                     return new BigRational(y.Numerator.Sign * (long)xSign * dSign, 1, skipNormalize: true);
@@ -1617,17 +1603,18 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
 
         // The reciprocal of c/d is ±d/|c|, reduced, and the multiplication tiers cancel x against it.
-        if (IsInSignField(x.Numerator) && IsInSignField(x.Denominator) && IsInSignField(y.Numerator) && IsInSignField(y.Denominator))
+        var xn = x.Numerator;
+        var xd = x.Denominator;
+        var yn = y.Numerator;
+        var yd = y.Denominator;
+        if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
+            BitsField(ref yn) is null && BitsField(ref yd) is null)
         {
-            var xn = x.Numerator;
-            var xd = x.Denominator;
-            var yn = y.Numerator;
-            var yd = y.Denominator;
-            int c = InlineSign(ref yn), d = InlineSign(ref yd);
-            return MultiplyInt32Fractions(InlineSign(ref xn), InlineSign(ref xd), c < 0 ? -d : d, Math.Abs(c));
+            int c = SignField(ref yn), d = SignField(ref yd);
+            return MultiplyInt32Fractions(SignField(ref xn), SignField(ref xd), c < 0 ? -d : d, Math.Abs(c));
         }
         else
-            return MultiplyLargeFractions(x, Invert(y));
+            return MultiplyLargeFractions(xn, xd, yn.Sign < 0 ? -yd : yd, BigInteger.Abs(yn));
     }
 
     /// <inheritdoc cref="Remainder(BigRational, BigRational)"/>
