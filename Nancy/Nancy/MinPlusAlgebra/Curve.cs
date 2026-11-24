@@ -3229,8 +3229,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
 
         // Read the element from the stored period and translate only that element.
         var periodIndex = (long)((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-        var element = BaseSequence.GetElementAt(time - periodIndex * PseudoPeriodLength);
-        return TranslatePeriodElement(element, periodIndex);
+        var timeOffset = PseudoPeriodLength * periodIndex;
+        var element = BaseSequence.GetElementAt(time - timeOffset);
+        return TranslatePeriodElement(element, timeOffset, PseudoPeriodHeight * periodIndex);
     }
 
     /// <summary>
@@ -3255,7 +3256,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         int periodElementCount = elements.Count - transientCount;
         long periodIndex = (index - transientCount) / periodElementCount;
         int offset = (int)((index - transientCount) % periodElementCount);
-        return TranslatePeriodElement(elements[transientCount + offset], periodIndex);
+        return TranslatePeriodElement(elements[transientCount + offset],
+            PseudoPeriodLength * periodIndex, PseudoPeriodHeight * periodIndex);
     }
 
     /// <summary>
@@ -3280,8 +3282,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         // Read the segment from the stored period and translate only that segment.
         // At a period boundary the segment before it belongs to the period ending there.
         var periodIndex = (long)(((time - PseudoPeriodStart) / PseudoPeriodLength).Ceil() - 1);
-        var segment = BaseSequence.GetSegmentBefore(time - periodIndex * PseudoPeriodLength, cutToTime: cutToTime);
-        return (Segment)TranslatePeriodElement(segment, periodIndex);
+        var timeOffset = PseudoPeriodLength * periodIndex;
+        var segment = BaseSequence.GetSegmentBefore(time - timeOffset, cutToTime: cutToTime);
+        return (Segment)TranslatePeriodElement(segment, timeOffset, PseudoPeriodHeight * periodIndex);
     }
 
     /// <summary>
@@ -3310,8 +3313,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 // Read the segment from the stored period and translate only that segment.
                 var periodIndex = (long)((time - PseudoPeriodStart) / PseudoPeriodLength).Floor();
-                var periodSegment = BaseSequence.GetSegmentAfter(time - periodIndex * PseudoPeriodLength, cutToTime: cutToTime);
-                return (Segment)TranslatePeriodElement(periodSegment, periodIndex);
+                var timeOffset = PseudoPeriodLength * periodIndex;
+                var periodSegment = BaseSequence.GetSegmentAfter(time - timeOffset, cutToTime: cutToTime);
+                return (Segment)TranslatePeriodElement(periodSegment, timeOffset, PseudoPeriodHeight * periodIndex);
             }
         }
         else
@@ -3505,8 +3509,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (startsAfterBaseSequence && firstPeriodIndex == lastPeriodIndex)
             {
                 // The entire cut lies in one translated period, including the case of a complete right-open period.
-                var selectedElements = GetPeriodElementsForCut(periodicSequence, firstPeriodIndex, cutInterval);
-                cutElements = TranslatePeriodElements(selectedElements, firstPeriodIndex, settings);
+                var firstTimeOffset = PseudoPeriodLength * firstPeriodIndex;
+                var selectedElements = GetPeriodElementsForCut(periodicSequence, firstTimeOffset, cutInterval);
+                cutElements = TranslatePeriodElements(selectedElements, firstTimeOffset, PseudoPeriodHeight * firstPeriodIndex, settings);
             }
             else
             {
@@ -3522,8 +3527,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 else if (startPeriodPosition != firstPeriodIndex || !isStartIncluded)
                 {
                     // A partial first period is separate from the complete-period range.
-                    var firstPeriodElements = GetPeriodElementsForCut(periodicSequence, firstPeriodIndex, cutInterval);
-                    prefixElements = TranslatePeriodElements(firstPeriodElements, firstPeriodIndex, settings);
+                    var firstTimeOffset = PseudoPeriodLength * firstPeriodIndex;
+                    var firstPeriodElements = GetPeriodElementsForCut(periodicSequence, firstTimeOffset, cutInterval);
+                    prefixElements = TranslatePeriodElements(firstPeriodElements, firstTimeOffset, PseudoPeriodHeight * firstPeriodIndex, settings);
                     firstCompletePeriodIndex++;
                 }
                 else
@@ -3535,8 +3541,9 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (isEndIncluded || endPeriodPosition != endPeriodPosition.Floor())
                 {
                     // A partial last period also supplies an included endpoint at the next period's start.
-                    var lastPeriodElements = GetPeriodElementsForCut(periodicSequence, lastPeriodIndex, cutInterval);
-                    suffixElements = TranslatePeriodElements(lastPeriodElements, lastPeriodIndex, settings);
+                    var lastTimeOffset = PseudoPeriodLength * lastPeriodIndex;
+                    var lastPeriodElements = GetPeriodElementsForCut(periodicSequence, lastTimeOffset, cutInterval);
+                    suffixElements = TranslatePeriodElements(lastPeriodElements, lastTimeOffset, PseudoPeriodHeight * lastPeriodIndex, settings);
                     lastCompletePeriodIndex--;
                 }
                 else
@@ -3711,7 +3718,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             if (startsAfterBaseSequence && firstPeriodIndex == lastPeriodIndex)
             {
                 // The entire cut lies in one translated period, including the case of a complete right-open period.
-                cutElements = TranslatePeriodElementsForCutAsEnumerable(periodicSequence, firstPeriodIndex, cutInterval, settings);
+                cutElements = TranslatePeriodElementsForCutAsEnumerable(periodicSequence,
+                        PseudoPeriodLength * firstPeriodIndex, PseudoPeriodHeight * firstPeriodIndex, cutInterval, settings);
             }
             else
             {
@@ -3727,7 +3735,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 else if (startPeriodPosition != firstPeriodIndex || !isStartIncluded)
                 {
                     // A partial first period is separate from the complete-period range.
-                    prefixElements = TranslatePeriodElementsForCutAsEnumerable(periodicSequence, firstPeriodIndex, cutInterval, settings);
+                    prefixElements = TranslatePeriodElementsForCutAsEnumerable(periodicSequence,
+                        PseudoPeriodLength * firstPeriodIndex, PseudoPeriodHeight * firstPeriodIndex, cutInterval, settings);
                     firstCompletePeriodIndex++;
                 }
                 else
@@ -3739,7 +3748,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 if (isEndIncluded || endPeriodPosition != endPeriodPosition.Floor())
                 {
                     // A partial last period also supplies an included endpoint at the next period's start.
-                    suffixElements = TranslatePeriodElementsForCutAsEnumerable(periodicSequence, lastPeriodIndex, cutInterval, settings);
+                    suffixElements = TranslatePeriodElementsForCutAsEnumerable(periodicSequence,
+                        PseudoPeriodLength * lastPeriodIndex, PseudoPeriodHeight * lastPeriodIndex, cutInterval, settings);
                     lastCompletePeriodIndex--;
                 }
                 else
@@ -3881,6 +3891,39 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
     }
 
     /// <summary>
+    /// Returns the stored period elements whose supports, translated by the time offset, intersect the cut interval.
+    /// </summary>
+    /// <param name="period">The stored pseudo-period, before translation.</param>
+    /// <param name="timeOffset">Time offset of the translated period, the pseudo-period length times its index.</param>
+    /// <param name="cutInterval">The cut interval, in the curve's coordinates, intersecting the translated period.</param>
+    /// <returns>A read-only view of the selected stored elements, without copying or translating them.</returns>
+    /// <remarks>
+    /// The cut may lie within this period, overlap its beginning or end, or contain the whole period.
+    /// Endpoint inclusion determines whether points on the cut boundaries are selected.
+    /// Intersecting segments are returned intact; clipping is the caller's responsibility.
+    /// </remarks>
+    internal ReadOnlyElementList GetPeriodElementsForCut(Sequence period, Rational timeOffset, Interval cutInterval)
+    {
+        var start = cutInterval.Lower - timeOffset;
+        var end = cutInterval.Upper - timeOffset;
+        int first = start < period.DefinedFrom || (start == period.DefinedFrom && cutInterval.IsLowerIncluded)
+            ? 0
+            : period.FindFirstIndex(element => element is Point point
+                ? (cutInterval.IsLowerIncluded ? point.Time >= start : point.Time > start)
+                : element.EndTime > start);
+        int last = end >= period.DefinedUntil
+            ? period.Count - 1
+            : period.FindLastIndex(element => element is Point point
+                ? (cutInterval.IsUpperIncluded ? point.Time <= end : point.Time < end)
+                : element.StartTime < end);
+
+        // Boundary segments remain intact here; the final cut clips them and normalizes period joins.
+        return first == 0 && last == period.Count - 1
+            ? period.ElementList
+            : period.ElementList.Slice(first, last - first + 1);
+    }
+
+    /// <summary>
     /// Translates complete consecutive periods, distributing work within the degree of parallelism.
     /// </summary>
     /// <param name="period">The stored pseudo-period.</param>
@@ -3898,8 +3941,12 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         {
             // Translate periods in order; element translation within each period may still run in parallel.
             for (int i = 0; i < periodCount; i++)
-                foreach (var element in TranslatePeriodElements(period.ElementList, firstPeriodIndex + i, settings))
+            {
+                var periodIndex = firstPeriodIndex + i;
+                foreach (var element in TranslatePeriodElements(period.ElementList,
+                             PseudoPeriodLength * periodIndex, PseudoPeriodHeight * periodIndex, settings))
                     yield return element;
+            }
         }
         else
         {
@@ -3917,7 +3964,11 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     var start = (int)((long)partition * periodCount / partitionCount);
                     var end = (int)((long)(partition + 1) * periodCount / partitionCount);
                     for (int i = start; i < end; i++)
-                        periods[i] = TranslatePeriodElementsToArray(period.ElementList, firstPeriodIndex + i, partitionsPerPeriod);
+                    {
+                        var periodIndex = firstPeriodIndex + i;
+                        periods[i] = TranslatePeriodElementsToArray(period.ElementList,
+                            PseudoPeriodLength * periodIndex, PseudoPeriodHeight * periodIndex, partitionsPerPeriod);
+                    }
                 });
             }
             catch (AggregateException aggregate)
@@ -3946,7 +3997,8 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         ComputationSettings settings)
     {
         for (long index = firstPeriodIndex; index < firstPeriodIndex + periodCount; index++)
-            foreach (var element in TranslatePeriodElements(period.ElementList, index, settings))
+            foreach (var element in TranslatePeriodElements(period.ElementList,
+                         PseudoPeriodLength * index, PseudoPeriodHeight * index, settings))
                 yield return element;
     }
 
@@ -4128,6 +4180,192 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     startTime: segment.StartTime + PseudoPeriodLength * periodIndex,
                     endTime: segment.EndTime + PseudoPeriodLength * periodIndex,
                     rightLimitAtStartTime: segment.RightLimitAtStartTime + PseudoPeriodHeight * periodIndex,
+                    slope: segment.Slope
+                );
+
+            default:
+                throw new InvalidCastException();
+        }
+    }
+
+    /// <summary>
+    /// Selects and translates the elements of one period intersecting a cut, when consumed.
+    /// </summary>
+    /// <param name="period">The stored pseudo-period.</param>
+    /// <param name="timeOffset">Time offset of the translated period, the pseudo-period length times its index.</param>
+    /// <param name="valueOffset">Value offset of the translated period, the pseudo-period height times its index.</param>
+    /// <param name="cutInterval">The cut interval, in the curve's coordinates.</param>
+    /// <param name="settings">Settings for inner parallel execution.</param>
+    /// <remarks>Boundary segments remain intact for the caller to clip and normalize.</remarks>
+    private IEnumerable<Element> TranslatePeriodElementsForCutAsEnumerable(Sequence period, Rational timeOffset,
+        Rational valueOffset, Interval cutInterval, ComputationSettings settings)
+    {
+        var elements = GetPeriodElementsForCut(period, timeOffset, cutInterval);
+        foreach (var element in TranslatePeriodElements(elements, timeOffset, valueOffset, settings))
+            yield return element;
+    }
+
+    /// <summary>
+    /// Translates the supplied stored period elements by the offsets of a pseudo-period, in source order.
+    /// </summary>
+    /// <param name="elements">The selected period elements.</param>
+    /// <param name="timeOffset">Time offset of the translated period, the pseudo-period length times its index.</param>
+    /// <param name="valueOffset">Value offset of the translated period, the pseudo-period height times its index.</param>
+    /// <param name="settings">Settings for inner parallel execution and minimum work per partition.</param>
+    /// <returns>The translated elements in source order, computed when consumed.</returns>
+    /// <remarks>
+    /// The input elements are neither clipped nor modified.
+    /// Serial execution translates one element at a time; parallel execution fills the selected-element buffer before yielding.
+    /// The inner parallelism switch and threshold and the available work budget determine which execution is used.
+    /// </remarks>
+    internal IEnumerable<Element> TranslatePeriodElements(ReadOnlyElementList elements, Rational timeOffset,
+        Rational valueOffset, ComputationSettings settings)
+    {
+        var partitionCount = GetPeriodTranslationPartitionCount(elements.Count, settings, settings.DegreeOfParallelism);
+        if (partitionCount == 1)
+        {
+            return TranslatePeriodElementsSerially(elements, timeOffset, valueOffset);
+        }
+        else
+        {
+            return TranslatePeriodElementsInParallel(elements, timeOffset, valueOffset, partitionCount);
+        }
+    }
+
+    /// <summary>
+    /// Translates selected period elements by the offsets of a pseudo-period one at a time, without a period buffer.
+    /// </summary>
+    private IEnumerable<Element> TranslatePeriodElementsSerially(ReadOnlyElementList elements, Rational timeOffset,
+        Rational valueOffset)
+    {
+        if (elements.Count > 0)
+        {
+            // Elements adjoin, so each one starts where the previous translated one ends, and only the first start is translated.
+            var startTime = elements[0].StartTime + timeOffset;
+            // reads the period by index, without an interface call per element
+            for (int i = 0; i < elements.Count; i++)
+            {
+                var copy = TranslatePeriodElement(elements[i], startTime, timeOffset, valueOffset);
+                startTime = copy.EndTime;
+                yield return copy;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Translates selected period elements by the offsets of a pseudo-period into one owned buffer before yielding them in source order.
+    /// </summary>
+    private IEnumerable<Element> TranslatePeriodElementsInParallel(ReadOnlyElementList elements, Rational timeOffset,
+        Rational valueOffset, int partitionCount)
+    {
+        var copies = TranslatePeriodElementsToArray(elements, timeOffset, valueOffset, partitionCount);
+        foreach (var element in copies)
+            yield return element;
+    }
+
+    /// <summary>
+    /// Translates selected period elements by the offsets of a pseudo-period into an owned array in source order.
+    /// </summary>
+    /// <param name="elements">The selected period elements.</param>
+    /// <param name="timeOffset">Time offset of the translated period, the pseudo-period length times its index.</param>
+    /// <param name="valueOffset">Value offset of the translated period, the pseudo-period height times its index.</param>
+    /// <param name="partitionCount">Number of contiguous work partitions, between one and the element count; one selects serial execution, more than one selects parallel execution.</param>
+    /// <returns>A new array exclusively owned by the caller.</returns>
+    private Element[] TranslatePeriodElementsToArray(ReadOnlyElementList elements, Rational timeOffset,
+        Rational valueOffset, int partitionCount)
+    {
+        var copies = new Element[elements.Count];
+        if (partitionCount == 1)
+        {
+            // Translate the selected elements serially into their ordered slots.
+            // Elements adjoin, so each one starts where the previous translated one ends, and only the first start is translated.
+            if (elements.Count > 0)
+            {
+                var startTime = elements[0].StartTime + timeOffset;
+                for (int i = 0; i < elements.Count; i++)
+                {
+                    copies[i] = TranslatePeriodElement(elements[i], startTime, timeOffset, valueOffset);
+                    startTime = copies[i].EndTime;
+                }
+            }
+        }
+        else
+        {
+            // Translate disjoint ranges of selected elements in parallel.
+            try
+            {
+                Parallel.For(0, partitionCount, partition =>
+                {
+                    var start = (int)((long)partition * elements.Count / partitionCount);
+                    var end = (int)((long)(partition + 1) * elements.Count / partitionCount);
+                    // Each partition translates the start of its first element, and continues from the previous end.
+                    var startTime = elements[start].StartTime + timeOffset;
+                    for (int i = start; i < end; i++)
+                    {
+                        copies[i] = TranslatePeriodElement(elements[i], startTime, timeOffset, valueOffset);
+                        startTime = copies[i].EndTime;
+                    }
+                });
+            }
+            catch (AggregateException aggregate)
+            {
+                // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
+                ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
+                throw;
+            }
+        }
+        return copies;
+    }
+
+    /// <summary>
+    /// Translates one stored element by the offsets of a pseudo-period, given the translated start time.
+    /// </summary>
+    /// <param name="element">The stored element.</param>
+    /// <param name="startTime">The element's start time translated by <paramref name="timeOffset"/>, the time of a point.</param>
+    /// <param name="timeOffset">Time offset of the translated period, the pseudo-period length times its index.</param>
+    /// <param name="valueOffset">Value offset of the translated period, the pseudo-period height times its index.</param>
+    private static Element TranslatePeriodElement(Element element, Rational startTime, Rational timeOffset, Rational valueOffset)
+    {
+        switch (element)
+        {
+            case Point point:
+                return new Point(
+                    time: startTime,
+                    value: point.Value + valueOffset
+                );
+            case Segment segment:
+                return new Segment(
+                    startTime: startTime,
+                    endTime: segment.EndTime + timeOffset,
+                    rightLimitAtStartTime: segment.RightLimitAtStartTime + valueOffset,
+                    slope: segment.Slope
+                );
+
+            default:
+                throw new InvalidCastException();
+        }
+    }
+
+    /// <summary>
+    /// Translates one stored element by the offsets of a pseudo-period.
+    /// </summary>
+    /// <param name="element">The stored element.</param>
+    /// <param name="timeOffset">Time offset of the translated period, the pseudo-period length times its index.</param>
+    /// <param name="valueOffset">Value offset of the translated period, the pseudo-period height times its index.</param>
+    private static Element TranslatePeriodElement(Element element, Rational timeOffset, Rational valueOffset)
+    {
+        switch (element)
+        {
+            case Point point:
+                return new Point(
+                    time: point.Time + timeOffset,
+                    value: point.Value + valueOffset
+                );
+            case Segment segment:
+                return new Segment(
+                    startTime: segment.StartTime + timeOffset,
+                    endTime: segment.EndTime + timeOffset,
+                    rightLimitAtStartTime: segment.RightLimitAtStartTime + valueOffset,
                     slope: segment.Slope
                 );
 
