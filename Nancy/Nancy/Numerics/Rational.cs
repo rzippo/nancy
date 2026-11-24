@@ -1629,106 +1629,47 @@ namespace Unipi.Nancy.Numerics
             if (y.IsInfinite)
                 return Rational.Zero;
 
-            // identity: y == 1 → x / 1 = x
-            if (y.IsOne)
-                return x;
-
-            // identity: x == 1 → 1 / (c/d) = d/c
-            if (x.IsOne)
+            // Otherwise both operands are finite and nonzero, and x/y is x times the reciprocal of y = c/d, ±d/|c|, which is reduced.
+            // The reciprocal is an integer when c is ±1, so each operand's units are tested once as in the multiplication: a dividend ±1 yields ±1/y, a divisor ±1 yields ±x, and an integer divided by ±1/d is the integer ±x·d.
+            if (x.Denominator.IsOne)
             {
-                if (y.Numerator.Sign > 0)
-                    return new Rational(y.Denominator, y.Numerator, true);
-                else
-                    return new Rational(-y.Denominator, -y.Numerator, true);
+                if (y.Numerator.IsOne || y.Numerator == BigInteger.MinusOne)
+                {
+                    var xNumerator = x.Numerator;
+                    var yDenominator = y.Denominator;
+                    int xSign = InlineSign(ref xNumerator), dSign = InlineSign(ref yDenominator);
+                    // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
+                    if (xSign != 1 && xSign != -1 && dSign != 1 && dSign != -1)
+                        return new Rational(y.Numerator.Sign * (long)xSign * dSign, 1, skipNormalize: true);
+                    // Otherwise a value is ±1 or outside the sign field, and continues with the unit tests.
+                }
+                if (x.Numerator.IsOne)
+                    return Invert(y);
+                else if (x.Numerator == BigInteger.MinusOne)
+                    return -Invert(y);
+                // Otherwise x is an integer other than ±1, and continues with the tests on y.
+            }
+            if (y.Numerator.IsOne || y.Numerator == BigInteger.MinusOne)
+            {
+                if (y.Denominator.IsOne)
+                    return y.Numerator.IsOne ? x : -x;
+                else if (x.Denominator.IsOne)
+                    return new Rational(y.Numerator.IsOne ? x.Numerator * y.Denominator : -(x.Numerator * y.Denominator));
+                // Otherwise x is a fraction and the reciprocal of y an integer other than ±1, and they continue with the fraction tiers.
             }
 
-            int sign = (x.Numerator.Sign == y.Numerator.Sign) ? 1 : -1;
-
-            BigInteger xNumAbs = BigInteger.Abs(x.Numerator);
-            BigInteger yNumAbs = BigInteger.Abs(y.Numerator);
-
-            // cross pattern, e.g. 3/1 / 2/1 = 3/2; but also 3/31 / 2/31 = 3/2 and viceversa
-            if (xNumAbs == yNumAbs)
+            // The reciprocal of c/d is ±d/|c|, reduced, and the multiplication tiers cancel x against it.
+            if (IsInSignField(x.Numerator) && IsInSignField(x.Denominator) && IsInSignField(y.Numerator) && IsInSignField(y.Denominator))
             {
-                BigInteger num, den;
-                var g = BigInteger.GreatestCommonDivisor(y.Denominator, x.Denominator);
-                if (!g.IsOne)
-                {
-                    num = sign > 0 ? (y.Denominator / g) : -(y.Denominator / g);
-                    den = x.Denominator / g;
-                }
-                else
-                {
-                    num = sign > 0 ? y.Denominator : -y.Denominator;
-                    den = x.Denominator;
-                }
-                return new Rational(num, den, true);
-            }
-
-            if (x.Denominator == y.Denominator)
-            {
-                BigInteger num, den;
-                var g = BigInteger.GreatestCommonDivisor(xNumAbs, yNumAbs);
-                if (!g.IsOne)
-                {
-                    num = sign > 0 ? (xNumAbs / g) : -(xNumAbs / g);
-                    den = yNumAbs / g;
-                }
-                else
-                {
-                    num = sign > 0 ? xNumAbs : -xNumAbs;
-                    den = yNumAbs;
-                }
-                return new Rational(num, den, true);
-            }
-
-            // (a/b) / (c/d)  ->  ((a/g1)*(d/g2)) / ((b/g2)*(c/g1))
-            // where g1 = gcd(a, c), g2 = gcd(b, d)
-            // We cross-cancel before multiplication to avoid BigInteger expansion => two GCDs instead of one.
-            // If there is nothing to simplify, this will be worse. We bet on most products being simplifiable.
-            BigInteger a, b, c, d;
-            if (!xNumAbs.IsOne && !yNumAbs.IsOne)
-            {
-                var g1 = BigInteger.GreatestCommonDivisor(xNumAbs, yNumAbs);
-                if (!g1.IsOne)
-                {
-                    a = xNumAbs / g1;
-                    c = yNumAbs / g1;
-                }
-                else
-                {
-                    a = xNumAbs;
-                    c = yNumAbs;
-                }
+                var xn = x.Numerator;
+                var xd = x.Denominator;
+                var yn = y.Numerator;
+                var yd = y.Denominator;
+                int c = InlineSign(ref yn), d = InlineSign(ref yd);
+                return MultiplyInt32Fractions(InlineSign(ref xn), InlineSign(ref xd), c < 0 ? -d : d, Math.Abs(c));
             }
             else
-            {
-                a = xNumAbs;
-                c = yNumAbs;
-            }
-
-            if (!x.Denominator.IsOne && !y.Denominator.IsOne)
-            {
-                var g2 = BigInteger.GreatestCommonDivisor(x.Denominator, y.Denominator);
-                if (!g2.IsOne)
-                {
-                    b = x.Denominator / g2;
-                    d = y.Denominator / g2;
-                }
-                else
-                {
-                    b = x.Denominator;
-                    d = y.Denominator;
-                }
-            }
-            else
-            {
-                b = x.Denominator;
-                d = y.Denominator;
-            }
-
-            // construct the result, skip simplify
-            return new Rational(sign > 0 ? (a * d) : -(a * d), b * c, true);
+                return MultiplyLargeFractions(x, Invert(y));
             #elif LONG_RATIONAL
             if (x.IsZero || y.IsZero)
             {
