@@ -1098,32 +1098,26 @@ namespace Unipi.Nancy.Numerics
             if(right.IsInfinite)
                 return -right.Sign;
 
-            // Fast sign path
-            int signLeft = left.Numerator.Sign;
-            int signRight = right.Numerator.Sign;
-            if (signLeft != signRight) return Math.Sign(signLeft.CompareTo(signRight));
-            if (signLeft == 0) return 0; // both zero if signs equal and s1==0
-
-            // Fast same-denominator path
-            if (left.Denominator == right.Denominator)
-                return Math.Sign(left.Numerator.CompareTo(right.Numerator));
-
-            // Need to compare fractions with the same sign.
-        
-            // Fast log2 comparison
-            // log2(left) is in ] log2(left_num) - log2(right_num) -1, log2(left_num) - log2(right_num) +1 [
-            // log2(right) is in ] log2(right_num) - log2(right_num) -1, log2(right_num) - log2(right_num) +1 [
-            // Therefore, if the above intervals do not overlap we can conclude the comparison  
-            var leftLen = left.Numerator.GetBitLength() - left.Denominator.GetBitLength();
-            var rightLen = right.Numerator.GetBitLength() - right.Denominator.GetBitLength();
-            if (leftLen >= rightLen + 2)
-                return signLeft;
-            if (rightLen >= leftLen + 2)
-                return -signLeft;
-
-            // Fast comparison failed, fall back to multiplication comparison
-            // We do not do any simplification because the cost of the GCDs and divisions would be larger than what we can save in the multiplication 
-            return Math.Sign(BigInteger.Compare(left.Numerator * right.Denominator, right.Numerator * left.Denominator));
+            // Components held in BigInteger's sign field are Int32 values, and their cross-products compare in Int64.
+            var leftNumerator = left.Numerator;
+            var leftDenominator = left.Denominator;
+            var rightNumerator = right.Numerator;
+            var rightDenominator = right.Denominator;
+            if (InlineBits(ref leftNumerator) is null && InlineBits(ref leftDenominator) is null &&
+                InlineBits(ref rightNumerator) is null && InlineBits(ref rightDenominator) is null)
+            {
+                int a = InlineSign(ref leftNumerator), b = InlineSign(ref leftDenominator);
+                int c = InlineSign(ref rightNumerator), d = InlineSign(ref rightDenominator);
+                if (b == d)
+                    return a < c ? -1 : a > c ? 1 : 0;
+                else
+                {
+                    long leftProduct = (long)a * d, rightProduct = (long)c * b;
+                    return leftProduct < rightProduct ? -1 : leftProduct > rightProduct ? 1 : 0;
+                }
+            }
+            else
+                return CompareLargeFractions(leftNumerator, leftDenominator, rightNumerator, rightDenominator);
             #elif LONG_RATIONAL
             if (left.IsInfinite || right.IsInfinite)
             {
@@ -1218,12 +1212,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc />
         public static bool operator ==(Rational x, Rational y)
         {
-            // Shortcut common comparisons to infinite
-            if (y.IsPlusInfinite)
-                return x.IsPlusInfinite;
-            if (y.IsMinusInfinite)
-                return x.IsMinusInfinite;
-
+            // Values are canonical, infinities included, so equal values have the same numerator and denominator.
             return x.Numerator == y.Numerator && x.Denominator == y.Denominator;
         }
 
@@ -1266,14 +1255,13 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc />
         public static Rational operator -(Rational r)
         {
+            #if BIG_RATIONAL
+            return Negate(r);
+            #else
             if (r == PlusInfinity)
                 return MinusInfinity;
             if (r == MinusInfinity)
                 return PlusInfinity;
-
-            #if BIG_RATIONAL
-            return new Rational(-r.Numerator, r.Denominator, skipNormalize: !r.Denominator.IsZero);
-            #else
             return new Rational(-r.Numerator, r.Denominator);
             #endif
         }
@@ -1316,27 +1304,21 @@ namespace Unipi.Nancy.Numerics
             else
             {
                 #if BIG_RATIONAL
-                // LCD via cross-cancel: a/b + c/d = (a*d' + c*b') / (g*b'*d')
-                // where g = gcd(b, d), b' = b/g, d' = d/g
-                var g = BigInteger.GreatestCommonDivisor(r1.Denominator, r2.Denominator);
-                if (!g.IsOne)
-                {
-                    var bPrime = r1.Denominator / g;
-                    var dPrime = r2.Denominator / g;
-                    var num = r1.Numerator * dPrime + r2.Numerator * bPrime;
-                    var den = bPrime * dPrime * g;
-                    // second-level GCD: unlike mul/div, addition can retain common factors in the LCD result
-                    var h = BigInteger.GreatestCommonDivisor(num, den);
-                    if (!h.IsOne) { num /= h; den /= h; }
-                    return new Rational(num, den, true);
-                }
+                if (r1.IsZero)
+                    return r2;
+                if (r2.IsZero)
+                    return r1;
+
+                // Components held in BigInteger's sign field are Int32 values, and add in Int64.
+                var xn = r1.Numerator;
+                var xd = r1.Denominator;
+                var yn = r2.Numerator;
+                var yd = r2.Denominator;
+                if (InlineBits(ref xn) is null && InlineBits(ref xd) is null &&
+                    InlineBits(ref yn) is null && InlineBits(ref yd) is null)
+                    return AddInt32Fractions(InlineSign(ref xn), InlineSign(ref xd), InlineSign(ref yn), InlineSign(ref yd));
                 else
-                {
-                    return new Rational(
-                        r1.Numerator * r2.Denominator + r2.Numerator * r1.Denominator,
-                        r1.Denominator * r2.Denominator
-                    );
-                }
+                    return AddLargeFractions(xn, xd, yn, yd);
                 #elif LONG_RATIONAL
                 // a/b + c/d  == (ad + bc)/bd
                 return new Rational((r1.Numerator * r2.Denominator) + (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));
@@ -1420,6 +1402,233 @@ namespace Unipi.Nancy.Numerics
         }
 
         #if BIG_RATIONAL
+
+        [System.Runtime.CompilerServices.UnsafeAccessor(
+            System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_bits")]
+        private static extern ref uint[]? InlineBits(ref BigInteger value);
+
+        // Whether the value is an Int64 other than Int64.MinValue, and that value, read from BigInteger's _sign and _bits fields.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static bool TryGetInt64(BigInteger value, out long result)
+        {
+            uint[]? bits = InlineBits(ref value);
+            int signField = InlineSign(ref value);
+            if (bits is null)
+            {
+                result = signField;
+                return true;
+            }
+            else if (bits.Length == 1)
+            {
+                result = signField * (long)bits[0];
+                return true;
+            }
+            else if (bits.Length == 2 && bits[1] <= int.MaxValue)
+            {
+                result = signField * (long)(((ulong)bits[1] << 32) | bits[0]);
+                return true;
+            }
+            else
+            {
+                result = 0;
+                return false;
+            }
+        }
+
+        // The exact 128-bit product of two Int64 values.
+        private static Int128 Product(long x, long y)
+        {
+            long high = Math.BigMul(x, y, out long low);
+            return new Int128(unchecked((ulong)high), unchecked((ulong)low));
+        }
+
+        // The rational with the given reduced numerator and positive denominator, stored as Int64 when both fit.
+        private static Rational FromInt128(Int128 numerator, Int128 denominator)
+        {
+            if (numerator >= long.MinValue && numerator <= long.MaxValue && denominator <= long.MaxValue)
+                return new Rational((long)numerator, (long)denominator, skipNormalize: true);
+            else
+                return new Rational((BigInteger)numerator, (BigInteger)denominator, skipNormalize: true);
+        }
+
+        // Adds the reduced fractions a/b and c/d into a reduced fraction, with 128-bit sums and products and Int64 gcds.
+        // The components are Int64 values other than Int64.MinValue, and the denominators are positive.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static Rational AddInt64Fractions(long a, long b, long c, long d)
+        {
+            // Equal denominators add the numerators, and only factors of b can cancel.
+            if (b == d)
+            {
+                Int128 numerator = (Int128)a + c;
+                if (numerator == 0)
+                    return Zero;
+                else if (b == 1)
+                    return FromInt128(numerator, 1);
+                else
+                {
+                    long remainder = (long)((UInt128)Int128.Abs(numerator) % (ulong)b);
+                    long divisor = remainder == 0 ? b : GreatestCommonDivisorPositive(remainder, b);
+                    return FromInt128(numerator / divisor, b / divisor);
+                }
+            }
+            // An integer plus a reduced fraction is reduced: a + c/d = (a·d + c)/d, and c is coprime to d.
+            else if (b == 1)
+                return FromInt128(Product(a, d) + c, d);
+            else if (d == 1)
+                return FromInt128(a + Product(c, b), b);
+            // Otherwise, with g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
+            // The sum is nonzero: reduced fractions with unequal denominators are not opposite.
+            else
+            {
+                long g = GreatestCommonDivisorPositive(b, d);
+                if (g == 1)
+                    return FromInt128(Product(a, d) + Product(c, b), Product(b, d));
+                else
+                {
+                    long bReduced = b / g, dReduced = d / g;
+                    Int128 numerator = Product(a, dReduced) + Product(c, bReduced);
+                    long remainder = (long)((UInt128)Int128.Abs(numerator) % (ulong)g);
+                    long divisor = remainder == 0 ? g : GreatestCommonDivisorPositive(remainder, g);
+                    return FromInt128(numerator / divisor, Product(bReduced, d / divisor));
+                }
+            }
+        }
+
+        // Adds the reduced fractions a/b and c/d into a reduced fraction, with the sums and products taken in Int64.
+        // The components are Int32 values other than Int32.MinValue, and the denominators are positive.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static Rational AddInt32Fractions(int a, int b, int c, int d)
+        {
+            // Equal denominators add the numerators, and only factors of b can cancel.
+            if (b == d)
+            {
+                long numerator = (long)a + c;
+                if (numerator == 0)
+                    return Zero;
+                else if (b == 1)
+                    return new Rational(numerator, 1, skipNormalize: true);
+                else
+                {
+                    long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), b);
+                    return new Rational(numerator / divisor, b / divisor, skipNormalize: true);
+                }
+            }
+            // An integer plus a reduced fraction is reduced: a + c/d = (a·d + c)/d, and c is coprime to d.
+            else if (b == 1)
+                return new Rational((long)a * d + c, d, skipNormalize: true);
+            else if (d == 1)
+                return new Rational(a + (long)c * b, b, skipNormalize: true);
+            // Otherwise, with g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
+            // The sum is nonzero: reduced fractions with unequal denominators are not opposite.
+            else
+            {
+                long g = GreatestCommonDivisorPositive(b, d);
+                if (g == 1)
+                    return new Rational((long)a * d + (long)c * b, (long)b * d, skipNormalize: true);
+                else
+                {
+                    long bReduced = b / g, dReduced = d / g;
+                    long numerator = a * dReduced + c * bReduced;
+                    long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), g);
+                    return new Rational(numerator / divisor, bReduced * (d / divisor), skipNormalize: true);
+                }
+            }
+        }
+
+        // Adds the reduced nonzero fractions xNumerator/xDenominator and yNumerator/yDenominator, with positive denominators, into a reduced fraction:
+        // in 128-bit arithmetic when every component is an Int64 other than Int64.MinValue, otherwise in BigInteger.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static Rational AddLargeFractions(BigInteger xNumerator, BigInteger xDenominator, BigInteger yNumerator, BigInteger yDenominator)
+        {
+            if (TryGetInt64(xNumerator, out long a) && TryGetInt64(xDenominator, out long b) &&
+                TryGetInt64(yNumerator, out long c) && TryGetInt64(yDenominator, out long d))
+                return AddInt64Fractions(a, b, c, d);
+            else if (xDenominator == yDenominator)
+                return new Rational(xNumerator + yNumerator, xDenominator);
+            else
+            {
+                // With g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
+                var g = BigInteger.GreatestCommonDivisor(xDenominator, yDenominator);
+                if (g.IsOne)
+                {
+                    return new Rational(
+                        xNumerator * yDenominator + yNumerator * xDenominator,
+                        xDenominator * yDenominator,
+                        skipNormalize: true
+                    );
+                }
+                else
+                {
+                    var bReduced = xDenominator / g;
+                    var numerator = xNumerator * (yDenominator / g) + yNumerator * bReduced;
+                    var divisor = BigInteger.GreatestCommonDivisor(numerator, g);
+                    // The denominator b·d/g is bReduced·d, and dividing d rather than the product by the divisor keeps one multiplication.
+                    if (divisor.IsOne)
+                        return new Rational(numerator, bReduced * yDenominator, skipNormalize: true);
+                    else
+                        return new Rational(numerator / divisor, bReduced * (yDenominator / divisor), skipNormalize: true);
+                }
+            }
+        }
+
+        // Compares the fractions leftNumerator/leftDenominator and rightNumerator/rightDenominator, with positive denominators:
+        // by 128-bit cross-products when every component is an Int64 other than Int64.MinValue, otherwise by bit lengths and then BigInteger cross-products.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static int CompareLargeFractions(BigInteger leftNumerator, BigInteger leftDenominator, BigInteger rightNumerator, BigInteger rightDenominator)
+        {
+            if (TryGetInt64(leftNumerator, out long a) && TryGetInt64(leftDenominator, out long b) &&
+                TryGetInt64(rightNumerator, out long c) && TryGetInt64(rightDenominator, out long d))
+            {
+                int leftSign = Math.Sign(a), rightSign = Math.Sign(c);
+                if (b == d)
+                    return a < c ? -1 : a > c ? 1 : 0;
+                else if (leftSign != rightSign)
+                    return leftSign < rightSign ? -1 : 1;
+                else if (leftSign == 0)
+                    return 0;
+                else
+                {
+                    // Equal signs order by the magnitudes |a|·d and |c|·b, compared as unsigned 128-bit products.
+                    ulong leftHigh = Math.BigMul(unchecked((ulong)Math.Abs(a)), unchecked((ulong)d), out ulong leftLow);
+                    ulong rightHigh = Math.BigMul(unchecked((ulong)Math.Abs(c)), unchecked((ulong)b), out ulong rightLow);
+                    int magnitude;
+                    if (leftHigh != rightHigh)
+                        magnitude = leftHigh < rightHigh ? -1 : 1;
+                    else
+                        magnitude = leftLow < rightLow ? -1 : leftLow > rightLow ? 1 : 0;
+                    return leftSign > 0 ? magnitude : -magnitude;
+                }
+            }
+            else
+            {
+                int leftSign = leftNumerator.Sign, rightSign = rightNumerator.Sign;
+                if (leftSign != rightSign)
+                    return leftSign < rightSign ? -1 : 1;
+                else if (leftSign == 0)
+                    return 0;
+                else if (leftDenominator == rightDenominator)
+                    return Math.Sign(leftNumerator.CompareTo(rightNumerator));
+                else
+                {
+                    var leftNumLength = BigInteger.Abs(leftNumerator).GetBitLength();
+                    var rightNumLength = BigInteger.Abs(rightNumerator).GetBitLength();
+                    var leftDenLength = leftDenominator.GetBitLength();
+                    var rightDenLength = rightDenominator.GetBitLength();
+
+                    // For magnitude index $m$, $\log_2 |x| \in ]m - 1, m + 1[$.
+                    // A separation of at least two orders the magnitudes without multiplication.
+                    var leftMagnitude = leftNumLength - leftDenLength;
+                    var rightMagnitude = rightNumLength - rightDenLength;
+                    if (leftMagnitude >= rightMagnitude + 2)
+                        return leftSign;
+                    else if (rightMagnitude >= leftMagnitude + 2)
+                        return -leftSign;
+                    else
+                        // GCDs and divisions to shrink the products cost more than they save.
+                        return Math.Sign(BigInteger.Compare(leftNumerator * rightDenominator, rightNumerator * leftDenominator));
+                }
+            }
+        }
 
         // Whether BigInteger keeps the value in its Int32 _sign field rather than in an array.
         // It does for every Int32 except Int32.MinValue; a stored ±1 may instead be the sign of an array-backed value.
