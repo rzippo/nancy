@@ -686,33 +686,6 @@ namespace Unipi.Nancy.Numerics
             );
         }
 
-        #if BIG_RATIONAL
-        // BigInteger's _sign field: the value itself when _bits is null, and its sign otherwise.
-        [System.Runtime.CompilerServices.UnsafeAccessor(
-            System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_sign")]
-        private static extern ref int SignField(ref BigInteger value);
-
-        /// <summary>
-        /// Computes the greatest common divisor of two positive native magnitudes.
-        /// </summary>
-        /// <remarks>The caller must supply strictly positive arguments; no validation is performed.</remarks>
-        private static long GreatestCommonDivisorPositive(long left, long right)
-        {
-            ulong a = (ulong)left, b = (ulong)right;
-            int shift = BitOperations.TrailingZeroCount(a | b);
-            a >>= BitOperations.TrailingZeroCount(a);
-            do
-            {
-                b >>= BitOperations.TrailingZeroCount(b);
-                if (a > b)
-                    (a, b) = (b, a);
-                b -= a;
-            } while (b != 0);
-            return (long)(a << shift);
-        }
-
-        #endif
-
         /// <summary>
         /// Constructs a rational from the shortest round-trippable decimal representation of the given float.
         /// </summary>
@@ -1402,7 +1375,133 @@ namespace Unipi.Nancy.Numerics
             #endif
         }
 
+        /// <inheritdoc cref="Divide(Rational, Rational)" />
+        public static Rational operator /(Rational x, Rational y)
+        {
+            #if BIG_RATIONAL
+            if (x.IsZero)
+            {
+                if (y.IsZero)
+                    throw new UndeterminedResultException("Zero over zero");
+                else
+                    return Rational.Zero;
+            }
+
+            if (y.IsZero)
+            {
+                throw new DivideByZeroException();
+            }
+
+            if (x.IsInfinite)
+            {
+                if (y.IsInfinite)
+                    throw new UndeterminedResultException("Infinity over infinity");
+                else
+                    return y.Numerator.Sign > 0 ? x : -x;
+            }
+
+            if (y.IsInfinite)
+                return Rational.Zero;
+
+            // Otherwise both operands are finite and nonzero, and x/y is x times the reciprocal of y = c/d, ±d/|c|, which is reduced.
+            // The reciprocal is an integer when c is ±1, so each operand's units are tested once as in the multiplication: a dividend ±1 yields ±1/y, a divisor ±1 yields ±x, and an integer divided by ±1/d is the integer ±x·d.
+            if (x.Denominator.IsOne)
+            {
+                if (y.Numerator.IsOne || y.Numerator == BigInteger.MinusOne)
+                {
+                    var xNumerator = x.Numerator;
+                    var yDenominator = y.Denominator;
+                    int xSign = SignField(ref xNumerator), dSign = SignField(ref yDenominator);
+                    // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
+                    if (xSign != 1 && xSign != -1 && dSign != 1 && dSign != -1)
+                        return new Rational(y.Numerator.Sign * (long)xSign * dSign, 1, skipNormalize: true);
+                    // Otherwise a value is ±1 or outside the sign field, and continues with the unit tests.
+                }
+                if (x.Numerator.IsOne)
+                    return Invert(y);
+                else if (x.Numerator == BigInteger.MinusOne)
+                    return -Invert(y);
+                // Otherwise x is an integer other than ±1, and continues with the tests on y.
+            }
+            if (y.Numerator.IsOne || y.Numerator == BigInteger.MinusOne)
+            {
+                if (y.Denominator.IsOne)
+                    return y.Numerator.IsOne ? x : -x;
+                else if (x.Denominator.IsOne)
+                    return new Rational(y.Numerator.IsOne ? x.Numerator * y.Denominator : -(x.Numerator * y.Denominator));
+                // Otherwise x is a fraction and the reciprocal of y an integer other than ±1, and they continue with the fraction tiers.
+            }
+
+            // The reciprocal of c/d is ±d/|c|, reduced, and the multiplication tiers cancel x against it.
+            var xn = x.Numerator;
+            var xd = x.Denominator;
+            var yn = y.Numerator;
+            var yd = y.Denominator;
+            if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
+                BitsField(ref yn) is null && BitsField(ref yd) is null)
+            {
+                int c = SignField(ref yn), d = SignField(ref yd);
+                return MultiplyInt32Fractions(SignField(ref xn), SignField(ref xd), c < 0 ? -d : d, Math.Abs(c));
+            }
+            else
+                return MultiplyLargeFractions(xn, xd, yn.Sign < 0 ? -yd : yd, BigInteger.Abs(yn));
+            #elif LONG_RATIONAL
+            if (x.IsZero || y.IsZero)
+            {
+                if (x.IsZero && y.IsZero)
+                {
+                    throw new UndeterminedResultException("Zero over zero");
+                }
+                else if (x.IsZero)
+                {
+                    return Zero;
+                }
+                else
+                {
+                    throw new DivideByZeroException();
+                }
+            }
+            else if (x.IsInfinite || y.IsInfinite)
+            {
+                if (x.IsInfinite && y.IsInfinite)
+                {
+                    throw new UndeterminedResultException("Infinity over infinity");
+                }
+                else if (x.IsInfinite)
+                {
+                    return x * y.Sign;
+                }
+                else
+                {
+                    return Zero;
+                }
+            }
+            else
+            {
+                // a/b / c/d  == (ad)/(bc)
+                return new Rational((x.Numerator * y.Denominator), (x.Denominator * y.Numerator));
+            }
+            #endif
+        }
+
+        /// <inheritdoc />
+        public static Rational operator %(Rational r1, Rational r2)
+        {
+            if (r1.IsInfinite || r2.IsInfinite)
+                throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
+
+            // a/b % c/d  == (ad % bc)/bd
+            return new Rational((r1.Numerator * r2.Denominator) % (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));
+        }
+        #endregion Operator Overloads
+
+        #region Arithmetic helpers
+
         #if BIG_RATIONAL
+        // BigInteger's _sign field: the value itself when _bits is null, and its sign otherwise.
+        [System.Runtime.CompilerServices.UnsafeAccessor(
+            System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_sign")]
+        private static extern ref int SignField(ref BigInteger value);
 
         // BigInteger's _bits field: null when the value is held in _sign, and otherwise its magnitude in 32-bit words, least significant first.
         [System.Runtime.CompilerServices.UnsafeAccessor(
@@ -1437,6 +1536,25 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
+        /// <summary>
+        /// Computes the greatest common divisor of two positive native magnitudes.
+        /// </summary>
+        /// <remarks>The caller must supply strictly positive arguments; no validation is performed.</remarks>
+        private static long GreatestCommonDivisorPositive(long left, long right)
+        {
+            ulong a = (ulong)left, b = (ulong)right;
+            int shift = BitOperations.TrailingZeroCount(a | b);
+            a >>= BitOperations.TrailingZeroCount(a);
+            do
+            {
+                b >>= BitOperations.TrailingZeroCount(b);
+                if (a > b)
+                    (a, b) = (b, a);
+                b -= a;
+            } while (b != 0);
+            return (long)(a << shift);
+        }
+
         // The exact 128-bit product of two Int64 values.
         private static Int128 Product(long x, long y)
         {
@@ -1451,6 +1569,47 @@ namespace Unipi.Nancy.Numerics
                 return new Rational((long)numerator, (long)denominator, skipNormalize: true);
             else
                 return new Rational((BigInteger)numerator, (BigInteger)denominator, skipNormalize: true);
+        }
+
+        // Adds the reduced fractions a/b and c/d into a reduced fraction, with the sums and products taken in Int64.
+        // The components are Int32 values other than Int32.MinValue, and the denominators are positive.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static Rational AddInt32Fractions(int a, int b, int c, int d)
+        {
+            // Equal denominators add the numerators, and only factors of b can cancel.
+            if (b == d)
+            {
+                long numerator = (long)a + c;
+                if (numerator == 0)
+                    return Zero;
+                else if (b == 1)
+                    return new Rational(numerator, 1, skipNormalize: true);
+                else
+                {
+                    long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), b);
+                    return new Rational(numerator / divisor, b / divisor, skipNormalize: true);
+                }
+            }
+            // An integer plus a reduced fraction is reduced: a + c/d = (a·d + c)/d, and c is coprime to d.
+            else if (b == 1)
+                return new Rational((long)a * d + c, d, skipNormalize: true);
+            else if (d == 1)
+                return new Rational(a + (long)c * b, b, skipNormalize: true);
+            // Otherwise, with g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
+            // The sum is nonzero: reduced fractions with unequal denominators are not opposite.
+            else
+            {
+                long g = GreatestCommonDivisorPositive(b, d);
+                if (g == 1)
+                    return new Rational((long)a * d + (long)c * b, (long)b * d, skipNormalize: true);
+                else
+                {
+                    long bReduced = b / g, dReduced = d / g;
+                    long numerator = a * dReduced + c * bReduced;
+                    long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), g);
+                    return new Rational(numerator / divisor, bReduced * (d / divisor), skipNormalize: true);
+                }
+            }
         }
 
         // Adds the reduced fractions a/b and c/d into a reduced fraction, with 128-bit sums and products and Int64 gcds.
@@ -1492,47 +1651,6 @@ namespace Unipi.Nancy.Numerics
                     long remainder = (long)((UInt128)Int128.Abs(numerator) % (ulong)g);
                     long divisor = remainder == 0 ? g : GreatestCommonDivisorPositive(remainder, g);
                     return FromInt128(numerator / divisor, Product(bReduced, d / divisor));
-                }
-            }
-        }
-
-        // Adds the reduced fractions a/b and c/d into a reduced fraction, with the sums and products taken in Int64.
-        // The components are Int32 values other than Int32.MinValue, and the denominators are positive.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-        private static Rational AddInt32Fractions(int a, int b, int c, int d)
-        {
-            // Equal denominators add the numerators, and only factors of b can cancel.
-            if (b == d)
-            {
-                long numerator = (long)a + c;
-                if (numerator == 0)
-                    return Zero;
-                else if (b == 1)
-                    return new Rational(numerator, 1, skipNormalize: true);
-                else
-                {
-                    long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), b);
-                    return new Rational(numerator / divisor, b / divisor, skipNormalize: true);
-                }
-            }
-            // An integer plus a reduced fraction is reduced: a + c/d = (a·d + c)/d, and c is coprime to d.
-            else if (b == 1)
-                return new Rational((long)a * d + c, d, skipNormalize: true);
-            else if (d == 1)
-                return new Rational(a + (long)c * b, b, skipNormalize: true);
-            // Otherwise, with g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
-            // The sum is nonzero: reduced fractions with unequal denominators are not opposite.
-            else
-            {
-                long g = GreatestCommonDivisorPositive(b, d);
-                if (g == 1)
-                    return new Rational((long)a * d + (long)c * b, (long)b * d, skipNormalize: true);
-                else
-                {
-                    long bReduced = b / g, dReduced = d / g;
-                    long numerator = a * dReduced + c * bReduced;
-                    long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), g);
-                    return new Rational(numerator / divisor, bReduced * (d / divisor), skipNormalize: true);
                 }
             }
         }
@@ -1793,128 +1911,9 @@ namespace Unipi.Nancy.Numerics
                 }
             }
         }
-
         #endif
 
-        /// <inheritdoc cref="Divide(Rational, Rational)" />
-        public static Rational operator /(Rational x, Rational y)
-        {
-            #if BIG_RATIONAL
-            if (x.IsZero)
-            {
-                if (y.IsZero)
-                    throw new UndeterminedResultException("Zero over zero");
-                else
-                    return Rational.Zero;
-            }
-
-            if (y.IsZero)
-            {
-                throw new DivideByZeroException();
-            }
-
-            if (x.IsInfinite)
-            {
-                if (y.IsInfinite)
-                    throw new UndeterminedResultException("Infinity over infinity");
-                else
-                    return y.Numerator.Sign > 0 ? x : -x;
-            }
-
-            if (y.IsInfinite)
-                return Rational.Zero;
-
-            // Otherwise both operands are finite and nonzero, and x/y is x times the reciprocal of y = c/d, ±d/|c|, which is reduced.
-            // The reciprocal is an integer when c is ±1, so each operand's units are tested once as in the multiplication: a dividend ±1 yields ±1/y, a divisor ±1 yields ±x, and an integer divided by ±1/d is the integer ±x·d.
-            if (x.Denominator.IsOne)
-            {
-                if (y.Numerator.IsOne || y.Numerator == BigInteger.MinusOne)
-                {
-                    var xNumerator = x.Numerator;
-                    var yDenominator = y.Denominator;
-                    int xSign = SignField(ref xNumerator), dSign = SignField(ref yDenominator);
-                    // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
-                    if (xSign != 1 && xSign != -1 && dSign != 1 && dSign != -1)
-                        return new Rational(y.Numerator.Sign * (long)xSign * dSign, 1, skipNormalize: true);
-                    // Otherwise a value is ±1 or outside the sign field, and continues with the unit tests.
-                }
-                if (x.Numerator.IsOne)
-                    return Invert(y);
-                else if (x.Numerator == BigInteger.MinusOne)
-                    return -Invert(y);
-                // Otherwise x is an integer other than ±1, and continues with the tests on y.
-            }
-            if (y.Numerator.IsOne || y.Numerator == BigInteger.MinusOne)
-            {
-                if (y.Denominator.IsOne)
-                    return y.Numerator.IsOne ? x : -x;
-                else if (x.Denominator.IsOne)
-                    return new Rational(y.Numerator.IsOne ? x.Numerator * y.Denominator : -(x.Numerator * y.Denominator));
-                // Otherwise x is a fraction and the reciprocal of y an integer other than ±1, and they continue with the fraction tiers.
-            }
-
-            // The reciprocal of c/d is ±d/|c|, reduced, and the multiplication tiers cancel x against it.
-            var xn = x.Numerator;
-            var xd = x.Denominator;
-            var yn = y.Numerator;
-            var yd = y.Denominator;
-            if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
-                BitsField(ref yn) is null && BitsField(ref yd) is null)
-            {
-                int c = SignField(ref yn), d = SignField(ref yd);
-                return MultiplyInt32Fractions(SignField(ref xn), SignField(ref xd), c < 0 ? -d : d, Math.Abs(c));
-            }
-            else
-                return MultiplyLargeFractions(xn, xd, yn.Sign < 0 ? -yd : yd, BigInteger.Abs(yn));
-            #elif LONG_RATIONAL
-            if (x.IsZero || y.IsZero)
-            {
-                if (x.IsZero && y.IsZero)
-                {
-                    throw new UndeterminedResultException("Zero over zero");
-                }
-                else if (x.IsZero)
-                {
-                    return Zero;
-                }
-                else
-                {
-                    throw new DivideByZeroException();
-                }
-            }
-            else if (x.IsInfinite || y.IsInfinite)
-            {
-                if (x.IsInfinite && y.IsInfinite)
-                {
-                    throw new UndeterminedResultException("Infinity over infinity");
-                }
-                else if (x.IsInfinite)
-                {
-                    return x * y.Sign;
-                }
-                else
-                {
-                    return Zero;
-                }
-            }
-            else
-            {
-                // a/b / c/d  == (ad)/(bc)
-                return new Rational((x.Numerator * y.Denominator), (x.Denominator * y.Numerator));
-            }
-            #endif
-        }
-
-        /// <inheritdoc />
-        public static Rational operator %(Rational r1, Rational r2)
-        {
-            if (r1.IsInfinite || r2.IsInfinite)
-                throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
-
-            // a/b % c/d  == (ad % bc)/bd
-            return new Rational((r1.Numerator * r2.Denominator) % (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));
-        }
-        #endregion Operator Overloads
+        #endregion Arithmetic helpers
 
         #region explicit conversions from Rational
 
