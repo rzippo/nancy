@@ -6297,13 +6297,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                     if (chunkBudget > 1)
                     {
                         // The chunks are a partition of the heights interval, so the largest of their suprema is the supremum of the gap.
+                        var boundaries = Sequence.GetEvenBoundaries(heights, settings.DegreeOfParallelism, chunkBudget);
+                        // The chunks run on the operation's workers, so each cuts with its share of them, and with one translates periods serially as they are consumed, nancy#54.
+                        var chunkSettings = settings with { MaxDegreeOfParallelism = Math.Max(1, settings.DegreeOfParallelism / (boundaries.Length - 1)) };
                         return Sequence.ComputeSupremumInParallel(
                             support: heights,
-                            boundaries: Sequence.GetEvenBoundaries(heights, settings.DegreeOfParallelism, chunkBudget),
+                            boundaries: boundaries,
                             chunkSupremum: chunk =>
                             {
-                                var gLpiChunk = gLpi.CutAsEnumerable(chunk, settings);
-                                var fLpiChunk = fLpi.CutAsEnumerable(chunk, settings);
+                                var gLpiChunk = gLpi.CutAsEnumerable(chunk, chunkSettings);
+                                var fLpiChunk = fLpi.CutAsEnumerable(chunk, chunkSettings);
                                 return gLpiChunk
                                     .Subtraction(fLpiChunk)
                                     .SupValue();
@@ -6588,13 +6591,16 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
             {
                 // The window is partitioned at the start times of evenly spaced elements of both operands, each chunk with its own supremum.
                 // The chunks are a partition of the window, so the largest of their suprema is the supremum of f - g.
+                var boundaries = GetPointwisePairBoundaries(f, g, end, settings.DegreeOfParallelism, chunkBudget);
+                // The chunks run on the operation's workers, so each cuts with its share of them, and with one translates periods serially as they are consumed, nancy#54.
+                var chunkSettings = settings with { MaxDegreeOfParallelism = Math.Max(1, settings.DegreeOfParallelism / (boundaries.Length - 1)) };
                 supremum = Sequence.ComputeSupremumInParallel(
                     support: times,
-                    boundaries: GetPointwisePairBoundaries(f, g, end, settings.DegreeOfParallelism, chunkBudget),
+                    boundaries: boundaries,
                     chunkSupremum: chunk =>
                     {
-                        var fChunk = f.CutAsEnumerable(chunk, settings);
-                        var gChunk = g.CutAsEnumerable(chunk, settings);
+                        var fChunk = f.CutAsEnumerable(chunk, chunkSettings);
+                        var gChunk = g.CutAsEnumerable(chunk, chunkSettings);
                         return fChunk
                             .Subtraction(gChunk)
                             .SupValue();
