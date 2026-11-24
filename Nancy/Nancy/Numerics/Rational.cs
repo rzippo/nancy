@@ -1028,18 +1028,28 @@ namespace Unipi.Nancy.Numerics
             return a;
         }
 
+        #if BIG_RATIONAL
+        /// <inheritdoc cref="BigRational.GreatestCommonDivisor(long, long)"/>
+        #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.GreatestCommonDivisor(long, long)"/>
+        #endif
         public static long GreatestCommonDivisor(long a, long b)
         {
-            a = Math.Abs(a);
-            b = Math.Abs(b);
-            while (b != 0)
+            if (a == Int64.MinValue || b == Int64.MinValue)
             {
-                long temp = b;
-                b = a % b;
-                a = temp;
+                // |Int64.MinValue| is 2^63, so the gcd is the largest power of 2 that divides the other value, or 2^63 itself, which an Int64 cannot hold.
+                Int64 other = a == Int64.MinValue ? b : a;
+                if (other == 0 || other == Int64.MinValue)
+                    throw new OverflowException("The greatest common divisor is 2^63, which an Int64 cannot hold.");
+                else
+                    return 1L << BitOperations.TrailingZeroCount(other);
             }
-            return a;
+            else if (a == 0)
+                return Math.Abs(b);
+            else if (b == 0)
+                return Math.Abs(a);
+            else
+                return GreatestCommonDivisorPositive(Math.Abs(a), Math.Abs(b));
         }
 
         #if BIG_RATIONAL
@@ -1495,6 +1505,22 @@ namespace Unipi.Nancy.Numerics
 
         #region Arithmetic helpers
 
+        // The greatest common divisor of two positive Int64 values, by the binary algorithm; the arguments are not checked.
+        private static Int64 GreatestCommonDivisorPositive(Int64 left, Int64 right)
+        {
+            UInt64 a = (UInt64)left, b = (UInt64)right;
+            int shift = BitOperations.TrailingZeroCount(a | b);
+            a >>= BitOperations.TrailingZeroCount(a);
+            do
+            {
+                b >>= BitOperations.TrailingZeroCount(b);
+                if (a > b)
+                    (a, b) = (b, a);
+                b -= a;
+            } while (b != 0);
+            return (Int64)(a << shift);
+        }
+
         #if BIG_RATIONAL
         // BigInteger's _sign field: the value itself when _bits is null, and its sign otherwise.
         [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_sign")]
@@ -1532,21 +1558,6 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
-        // The greatest common divisor of two positive Int64 values, by the binary algorithm; the arguments are not checked.
-        private static Int64 GreatestCommonDivisorPositive(Int64 left, Int64 right)
-        {
-            UInt64 a = (UInt64)left, b = (UInt64)right;
-            int shift = BitOperations.TrailingZeroCount(a | b);
-            a >>= BitOperations.TrailingZeroCount(a);
-            do
-            {
-                b >>= BitOperations.TrailingZeroCount(b);
-                if (a > b)
-                    (a, b) = (b, a);
-                b -= a;
-            } while (b != 0);
-            return (Int64)(a << shift);
-        }
 
         // The exact 128-bit product of two Int64 values.
         private static Int128 Product(Int64 x, Int64 y)
