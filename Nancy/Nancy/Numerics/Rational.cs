@@ -357,7 +357,12 @@ namespace Unipi.Nancy.Numerics
             if (IsInfinite)
                 throw new UndeterminedResultException("Cannot get fraction part of an infinite value");
             #if BIG_RATIONAL
-            return new Rational(BigInteger.Remainder(Numerator, Denominator), Denominator);
+            // The remainder has the numerator's sign, and gcd(n mod d, d) = gcd(n, d) = 1, so only a zero remainder is not canonical as it is.
+            var remainder = BigInteger.Remainder(Numerator, Denominator);
+            if (remainder.IsZero)
+                return Rational.Zero;
+            else
+                return new Rational(remainder, Denominator, skipNormalize: true);
             #elif LONG_RATIONAL
             return new Rational(Numerator % Denominator, Denominator);
             #endif
@@ -366,10 +371,18 @@ namespace Unipi.Nancy.Numerics
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.Floor" />
         public readonly BigInteger Floor()
+        {
+            if (IsInfinite)
+                throw new UndeterminedResultException("Cannot get the floor of an infinite value");
+            var quotient = BigInteger.DivRem(Numerator, Denominator, out var remainder);
+            if (remainder.Sign < 0)
+                return quotient - 1;
+            else
+                return quotient;
+        }
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.Floor" />
         public readonly long Floor()
-        #endif
         {
             var wholePart = GetWholePart();
             var fractionPart = GetFractionPart();
@@ -386,14 +399,23 @@ namespace Unipi.Nancy.Numerics
                     return wholePart;
             }
         }
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.Ceil" />
         public readonly BigInteger Ceil()
+        {
+            if (IsInfinite)
+                throw new UndeterminedResultException("Cannot get the ceiling of an infinite value");
+            var quotient = BigInteger.DivRem(Numerator, Denominator, out var remainder);
+            if (remainder.Sign > 0)
+                return quotient + 1;
+            else
+                return quotient;
+        }
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.Ceil" />
         public readonly long Ceil()
-        #endif
         {
             var wholePart = GetWholePart();
             var fractionPart = GetFractionPart();
@@ -410,6 +432,7 @@ namespace Unipi.Nancy.Numerics
                 return wholePart;
             }
         }
+        #endif
 
         /// <inheritdoc />
         public override readonly bool Equals(object? obj)

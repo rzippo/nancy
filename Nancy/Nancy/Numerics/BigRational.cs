@@ -222,8 +222,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     // -3/2        ==    -1, -1/2
     //  3/2        ==     1,  1/2
     /// <summary>
-    /// Returns the whole (integer) part of the rational number.
+    /// Returns the whole part of the rational number, rounded toward zero.
     /// </summary>
+    /// <exception cref="UndeterminedResultException">The number is infinite.</exception>
     public readonly BigInteger GetWholePart()
     {
         if (IsInfinite)
@@ -232,55 +233,49 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// Returns the fractional part of the rational number.
+    /// Returns the fraction part of the rational number: the number minus its whole part, which is zero or has the number's sign.
     /// </summary>
+    /// <exception cref="UndeterminedResultException">The number is infinite.</exception>
     public readonly BigRational GetFractionPart()
     {
         if (IsInfinite)
             throw new UndeterminedResultException("Cannot get fraction part of an infinite value");
-        return new BigRational(BigInteger.Remainder(Numerator, Denominator), Denominator);
+        // The remainder has the numerator's sign, and gcd(n mod d, d) = gcd(n, d) = 1, so only a zero remainder is not canonical as it is.
+        var remainder = BigInteger.Remainder(Numerator, Denominator);
+        if (remainder.IsZero)
+            return BigRational.Zero;
+        else
+            return new BigRational(remainder, Denominator, skipNormalize: true);
     }
 
     /// <summary>
     /// Returns the largest integer less than or equal to the current rational.
     /// </summary>
+    /// <exception cref="UndeterminedResultException">The number is infinite.</exception>
     public readonly BigInteger Floor()
     {
-        var wholePart = GetWholePart();
-        var fractionPart = GetFractionPart();
-
-        if (wholePart > 0 || wholePart == 0 && fractionPart >= 0)
-        {
-            return wholePart;
-        }
+        if (IsInfinite)
+            throw new UndeterminedResultException("Cannot get the floor of an infinite value");
+        var quotient = BigInteger.DivRem(Numerator, Denominator, out var remainder);
+        if (remainder.Sign < 0)
+            return quotient - 1;
         else
-        {
-            if (fractionPart < 0)
-                return wholePart - 1;
-            else
-                return wholePart;
-        }
+            return quotient;
     }
 
     /// <summary>
     /// Returns the smallest integer greater than or equal to the current rational.
     /// </summary>
+    /// <exception cref="UndeterminedResultException">The number is infinite.</exception>
     public readonly BigInteger Ceil()
     {
-        var wholePart = GetWholePart();
-        var fractionPart = GetFractionPart();
-
-        if (wholePart > 0 || wholePart == 0 && fractionPart >= 0)
-        {
-            if (fractionPart > 0)
-                return wholePart + 1;
-            else
-                return wholePart;
-        }
+        if (IsInfinite)
+            throw new UndeterminedResultException("Cannot get the ceiling of an infinite value");
+        var quotient = BigInteger.DivRem(Numerator, Denominator, out var remainder);
+        if (remainder.Sign > 0)
+            return quotient + 1;
         else
-        {
-            return wholePart;
-        }
+            return quotient;
     }
 
     /// <inheritdoc />
