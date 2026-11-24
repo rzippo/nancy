@@ -1646,84 +1646,110 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
 
     #region explicit conversions from BigRational
     /// <summary>
-    /// Truncates the rational to a <see cref="SByte"/>.
+    /// Truncates the rational to a <see cref="SByte"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
+    /// <exception cref="OverflowException">The truncated value is outside the range of <see cref="SByte"/>.</exception>
     public static explicit operator SByte(BigRational value)
     {
-        return (SByte)(BigInteger.Divide(value.Numerator, value.Denominator));
+        return (SByte)TruncatedQuotient(value);
     }
 
     /// <summary>
-    /// Truncates the rational to a <see cref="UInt16"/>.
+    /// Truncates the rational to a <see cref="UInt16"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
+    /// <exception cref="OverflowException">The truncated value is outside the range of <see cref="UInt16"/>.</exception>
     public static explicit operator UInt16(BigRational value)
     {
-        return (UInt16)(BigInteger.Divide(value.Numerator, value.Denominator));
+        return (UInt16)TruncatedQuotient(value);
     }
 
     /// <summary>
-    /// Truncates the rational to a <see cref="UInt32"/>.
+    /// Truncates the rational to a <see cref="UInt32"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
+    /// <exception cref="OverflowException">The truncated value is outside the range of <see cref="UInt32"/>.</exception>
     public static explicit operator UInt32(BigRational value)
     {
-        return (UInt32)(BigInteger.Divide(value.Numerator, value.Denominator));
+        return (UInt32)TruncatedQuotient(value);
     }
 
     /// <summary>
-    /// Truncates the rational to a <see cref="UInt64"/>.
+    /// Truncates the rational to a <see cref="UInt64"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
+    /// <exception cref="OverflowException">The truncated value is outside the range of <see cref="UInt64"/>.</exception>
     public static explicit operator UInt64(BigRational value)
     {
-        return (UInt64)(BigInteger.Divide(value.Numerator, value.Denominator));
+        return (UInt64)TruncatedQuotient(value);
     }
 
     /// <summary>
-    /// Truncates the rational to a <see cref="Byte"/>.
+    /// Truncates the rational to a <see cref="Byte"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
+    /// <exception cref="OverflowException">The truncated value is outside the range of <see cref="Byte"/>.</exception>
     public static explicit operator Byte(BigRational value)
     {
-        return (Byte)(BigInteger.Divide(value.Numerator, value.Denominator));
+        return (Byte)TruncatedQuotient(value);
     }
 
     /// <summary>
-    /// Truncates the rational to a <see cref="Int16"/>.
+    /// Truncates the rational to a <see cref="Int16"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
+    /// <exception cref="OverflowException">The truncated value is outside the range of <see cref="Int16"/>.</exception>
     public static explicit operator Int16(BigRational value)
     {
-        return (Int16)(BigInteger.Divide(value.Numerator, value.Denominator));
+        return (Int16)TruncatedQuotient(value);
     }
 
     /// <summary>
-    /// Truncates the rational to a <see cref="Int32"/>.
+    /// Truncates the rational to a <see cref="Int32"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
+    /// <exception cref="OverflowException">The truncated value is outside the range of <see cref="Int32"/>.</exception>
     public static explicit operator Int32(BigRational value)
     {
-        return (Int32)(BigInteger.Divide(value.Numerator, value.Denominator));
+        return (Int32)TruncatedQuotient(value);
     }
 
     /// <summary>
-    /// Truncates the rational to a <see cref="Int64"/>.
+    /// Truncates the rational to a <see cref="Int64"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
+    /// <exception cref="OverflowException">The truncated value is outside the range of <see cref="Int64"/>.</exception>
     public static explicit operator Int64(BigRational value)
     {
-        return (Int64)(BigInteger.Divide(value.Numerator, value.Denominator));
+        return (Int64)TruncatedQuotient(value);
     }
 
     /// <summary>
-    /// Truncates the rational to a <see cref="BigInteger"/>.
+    /// Truncates the rational to a <see cref="BigInteger"/>, rounding toward zero.
     /// </summary>
     /// <param name="value">The rational to convert.</param>
+    /// <exception cref="DivideByZeroException">The rational is infinite.</exception>
     public static explicit operator BigInteger(BigRational value)
     {
-        return BigInteger.Divide(value.Numerator, value.Denominator);
+        return TruncatedQuotient(value);
+    }
+
+    // The quotient of the numerator by the denominator, rounded toward zero, in Int64 when both are Int64 values other than Int64.MinValue.
+    private static BigInteger TruncatedQuotient(BigRational value)
+    {
+        if (TryGetInt64(value.Numerator, out Int64 numerator) && TryGetInt64(value.Denominator, out Int64 denominator))
+            return numerator / denominator;
+        else
+            return BigInteger.Divide(value.Numerator, value.Denominator);
     }
 
     /// <summary>

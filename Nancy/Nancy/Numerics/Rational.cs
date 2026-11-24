@@ -1999,7 +1999,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator SByte(Rational value)
         {
+            #if BIG_RATIONAL
+            return (SByte)TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return (SByte)(BigInteger.Divide(value.Numerator, value.Denominator));
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -2009,7 +2013,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator UInt16(Rational value)
         {
+            #if BIG_RATIONAL
+            return (UInt16)TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return (UInt16)(BigInteger.Divide(value.Numerator, value.Denominator));
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -2019,7 +2027,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator UInt32(Rational value)
         {
+            #if BIG_RATIONAL
+            return (UInt32)TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return (UInt32)(BigInteger.Divide(value.Numerator, value.Denominator));
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -2029,7 +2041,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator UInt64(Rational value)
         {
+            #if BIG_RATIONAL
+            return (UInt64)TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return (UInt64)(BigInteger.Divide(value.Numerator, value.Denominator));
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -2039,7 +2055,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator Byte(Rational value)
         {
+            #if BIG_RATIONAL
+            return (Byte)TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return (Byte)(BigInteger.Divide(value.Numerator, value.Denominator));
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -2049,7 +2069,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator Int16(Rational value)
         {
+            #if BIG_RATIONAL
+            return (Int16)TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return (Int16)(BigInteger.Divide(value.Numerator, value.Denominator));
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -2059,7 +2083,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator Int32(Rational value)
         {
+            #if BIG_RATIONAL
+            return (Int32)TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return (Int32)(BigInteger.Divide(value.Numerator, value.Denominator));
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -2069,7 +2097,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator Int64(Rational value)
         {
+            #if BIG_RATIONAL
+            return (Int64)TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return (Int64)(BigInteger.Divide(value.Numerator, value.Denominator));
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -2079,8 +2111,23 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static explicit operator BigInteger(Rational value)
         {
+            #if BIG_RATIONAL
+            return TruncatedQuotient(value);
+            #elif LONG_RATIONAL
             return BigInteger.Divide(value.Numerator, value.Denominator);
+            #endif
         }
+
+        #if BIG_RATIONAL
+        // The quotient of the numerator by the denominator, rounded toward zero, in Int64 when both are Int64 values other than Int64.MinValue.
+        private static BigInteger TruncatedQuotient(Rational value)
+        {
+            if (TryGetInt64(value.Numerator, out Int64 numerator) && TryGetInt64(value.Denominator, out Int64 denominator))
+                return numerator / denominator;
+            else
+                return BigInteger.Divide(value.Numerator, value.Denominator);
+        }
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="M:Unipi.Nancy.Numerics.BigRational.op_Explicit(Unipi.Nancy.Numerics.BigRational)~System.Single" />
