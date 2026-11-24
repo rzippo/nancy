@@ -1012,6 +1012,27 @@ namespace Unipi.Nancy.Numerics
                 exponent = -exponent;
             }
 
+            #if BIG_RATIONAL
+            if (exponent.IsOne)
+                return baseValue;
+            // The product x·x shares its denominator, so the multiplication skips cancelling, and two BigInteger powers cost more.
+            else if (exponent == 2)
+                return baseValue * baseValue;
+            // From the cube on, the powers of a reduced numerator and denominator are coprime, and the denominator stays positive or zero.
+            else if (exponent <= Int32.MaxValue)
+                return new Rational(BigInteger.Pow(baseValue.Numerator, (Int32)exponent), BigInteger.Pow(baseValue.Denominator, (Int32)exponent), skipNormalize: true);
+            // BigInteger.Pow takes an Int32 exponent, so larger ones repeat the multiplication.
+            else
+            {
+                Rational result = baseValue;
+                while (exponent > BigInteger.One)
+                {
+                    result = result * baseValue;
+                    exponent--;
+                }
+                return result;
+            }
+            #elif LONG_RATIONAL
             Rational result = baseValue;
             while (exponent > BigInteger.One)
             {
@@ -1020,6 +1041,7 @@ namespace Unipi.Nancy.Numerics
             }
 
             return result;
+            #endif
         }
 
         #if BIG_RATIONAL

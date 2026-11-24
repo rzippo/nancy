@@ -735,11 +735,16 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// Computes the power <paramref name="baseValue"/>^<paramref name="exponent"/>
+    /// Computes the power <paramref name="baseValue"/>^<paramref name="exponent"/>.
     /// </summary>
     /// <param name="baseValue">The base value.</param>
     /// <param name="exponent">The exponent.</param>
-    /// <exception cref="ArgumentException">Thrown when the operation cannot be completed.</exception>
+    /// <remarks>
+    /// Every value to the exponent 0 is 1, zero and infinities included.
+    /// A negative exponent raises the inverse of the base, so an infinity to a negative exponent is 0.
+    /// An infinity to a positive exponent is the infinity with the sign of the power.
+    /// </remarks>
+    /// <exception cref="ArgumentException">The base is zero and the exponent negative.</exception>
     public static BigRational Pow(BigRational baseValue, BigInteger exponent)
     {
         if (exponent.Sign == 0)
@@ -759,14 +764,25 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             exponent = -exponent;
         }
 
-        BigRational result = baseValue;
-        while (exponent > BigInteger.One)
+        if (exponent.IsOne)
+            return baseValue;
+        // The product x·x shares its denominator, so the multiplication skips cancelling, and two BigInteger powers cost more.
+        else if (exponent == 2)
+            return baseValue * baseValue;
+        // From the cube on, the powers of a reduced numerator and denominator are coprime, and the denominator stays positive or zero.
+        else if (exponent <= Int32.MaxValue)
+            return new BigRational(BigInteger.Pow(baseValue.Numerator, (Int32)exponent), BigInteger.Pow(baseValue.Denominator, (Int32)exponent), skipNormalize: true);
+        // BigInteger.Pow takes an Int32 exponent, so larger ones repeat the multiplication.
+        else
         {
-            result = result * baseValue;
-            exponent--;
+            BigRational result = baseValue;
+            while (exponent > BigInteger.One)
+            {
+                result = result * baseValue;
+                exponent--;
+            }
+            return result;
         }
-
-        return result;
     }
 
     /// <summary>
