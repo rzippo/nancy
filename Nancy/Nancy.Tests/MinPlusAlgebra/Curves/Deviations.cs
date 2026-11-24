@@ -676,6 +676,32 @@ public class Deviations
         Assert.Equal(Curve.VerticalDeviation(f, g, serial), Curve.VerticalDeviation(f, g, chunked));
     }
 
+    /// <summary>Chunked settings under which every cut also translates periods in parallel, across and within them, whenever its workers allow.</summary>
+    private static readonly ComputationSettings ChunkedWithParallelTranslation = Chunked with
+    {
+        UseParallelExtend = true, ExtendParallelizationThreshold = 0,
+        UseParallelComputeExtensionSequences = true, ComputeExtensionSequencesParallelizationThreshold = 0,
+        ExtensionMinimumElementsPerPartition = 1
+    };
+
+    /// <summary>
+    /// The pairs of <see cref="LongDeviationPairs"/> at degrees that leave each chunk one worker, or several when the degree exceeds the number of chunks.
+    /// </summary>
+    public static IEnumerable<object[]> LongDeviationPairsWithSpareWorkers()
+        => LongDeviationPairs()
+            .Where(arguments => (int)arguments[2] == 1)
+            .SelectMany(arguments => new[] { 1, 2, 16, 64 }.Select(degree => new object[] { arguments[0], arguments[1], degree }));
+
+    [Theory]
+    [MemberData(nameof(LongDeviationPairsWithSpareWorkers))]
+    public void ChunksTranslatingPeriodsWithTheirShareOfWorkersGiveTheSerialDeviations(Curve f, Curve g, int degree)
+    {
+        var serial = new ComputationSettings { UseParallelism = false };
+        var chunked = ChunkedWithParallelTranslation with { MaxDegreeOfParallelism = degree };
+        Assert.Equal(Curve.HorizontalDeviation(f, g, serial), Curve.HorizontalDeviation(f, g, chunked));
+        Assert.Equal(Curve.VerticalDeviation(f, g, serial), Curve.VerticalDeviation(f, g, chunked));
+    }
+
     [Theory]
     [MemberData(nameof(GetHorizontalDeviationArgTestCases))]
     public void HorizontalDeviationArgTest(Curve a, Curve b, Rational expected)
