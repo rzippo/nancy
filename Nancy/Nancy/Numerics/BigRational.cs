@@ -650,7 +650,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     public static BigRational Abs(BigRational r)
     {
-        return (r.Numerator.Sign < 0 ? new BigRational(BigInteger.Abs(r.Numerator), r.Denominator) : r);
+        return (r.Numerator.Sign < 0 ? new BigRational(BigInteger.Abs(r.Numerator), r.Denominator, skipNormalize: true) : r);
     }
 
     /// <summary>
@@ -658,7 +658,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     public static BigRational Negate(BigRational r)
     {
-        return new BigRational(BigInteger.Negate(r.Numerator), r.Denominator);
+        return new BigRational(BigInteger.Negate(r.Numerator), r.Denominator, skipNormalize: !r.Denominator.IsZero);
     }
 
     /// <summary>
@@ -666,7 +666,13 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     public static BigRational Invert(BigRational r)
     {
-        return new BigRational(r.Denominator, r.Numerator);
+        var sign = r.Numerator.Sign;
+        if (sign > 0)
+            return new BigRational(r.Denominator, r.Numerator, skipNormalize: true);
+        else if (sign < 0)
+            return new BigRational(-r.Denominator, -r.Numerator, skipNormalize: true);
+        else
+            return new BigRational(r.Denominator, r.Numerator);
     }
 
     /// <summary>
@@ -1024,7 +1030,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         if (r == MinusInfinity)
             return PlusInfinity;
 
-        return new BigRational(-r.Numerator, r.Denominator);
+        return new BigRational(-r.Numerator, r.Denominator, skipNormalize: !r.Denominator.IsZero);
     }
 
     /// <inheritdoc />

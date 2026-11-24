@@ -849,7 +849,7 @@ namespace Unipi.Nancy.Numerics
         public static Rational Abs(Rational r)
         {
             #if BIG_RATIONAL
-            return (r.Numerator.Sign < 0 ? new Rational(BigInteger.Abs(r.Numerator), r.Denominator) : r);
+            return (r.Numerator.Sign < 0 ? new Rational(BigInteger.Abs(r.Numerator), r.Denominator, skipNormalize: true) : r);
             #elif LONG_RATIONAL
             return (r.Numerator < 0 ? new Rational(Math.Abs(r.Numerator), r.Denominator) : r);
             #endif
@@ -862,7 +862,11 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static Rational Negate(Rational r)
         {
+            #if BIG_RATIONAL
+            return new Rational(-r.Numerator, r.Denominator, skipNormalize: !r.Denominator.IsZero);
+            #else
             return new Rational(-r.Numerator, r.Denominator);
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -872,7 +876,17 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static Rational Invert(Rational r)
         {
+            #if BIG_RATIONAL
+            var sign = r.Numerator.Sign;
+            if (sign > 0)
+                return new Rational(r.Denominator, r.Numerator, skipNormalize: true);
+            else if (sign < 0)
+                return new Rational(-r.Denominator, -r.Numerator, skipNormalize: true);
+            else
+                return new Rational(r.Denominator, r.Numerator);
+            #else
             return new Rational(r.Denominator, r.Numerator);
+            #endif
         }
 
         #if BIG_RATIONAL
@@ -1231,7 +1245,11 @@ namespace Unipi.Nancy.Numerics
             if (r == MinusInfinity)
                 return PlusInfinity;
 
+            #if BIG_RATIONAL
+            return new Rational(-r.Numerator, r.Denominator, skipNormalize: !r.Denominator.IsZero);
+            #else
             return new Rational(-r.Numerator, r.Denominator);
+            #endif
         }
 
         /// <inheritdoc />
