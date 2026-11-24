@@ -75,6 +75,34 @@ public class GCDTests
         Assert.Equal(expected, gcd);
     }
 
+    public static List<(long a, long b, long expected)> GcdLongMinValueCases =
+    [
+        (long.MinValue, 6, 2),
+        (6, long.MinValue, 2),
+        (long.MinValue, -12, 4),
+        (long.MinValue, 1L << 40, 1L << 40),
+        (long.MinValue, long.MaxValue, 1),
+    ];
+
+    public static IEnumerable<object[]> GetGcdLongMinValueCases()
+        => GcdLongMinValueCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetGcdLongMinValueCases))]
+    public void Long_WithInt64MinValue(long a, long b, long expected)
+    {
+        Assert.Equal(expected, BigRational.GreatestCommonDivisor(a, b));
+    }
+
+    [Theory]
+    [InlineData(long.MinValue, 0)]
+    [InlineData(0, long.MinValue)]
+    [InlineData(long.MinValue, long.MinValue)]
+    public void Long_GcdOfTwoToThe63_Overflows(long a, long b)
+    {
+        Assert.Throws<System.OverflowException>(() => BigRational.GreatestCommonDivisor(a, b));
+    }
+
     public static List<(BigRational a, BigRational b)> NegativeLcmCases =
     [
         (new BigRational(-4), new BigRational(6)),
