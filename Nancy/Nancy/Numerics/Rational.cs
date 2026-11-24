@@ -576,39 +576,67 @@ namespace Unipi.Nancy.Numerics
         #endif
         public Rational(long numerator, long denominator = 1)
         {
+            #if BIG_RATIONAL
+            if (denominator == 0)
+            {
+                if (numerator == 0)
+                    throw new UndeterminedResultException("Zero over zero");
+
+                Numerator = numerator < 0 ? BigInteger.MinusOne : BigInteger.One;
+                Denominator = BigInteger.Zero;
+                return;
+            }
+
+            if (numerator == 0)
+            {
+                Numerator = BigInteger.Zero;
+                Denominator = BigInteger.One;
+                return;
+            }
+
+            if (denominator == 1)
+            {
+                Numerator = new BigInteger(numerator);
+                Denominator = BigInteger.One;
+                return;
+            }
+
+            // These values cannot always be sign-normalized within Int64.
+            if (numerator == long.MinValue || denominator == long.MinValue)
+            {
+                this = new Rational(new BigInteger(numerator), new BigInteger(denominator));
+                return;
+            }
+
+            if (denominator < 0)
+            {
+                numerator = -numerator;
+                denominator = -denominator;
+            }
+
+            var divisor = GreatestCommonDivisor(numerator, denominator);
+            var numeratorReduced = numerator / divisor;
+            var denominatorReduced = denominator / divisor;
+
+            Numerator = new BigInteger(numeratorReduced);
+            Denominator = new BigInteger(denominatorReduced);
+            #elif LONG_RATIONAL
             if (denominator == 0)
             {
                 if (numerator < 0)
-                    #if BIG_RATIONAL
-                    Numerator = BigInteger.MinusOne;
-                    #elif LONG_RATIONAL
                     Numerator = -1;
-                    #endif
                 else if (numerator > 0)
-                    #if BIG_RATIONAL
-                    Numerator = BigInteger.One;
-                    #elif LONG_RATIONAL
                     Numerator = 1;
-                    #endif
                 else
                     throw new UndeterminedResultException("Zero over zero");
 
-                #if BIG_RATIONAL
-                Denominator = BigInteger.Zero;
-                #elif LONG_RATIONAL
                 Denominator = 0;
-                #endif
             }
             else if (numerator == 0)
             {
                 // 0/m -> 0/1
-                #if BIG_RATIONAL
-                Numerator = BigInteger.Zero;
-                Denominator = BigInteger.One;
-                #elif LONG_RATIONAL
                 Numerator = 0;
                 Denominator = 1;
-                #endif
             }
             else if (denominator < 0)
             {
@@ -622,7 +650,31 @@ namespace Unipi.Nancy.Numerics
             }
 
             Simplify();
+            #endif
         }
+
+        #if BIG_RATIONAL
+        /// <summary>
+        /// Constructs a rational from Int64 parts, optionally skipping normalization.
+        /// </summary>
+        /// <param name="numerator">The numerator.</param>
+        /// <param name="denominator">The denominator.</param>
+        /// <param name="skipNormalize">
+        /// True when the numerator and denominator are already canonical.
+        /// </param>
+        internal Rational(long numerator, long denominator, bool skipNormalize)
+        {
+            if (skipNormalize)
+            {
+                Numerator = new BigInteger(numerator);
+                Denominator = new BigInteger(denominator);
+            }
+            else
+            {
+                this = new Rational(numerator, denominator);
+            }
+        }
+        #endif
         
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational(BigInteger)"/>
