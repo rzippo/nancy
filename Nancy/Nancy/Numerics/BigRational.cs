@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -14,11 +15,11 @@ using Unipi.Nancy.Utility;
 namespace Unipi.Nancy.Numerics;
 
 /// <summary>
-/// Represents a rational number with infinite precision, 
+/// Represents a rational number with infinite precision,
 /// using <see cref="BigInteger"/> for both numerator and denominator.
 /// </summary>
 /// <remarks>
-/// Adapted from Microsoft's BigRational, open sourced as MIT on <see href="https://github.com/MicrosoftArchive/bcl/blob/master/Libraries/BigRational/BigRationalLibrary/BigRational.cs">GitHub</see>. 
+/// Adapted from Microsoft's BigRational, open sourced as MIT on <see href="https://github.com/MicrosoftArchive/bcl/blob/master/Libraries/BigRational/BigRationalLibrary/BigRational.cs">GitHub</see>.
 /// </remarks>
 [Serializable]
 [ComVisible(false)]
@@ -62,13 +63,13 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         Denominator = 0
     };
 
-    #endregion Static values
+    #endregion Static public values
 
     #region Public Properties
 
     /// <summary>
     /// Returns an integer that indicates the sign of the rational
-    /// </summary> 
+    /// </summary>
     /// <returns>
     /// A number that indicates the sign of the rational, as shown in the following table.
     /// <list type="table">
@@ -128,7 +129,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <summary>
     /// True if the number is $-\infty$.
     /// </summary>
-    public readonly bool IsMinusInfinite => Denominator.IsZero && Numerator == -1;
+    public readonly bool IsMinusInfinite => Denominator.IsZero && Numerator == BigInteger.MinusOne;
 
     /// <summary>
     /// The numerator and denominator, if this value is finite.
@@ -211,7 +212,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     #region Public Instance Methods
 
     // GetWholePart() and GetFractionPart()
-    // 
+    //
     // BigRational == Whole, Fraction
     //  0/2        ==     0,  0/2
     //  1/2        ==     0,  1/2
@@ -285,18 +286,13 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <inheritdoc />
     public override readonly bool Equals(object? obj)
     {
-        if (obj == null)
-            return false;
-
-        if (obj is not BigRational)
-            return false;
-        return this.Equals((BigRational)obj);
+        return obj is BigRational other && Equals(other);
     }
 
     /// <inheritdoc />
     public override readonly int GetHashCode()
     {
-        return (Numerator, Denominator).GetHashCode();
+        return HashCode.Combine(Numerator, Denominator);
     }
 
     /// <summary>
@@ -379,7 +375,6 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     // IEquatable<BigRational>
-    // a/b = c/d, iff ad = bc
     /// <inheritdoc />
     public readonly Boolean Equals(BigRational other)
     {
@@ -392,67 +387,60 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     #region Constructors
 
     /// <summary>
-    /// Constructor.
+    /// Constructs the rational <paramref name="numerator"/>/<paramref name="denominator"/>, reduced and with a positive denominator.
     /// </summary>
     /// <param name="numerator">The numerator.</param>
     /// <param name="denominator">The denominator.</param>
-    /// <exception cref="UndeterminedResultException">Thrown when the operation cannot be completed.</exception>
+    /// <remarks>A zero denominator gives the infinity of the numerator's sign.</remarks>
+    /// <exception cref="UndeterminedResultException">Both the numerator and the denominator are zero.</exception>
     public BigRational(int numerator, int denominator = 1)
     {
         this = new BigRational((Int64)numerator, denominator);
     }
 
     /// <summary>
-    /// Constructor.
+    /// Constructs the rational <paramref name="numerator"/>/<paramref name="denominator"/>, reduced and with a positive denominator.
     /// </summary>
     /// <param name="numerator">The numerator.</param>
     /// <param name="denominator">The denominator.</param>
-    /// <exception cref="UndeterminedResultException">Thrown when the operation cannot be completed.</exception>
+    /// <remarks>A zero denominator gives the infinity of the numerator's sign.</remarks>
+    /// <exception cref="UndeterminedResultException">Both the numerator and the denominator are zero.</exception>
     public BigRational(long numerator, long denominator = 1)
     {
         if (denominator == 0)
         {
             if (numerator == 0)
                 throw new UndeterminedResultException("Zero over zero");
-
-            Numerator = numerator < 0 ? BigInteger.MinusOne : BigInteger.One;
-            Denominator = BigInteger.Zero;
-            return;
+            else
+            {
+                Numerator = numerator < 0 ? BigInteger.MinusOne : BigInteger.One;
+                Denominator = BigInteger.Zero;
+            }
         }
-
-        if (numerator == 0)
+        else if (numerator == 0)
         {
             Numerator = BigInteger.Zero;
             Denominator = BigInteger.One;
-            return;
         }
-
-        if (denominator == 1)
+        else if (denominator == 1)
         {
             Numerator = new BigInteger(numerator);
             Denominator = BigInteger.One;
-            return;
         }
-
-        // These values cannot always be sign-normalized within Int64.
-        if (numerator == long.MinValue || denominator == long.MinValue)
-        {
+        // Int64.MinValue has no Int64 opposite, so these parts are sign-normalized in BigInteger.
+        else if (numerator == Int64.MinValue || denominator == Int64.MinValue)
             this = new BigRational(new BigInteger(numerator), new BigInteger(denominator));
-            return;
-        }
-
-        if (denominator < 0)
+        else
         {
-            numerator = -numerator;
-            denominator = -denominator;
+            if (denominator < 0)
+            {
+                numerator = -numerator;
+                denominator = -denominator;
+            }
+            var divisor = GreatestCommonDivisor(numerator, denominator);
+            Numerator = new BigInteger(numerator / divisor);
+            Denominator = new BigInteger(denominator / divisor);
         }
-
-        var divisor = GreatestCommonDivisor(numerator, denominator);
-        var numeratorReduced = numerator / divisor;
-        var denominatorReduced = denominator / divisor;
-
-        Numerator = new BigInteger(numeratorReduced);
-        Denominator = new BigInteger(denominatorReduced);
     }
 
     /// <summary>
@@ -461,7 +449,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <param name="numerator">The numerator.</param>
     /// <param name="denominator">The denominator.</param>
     /// <param name="skipNormalize">
-    /// True when the numerator and denominator are already canonical.
+    /// True when the numerator and denominator are already canonical: coprime, with a positive denominator.
+    /// Otherwise they are normalized as by the public constructor.
     /// </param>
     internal BigRational(long numerator, long denominator, bool skipNormalize)
     {
@@ -475,7 +464,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             this = new BigRational(numerator, denominator);
         }
     }
-    
+
     /// <summary>
     /// Constructor.
     /// </summary>
@@ -519,17 +508,17 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             return;
         }
 
-        // the significand words are unsigned, so they are converted in an unchecked context
         (Numerator, Denominator) = value.GetRationalParts();
         Simplify();
     }
 
     /// <summary>
-    /// Constructor.
+    /// Constructs the rational <paramref name="numerator"/>/<paramref name="denominator"/>, reduced and with a positive denominator.
     /// </summary>
     /// <param name="numerator">The numerator.</param>
     /// <param name="denominator">The denominator.</param>
-    /// <exception cref="UndeterminedResultException">Thrown when the operation cannot be completed.</exception>
+    /// <remarks>A zero denominator gives the infinity of the numerator's sign.</remarks>
+    /// <exception cref="UndeterminedResultException">Both the numerator and the denominator are zero.</exception>
     public BigRational(BigInteger numerator, BigInteger denominator)
     {
         if (denominator.Sign == 0)
@@ -551,8 +540,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
         else if (denominator.Sign < 0)
         {
-            Numerator = BigInteger.Negate(numerator);
-            Denominator = BigInteger.Negate(denominator);
+            Numerator = -numerator;
+            Denominator = -denominator;
         }
         else
         {
@@ -564,12 +553,13 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// Internal constructor.
+    /// Constructs a rational from BigInteger parts, optionally skipping normalization.
     /// </summary>
     /// <param name="numerator">The numerator.</param>
     /// <param name="denominator">The denominator.</param>
     /// <param name="skipNormalize">
-    /// If true, the fraction is assumed to be already normalized (positive denominator and irreducible), and no normalization will be attempted. 
+    /// True when the numerator and denominator are already canonical: coprime, with a positive denominator.
+    /// Otherwise they are normalized as by the public constructor.
     /// </param>
     internal BigRational(BigInteger numerator, BigInteger denominator, bool skipNormalize)
     {
@@ -610,14 +600,14 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             Simplify();
         }
     }
-    
+
     /// <summary>
     /// Constructor.
     /// </summary>
     /// <param name="whole">The whole part.</param>
     /// <param name="numerator">The numerator.</param>
     /// <param name="denominator">The denominator.</param>
-    /// <exception cref="DivideByZeroException">Thrown when the operation cannot be completed.</exception>
+    /// <exception cref="DivideByZeroException">The denominator is zero.</exception>
     public BigRational(BigInteger whole, BigInteger numerator, BigInteger denominator)
     {
         if (denominator.Sign == 0)
@@ -631,8 +621,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
         else if (denominator.Sign < 0)
         {
-            Denominator = BigInteger.Negate(denominator);
-            Numerator = (BigInteger.Negate(whole) * Denominator) + BigInteger.Negate(numerator);
+            Denominator = -denominator;
+            Numerator = (-whole * Denominator) - numerator;
         }
         else
         {
@@ -658,7 +648,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     public static BigRational Negate(BigRational r)
     {
-        return new BigRational(BigInteger.Negate(r.Numerator), r.Denominator, skipNormalize: !r.Denominator.IsZero);
+        return new BigRational(-r.Numerator, r.Denominator, skipNormalize: !r.Denominator.IsZero);
     }
 
     /// <summary>
@@ -695,7 +685,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// The product of the two numbers.
     /// </summary>
     /// <remarks>
-    /// Tries to optimize the computation, using cross-canceling. 
+    /// Common factors across the two fractions are cancelled before the products are taken.
     /// </remarks>
     public static BigRational Multiply(BigRational x, BigRational y)
     {
@@ -706,7 +696,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// The division of the two numbers.
     /// </summary>
     /// <remarks>
-    /// Tries to optimize the computation, using cross-canceling. 
+    /// Common factors across the dividend and the reciprocal of the divisor are cancelled before the products are taken.
     /// </remarks>
     public static BigRational Divide(BigRational dividend, BigRational divisor)
     {
@@ -741,9 +731,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         // a/b % c/d  == (ad % bc)/bd
 
         // (ad) and (bc) need to be calculated for both the division and the remainder operations.
-        BigInteger ad = dividend.Numerator * divisor.Denominator;
-        BigInteger bc = dividend.Denominator * divisor.Numerator;
-        BigInteger bd = dividend.Denominator * divisor.Denominator;
+        var ad = dividend.Numerator * divisor.Denominator;
+        var bc = dividend.Denominator * divisor.Numerator;
+        var bd = dividend.Denominator * divisor.Denominator;
 
         remainder = new BigRational(ad % bc, bd);
         return new BigRational(ad / bc);
@@ -771,7 +761,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             }
             // n^(-e) -> (1/n)^e
             baseValue = BigRational.Invert(baseValue);
-            exponent = BigInteger.Negate(exponent);
+            exponent = -exponent;
         }
 
         BigRational result = baseValue;
@@ -785,8 +775,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// The LCD is the least common multiple of the two denominators.  
-    /// For instance, the LCD of $\frac{1}{2}, \frac{1}{4}$ is 4 because the least common multiple of 2 and 4 is 4.  
+    /// The LCD is the least common multiple of the two denominators.
+    /// For instance, the LCD of $\frac{1}{2}, \frac{1}{4}$ is 4 because the least common multiple of 2 and 4 is 4.
     /// Likewise, the LCD of $\frac{1}{2}, \frac{1}{3}$ is 6.
     /// </summary>
     /// <remarks>
@@ -858,7 +848,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <param name="left">The first value to compare.</param>
     /// <param name="right">The second value to compare.</param>
     /// <returns>
-    /// A signed integer that indicates the relative values of <paramref name="left"/> and <paramref name="right"/>, 
+    /// A signed integer that indicates the relative values of <paramref name="left"/> and <paramref name="right"/>,
     /// as shown in the following table.
     /// <list type="table">
     /// <listheader>
@@ -889,9 +879,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             else
                 return left.Sign;
         }
-        
-        if(right.IsInfinite)
+        else if (right.IsInfinite)
             return -right.Sign;
+        // Otherwise both operands are finite, and continue below.
 
         // Components held in BigInteger's sign field are Int32 values, and their cross-products compare in Int64.
         var leftNumerator = left.Numerator;
@@ -901,13 +891,13 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         if (BitsField(ref leftNumerator) is null && BitsField(ref leftDenominator) is null &&
             BitsField(ref rightNumerator) is null && BitsField(ref rightDenominator) is null)
         {
-            int a = SignField(ref leftNumerator), b = SignField(ref leftDenominator);
-            int c = SignField(ref rightNumerator), d = SignField(ref rightDenominator);
+            Int32 a = SignField(ref leftNumerator), b = SignField(ref leftDenominator);
+            Int32 c = SignField(ref rightNumerator), d = SignField(ref rightDenominator);
             if (b == d)
                 return a < c ? -1 : a > c ? 1 : 0;
             else
             {
-                long leftProduct = (long)a * d, rightProduct = (long)c * b;
+                Int64 leftProduct = (Int64)a * d, rightProduct = (Int64)c * b;
                 return leftProduct < rightProduct ? -1 : leftProduct > rightProduct ? 1 : 0;
             }
         }
@@ -928,7 +918,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
     /// <param name="c">The third operand.</param>
-    public static BigRational Max(BigRational a, BigRational b, BigRational c) => Max(a, Max(b, c));    //good enough
+    public static BigRational Max(BigRational a, BigRational b, BigRational c) => Max(a, Max(b, c));
 
     /// <summary>
     /// Max of a set of numbers.
@@ -1037,34 +1027,33 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <inheritdoc cref="Add(BigRational, BigRational)"/>
-    public static BigRational operator +(BigRational r1, BigRational r2)
+    public static BigRational operator +(BigRational x, BigRational y)
     {
-        if (r1.IsInfinite || r2.IsInfinite)
+        if (x.IsInfinite || y.IsInfinite)
         {
-            if (r1.IsInfinite && r2.IsInfinite)
+            if (x.IsInfinite && y.IsInfinite)
             {
-                if (r1.Sign == r2.Sign)
-                    return r1;
+                if (x.Sign == y.Sign)
+                    return x;
                 else
                     throw new UndeterminedResultException("Cannot sum opposite infinities");
             }
             else
             {
-                return r1.IsInfinite ? r1 : r2;
+                return x.IsInfinite ? x : y;
             }
         }
+        else if (x.IsZero)
+            return y;
+        else if (y.IsZero)
+            return x;
         else
         {
-            if (r1.IsZero)
-                return r2;
-            if (r2.IsZero)
-                return r1;
-
             // Components held in BigInteger's sign field are Int32 values, and add in Int64.
-            var xn = r1.Numerator;
-            var xd = r1.Denominator;
-            var yn = r2.Numerator;
-            var yd = r2.Denominator;
+            var xn = x.Numerator;
+            var xd = x.Denominator;
+            var yn = y.Numerator;
+            var yd = y.Denominator;
             if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
                 BitsField(ref yn) is null && BitsField(ref yd) is null)
                 return AddInt32Fractions(SignField(ref xn), SignField(ref xd), SignField(ref yn), SignField(ref yd));
@@ -1074,9 +1063,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <inheritdoc cref="Subtract(BigRational, BigRational)"/>
-    public static BigRational operator -(BigRational r1, BigRational r2)
+    public static BigRational operator -(BigRational x, BigRational y)
     {
-        return r1 + (-r2);
+        return x + (-y);
     }
 
     /// <inheritdoc cref="Multiply(BigRational, BigRational)"/>
@@ -1095,11 +1084,11 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             {
                 var xNumerator = x.Numerator;
                 var yNumerator = y.Numerator;
-                int xSign = SignField(ref xNumerator), ySign = SignField(ref yNumerator);
+                Int32 xField = SignField(ref xNumerator), yField = SignField(ref yNumerator);
                 // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
-                if (xSign != 1 && xSign != -1 && ySign != 1 && ySign != -1)
-                    return new BigRational((long)xSign * ySign, 1, skipNormalize: true);
-                // Otherwise a numerator is ±1 or outside the sign field, and continues with the unit tests.
+                if (xField != 1 && xField != -1 && yField != 1 && yField != -1)
+                    return new BigRational((Int64)xField * yField, 1, skipNormalize: true);
+                // Otherwise a numerator is ±1 or outside the sign field, and continues with the tests for ±1.
             }
             if (x.Numerator.IsOne)
                 return y;
@@ -1118,8 +1107,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             // Otherwise x is a fraction and y an integer other than ±1, and they continue with the fraction tiers.
         }
 
-        // Fractions go to non-inlined helpers, so that zero and integer products do not pay for their frames.
-        // This hotspot is an approved exception to the single-use helper rule.
+        // Fractions go to NoInlining helpers, so that zero and integer products do not pay for their frames.
         // Components held in BigInteger's sign field are Int32 values, and their products are taken in Int64.
         var xn = x.Numerator;
         var xd = x.Denominator;
@@ -1142,23 +1130,17 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             else
                 return BigRational.Zero;
         }
-
-        if (y.IsZero)
-        {
+        else if (y.IsZero)
             throw new DivideByZeroException();
-        }
-
-        if (x.IsInfinite)
+        else if (x.IsInfinite)
         {
             if (y.IsInfinite)
                 throw new UndeterminedResultException("Infinity over infinity");
             else
                 return y.Numerator.Sign > 0 ? x : -x;
         }
-
-        if (y.IsInfinite)
+        else if (y.IsInfinite)
             return BigRational.Zero;
-
         // Otherwise both operands are finite and nonzero, and x/y is x times the reciprocal of y = c/d, ±d/|c|, which is reduced.
         // The reciprocal is an integer when c is ±1, so each operand's units are tested once as in the multiplication: a dividend ±1 yields ±1/y, a divisor ±1 yields ±x, and an integer divided by ±1/d is the integer ±x·d.
         if (x.Denominator.IsOne)
@@ -1167,11 +1149,11 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             {
                 var xNumerator = x.Numerator;
                 var yDenominator = y.Denominator;
-                int xSign = SignField(ref xNumerator), dSign = SignField(ref yDenominator);
+                Int32 xField = SignField(ref xNumerator), dField = SignField(ref yDenominator);
                 // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
-                if (xSign != 1 && xSign != -1 && dSign != 1 && dSign != -1)
-                    return new BigRational(y.Numerator.Sign * (long)xSign * dSign, 1, skipNormalize: true);
-                // Otherwise a value is ±1 or outside the sign field, and continues with the unit tests.
+                if (xField != 1 && xField != -1 && dField != 1 && dField != -1)
+                    return new BigRational(y.Numerator.Sign * (Int64)xField * dField, 1, skipNormalize: true);
+                // Otherwise a value is ±1 or outside the sign field, and continues with the tests for ±1.
             }
             if (x.Numerator.IsOne)
                 return Invert(y);
@@ -1188,7 +1170,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             // Otherwise x is a fraction and the reciprocal of y an integer other than ±1, and they continue with the fraction tiers.
         }
 
-        // The reciprocal of c/d is ±d/|c|, reduced, and the multiplication tiers cancel x against it.
+        // Fractions go to the multiplication's NoInlining helpers, which cancel x against the reciprocal ±d/|c|.
+        // Components held in BigInteger's sign field are Int32 values, and their products are taken in Int64.
         var xn = x.Numerator;
         var xd = x.Denominator;
         var yn = y.Numerator;
@@ -1196,7 +1179,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
             BitsField(ref yn) is null && BitsField(ref yd) is null)
         {
-            int c = SignField(ref yn), d = SignField(ref yd);
+            Int32 c = SignField(ref yn), d = SignField(ref yd);
             return MultiplyInt32Fractions(SignField(ref xn), SignField(ref xd), c < 0 ? -d : d, Math.Abs(c));
         }
         else
@@ -1204,34 +1187,32 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <inheritdoc cref="Remainder(BigRational, BigRational)"/>
-    public static BigRational operator %(BigRational r1, BigRational r2)
+    public static BigRational operator %(BigRational x, BigRational y)
     {
-        if (r1.IsInfinite || r2.IsInfinite)
+        if (x.IsInfinite || y.IsInfinite)
             throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
 
         // a/b % c/d  == (ad % bc)/bd
-        return new BigRational((r1.Numerator * r2.Denominator) % (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));
+        return new BigRational((x.Numerator * y.Denominator) % (x.Denominator * y.Numerator), (x.Denominator * y.Denominator));
     }
     #endregion Operator Overloads
 
     #region Arithmetic helpers
 
     // BigInteger's _sign field: the value itself when _bits is null, and its sign otherwise.
-    [System.Runtime.CompilerServices.UnsafeAccessor(
-        System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_sign")]
-    private static extern ref int SignField(ref BigInteger value);
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_sign")]
+    private static extern ref Int32 SignField(ref BigInteger value);
 
     // BigInteger's _bits field: null when the value is held in _sign, and otherwise its magnitude in 32-bit words, least significant first.
-    [System.Runtime.CompilerServices.UnsafeAccessor(
-        System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_bits")]
-    private static extern ref uint[]? BitsField(ref BigInteger value);
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_bits")]
+    private static extern ref UInt32[]? BitsField(ref BigInteger value);
 
     // Whether the value is an Int64 other than Int64.MinValue, and that value, read from BigInteger's _sign and _bits fields.
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    private static bool TryGetInt64(BigInteger value, out long result)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryGetInt64(BigInteger value, out Int64 result)
     {
-        uint[]? bits = BitsField(ref value);
-        int signField = SignField(ref value);
+        UInt32[]? bits = BitsField(ref value);
+        Int32 signField = SignField(ref value);
         if (bits is null)
         {
             result = signField;
@@ -1239,12 +1220,12 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
         else if (bits.Length == 1)
         {
-            result = signField * (long)bits[0];
+            result = signField * (Int64)bits[0];
             return true;
         }
-        else if (bits.Length == 2 && bits[1] <= int.MaxValue)
+        else if (bits.Length == 2 && bits[1] <= Int32.MaxValue)
         {
-            result = signField * (long)(((ulong)bits[1] << 32) | bits[0]);
+            result = signField * (Int64)(((UInt64)bits[1] << 32) | bits[0]);
             return true;
         }
         else
@@ -1254,13 +1235,10 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
     }
 
-    /// <summary>
-    /// Computes the greatest common divisor of two positive native magnitudes.
-    /// </summary>
-    /// <remarks>The caller must supply strictly positive arguments; no validation is performed.</remarks>
-    private static long GreatestCommonDivisorPositive(long left, long right)
+    // The greatest common divisor of two positive Int64 values, by the binary algorithm; the arguments are not checked.
+    private static Int64 GreatestCommonDivisorPositive(Int64 left, Int64 right)
     {
-        ulong a = (ulong)left, b = (ulong)right;
+        UInt64 a = (UInt64)left, b = (UInt64)right;
         int shift = BitOperations.TrailingZeroCount(a | b);
         a >>= BitOperations.TrailingZeroCount(a);
         do
@@ -1270,61 +1248,61 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
                 (a, b) = (b, a);
             b -= a;
         } while (b != 0);
-        return (long)(a << shift);
+        return (Int64)(a << shift);
     }
 
     // The exact 128-bit product of two Int64 values.
-    private static Int128 Product(long x, long y)
+    private static Int128 Product(Int64 x, Int64 y)
     {
-        long high = Math.BigMul(x, y, out long low);
-        return new Int128(unchecked((ulong)high), unchecked((ulong)low));
+        Int64 high = Math.BigMul(x, y, out Int64 low);
+        return new Int128(unchecked((UInt64)high), unchecked((UInt64)low));
     }
 
-    // The rational with the given reduced numerator and positive denominator, stored as Int64 when both fit.
+    // The rational with the given reduced numerator and positive denominator, built from Int64 values when both fit.
     private static BigRational FromInt128(Int128 numerator, Int128 denominator)
     {
-        if (numerator >= long.MinValue && numerator <= long.MaxValue && denominator <= long.MaxValue)
-            return new BigRational((long)numerator, (long)denominator, skipNormalize: true);
+        if (numerator >= Int64.MinValue && numerator <= Int64.MaxValue && denominator <= Int64.MaxValue)
+            return new BigRational((Int64)numerator, (Int64)denominator, skipNormalize: true);
         else
             return new BigRational((BigInteger)numerator, (BigInteger)denominator, skipNormalize: true);
     }
 
     // Adds the reduced fractions a/b and c/d into a reduced fraction, with the sums and products taken in Int64.
     // The components are Int32 values other than Int32.MinValue, and the denominators are positive.
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-    private static BigRational AddInt32Fractions(int a, int b, int c, int d)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static BigRational AddInt32Fractions(Int32 a, Int32 b, Int32 c, Int32 d)
     {
         // Equal denominators add the numerators, and only factors of b can cancel.
         if (b == d)
         {
-            long numerator = (long)a + c;
+            Int64 numerator = (Int64)a + c;
             if (numerator == 0)
-                return Zero;
+                return BigRational.Zero;
             else if (b == 1)
                 return new BigRational(numerator, 1, skipNormalize: true);
             else
             {
-                long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), b);
+                Int64 divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), b);
                 return new BigRational(numerator / divisor, b / divisor, skipNormalize: true);
             }
         }
         // An integer plus a reduced fraction is reduced: a + c/d = (a·d + c)/d, and c is coprime to d.
         else if (b == 1)
-            return new BigRational((long)a * d + c, d, skipNormalize: true);
+            return new BigRational((Int64)a * d + c, d, skipNormalize: true);
         else if (d == 1)
-            return new BigRational(a + (long)c * b, b, skipNormalize: true);
+            return new BigRational(a + (Int64)c * b, b, skipNormalize: true);
         // Otherwise, with g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
         // The sum is nonzero: reduced fractions with unequal denominators are not opposite.
         else
         {
-            long g = GreatestCommonDivisorPositive(b, d);
+            Int64 g = GreatestCommonDivisorPositive(b, d);
             if (g == 1)
-                return new BigRational((long)a * d + (long)c * b, (long)b * d, skipNormalize: true);
+                return new BigRational((Int64)a * d + (Int64)c * b, (Int64)b * d, skipNormalize: true);
             else
             {
-                long bReduced = b / g, dReduced = d / g;
-                long numerator = a * dReduced + c * bReduced;
-                long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), g);
+                Int64 bReduced = b / g, dReduced = d / g;
+                Int64 numerator = a * dReduced + c * bReduced;
+                Int64 divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), g);
                 return new BigRational(numerator / divisor, bReduced * (d / divisor), skipNormalize: true);
             }
         }
@@ -1332,21 +1310,22 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
 
     // Adds the reduced fractions a/b and c/d into a reduced fraction, with 128-bit sums and products and Int64 gcds.
     // The components are Int64 values other than Int64.MinValue, and the denominators are positive.
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-    private static BigRational AddInt64Fractions(long a, long b, long c, long d)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static BigRational AddInt64Fractions(Int64 a, Int64 b, Int64 c, Int64 d)
     {
         // Equal denominators add the numerators, and only factors of b can cancel.
         if (b == d)
         {
             Int128 numerator = (Int128)a + c;
             if (numerator == 0)
-                return Zero;
+                return BigRational.Zero;
             else if (b == 1)
                 return FromInt128(numerator, 1);
             else
             {
-                long remainder = (long)((UInt128)Int128.Abs(numerator) % (ulong)b);
-                long divisor = remainder == 0 ? b : GreatestCommonDivisorPositive(remainder, b);
+                // gcd(|numerator|, b) = gcd(|numerator| mod b, b), and the remainder, below b, takes the gcd in Int64.
+                Int64 remainder = (Int64)((UInt128)Int128.Abs(numerator) % (UInt64)b);
+                Int64 divisor = remainder == 0 ? b : GreatestCommonDivisorPositive(remainder, b);
                 return FromInt128(numerator / divisor, b / divisor);
             }
         }
@@ -1359,67 +1338,62 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         // The sum is nonzero: reduced fractions with unequal denominators are not opposite.
         else
         {
-            long g = GreatestCommonDivisorPositive(b, d);
+            Int64 g = GreatestCommonDivisorPositive(b, d);
             if (g == 1)
                 return FromInt128(Product(a, d) + Product(c, b), Product(b, d));
             else
             {
-                long bReduced = b / g, dReduced = d / g;
+                Int64 bReduced = b / g, dReduced = d / g;
                 Int128 numerator = Product(a, dReduced) + Product(c, bReduced);
-                long remainder = (long)((UInt128)Int128.Abs(numerator) % (ulong)g);
-                long divisor = remainder == 0 ? g : GreatestCommonDivisorPositive(remainder, g);
+                // As above, the gcd with g is taken in Int64 from |numerator| mod g.
+                Int64 remainder = (Int64)((UInt128)Int128.Abs(numerator) % (UInt64)g);
+                Int64 divisor = remainder == 0 ? g : GreatestCommonDivisorPositive(remainder, g);
                 return FromInt128(numerator / divisor, Product(bReduced, d / divisor));
             }
         }
     }
 
-    // Adds the reduced nonzero fractions xNumerator/xDenominator and yNumerator/yDenominator, with positive denominators, into a reduced fraction:
+    // Adds the reduced nonzero fractions a/b and c/d, with positive denominators, into a reduced fraction:
     // in 128-bit arithmetic when every component is an Int64 other than Int64.MinValue, otherwise in BigInteger.
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-    private static BigRational AddLargeFractions(BigInteger xNumerator, BigInteger xDenominator, BigInteger yNumerator, BigInteger yDenominator)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static BigRational AddLargeFractions(BigInteger a, BigInteger b, BigInteger c, BigInteger d)
     {
-        if (TryGetInt64(xNumerator, out long a) && TryGetInt64(xDenominator, out long b) &&
-            TryGetInt64(yNumerator, out long c) && TryGetInt64(yDenominator, out long d))
-            return AddInt64Fractions(a, b, c, d);
-        else if (xDenominator == yDenominator)
-            return new BigRational(xNumerator + yNumerator, xDenominator);
+        if (TryGetInt64(a, out Int64 a64) && TryGetInt64(b, out Int64 b64) &&
+            TryGetInt64(c, out Int64 c64) && TryGetInt64(d, out Int64 d64))
+            return AddInt64Fractions(a64, b64, c64, d64);
+        else if (b == d)
+            return new BigRational(a + c, b);
         else
         {
             // With g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
-            var g = BigInteger.GreatestCommonDivisor(xDenominator, yDenominator);
+            var g = BigInteger.GreatestCommonDivisor(b, d);
             if (g.IsOne)
-            {
-                return new BigRational(
-                    xNumerator * yDenominator + yNumerator * xDenominator,
-                    xDenominator * yDenominator,
-                    skipNormalize: true
-                );
-            }
+                return new BigRational(a * d + c * b, b * d, skipNormalize: true);
             else
             {
-                var bReduced = xDenominator / g;
-                var numerator = xNumerator * (yDenominator / g) + yNumerator * bReduced;
+                var bReduced = b / g;
+                var numerator = a * (d / g) + c * bReduced;
                 var divisor = BigInteger.GreatestCommonDivisor(numerator, g);
                 // The denominator b·d/g is bReduced·d, and dividing d rather than the product by the divisor keeps one multiplication.
                 if (divisor.IsOne)
-                    return new BigRational(numerator, bReduced * yDenominator, skipNormalize: true);
+                    return new BigRational(numerator, bReduced * d, skipNormalize: true);
                 else
-                    return new BigRational(numerator / divisor, bReduced * (yDenominator / divisor), skipNormalize: true);
+                    return new BigRational(numerator / divisor, bReduced * (d / divisor), skipNormalize: true);
             }
         }
     }
 
-    // Compares the fractions leftNumerator/leftDenominator and rightNumerator/rightDenominator, with positive denominators:
+    // Compares the fractions a/b and c/d, with positive denominators:
     // by 128-bit cross-products when every component is an Int64 other than Int64.MinValue, otherwise by bit lengths and then BigInteger cross-products.
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-    private static int CompareLargeFractions(BigInteger leftNumerator, BigInteger leftDenominator, BigInteger rightNumerator, BigInteger rightDenominator)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static int CompareLargeFractions(BigInteger a, BigInteger b, BigInteger c, BigInteger d)
     {
-        if (TryGetInt64(leftNumerator, out long a) && TryGetInt64(leftDenominator, out long b) &&
-            TryGetInt64(rightNumerator, out long c) && TryGetInt64(rightDenominator, out long d))
+        if (TryGetInt64(a, out Int64 a64) && TryGetInt64(b, out Int64 b64) &&
+            TryGetInt64(c, out Int64 c64) && TryGetInt64(d, out Int64 d64))
         {
-            int leftSign = Math.Sign(a), rightSign = Math.Sign(c);
-            if (b == d)
-                return a < c ? -1 : a > c ? 1 : 0;
+            int leftSign = Math.Sign(a64), rightSign = Math.Sign(c64);
+            if (b64 == d64)
+                return a64 < c64 ? -1 : a64 > c64 ? 1 : 0;
             else if (leftSign != rightSign)
                 return leftSign < rightSign ? -1 : 1;
             else if (leftSign == 0)
@@ -1427,8 +1401,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             else
             {
                 // Equal signs order by the magnitudes |a|·d and |c|·b, compared as unsigned 128-bit products.
-                ulong leftHigh = Math.BigMul(unchecked((ulong)Math.Abs(a)), unchecked((ulong)d), out ulong leftLow);
-                ulong rightHigh = Math.BigMul(unchecked((ulong)Math.Abs(c)), unchecked((ulong)b), out ulong rightLow);
+                UInt64 leftHigh = Math.BigMul(unchecked((UInt64)Math.Abs(a64)), unchecked((UInt64)d64), out UInt64 leftLow);
+                UInt64 rightHigh = Math.BigMul(unchecked((UInt64)Math.Abs(c64)), unchecked((UInt64)b64), out UInt64 rightLow);
                 int magnitude;
                 if (leftHigh != rightHigh)
                     magnitude = leftHigh < rightHigh ? -1 : 1;
@@ -1439,19 +1413,19 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         }
         else
         {
-            int leftSign = leftNumerator.Sign, rightSign = rightNumerator.Sign;
+            int leftSign = a.Sign, rightSign = c.Sign;
             if (leftSign != rightSign)
                 return leftSign < rightSign ? -1 : 1;
             else if (leftSign == 0)
                 return 0;
-            else if (leftDenominator == rightDenominator)
-                return Math.Sign(leftNumerator.CompareTo(rightNumerator));
+            else if (b == d)
+                return Math.Sign(a.CompareTo(c));
             else
             {
-                var leftNumLength = BigInteger.Abs(leftNumerator).GetBitLength();
-                var rightNumLength = BigInteger.Abs(rightNumerator).GetBitLength();
-                var leftDenLength = leftDenominator.GetBitLength();
-                var rightDenLength = rightDenominator.GetBitLength();
+                var leftNumLength = BigInteger.Abs(a).GetBitLength();
+                var rightNumLength = BigInteger.Abs(c).GetBitLength();
+                var leftDenLength = b.GetBitLength();
+                var rightDenLength = d.GetBitLength();
 
                 // For magnitude index $m$, $\log_2 |x| \in ]m - 1, m + 1[$.
                 // A separation of at least two orders the magnitudes without multiplication.
@@ -1463,7 +1437,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
                     return -leftSign;
                 else
                     // GCDs and divisions to shrink the products cost more than they save.
-                    return Math.Sign(BigInteger.Compare(leftNumerator * rightDenominator, rightNumerator * leftDenominator));
+                    return Math.Sign(BigInteger.Compare(a * d, c * b));
             }
         }
     }
@@ -1472,8 +1446,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     // Reduced operands with equal denominators or equal numerator magnitudes have both gcds equal to 1, so each tier skips the cancellation for them.
 
     // Multiplies the reduced fractions a/b and c/d into a reduced fraction, with the products taken in Int64.
-    // The components are Int32 values other than Int32.MinValue.
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    // The components are Int32 values other than Int32.MinValue, and the denominators are positive.
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static BigRational MultiplyInt32Fractions(Int32 a, Int32 b, Int32 c, Int32 d)
     {
         if (b != d && a != c && a != -c)
@@ -1484,9 +1458,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         return new BigRational((Int64)a * c, (Int64)b * d, skipNormalize: true);
     }
 
-    // Multiplies the reduced fractions a/b and c/d into a reduced fraction, with the products taken in 128 bits and stored as Int64 when they fit.
-    // The components are Int64 values other than Int64.MinValue.
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    // Multiplies the reduced fractions a/b and c/d into a reduced fraction, with the products taken in 128 bits and built from Int64 values when they fit.
+    // The components are Int64 values other than Int64.MinValue, and the denominators are positive.
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static BigRational MultiplyInt64Fractions(Int64 a, Int64 b, Int64 c, Int64 d)
     {
         if (b != d && a != c && a != -c)
@@ -1506,7 +1480,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
 
     // Multiplies the reduced fractions a/b and c/d into a reduced fraction: ±1 over a denominator times an integer through ProductFromOnePair, components that are Int64 values other than Int64.MinValue through MultiplyInt64Fractions, the rest by cancelling in BigInteger.
     // At least one component is outside the sign field, and the denominators are positive.
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static BigRational MultiplyLargeFractions(BigInteger a, BigInteger b, BigInteger c, BigInteger d)
     {
         // ±1 over a denominator times an integer: one gcd, and on a miss both operands are reused.
@@ -1514,14 +1488,14 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             return ProductFromOnePair(a.IsOne ? c : -c, b);
         else if (b.IsOne && (c.IsOne || c == BigInteger.MinusOne))
             return ProductFromOnePair(c.IsOne ? a : -a, d);
-        else if (TryGetInt64(a, out long a64) && TryGetInt64(b, out long b64) &&
-            TryGetInt64(c, out long c64) && TryGetInt64(d, out long d64))
+        else if (TryGetInt64(a, out Int64 a64) && TryGetInt64(b, out Int64 b64) &&
+            TryGetInt64(c, out Int64 c64) && TryGetInt64(d, out Int64 d64))
             return MultiplyInt64Fractions(a64, b64, c64, d64);
         else if (b == d || BigInteger.Abs(a) == BigInteger.Abs(c))
             return new BigRational(a * c, b * d, skipNormalize: true);
         else
         {
-            // The pairs are written out here: a BigInteger CancelPair measured 5–7 ns slower on small-by-wide operands.
+            // The pairs are written out here: a BigInteger CancelPair measured slower on small-by-wide operands.
             if (!d.IsOne && !a.IsOne && a != BigInteger.MinusOne)
             {
                 // An equal cross-pair cancels to ±1 and 1.
@@ -1567,9 +1541,9 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     // Below 2^63 the gcd is taken in Int64 and a miss reuses both operands; beyond, the normalizing constructor cancels.
     private static BigRational ProductFromOnePair(BigInteger numerator, BigInteger denominator)
     {
-        if (TryGetInt64(numerator, out long n) && TryGetInt64(denominator, out long d))
+        if (TryGetInt64(numerator, out Int64 n) && TryGetInt64(denominator, out Int64 d))
         {
-            long originalDenominator = d;
+            Int64 originalDenominator = d;
             CancelPair(ref n, ref d);
             if (d == originalDenominator)
                 return new BigRational(numerator, denominator, skipNormalize: true);
@@ -1583,8 +1557,8 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     // Each CancelPair divides a numerator and the denominator of the other operand by their gcd.
     // Both are nonzero and the denominator is positive; a unit has nothing to cancel, and an equal pair cancels to ±1 and 1 without dividing.
 
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    private static void CancelPair(ref int numerator, ref int denominator)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void CancelPair(ref Int32 numerator, ref Int32 denominator)
     {
         if (denominator != 1 && numerator != 1 && numerator != -1)
         {
@@ -1596,20 +1570,20 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             else
             {
                 // The numerator is not Int32.MinValue, so its magnitude fits.
-                uint g = (uint)Math.Abs(numerator), remainder = (uint)denominator;
+                UInt32 g = (UInt32)Math.Abs(numerator), remainder = (UInt32)denominator;
                 while (remainder != 0)
                     (g, remainder) = (remainder, g % remainder);
                 if (g != 1)
                 {
-                    numerator /= (int)g;
-                    denominator /= (int)g;
+                    numerator /= (Int32)g;
+                    denominator /= (Int32)g;
                 }
             }
         }
     }
 
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    private static void CancelPair(ref long numerator, ref long denominator)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void CancelPair(ref Int64 numerator, ref Int64 denominator)
     {
         if (denominator != 1 && numerator != 1 && numerator != -1)
         {
@@ -1620,7 +1594,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
             }
             else
             {
-                long g = GreatestCommonDivisorPositive(Math.Abs(numerator), denominator);
+                Int64 g = GreatestCommonDivisorPositive(Math.Abs(numerator), denominator);
                 if (g != 1)
                 {
                     numerator /= g;
@@ -1721,7 +1695,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     public static explicit operator Single(BigRational value)
     {
         // The Single value type represents a single-precision 32-bit number with
-        // values ranging from negative 3.402823e38 to positive 3.402823e38      
+        // values ranging from negative 3.402823e38 to positive 3.402823e38
         // values that do not fit into this range are returned as Infinity
         return (Single)((Double)value);
     }
@@ -1921,7 +1895,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     {
         return new BigRational(value);
     }
-    
+
     /// <summary>
     /// Converts a decimal number to a <see cref="BigRational"/>.
     /// </summary>
@@ -1937,7 +1911,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
 
     /// <summary>
     /// Simplifies the rational, making it irreducible.
-    /// This should be called during construction, existing Rational are assumed to be irreducible.
+    /// This should be called during construction, existing values are assumed to be irreducible.
     /// </summary>
     private void Simplify()
     {
@@ -1945,7 +1919,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
         // * if the denominator is {+1} then the fraction is already reduced
         if (Numerator.IsZero)
             Denominator = BigInteger.One;
-        else if (Numerator.IsOne || Numerator == -1)
+        else if (Numerator.IsOne || Numerator == BigInteger.MinusOne)
             return;
         else if (Denominator.IsOne)
             return;

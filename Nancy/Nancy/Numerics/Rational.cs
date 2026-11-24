@@ -1,7 +1,7 @@
 //This file defines struct Rational with either BigRational or LongRational implementation
 //Used to switch between the two at compile time without replacing most of the code
 
-//Needs however to manually port over numerical implementations 
+//Needs however to manually port over numerical implementations
 //Probably not the best solution
 
 using System;
@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -21,7 +22,7 @@ namespace Unipi.Nancy.Numerics
 {
     #if BIG_RATIONAL
     /// <summary>
-    /// Represents a rational number with infinite precision, 
+    /// Represents a rational number with infinite precision,
     /// using <see cref="BigInteger"/> for both numerator and denominator.
     /// </summary>
     /// <remarks>
@@ -30,11 +31,11 @@ namespace Unipi.Nancy.Numerics
     /// </remarks>
     #elif LONG_RATIONAL
     /// <summary>
-    /// Represents a rational number with infinite precision, 
+    /// Represents a rational number with infinite precision,
     /// using <see cref="long"/> for both numerator and denominator.
     /// </summary>
     /// <remarks>
-    /// Adapted from BigRational with the aim of reducing perfomance impact. 
+    /// Adapted from BigRational with the aim of reducing perfomance impact.
     /// Profiling highlighted heavy use of Compare, which was measured to be up to 30x slower on a BigInteger implementation compared to long.
     /// This type is identical to <see cref="LongRational"/> based to compiler flag <c>LONG_RATIONAL</c>.
     /// Replace this with <c>BIG_RATIONAL</c> to change implementation to <see cref="BigRational"/>.
@@ -45,7 +46,7 @@ namespace Unipi.Nancy.Numerics
     [JsonObject(MemberSerialization.OptIn)]
     [System.Text.Json.Serialization.JsonConverter(typeof(RationalSystemJsonConverter))]
     [Newtonsoft.Json.JsonConverter(typeof(RationalNewtonsoftJsonConverter))]
-    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IStableHashCode, IToCodeString, IToMppgString
+    public struct Rational : IComparable, IComparable<Rational>, IEquatable<Rational>, IToCodeString, IStableHashCode, IToMppgString
     {
         #region Static public values
 
@@ -54,7 +55,7 @@ namespace Unipi.Nancy.Numerics
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.Zero"/>
         #endif
-        public static Rational Zero { get; } = 
+        public static Rational Zero { get; } =
         #if BIG_RATIONAL
             new Rational(BigInteger.Zero);
         #elif LONG_RATIONAL
@@ -66,7 +67,7 @@ namespace Unipi.Nancy.Numerics
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.One"/>
         #endif
-        public static Rational One { get; } = 
+        public static Rational One { get; } =
         #if BIG_RATIONAL
             new Rational(BigInteger.One);
         #elif LONG_RATIONAL
@@ -78,7 +79,7 @@ namespace Unipi.Nancy.Numerics
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.MinusOne"/>
         #endif
-        public static Rational MinusOne { get; } = 
+        public static Rational MinusOne { get; } =
         #if BIG_RATIONAL
             new Rational(BigInteger.MinusOne);
         #elif LONG_RATIONAL
@@ -107,7 +108,7 @@ namespace Unipi.Nancy.Numerics
             Denominator = 0
         };
 
-        #endregion Static values
+        #endregion Static public values
 
         #region Public Properties
 
@@ -117,7 +118,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.Sign"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public readonly Int32 Sign 
+        public readonly Int32 Sign
         #if BIG_RATIONAL
             => Numerator.Sign;
         #elif LONG_RATIONAL
@@ -173,7 +174,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsInfinite"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public readonly bool IsInfinite 
+        public readonly bool IsInfinite
         #if BIG_RATIONAL
             => Denominator.IsZero;
         #elif LONG_RATIONAL
@@ -201,7 +202,7 @@ namespace Unipi.Nancy.Numerics
         [System.Text.Json.Serialization.JsonIgnore]
         public readonly bool IsMinusInfinite
         #if BIG_RATIONAL
-            => Denominator.IsZero && Numerator == -1;
+            => Denominator.IsZero && Numerator == BigInteger.MinusOne;
         #elif LONG_RATIONAL
             => Denominator == 0 && Numerator == -1;
         #endif
@@ -275,7 +276,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.IsInteger"/>
         #endif
         [System.Text.Json.Serialization.JsonIgnore]
-        public readonly bool IsInteger => 
+        public readonly bool IsInteger =>
         #if BIG_RATIONAL
             Denominator.IsOne;
         #elif LONG_RATIONAL
@@ -319,7 +320,7 @@ namespace Unipi.Nancy.Numerics
         #region Public Instance Methods
 
         // GetWholePart() and GetFractionPart()
-        // 
+        //
         // BigRational == Whole, Fraction
         //  0/2        ==     0,  0/2
         //  1/2        ==     0,  1/2
@@ -421,7 +422,7 @@ namespace Unipi.Nancy.Numerics
         {
             return HashCode.Combine(Numerator, Denominator);
         }
-        
+
         /// <summary>
         /// A stable hashcode.
         /// </summary>
@@ -436,7 +437,7 @@ namespace Unipi.Nancy.Numerics
         {
             if (obj == null)
                 return 1;
-            if (!(obj is Rational))
+            if (obj is not Rational)
                 throw new ArgumentException("Argument must be of type Rational", nameof(obj));
             return Compare(this, (Rational)obj);
         }
@@ -502,7 +503,6 @@ namespace Unipi.Nancy.Numerics
         }
 
         // IEquatable<Rational>
-        // a/b = c/d, iff ad = bc
         /// <inheritdoc />
         public readonly Boolean Equals(Rational other)
         {
@@ -568,45 +568,36 @@ namespace Unipi.Nancy.Numerics
             {
                 if (numerator == 0)
                     throw new UndeterminedResultException("Zero over zero");
-
-                Numerator = numerator < 0 ? BigInteger.MinusOne : BigInteger.One;
-                Denominator = BigInteger.Zero;
-                return;
+                else
+                {
+                    Numerator = numerator < 0 ? BigInteger.MinusOne : BigInteger.One;
+                    Denominator = BigInteger.Zero;
+                }
             }
-
-            if (numerator == 0)
+            else if (numerator == 0)
             {
                 Numerator = BigInteger.Zero;
                 Denominator = BigInteger.One;
-                return;
             }
-
-            if (denominator == 1)
+            else if (denominator == 1)
             {
                 Numerator = new BigInteger(numerator);
                 Denominator = BigInteger.One;
-                return;
             }
-
-            // These values cannot always be sign-normalized within Int64.
-            if (numerator == long.MinValue || denominator == long.MinValue)
-            {
+            // Int64.MinValue has no Int64 opposite, so these parts are sign-normalized in BigInteger.
+            else if (numerator == Int64.MinValue || denominator == Int64.MinValue)
                 this = new Rational(new BigInteger(numerator), new BigInteger(denominator));
-                return;
-            }
-
-            if (denominator < 0)
+            else
             {
-                numerator = -numerator;
-                denominator = -denominator;
+                if (denominator < 0)
+                {
+                    numerator = -numerator;
+                    denominator = -denominator;
+                }
+                var divisor = GreatestCommonDivisor(numerator, denominator);
+                Numerator = new BigInteger(numerator / divisor);
+                Denominator = new BigInteger(denominator / divisor);
             }
-
-            var divisor = GreatestCommonDivisor(numerator, denominator);
-            var numeratorReduced = numerator / divisor;
-            var denominatorReduced = denominator / divisor;
-
-            Numerator = new BigInteger(numeratorReduced);
-            Denominator = new BigInteger(denominatorReduced);
             #elif LONG_RATIONAL
             if (denominator == 0)
             {
@@ -662,7 +653,7 @@ namespace Unipi.Nancy.Numerics
             }
         }
         #endif
-        
+
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational(BigInteger)"/>
         public Rational(BigInteger numerator)
@@ -677,6 +668,10 @@ namespace Unipi.Nancy.Numerics
         /// </summary>
         public Rational(Double value)
         {
+            #if BIG_RATIONAL
+            (Numerator, Denominator) = value.GetRationalParts();
+            Simplify();
+            #elif LONG_RATIONAL
             var (numerator, denominator) = value.GetRationalParts();
             AssignRationalParts(
                 numerator,
@@ -684,6 +679,7 @@ namespace Unipi.Nancy.Numerics
                 nameof(Double),
                 value.ToString("G", CultureInfo.InvariantCulture)
             );
+            #endif
         }
 
         /// <summary>
@@ -691,6 +687,10 @@ namespace Unipi.Nancy.Numerics
         /// </summary>
         public Rational(Single value)
         {
+            #if BIG_RATIONAL
+            (Numerator, Denominator) = value.GetRationalParts();
+            Simplify();
+            #elif LONG_RATIONAL
             var (numerator, denominator) = value.GetRationalParts();
             AssignRationalParts(
                 numerator,
@@ -698,8 +698,9 @@ namespace Unipi.Nancy.Numerics
                 nameof(Single),
                 value.ToString("G", CultureInfo.InvariantCulture)
             );
+            #endif
         }
-        
+
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational(decimal)"/>
         #elif LONG_RATIONAL
@@ -708,13 +709,14 @@ namespace Unipi.Nancy.Numerics
         public Rational(Decimal value)
         {
             #if BIG_RATIONAL
-            if (value == Decimal.Zero) {
-                this = Rational.Zero;
-            }
+            if (value == Decimal.Zero)
             {
-                (Numerator, Denominator) = value.GetRationalParts();
-                Simplify();
+                this = Rational.Zero;
+                return;
             }
+
+            (Numerator, Denominator) = value.GetRationalParts();
+            Simplify();
             #elif LONG_RATIONAL
             var (numerator, denominator) = value.GetRationalParts();
             var gcd = BigInteger.GreatestCommonDivisor(numerator, denominator);
@@ -722,10 +724,10 @@ namespace Unipi.Nancy.Numerics
                 numerator /= gcd;
                 denominator /= gcd;
             }
-            
+
             if(numerator.GetByteCount() > sizeof(long) ||  denominator.GetByteCount() > sizeof(long))
                 throw new OverflowException($"Decimal {value} cannot be represented exactly as LongRational.");
-            
+
             Numerator = (long) numerator;
             Denominator = (long) denominator;
             #endif
@@ -909,7 +911,6 @@ namespace Unipi.Nancy.Numerics
             return x - y;
         }
 
-
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.Multiply"/>
         #elif LONG_RATIONAL
@@ -1068,9 +1069,9 @@ namespace Unipi.Nancy.Numerics
                 else
                     return left.Sign;
             }
-        
-            if(right.IsInfinite)
+            else if (right.IsInfinite)
                 return -right.Sign;
+            // Otherwise both operands are finite, and continue below.
 
             // Components held in BigInteger's sign field are Int32 values, and their cross-products compare in Int64.
             var leftNumerator = left.Numerator;
@@ -1080,13 +1081,13 @@ namespace Unipi.Nancy.Numerics
             if (BitsField(ref leftNumerator) is null && BitsField(ref leftDenominator) is null &&
                 BitsField(ref rightNumerator) is null && BitsField(ref rightDenominator) is null)
             {
-                int a = SignField(ref leftNumerator), b = SignField(ref leftDenominator);
-                int c = SignField(ref rightNumerator), d = SignField(ref rightDenominator);
+                Int32 a = SignField(ref leftNumerator), b = SignField(ref leftDenominator);
+                Int32 c = SignField(ref rightNumerator), d = SignField(ref rightDenominator);
                 if (b == d)
                     return a < c ? -1 : a > c ? 1 : 0;
                 else
                 {
-                    long leftProduct = (long)a * d, rightProduct = (long)c * b;
+                    Int64 leftProduct = (Int64)a * d, rightProduct = (Int64)c * b;
                     return leftProduct < rightProduct ? -1 : leftProduct > rightProduct ? 1 : 0;
                 }
             }
@@ -1135,7 +1136,7 @@ namespace Unipi.Nancy.Numerics
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.Max(LongRational, LongRational, LongRational)"/>
         #endif
-        public static Rational Max(Rational a, Rational b, Rational c) => Max(a, Max(b, c));    //good enough
+        public static Rational Max(Rational a, Rational b, Rational c) => Max(a, Max(b, c));
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.Max(BigRational[])"/>
@@ -1164,7 +1165,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc cref="LongRational.Min(LongRational, LongRational, LongRational)"/>
         #endif
         public static Rational Min(Rational a, Rational b, Rational c) => Min(a, Min(b, c));
-        
+
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.Min(BigRational[])"/>
         #elif LONG_RATIONAL
@@ -1193,6 +1194,7 @@ namespace Unipi.Nancy.Numerics
         /// <inheritdoc />
         public static bool operator !=(Rational x, Rational y)
         {
+            // Values are canonical, infinities included, so different values differ in the numerator or the denominator.
             return x.Numerator != y.Numerator || x.Denominator != y.Denominator;
         }
 
@@ -1259,51 +1261,53 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <inheritdoc />
-        public static Rational operator +(Rational r1, Rational r2)
+        public static Rational operator +(Rational x, Rational y)
         {
-            if (r1.IsInfinite || r2.IsInfinite)
+            if (x.IsInfinite || y.IsInfinite)
             {
-                if (r1.IsInfinite && r2.IsInfinite)
+                if (x.IsInfinite && y.IsInfinite)
                 {
-                    if (r1.Sign == r2.Sign)
-                        return r1;
+                    if (x.Sign == y.Sign)
+                        return x;
                     else
                         throw new UndeterminedResultException("Cannot sum opposite infinities");
                 }
                 else
                 {
-                    return r1.IsInfinite ? r1 : r2;
+                    return x.IsInfinite ? x : y;
                 }
             }
+            #if BIG_RATIONAL
+            else if (x.IsZero)
+                return y;
+            else if (y.IsZero)
+                return x;
             else
             {
-                #if BIG_RATIONAL
-                if (r1.IsZero)
-                    return r2;
-                if (r2.IsZero)
-                    return r1;
-
                 // Components held in BigInteger's sign field are Int32 values, and add in Int64.
-                var xn = r1.Numerator;
-                var xd = r1.Denominator;
-                var yn = r2.Numerator;
-                var yd = r2.Denominator;
+                var xn = x.Numerator;
+                var xd = x.Denominator;
+                var yn = y.Numerator;
+                var yd = y.Denominator;
                 if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
                     BitsField(ref yn) is null && BitsField(ref yd) is null)
                     return AddInt32Fractions(SignField(ref xn), SignField(ref xd), SignField(ref yn), SignField(ref yd));
                 else
                     return AddLargeFractions(xn, xd, yn, yd);
-                #elif LONG_RATIONAL
-                // a/b + c/d  == (ad + bc)/bd
-                return new Rational((r1.Numerator * r2.Denominator) + (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));
-                #endif
             }
+            #elif LONG_RATIONAL
+            else
+            {
+                // a/b + c/d  == (ad + bc)/bd
+                return new Rational((x.Numerator * y.Denominator) + (x.Denominator * y.Numerator), (x.Denominator * y.Denominator));
+            }
+            #endif
         }
 
         /// <inheritdoc />
-        public static Rational operator -(Rational r1, Rational r2)
+        public static Rational operator -(Rational x, Rational y)
         {
-            return r1 + (-r2);
+            return x + (-y);
         }
 
         /// <inheritdoc cref="Multiply(Rational, Rational)"/>
@@ -1323,11 +1327,11 @@ namespace Unipi.Nancy.Numerics
                 {
                     var xNumerator = x.Numerator;
                     var yNumerator = y.Numerator;
-                    int xSign = SignField(ref xNumerator), ySign = SignField(ref yNumerator);
+                    Int32 xField = SignField(ref xNumerator), yField = SignField(ref yNumerator);
                     // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
-                    if (xSign != 1 && xSign != -1 && ySign != 1 && ySign != -1)
-                        return new Rational((long)xSign * ySign, 1, skipNormalize: true);
-                    // Otherwise a numerator is ±1 or outside the sign field, and continues with the unit tests.
+                    if (xField != 1 && xField != -1 && yField != 1 && yField != -1)
+                        return new Rational((Int64)xField * yField, 1, skipNormalize: true);
+                    // Otherwise a numerator is ±1 or outside the sign field, and continues with the tests for ±1.
                 }
                 if (x.Numerator.IsOne)
                     return y;
@@ -1346,8 +1350,7 @@ namespace Unipi.Nancy.Numerics
                 // Otherwise x is a fraction and y an integer other than ±1, and they continue with the fraction tiers.
             }
 
-            // Fractions go to non-inlined helpers, so that zero and integer products do not pay for their frames.
-            // This hotspot is an approved exception to the single-use helper rule.
+            // Fractions go to NoInlining helpers, so that zero and integer products do not pay for their frames.
             // Components held in BigInteger's sign field are Int32 values, and their products are taken in Int64.
             var xn = x.Numerator;
             var xd = x.Denominator;
@@ -1386,23 +1389,17 @@ namespace Unipi.Nancy.Numerics
                 else
                     return Rational.Zero;
             }
-
-            if (y.IsZero)
-            {
+            else if (y.IsZero)
                 throw new DivideByZeroException();
-            }
-
-            if (x.IsInfinite)
+            else if (x.IsInfinite)
             {
                 if (y.IsInfinite)
                     throw new UndeterminedResultException("Infinity over infinity");
                 else
                     return y.Numerator.Sign > 0 ? x : -x;
             }
-
-            if (y.IsInfinite)
+            else if (y.IsInfinite)
                 return Rational.Zero;
-
             // Otherwise both operands are finite and nonzero, and x/y is x times the reciprocal of y = c/d, ±d/|c|, which is reduced.
             // The reciprocal is an integer when c is ±1, so each operand's units are tested once as in the multiplication: a dividend ±1 yields ±1/y, a divisor ±1 yields ±x, and an integer divided by ±1/d is the integer ±x·d.
             if (x.Denominator.IsOne)
@@ -1411,11 +1408,11 @@ namespace Unipi.Nancy.Numerics
                 {
                     var xNumerator = x.Numerator;
                     var yDenominator = y.Denominator;
-                    int xSign = SignField(ref xNumerator), dSign = SignField(ref yDenominator);
+                    Int32 xField = SignField(ref xNumerator), dField = SignField(ref yDenominator);
                     // A sign field other than ±1 holds the value itself, an Int32 other than ±1, and two of them multiply in an Int64.
-                    if (xSign != 1 && xSign != -1 && dSign != 1 && dSign != -1)
-                        return new Rational(y.Numerator.Sign * (long)xSign * dSign, 1, skipNormalize: true);
-                    // Otherwise a value is ±1 or outside the sign field, and continues with the unit tests.
+                    if (xField != 1 && xField != -1 && dField != 1 && dField != -1)
+                        return new Rational(y.Numerator.Sign * (Int64)xField * dField, 1, skipNormalize: true);
+                    // Otherwise a value is ±1 or outside the sign field, and continues with the tests for ±1.
                 }
                 if (x.Numerator.IsOne)
                     return Invert(y);
@@ -1432,7 +1429,8 @@ namespace Unipi.Nancy.Numerics
                 // Otherwise x is a fraction and the reciprocal of y an integer other than ±1, and they continue with the fraction tiers.
             }
 
-            // The reciprocal of c/d is ±d/|c|, reduced, and the multiplication tiers cancel x against it.
+            // Fractions go to the multiplication's NoInlining helpers, which cancel x against the reciprocal ±d/|c|.
+            // Components held in BigInteger's sign field are Int32 values, and their products are taken in Int64.
             var xn = x.Numerator;
             var xd = x.Denominator;
             var yn = y.Numerator;
@@ -1440,7 +1438,7 @@ namespace Unipi.Nancy.Numerics
             if (BitsField(ref xn) is null && BitsField(ref xd) is null &&
                 BitsField(ref yn) is null && BitsField(ref yd) is null)
             {
-                int c = SignField(ref yn), d = SignField(ref yd);
+                Int32 c = SignField(ref yn), d = SignField(ref yd);
                 return MultiplyInt32Fractions(SignField(ref xn), SignField(ref xd), c < 0 ? -d : d, Math.Abs(c));
             }
             else
@@ -1485,13 +1483,13 @@ namespace Unipi.Nancy.Numerics
         }
 
         /// <inheritdoc />
-        public static Rational operator %(Rational r1, Rational r2)
+        public static Rational operator %(Rational x, Rational y)
         {
-            if (r1.IsInfinite || r2.IsInfinite)
+            if (x.IsInfinite || y.IsInfinite)
                 throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
 
             // a/b % c/d  == (ad % bc)/bd
-            return new Rational((r1.Numerator * r2.Denominator) % (r1.Denominator * r2.Numerator), (r1.Denominator * r2.Denominator));
+            return new Rational((x.Numerator * y.Denominator) % (x.Denominator * y.Numerator), (x.Denominator * y.Denominator));
         }
         #endregion Operator Overloads
 
@@ -1499,21 +1497,19 @@ namespace Unipi.Nancy.Numerics
 
         #if BIG_RATIONAL
         // BigInteger's _sign field: the value itself when _bits is null, and its sign otherwise.
-        [System.Runtime.CompilerServices.UnsafeAccessor(
-            System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_sign")]
-        private static extern ref int SignField(ref BigInteger value);
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_sign")]
+        private static extern ref Int32 SignField(ref BigInteger value);
 
         // BigInteger's _bits field: null when the value is held in _sign, and otherwise its magnitude in 32-bit words, least significant first.
-        [System.Runtime.CompilerServices.UnsafeAccessor(
-            System.Runtime.CompilerServices.UnsafeAccessorKind.Field, Name = "_bits")]
-        private static extern ref uint[]? BitsField(ref BigInteger value);
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_bits")]
+        private static extern ref UInt32[]? BitsField(ref BigInteger value);
 
         // Whether the value is an Int64 other than Int64.MinValue, and that value, read from BigInteger's _sign and _bits fields.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static bool TryGetInt64(BigInteger value, out long result)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool TryGetInt64(BigInteger value, out Int64 result)
         {
-            uint[]? bits = BitsField(ref value);
-            int signField = SignField(ref value);
+            UInt32[]? bits = BitsField(ref value);
+            Int32 signField = SignField(ref value);
             if (bits is null)
             {
                 result = signField;
@@ -1521,12 +1517,12 @@ namespace Unipi.Nancy.Numerics
             }
             else if (bits.Length == 1)
             {
-                result = signField * (long)bits[0];
+                result = signField * (Int64)bits[0];
                 return true;
             }
-            else if (bits.Length == 2 && bits[1] <= int.MaxValue)
+            else if (bits.Length == 2 && bits[1] <= Int32.MaxValue)
             {
-                result = signField * (long)(((ulong)bits[1] << 32) | bits[0]);
+                result = signField * (Int64)(((UInt64)bits[1] << 32) | bits[0]);
                 return true;
             }
             else
@@ -1536,13 +1532,10 @@ namespace Unipi.Nancy.Numerics
             }
         }
 
-        /// <summary>
-        /// Computes the greatest common divisor of two positive native magnitudes.
-        /// </summary>
-        /// <remarks>The caller must supply strictly positive arguments; no validation is performed.</remarks>
-        private static long GreatestCommonDivisorPositive(long left, long right)
+        // The greatest common divisor of two positive Int64 values, by the binary algorithm; the arguments are not checked.
+        private static Int64 GreatestCommonDivisorPositive(Int64 left, Int64 right)
         {
-            ulong a = (ulong)left, b = (ulong)right;
+            UInt64 a = (UInt64)left, b = (UInt64)right;
             int shift = BitOperations.TrailingZeroCount(a | b);
             a >>= BitOperations.TrailingZeroCount(a);
             do
@@ -1552,61 +1545,61 @@ namespace Unipi.Nancy.Numerics
                     (a, b) = (b, a);
                 b -= a;
             } while (b != 0);
-            return (long)(a << shift);
+            return (Int64)(a << shift);
         }
 
         // The exact 128-bit product of two Int64 values.
-        private static Int128 Product(long x, long y)
+        private static Int128 Product(Int64 x, Int64 y)
         {
-            long high = Math.BigMul(x, y, out long low);
-            return new Int128(unchecked((ulong)high), unchecked((ulong)low));
+            Int64 high = Math.BigMul(x, y, out Int64 low);
+            return new Int128(unchecked((UInt64)high), unchecked((UInt64)low));
         }
 
-        // The rational with the given reduced numerator and positive denominator, stored as Int64 when both fit.
+        // The rational with the given reduced numerator and positive denominator, built from Int64 values when both fit.
         private static Rational FromInt128(Int128 numerator, Int128 denominator)
         {
-            if (numerator >= long.MinValue && numerator <= long.MaxValue && denominator <= long.MaxValue)
-                return new Rational((long)numerator, (long)denominator, skipNormalize: true);
+            if (numerator >= Int64.MinValue && numerator <= Int64.MaxValue && denominator <= Int64.MaxValue)
+                return new Rational((Int64)numerator, (Int64)denominator, skipNormalize: true);
             else
                 return new Rational((BigInteger)numerator, (BigInteger)denominator, skipNormalize: true);
         }
 
         // Adds the reduced fractions a/b and c/d into a reduced fraction, with the sums and products taken in Int64.
         // The components are Int32 values other than Int32.MinValue, and the denominators are positive.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-        private static Rational AddInt32Fractions(int a, int b, int c, int d)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Rational AddInt32Fractions(Int32 a, Int32 b, Int32 c, Int32 d)
         {
             // Equal denominators add the numerators, and only factors of b can cancel.
             if (b == d)
             {
-                long numerator = (long)a + c;
+                Int64 numerator = (Int64)a + c;
                 if (numerator == 0)
-                    return Zero;
+                    return Rational.Zero;
                 else if (b == 1)
                     return new Rational(numerator, 1, skipNormalize: true);
                 else
                 {
-                    long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), b);
+                    Int64 divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), b);
                     return new Rational(numerator / divisor, b / divisor, skipNormalize: true);
                 }
             }
             // An integer plus a reduced fraction is reduced: a + c/d = (a·d + c)/d, and c is coprime to d.
             else if (b == 1)
-                return new Rational((long)a * d + c, d, skipNormalize: true);
+                return new Rational((Int64)a * d + c, d, skipNormalize: true);
             else if (d == 1)
-                return new Rational(a + (long)c * b, b, skipNormalize: true);
+                return new Rational(a + (Int64)c * b, b, skipNormalize: true);
             // Otherwise, with g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
             // The sum is nonzero: reduced fractions with unequal denominators are not opposite.
             else
             {
-                long g = GreatestCommonDivisorPositive(b, d);
+                Int64 g = GreatestCommonDivisorPositive(b, d);
                 if (g == 1)
-                    return new Rational((long)a * d + (long)c * b, (long)b * d, skipNormalize: true);
+                    return new Rational((Int64)a * d + (Int64)c * b, (Int64)b * d, skipNormalize: true);
                 else
                 {
-                    long bReduced = b / g, dReduced = d / g;
-                    long numerator = a * dReduced + c * bReduced;
-                    long divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), g);
+                    Int64 bReduced = b / g, dReduced = d / g;
+                    Int64 numerator = a * dReduced + c * bReduced;
+                    Int64 divisor = GreatestCommonDivisorPositive(Math.Abs(numerator), g);
                     return new Rational(numerator / divisor, bReduced * (d / divisor), skipNormalize: true);
                 }
             }
@@ -1614,21 +1607,22 @@ namespace Unipi.Nancy.Numerics
 
         // Adds the reduced fractions a/b and c/d into a reduced fraction, with 128-bit sums and products and Int64 gcds.
         // The components are Int64 values other than Int64.MinValue, and the denominators are positive.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-        private static Rational AddInt64Fractions(long a, long b, long c, long d)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Rational AddInt64Fractions(Int64 a, Int64 b, Int64 c, Int64 d)
         {
             // Equal denominators add the numerators, and only factors of b can cancel.
             if (b == d)
             {
                 Int128 numerator = (Int128)a + c;
                 if (numerator == 0)
-                    return Zero;
+                    return Rational.Zero;
                 else if (b == 1)
                     return FromInt128(numerator, 1);
                 else
                 {
-                    long remainder = (long)((UInt128)Int128.Abs(numerator) % (ulong)b);
-                    long divisor = remainder == 0 ? b : GreatestCommonDivisorPositive(remainder, b);
+                    // gcd(|numerator|, b) = gcd(|numerator| mod b, b), and the remainder, below b, takes the gcd in Int64.
+                    Int64 remainder = (Int64)((UInt128)Int128.Abs(numerator) % (UInt64)b);
+                    Int64 divisor = remainder == 0 ? b : GreatestCommonDivisorPositive(remainder, b);
                     return FromInt128(numerator / divisor, b / divisor);
                 }
             }
@@ -1641,67 +1635,62 @@ namespace Unipi.Nancy.Numerics
             // The sum is nonzero: reduced fractions with unequal denominators are not opposite.
             else
             {
-                long g = GreatestCommonDivisorPositive(b, d);
+                Int64 g = GreatestCommonDivisorPositive(b, d);
                 if (g == 1)
                     return FromInt128(Product(a, d) + Product(c, b), Product(b, d));
                 else
                 {
-                    long bReduced = b / g, dReduced = d / g;
+                    Int64 bReduced = b / g, dReduced = d / g;
                     Int128 numerator = Product(a, dReduced) + Product(c, bReduced);
-                    long remainder = (long)((UInt128)Int128.Abs(numerator) % (ulong)g);
-                    long divisor = remainder == 0 ? g : GreatestCommonDivisorPositive(remainder, g);
+                    // As above, the gcd with g is taken in Int64 from |numerator| mod g.
+                    Int64 remainder = (Int64)((UInt128)Int128.Abs(numerator) % (UInt64)g);
+                    Int64 divisor = remainder == 0 ? g : GreatestCommonDivisorPositive(remainder, g);
                     return FromInt128(numerator / divisor, Product(bReduced, d / divisor));
                 }
             }
         }
 
-        // Adds the reduced nonzero fractions xNumerator/xDenominator and yNumerator/yDenominator, with positive denominators, into a reduced fraction:
+        // Adds the reduced nonzero fractions a/b and c/d, with positive denominators, into a reduced fraction:
         // in 128-bit arithmetic when every component is an Int64 other than Int64.MinValue, otherwise in BigInteger.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-        private static Rational AddLargeFractions(BigInteger xNumerator, BigInteger xDenominator, BigInteger yNumerator, BigInteger yDenominator)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Rational AddLargeFractions(BigInteger a, BigInteger b, BigInteger c, BigInteger d)
         {
-            if (TryGetInt64(xNumerator, out long a) && TryGetInt64(xDenominator, out long b) &&
-                TryGetInt64(yNumerator, out long c) && TryGetInt64(yDenominator, out long d))
-                return AddInt64Fractions(a, b, c, d);
-            else if (xDenominator == yDenominator)
-                return new Rational(xNumerator + yNumerator, xDenominator);
+            if (TryGetInt64(a, out Int64 a64) && TryGetInt64(b, out Int64 b64) &&
+                TryGetInt64(c, out Int64 c64) && TryGetInt64(d, out Int64 d64))
+                return AddInt64Fractions(a64, b64, c64, d64);
+            else if (b == d)
+                return new Rational(a + c, b);
             else
             {
                 // With g = gcd(b, d), a/b + c/d = (a·(d/g) + c·(b/g)) / (b·d/g), and only factors of g can cancel.
-                var g = BigInteger.GreatestCommonDivisor(xDenominator, yDenominator);
+                var g = BigInteger.GreatestCommonDivisor(b, d);
                 if (g.IsOne)
-                {
-                    return new Rational(
-                        xNumerator * yDenominator + yNumerator * xDenominator,
-                        xDenominator * yDenominator,
-                        skipNormalize: true
-                    );
-                }
+                    return new Rational(a * d + c * b, b * d, skipNormalize: true);
                 else
                 {
-                    var bReduced = xDenominator / g;
-                    var numerator = xNumerator * (yDenominator / g) + yNumerator * bReduced;
+                    var bReduced = b / g;
+                    var numerator = a * (d / g) + c * bReduced;
                     var divisor = BigInteger.GreatestCommonDivisor(numerator, g);
                     // The denominator b·d/g is bReduced·d, and dividing d rather than the product by the divisor keeps one multiplication.
                     if (divisor.IsOne)
-                        return new Rational(numerator, bReduced * yDenominator, skipNormalize: true);
+                        return new Rational(numerator, bReduced * d, skipNormalize: true);
                     else
-                        return new Rational(numerator / divisor, bReduced * (yDenominator / divisor), skipNormalize: true);
+                        return new Rational(numerator / divisor, bReduced * (d / divisor), skipNormalize: true);
                 }
             }
         }
 
-        // Compares the fractions leftNumerator/leftDenominator and rightNumerator/rightDenominator, with positive denominators:
+        // Compares the fractions a/b and c/d, with positive denominators:
         // by 128-bit cross-products when every component is an Int64 other than Int64.MinValue, otherwise by bit lengths and then BigInteger cross-products.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-        private static int CompareLargeFractions(BigInteger leftNumerator, BigInteger leftDenominator, BigInteger rightNumerator, BigInteger rightDenominator)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static int CompareLargeFractions(BigInteger a, BigInteger b, BigInteger c, BigInteger d)
         {
-            if (TryGetInt64(leftNumerator, out long a) && TryGetInt64(leftDenominator, out long b) &&
-                TryGetInt64(rightNumerator, out long c) && TryGetInt64(rightDenominator, out long d))
+            if (TryGetInt64(a, out Int64 a64) && TryGetInt64(b, out Int64 b64) &&
+                TryGetInt64(c, out Int64 c64) && TryGetInt64(d, out Int64 d64))
             {
-                int leftSign = Math.Sign(a), rightSign = Math.Sign(c);
-                if (b == d)
-                    return a < c ? -1 : a > c ? 1 : 0;
+                int leftSign = Math.Sign(a64), rightSign = Math.Sign(c64);
+                if (b64 == d64)
+                    return a64 < c64 ? -1 : a64 > c64 ? 1 : 0;
                 else if (leftSign != rightSign)
                     return leftSign < rightSign ? -1 : 1;
                 else if (leftSign == 0)
@@ -1709,8 +1698,8 @@ namespace Unipi.Nancy.Numerics
                 else
                 {
                     // Equal signs order by the magnitudes |a|·d and |c|·b, compared as unsigned 128-bit products.
-                    ulong leftHigh = Math.BigMul(unchecked((ulong)Math.Abs(a)), unchecked((ulong)d), out ulong leftLow);
-                    ulong rightHigh = Math.BigMul(unchecked((ulong)Math.Abs(c)), unchecked((ulong)b), out ulong rightLow);
+                    UInt64 leftHigh = Math.BigMul(unchecked((UInt64)Math.Abs(a64)), unchecked((UInt64)d64), out UInt64 leftLow);
+                    UInt64 rightHigh = Math.BigMul(unchecked((UInt64)Math.Abs(c64)), unchecked((UInt64)b64), out UInt64 rightLow);
                     int magnitude;
                     if (leftHigh != rightHigh)
                         magnitude = leftHigh < rightHigh ? -1 : 1;
@@ -1721,19 +1710,19 @@ namespace Unipi.Nancy.Numerics
             }
             else
             {
-                int leftSign = leftNumerator.Sign, rightSign = rightNumerator.Sign;
+                int leftSign = a.Sign, rightSign = c.Sign;
                 if (leftSign != rightSign)
                     return leftSign < rightSign ? -1 : 1;
                 else if (leftSign == 0)
                     return 0;
-                else if (leftDenominator == rightDenominator)
-                    return Math.Sign(leftNumerator.CompareTo(rightNumerator));
+                else if (b == d)
+                    return Math.Sign(a.CompareTo(c));
                 else
                 {
-                    var leftNumLength = BigInteger.Abs(leftNumerator).GetBitLength();
-                    var rightNumLength = BigInteger.Abs(rightNumerator).GetBitLength();
-                    var leftDenLength = leftDenominator.GetBitLength();
-                    var rightDenLength = rightDenominator.GetBitLength();
+                    var leftNumLength = BigInteger.Abs(a).GetBitLength();
+                    var rightNumLength = BigInteger.Abs(c).GetBitLength();
+                    var leftDenLength = b.GetBitLength();
+                    var rightDenLength = d.GetBitLength();
 
                     // For magnitude index $m$, $\log_2 |x| \in ]m - 1, m + 1[$.
                     // A separation of at least two orders the magnitudes without multiplication.
@@ -1745,7 +1734,7 @@ namespace Unipi.Nancy.Numerics
                         return -leftSign;
                     else
                         // GCDs and divisions to shrink the products cost more than they save.
-                        return Math.Sign(BigInteger.Compare(leftNumerator * rightDenominator, rightNumerator * leftDenominator));
+                        return Math.Sign(BigInteger.Compare(a * d, c * b));
                 }
             }
         }
@@ -1754,8 +1743,8 @@ namespace Unipi.Nancy.Numerics
         // Reduced operands with equal denominators or equal numerator magnitudes have both gcds equal to 1, so each tier skips the cancellation for them.
 
         // Multiplies the reduced fractions a/b and c/d into a reduced fraction, with the products taken in Int64.
-        // The components are Int32 values other than Int32.MinValue.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        // The components are Int32 values other than Int32.MinValue, and the denominators are positive.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static Rational MultiplyInt32Fractions(Int32 a, Int32 b, Int32 c, Int32 d)
         {
             if (b != d && a != c && a != -c)
@@ -1766,9 +1755,9 @@ namespace Unipi.Nancy.Numerics
             return new Rational((Int64)a * c, (Int64)b * d, skipNormalize: true);
         }
 
-        // Multiplies the reduced fractions a/b and c/d into a reduced fraction, with the products taken in 128 bits and stored as Int64 when they fit.
-        // The components are Int64 values other than Int64.MinValue.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        // Multiplies the reduced fractions a/b and c/d into a reduced fraction, with the products taken in 128 bits and built from Int64 values when they fit.
+        // The components are Int64 values other than Int64.MinValue, and the denominators are positive.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static Rational MultiplyInt64Fractions(Int64 a, Int64 b, Int64 c, Int64 d)
         {
             if (b != d && a != c && a != -c)
@@ -1788,7 +1777,7 @@ namespace Unipi.Nancy.Numerics
 
         // Multiplies the reduced fractions a/b and c/d into a reduced fraction: ±1 over a denominator times an integer through ProductFromOnePair, components that are Int64 values other than Int64.MinValue through MultiplyInt64Fractions, the rest by cancelling in BigInteger.
         // At least one component is outside the sign field, and the denominators are positive.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static Rational MultiplyLargeFractions(BigInteger a, BigInteger b, BigInteger c, BigInteger d)
         {
             // ±1 over a denominator times an integer: one gcd, and on a miss both operands are reused.
@@ -1796,14 +1785,14 @@ namespace Unipi.Nancy.Numerics
                 return ProductFromOnePair(a.IsOne ? c : -c, b);
             else if (b.IsOne && (c.IsOne || c == BigInteger.MinusOne))
                 return ProductFromOnePair(c.IsOne ? a : -a, d);
-            else if (TryGetInt64(a, out long a64) && TryGetInt64(b, out long b64) &&
-                TryGetInt64(c, out long c64) && TryGetInt64(d, out long d64))
+            else if (TryGetInt64(a, out Int64 a64) && TryGetInt64(b, out Int64 b64) &&
+                TryGetInt64(c, out Int64 c64) && TryGetInt64(d, out Int64 d64))
                 return MultiplyInt64Fractions(a64, b64, c64, d64);
             else if (b == d || BigInteger.Abs(a) == BigInteger.Abs(c))
                 return new Rational(a * c, b * d, skipNormalize: true);
             else
             {
-                // The pairs are written out here: a BigInteger CancelPair measured 5–7 ns slower on small-by-wide operands.
+                // The pairs are written out here: a BigInteger CancelPair measured slower on small-by-wide operands.
                 if (!d.IsOne && !a.IsOne && a != BigInteger.MinusOne)
                 {
                     // An equal cross-pair cancels to ±1 and 1.
@@ -1849,9 +1838,9 @@ namespace Unipi.Nancy.Numerics
         // Below 2^63 the gcd is taken in Int64 and a miss reuses both operands; beyond, the normalizing constructor cancels.
         private static Rational ProductFromOnePair(BigInteger numerator, BigInteger denominator)
         {
-            if (TryGetInt64(numerator, out long n) && TryGetInt64(denominator, out long d))
+            if (TryGetInt64(numerator, out Int64 n) && TryGetInt64(denominator, out Int64 d))
             {
-                long originalDenominator = d;
+                Int64 originalDenominator = d;
                 CancelPair(ref n, ref d);
                 if (d == originalDenominator)
                     return new Rational(numerator, denominator, skipNormalize: true);
@@ -1865,8 +1854,8 @@ namespace Unipi.Nancy.Numerics
         // Each CancelPair divides a numerator and the denominator of the other operand by their gcd.
         // Both are nonzero and the denominator is positive; a unit has nothing to cancel, and an equal pair cancels to ±1 and 1 without dividing.
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void CancelPair(ref int numerator, ref int denominator)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void CancelPair(ref Int32 numerator, ref Int32 denominator)
         {
             if (denominator != 1 && numerator != 1 && numerator != -1)
             {
@@ -1878,20 +1867,20 @@ namespace Unipi.Nancy.Numerics
                 else
                 {
                     // The numerator is not Int32.MinValue, so its magnitude fits.
-                    uint g = (uint)Math.Abs(numerator), remainder = (uint)denominator;
+                    UInt32 g = (UInt32)Math.Abs(numerator), remainder = (UInt32)denominator;
                     while (remainder != 0)
                         (g, remainder) = (remainder, g % remainder);
                     if (g != 1)
                     {
-                        numerator /= (int)g;
-                        denominator /= (int)g;
+                        numerator /= (Int32)g;
+                        denominator /= (Int32)g;
                     }
                 }
             }
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void CancelPair(ref long numerator, ref long denominator)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void CancelPair(ref Int64 numerator, ref Int64 denominator)
         {
             if (denominator != 1 && numerator != 1 && numerator != -1)
             {
@@ -1902,7 +1891,7 @@ namespace Unipi.Nancy.Numerics
                 }
                 else
                 {
-                    long g = GreatestCommonDivisorPositive(Math.Abs(numerator), denominator);
+                    Int64 g = GreatestCommonDivisorPositive(Math.Abs(numerator), denominator);
                     if (g != 1)
                     {
                         numerator /= g;
@@ -2015,7 +2004,7 @@ namespace Unipi.Nancy.Numerics
         public static explicit operator Single(Rational value)
         {
             // The Single value type represents a single-precision 32-bit number with
-            // values ranging from negative 3.402823e38 to positive 3.402823e38      
+            // values ranging from negative 3.402823e38 to positive 3.402823e38
             // values that do not fit into this range are returned as Infinity
             return (Single)((Double)value);
         }
@@ -2124,11 +2113,10 @@ namespace Unipi.Nancy.Numerics
         public static implicit operator Rational(SByte value)
         {
             #if BIG_RATIONAL
-            var _value = (BigInteger)value;
+            return new Rational((BigInteger)value);
             #elif LONG_RATIONAL
-            var _value = (long)value;
+            return new Rational((long)value);
             #endif
-            return new Rational(_value);
         }
 
         /// <summary>
@@ -2138,11 +2126,10 @@ namespace Unipi.Nancy.Numerics
         public static implicit operator Rational(UInt16 value)
         {
             #if BIG_RATIONAL
-            var _value = (BigInteger)value;
+            return new Rational((BigInteger)value);
             #elif LONG_RATIONAL
-            var _value = (long)value;
+            return new Rational((long)value);
             #endif
-            return new Rational(_value);
         }
 
         /// <summary>
@@ -2152,11 +2139,10 @@ namespace Unipi.Nancy.Numerics
         public static implicit operator Rational(UInt32 value)
         {
             #if BIG_RATIONAL
-            var _value = (BigInteger)value;
+            return new Rational((BigInteger)value);
             #elif LONG_RATIONAL
-            var _value = (long)value;
+            return new Rational((long)value);
             #endif
-            return new Rational(_value);
         }
 
         /// <summary>
@@ -2166,11 +2152,10 @@ namespace Unipi.Nancy.Numerics
         public static implicit operator Rational(UInt64 value)
         {
             #if BIG_RATIONAL
-            var _value = (BigInteger)value;
+            return new Rational((BigInteger)value);
             #elif LONG_RATIONAL
-            var _value = (long)value;
+            return new Rational((long)value);
             #endif
-            return new Rational(_value);
         }
 
         /// <summary>
@@ -2180,11 +2165,10 @@ namespace Unipi.Nancy.Numerics
         public static implicit operator Rational(Byte value)
         {
             #if BIG_RATIONAL
-            var _value = (BigInteger)value;
+            return new Rational((BigInteger)value);
             #elif LONG_RATIONAL
-            var _value = (long)value;
+            return new Rational((long)value);
             #endif
-            return new Rational(_value);
         }
 
         /// <summary>
@@ -2194,11 +2178,10 @@ namespace Unipi.Nancy.Numerics
         public static implicit operator Rational(Int16 value)
         {
             #if BIG_RATIONAL
-            var _value = (BigInteger)value;
+            return new Rational((BigInteger)value);
             #elif LONG_RATIONAL
-            var _value = (long)value;
+            return new Rational((long)value);
             #endif
-            return new Rational(_value);
         }
 
         /// <summary>
@@ -2208,11 +2191,10 @@ namespace Unipi.Nancy.Numerics
         public static implicit operator Rational(Int32 value)
         {
             #if BIG_RATIONAL
-            var _value = (BigInteger)value;
+            return new Rational((BigInteger)value);
             #elif LONG_RATIONAL
-            var _value = (long)value;
+            return new Rational((long)value);
             #endif
-            return new Rational(_value);
         }
 
         /// <summary>
@@ -2222,11 +2204,10 @@ namespace Unipi.Nancy.Numerics
         public static implicit operator Rational(Int64 value)
         {
             #if BIG_RATIONAL
-            var _value = (BigInteger)value;
+            return new Rational((BigInteger)value);
             #elif LONG_RATIONAL
-            var _value = (long)value;
+            return new Rational((long)value);
             #endif
-            return new Rational(_value);
         }
 
         #if BIG_RATIONAL
@@ -2273,7 +2254,7 @@ namespace Unipi.Nancy.Numerics
 
         /// <summary>
         /// Simplifies the rational, making it irreducible.
-        /// This should be called during construction, existing Rational are assumed to be irreducible.
+        /// This should be called during construction, existing values are assumed to be irreducible.
         /// </summary>
         private void Simplify()
         {
@@ -2282,7 +2263,7 @@ namespace Unipi.Nancy.Numerics
             // * if the denominator is {+1} then the fraction is already reduced
             if (Numerator.IsZero)
                 Denominator = BigInteger.One;
-            else if (Numerator.IsOne || Numerator == -1)
+            else if (Numerator.IsOne || Numerator == BigInteger.MinusOne)
                 return;
             else if (Denominator.IsOne)
                 return;
@@ -2328,21 +2309,17 @@ namespace Unipi.Nancy.Numerics
             #endif
         }
 
+        #if LONG_RATIONAL
         private void AssignRationalParts(BigInteger numerator, BigInteger denominator, string valueType, string valueText)
         {
-            #if BIG_RATIONAL
-            Numerator = numerator;
-            Denominator = denominator;
-            #elif LONG_RATIONAL
             if (!SafeCastToInt64(numerator) || !SafeCastToInt64(denominator))
                 throw new OverflowException($"{valueType} {valueText} cannot be represented exactly as LongRational.");
 
             Numerator = (long) numerator;
             Denominator = (long) denominator;
-            #endif
-
             Simplify();
         }
+        #endif
 
         #endregion instance helper methods
 
@@ -2357,10 +2334,12 @@ namespace Unipi.Nancy.Numerics
             return s_bnDecimalMinValue <= value && value <= s_bnDecimalMaxValue;
         }
 
+        #if LONG_RATIONAL
         private static bool SafeCastToInt64(BigInteger value)
         {
             return long.MinValue <= value && value <= long.MaxValue;
         }
+        #endif
 
         private static void SplitDoubleIntoParts(double dbl, out int sign, out int exp, out ulong man, out bool isFinite)
         {
