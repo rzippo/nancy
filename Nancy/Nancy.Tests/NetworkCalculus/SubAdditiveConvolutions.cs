@@ -347,4 +347,34 @@ public class SubAdditiveConvolutions
         Assert.Equal(generalA.EstimateConvolution(generalB), a.EstimateConvolution(b));
         Assert.Equal(generalA.EstimateConvolution(generalB, countElements: true), a.EstimateConvolution(b, countElements: true));
     }
+
+    /// <summary>
+    /// The specialized convolution of two staircase flow-control curves, kept unoptimized so that the curve it constructs is the one returned.
+    /// </summary>
+    private static SubAdditiveCurve SpecializedConvolutionOfStaircases(bool useKnownPropertyPropagation)
+    {
+        var a = new FlowControlCurve(4, 12, 4);
+        var b = new FlowControlCurve(3, 11, 3);
+        var settings = new ComputationSettings
+        {
+            UseRepresentationMinimization = false,
+            UseKnownPropertyPropagation = useKnownPropertyPropagation
+        };
+        return a.Convolution(b, settings);
+    }
+
+    [Fact]
+    public void TheSpecializedConvolutionAssertsSubAdditivityWhenPropagatingKnownProperties()
+    {
+        var result = SpecializedConvolutionOfStaircases(useKnownPropertyPropagation: true);
+        Assert.Null(result._IsSubAdditive);
+    }
+
+    [Fact]
+    public void TheSpecializedConvolutionChecksSubAdditivityWhenNotPropagatingKnownProperties()
+    {
+        var result = SpecializedConvolutionOfStaircases(useKnownPropertyPropagation: false);
+        Assert.NotNull(result._IsSubAdditive);
+        Assert.True(result._IsSubAdditive.Value);
+    }
 }
