@@ -3857,40 +3857,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
         => Cut(0, targetEnd, settings: settings);
 
     /// <summary>
-    /// Returns the stored period elements whose translated supports intersect the cut interval.
-    /// </summary>
-    /// <param name="period">The stored pseudo-period, before translation.</param>
-    /// <param name="periodIndex">Index of the translated period to intersect with the cut.</param>
-    /// <param name="cutInterval">The cut interval, in the curve's coordinates, intersecting the translated period.</param>
-    /// <returns>A read-only view of the selected stored elements, without copying or translating them.</returns>
-    /// <remarks>
-    /// The cut may lie within this period, overlap its beginning or end, or contain the whole period.
-    /// Endpoint inclusion determines whether points on the cut boundaries are selected.
-    /// Intersecting segments are returned intact; clipping is the caller's responsibility.
-    /// </remarks>
-    internal ReadOnlyElementList GetPeriodElementsForCut(Sequence period, long periodIndex, Interval cutInterval)
-    {
-        var offset = periodIndex * PseudoPeriodLength;
-        var start = cutInterval.Lower - offset;
-        var end = cutInterval.Upper - offset;
-        int first = start < period.DefinedFrom || (start == period.DefinedFrom && cutInterval.IsLowerIncluded)
-            ? 0
-            : period.FindFirstIndex(element => element is Point point
-                ? (cutInterval.IsLowerIncluded ? point.Time >= start : point.Time > start)
-                : element.EndTime > start);
-        int last = end >= period.DefinedUntil
-            ? period.Count - 1
-            : period.FindLastIndex(element => element is Point point
-                ? (cutInterval.IsUpperIncluded ? point.Time <= end : point.Time < end)
-                : element.StartTime < end);
-
-        // Boundary segments remain intact here; the final cut clips them and normalizes period joins.
-        return first == 0 && last == period.Count - 1
-            ? period.ElementList
-            : period.ElementList.Slice(first, last - first + 1);
-    }
-
-    /// <summary>
     /// Returns the stored period elements whose supports, translated by the time offset, intersect the cut interval.
     /// </summary>
     /// <param name="period">The stored pseudo-period, before translation.</param>
@@ -4002,58 +3968,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 yield return element;
     }
 
-    /// <summary>
-    /// Selects and translates the elements of one period intersecting a cut, when consumed.
-    /// </summary>
-    /// <remarks>Boundary segments remain intact for the caller to clip and normalize.</remarks>
-    private IEnumerable<Element> TranslatePeriodElementsForCutAsEnumerable(Sequence period, long periodIndex,
-        Interval cutInterval, ComputationSettings settings)
-    {
-        var elements = GetPeriodElementsForCut(period, periodIndex, cutInterval);
-        foreach (var element in TranslatePeriodElements(elements, periodIndex, settings))
-            yield return element;
-    }
-
-    /// <summary>
-    /// Translates selected period elements into an owned array in source order.
-    /// </summary>
-    /// <param name="elements">The selected period elements.</param>
-    /// <param name="periodIndex">Index of the translated period.</param>
-    /// <param name="partitionCount">Number of contiguous work partitions, between one and the element count; one selects serial execution, more than one selects parallel execution.</param>
-    /// <returns>A new array exclusively owned by the caller.</returns>
-    private Element[] TranslatePeriodElementsToArray(ReadOnlyElementList elements, long periodIndex, int partitionCount)
-    {
-        var copies = new Element[elements.Count];
-        if (partitionCount == 1)
-        {
-            // Translate the selected elements serially into their ordered slots.
-            for (int i = 0; i < elements.Count; i++)
-                copies[i] = TranslatePeriodElement(elements[i], periodIndex);
-        }
-        else
-        {
-            // Translate disjoint ranges of selected elements in parallel.
-            try
-            {
-                Parallel.For(0, partitionCount, partition =>
-                {
-                    var start = (int)((long)partition * elements.Count / partitionCount);
-                    var end = (int)((long)(partition + 1) * elements.Count / partitionCount);
-                    for (int i = start; i < end; i++)
-                        copies[i] = TranslatePeriodElement(elements[i], periodIndex);
-                });
-            }
-            catch (AggregateException aggregate)
-            {
-                // Flatten failures from nested parallel loops and rethrow one worker failure, preserving its original stack.
-                ExceptionDispatchInfo.Capture(aggregate.Flatten().InnerExceptions[0]).Throw();
-                throw;
-            }
-        }
-
-        return copies;
-    }
-
     /// <summary>Chooses outer partitions for complete-period translation, using the extension settings and work budget.</summary>
     /// <param name="periodElementCount">Number of stored elements per period.</param>
     /// <param name="periodCount">Number of complete periods to translate, greater than zero.</param>
@@ -4108,83 +4022,6 @@ public class Curve : IStableHashCode, IToCodeString, IToMppgString
                 itemCount: elementCount,
                 minimumElementsPerPartition: settings.ExtensionMinimumElementsPerPartition,
                 maximumParallelism: maximumParallelism);
-        }
-    }
-
-    /// <summary>
-    /// Translates the supplied stored period elements to the specified pseudo-period, in source order.
-    /// </summary>
-    /// <param name="elements">The selected period elements.</param>
-    /// <param name="periodIndex">Index of the translated period.</param>
-    /// <param name="settings">Settings for inner parallel execution and minimum work per partition.</param>
-    /// <returns>The translated elements in source order, computed when consumed.</returns>
-    /// <remarks>
-    /// Times are shifted by the period index times the pseudo-period length, and values by the period index times the pseudo-period height.
-    /// The input elements are neither clipped nor modified.
-    /// Serial execution translates one element at a time; parallel execution fills the selected-element buffer before yielding.
-    /// The inner parallelism switch and threshold and the available work budget determine which execution is used.
-    /// </remarks>
-    internal IEnumerable<Element> TranslatePeriodElements(ReadOnlyElementList elements, long periodIndex,
-        ComputationSettings settings)
-    {
-        var partitionCount = GetPeriodTranslationPartitionCount(elements.Count, settings, settings.DegreeOfParallelism);
-        if (partitionCount == 1)
-        {
-            return TranslatePeriodElementsSerially(elements, periodIndex);
-        }
-        else
-        {
-            return TranslatePeriodElementsInParallel(elements, periodIndex, partitionCount);
-        }
-    }
-
-    /// <summary>
-    /// Translates selected period elements one at a time, without a period buffer.
-    /// </summary>
-    private IEnumerable<Element> TranslatePeriodElementsSerially(ReadOnlyElementList elements, long periodIndex)
-    {
-        // reads the period by index, without an interface call per element
-        for (int i = 0; i < elements.Count; i++)
-            yield return TranslatePeriodElement(elements[i], periodIndex);
-    }
-
-    /// <summary>
-    /// Translates selected period elements into one owned buffer before yielding them in source order.
-    /// </summary>
-    /// <param name="elements">The selected period elements.</param>
-    /// <param name="periodIndex">Index of the translated period.</param>
-    /// <param name="partitionCount">Number of contiguous work partitions, between two and the element count.</param>
-    /// <returns>The translated elements, computed when consumed.</returns>
-    private IEnumerable<Element> TranslatePeriodElementsInParallel(ReadOnlyElementList elements, long periodIndex,
-        int partitionCount)
-    {
-        var copies = TranslatePeriodElementsToArray(elements, periodIndex, partitionCount);
-        foreach (var element in copies)
-            yield return element;
-    }
-
-    /// <summary>
-    /// Translates one stored element to the specified pseudo-period.
-    /// </summary>
-    private Element TranslatePeriodElement(Element element, long periodIndex)
-    {
-        switch (element)
-        {
-            case Point point:
-                return new Point(
-                    time: point.Time + PseudoPeriodLength * periodIndex,
-                    value: point.Value + PseudoPeriodHeight * periodIndex
-                );
-            case Segment segment:
-                return new Segment(
-                    startTime: segment.StartTime + PseudoPeriodLength * periodIndex,
-                    endTime: segment.EndTime + PseudoPeriodLength * periodIndex,
-                    rightLimitAtStartTime: segment.RightLimitAtStartTime + PseudoPeriodHeight * periodIndex,
-                    slope: segment.Slope
-                );
-
-            default:
-                throw new InvalidCastException();
         }
     }
 
