@@ -789,21 +789,28 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// Greatest Common Divisor of the two numbers.
+    /// The greatest common divisor of the two numbers: the largest rational that divides both into integers.
     /// </summary>
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
+    /// <returns>
+    /// The greatest common divisor, which is positive, or zero when both operands are.
+    /// When <paramref name="b"/> is zero it is the absolute value of <paramref name="a"/>, infinities included.
+    /// </returns>
+    /// <exception cref="UndeterminedResultException"><paramref name="b"/> is nonzero and either operand is infinite.</exception>
     public static BigRational GreatestCommonDivisor(BigRational a, BigRational b)
     {
-        a = Abs(a);
-        b = Abs(b);
-        while (b != 0)
+        if (b.IsZero)
+            return Abs(a);
+        else if (a.IsInfinite || b.IsInfinite)
+            throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
+        else
         {
-            BigRational temp = b;
-            b = a % b;
-            a = temp;
+            // For reduced p/q and r/s, the largest rational that divides both into integers is gcd(p, r) / lcm(q, s), which is reduced.
+            var numerator = BigInteger.GreatestCommonDivisor(a.Numerator, b.Numerator);
+            var denominator = a.Denominator / BigInteger.GreatestCommonDivisor(a.Denominator, b.Denominator) * b.Denominator;
+            return new BigRational(numerator, denominator, skipNormalize: true);
         }
-        return a;
     }
 
     /// <summary>
@@ -833,15 +840,27 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     }
 
     /// <summary>
-    /// Least Common Multiple of the two numbers.
+    /// The least common multiple of the two numbers: the smallest positive rational that both divide into integers.
     /// </summary>
     /// <param name="a">The first operand.</param>
     /// <param name="b">The second operand.</param>
+    /// <returns>The least common multiple, which is positive, or zero when exactly one operand is.</returns>
+    /// <exception cref="UndeterminedResultException">Either operand is infinite, or both are zero.</exception>
     public static BigRational LeastCommonMultiple(BigRational a, BigRational b)
     {
-        a = Abs(a);
-        b = Abs(b);
-        return (a / BigRational.GreatestCommonDivisor(a, b)) * b;
+        if (a.IsInfinite || b.IsInfinite)
+            throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
+        else if (a.IsZero && b.IsZero)
+            throw new UndeterminedResultException("Zero over zero");
+        else if (a.IsZero || b.IsZero)
+            return BigRational.Zero;
+        else
+        {
+            // For reduced p/q and r/s, the smallest rational that both divide into integers is lcm(p, r) / gcd(q, s), which is reduced.
+            var numerator = BigInteger.Abs(a.Numerator) / BigInteger.GreatestCommonDivisor(a.Numerator, b.Numerator) * BigInteger.Abs(b.Numerator);
+            var denominator = BigInteger.GreatestCommonDivisor(a.Denominator, b.Denominator);
+            return new BigRational(numerator, denominator, skipNormalize: true);
+        }
     }
 
     /// <summary>

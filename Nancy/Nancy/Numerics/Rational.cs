@@ -1035,9 +1035,22 @@ namespace Unipi.Nancy.Numerics
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.GreatestCommonDivisor(BigRational, BigRational)"/>
+        public static Rational GreatestCommonDivisor(Rational a, Rational b)
+        {
+            if (b.IsZero)
+                return Abs(a);
+            else if (a.IsInfinite || b.IsInfinite)
+                throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
+            else
+            {
+                // For reduced p/q and r/s, the largest rational that divides both into integers is gcd(p, r) / lcm(q, s), which is reduced.
+                var numerator = BigInteger.GreatestCommonDivisor(a.Numerator, b.Numerator);
+                var denominator = a.Denominator / BigInteger.GreatestCommonDivisor(a.Denominator, b.Denominator) * b.Denominator;
+                return new Rational(numerator, denominator, skipNormalize: true);
+            }
+        }
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.GreatestCommonDivisor(LongRational, LongRational)"/>
-        #endif
         public static Rational GreatestCommonDivisor(Rational a, Rational b)
         {
             a = Abs(a);
@@ -1050,6 +1063,7 @@ namespace Unipi.Nancy.Numerics
             }
             return a;
         }
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.GreatestCommonDivisor(long, long)"/>
@@ -1077,15 +1091,31 @@ namespace Unipi.Nancy.Numerics
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.LeastCommonMultiple"/>
+        public static Rational LeastCommonMultiple(Rational a, Rational b)
+        {
+            if (a.IsInfinite || b.IsInfinite)
+                throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
+            else if (a.IsZero && b.IsZero)
+                throw new UndeterminedResultException("Zero over zero");
+            else if (a.IsZero || b.IsZero)
+                return Rational.Zero;
+            else
+            {
+                // For reduced p/q and r/s, the smallest rational that both divide into integers is lcm(p, r) / gcd(q, s), which is reduced.
+                var numerator = BigInteger.Abs(a.Numerator) / BigInteger.GreatestCommonDivisor(a.Numerator, b.Numerator) * BigInteger.Abs(b.Numerator);
+                var denominator = BigInteger.GreatestCommonDivisor(a.Denominator, b.Denominator);
+                return new Rational(numerator, denominator, skipNormalize: true);
+            }
+        }
         #elif LONG_RATIONAL
         /// <inheritdoc cref="LongRational.LeastCommonMultiple"/>
-        #endif
         public static Rational LeastCommonMultiple(Rational a, Rational b)
         {
             a = Abs(a);
             b = Abs(b);
             return (a / Rational.GreatestCommonDivisor(a, b)) * b;
         }
+        #endif
 
         #if BIG_RATIONAL
         /// <inheritdoc cref="BigRational.Compare"/>
