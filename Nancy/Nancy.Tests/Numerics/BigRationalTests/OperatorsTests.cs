@@ -122,4 +122,19 @@ public class OperatorsTests
         Assert.Equal(areEqual, a.Equals((object)b));
         Assert.Equal(areEqual, a == b);
     }
+
+    [Fact]
+    public void DefaultValueIsEqualOnlyToItself()
+    {
+        // The default value is 0/0, which is neither zero nor an infinity.
+        Assert.True(default(BigRational) == default(BigRational));
+        Assert.False(default(BigRational) != default(BigRational));
+        foreach (var value in new[] { BigRational.Zero, BigRational.One, BigRational.PlusInfinity, BigRational.MinusInfinity })
+        {
+            Assert.False(default(BigRational) == value);
+            Assert.True(default(BigRational) != value);
+            Assert.False(value == default(BigRational));
+            Assert.True(value != default(BigRational));
+        }
+    }
 }
