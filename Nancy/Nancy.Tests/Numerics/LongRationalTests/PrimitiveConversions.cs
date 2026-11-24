@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Unipi.Nancy.Numerics;
@@ -7,6 +8,66 @@ namespace Unipi.Nancy.Tests.Numerics.LongRationalTests;
 
 public class PrimitiveConversions
 {
+    public static List<(long whole, long numerator, long denominator, LongRational expected)> MixedNumberConstructorCases =
+    [
+        (1, 1, 2, new LongRational(3, 2)),
+        (-1, 1, 2, new LongRational(-1, 2)),
+        (1, 1, -2, new LongRational(1, 2)),
+        (1, -1, 2, new LongRational(1, 2)),
+        (1, -1, -2, new LongRational(3, 2)),
+        (-1, 1, -2, new LongRational(-3, 2)),
+        (-1, -1, 2, new LongRational(-3, 2)),
+        (-1, -1, -2, new LongRational(-1, 2)),
+        (2, 3, -4, new LongRational(5, 4)),
+        (0, 3, -4, new LongRational(-3, 4)),
+        (-2, 0, -5, new LongRational(-2)),
+        (0, 0, 7, new LongRational(0)),
+        (Int64.MaxValue, 0, 1, new LongRational(Int64.MaxValue)),
+        (0, Int64.MinValue, 1, new LongRational(Int64.MinValue))
+    ];
+
+    public static IEnumerable<object[]> GetMixedNumberConstructorCases()
+        => MixedNumberConstructorCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetMixedNumberConstructorCases))]
+    public void MixedNumberConstructor_NormalizesParts(
+        long whole,
+        long numerator,
+        long denominator,
+        LongRational expected)
+    {
+        var value = new LongRational(whole, numerator, denominator);
+
+        Assert.Equal(expected, value);
+        Assert.Equal(expected.Numerator, value.Numerator);
+        Assert.Equal(expected.Denominator, value.Denominator);
+    }
+
+    [Fact]
+    public void MixedNumberConstructor_RejectsZeroDenominator()
+    {
+        Assert.Throws<DivideByZeroException>(() => new LongRational(1, 1, 0));
+    }
+
+    public static List<(long whole, long numerator, long denominator)> OverflowingMixedNumberCases =
+    [
+        (Int64.MaxValue, 1, 2),
+        (Int64.MinValue, -1, 1),
+        (0, 1, Int64.MinValue),
+        (0, Int64.MinValue, -1)
+    ];
+
+    public static IEnumerable<object[]> GetOverflowingMixedNumberCases()
+        => OverflowingMixedNumberCases.ToXUnitTestCases();
+
+    [Theory]
+    [MemberData(nameof(GetOverflowingMixedNumberCases))]
+    public void MixedNumberConstructor_RejectsSumsBeyondInt64(long whole, long numerator, long denominator)
+    {
+        Assert.Throws<OverflowException>(() => new LongRational(whole, numerator, denominator));
+    }
+
     public static List<(LongRational value, long integralPart, float singleValue, double doubleValue, decimal decimalValue)> ExplicitConversionCases =
     [
         (new LongRational(7, 2), 3, 3.5f, 3.5, 3.5m),

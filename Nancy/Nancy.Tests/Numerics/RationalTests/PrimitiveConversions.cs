@@ -30,8 +30,9 @@ public class PrimitiveConversions
     {
         Assert.Equal(expected, new Rational(numerator, denominator));
     }
+    #endif
 
-    public static List<(BigInteger whole, BigInteger numerator, BigInteger denominator, Rational expected)> MixedNumberConstructorCases =
+    public static List<(long whole, long numerator, long denominator, Rational expected)> MixedNumberConstructorCases =
     [
         (1, 1, 2, new Rational(3, 2)),
         (-1, 1, 2, new Rational(-1, 2)),
@@ -44,7 +45,9 @@ public class PrimitiveConversions
         (2, 3, -4, new Rational(5, 4)),
         (0, 3, -4, new Rational(-3, 4)),
         (-2, 0, -5, new Rational(-2)),
-        (0, 0, 7, Rational.Zero)
+        (0, 0, 7, new Rational(0)),
+        (Int64.MaxValue, 0, 1, new Rational(Int64.MaxValue)),
+        (0, Int64.MinValue, 1, new Rational(Int64.MinValue))
     ];
 
     public static IEnumerable<object[]> GetMixedNumberConstructorCases()
@@ -53,30 +56,41 @@ public class PrimitiveConversions
     [Theory]
     [MemberData(nameof(GetMixedNumberConstructorCases))]
     public void MixedNumberConstructor_NormalizesParts(
-        BigInteger whole,
-        BigInteger numerator,
-        BigInteger denominator,
+        long whole,
+        long numerator,
+        long denominator,
         Rational expected)
     {
-        Assert.Equal(expected, new Rational(whole, numerator, denominator));
+        var value = new Rational(whole, numerator, denominator);
+
+        Assert.Equal(expected, value);
+        Assert.Equal(expected.Numerator, value.Numerator);
+        Assert.Equal(expected.Denominator, value.Denominator);
     }
 
-    public static List<(BigInteger whole, BigInteger numerator, BigInteger denominator)> InvalidMixedNumberConstructorCases =
+    [Fact]
+    public void MixedNumberConstructor_RejectsZeroDenominator()
+    {
+        Assert.Throws<DivideByZeroException>(() => new Rational(1, 1, 0));
+    }
+
+    #if LONG_RATIONAL
+    public static List<(long whole, long numerator, long denominator)> OverflowingMixedNumberCases =
     [
-        (1, 1, 0)
+        (Int64.MaxValue, 1, 2),
+        (Int64.MinValue, -1, 1),
+        (0, 1, Int64.MinValue),
+        (0, Int64.MinValue, -1)
     ];
 
-    public static IEnumerable<object[]> GetInvalidMixedNumberConstructorCases()
-        => InvalidMixedNumberConstructorCases.ToXUnitTestCases();
+    public static IEnumerable<object[]> GetOverflowingMixedNumberCases()
+        => OverflowingMixedNumberCases.ToXUnitTestCases();
 
     [Theory]
-    [MemberData(nameof(GetInvalidMixedNumberConstructorCases))]
-    public void MixedNumberConstructor_RejectsZeroDenominator(
-        BigInteger whole,
-        BigInteger numerator,
-        BigInteger denominator)
+    [MemberData(nameof(GetOverflowingMixedNumberCases))]
+    public void MixedNumberConstructor_RejectsSumsBeyondInt64(long whole, long numerator, long denominator)
     {
-        Assert.Throws<DivideByZeroException>(() => new Rational(whole, numerator, denominator));
+        Assert.Throws<OverflowException>(() => new Rational(whole, numerator, denominator));
     }
     #endif
 
