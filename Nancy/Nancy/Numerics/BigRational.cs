@@ -713,10 +713,14 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// </summary>
     /// <param name="dividend">The dividend.</param>
     /// <param name="divisor">The divisor.</param>
-    /// <param name="remainder">The remainder resulting from the division.</param>
-    /// <returns>The integer result of the division.</returns>
+    /// <param name="remainder">The remainder, dividend − quotient · divisor, which is zero or has the dividend's sign.</param>
+    /// <returns>The quotient rounded toward zero, as an integer rational.</returns>
+    /// <exception cref="UndeterminedResultException">Either operand is infinite.</exception>
+    /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
     public static BigRational DivRem(BigRational dividend, BigRational divisor, out BigRational remainder)
     {
+        if (dividend.IsInfinite || divisor.IsInfinite)
+            throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
         if (divisor == BigRational.Zero)
             throw new DivideByZeroException("Divisor must be non-zero.");
 

@@ -894,6 +894,8 @@ namespace Unipi.Nancy.Numerics
         #endif
         public static Rational DivRem(Rational dividend, Rational divisor, out Rational remainder)
         {
+            if (dividend.IsInfinite || divisor.IsInfinite)
+                throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
             if (divisor == Rational.Zero)
                 throw new DivideByZeroException("Divisor must be non-zero.");
 

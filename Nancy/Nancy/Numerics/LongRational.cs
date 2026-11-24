@@ -618,9 +618,13 @@ public struct LongRational : IComparable, IComparable<LongRational>, IEquatable<
     /// <param name="dividend">The dividend.</param>
     /// <param name="divisor">The divisor.</param>
     /// <param name="remainder">The remainder resulting from the division.</param>
-    /// <returns>The integer result of the division.</returns>
+    /// <returns>The integer quotient, as a rational.</returns>
+    /// <exception cref="UndeterminedResultException">Either operand is infinite.</exception>
+    /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
     public static LongRational DivRem(LongRational dividend, LongRational divisor, out LongRational remainder)
     {
+        if (dividend.IsInfinite || divisor.IsInfinite)
+            throw new UndeterminedResultException("Modulus with an infinite rational involved is undetermined.");
         if (divisor == LongRational.Zero)
             throw new DivideByZeroException("Divisor must be non-zero.");
 
