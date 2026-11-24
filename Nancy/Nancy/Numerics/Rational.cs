@@ -521,39 +521,25 @@ namespace Unipi.Nancy.Numerics
         #endif
         public Rational(int numerator, int denominator = 1)
         {
+            #if BIG_RATIONAL
+            this = new Rational((Int64)numerator, denominator);
+            #elif LONG_RATIONAL
             if (denominator == 0)
             {
                 if (numerator < 0)
-                    #if BIG_RATIONAL
-                    Numerator = BigInteger.MinusOne;
-                    #elif LONG_RATIONAL
                     Numerator = -1;
-                    #endif
                 else if (numerator > 0)
-                    #if BIG_RATIONAL
-                    Numerator = BigInteger.One;
-                    #elif LONG_RATIONAL
                     Numerator = 1;
-                    #endif
                 else
                     throw new UndeterminedResultException("Zero over zero");
 
-                #if BIG_RATIONAL
-                Denominator = BigInteger.Zero;
-                #elif LONG_RATIONAL
                 Denominator = 0;
-                #endif
             }
             else if (numerator == 0)
             {
                 // 0/m -> 0/1
-                #if BIG_RATIONAL
-                Numerator = BigInteger.Zero;
-                Denominator = BigInteger.One;
-                #elif LONG_RATIONAL
                 Numerator = 0;
                 Denominator = 1;
-                #endif
             }
             else if (denominator < 0)
             {
@@ -567,6 +553,7 @@ namespace Unipi.Nancy.Numerics
             }
 
             Simplify();
+            #endif
         }
 
         #if BIG_RATIONAL

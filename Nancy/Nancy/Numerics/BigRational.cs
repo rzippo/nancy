@@ -399,35 +399,7 @@ public struct BigRational : IComparable, IComparable<BigRational>, IEquatable<Bi
     /// <exception cref="UndeterminedResultException">Thrown when the operation cannot be completed.</exception>
     public BigRational(int numerator, int denominator = 1)
     {
-        if (denominator == 0)
-        {
-            if (numerator < 0)
-                Numerator = BigInteger.MinusOne;
-            else if (numerator > 0)
-                Numerator = BigInteger.One;
-            else
-                throw new UndeterminedResultException("Zero over zero");
-
-            Denominator = BigInteger.Zero;
-        }
-        else if (numerator == 0)
-        {
-            // 0/m -> 0/1
-            Numerator = BigInteger.Zero;
-            Denominator = BigInteger.One;
-        }
-        else if (denominator < 0)
-        {
-            Numerator = BigInteger.Negate(numerator);
-            Denominator = BigInteger.Negate(denominator);
-        }
-        else
-        {
-            Numerator = numerator;
-            Denominator = denominator;
-        }
-
-        Simplify();
+        this = new BigRational((Int64)numerator, denominator);
     }
 
     /// <summary>
