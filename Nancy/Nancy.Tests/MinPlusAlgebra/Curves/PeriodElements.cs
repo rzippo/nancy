@@ -53,7 +53,9 @@ public class PeriodElements
     {
         var curve = Example();
         var period = curve.PseudoPeriodicSequence;
-        var selected = curve.GetPeriodElementsForCut(period, 2, new Interval(start, end, includeStart, includeEnd));
+        // The second translated period is the stored one shifted by twice the period length, 6.
+        var timeOffset = new Rational(12);
+        var selected = curve.GetPeriodElementsForCut(period, timeOffset, new Interval(start, end, includeStart, includeEnd));
 
         Assert.Equal(count, selected.Count);
         Assert.True(period.AsSpan().Overlaps(selected.AsSpan(), out int offset));
@@ -64,17 +66,20 @@ public class PeriodElements
 
     public static IEnumerable<object[]> Translations()
     {
-        foreach (bool parallel in new[] { false, true })
+        // Serial translation, and parallel translation in four partitions of one element and in two partitions of two,
+        // where the second element of each partition starts at the previous translated end.
+        foreach (var (parallel, degree) in new[] { (false, 1), (true, 4), (true, 2) })
         {
-            yield return new object[] { parallel, 2, 3, new Element[] {
+            // Period 2 with height 3, period 3 with height -2, and period 0: the offsets are the period length 6 and the height times the period index.
+            yield return new object[] { parallel, degree, 12, 6, new Element[] {
                 new Segment(14, 16, 16, 1), new Point(16, 26),
                 new Segment(16, 18, 36, -2), new Point(18, 56)
             } };
-            yield return new object[] { parallel, 3, -2, new Element[] {
+            yield return new object[] { parallel, degree, 18, -6, new Element[] {
                 new Segment(20, 22, 4, 1), new Point(22, 14),
                 new Segment(22, 24, 24, -2), new Point(24, 44)
             } };
-            yield return new object[] { parallel, 0, 3, new Element[] {
+            yield return new object[] { parallel, degree, 0, 0, new Element[] {
                 new Segment(2, 4, 10, 1), new Point(4, 20),
                 new Segment(4, 6, 30, -2), new Point(6, 50)
             } };
@@ -84,9 +89,9 @@ public class PeriodElements
     [Theory]
     [MemberData(nameof(Translations))]
     public void TranslationPreservesOrderAndSlopesWithoutChangingTheSource(
-        bool parallel, int periodIndex, int height, Element[] expected)
+        bool parallel, int degree, int timeOffset, int valueOffset, Element[] expected)
     {
-        var curve = Example(height);
+        var curve = Example();
         var selected = curve.PseudoPeriodicSequence.ElementList.Slice(1, 4);
         var source = selected.ToArray();
         var settings = new ComputationSettings
@@ -94,9 +99,9 @@ public class PeriodElements
             UseParallelism = parallel,
             ComputeExtensionSequencesParallelizationThreshold = 0,
             ExtensionMinimumElementsPerPartition = 1,
-            MaxDegreeOfParallelism = 4
+            MaxDegreeOfParallelism = degree
         };
-        var translated = curve.TranslatePeriodElements(selected, periodIndex, settings);
+        var translated = curve.TranslatePeriodElements(selected, new Rational(timeOffset), new Rational(valueOffset), settings);
 
         Assert.Equal(expected, translated.ToArray());
         Assert.Equal(expected, translated.ToArray());
