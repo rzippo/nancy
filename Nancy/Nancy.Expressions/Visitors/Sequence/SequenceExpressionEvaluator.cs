@@ -82,7 +82,7 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
     public void Visit(SequenceCutExpression expression)
     {
         var sequence = Read(expression.Operand);
-        _result = sequence.Cut(expression.Interval);
+        _result = sequence.Cut(expression.Interval, ComputationSettingsOf(expression.Settings));
     }
     
     /// <inheritdoc />
@@ -99,7 +99,7 @@ public class SequenceExpressionEvaluator : ISequenceExpressionVisitor
         var sequences = expression.Operands
             .Select(e => Read(e));
         var addition = sequences
-            .Aggregate(Sequence.Addition);
+            .Aggregate((a, b) => Sequence.Addition(a, b, ComputationSettingsOf(expression.Settings)));
         _result = addition;
     }
     
