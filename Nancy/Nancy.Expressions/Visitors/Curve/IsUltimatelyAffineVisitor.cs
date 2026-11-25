@@ -4,9 +4,14 @@ using Unipi.Nancy.MinPlusAlgebra;
 namespace Unipi.Nancy.Expressions.Visitors;
 
 /// <summary>
-/// Visitor used to check whether the value of a curve expression is ultimately affine. Implemented minimizing the
-/// amount of computations.
+/// Tests if the curve is ultimately affine.
+/// See <see cref="Curve.IsUltimatelyAffine"/>.
 /// </summary>
+/// <remarks>
+/// Uses the rules documented on this visitor’s <c>Visit</c> overloads to determine whether the curve is ultimately affine without computing the expression when possible.
+/// Otherwise, computes the expression and checks <see cref="Curve.IsUltimatelyAffine"/> on the resulting curve.
+/// Overloads without a documented rule compute the expression.
+/// </remarks>
 public class IsUltimatelyAffineVisitor : ICurveExpressionVisitor
 {
     /// <summary>
@@ -21,10 +26,19 @@ public class IsUltimatelyAffineVisitor : ICurveExpressionVisitor
     private void _throughCurveComputation(IGenericExpression<Curve> expression)
         => IsUltimatelyAffine = expression.Compute().IsUltimatelyAffine;
 
-    /// <inheritdoc />
-    /// <remarks>Negating an affine tail of slope $m$ yields an affine tail of slope $-m$.</remarks>
+    /// <summary>
+    /// Tests if the negated curve is ultimately affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/> and <see cref="Curve.Negate()"/>.
+    /// </summary>
+    /// <remarks>
+    /// The negated curve is ultimately affine if and only if the operand is, [TBP-PROPERTIES, Proposition 22(1)].
+    /// This method returns the operand’s <see cref="CurveExpression.IsUltimatelyAffine"/> property.
+    /// </remarks>
     public virtual void Visit(NegateExpression expression)
-        => expression.Operand.Accept(this);
+    {
+        var operand = (CurveExpression)expression.Operand;
+        IsUltimatelyAffine = operand.IsUltimatelyAffine;
+    }
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression)
@@ -62,15 +76,33 @@ public class IsUltimatelyAffineVisitor : ICurveExpressionVisitor
     public virtual void Visit(ToRightContinuousExpression expression)
         => _throughCurveComputation(expression);
 
-    /// <inheritdoc />
-    /// <remarks>A vertical repositioning of an affine tail is still affine, with the same slope.</remarks>
+    /// <summary>
+    /// Tests if the curve with its origin capped at zero is ultimately affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/> and <see cref="Curve.WithZeroOrigin()"/>.
+    /// </summary>
+    /// <remarks>
+    /// Changing the origin leaves the curve unchanged at positive times, so the result is ultimately affine if and only if the operand is, [TBP-PROPERTIES, Proposition 22(3)].
+    /// This method returns the operand’s <see cref="CurveExpression.IsUltimatelyAffine"/> property.
+    /// </remarks>
     public virtual void Visit(WithZeroOriginExpression expression)
-        => expression.Operand.Accept(this);
+    {
+        var operand = (CurveExpression)expression.Operand;
+        IsUltimatelyAffine = operand.IsUltimatelyAffine;
+    }
 
-    /// <inheritdoc />
-    /// <remarks>A vertical repositioning of an affine tail is still affine, with the same slope.</remarks>
+    /// <summary>
+    /// Tests if the curve with the specified origin value is ultimately affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/> and <see cref="Curve.WithOriginAt(Unipi.Nancy.Numerics.Rational)"/>.
+    /// </summary>
+    /// <remarks>
+    /// Changing the origin leaves the curve unchanged at positive times, so the result is ultimately affine if and only if the operand is, [TBP-PROPERTIES, Proposition 22(3)].
+    /// This method returns the operand’s <see cref="CurveExpression.IsUltimatelyAffine"/> property.
+    /// </remarks>
     public virtual void Visit(WithOriginAtExpression expression)
-        => expression.Operand.Accept(this);
+    {
+        var operand = (CurveExpression)expression.Operand;
+        IsUltimatelyAffine = operand.IsUltimatelyAffine;
+    }
 
     /// <inheritdoc />
     public virtual void Visit(LowerPseudoInverseExpression expression)
@@ -116,45 +148,100 @@ public class IsUltimatelyAffineVisitor : ICurveExpressionVisitor
     public virtual void Visit(CompositionExpression expression)
         => _throughCurveComputation(expression);
 
-    /// <inheritdoc />
-    /// <remarks>A time shift preserves an affine tail (and its slope).</remarks>
+    /// <summary>
+    /// Tests if the delayed curve is ultimately affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/> and <see cref="Curve.DelayBy(Unipi.Nancy.Numerics.Rational)"/>.
+    /// </summary>
+    /// <remarks>
+    /// After a finite time shift, the curve is ultimately affine if and only if the operand is, [TBP-PROPERTIES, Proposition 22(4)].
+    /// This method returns the operand’s <see cref="CurveExpression.IsUltimatelyAffine"/> property.
+    /// </remarks>
     public virtual void Visit(DelayByExpression expression)
-        => expression.LeftOperand.Accept(this);
+    {
+        var operand = (CurveExpression)expression.LeftOperand;
+        IsUltimatelyAffine = operand.IsUltimatelyAffine;
+    }
 
-    /// <inheritdoc />
-    /// <remarks>A time shift preserves an affine tail (and its slope).</remarks>
+    /// <summary>
+    /// Tests if the curve brought forward is ultimately affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/> and <see cref="Curve.ForwardBy(Unipi.Nancy.Numerics.Rational)"/>.
+    /// </summary>
+    /// <remarks>
+    /// After a finite time shift, the curve is ultimately affine if and only if the operand is, [TBP-PROPERTIES, Proposition 22(4)].
+    /// This method returns the operand’s <see cref="CurveExpression.IsUltimatelyAffine"/> property.
+    /// </remarks>
     public virtual void Visit(ForwardByExpression expression)
-        => expression.LeftOperand.Accept(this);
+    {
+        var operand = (CurveExpression)expression.LeftOperand;
+        IsUltimatelyAffine = operand.IsUltimatelyAffine;
+    }
 
-    /// <inheritdoc />
-    /// <remarks>A time shift preserves an affine tail (and its slope).</remarks>
+    /// <summary>
+    /// Tests if the horizontally shifted curve is ultimately affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/> and <see cref="Curve.HorizontalShift(Unipi.Nancy.Numerics.Rational)"/>.
+    /// </summary>
+    /// <remarks>
+    /// After a finite time shift, the curve is ultimately affine if and only if the operand is, [TBP-PROPERTIES, Proposition 22(4)].
+    /// This method returns the operand’s <see cref="CurveExpression.IsUltimatelyAffine"/> property.
+    /// </remarks>
     public virtual void Visit(HorizontalShiftExpression expression)
-        => expression.LeftOperand.Accept(this);
+    {
+        var operand = (CurveExpression)expression.LeftOperand;
+        IsUltimatelyAffine = operand.IsUltimatelyAffine;
+    }
 
-    /// <inheritdoc />
-    /// <remarks>A vertical shift preserves an affine tail (and its slope).</remarks>
+    /// <summary>
+    /// Tests if the vertically shifted curve is ultimately affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/> and <see cref="Curve.VerticalShift(Unipi.Nancy.Numerics.Rational, bool, ComputationSettings)"/>.
+    /// </summary>
+    /// <remarks>
+    /// After a finite vertical shift, the curve is ultimately affine if and only if the operand is, [TBP-PROPERTIES, Proposition 22(1)].
+    /// For a finite shift, this method returns the operand’s <see cref="CurveExpression.IsUltimatelyAffine"/> property.
+    /// Otherwise, for a shift of positive or negative infinity, it computes the shifted curve and checks <see cref="Curve.IsUltimatelyAffine"/>.
+    /// </remarks>
     public virtual void Visit(VerticalShiftExpression expression)
-        => expression.LeftOperand.Accept(this);
+    {
+        var factor = expression.RightOperand.Compute();
+        var operand = (CurveExpression)expression.LeftOperand;
+        if (factor.IsFinite) IsUltimatelyAffine = operand.IsUltimatelyAffine;
+        else _throughCurveComputation(expression);
+    }
 
     /// <inheritdoc />
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");
 
-    /// <inheritdoc />
-    /// <remarks>Scaling by a non-zero factor preserves an affine tail (the slope is scaled accordingly).</remarks>
+    /// <summary>
+    /// Tests if the scaled curve is ultimately affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/> and <see cref="Curve.Scale(Unipi.Nancy.Numerics.Rational)"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Multiplication by zero gives the zero curve, which is ultimately affine, [TBP-PROPERTIES, Proposition 22(1)].
+    /// This method therefore returns <see langword="true"/> for a zero factor.
+    /// </para>
+    /// <para>
+    /// For a nonzero finite factor, the scaled curve is ultimately affine if and only if the operand is, [TBP-PROPERTIES, Proposition 22(1)].
+    /// For a nonzero finite factor, this method returns the operand’s <see cref="CurveExpression.IsUltimatelyAffine"/> property.
+    /// </para>
+    /// <para>
+    /// Otherwise, for a factor of positive or negative infinity, this method computes the scaled curve and checks <see cref="Curve.IsUltimatelyAffine"/>.
+    /// </para>
+    /// </remarks>
     public virtual void Visit(ScaleExpression expression)
     {
-        if (expression.RightOperand.Compute() != 0) expression.LeftOperand.Accept(this);
+        var factor = expression.RightOperand.Compute();
+        var operand = (CurveExpression)expression.LeftOperand;
+        if (factor == 0) IsUltimatelyAffine = true;
+        else if (factor.IsFinite) IsUltimatelyAffine = operand.IsUltimatelyAffine;
         else _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
-    /// <remarks>Floor turns a non-constant affine tail into a staircase, so no shortcut applies in general.</remarks>
     public virtual void Visit(FloorExpression expression)
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
-    /// <remarks>Ceiling turns a non-constant affine tail into a staircase, so no shortcut applies in general.</remarks>
     public virtual void Visit(CeilExpression expression)
         => _throughCurveComputation(expression);
 }

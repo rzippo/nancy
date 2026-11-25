@@ -4,9 +4,14 @@ using Unipi.Nancy.MinPlusAlgebra;
 namespace Unipi.Nancy.Expressions.Visitors;
 
 /// <summary>
-/// Visitor used to check the left-continuity of the value of a curve expression. Implemented minimizing the amount of
-/// computations.
+/// Tests if the curve is left-continuous.
+/// See <see cref="Curve.IsLeftContinuous"/>.
 /// </summary>
+/// <remarks>
+/// Uses the rules documented on this visitor’s <c>Visit</c> overloads to determine left-continuity without computing the expression when possible.
+/// Otherwise, computes the expression and checks <see cref="Curve.IsLeftContinuous"/> on the resulting curve.
+/// Overloads without a documented rule compute the expression.
+/// </remarks>
 public class IsLeftContinuousVisitor : ICurveExpressionVisitor
 {
     /// <summary>
@@ -22,9 +27,19 @@ public class IsLeftContinuousVisitor : ICurveExpressionVisitor
         =>
         IsLeftContinuous = expression.Compute().IsLeftContinuous;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Tests if the negated curve is left-continuous.
+    /// See <see cref="Curve.IsLeftContinuous"/> and <see cref="Curve.Negate()"/>.
+    /// </summary>
+    /// <remarks>
+    /// The negated curve is left-continuous if and only if the operand is, [TBP-PROPERTIES, Proposition 17].
+    /// This method returns the operand’s <see cref="CurveExpression.IsLeftContinuous"/> property.
+    /// </remarks>
     public virtual void Visit(NegateExpression expression) 
-        => expression.Operand.Accept(this);
+    {
+        var operand = (CurveExpression)expression.Operand;
+        IsLeftContinuous = operand.IsLeftContinuous;
+    }
 
     /// <inheritdoc />
     public virtual void Visit(ToNonNegativeExpression expression) 
@@ -54,7 +69,14 @@ public class IsLeftContinuousVisitor : ICurveExpressionVisitor
     public virtual void Visit(ToLowerNonIncreasingExpression expression)
         => _throughCurveComputation(expression);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Tests if the curve obtained by taking left limits is left-continuous.
+    /// See <see cref="Curve.IsLeftContinuous"/> and <see cref="Curve.ToLeftContinuous()"/>.
+    /// </summary>
+    /// <remarks>
+    /// Taking left limits produces a left-continuous curve, [TBP-PROPERTIES, Proposition 17].
+    /// This method therefore returns <see langword="true"/>.
+    /// </remarks>
     public virtual void Visit(ToLeftContinuousExpression expression) 
         => IsLeftContinuous = true;
 
@@ -71,9 +93,15 @@ public class IsLeftContinuousVisitor : ICurveExpressionVisitor
         => _throughCurveComputation(expression);
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The lower pseudo-inverse can be computed only for non-decreasing operands, and if so the result is always left-continuous.
+    /// Otherwise, this call propagates <see cref="ArgumentException"/> from the failed computation.
+    /// </remarks>
     public virtual void Visit(LowerPseudoInverseExpression expression)
     {
-        expression.Operand.Accept(this);
+        var operand = (CurveExpression)expression.Operand;
+        if (operand.IsNonDecreasing) IsLeftContinuous = true;
+        else _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
@@ -96,21 +124,22 @@ public class IsLeftContinuousVisitor : ICurveExpressionVisitor
     public virtual void Visit(MaximumExpression expression) 
         => _throughCurveComputation(expression);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Tests if the (min,+) convolution is left-continuous.
+    /// See <see cref="Curve.IsLeftContinuous"/> and <see cref="Curve.Convolution(IEnumerable{Curve}, ComputationSettings)"/>.
+    /// </summary>
+    /// <remarks>
+    /// A (min,+) convolution of non-decreasing, left-continuous curves is left-continuous, [Zippo23, Proposition 4.2].
+    /// [TBP-PROPERTIES, Proposition 18] gives an independent proof with explicit hypotheses for infinite values.
+    /// This method checks whether every operand is non-decreasing and left-continuous and returns <see langword="true"/> if so.
+    /// Otherwise, it computes the convolution and checks <see cref="Curve.IsLeftContinuous"/> on the resulting curve.
+    /// </remarks>
     public virtual void Visit(ConvolutionExpression expression)
     {
-        foreach (var e in expression.Operands)
-        {
-            IsLeftContinuous = false;
-            if (((CurveExpression)e).IsNonDecreasing)
-            {
-                e.Accept(this);
-                if (!IsLeftContinuous)
-                    break;
-            }
-            else break;
-        }
-        if(!IsLeftContinuous) _throughCurveComputation(expression);
+        if (expression.Operands.Count > 0 && expression.Operands.Cast<CurveExpression>().All(operand => operand.IsNonDecreasing && operand.IsLeftContinuous))
+            IsLeftContinuous = true;
+        else
+            _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />
@@ -149,11 +178,30 @@ public class IsLeftContinuousVisitor : ICurveExpressionVisitor
     public virtual void Visit(CurvePlaceholderExpression expression)
         => throw new InvalidOperationException(GetType() + ": Cannot perform the check on a placeholder expression!");
     
-    /// <inheritdoc />
+    /// <summary>
+    /// Tests if the scaled curve is left-continuous.
+    /// See <see cref="Curve.IsLeftContinuous"/> and <see cref="Curve.Scale(Unipi.Nancy.Numerics.Rational)"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Multiplication by zero gives the zero curve, which is left-continuous, [TBP-PROPERTIES, Proposition 17].
+    /// This method therefore returns <see langword="true"/> for a zero factor.
+    /// </para>
+    /// <para>
+    /// For a nonzero finite factor, the scaled curve is left-continuous if and only if the operand is, [TBP-PROPERTIES, Proposition 17].
+    /// For a nonzero finite factor, this method returns the operand’s <see cref="CurveExpression.IsLeftContinuous"/> property.
+    /// </para>
+    /// <para>
+    /// Otherwise, for a factor of positive or negative infinity, this method computes the scaled curve and checks its left-continuity using <see cref="Curve.IsLeftContinuous"/>.
+    /// </para>
+    /// </remarks>
     public virtual void Visit(ScaleExpression expression)
     {
-        if (expression.RightOperand.Compute() != 0) expression.LeftOperand.Accept(this);
-        else IsLeftContinuous = true;
+        var factor = expression.RightOperand.Compute();
+        var operand = (CurveExpression)expression.LeftOperand;
+        if (factor == 0) IsLeftContinuous = true;
+        else if (factor.IsFinite) IsLeftContinuous = operand.IsLeftContinuous;
+        else _throughCurveComputation(expression);
     }
 
     /// <inheritdoc />

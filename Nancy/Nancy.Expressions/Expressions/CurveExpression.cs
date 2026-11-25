@@ -264,9 +264,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isSubAdditive;
 
     /// <summary>
-    /// True if the curve described by the expression is sub-additive. Property evaluated avoiding as much as possible
-    /// to make any computation.
+    /// True if the curve is subadditive, i.e. $f(t+s) \le f(t) + f(s)$.
+    /// See <see cref="Curve.IsSubAdditive"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsSubAdditiveVisitor"/> to determine whether the curve is subadditive without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsSubAdditive"/> on the resulting curve.
+    /// </remarks>
     public bool IsSubAdditive
         => KnownProperties.Get(ref _isSubAdditive, this, static self =>
         {
@@ -281,9 +285,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isSuperAdditive;
 
     /// <summary>
-    /// True if the curve described by the expression is super-additive. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if the curve is super-additive, i.e. $f(t+s) \ge f(t) + f(s)$.
+    /// See <see cref="Curve.IsSuperAdditive"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsSuperAdditiveVisitor"/> to determine whether the curve is superadditive without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsSuperAdditive"/> on the resulting curve.
+    /// </remarks>
     public bool IsSuperAdditive
         => KnownProperties.Get(ref _isSuperAdditive, this, static self =>
         {
@@ -298,9 +306,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isLeftContinuous;
 
     /// <summary>
-    /// True if the curve described by the expression is left continuous. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if there is no left-discontinuity within the curve.
+    /// See <see cref="Curve.IsLeftContinuous"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsLeftContinuousVisitor"/> to determine left-continuity without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsLeftContinuous"/> on the resulting curve.
+    /// </remarks>
     public bool IsLeftContinuous
         => KnownProperties.Get(ref _isLeftContinuous, this, static self =>
         {
@@ -315,9 +327,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isRightContinuous;
 
     /// <summary>
-    /// True if the curve described by the expression is right continuous. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if there is no right-discontinuity within the curve.
+    /// See <see cref="Curve.IsRightContinuous"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsRightContinuousVisitor"/> to determine right-continuity without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsRightContinuous"/> on the resulting curve.
+    /// </remarks>
     public bool IsRightContinuous
         => KnownProperties.Get(ref _isRightContinuous, this, static self =>
         {
@@ -332,9 +348,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isNonNegative;
 
     /// <summary>
-    /// True if the curve described by the expression is non-negative. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if the curve is non-negative, i.e. $f(t) \ge 0$ for any $t$.
+    /// See <see cref="Curve.IsNonNegative"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsNonNegativeVisitor"/> to determine whether the curve is non-negative without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsNonNegative"/> on the resulting curve.
+    /// </remarks>
     public bool IsNonNegative
         => KnownProperties.Get(ref _isNonNegative, this, static self =>
         {
@@ -349,11 +369,20 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isNonPositive;
 
     /// <summary>
-    /// True if the curve described by the expression is non-positive, as <see cref="Curve.IsNonPositive"/> defines it.
-    /// This computes the expression's value.
+    /// True if every defined value is non-positive.
+    /// See <see cref="Curve.IsNonPositive"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsNonPositiveVisitor"/> to determine whether the curve is non-positive without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsNonPositive"/> on the resulting curve.
+    /// </remarks>
     public bool IsNonPositive
-        => KnownProperties.Get(ref _isNonPositive, this, static self => self.Value.IsNonPositive);
+        => KnownProperties.Get(ref _isNonPositive, this, static self =>
+        {
+            var visitor = new IsNonPositiveVisitor();
+            self.Accept(visitor);
+            return visitor.IsNonPositive;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsPositive"/>.
@@ -361,11 +390,20 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isPositive;
 
     /// <summary>
-    /// True if the curve described by the expression is (strictly) positive, as <see cref="Curve.IsPositive"/> defines it.
-    /// This computes the expression's value.
+    /// True if every defined value is strictly positive, including plus infinity.
+    /// See <see cref="Curve.IsPositive"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsPositiveVisitor"/> to determine whether the curve is strictly positive without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsPositive"/> on the resulting curve.
+    /// </remarks>
     public bool IsPositive
-        => KnownProperties.Get(ref _isPositive, this, static self => self.Value.IsPositive);
+        => KnownProperties.Get(ref _isPositive, this, static self =>
+        {
+            var visitor = new IsPositiveVisitor();
+            self.Accept(visitor);
+            return visitor.IsPositive;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsNegative"/>.
@@ -373,11 +411,20 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isNegative;
 
     /// <summary>
-    /// True if the curve described by the expression is (strictly) negative, as <see cref="Curve.IsNegative"/> defines it.
-    /// This computes the expression's value.
+    /// True if every defined value is strictly negative, including minus infinity.
+    /// See <see cref="Curve.IsNegative"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsNegativeVisitor"/> to determine whether the curve is strictly negative without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsNegative"/> on the resulting curve.
+    /// </remarks>
     public bool IsNegative
-        => KnownProperties.Get(ref _isNegative, this, static self => self.Value.IsNegative);
+        => KnownProperties.Get(ref _isNegative, this, static self =>
+        {
+            var visitor = new IsNegativeVisitor();
+            self.Accept(visitor);
+            return visitor.IsNegative;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsZero"/>.
@@ -397,9 +444,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isNonDecreasing;
 
     /// <summary>
-    /// True if the curve described by the expression is non-decreasing. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if for any $t > s$, $f(t) \ge f(s)$.
+    /// See <see cref="Curve.IsNonDecreasing"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsNonDecreasingVisitor"/> to determine whether the curve is non-decreasing without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsNonDecreasing"/> on the resulting curve.
+    /// </remarks>
     public bool IsNonDecreasing
         => KnownProperties.Get(ref _isNonDecreasing, this, static self =>
         {
@@ -414,9 +465,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isIncreasing;
 
     /// <summary>
-    /// True if the curve described by the expression is (strictly) increasing. Property evaluated avoiding as much
-    /// as possible to make any computation.
+    /// True if for any $t > s$, $f(t) > f(s)$.
+    /// See <see cref="Curve.IsIncreasing"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsIncreasingVisitor"/> to determine strict increase without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsIncreasing"/> on the resulting curve.
+    /// </remarks>
     public bool IsIncreasing
         => KnownProperties.Get(ref _isIncreasing, this, static self =>
         {
@@ -455,9 +510,14 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isConcave;
 
     /// <summary>
-    /// True if the curve described by the expression is concave. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// Tests if the curve is concave,
+    /// i.e. for any two points $(t, f(t))$ the straight line joining them is below $f$.
+    /// See <see cref="Curve.IsConcave"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsConcaveVisitor"/> to determine concavity without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsConcave"/> on the resulting curve.
+    /// </remarks>
     public bool IsConcave
         => KnownProperties.Get(ref _isConcave, this, static self =>
         {
@@ -472,9 +532,14 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isConvex;
 
     /// <summary>
-    /// True if the curve described by the expression is convex. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// Tests if the curve is convex,
+    /// i.e. for any two points $(t, f(t))$ the straight line joining them is above $f$.
+    /// See <see cref="Curve.IsConvex"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsConvexVisitor"/> to determine convexity without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsConvex"/> on the resulting curve.
+    /// </remarks>
     public bool IsConvex
         => KnownProperties.Get(ref _isConvex, this, static self =>
         {
@@ -489,9 +554,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isPassingThroughOrigin;
 
     /// <summary>
-    /// True if the curve $f$ described by the expression passes through the origin, i.e. $f(0) = 0$. Property
-    /// evaluated avoiding as much as possible to make any computation.
+    /// True if $f(0) = 0$.
+    /// See <see cref="Curve.IsPassingThroughOrigin"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsPassingThroughOriginVisitor"/> to determine whether the curve is passing through the origin without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsPassingThroughOrigin"/> on the resulting curve.
+    /// </remarks>
     public bool IsPassingThroughOrigin
         => KnownProperties.Get(ref _isPassingThroughOrigin, this, static self =>
         {
@@ -506,9 +575,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isUltimatelyFinite;
 
     /// <summary>
-    /// True if the curve described by the expression is ultimately finite. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if for all $t \ge$ <see cref="Curve.PseudoPeriodStart"/> the curve is finite.
+    /// See <see cref="Curve.IsUltimatelyFinite"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsUltimatelyFiniteVisitor"/> to determine whether the curve is ultimately finite without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsUltimatelyFinite"/> on the resulting curve.
+    /// </remarks>
     public bool IsUltimatelyFinite
         => KnownProperties.Get(ref _isUltimatelyFinite, this, static self =>
         {
@@ -523,9 +596,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isPlain;
 
     /// <summary>
-    /// True if the curve described by the expression is plain, as defined in [BT08], Definition 1. Property
-    /// evaluated avoiding as much as possible to make any computation.
+    /// True if $f$ is plain, i.e., it is either always finite, always plus or minus infinite (without changing sign), or finite up to a $T$, then always plus or minus infinite (without changing sign), as defined in [BT08, Definition 1].
+    /// See <see cref="Curve.IsPlain"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsPlainVisitor"/> to determine whether the curve is plain without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsPlain"/> on the resulting curve.
+    /// </remarks>
     public bool IsPlain
         => KnownProperties.Get(ref _isPlain, this, static self =>
         {
@@ -540,9 +617,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isUltimatelyPlain;
 
     /// <summary>
-    /// True if the curve described by the expression is ultimately plain, as defined in [BT08], Definition 1.
-    /// Property evaluated avoiding as much as possible to make any computation.
+    /// True if for all $t >$ <see cref="Curve.PseudoPeriodStart"/> the curve is either always finite or always infinite with the same sign.
+    /// See <see cref="Curve.IsUltimatelyPlain"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsUltimatelyPlainVisitor"/> to determine whether the curve is ultimately plain without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsUltimatelyPlain"/> on the resulting curve.
+    /// </remarks>
     public bool IsUltimatelyPlain
         => KnownProperties.Get(ref _isUltimatelyPlain, this, static self =>
         {
@@ -557,9 +638,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isUltimatelyAffine;
 
     /// <summary>
-    /// True if the curve described by the expression is ultimately affine. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if for all $t \ge$ <see cref="Curve.PseudoPeriodStart"/> the curve is finite and affine.
+    /// See <see cref="Curve.IsUltimatelyAffine"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsUltimatelyAffineVisitor"/> to determine whether the curve is ultimately affine without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsUltimatelyAffine"/> on the resulting curve.
+    /// </remarks>
     public bool IsUltimatelyAffine
         => KnownProperties.Get(ref _isUltimatelyAffine, this, static self =>
         {
@@ -574,9 +659,13 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     internal Lazy<bool>? _isUltimatelyConstant;
 
     /// <summary>
-    /// True if the curve described by the expression is ultimately constant. Property evaluated avoiding as much as
-    /// possible to make any computation.
+    /// True if for $t \ge$ <see cref="Curve.PseudoPeriodStart"/> the curve has one finite constant value.
+    /// See <see cref="Curve.IsUltimatelyConstant"/>.
     /// </summary>
+    /// <remarks>
+    /// Uses the rules described in <see cref="IsUltimatelyConstantVisitor"/> to determine whether the curve is ultimately constant without computing the expression when possible.
+    /// Otherwise, computes the expression and checks <see cref="Curve.IsUltimatelyConstant"/> on the resulting curve.
+    /// </remarks>
     public bool IsUltimatelyConstant
         => KnownProperties.Get(ref _isUltimatelyConstant, this, static self =>
         {
