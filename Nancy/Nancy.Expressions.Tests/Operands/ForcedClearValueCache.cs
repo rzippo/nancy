@@ -81,26 +81,21 @@ public class ForcedClearValueCache
         Assert.True(leaf.IsComputed);
     }
 
-    [Fact]
-    public void EveryCachedPredicateIsCleared()
+    [Theory]
+    [MemberData(nameof(IfKnownAccessors.Predicates), MemberType = typeof(IfKnownAccessors))]
+    public void EveryCachedPredicateIsCleared(IfKnownAccessors.Peek peek, IfKnownAccessors.Force force)
     {
         var (root, intermediate, leftLeaf, _) = BuildTree();
         CurveExpression[] nodes = [root, intermediate, leftLeaf];
         foreach (var node in nodes)
         {
-            _ = node.IsSubAdditive;
-            _ = node.IsNonNegative;
-            Assert.NotNull(node.SubAdditiveIfKnown);
-            Assert.NotNull(node.NonNegativeIfKnown);
+            force(node);
+            Assert.NotNull(peek(node));
         }
 
         root.ClearValueCache(force: true);
 
-        Assert.All(nodes, node =>
-        {
-            Assert.Null(node.SubAdditiveIfKnown);
-            Assert.Null(node.NonNegativeIfKnown);
-        });
+        Assert.All(nodes, node => Assert.Null(peek(node)));
     }
 
     [Fact]

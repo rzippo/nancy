@@ -27,6 +27,14 @@ public class IfKnownAccessors
         yield return new object[] { (Peek)(e => e.UltimatelyAffineIfKnown), (Force)(e => e.IsUltimatelyAffine) };
         yield return new object[] { (Peek)(e => e.UltimatelyConstantIfKnown), (Force)(e => e.IsUltimatelyConstant) };
         yield return new object[] { (Peek)(e => e.WellDefinedIfKnown), (Force)(e => e.IsWellDefined) };
+        yield return new object[] { (Peek)(e => e.NonIncreasingIfKnown), (Force)(e => e.IsNonIncreasing) };
+        yield return new object[] { (Peek)(e => e.DecreasingIfKnown), (Force)(e => e.IsDecreasing) };
+        yield return new object[] { (Peek)(e => e.NonPositiveIfKnown), (Force)(e => e.IsNonPositive) };
+        yield return new object[] { (Peek)(e => e.PositiveIfKnown), (Force)(e => e.IsPositive) };
+        yield return new object[] { (Peek)(e => e.NegativeIfKnown), (Force)(e => e.IsNegative) };
+        yield return new object[] { (Peek)(e => e.ConstantIfKnown), (Force)(e => e.IsConstant) };
+        yield return new object[] { (Peek)(e => e.AffineIfKnown), (Force)(e => e.IsAffine) };
+        yield return new object[] { (Peek)(e => e.ZeroIfKnown), (Force)(e => e.IsZero) };
     }
 
     [Theory]

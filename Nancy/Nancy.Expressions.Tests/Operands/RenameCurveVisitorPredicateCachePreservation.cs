@@ -9,7 +9,7 @@ namespace Unipi.Nancy.Expressions.Tests.Operands;
 
 // CommonVisit itself, the path every AdditionExpression rename goes through, used to copy only nine of CurveExpression's sixteen real predicate cache fields.
 // RenameCurveVisitorCachePreservation pins the ten-operator-bypass half of that bug, forcing IsComputed/_value only.
-// This pins the other half: every one of the sixteen individually survives a rename through CommonVisit.
+// This pins the other half: every predicate cache individually survives a rename through CommonVisit.
 public class RenameCurveVisitorPredicateCachePreservation
 {
     private static CurveExpression Expression()
@@ -33,6 +33,14 @@ public class RenameCurveVisitorPredicateCachePreservation
         yield return Case(e => e.IsUltimatelyAffine, e => e.UltimatelyAffineIfKnown);
         yield return Case(e => e.IsUltimatelyConstant, e => e.UltimatelyConstantIfKnown);
         yield return Case(e => e.IsWellDefined, e => e.WellDefinedIfKnown);
+        yield return Case(e => e.IsNonIncreasing, e => e.NonIncreasingIfKnown);
+        yield return Case(e => e.IsDecreasing, e => e.DecreasingIfKnown);
+        yield return Case(e => e.IsNonPositive, e => e.NonPositiveIfKnown);
+        yield return Case(e => e.IsPositive, e => e.PositiveIfKnown);
+        yield return Case(e => e.IsNegative, e => e.NegativeIfKnown);
+        yield return Case(e => e.IsConstant, e => e.ConstantIfKnown);
+        yield return Case(e => e.IsAffine, e => e.AffineIfKnown);
+        yield return Case(e => e.IsZero, e => e.ZeroIfKnown);
 
         static object[] Case(Func<CurveExpression, bool> force, Func<CurveExpression, bool?> ifKnown)
             => new object[] { force, ifKnown };
