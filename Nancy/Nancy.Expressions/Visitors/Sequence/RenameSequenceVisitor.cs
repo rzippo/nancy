@@ -47,6 +47,15 @@ public class RenameSequenceVisitor : ISequenceExpressionVisitor
             _isNonNegative = Volatile.Read(ref expression._isNonNegative) is { IsValueCreated: true } cache_isNonNegative ? cache_isNonNegative : null,
             _isNonDecreasing = Volatile.Read(ref expression._isNonDecreasing) is { IsValueCreated: true } cache_isNonDecreasing ? cache_isNonDecreasing : null,
             _isIncreasing = Volatile.Read(ref expression._isIncreasing) is { IsValueCreated: true } cache_isIncreasing ? cache_isIncreasing : null,
+            _isNonIncreasing = Volatile.Read(ref expression._isNonIncreasing) is { IsValueCreated: true } cache_isNonIncreasing ? cache_isNonIncreasing : null,
+            _isDecreasing = Volatile.Read(ref expression._isDecreasing) is { IsValueCreated: true } cache_isDecreasing ? cache_isDecreasing : null,
+            _isNonPositive = Volatile.Read(ref expression._isNonPositive) is { IsValueCreated: true } cache_isNonPositive ? cache_isNonPositive : null,
+            _isPositive = Volatile.Read(ref expression._isPositive) is { IsValueCreated: true } cache_isPositive ? cache_isPositive : null,
+            _isNegative = Volatile.Read(ref expression._isNegative) is { IsValueCreated: true } cache_isNegative ? cache_isNegative : null,
+            _isConstant = Volatile.Read(ref expression._isConstant) is { IsValueCreated: true } cache_isConstant ? cache_isConstant : null,
+            _isAffine = Volatile.Read(ref expression._isAffine) is { IsValueCreated: true } cache_isAffine ? cache_isAffine : null,
+            _isZero = Volatile.Read(ref expression._isZero) is { IsValueCreated: true } cache_isZero ? cache_isZero : null,
+            _isContinuous = Volatile.Read(ref expression._isContinuous) is { IsValueCreated: true } cache_isContinuous ? cache_isContinuous : null,
         };
     }
 

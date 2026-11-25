@@ -43,9 +43,12 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     internal Lazy<bool>? _isLeftContinuous;
 
     /// <summary>
-    /// True if the sequence described by the expression is left continuous.
-    /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
+    /// True if there is no left-discontinuity within the sequence.
+    /// See <see cref="Sequence.IsLeftContinuous"/>.
     /// </summary>
+    /// <remarks>
+    /// Computes the expression's value.
+    /// </remarks>
     public bool IsLeftContinuous
         => KnownProperties.Get(ref _isLeftContinuous, this, static self => self.Value.IsLeftContinuous);
 
@@ -55,9 +58,12 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     internal Lazy<bool>? _isRightContinuous;
 
     /// <summary>
-    /// True if the sequence described by the expression is right continuous.
-    /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
+    /// True if there is no right-discontinuity within the sequence.
+    /// See <see cref="Sequence.IsRightContinuous"/>.
     /// </summary>
+    /// <remarks>
+    /// Computes the expression's value.
+    /// </remarks>
     public bool IsRightContinuous
         => KnownProperties.Get(ref _isRightContinuous, this, static self => self.Value.IsRightContinuous);
 
@@ -67,9 +73,12 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     internal Lazy<bool>? _isNonNegative;
 
     /// <summary>
-    /// True if the sequence described by the expression is non-negative.
-    /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
+    /// True if the sequence is non-negative, i.e. $f(t) \ge 0$ for any $t$.
+    /// See <see cref="Sequence.IsNonNegative"/>.
     /// </summary>
+    /// <remarks>
+    /// Computes the expression's value.
+    /// </remarks>
     public bool IsNonNegative
         => KnownProperties.Get(ref _isNonNegative, this, static self => self.Value.IsNonNegative);
 
@@ -79,9 +88,12 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     internal Lazy<bool>? _isNonDecreasing;
 
     /// <summary>
-    /// True if the sequence described by the expression is non-decreasing.
-    /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
+    /// True if for any $t > s$, $f(t) \ge f(s)$.
+    /// See <see cref="Sequence.IsNonDecreasing"/>.
     /// </summary>
+    /// <remarks>
+    /// Computes the expression's value.
+    /// </remarks>
     public bool IsNonDecreasing
         => KnownProperties.Get(ref _isNonDecreasing, this, static self => self.Value.IsNonDecreasing);
 
@@ -91,11 +103,124 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     internal Lazy<bool>? _isIncreasing;
 
     /// <summary>
-    /// True if the sequence described by the expression is increasing.
-    /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
+    /// True if for any $t > s$, $f(t) > f(s)$.
+    /// See <see cref="Sequence.IsIncreasing"/>.
     /// </summary>
+    /// <remarks>
+    /// Computes the expression's value.
+    /// </remarks>
     public bool IsIncreasing
         => KnownProperties.Get(ref _isIncreasing, this, static self => self.Value.IsIncreasing);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsNonIncreasing"/>.
+    /// </summary>
+    internal Lazy<bool>? _isNonIncreasing;
+
+    /// <summary>
+    /// True if the sequence described by the expression is non-increasing, as <see cref="Sequence.IsNonIncreasing"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsNonIncreasing
+        => KnownProperties.Get(ref _isNonIncreasing, this, static self => self.Value.IsNonIncreasing);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsDecreasing"/>.
+    /// </summary>
+    internal Lazy<bool>? _isDecreasing;
+
+    /// <summary>
+    /// True if the sequence described by the expression is (strictly) decreasing, as <see cref="Sequence.IsDecreasing"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsDecreasing
+        => KnownProperties.Get(ref _isDecreasing, this, static self => self.Value.IsDecreasing);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsNonPositive"/>.
+    /// </summary>
+    internal Lazy<bool>? _isNonPositive;
+
+    /// <summary>
+    /// True if the sequence described by the expression is non-positive, as <see cref="Sequence.IsNonPositive"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsNonPositive
+        => KnownProperties.Get(ref _isNonPositive, this, static self => self.Value.IsNonPositive);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsPositive"/>.
+    /// </summary>
+    internal Lazy<bool>? _isPositive;
+
+    /// <summary>
+    /// True if the sequence described by the expression is (strictly) positive, as <see cref="Sequence.IsPositive"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsPositive
+        => KnownProperties.Get(ref _isPositive, this, static self => self.Value.IsPositive);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsNegative"/>.
+    /// </summary>
+    internal Lazy<bool>? _isNegative;
+
+    /// <summary>
+    /// True if the sequence described by the expression is (strictly) negative, as <see cref="Sequence.IsNegative"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsNegative
+        => KnownProperties.Get(ref _isNegative, this, static self => self.Value.IsNegative);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsConstant"/>.
+    /// </summary>
+    internal Lazy<bool>? _isConstant;
+
+    /// <summary>
+    /// True if the sequence described by the expression is constant, as <see cref="Sequence.IsConstant"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsConstant
+        => KnownProperties.Get(ref _isConstant, this, static self => self.Value.IsConstant);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsAffine"/>.
+    /// </summary>
+    internal Lazy<bool>? _isAffine;
+
+    /// <summary>
+    /// True if the sequence described by the expression is affine, as <see cref="Sequence.IsAffine"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsAffine
+        => KnownProperties.Get(ref _isAffine, this, static self => self.Value.IsAffine);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsZero"/>.
+    /// </summary>
+    internal Lazy<bool>? _isZero;
+
+    /// <summary>
+    /// True if the sequence described by the expression is zero, as <see cref="Sequence.IsZero"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsZero
+        => KnownProperties.Get(ref _isZero, this, static self => self.Value.IsZero);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsContinuous"/>.
+    /// </summary>
+    internal Lazy<bool>? _isContinuous;
+
+    /// <summary>
+    /// True if the sequence described by the expression is continuous, as <see cref="Sequence.IsContinuous"/> defines it.
+    /// </summary>
+    /// <remarks>
+    /// Computes the expression's value.
+    /// </remarks>
+    public bool IsContinuous
+        => KnownProperties.Get(ref _isContinuous, this, static self => self.Value.IsContinuous);
 
     #endregion Properties
 
@@ -165,6 +290,15 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
         Interlocked.Exchange(ref _isNonNegative, null);
         Interlocked.Exchange(ref _isNonDecreasing, null);
         Interlocked.Exchange(ref _isIncreasing, null);
+        Interlocked.Exchange(ref _isNonIncreasing, null);
+        Interlocked.Exchange(ref _isDecreasing, null);
+        Interlocked.Exchange(ref _isNonPositive, null);
+        Interlocked.Exchange(ref _isPositive, null);
+        Interlocked.Exchange(ref _isNegative, null);
+        Interlocked.Exchange(ref _isConstant, null);
+        Interlocked.Exchange(ref _isAffine, null);
+        Interlocked.Exchange(ref _isZero, null);
+        Interlocked.Exchange(ref _isContinuous, null);
     }
 
     /// <summary>

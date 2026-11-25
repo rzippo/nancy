@@ -92,6 +92,14 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         Interlocked.Exchange(ref _isUltimatelyAffine, null);
         Interlocked.Exchange(ref _isUltimatelyConstant, null);
         Interlocked.Exchange(ref _isWellDefined, null);
+        Interlocked.Exchange(ref _isNonIncreasing, null);
+        Interlocked.Exchange(ref _isDecreasing, null);
+        Interlocked.Exchange(ref _isNonPositive, null);
+        Interlocked.Exchange(ref _isPositive, null);
+        Interlocked.Exchange(ref _isNegative, null);
+        Interlocked.Exchange(ref _isConstant, null);
+        Interlocked.Exchange(ref _isAffine, null);
+        Interlocked.Exchange(ref _isZero, null);
     }
 
     /// <summary>
@@ -208,6 +216,46 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// </summary>
     public bool? WellDefinedIfKnown => KnownProperties.GetIfKnown(ref _isWellDefined);
 
+    /// <summary>
+    /// <see cref="IsNonIncreasing"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? NonIncreasingIfKnown => KnownProperties.GetIfKnown(ref _isNonIncreasing);
+
+    /// <summary>
+    /// <see cref="IsDecreasing"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? DecreasingIfKnown => KnownProperties.GetIfKnown(ref _isDecreasing);
+
+    /// <summary>
+    /// <see cref="IsNonPositive"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? NonPositiveIfKnown => KnownProperties.GetIfKnown(ref _isNonPositive);
+
+    /// <summary>
+    /// <see cref="IsPositive"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? PositiveIfKnown => KnownProperties.GetIfKnown(ref _isPositive);
+
+    /// <summary>
+    /// <see cref="IsNegative"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? NegativeIfKnown => KnownProperties.GetIfKnown(ref _isNegative);
+
+    /// <summary>
+    /// <see cref="IsConstant"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? ConstantIfKnown => KnownProperties.GetIfKnown(ref _isConstant);
+
+    /// <summary>
+    /// <see cref="IsAffine"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? AffineIfKnown => KnownProperties.GetIfKnown(ref _isAffine);
+
+    /// <summary>
+    /// <see cref="IsZero"/> if already cached, without forcing the check.
+    /// </summary>
+    public bool? ZeroIfKnown => KnownProperties.GetIfKnown(ref _isZero);
+
     #endregion IfKnown accessors
 
     /// <summary>
@@ -296,6 +344,54 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
         });
 
     /// <summary>
+    /// Private cache field for <see cref="IsNonPositive"/>.
+    /// </summary>
+    internal Lazy<bool>? _isNonPositive;
+
+    /// <summary>
+    /// True if the curve described by the expression is non-positive, as <see cref="Curve.IsNonPositive"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsNonPositive
+        => KnownProperties.Get(ref _isNonPositive, this, static self => self.Value.IsNonPositive);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsPositive"/>.
+    /// </summary>
+    internal Lazy<bool>? _isPositive;
+
+    /// <summary>
+    /// True if the curve described by the expression is (strictly) positive, as <see cref="Curve.IsPositive"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsPositive
+        => KnownProperties.Get(ref _isPositive, this, static self => self.Value.IsPositive);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsNegative"/>.
+    /// </summary>
+    internal Lazy<bool>? _isNegative;
+
+    /// <summary>
+    /// True if the curve described by the expression is (strictly) negative, as <see cref="Curve.IsNegative"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsNegative
+        => KnownProperties.Get(ref _isNegative, this, static self => self.Value.IsNegative);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsZero"/>.
+    /// </summary>
+    internal Lazy<bool>? _isZero;
+
+    /// <summary>
+    /// True if the curve described by the expression is zero, as <see cref="Curve.IsZero"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsZero
+        => KnownProperties.Get(ref _isZero, this, static self => self.Value.IsZero);
+
+    /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>.
     /// </summary>
     internal Lazy<bool>? _isNonDecreasing;
@@ -328,6 +424,30 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
             self.Accept(visitor);
             return visitor.IsIncreasing;
         });
+
+    /// <summary>
+    /// Private cache field for <see cref="IsNonIncreasing"/>.
+    /// </summary>
+    internal Lazy<bool>? _isNonIncreasing;
+
+    /// <summary>
+    /// True if the curve described by the expression is non-increasing, as <see cref="Curve.IsNonIncreasing"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsNonIncreasing
+        => KnownProperties.Get(ref _isNonIncreasing, this, static self => self.Value.IsNonIncreasing);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsDecreasing"/>.
+    /// </summary>
+    internal Lazy<bool>? _isDecreasing;
+
+    /// <summary>
+    /// True if the curve described by the expression is (strictly) decreasing, as <see cref="Curve.IsDecreasing"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsDecreasing
+        => KnownProperties.Get(ref _isDecreasing, this, static self => self.Value.IsDecreasing);
 
     /// <summary>
     /// Private cache field for <see cref="IsConcave"/>.
@@ -464,6 +584,30 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
             self.Accept(visitor);
             return visitor.IsUltimatelyConstant;
         });
+
+    /// <summary>
+    /// Private cache field for <see cref="IsAffine"/>.
+    /// </summary>
+    internal Lazy<bool>? _isAffine;
+
+    /// <summary>
+    /// True if the curve described by the expression is affine, as <see cref="Curve.IsAffine"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsAffine
+        => KnownProperties.Get(ref _isAffine, this, static self => self.Value.IsAffine);
+
+    /// <summary>
+    /// Private cache field for <see cref="IsConstant"/>.
+    /// </summary>
+    internal Lazy<bool>? _isConstant;
+
+    /// <summary>
+    /// True if the curve described by the expression is constant, as <see cref="Curve.IsConstant"/> defines it.
+    /// This computes the expression's value.
+    /// </summary>
+    public bool IsConstant
+        => KnownProperties.Get(ref _isConstant, this, static self => self.Value.IsConstant);
 
     /// <summary>
     /// Private cache field for <see cref="IsWellDefined"/>.
