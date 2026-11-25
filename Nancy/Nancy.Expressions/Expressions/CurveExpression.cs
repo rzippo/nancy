@@ -1381,6 +1381,340 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
 
     #endregion Sampling
 
+    #region Predicates over an interval
+
+    /// <summary>
+    /// True if the curve described by the expression is non-negative over the given interval, as <see cref="Curve.IsNonNegativeOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNonNegativeOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+        if (NonNegativeIfKnown == true)
+            return true;
+        else
+            return Compute().IsNonNegativeOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is non-positive over the given interval, as <see cref="Curve.IsNonPositiveOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNonPositiveOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+        if (NonPositiveIfKnown == true)
+            return true;
+        else
+            return Compute().IsNonPositiveOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is strictly positive over the given interval, as <see cref="Curve.IsPositiveOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsPositiveOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+        if (PositiveIfKnown == true)
+            return true;
+        else
+            return Compute().IsPositiveOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is strictly negative over the given interval, as <see cref="Curve.IsNegativeOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNegativeOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        if (start > end)
+            throw new ArgumentException("Interval start cannot be after its end.");
+        if (start < 0 || start == Rational.PlusInfinity)
+            throw new ArgumentException($"Invalid start: {start}");
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Interval endpoints, if equal, must be both inclusive.");
+
+        if (NegativeIfKnown == true)
+            return true;
+        else
+            return Compute().IsNegativeOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is non-decreasing over the given interval, as <see cref="Curve.IsNonDecreasingOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNonDecreasingOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || NonDecreasingIfKnown == true)
+            return true;
+        else
+            return Compute().IsNonDecreasingOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is strictly increasing over the given interval, as <see cref="Curve.IsIncreasingOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsIncreasingOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || IncreasingIfKnown == true)
+            return true;
+        else
+            return Compute().IsIncreasingOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is non-increasing over the given interval, as <see cref="Curve.IsNonIncreasingOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsNonIncreasingOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || NonIncreasingIfKnown == true)
+            return true;
+        else
+            return Compute().IsNonIncreasingOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is strictly decreasing over the given interval, as <see cref="Curve.IsDecreasingOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsDecreasingOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || DecreasingIfKnown == true)
+            return true;
+        else
+            return Compute().IsDecreasingOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is continuous over the given interval, as <see cref="Curve.IsContinuousOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsContinuousOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || LeftContinuousIfKnown == true && RightContinuousIfKnown == true)
+            return true;
+        else
+            return Compute().IsContinuousOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is left-continuous over the given interval, as <see cref="Curve.IsLeftContinuousOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsLeftContinuousOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || LeftContinuousIfKnown == true)
+            return true;
+        else
+            return Compute().IsLeftContinuousOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    /// <summary>
+    /// True if the curve described by the expression is right-continuous over the given interval, as <see cref="Curve.IsRightContinuousOverInterval"/> defines it.
+    /// The expression's completed predicate caches answer when they establish the property, as the curve's own do; otherwise this computes the expression's value and asks its curve.
+    /// The answer is not cached.
+    /// </summary>
+    /// <param name="start">Start of the interval.</param>
+    /// <param name="end">End of the interval; if not specified, it is assumed $+\infty$.</param>
+    /// <param name="isStartIncluded">If true, the interval is left-closed.</param>
+    /// <param name="isEndIncluded">If true, the interval is right-closed.</param>
+    /// <exception cref="ArgumentException">If an invalid interval is given.</exception>
+    public bool IsRightContinuousOverInterval(
+        Rational start,
+        Rational? end = null,
+        bool isStartIncluded = true,
+        bool isEndIncluded = false)
+    {
+        var intervalEnd = end ?? Rational.PlusInfinity;
+        if (!start.IsFinite || start < 0)
+            throw new ArgumentException("The interval start must be finite and non-negative.", nameof(start));
+        if (start > intervalEnd)
+            throw new ArgumentException("The interval start cannot follow its end.", nameof(end));
+        if (start == intervalEnd && !(isStartIncluded && isEndIncluded))
+            throw new ArgumentException("Equal interval endpoints must both be included.");
+
+        if (start == intervalEnd || RightContinuousIfKnown == true)
+            return true;
+        else
+            return Compute().IsRightContinuousOverInterval(start, end, isStartIncluded, isEndIncluded);
+    }
+
+    #endregion Predicates over an interval
+
     #region Extrema
 
     /// <summary>
