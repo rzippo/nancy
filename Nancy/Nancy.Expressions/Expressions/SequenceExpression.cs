@@ -47,18 +47,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
     public bool IsLeftContinuous
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isLeftContinuous);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => Value.IsLeftContinuous, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isLeftContinuous, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+        => KnownProperties.Get(ref _isLeftContinuous, this, static self => self.Value.IsLeftContinuous);
 
     /// <summary>
     /// Private cache field for <see cref="IsRightContinuous"/>.
@@ -70,18 +59,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
     public bool IsRightContinuous
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isRightContinuous);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => Value.IsRightContinuous, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isRightContinuous, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+        => KnownProperties.Get(ref _isRightContinuous, this, static self => self.Value.IsRightContinuous);
 
     /// <summary>
     /// Private cache field for <see cref="IsNonNegative"/>.
@@ -93,18 +71,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
     public bool IsNonNegative
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isNonNegative);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => Value.IsNonNegative, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNonNegative, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+        => KnownProperties.Get(ref _isNonNegative, this, static self => self.Value.IsNonNegative);
 
     /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>.
@@ -116,18 +83,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
     public bool IsNonDecreasing
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isNonDecreasing);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => Value.IsNonDecreasing, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNonDecreasing, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+        => KnownProperties.Get(ref _isNonDecreasing, this, static self => self.Value.IsNonDecreasing);
 
     /// <summary>
     /// Private cache field for <see cref="IsIncreasing"/>.
@@ -139,18 +95,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// This computes the expression's value, unlike its counterpart on a curve expression, which has structural visitors to answer without doing so.
     /// </summary>
     public bool IsIncreasing
-    {
-        get
-        {
-            var cache = Volatile.Read(ref _isIncreasing);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => Value.IsIncreasing, LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isIncreasing, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-        }
-    }
+        => KnownProperties.Get(ref _isIncreasing, this, static self => self.Value.IsIncreasing);
 
     #endregion Properties
 

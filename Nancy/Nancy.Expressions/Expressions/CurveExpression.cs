@@ -131,82 +131,82 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// <see cref="IsSubAdditive"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? SubAdditiveIfKnown => Volatile.Read(ref _isSubAdditive) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? SubAdditiveIfKnown => KnownProperties.GetIfKnown(ref _isSubAdditive);
 
     /// <summary>
     /// <see cref="IsSuperAdditive"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? SuperAdditiveIfKnown => Volatile.Read(ref _isSuperAdditive) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? SuperAdditiveIfKnown => KnownProperties.GetIfKnown(ref _isSuperAdditive);
 
     /// <summary>
     /// <see cref="IsLeftContinuous"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? LeftContinuousIfKnown => Volatile.Read(ref _isLeftContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? LeftContinuousIfKnown => KnownProperties.GetIfKnown(ref _isLeftContinuous);
 
     /// <summary>
     /// <see cref="IsRightContinuous"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? RightContinuousIfKnown => Volatile.Read(ref _isRightContinuous) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? RightContinuousIfKnown => KnownProperties.GetIfKnown(ref _isRightContinuous);
 
     /// <summary>
     /// <see cref="IsNonNegative"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? NonNegativeIfKnown => Volatile.Read(ref _isNonNegative) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? NonNegativeIfKnown => KnownProperties.GetIfKnown(ref _isNonNegative);
 
     /// <summary>
     /// <see cref="IsNonDecreasing"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? NonDecreasingIfKnown => Volatile.Read(ref _isNonDecreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? NonDecreasingIfKnown => KnownProperties.GetIfKnown(ref _isNonDecreasing);
 
     /// <summary>
     /// <see cref="IsIncreasing"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? IncreasingIfKnown => Volatile.Read(ref _isIncreasing) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? IncreasingIfKnown => KnownProperties.GetIfKnown(ref _isIncreasing);
 
     /// <summary>
     /// <see cref="IsConcave"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? ConcaveIfKnown => Volatile.Read(ref _isConcave) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? ConcaveIfKnown => KnownProperties.GetIfKnown(ref _isConcave);
 
     /// <summary>
     /// <see cref="IsConvex"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? ConvexIfKnown => Volatile.Read(ref _isConvex) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? ConvexIfKnown => KnownProperties.GetIfKnown(ref _isConvex);
 
     /// <summary>
     /// <see cref="IsPassingThroughOrigin"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? PassingThroughOriginIfKnown => Volatile.Read(ref _isPassingThroughOrigin) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? PassingThroughOriginIfKnown => KnownProperties.GetIfKnown(ref _isPassingThroughOrigin);
 
     /// <summary>
     /// <see cref="IsUltimatelyFinite"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? UltimatelyFiniteIfKnown => Volatile.Read(ref _isUltimatelyFinite) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? UltimatelyFiniteIfKnown => KnownProperties.GetIfKnown(ref _isUltimatelyFinite);
 
     /// <summary>
     /// <see cref="IsPlain"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? PlainIfKnown => Volatile.Read(ref _isPlain) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? PlainIfKnown => KnownProperties.GetIfKnown(ref _isPlain);
 
     /// <summary>
     /// <see cref="IsUltimatelyPlain"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? UltimatelyPlainIfKnown => Volatile.Read(ref _isUltimatelyPlain) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? UltimatelyPlainIfKnown => KnownProperties.GetIfKnown(ref _isUltimatelyPlain);
 
     /// <summary>
     /// <see cref="IsUltimatelyAffine"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? UltimatelyAffineIfKnown => Volatile.Read(ref _isUltimatelyAffine) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? UltimatelyAffineIfKnown => KnownProperties.GetIfKnown(ref _isUltimatelyAffine);
 
     /// <summary>
     /// <see cref="IsUltimatelyConstant"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? UltimatelyConstantIfKnown => Volatile.Read(ref _isUltimatelyConstant) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? UltimatelyConstantIfKnown => KnownProperties.GetIfKnown(ref _isUltimatelyConstant);
 
     /// <summary>
     /// <see cref="IsWellDefined"/> if already cached, without forcing the check.
     /// </summary>
-    public bool? WellDefinedIfKnown => Volatile.Read(ref _isWellDefined) is { IsValueCreated: true } cache ? cache.Value : null;
+    public bool? WellDefinedIfKnown => KnownProperties.GetIfKnown(ref _isWellDefined);
 
     #endregion IfKnown accessors
 
@@ -220,26 +220,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// to make any computation.
     /// </summary>
     public bool IsSubAdditive
-    {
-        get
+        => KnownProperties.Get(ref _isSubAdditive, this, static self =>
         {
-            var cache = Volatile.Read(ref _isSubAdditive);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsSubAdditive(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isSubAdditive, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsSubAdditive()
-            {
-                var isSubAdditiveVisitor = new IsSubAdditiveVisitor();
-                Accept(isSubAdditiveVisitor);
-
-                return isSubAdditiveVisitor.IsSubAdditive;
-            }
-        }
-    }
+            var visitor = new IsSubAdditiveVisitor();
+            self.Accept(visitor);
+            return visitor.IsSubAdditive;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsSuperAdditive"/>.
@@ -251,26 +237,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsSuperAdditive
-    {
-        get
+        => KnownProperties.Get(ref _isSuperAdditive, this, static self =>
         {
-            var cache = Volatile.Read(ref _isSuperAdditive);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsSuperAdditive(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isSuperAdditive, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsSuperAdditive()
-            {
-                var isSuperAdditiveVisitor = new IsSuperAdditiveVisitor();
-                Accept(isSuperAdditiveVisitor);
-
-                return isSuperAdditiveVisitor.IsSuperAdditive;
-            }
-        }
-    }
+            var visitor = new IsSuperAdditiveVisitor();
+            self.Accept(visitor);
+            return visitor.IsSuperAdditive;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsLeftContinuous"/>.
@@ -282,26 +254,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsLeftContinuous
-    {
-        get
+        => KnownProperties.Get(ref _isLeftContinuous, this, static self =>
         {
-            var cache = Volatile.Read(ref _isLeftContinuous);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsLeftContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isLeftContinuous, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsLeftContinuous()
-            {
-                var isLeftContinuousVisitor = new IsLeftContinuousVisitor();
-                Accept(isLeftContinuousVisitor);
-
-                return isLeftContinuousVisitor.IsLeftContinuous;
-            }
-        }
-    }
+            var visitor = new IsLeftContinuousVisitor();
+            self.Accept(visitor);
+            return visitor.IsLeftContinuous;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsRightContinuous"/>.
@@ -313,26 +271,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsRightContinuous
-    {
-        get
+        => KnownProperties.Get(ref _isRightContinuous, this, static self =>
         {
-            var cache = Volatile.Read(ref _isRightContinuous);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsRightContinuous(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isRightContinuous, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsRightContinuous()
-            {
-                var isRightContinuousVisitor = new IsRightContinuousVisitor();
-                Accept(isRightContinuousVisitor);
-
-                return isRightContinuousVisitor.IsRightContinuous;
-            }
-        }
-    }
+            var visitor = new IsRightContinuousVisitor();
+            self.Accept(visitor);
+            return visitor.IsRightContinuous;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsNonNegative"/>.
@@ -344,26 +288,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsNonNegative
-    {
-        get
+        => KnownProperties.Get(ref _isNonNegative, this, static self =>
         {
-            var cache = Volatile.Read(ref _isNonNegative);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsNonNegative(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNonNegative, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsNonNegative()
-            {
-                var isNonNegativeVisitor = new IsNonNegativeVisitor();
-                Accept(isNonNegativeVisitor);
-
-                return isNonNegativeVisitor.IsNonNegative;
-            }
-        }
-    }
+            var visitor = new IsNonNegativeVisitor();
+            self.Accept(visitor);
+            return visitor.IsNonNegative;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsNonDecreasing"/>.
@@ -375,26 +305,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsNonDecreasing
-    {
-        get
+        => KnownProperties.Get(ref _isNonDecreasing, this, static self =>
         {
-            var cache = Volatile.Read(ref _isNonDecreasing);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsNonDecreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isNonDecreasing, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsNonDecreasing()
-            {
-                var isNonDecreasingVisitor = new IsNonDecreasingVisitor();
-                Accept(isNonDecreasingVisitor);
-
-                return isNonDecreasingVisitor.IsNonDecreasing;
-            }
-        }
-    }
+            var visitor = new IsNonDecreasingVisitor();
+            self.Accept(visitor);
+            return visitor.IsNonDecreasing;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsIncreasing"/>.
@@ -406,26 +322,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// as possible to make any computation.
     /// </summary>
     public bool IsIncreasing
-    {
-        get
+        => KnownProperties.Get(ref _isIncreasing, this, static self =>
         {
-            var cache = Volatile.Read(ref _isIncreasing);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsIncreasing(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isIncreasing, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsIncreasing()
-            {
-                var isIncreasingVisitor = new IsIncreasingVisitor();
-                Accept(isIncreasingVisitor);
-
-                return isIncreasingVisitor.IsIncreasing;
-            }
-        }
-    }
+            var visitor = new IsIncreasingVisitor();
+            self.Accept(visitor);
+            return visitor.IsIncreasing;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsConcave"/>.
@@ -437,26 +339,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsConcave
-    {
-        get
+        => KnownProperties.Get(ref _isConcave, this, static self =>
         {
-            var cache = Volatile.Read(ref _isConcave);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsConcave(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isConcave, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsConcave()
-            {
-                var isConcaveVisitor = new IsConcaveVisitor();
-                Accept(isConcaveVisitor);
-
-                return isConcaveVisitor.IsConcave;
-            }
-        }
-    }
+            var visitor = new IsConcaveVisitor();
+            self.Accept(visitor);
+            return visitor.IsConcave;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsConvex"/>.
@@ -468,26 +356,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsConvex
-    {
-        get
+        => KnownProperties.Get(ref _isConvex, this, static self =>
         {
-            var cache = Volatile.Read(ref _isConvex);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsConvex(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isConvex, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsConvex()
-            {
-                var isConvexVisitor = new IsConvexVisitor();
-                Accept(isConvexVisitor);
-
-                return isConvexVisitor.IsConvex;
-            }
-        }
-    }
+            var visitor = new IsConvexVisitor();
+            self.Accept(visitor);
+            return visitor.IsConvex;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsPassingThroughOrigin"/>.
@@ -499,26 +373,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// evaluated avoiding as much as possible to make any computation.
     /// </summary>
     public bool IsPassingThroughOrigin
-    {
-        get
+        => KnownProperties.Get(ref _isPassingThroughOrigin, this, static self =>
         {
-            var cache = Volatile.Read(ref _isPassingThroughOrigin);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsPassingThroughOrigin(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isPassingThroughOrigin, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsPassingThroughOrigin()
-            {
-                var isPassingThroughOriginVisitor = new IsPassingThroughOriginVisitor();
-                Accept(isPassingThroughOriginVisitor);
-
-                return isPassingThroughOriginVisitor.IsPassingThroughOrigin;
-            }
-        }
-    }
+            var visitor = new IsPassingThroughOriginVisitor();
+            self.Accept(visitor);
+            return visitor.IsPassingThroughOrigin;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsUltimatelyFinite"/>.
@@ -530,26 +390,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsUltimatelyFinite
-    {
-        get
+        => KnownProperties.Get(ref _isUltimatelyFinite, this, static self =>
         {
-            var cache = Volatile.Read(ref _isUltimatelyFinite);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsUltimatelyFinite(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyFinite, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsUltimatelyFinite()
-            {
-                var visitor = new IsUltimatelyFiniteVisitor();
-                Accept(visitor);
-
-                return visitor.IsUltimatelyFinite;
-            }
-        }
-    }
+            var visitor = new IsUltimatelyFiniteVisitor();
+            self.Accept(visitor);
+            return visitor.IsUltimatelyFinite;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsPlain"/>.
@@ -561,26 +407,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// evaluated avoiding as much as possible to make any computation.
     /// </summary>
     public bool IsPlain
-    {
-        get
+        => KnownProperties.Get(ref _isPlain, this, static self =>
         {
-            var cache = Volatile.Read(ref _isPlain);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsPlain(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isPlain, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsPlain()
-            {
-                var visitor = new IsPlainVisitor();
-                Accept(visitor);
-
-                return visitor.IsPlain;
-            }
-        }
-    }
+            var visitor = new IsPlainVisitor();
+            self.Accept(visitor);
+            return visitor.IsPlain;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsUltimatelyPlain"/>.
@@ -592,26 +424,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Property evaluated avoiding as much as possible to make any computation.
     /// </summary>
     public bool IsUltimatelyPlain
-    {
-        get
+        => KnownProperties.Get(ref _isUltimatelyPlain, this, static self =>
         {
-            var cache = Volatile.Read(ref _isUltimatelyPlain);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsUltimatelyPlain(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyPlain, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsUltimatelyPlain()
-            {
-                var visitor = new IsUltimatelyPlainVisitor();
-                Accept(visitor);
-
-                return visitor.IsUltimatelyPlain;
-            }
-        }
-    }
+            var visitor = new IsUltimatelyPlainVisitor();
+            self.Accept(visitor);
+            return visitor.IsUltimatelyPlain;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsUltimatelyAffine"/>.
@@ -623,26 +441,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsUltimatelyAffine
-    {
-        get
+        => KnownProperties.Get(ref _isUltimatelyAffine, this, static self =>
         {
-            var cache = Volatile.Read(ref _isUltimatelyAffine);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsUltimatelyAffine(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyAffine, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsUltimatelyAffine()
-            {
-                var visitor = new IsUltimatelyAffineVisitor();
-                Accept(visitor);
-
-                return visitor.IsUltimatelyAffine;
-            }
-        }
-    }
+            var visitor = new IsUltimatelyAffineVisitor();
+            self.Accept(visitor);
+            return visitor.IsUltimatelyAffine;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsUltimatelyConstant"/>.
@@ -654,26 +458,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// possible to make any computation.
     /// </summary>
     public bool IsUltimatelyConstant
-    {
-        get
+        => KnownProperties.Get(ref _isUltimatelyConstant, this, static self =>
         {
-            var cache = Volatile.Read(ref _isUltimatelyConstant);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsUltimatelyConstant(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isUltimatelyConstant, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsUltimatelyConstant()
-            {
-                var visitor = new IsUltimatelyConstantVisitor();
-                Accept(visitor);
-
-                return visitor.IsUltimatelyConstant;
-            }
-        }
-    }
+            var visitor = new IsUltimatelyConstantVisitor();
+            self.Accept(visitor);
+            return visitor.IsUltimatelyConstant;
+        });
 
     /// <summary>
     /// Private cache field for <see cref="IsWellDefined"/>.
@@ -697,26 +487,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// in [BT08] Section 2.1.
     /// </summary>
     public bool IsWellDefined
-    {
-        get
+        => KnownProperties.Get(ref _isWellDefined, this, static self =>
         {
-            var cache = Volatile.Read(ref _isWellDefined);
-            if (cache is null)
-            {
-                var candidate = new Lazy<bool>(() => CheckIsWellDefined(), LazyThreadSafetyMode.ExecutionAndPublication);
-                cache = Interlocked.CompareExchange(ref _isWellDefined, candidate, null) ?? candidate;
-            }
-            return cache.Value;
-
-            bool CheckIsWellDefined()
-            {
-                var isWellDefinedVisitor = new IsWellDefinedVisitor();
-                Accept(isWellDefinedVisitor);
-
-                return isWellDefinedVisitor.IsWellDefined;
-            }
-        }
-    }
+            var visitor = new IsWellDefinedVisitor();
+            self.Accept(visitor);
+            return visitor.IsWellDefined;
+        });
 
     /// <summary>
     /// True if the curve described by the expression has no discontinuity, i.e., it is both left- and right-continuous.
