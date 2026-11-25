@@ -103,6 +103,30 @@ public class ExpressionEqualityCoverage
         yield return Case(() => new SupValueExpression(Curve1, "a"), () => new SupValueExpression(Curve2, "a"));
         yield return Case(() => new MinValueExpression(Curve1, "a"), () => new MinValueExpression(Curve2, "a"));
         yield return Case(() => new MaxValueExpression(Curve1, "a"), () => new MaxValueExpression(Curve2, "a"));
+        yield return Case(() => new SupArgExpression(Curve1, "a"), () => new SupArgExpression(Curve2, "a"));
+        yield return Case(() => new InfArgExpression(Curve1, "a"), () => new InfArgExpression(Curve2, "a"));
+        yield return Case(() => new MaxArgExpression(Curve1, "a"), () => new MaxArgExpression(Curve2, "a"));
+        yield return Case(() => new MinArgExpression(Curve1, "a"), () => new MinArgExpression(Curve2, "a"));
+
+        // Rational, unary (operand: Curve), over an interval
+        yield return Case(() => new SupValueOverIntervalExpression(Curve1, "a", Interval1), () => new SupValueOverIntervalExpression(Curve1, "a", Interval2));
+        yield return Case(() => new SupArgOverIntervalExpression(Curve1, "a", Interval1), () => new SupArgOverIntervalExpression(Curve1, "a", Interval2));
+        yield return Case(() => new InfValueOverIntervalExpression(Curve1, "a", Interval1), () => new InfValueOverIntervalExpression(Curve1, "a", Interval2));
+        yield return Case(() => new InfArgOverIntervalExpression(Curve1, "a", Interval1), () => new InfArgOverIntervalExpression(Curve1, "a", Interval2));
+        yield return Case(() => new MaxValueOverIntervalExpression(Curve1, "a", Interval1), () => new MaxValueOverIntervalExpression(Curve1, "a", Interval2));
+        yield return Case(() => new MaxArgOverIntervalExpression(Curve1, "a", Interval1), () => new MaxArgOverIntervalExpression(Curve1, "a", Interval2));
+        yield return Case(() => new MinValueOverIntervalExpression(Curve1, "a", Interval1), () => new MinValueOverIntervalExpression(Curve1, "a", Interval2));
+        yield return Case(() => new MinArgOverIntervalExpression(Curve1, "a", Interval1), () => new MinArgOverIntervalExpression(Curve1, "a", Interval2));
+
+        // Rational, unary (operand: Sequence)
+        yield return Case(() => new SequenceSupValueExpression(Sequence1, "a"), () => new SequenceSupValueExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceSupArgExpression(Sequence1, "a"), () => new SequenceSupArgExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceInfValueExpression(Sequence1, "a"), () => new SequenceInfValueExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceInfArgExpression(Sequence1, "a"), () => new SequenceInfArgExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceMaxValueExpression(Sequence1, "a"), () => new SequenceMaxValueExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceMaxArgExpression(Sequence1, "a"), () => new SequenceMaxArgExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceMinValueExpression(Sequence1, "a"), () => new SequenceMinValueExpression(Sequence2, "a"));
+        yield return Case(() => new SequenceMinArgExpression(Sequence1, "a"), () => new SequenceMinArgExpression(Sequence2, "a"));
 
         // Rational, binary (Rational, Rational)
         yield return Case(
