@@ -1433,6 +1433,184 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     public RationalExpression MinValue(string expressionName = "", ExpressionSettings? settings = null)
         => new MinValueExpression(this, expressionName, settings);
 
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the curve expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Curve.SupArg"/>
+    public RationalExpression SupArg(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SupArgExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the curve expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Curve.InfArg"/>
+    public RationalExpression InfArg(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new InfArgExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the curve expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum; use <see cref="SupArg"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Curve.MaxArg"/>
+    public RationalExpression MaxArg(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new MaxArgExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the curve expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum; use <see cref="InfArg"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Curve.MinArg"/>
+    public RationalExpression MinArg(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new MinArgExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum of the curve expression over an interval.
+    /// </summary>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Curve.SupValueOverInterval"/>
+    public RationalExpression SupValueOverInterval(
+        Interval interval,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SupValueOverIntervalExpression(this, interval, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the curve expression over an interval.
+    /// </summary>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Curve.SupArgOverInterval"/>
+    public RationalExpression SupArgOverInterval(
+        Interval interval,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SupArgOverIntervalExpression(this, interval, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum of the curve expression over an interval.
+    /// </summary>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Curve.InfValueOverInterval"/>
+    public RationalExpression InfValueOverInterval(
+        Interval interval,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new InfValueOverIntervalExpression(this, interval, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the curve expression over an interval.
+    /// </summary>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Curve.InfArgOverInterval"/>
+    public RationalExpression InfArgOverInterval(
+        Interval interval,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new InfArgOverIntervalExpression(this, interval, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value of the curve expression over an interval.
+    /// </summary>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum over the interval; use <see cref="SupValueOverInterval"/> if the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Curve.MaxValueOverInterval"/>
+    public RationalExpression MaxValueOverInterval(
+        Interval interval,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new MaxValueOverIntervalExpression(this, interval, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the curve expression over an interval.
+    /// </summary>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum over the interval; use <see cref="SupArgOverInterval"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Curve.MaxArgOverInterval"/>
+    public RationalExpression MaxArgOverInterval(
+        Interval interval,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new MaxArgOverIntervalExpression(this, interval, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value of the curve expression over an interval.
+    /// </summary>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum over the interval; use <see cref="InfValueOverInterval"/> if the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Curve.MinValueOverInterval"/>
+    public RationalExpression MinValueOverInterval(
+        Interval interval,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new MinValueOverIntervalExpression(this, interval, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the curve expression over an interval.
+    /// </summary>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum over the interval; use <see cref="InfArgOverInterval"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Curve.MinArgOverInterval"/>
+    public RationalExpression MinArgOverInterval(
+        Interval interval,
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new MinArgOverIntervalExpression(this, interval, expressionName, settings);
+
     #endregion Extrema
 
     /// <inheritdoc />

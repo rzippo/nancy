@@ -931,6 +931,118 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
 
     #endregion Sampling
 
+    #region Extrema
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum of the sequence expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Sequence.SupValue"/>
+    public RationalExpression SupValue(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceSupValueExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the sequence expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Sequence.SupArg"/>
+    public RationalExpression SupArg(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceSupArgExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum of the sequence expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Sequence.InfValue"/>
+    public RationalExpression InfValue(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceInfValueExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the sequence expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <seealso cref="MinPlusAlgebra.Sequence.InfArg"/>
+    public RationalExpression InfArg(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceInfArgExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value of the sequence expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a maximum; use <see cref="SupValue"/> if the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Sequence.MaxValue"/>
+    public RationalExpression MaxValue(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceMaxValueExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the sequence expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a maximum; use <see cref="SupArg"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Sequence.MaxArg"/>
+    public RationalExpression MaxArg(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceMaxArgExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value of the sequence expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a minimum; use <see cref="InfValue"/> if the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Sequence.MinValue"/>
+    public RationalExpression MinValue(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceMinValueExpression(this, expressionName, settings);
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the sequence expression.
+    /// </summary>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The result.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a minimum; use <see cref="InfArg"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="MinPlusAlgebra.Sequence.MinArg"/>
+    public RationalExpression MinArg(
+        string expressionName = "",
+        ExpressionSettings? settings = null)
+        => new SequenceMinArgExpression(this, expressionName, settings);
+
+    #endregion Extrema
+
     /// <inheritdoc />
     public Sequence Compute(ExpressionSettings? settings = null)
         => (Volatile.Read(ref _value) ?? InitializeValueCache(settings)).Value;

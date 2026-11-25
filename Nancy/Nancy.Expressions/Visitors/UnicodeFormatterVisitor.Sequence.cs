@@ -224,6 +224,38 @@ public partial class UnicodeFormatterVisitor : ISequenceExpressionVisitor<(Strin
         => VisitBinaryPrefix(expression, "vdev");
 
     /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceSupValueExpression expression)
+        => VisitUnaryPrefix(expression, "sup");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceSupArgExpression expression)
+        => VisitUnaryPrefix(expression, "argsup");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceInfValueExpression expression)
+        => VisitUnaryPrefix(expression, "inf");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceInfArgExpression expression)
+        => VisitUnaryPrefix(expression, "arginf");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceMaxValueExpression expression)
+        => VisitUnaryPrefix(expression, "max");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceMaxArgExpression expression)
+        => VisitUnaryPrefix(expression, "argmax");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceMinValueExpression expression)
+        => VisitUnaryPrefix(expression, "min");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceMinArgExpression expression)
+        => VisitUnaryPrefix(expression, "argmin");
+
+    /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SequenceFloorExpression expression)
         => VisitEnclosing(expression, '⌊', '⌋');
 

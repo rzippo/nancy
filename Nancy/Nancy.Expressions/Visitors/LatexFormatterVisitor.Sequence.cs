@@ -236,6 +236,38 @@ public partial class LatexFormatterVisitor : ISequenceExpressionVisitor<(StringB
         => VisitBinaryPrefix(expression, "vdev");
 
     /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceSupValueExpression expression)
+        => VisitUnaryPrefix(expression, @"\sup");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceSupArgExpression expression)
+        => VisitUnaryPrefix(expression, @"\operatorname{arg\,sup}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceInfValueExpression expression)
+        => VisitUnaryPrefix(expression, @"\inf");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceInfArgExpression expression)
+        => VisitUnaryPrefix(expression, @"\operatorname{arg\,inf}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceMaxValueExpression expression)
+        => VisitUnaryPrefix(expression, @"\max");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceMaxArgExpression expression)
+        => VisitUnaryPrefix(expression, @"\operatorname{arg\,max}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceMinValueExpression expression)
+        => VisitUnaryPrefix(expression, @"\min");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceMinArgExpression expression)
+        => VisitUnaryPrefix(expression, @"\operatorname{arg\,min}");
+
+    /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SequenceFloorExpression expression)
         => VisitEnclosing(expression, @"\lfloor ", @" \rfloor");
 

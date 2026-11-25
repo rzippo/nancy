@@ -886,5 +886,53 @@ public partial class MppgFormatterVisitor :
     public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(MinValueExpression expression)
         => Unsupported(expression, "MPPG has no notation for the minimum of a curve");
 
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(SupArgExpression expression)
+        => Unsupported(expression, "MPPG has no notation for the earliest boundary location of the supremum of a curve");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(InfArgExpression expression)
+        => Unsupported(expression, "MPPG has no notation for the earliest boundary location of the infimum of a curve");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(MaxArgExpression expression)
+        => Unsupported(expression, "MPPG has no notation for a time attaining the maximum of a curve");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(MinArgExpression expression)
+        => Unsupported(expression, "MPPG has no notation for a time attaining the minimum of a curve");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(SupValueOverIntervalExpression expression)
+        => Unsupported(expression, "MPPG has no notation for the supremum of a curve over an interval");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(SupArgOverIntervalExpression expression)
+        => Unsupported(expression, "MPPG has no notation for the earliest boundary location of the supremum of a curve over an interval");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(InfValueOverIntervalExpression expression)
+        => Unsupported(expression, "MPPG has no notation for the infimum of a curve over an interval");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(InfArgOverIntervalExpression expression)
+        => Unsupported(expression, "MPPG has no notation for the earliest boundary location of the infimum of a curve over an interval");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(MaxValueOverIntervalExpression expression)
+        => Unsupported(expression, "MPPG has no notation for the maximum value of a curve over an interval");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(MaxArgOverIntervalExpression expression)
+        => Unsupported(expression, "MPPG has no notation for a time attaining the maximum of a curve over an interval");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(MinValueOverIntervalExpression expression)
+        => Unsupported(expression, "MPPG has no notation for the minimum value of a curve over an interval");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder MppgBuilder, MppgPrecedence Precedence) Visit(MinArgOverIntervalExpression expression)
+        => Unsupported(expression, "MPPG has no notation for a time attaining the minimum of a curve over an interval");
+
     #endregion Rational expressions
 }

@@ -117,6 +117,29 @@ public partial class UnicodeFormatterVisitor :
         }
     }
 
+    private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitOverInterval<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        Interval interval,
+        string unicodeOperation
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+
+        CurrentDepth++;
+        var (innerUnicode, _) = GeneralizedAccept(expression.Operand);
+        CurrentDepth--;
+
+        var sb = new StringBuilder(unicodeOperation);
+        sb.Append('(');
+        sb.Append(innerUnicode);
+        sb.Append(", ");
+        sb.Append(interval);
+        sb.Append(')');
+
+        return (sb, false);
+    }
+
     private (StringBuilder UnicodeBuilder, bool NeedsParentheses) VisitUnaryPostfix<T1, TResult>(
         IGenericUnaryExpression<T1, TResult> expression,
         string unicodeOperation,
@@ -770,6 +793,54 @@ public partial class UnicodeFormatterVisitor :
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MinValueExpression expression)
         => VisitUnaryPrefix(expression, "min");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SupArgExpression expression)
+        => VisitUnaryPrefix(expression, "argsup");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InfArgExpression expression)
+        => VisitUnaryPrefix(expression, "arginf");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxArgExpression expression)
+        => VisitUnaryPrefix(expression, "argmax");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MinArgExpression expression)
+        => VisitUnaryPrefix(expression, "argmin");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SupValueOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, "sup");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(SupArgOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, "argsup");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InfValueOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, "inf");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(InfArgOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, "arginf");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxValueOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, "max");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MaxArgOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, "argmax");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MinValueOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, "min");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(MinArgOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, "argmin");
 
     /// <inheritdoc />
     public virtual (StringBuilder UnicodeBuilder, bool NeedsParentheses) Visit(RationalModuloExpression expression)

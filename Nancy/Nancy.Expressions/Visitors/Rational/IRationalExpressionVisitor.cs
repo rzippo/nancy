@@ -181,6 +181,246 @@ public interface IRationalExpressionVisitor : IExpressionVisitor<Rational>
     /// Visit method for the type <see cref="MinValueExpression"/>
     /// </summary>
     public void Visit(MinValueExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="SupArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SupArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="InfArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(InfArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MaxArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(MaxArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MinArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(MinArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SupValueOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SupValueOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SupArgOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SupArgOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="InfValueOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(InfValueOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="InfArgOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(InfArgOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MaxValueOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(MaxValueOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MaxArgOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(MaxArgOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MinValueOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(MinValueOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MinArgOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(MinArgOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceSupValueExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceSupValueExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceSupArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceSupArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceInfValueExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceInfValueExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceInfArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceInfArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceMaxValueExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceMaxValueExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceMaxArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceMaxArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceMinValueExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceMinValueExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceMinArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public void Visit(SequenceMinArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
 }
 
 /// <summary>
@@ -362,4 +602,244 @@ public interface IRationalExpressionVisitor<out TResult> : IExpressionVisitor<Ra
     /// Visit method for the type <see cref="MinValueExpression"/>
     /// </summary>
     public TResult Visit(MinValueExpression expression);
+
+    /// <summary>
+    /// Visit method for the type <see cref="SupArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SupArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="InfArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(InfArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MaxArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(MaxArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MinArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(MinArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SupValueOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SupValueOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SupArgOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SupArgOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="InfValueOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(InfValueOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="InfArgOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(InfArgOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MaxValueOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(MaxValueOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MaxArgOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(MaxArgOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MinValueOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(MinValueOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="MinArgOverIntervalExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(MinArgOverIntervalExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceSupValueExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceSupValueExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceSupArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceSupArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceInfValueExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceInfValueExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceInfArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceInfArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceMaxValueExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceMaxValueExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceMaxArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceMaxArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceMinValueExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceMinValueExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
+
+    /// <summary>
+    /// Visit method for the type <see cref="SequenceMinArgExpression"/>.
+    /// </summary>
+    /// <remarks>
+    /// Defaulted, so that a visitor written for an earlier version need not implement it.
+    /// </remarks>
+    /// <exception cref="NotImplementedException">
+    /// If the visitor has not implemented it.
+    /// </exception>
+    public TResult Visit(SequenceMinArgExpression expression)
+        => throw new NotImplementedException($"{this.GetType()} does not have a Visit method for type {expression.GetType()}");
 }

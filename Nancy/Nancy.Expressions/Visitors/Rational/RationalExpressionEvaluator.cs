@@ -193,4 +193,112 @@ public record RationalExpressionEvaluator : IRationalExpressionVisitor
         => _result = Read(expression.Operand).MinValue(ComputationSettingsOf(expression.Settings)) ??
                      throw new InvalidOperationException(
                          "The curve does not attain a minimum value (its infimum is not attained); use InfValue() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(SupArgExpression expression)
+        => _result = Read(expression.Operand).SupArg(ComputationSettingsOf(expression.Settings));
+
+    /// <inheritdoc />
+    public virtual void Visit(InfArgExpression expression)
+        => _result = Read(expression.Operand).InfArg(ComputationSettingsOf(expression.Settings));
+
+    /// <inheritdoc />
+    public virtual void Visit(MaxArgExpression expression)
+        => _result = Read(expression.Operand).MaxArg(ComputationSettingsOf(expression.Settings)) ??
+                     throw new InvalidOperationException(
+                         "The curve does not attain a maximum value (its supremum is not attained); use SupArg() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(MinArgExpression expression)
+        => _result = Read(expression.Operand).MinArg(ComputationSettingsOf(expression.Settings)) ??
+                     throw new InvalidOperationException(
+                         "The curve does not attain a minimum value (its infimum is not attained); use InfArg() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(SupValueOverIntervalExpression expression)
+        => _result = Read(expression.Operand).SupValueOverInterval(expression.Interval.Lower, expression.Interval.Upper,
+            expression.Interval.IsLowerIncluded, expression.Interval.IsUpperIncluded, ComputationSettingsOf(expression.Settings));
+
+    /// <inheritdoc />
+    public virtual void Visit(SupArgOverIntervalExpression expression)
+        => _result = Read(expression.Operand).SupArgOverInterval(expression.Interval.Lower, expression.Interval.Upper,
+            expression.Interval.IsLowerIncluded, expression.Interval.IsUpperIncluded, ComputationSettingsOf(expression.Settings));
+
+    /// <inheritdoc />
+    public virtual void Visit(InfValueOverIntervalExpression expression)
+        => _result = Read(expression.Operand).InfValueOverInterval(expression.Interval.Lower, expression.Interval.Upper,
+            expression.Interval.IsLowerIncluded, expression.Interval.IsUpperIncluded, ComputationSettingsOf(expression.Settings));
+
+    /// <inheritdoc />
+    public virtual void Visit(InfArgOverIntervalExpression expression)
+        => _result = Read(expression.Operand).InfArgOverInterval(expression.Interval.Lower, expression.Interval.Upper,
+            expression.Interval.IsLowerIncluded, expression.Interval.IsUpperIncluded, ComputationSettingsOf(expression.Settings));
+
+    /// <inheritdoc />
+    public virtual void Visit(MaxValueOverIntervalExpression expression)
+        => _result = Read(expression.Operand).MaxValueOverInterval(expression.Interval.Lower, expression.Interval.Upper,
+            expression.Interval.IsLowerIncluded, expression.Interval.IsUpperIncluded, ComputationSettingsOf(expression.Settings)) ??
+                     throw new InvalidOperationException(
+                         "The curve does not attain a maximum value over the interval (its supremum there is not attained); use SupValueOverInterval() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(MaxArgOverIntervalExpression expression)
+        => _result = Read(expression.Operand).MaxArgOverInterval(expression.Interval.Lower, expression.Interval.Upper,
+            expression.Interval.IsLowerIncluded, expression.Interval.IsUpperIncluded, ComputationSettingsOf(expression.Settings)) ??
+                     throw new InvalidOperationException(
+                         "The curve does not attain a maximum value over the interval (its supremum there is not attained); use SupArgOverInterval() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(MinValueOverIntervalExpression expression)
+        => _result = Read(expression.Operand).MinValueOverInterval(expression.Interval.Lower, expression.Interval.Upper,
+            expression.Interval.IsLowerIncluded, expression.Interval.IsUpperIncluded, ComputationSettingsOf(expression.Settings)) ??
+                     throw new InvalidOperationException(
+                         "The curve does not attain a minimum value over the interval (its infimum there is not attained); use InfValueOverInterval() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(MinArgOverIntervalExpression expression)
+        => _result = Read(expression.Operand).MinArgOverInterval(expression.Interval.Lower, expression.Interval.Upper,
+            expression.Interval.IsLowerIncluded, expression.Interval.IsUpperIncluded, ComputationSettingsOf(expression.Settings)) ??
+                     throw new InvalidOperationException(
+                         "The curve does not attain a minimum value over the interval (its infimum there is not attained); use InfArgOverInterval() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceSupValueExpression expression)
+        => _result = Read(expression.Operand).SupValue();
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceSupArgExpression expression)
+        => _result = Read(expression.Operand).SupArg();
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceInfValueExpression expression)
+        => _result = Read(expression.Operand).InfValue();
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceInfArgExpression expression)
+        => _result = Read(expression.Operand).InfArg();
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceMaxValueExpression expression)
+        => _result = Read(expression.Operand).MaxValue() ??
+                     throw new InvalidOperationException(
+                         "The sequence does not attain a maximum value (its supremum is not attained); use SupValue() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceMaxArgExpression expression)
+        => _result = Read(expression.Operand).MaxArg() ??
+                     throw new InvalidOperationException(
+                         "The sequence does not attain a maximum value (its supremum is not attained); use SupArg() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceMinValueExpression expression)
+        => _result = Read(expression.Operand).MinValue() ??
+                     throw new InvalidOperationException(
+                         "The sequence does not attain a minimum value (its infimum is not attained); use InfValue() instead.");
+
+    /// <inheritdoc />
+    public virtual void Visit(SequenceMinArgExpression expression)
+        => _result = Read(expression.Operand).MinArg() ??
+                     throw new InvalidOperationException(
+                         "The sequence does not attain a minimum value (its infimum is not attained); use InfArg() instead.");
 }

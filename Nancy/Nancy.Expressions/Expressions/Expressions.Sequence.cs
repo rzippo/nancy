@@ -1071,4 +1071,275 @@ public static partial class Expressions
         => FromSequence(sequence, name).RightLimitAt(timeExpression, expressionName, settings);
 
     #endregion RightLimitAt
+
+    #region SupValue
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum of the sequence expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Sequence.SupValue"/>
+    public static RationalExpression SupValue(SequenceExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.SupValue(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum of the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
+    /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Sequence.SupValue"/>
+    public static RationalExpression SupValue(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SequenceSupValueExpression(sequence, name, expressionName, settings);
+
+
+    #endregion SupValue
+
+    #region SupArg
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the sequence expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Sequence.SupArg"/>
+    public static RationalExpression SupArg(SequenceExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.SupArg(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
+    /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Sequence.SupArg"/>
+    public static RationalExpression SupArg(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SequenceSupArgExpression(sequence, name, expressionName, settings);
+
+
+    #endregion SupArg
+
+    #region InfValue
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum of the sequence expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Sequence.InfValue"/>
+    public static RationalExpression InfValue(SequenceExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.InfValue(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum of the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
+    /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Sequence.InfValue"/>
+    public static RationalExpression InfValue(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SequenceInfValueExpression(sequence, name, expressionName, settings);
+
+
+    #endregion InfValue
+
+    #region InfArg
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the sequence expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Sequence.InfArg"/>
+    public static RationalExpression InfArg(SequenceExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.InfArg(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
+    /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Sequence.InfArg"/>
+    public static RationalExpression InfArg(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SequenceInfArgExpression(sequence, name, expressionName, settings);
+
+
+    #endregion InfArg
+
+    #region MaxValue
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value of the sequence expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a maximum; use <see cref="SequenceExpression.SupValue"/> if the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Sequence.MaxValue"/>
+    public static RationalExpression MaxValue(SequenceExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MaxValue(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value of the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
+    /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a maximum; use <see cref="SequenceExpression.SupValue"/> if the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Sequence.MaxValue"/>
+    public static RationalExpression MaxValue(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SequenceMaxValueExpression(sequence, name, expressionName, settings);
+
+
+    #endregion MaxValue
+
+    #region MaxArg
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the sequence expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a maximum; use <see cref="SequenceExpression.SupArg"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Sequence.MaxArg"/>
+    public static RationalExpression MaxArg(SequenceExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MaxArg(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
+    /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a maximum; use <see cref="SequenceExpression.SupArg"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Sequence.MaxArg"/>
+    public static RationalExpression MaxArg(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SequenceMaxArgExpression(sequence, name, expressionName, settings);
+
+
+    #endregion MaxArg
+
+    #region MinValue
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value of the sequence expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a minimum; use <see cref="SequenceExpression.InfValue"/> if the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Sequence.MinValue"/>
+    public static RationalExpression MinValue(SequenceExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MinValue(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value of the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
+    /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a minimum; use <see cref="SequenceExpression.InfValue"/> if the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Sequence.MinValue"/>
+    public static RationalExpression MinValue(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SequenceMinValueExpression(sequence, name, expressionName, settings);
+
+
+    #endregion MinValue
+
+    #region MinArg
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the sequence expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a minimum; use <see cref="SequenceExpression.InfArg"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Sequence.MinArg"/>
+    public static RationalExpression MinArg(SequenceExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MinArg(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
+    /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the sequence does not attain a minimum; use <see cref="SequenceExpression.InfArg"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Sequence.MinArg"/>
+    public static RationalExpression MinArg(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SequenceMinArgExpression(sequence, name, expressionName, settings);
+
+    #endregion MinArg
 }

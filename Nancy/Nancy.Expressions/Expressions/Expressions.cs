@@ -970,6 +970,429 @@ public static partial class Expressions
 
     #endregion MinValue
 
+    #region SupArg
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the curve expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.SupArg"/>
+    public static RationalExpression SupArg(CurveExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.SupArg(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the curve passed as argument (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.SupArg"/>
+    public static RationalExpression SupArg(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SupArgExpression(curve, name, expressionName, settings);
+
+
+    #endregion SupArg
+
+    #region InfArg
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the curve expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.InfArg"/>
+    public static RationalExpression InfArg(CurveExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.InfArg(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the curve passed as argument (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.InfArg"/>
+    public static RationalExpression InfArg(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new InfArgExpression(curve, name, expressionName, settings);
+
+
+    #endregion InfArg
+
+    #region MaxArg
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the curve expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum; use <see cref="CurveExpression.SupArg"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MaxArg"/>
+    public static RationalExpression MaxArg(CurveExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MaxArg(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the curve passed as argument (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum; use <see cref="CurveExpression.SupArg"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MaxArg"/>
+    public static RationalExpression MaxArg(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MaxArgExpression(curve, name, expressionName, settings);
+
+
+    #endregion MaxArg
+
+    #region MinArg
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the curve expression passed as argument.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum; use <see cref="CurveExpression.InfArg"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MinArg"/>
+    public static RationalExpression MinArg(CurveExpression operand, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MinArg(expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the curve passed as argument (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum; use <see cref="CurveExpression.InfArg"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MinArg"/>
+    public static RationalExpression MinArg(Curve curve, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MinArgExpression(curve, name, expressionName, settings);
+
+
+    #endregion MinArg
+
+    #region SupValueOverInterval
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum of the curve expression passed as argument over an interval.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.SupValueOverInterval"/>
+    public static RationalExpression SupValueOverInterval(CurveExpression operand, Interval interval, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.SupValueOverInterval(interval, expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the supremum of the curve passed as argument over an interval (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.SupValueOverInterval"/>
+    public static RationalExpression SupValueOverInterval(Curve curve, Interval interval, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SupValueOverIntervalExpression(curve, name, interval, expressionName, settings);
+
+
+    #endregion SupValueOverInterval
+
+    #region SupArgOverInterval
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the curve expression passed as argument over an interval.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.SupArgOverInterval"/>
+    public static RationalExpression SupArgOverInterval(CurveExpression operand, Interval interval, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.SupArgOverInterval(interval, expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the supremum of the curve passed as argument over an interval (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.SupArgOverInterval"/>
+    public static RationalExpression SupArgOverInterval(Curve curve, Interval interval, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new SupArgOverIntervalExpression(curve, name, interval, expressionName, settings);
+
+
+    #endregion SupArgOverInterval
+
+    #region InfValueOverInterval
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum of the curve expression passed as argument over an interval.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.InfValueOverInterval"/>
+    public static RationalExpression InfValueOverInterval(CurveExpression operand, Interval interval, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.InfValueOverInterval(interval, expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the infimum of the curve passed as argument over an interval (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.InfValueOverInterval"/>
+    public static RationalExpression InfValueOverInterval(Curve curve, Interval interval, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new InfValueOverIntervalExpression(curve, name, interval, expressionName, settings);
+
+
+    #endregion InfValueOverInterval
+
+    #region InfArgOverInterval
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the curve expression passed as argument over an interval.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.InfArgOverInterval"/>
+    public static RationalExpression InfArgOverInterval(CurveExpression operand, Interval interval, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.InfArgOverInterval(interval, expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the earliest boundary location of the infimum of the curve passed as argument over an interval (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <seealso cref="Curve.InfArgOverInterval"/>
+    public static RationalExpression InfArgOverInterval(Curve curve, Interval interval, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new InfArgOverIntervalExpression(curve, name, interval, expressionName, settings);
+
+
+    #endregion InfArgOverInterval
+
+    #region MaxValueOverInterval
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value of the curve expression passed as argument over an interval.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum over the interval; use <see cref="CurveExpression.SupValueOverInterval"/> if the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MaxValueOverInterval"/>
+    public static RationalExpression MaxValueOverInterval(CurveExpression operand, Interval interval, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MaxValueOverInterval(interval, expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the maximum value of the curve passed as argument over an interval (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum over the interval; use <see cref="CurveExpression.SupValueOverInterval"/> if the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MaxValueOverInterval"/>
+    public static RationalExpression MaxValueOverInterval(Curve curve, Interval interval, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MaxValueOverIntervalExpression(curve, name, interval, expressionName, settings);
+
+
+    #endregion MaxValueOverInterval
+
+    #region MaxArgOverInterval
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the curve expression passed as argument over an interval.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum over the interval; use <see cref="CurveExpression.SupArgOverInterval"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MaxArgOverInterval"/>
+    public static RationalExpression MaxArgOverInterval(CurveExpression operand, Interval interval, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MaxArgOverInterval(interval, expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the maximum of the curve passed as argument over an interval (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a maximum over the interval; use <see cref="CurveExpression.SupArgOverInterval"/> if the location of the supremum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MaxArgOverInterval"/>
+    public static RationalExpression MaxArgOverInterval(Curve curve, Interval interval, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MaxArgOverIntervalExpression(curve, name, interval, expressionName, settings);
+
+
+    #endregion MaxArgOverInterval
+
+    #region MinValueOverInterval
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value of the curve expression passed as argument over an interval.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum over the interval; use <see cref="CurveExpression.InfValueOverInterval"/> if the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MinValueOverInterval"/>
+    public static RationalExpression MinValueOverInterval(CurveExpression operand, Interval interval, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MinValueOverInterval(interval, expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes the minimum value of the curve passed as argument over an interval (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum over the interval; use <see cref="CurveExpression.InfValueOverInterval"/> if the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MinValueOverInterval"/>
+    public static RationalExpression MinValueOverInterval(Curve curve, Interval interval, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MinValueOverIntervalExpression(curve, name, interval, expressionName, settings);
+
+
+    #endregion MinValueOverInterval
+
+    #region MinArgOverInterval
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the curve expression passed as argument over an interval.
+    /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum over the interval; use <see cref="CurveExpression.InfArgOverInterval"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MinArgOverInterval"/>
+    public static RationalExpression MinArgOverInterval(CurveExpression operand, Interval interval, string expressionName = "",
+        ExpressionSettings? settings = null)
+        => operand.MinArgOverInterval(interval, expressionName, settings);
+
+
+    /// <summary>
+    /// Creates a new expression that computes a time attaining the minimum of the curve passed as argument over an interval (internally converted to <see cref="ConcreteCurveExpression"/>).
+    /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval over which the extremum is taken.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name to assign to the expression.</param>
+    /// <param name="settings">Optional settings for the operation.</param>
+    /// <returns>The resulting expression.</returns>
+    /// <remarks>
+    /// Computing the resulting expression throws an <see cref="InvalidOperationException"/> if the curve does not attain a minimum over the interval; use <see cref="CurveExpression.InfArgOverInterval"/> if the location of the infimum is sufficient.
+    /// </remarks>
+    /// <seealso cref="Curve.MinArgOverInterval"/>
+    public static RationalExpression MinArgOverInterval(Curve curve, Interval interval, [CallerArgumentExpression("curve")] string name = "",
+        string expressionName = "", ExpressionSettings? settings = null)
+        => new MinArgOverIntervalExpression(curve, name, interval, expressionName, settings);
+
+    #endregion MinArgOverInterval
+
     #region DelayBy
 
     /// <summary>

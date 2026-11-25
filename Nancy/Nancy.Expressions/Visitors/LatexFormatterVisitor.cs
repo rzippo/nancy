@@ -151,6 +151,29 @@ public partial class LatexFormatterVisitor :
         }
     }
 
+    private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitOverInterval<T1, TResult>(
+        IGenericUnaryExpression<T1, TResult> expression,
+        Interval interval,
+        string operation
+    )
+    {
+        if (CurrentDepth >= MaxDepth && !expression.Name.Equals(""))
+            return (FormatName(expression.Name), false);
+
+        CurrentDepth++;
+        var (innerLatex, _) = GeneralizedAccept(expression.Operand);
+        CurrentDepth--;
+
+        var sb = new StringBuilder(operation);
+        sb.Append(@"\left( ");
+        sb.Append(innerLatex);
+        sb.Append(", ");
+        sb.Append(interval);
+        sb.Append(@" \right)");
+
+        return (sb, false);
+    }
+
     private (StringBuilder LatexBuilder, bool NeedsParentheses) VisitUnaryPostfix<T1, TResult>(
         IGenericUnaryExpression<T1, TResult> expression,
         string operation,
@@ -792,6 +815,54 @@ public partial class LatexFormatterVisitor :
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MinValueExpression expression)
         => VisitUnaryPrefix(expression, @"\min");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SupArgExpression expression)
+        => VisitUnaryPrefix(expression, @"\operatorname{arg\,sup}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(InfArgExpression expression)
+        => VisitUnaryPrefix(expression, @"\operatorname{arg\,inf}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MaxArgExpression expression)
+        => VisitUnaryPrefix(expression, @"\operatorname{arg\,max}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MinArgExpression expression)
+        => VisitUnaryPrefix(expression, @"\operatorname{arg\,min}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SupValueOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, @"\sup");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(SupArgOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, @"\operatorname{arg\,sup}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(InfValueOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, @"\inf");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(InfArgOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, @"\operatorname{arg\,inf}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MaxValueOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, @"\max");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MaxArgOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, @"\operatorname{arg\,max}");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MinValueOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, @"\min");
+
+    /// <inheritdoc />
+    public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(MinArgOverIntervalExpression expression)
+        => VisitOverInterval(expression, expression.Interval, @"\operatorname{arg\,min}");
 
     /// <inheritdoc />
     public virtual (StringBuilder LatexBuilder, bool NeedsParentheses) Visit(RationalModuloExpression expression)
