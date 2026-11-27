@@ -29,9 +29,14 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(SubAdditiveClosureExpression expression)
     {
-        if (expression.Operand.Value.IsFinite) IsWellDefined = true;
-        else if (expression.Operand.Value.SupValue() == Rational.PlusInfinity &&
-                 expression.Operand.Value.InfValue() == Rational.MinusInfinity) IsWellDefined = false;
+        var operand = expression.Operand;
+        if (operand.Value.IsFinite)
+            IsWellDefined = true;
+        else if (operand.Value.SupValue() == Rational.PlusInfinity &&
+                 operand.Value.InfValue() == Rational.MinusInfinity)
+            IsWellDefined = false;
+        else
+            IsWellDefined = true;
     }
 
     /// <inheritdoc />
@@ -95,14 +100,17 @@ public class IsWellDefinedVisitor : ICurveExpressionVisitor
     /// <inheritdoc />
     public virtual void Visit(SubtractionExpression expression)
     {
-        // If at least one of the operands is finite --> Subtraction is finite
-        if (expression.LeftOperand.Value.IsFinite || expression.RightOperand.Value.IsFinite) IsWellDefined = true;
-
-        // f - g is undefined if it exists t: f(t) = g(t) = +infinity (-infinity)
-        else if (expression.LeftOperand.Value.InfValue() == expression.RightOperand.Value.InfValue() &&
-                 expression.LeftOperand.Value.InfValue() == Rational.MinusInfinity ||
-                 expression.LeftOperand.Value.SupValue() == expression.RightOperand.Value.SupValue() &&
-                 expression.LeftOperand.Value.SupValue() == Rational.PlusInfinity) IsWellDefined = false;
+        var left = expression.LeftOperand;
+        var right = expression.RightOperand;
+        if (left.Value.IsFinite || right.Value.IsFinite)
+            IsWellDefined = true;
+        else if ((left.Value.InfValue() == right.Value.InfValue() &&
+                  left.Value.InfValue() == Rational.MinusInfinity) ||
+                 (left.Value.SupValue() == right.Value.SupValue() &&
+                  left.Value.SupValue() == Rational.PlusInfinity))
+            IsWellDefined = false;
+        else
+            IsWellDefined = true;
     }
 
     /// <inheritdoc />
