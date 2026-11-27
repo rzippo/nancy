@@ -110,6 +110,8 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// A node whose own <see cref="ValueCacheIsCheap"/> is <see langword="true"/> keeps its cache, and recursion still descends into its children, since a cheap node can have expensive descendants.
     /// A horizontal deviation is the case to have in mind: its own <see cref="Rational"/> result is two integers, while the curves it was computed from can be arbitrarily large.
     /// </remarks>
+    /// <param name="scope">Whether to clear this node alone or its subtree.</param>
+    /// <param name="force">If true, discard all value and predicate caches in the selected scope, including cheap caches and retained exceptions.</param>
     public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree, bool force = false)
     {
         if (this is IExpressionLeaf leaf)
@@ -730,30 +732,35 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// True if the curve described by the expression has no discontinuity, i.e., it is both left- and right-continuous.
     /// </summary>
+    /// <seealso cref="Curve.IsContinuous"/>
     public bool IsContinuous
         => IsLeftContinuous && IsRightContinuous;
 
     /// <summary>
     /// True if the curve described by the expression is subadditive with $f(0) = 0$.
     /// </summary>
+    /// <seealso cref="Curve.IsRegularSubAdditive"/>
     public bool IsRegularSubAdditive
         => IsSubAdditive && IsPassingThroughOrigin;
 
     /// <summary>
     /// True if the curve described by the expression is super-additive with $f(0) = 0$.
     /// </summary>
+    /// <seealso cref="Curve.IsRegularSuperAdditive"/>
     public bool IsRegularSuperAdditive
         => IsSuperAdditive && IsPassingThroughOrigin;
 
     /// <summary>
     /// True if the curve described by the expression is concave with $f(0) = 0$.
     /// </summary>
+    /// <seealso cref="Curve.IsRegularConcave"/>
     public bool IsRegularConcave
         => IsConcave && IsPassingThroughOrigin;
 
     /// <summary>
     /// True if the curve described by the expression is convex with $f(0) = 0$.
     /// </summary>
+    /// <seealso cref="Curve.IsRegularConvex"/>
     public bool IsRegularConvex
         => IsConvex && IsPassingThroughOrigin;
 
@@ -787,6 +794,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// an expression by a different name is the same expression.
     /// Each arity overrides this further with its own operand comparison, on top of this base check.
     /// </remarks>
+    /// <param name="other">The expression to compare with.</param>
     public virtual bool Equals(CurveExpression? other)
         => other is not null;
 
@@ -804,90 +812,135 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Adds the opposite operator to the expression.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Negate()"/>
     public CurveExpression Negate(string expressionName = "", ExpressionSettings? settings = null)
         => new NegateExpression(this, expressionName, settings);
 
     /// <summary>
     /// Implementation of the unary - operator as the negation of a <see cref="CurveExpression"/>.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <seealso cref="Curve.operator -(Curve)"/>
     public static CurveExpression operator -(CurveExpression expression)
         => expression.Negate();
 
     /// <summary>
     /// Adds to the expression the operation to compute its non-negative version.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToNonNegative()"/>
     public CurveExpression ToNonNegative(string expressionName = "", ExpressionSettings? settings = null)
         => new ToNonNegativeExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds the floor operator to the expression, $\lfloor f(t) \rfloor$.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Floor()"/>
     public CurveExpression Floor(string expressionName = "", ExpressionSettings? settings = null)
         => new FloorExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds the ceiling operator to the expression, $\lceil f(t) \rceil$.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Ceil()"/>
     public CurveExpression Ceil(string expressionName = "", ExpressionSettings? settings = null)
         => new CeilExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds the sub-additive closure operator to the expression.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.SubAdditiveClosure(ComputationSettings)"/>
     public CurveExpression SubAdditiveClosure(string expressionName = "", ExpressionSettings? settings = null)
         => new SubAdditiveClosureExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds the super-additive closure operator to the expression.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.SuperAdditiveClosure(ComputationSettings)"/>
     public CurveExpression SuperAdditiveClosure(string expressionName = "", ExpressionSettings? settings = null)
         => new SuperAdditiveClosureExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute its upper non-decreasing version.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToUpperNonDecreasing(ComputationSettings)"/>
     public CurveExpression ToUpperNonDecreasing(string expressionName = "", ExpressionSettings? settings = null)
         => new ToUpperNonDecreasingExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute its lower non-decreasing version.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLowerNonDecreasing(ComputationSettings)"/>
     public CurveExpression ToLowerNonDecreasing(string expressionName = "", ExpressionSettings? settings = null)
         => new ToLowerNonDecreasingExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute its upper non-increasing version.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToUpperNonIncreasing(ComputationSettings)"/>
     public CurveExpression ToUpperNonIncreasing(string expressionName = "", ExpressionSettings? settings = null)
         => new ToUpperNonIncreasingExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute its lower non-increasing version.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLowerNonIncreasing(ComputationSettings)"/>
     public CurveExpression ToLowerNonIncreasing(string expressionName = "", ExpressionSettings? settings = null)
         => new ToLowerNonIncreasingExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute a left continuous version of it.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLeftContinuous()"/>
     public CurveExpression ToLeftContinuous(string expressionName = "", ExpressionSettings? settings = null)
         => new ToLeftContinuousExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute a right continuous version of it.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToRightContinuous()"/>
     public CurveExpression ToRightContinuous(string expressionName = "", ExpressionSettings? settings = null)
         => new ToRightContinuousExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression an operation which enforces it to assume 0 at time 0.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.WithZeroOrigin()"/>
     public CurveExpression WithZeroOrigin(string expressionName = "", ExpressionSettings? settings = null)
         => new WithZeroOriginExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression an operation which enforces it to assume the given value at time 0.
     /// </summary>
+    /// <param name="value">The value at the origin.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.WithOriginAt(Rational)"/>
     public CurveExpression WithOriginAt(Rational value, string expressionName = "",
         ExpressionSettings? settings = null)
         => new WithOriginAtExpression(this, value, expressionName, settings);
@@ -896,6 +949,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Adds to the expression the operation to compute the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.LowerPseudoInverse()"/>
     public CurveExpression LowerPseudoInverse(string expressionName = "", ExpressionSettings? settings = null)
         => new LowerPseudoInverseExpression(this, expressionName, settings);
 
@@ -903,6 +959,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Adds to the expression the operation to compute the upper pseudo-inverse function,
     /// $f^{-1}_\uparrow(x) = \inf\{ t : f(t) > x \} = \sup\{ t : f(t) \le x \}$.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.UpperPseudoInverse()"/>
     public CurveExpression UpperPseudoInverse(string expressionName = "", ExpressionSettings? settings = null)
         => new UpperPseudoInverseExpression(this, expressionName, settings);
 
@@ -912,6 +971,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the addition between the current expression and the one passed as
     /// argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public CurveExpression Addition(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(AdditionExpression), this, operand) switch
@@ -925,6 +988,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the addition between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public CurveExpression Addition(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
@@ -936,6 +1004,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression composed of the addition between the two expressions.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public static CurveExpression Addition(CurveExpression left, CurveExpression right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Addition(right, expressionName:expressionName, settings: settings);
@@ -944,6 +1017,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the addition between the expression <paramref name="left"/> and the curve
     /// <paramref name="right"/> (internally converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public static CurveExpression Addition(CurveExpression left, Curve right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Addition(right, expressionName:expressionName, settings: settings);
@@ -951,12 +1029,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Implementation of the + operator as the addition between <see cref="CurveExpression"/> objects.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <seealso cref="Curve.operator +(Curve, Curve)"/>
     public static CurveExpression operator +(CurveExpression left, CurveExpression right)
         => Addition(left, right);
 
     /// <summary>
     /// Implementation of the + operator as the addition between <see cref="CurveExpression"/> objects.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <seealso cref="Curve.operator +(Curve, Curve)"/>
     public static CurveExpression operator +(CurveExpression left, Curve right)
         => Addition(left, right);
 
@@ -968,6 +1052,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the subtraction between the current expression and the one passed as
     /// argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     public CurveExpression Subtraction(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SubtractionExpression(this, operand, expressionName, settings);
@@ -976,6 +1064,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the subtraction between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     public CurveExpression Subtraction(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => Subtraction(new ConcreteCurveExpression(curve, name), expressionName, settings);
@@ -984,6 +1077,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the subtraction between the current expression and the one passed as
     /// argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public CurveExpression Subtraction(CurveExpression operand, bool nonNegative, string expressionName = "",
         ExpressionSettings? settings = null)
@@ -993,6 +1091,12 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the subtraction between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public CurveExpression Subtraction(Curve curve, bool nonNegative, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1001,6 +1105,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two expressions.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     public static CurveExpression Subtraction(CurveExpression left, CurveExpression right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Subtraction(right, expressionName:expressionName, settings: settings);
@@ -1009,6 +1118,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the subtraction between the expression <paramref name="left"/> and the curve
     /// <paramref name="right"/> (internally converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     public static CurveExpression Subtraction(CurveExpression left, Curve right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Subtraction(right, expressionName:expressionName, settings: settings);
@@ -1016,12 +1130,18 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Implementation of the - operator as the subtraction between <see cref="CurveExpression"/> objects.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <seealso cref="Curve.operator -(Curve, Curve)"/>
     public static CurveExpression operator -(CurveExpression left, CurveExpression right)
         => Subtraction(left, right);
 
     /// <summary>
     /// Implementation of the - operator as the subtraction between <see cref="CurveExpression"/> objects.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <seealso cref="Curve.operator -(Curve, Curve)"/>
     public static CurveExpression operator -(CurveExpression left, Curve right)
         => Subtraction(left, right);
 
@@ -1033,6 +1153,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the minimum between the current expression and the one passed as
     /// argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Minimum(Curve, ComputationSettings)"/>
     public CurveExpression Minimum(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(MinimumExpression), this, operand) switch
@@ -1046,6 +1170,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the minimum between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Minimum(Curve, ComputationSettings)"/>
     public CurveExpression Minimum(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
@@ -1062,6 +1191,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the maximum between the current expression and the one passed as
     /// argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Maximum(Curve, ComputationSettings)"/>
     public CurveExpression Maximum(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(MaximumExpression), this, operand) switch
@@ -1075,6 +1208,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the maximum between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Maximum(Curve, ComputationSettings)"/>
     public CurveExpression Maximum(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
@@ -1091,6 +1229,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the convolution between the current expression and the one passed as
     /// argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
     public CurveExpression Convolution(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(ConvolutionExpression), this, operand) switch
@@ -1104,6 +1246,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the convolution between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
     public CurveExpression Convolution(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
@@ -1120,6 +1267,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the deconvolution between the current expression and the one passed as
     /// argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Deconvolution(Curve, ComputationSettings)"/>
     public CurveExpression Deconvolution(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new DeconvolutionExpression(this, operand, expressionName, settings);
@@ -1128,6 +1279,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the deconvolution between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Deconvolution(Curve, ComputationSettings)"/>
     public CurveExpression Deconvolution(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => Deconvolution(new ConcreteCurveExpression(curve, name), expressionName, settings);
@@ -1140,6 +1296,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the max-plus convolution between the current expression and the one passed
     /// as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
     public CurveExpression MaxPlusConvolution(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(MaxPlusConvolutionExpression), this, operand) switch
@@ -1153,6 +1313,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the max-plus convolution between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
     public CurveExpression MaxPlusConvolution(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
@@ -1170,6 +1335,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the max-plus deconvolution between the current expression and the one
     /// passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusDeconvolution(Curve, ComputationSettings)"/>
     public CurveExpression MaxPlusDeconvolution(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new MaxPlusDeconvolutionExpression(this, operand, expressionName, settings);
@@ -1178,6 +1347,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the max-plus deconvolution between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusDeconvolution(Curve, ComputationSettings)"/>
     public CurveExpression MaxPlusDeconvolution(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => MaxPlusDeconvolution(new ConcreteCurveExpression(curve, name), expressionName, settings);
@@ -1190,6 +1364,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the composition between the current expression and the one passed as
     /// argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Composition(Curve, ComputationSettings)"/>
     public CurveExpression Composition(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new CompositionExpression(this, operand, expressionName, settings);
@@ -1198,6 +1376,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the composition between the current expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Composition(Curve, ComputationSettings)"/>
     public CurveExpression Composition(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => Composition(new ConcreteCurveExpression(curve, name), expressionName, settings);
@@ -1217,6 +1400,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.DelayBy"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="operand">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveExpression DelayBy(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new DelayByExpression(this, operand, expressionName, settings);
@@ -1232,6 +1418,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.DelayBy"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="delay">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveExpression DelayBy(Rational delay, string expressionName = "", ExpressionSettings? settings = null)
         => DelayBy(new RationalNumberExpression(delay), expressionName, settings);
 
@@ -1250,6 +1439,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.ForwardBy"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="operand">The amount of the anticipation.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveExpression ForwardBy(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new ForwardByExpression(this, operand, expressionName, settings);
@@ -1265,6 +1457,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.ForwardBy"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="time">The amount of the anticipation.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveExpression ForwardBy(Rational time, string expressionName = "", ExpressionSettings? settings = null)
         => ForwardBy(new RationalNumberExpression(time), expressionName, settings);
 
@@ -1283,6 +1478,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.HorizontalShift"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="operand">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveExpression HorizontalShift(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new HorizontalShiftExpression(this, operand, expressionName, settings);
@@ -1298,6 +1496,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <seealso cref="Curve.HorizontalShift"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="value">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveExpression HorizontalShift(Rational value, string expressionName = "", ExpressionSettings? settings = null)
         => HorizontalShift(new RationalNumberExpression(value), expressionName, settings);
 
@@ -1312,6 +1513,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
+    /// <param name="operand">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalShift(Rational, bool, ComputationSettings)"/>
     public CurveExpression VerticalShift(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new VerticalShiftExpression(this, operand, expressionName, settings);
@@ -1323,6 +1528,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
+    /// <param name="value">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalShift(Rational, bool, ComputationSettings)"/>
     public CurveExpression VerticalShift(Rational value, string expressionName = "", ExpressionSettings? settings = null)
         => VerticalShift(new RationalNumberExpression(value), expressionName, settings);
 
@@ -1334,6 +1543,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Creates a new expression composed of the operation to scale the curve corresponding to the current expression
     /// by the rational number described by the argument <paramref name="operand"/> of type
     /// <see cref="RationalExpression"/>. </summary>
+    /// <param name="operand">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Scale(Rational)"/>
     public CurveExpression Scale(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => new ScaleExpression(this, operand, expressionName, settings);
@@ -1341,6 +1554,10 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression composed of the operation to scale the curve corresponding to the current expression
     /// by the rational number <paramref name="scaleFactor"/>.</summary>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Scale(Rational)"/>
     public CurveExpression Scale(Rational scaleFactor, string expressionName = "", ExpressionSettings? settings = null)
         => Scale(new RationalNumberExpression(scaleFactor), expressionName, settings);
 
@@ -1348,6 +1565,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Implementation of the * operator to scale a curve expression by a rational number.
     /// Computes $g(t) = k \cdot f(t)$.
     /// </summary>
+    /// <param name="curve">The operand curve expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <seealso cref="Curve.operator *(Curve, Rational)"/>
     public static CurveExpression operator *(CurveExpression curve, Rational scaleFactor)
         => curve.Scale(scaleFactor);
 
@@ -1355,6 +1575,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Implementation of the * operator to scale a curve expression by a rational number.
     /// Computes $g(t) = k \cdot f(t)$.
     /// </summary>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="curve">The operand curve expression.</param>
+    /// <seealso cref="Curve.operator *(Rational, Curve)"/>
     public static CurveExpression operator *(Rational scaleFactor, CurveExpression curve)
         => curve.Scale(scaleFactor);
 
@@ -1362,6 +1585,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Implementation of the * operator to scale a curve expression by a rational expression.
     /// Computes $g(t) = k \cdot f(t)$.
     /// </summary>
+    /// <param name="curve">The operand curve expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <seealso cref="Curve.operator *(Curve, Rational)"/>
     public static CurveExpression operator *(CurveExpression curve, RationalExpression scaleFactor)
         => curve.Scale(scaleFactor);
 
@@ -1369,6 +1595,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Implementation of the * operator to scale a curve expression by a rational expression.
     /// Computes $g(t) = k \cdot f(t)$.
     /// </summary>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="curve">The operand curve expression.</param>
+    /// <seealso cref="Curve.operator *(Rational, Curve)"/>
     public static CurveExpression operator *(RationalExpression scaleFactor, CurveExpression curve)
         => curve.Scale(scaleFactor);
 
@@ -1376,6 +1605,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Implementation of the / operator to scale down a curve expression by a rational number.
     /// Computes $g(t) = f(t) / k$.
     /// </summary>
+    /// <param name="curve">The operand curve expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <seealso cref="Curve.operator /(Curve, Rational)"/>
     public static CurveExpression operator /(CurveExpression curve, Rational scaleFactor)
         => curve.Scale(1 / scaleFactor);
 
@@ -1383,6 +1615,9 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// Implementation of the / operator to scale down a curve expression by a rational expression.
     /// Computes $g(t) = f(t) / k$.
     /// </summary>
+    /// <param name="curve">The operand curve expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <seealso cref="Curve.operator /(Curve, Rational)"/>
     public static CurveExpression operator /(CurveExpression curve, RationalExpression scaleFactor)
         => curve.Scale(scaleFactor.Invert());
 
@@ -1397,6 +1632,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Curve.ValueAt(Rational, ComputationSettings)"/>
     public RationalExpression ValueAt(
         Rational time,
         string expressionName = "",
@@ -1410,6 +1646,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Curve.ValueAt(Rational, ComputationSettings)"/>
     public RationalExpression ValueAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -1419,10 +1656,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the curve expression at <paramref name="time"/>.
     /// </summary>
-    /// <param name="time">The time value.</param>
+    /// <param name="time">The time at which to compute the limit.</param>
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Curve.LeftLimitAt(Rational)"/>
     public RationalExpression LeftLimitAt(
         Rational time,
         string expressionName = "",
@@ -1432,10 +1670,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the curve expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
-    /// <param name="timeExpression">The expression that provides the time value.</param>
+    /// <param name="timeExpression">The time at which to compute the limit.</param>
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Curve.LeftLimitAt(Rational)"/>
     public RationalExpression LeftLimitAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -1445,10 +1684,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the curve expression at <paramref name="time"/>.
     /// </summary>
-    /// <param name="time">The time value.</param>
+    /// <param name="time">The time at which to compute the limit.</param>
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Curve.RightLimitAt(Rational)"/>
     public RationalExpression RightLimitAt(
         Rational time,
         string expressionName = "",
@@ -1458,10 +1698,11 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the curve expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
-    /// <param name="timeExpression">The expression that provides the time value.</param>
+    /// <param name="timeExpression">The time at which to compute the limit.</param>
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Curve.RightLimitAt(Rational)"/>
     public RationalExpression RightLimitAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -2297,6 +2538,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <summary>
     /// Checks if two expressions are equivalent by computing their values
     /// </summary>
+    /// <param name="other">The expression to compare with.</param>
     public bool Equivalent(IGenericExpression<Curve> other)
         => Curve.Equivalent(Compute(),
             other.Compute());
@@ -2431,6 +2673,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// Same non-destructive, cache-preserving shape as <see cref="WithName"/>.
     /// </remarks>
+    /// <param name="generation">The new generation of the expression.</param>
     public CurveExpression WithGeneration(int generation)
     {
         var changeGenerationVisitor = new RenameCurveVisitor(newGeneration: generation);
@@ -2448,30 +2691,43 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// Pure: this expression's own tree is untouched, and remains exactly as valid as before.
     /// </remarks>
+    /// <param name="expressionName">The name of the expression, or null to keep its current name.</param>
     public ConcreteCurveExpression ToConcrete(string? expressionName = null)
         => new(Value, expressionName ?? Name, Settings);
 
     /// <summary>
     /// This operator returns true if the value of a curve expression is below or equal than the value of another one.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <seealso cref="Curve.operator &lt;=(Curve, Curve)"/>
     public static bool operator <=(CurveExpression expressionL, CurveExpression expressionR)
         => expressionL.Compute() <= expressionR.Compute();
 
     /// <summary>
     /// This operator returns true if the value of a curve expression is greater or equal than the value of another one.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <seealso cref="Curve.operator >=(Curve, Curve)"/>
     public static bool operator >=(CurveExpression expressionL, CurveExpression expressionR)
         => expressionL.Compute() >= expressionR.Compute();
 
     /// <summary>
     /// This operator returns true if the value of a curve expression is below or equal than the value of another one, and the two values are not equivalent.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <seealso cref="Curve.operator &lt;(Curve, Curve)"/>
     public static bool operator <(CurveExpression expressionL, CurveExpression expressionR)
         => expressionL.Compute() < expressionR.Compute();
 
     /// <summary>
     /// This operator returns true if the value of a curve expression is greater or equal than the value of another one, and the two values are not equivalent.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <seealso cref="Curve.operator >(Curve, Curve)"/>
     public static bool operator >(CurveExpression expressionL, CurveExpression expressionR)
         => expressionL.Compute() > expressionR.Compute();
 
@@ -2485,6 +2741,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
+    /// <seealso cref="Curve.operator +(Curve, Rational)"/>
     public static CurveExpression operator +(CurveExpression curveExpression, RationalExpression rationalExpression)
         => curveExpression.VerticalShift(rationalExpression);
     
@@ -2498,6 +2755,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
+    /// <seealso cref="Curve.operator +(Curve, Rational)"/>
     public static CurveExpression operator +(CurveExpression curveExpression, Rational rational)
         => curveExpression.VerticalShift(rational);
 
@@ -2511,6 +2769,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
+    /// <seealso cref="Curve.operator +(Rational, Curve)"/>
     public static CurveExpression operator +(RationalExpression rationalExpression, CurveExpression curveExpression)
         => curveExpression.VerticalShift(rationalExpression);
     
@@ -2524,6 +2783,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
+    /// <seealso cref="Curve.operator +(Rational, Curve)"/>
     public static CurveExpression operator +(Rational rational, CurveExpression curveExpression)
         => curveExpression.VerticalShift(rational);
     
@@ -2537,6 +2797,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
+    /// <seealso cref="Curve.operator -(Curve, Rational)"/>
     public static CurveExpression operator -(CurveExpression curveExpression, RationalExpression rationalExpression)
         => curveExpression.VerticalShift(rationalExpression.Negate());
     
@@ -2550,6 +2811,7 @@ public abstract record CurveExpression : IGenericExpression<Curve>, IVisitableCu
     /// <remarks>
     /// The shift always moves the entire curve, including the point at the origin.
     /// </remarks>
+    /// <seealso cref="Curve.operator -(Curve, Rational)"/>
     public static CurveExpression operator -(CurveExpression curveExpression, Rational rational)
         => curveExpression.VerticalShift(-rational);
 
