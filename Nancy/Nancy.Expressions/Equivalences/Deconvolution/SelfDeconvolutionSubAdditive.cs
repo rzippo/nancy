@@ -2,10 +2,12 @@ using Unipi.Nancy.Expressions.Nodes;
 
 namespace Unipi.Nancy.Expressions.Equivalences;
 
-// todo: add reference
 /// <summary>
 /// If $f$ is subadditive and $f(0) = 0$, its self-deconvolution is equal to $f$ itself, i.e. $f \oslash f = f$.
 /// </summary>
+/// <remarks>
+/// See [DNC18], Lemma 2.6 and Proposition 2.9(1).
+/// </remarks>
 public class SelfDeconvolutionSubAdditive : Equivalence
 {
     /// <inheritdoc cref="SelfDeconvolutionSubAdditive"/>

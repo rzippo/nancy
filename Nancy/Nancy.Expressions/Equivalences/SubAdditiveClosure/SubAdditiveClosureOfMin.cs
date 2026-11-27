@@ -1,9 +1,11 @@
 namespace Unipi.Nancy.Expressions.Equivalences;
 
-// todo: add reference
 /// <summary>
 /// The subadditive closure of the minimum of two functions is equal to the convolution between their subadditive closures, i.e., $\overline{f \wedge g} = \overline{f} \otimes \overline{g}$.
 /// </summary>
+/// <remarks>
+/// See [DNC18], Proposition 2.6.
+/// </remarks>
 public class SubAdditiveClosureOfMin : Equivalence
 {
     /// <inheritdoc cref="SubAdditiveClosureOfMin"/>

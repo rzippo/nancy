@@ -1,9 +1,11 @@
 namespace Unipi.Nancy.Expressions.Equivalences;
 
-// todo: add reference
 /// <summary>
 /// If $f$ and $g$ are concave and 0 at 0, then $f \otimes g = f \wedge g$.
 /// </summary>
+/// <remarks>
+/// See [DNC18], Proposition 3.12(4).
+/// </remarks>
 public class ConvolutionWithConcaveFunctions : Equivalence
 {
     /// <inheritdoc cref="ConvolutionWithConcaveFunctions"/>
