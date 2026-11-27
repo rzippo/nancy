@@ -33,104 +33,223 @@ public class ExpressionsAgreeWithTheLibraryUnderEitherSetting
     private static CurveExpression Se => Expressions.FromCurve(Staircase, "s");
     private static CurveExpression Ce => Expressions.FromCurve(Constant, "c");
 
-    public static TheoryData<string> RationalCases => new(
-        "hDev", "vDev", "zDev", "sequence hDev", "sequence vDev",
-        "value at", "sup value", "inf value", "max value", "min value");
-
-    private static Rational ComputeRational(string which, ExpressionSettings s)
-        => which switch
-        {
-            "hDev" => Expressions.HorizontalDeviation(Ae, Be, settings: s).Compute(),
-            "vDev" => Expressions.VerticalDeviation(Ae, Be, settings: s).Compute(),
-            "zDev" => Expressions.ZDeviation(Ae, Be, settings: s).Compute(),
-            "sequence hDev" => Expressions
-                .HorizontalDeviation(SequenceA.ToExpression("a"), SequenceB.ToExpression("b"), settings: s).Compute(),
-            "sequence vDev" => Expressions
-                .VerticalDeviation(SequenceA.ToExpression("a"), SequenceB.ToExpression("b"), settings: s).Compute(),
-            "value at" => Ae.ValueAt(Expressions.FromRational(2, "t"), settings: s).Compute(),
-            "sup value" => Se.SupValue(settings: s).Compute(),
-            "inf value" => Se.InfValue(settings: s).Compute(),
-            "max value" => Ce.MaxValue(settings: s).Compute(),
-            "min value" => Ce.MinValue(settings: s).Compute(),
-            _ => throw new ArgumentOutOfRangeException(nameof(which), which, "Unknown case.")
-        };
-
-    [Theory]
-    [MemberData(nameof(RationalCases))]
-    public void ARationalExpressionComputesTheSameUnderEitherSetting(string which)
-        => Assert.Equal(ComputeRational(which, Sequential), ComputeRational(which, Parallel));
-
-    public static TheoryData<string> CurveCases => new(
-        "upper non-decreasing", "lower non-decreasing", "upper non-increasing", "lower non-increasing",
-        "subtraction");
-
-    private static Curve ComputeCurve(string which, ExpressionSettings s)
-        => which switch
-        {
-            "upper non-decreasing" => Se.ToUpperNonDecreasing(settings: s).Compute(),
-            "lower non-decreasing" => Se.ToLowerNonDecreasing(settings: s).Compute(),
-            "upper non-increasing" => Se.ToUpperNonIncreasing(settings: s).Compute(),
-            "lower non-increasing" => Se.ToLowerNonIncreasing(settings: s).Compute(),
-            "subtraction" => Ae.Subtraction(Be, settings: s).Compute(),
-            _ => throw new ArgumentOutOfRangeException(nameof(which), which, "Unknown case.")
-        };
-
-    [Theory]
-    [MemberData(nameof(CurveCases))]
-    public void ACurveExpressionComputesTheSameUnderEitherSetting(string which)
-        => Assert.True(ComputeCurve(which, Sequential).Equivalent(ComputeCurve(which, Parallel)));
-
-    public static TheoryData<string> SequenceCases => new("cut", "cut to neighbourhood");
-
-    private static Sequence ComputeSequence(string which, ExpressionSettings s)
-        => which switch
-        {
-            "cut" => Se.Cut(Window, settings: s).Compute(),
-            "cut to neighbourhood" => Se.CutToNeighbourhood(1, 4, settings: s).Compute(),
-            _ => throw new ArgumentOutOfRangeException(nameof(which), which, "Unknown case.")
-        };
-
-    [Theory]
-    [MemberData(nameof(SequenceCases))]
-    public void ASequenceExpressionComputesTheSameUnderEitherSetting(string which)
-        => Assert.True(ComputeSequence(which, Sequential).Equivalent(ComputeSequence(which, Parallel)));
-
-    /// <summary>
-    /// The value an expression computes is the value the same call on the library gives.
-    /// </summary>
     [Fact]
-    public void AnExpressionAgreesWithTheLibraryCallItStandsFor()
+    public void RationalHDevComputesTheSameUnderEitherSetting()
     {
-        var settings = new ComputationSettings { UseParallelism = false };
-        var s = new ExpressionSettings { ComputationSettings = settings };
-
-        Assert.Equal(
-            Curve.HorizontalDeviation(A, B, settings),
-            Expressions.HorizontalDeviation(Ae, Be, settings: s).Compute());
-        Assert.Equal(
-            Curve.VerticalDeviation(A, B, settings),
-            Expressions.VerticalDeviation(Ae, Be, settings: s).Compute());
-        Assert.Equal(
-            Curve.ZDeviation(A, B, settings),
-            Expressions.ZDeviation(Ae, Be, settings: s).Compute());
-        Assert.Equal(
-            Sequence.HorizontalDeviation(SequenceA, SequenceB, settings),
-            Expressions.HorizontalDeviation(SequenceA.ToExpression("a"), SequenceB.ToExpression("b"), settings: s)
-                .Compute());
-        Assert.Equal(
-            A.ValueAt(2, settings),
-            Ae.ValueAt(Expressions.FromRational(2, "t"), settings: s).Compute());
-        Assert.Equal(
-            Staircase.SupValue(settings),
-            Se.SupValue(settings: s).Compute());
-        Assert.True(
-            Staircase.ToUpperNonDecreasing(settings)
-                .Equivalent(Se.ToUpperNonDecreasing(settings: s).Compute()));
-        Assert.True(
-            Staircase.Cut(Window, settings)
-                .Equivalent(Se.Cut(Window, settings: s).Compute()));
-        Assert.True(
-            Staircase.CutToNeighbourhood(1, 4, settings: settings)
-                .Equivalent(Se.CutToNeighbourhood(1, 4, settings: s).Compute()));
+        Assert.Equal(Expressions.HorizontalDeviation(Ae, Be, settings: Sequential).Compute(), Expressions.HorizontalDeviation(Ae, Be, settings: Parallel).Compute());
     }
+
+    [Fact]
+    public void RationalVDevComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Expressions.VerticalDeviation(Ae, Be, settings: Sequential).Compute(), Expressions.VerticalDeviation(Ae, Be, settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void RationalZDevComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Expressions.ZDeviation(Ae, Be, settings: Sequential).Compute(), Expressions.ZDeviation(Ae, Be, settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void RationalSequenceHDevComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Expressions .HorizontalDeviation(SequenceA.ToExpression("a"), SequenceB.ToExpression("b"), settings: Sequential).Compute(), Expressions .HorizontalDeviation(SequenceA.ToExpression("a"), SequenceB.ToExpression("b"), settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void RationalSequenceVDevComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Expressions .VerticalDeviation(SequenceA.ToExpression("a"), SequenceB.ToExpression("b"), settings: Sequential).Compute(), Expressions .VerticalDeviation(SequenceA.ToExpression("a"), SequenceB.ToExpression("b"), settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void RationalValueAtComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Ae.ValueAt(Expressions.FromRational(2, "t"), settings: Sequential).Compute(), Ae.ValueAt(Expressions.FromRational(2, "t"), settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void RationalSupValueComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Se.SupValue(settings: Sequential).Compute(), Se.SupValue(settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void RationalInfValueComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Se.InfValue(settings: Sequential).Compute(), Se.InfValue(settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void RationalMaxValueComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Ce.MaxValue(settings: Sequential).Compute(), Ce.MaxValue(settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void RationalMinValueComputesTheSameUnderEitherSetting()
+    {
+        Assert.Equal(Ce.MinValue(settings: Sequential).Compute(), Ce.MinValue(settings: Parallel).Compute());
+    }
+
+    [Fact]
+    public void CurveUpperNonDecreasingComputesTheSameUnderEitherSetting()
+    {
+        Assert.True(Se.ToUpperNonDecreasing(settings: Sequential).Compute().Equivalent(Se.ToUpperNonDecreasing(settings: Parallel).Compute()));
+    }
+
+    [Fact]
+    public void CurveLowerNonDecreasingComputesTheSameUnderEitherSetting()
+    {
+        Assert.True(Se.ToLowerNonDecreasing(settings: Sequential).Compute().Equivalent(Se.ToLowerNonDecreasing(settings: Parallel).Compute()));
+    }
+
+    [Fact]
+    public void CurveUpperNonIncreasingComputesTheSameUnderEitherSetting()
+    {
+        Assert.True(Se.ToUpperNonIncreasing(settings: Sequential).Compute().Equivalent(Se.ToUpperNonIncreasing(settings: Parallel).Compute()));
+    }
+
+    [Fact]
+    public void CurveLowerNonIncreasingComputesTheSameUnderEitherSetting()
+    {
+        Assert.True(Se.ToLowerNonIncreasing(settings: Sequential).Compute().Equivalent(Se.ToLowerNonIncreasing(settings: Parallel).Compute()));
+    }
+
+    [Fact]
+    public void CurveSubtractionComputesTheSameUnderEitherSetting()
+    {
+        Assert.True(Ae.Subtraction(Be, settings: Sequential).Compute().Equivalent(Ae.Subtraction(Be, settings: Parallel).Compute()));
+    }
+
+    [Fact]
+    public void SequenceCutComputesTheSameUnderEitherSetting()
+    {
+        Assert.True(Se.Cut(Window, settings: Sequential).Compute().Equivalent(Se.Cut(Window, settings: Parallel).Compute()));
+    }
+
+    [Fact]
+    public void SequenceCutToNeighbourhoodComputesTheSameUnderEitherSetting()
+    {
+        Assert.True(Se.CutToNeighbourhood(1, 4, settings: Sequential).Compute().Equivalent(Se.CutToNeighbourhood(1, 4, settings: Parallel).Compute()));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void HorizontalDeviationAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = Curve.HorizontalDeviation(A, B, settings);
+        var actual = Expressions.HorizontalDeviation(Ae, Be, settings: s).Compute();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void VerticalDeviationAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = Curve.VerticalDeviation(A, B, settings);
+        var actual = Expressions.VerticalDeviation(Ae, Be, settings: s).Compute();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ZDeviationAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = Curve.ZDeviation(A, B, settings);
+        var actual = Expressions.ZDeviation(Ae, Be, settings: s).Compute();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SequenceHorizontalDeviationAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = Sequence.HorizontalDeviation(SequenceA, SequenceB, settings);
+        var actual = Expressions.HorizontalDeviation(SequenceA.ToExpression("a"), SequenceB.ToExpression("b"), settings: s).Compute();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ValueAtAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = A.ValueAt(2, settings);
+        var actual = Ae.ValueAt(Expressions.FromRational(2, "t"), settings: s).Compute();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SupValueAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = Staircase.SupValue(settings);
+        var actual = Se.SupValue(settings: s).Compute();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UpperNonDecreasingAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = Staircase.ToUpperNonDecreasing(settings);
+        var actual = Se.ToUpperNonDecreasing(settings: s).Compute();
+
+        Assert.True(expected.Equivalent(actual));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CutAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = Staircase.Cut(Window, settings);
+        var actual = Se.Cut(Window, settings: s).Compute();
+
+        Assert.True(expected.Equivalent(actual));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CutToNeighbourhoodAgreesWithNancy(bool useParallelism)
+    {
+        var settings = new ComputationSettings { UseParallelism = useParallelism };
+        var s = new ExpressionSettings { ComputationSettings = settings };
+        var expected = Staircase.CutToNeighbourhood(1, 4, settings: settings);
+        var actual = Se.CutToNeighbourhood(1, 4, settings: s).Compute();
+
+        Assert.True(expected.Equivalent(actual));
+    }
+
 }
