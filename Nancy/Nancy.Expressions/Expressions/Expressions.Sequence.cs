@@ -11,6 +11,8 @@ public static partial class Expressions
     /// <summary>
     /// Creates a <see cref="ConcreteSequenceExpression"/> object from a <see cref="Sequence"/> object.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name of the expression.</param>
     public static ConcreteSequenceExpression FromSequence(Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "") =>
         new(sequence, name);
@@ -27,6 +29,8 @@ public static partial class Expressions
     /// <summary>
     /// Verifies if two sequence expressions (<paramref name="e1"/> and <paramref name="e2"/>) are equivalent, i.e., their values are equivalent.
     /// </summary>
+    /// <param name="e1">The left operand.</param>
+    /// <param name="e2">The right operand.</param>
     public static bool Equivalent(SequenceExpression e1, SequenceExpression e2)
         => e1.Equivalent(e2);
     
@@ -37,6 +41,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the horizontal deviation operation between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.HorizontalDeviation(Sequence, Sequence, ComputationSettings)"/>
     public static RationalExpression HorizontalDeviation(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceHorizontalDeviationExpression(expressionL, expressionR, expressionName, settings);
@@ -44,6 +53,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the horizontal deviation operation between the expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.HorizontalDeviation(Sequence, Sequence, ComputationSettings)"/>
     public static RationalExpression HorizontalDeviation(SequenceExpression expression, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -53,6 +68,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the horizontal deviation operation between the two sequences (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.HorizontalDeviation(Sequence, Sequence, ComputationSettings)"/>
     public static RationalExpression HorizontalDeviation(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -61,6 +83,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the horizontal deviation operation between the sequence <paramref name="sequenceL"/> (internally converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.HorizontalDeviation(Sequence, Sequence, ComputationSettings)"/>
     public static RationalExpression HorizontalDeviation(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -73,6 +101,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the vertical deviation operation between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalDeviation(Sequence, Sequence, ComputationSettings)"/>
     public static RationalExpression VerticalDeviation(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceVerticalDeviationExpression(expressionL, expressionR, expressionName, settings);
@@ -80,6 +113,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the vertical deviation operation between the expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalDeviation(Sequence, Sequence, ComputationSettings)"/>
     public static RationalExpression VerticalDeviation(SequenceExpression expression, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -89,6 +128,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the vertical deviation operation between the two sequences (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalDeviation(Sequence, Sequence, ComputationSettings)"/>
     public static RationalExpression VerticalDeviation(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -97,6 +143,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the vertical deviation operation between the sequence <paramref name="sequenceL"/> (internally converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalDeviation(Sequence, Sequence, ComputationSettings)"/>
     public static RationalExpression VerticalDeviation(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -109,6 +161,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the opposite operator to the expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Negate()"/>
     public static SequenceExpression Negate(SequenceExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Negate(expressionName, settings);
@@ -116,6 +172,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds the opposite operator to the sequence passed as argument (internally converted to <see cref="ConcreteSequenceExpression"/>).
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Negate()"/>
     public static SequenceExpression Negate(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceNegateExpression(sequence, name, expressionName, settings);
@@ -127,6 +188,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its non-negative version.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToNonNegative()"/>
     public static SequenceExpression ToNonNegative(SequenceExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToNonNegative(expressionName, settings);
@@ -134,6 +199,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the sequence passed as argument the operation to compute its non-negative version.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToNonNegative()"/>
     public static SequenceExpression ToNonNegative(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceToNonNegativeExpression(sequence, name, expressionName, settings);
@@ -145,6 +215,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its floor, $\lfloor f(t) \rfloor$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Floor()"/>
     public static SequenceExpression Floor(SequenceExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Floor(expressionName, settings);
@@ -152,6 +226,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the sequence passed as argument the operation to compute its floor, $\lfloor f(t) \rfloor$.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Floor()"/>
     public static SequenceExpression Floor(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceFloorExpression(sequence, name, expressionName, settings);
@@ -163,6 +242,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its ceiling, $\lceil f(t) \rceil$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Ceil()"/>
     public static SequenceExpression Ceil(SequenceExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Ceil(expressionName, settings);
@@ -170,6 +253,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the sequence passed as argument the operation to compute its ceiling, $\lceil f(t) \rceil$.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Ceil()"/>
     public static SequenceExpression Ceil(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceCeilExpression(sequence, name, expressionName, settings);
@@ -181,6 +269,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute a left continuous version of it.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToLeftContinuous()"/>
     public static SequenceExpression ToLeftContinuous(SequenceExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToLeftContinuous(expressionName, settings);
@@ -188,6 +280,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the sequence passed as argument (converted to <see cref="ConcreteSequenceExpression"/>) the operation to compute a left continuous version of it.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToLeftContinuous()"/>
     public static SequenceExpression ToLeftContinuous(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceToLeftContinuousExpression(sequence, name, expressionName, settings);
@@ -199,6 +296,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute a right continuous version of it.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToRightContinuous()"/>
     public static SequenceExpression ToRightContinuous(SequenceExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToRightContinuous(expressionName, settings);
@@ -206,6 +307,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the sequence passed as argument (converted to <see cref="ConcreteSequenceExpression"/>) the operation to compute a right continuous version of it.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToRightContinuous()"/>
     public static SequenceExpression ToRightContinuous(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceToRightContinuousExpression(sequence, name, expressionName, settings);
@@ -217,6 +323,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute the lower pseudo-inverse function, $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.LowerPseudoInverse(bool)"/>
     public static SequenceExpression LowerPseudoInverse(SequenceExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.LowerPseudoInverse(expressionName, settings);
@@ -224,6 +334,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the sequence passed as argument (converted to <see cref="ConcreteSequenceExpression"/>) the operation to compute the lower pseudo-inverse function, $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.LowerPseudoInverse(bool)"/>
     public static SequenceExpression LowerPseudoInverse(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceLowerPseudoInverseExpression(sequence, name, expressionName, settings);
@@ -235,6 +350,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute the upper pseudo-inverse function, $f^{-1}_\uparrow(x) = \inf\{ t : f(t) > x \} = \sup\{ t : f(t) \le x \}$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.UpperPseudoInverse(bool)"/>
     public static SequenceExpression UpperPseudoInverse(SequenceExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.UpperPseudoInverse(expressionName, settings);
@@ -242,6 +361,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the sequence passed as argument (converted to <see cref="ConcreteSequenceExpression"/>) the operation to compute the upper pseudo-inverse function, $f^{-1}_\uparrow(x) = \inf\{ t : f(t) > x \} = \sup\{ t : f(t) \le x \}$.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.UpperPseudoInverse(bool)"/>
     public static SequenceExpression UpperPseudoInverse(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceUpperPseudoInverseExpression(sequence, name, expressionName, settings);
@@ -253,6 +377,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public static SequenceExpression Addition(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Addition(expressionR, expressionName, settings);
@@ -260,6 +389,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the expression and the sequence (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public static SequenceExpression Addition(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -268,6 +403,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the two sequences (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public static SequenceExpression Addition(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -276,6 +418,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the sequence <paramref name="sequenceL"/> (converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public static SequenceExpression Addition(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -284,6 +432,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
+    /// <param name="sequences">The operand sequences.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public static SequenceExpression Addition(IReadOnlyCollection<Sequence> sequences, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceAdditionExpression(sequences, names, expressionName, settings);
@@ -291,6 +444,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the expressions passed as arguments.
     /// </summary>
+    /// <param name="sequenceExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public static SequenceExpression Addition(IReadOnlyCollection<SequenceExpression> sequenceExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceAdditionExpression(sequenceExpressions, expressionName, settings);
@@ -302,6 +459,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Subtraction(Sequence)"/>
     public static SequenceExpression Subtraction(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Subtraction(expressionR, expressionName, settings);
@@ -309,6 +471,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Subtraction(Sequence)"/>
     public static SequenceExpression Subtraction(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -317,6 +485,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two sequences (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Subtraction(Sequence)"/>
     public static SequenceExpression Subtraction(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -325,6 +500,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the sequence <paramref name="sequenceL"/> (internally converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Subtraction(Sequence)"/>
     public static SequenceExpression Subtraction(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -337,6 +518,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Minimum(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Minimum(expressionR, expressionName, settings);
@@ -344,6 +530,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the expression and the sequence (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Minimum(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -352,6 +544,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the two sequences (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Minimum(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -360,6 +559,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the sequence <paramref name="sequenceL"/> (converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Minimum(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -368,6 +573,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
+    /// <param name="sequences">The operand sequences.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Minimum(IReadOnlyCollection<Sequence> sequences, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMinimumExpression(sequences, names, expressionName, settings);
@@ -375,6 +585,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="sequenceExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Minimum(IReadOnlyCollection<SequenceExpression> sequenceExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMinimumExpression(sequenceExpressions, expressionName, settings);
@@ -386,6 +600,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Maximum(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Maximum(expressionR, expressionName, settings);
@@ -393,6 +612,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the expression and the sequence (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Maximum(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -401,6 +626,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the two sequences (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Maximum(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -409,6 +641,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the sequence <paramref name="sequenceL"/> (converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Maximum(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -417,6 +655,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
+    /// <param name="sequences">The operand sequences.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Maximum(IReadOnlyCollection<Sequence> sequences, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMaximumExpression(sequences, names, expressionName, settings);
@@ -424,6 +667,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="sequenceExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
     public static SequenceExpression Maximum(IReadOnlyCollection<SequenceExpression> sequenceExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMaximumExpression(sequenceExpressions, expressionName, settings);
@@ -435,6 +682,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the convolution between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression Convolution(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Convolution(expressionR, expressionName, settings);
@@ -442,6 +694,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the convolution between the expression and the sequence (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression Convolution(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -450,6 +708,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the convolution between the two sequences (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression Convolution(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -458,6 +723,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the convolution between the sequence <paramref name="sequenceL"/> (converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression Convolution(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -466,6 +737,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the convolution between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
+    /// <param name="sequences">The operand sequences.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression Convolution(IReadOnlyCollection<Sequence> sequences, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceConvolutionExpression(sequences, names, expressionName, settings);
@@ -473,6 +749,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the convolution between the expressions passed as arguments.
     /// </summary>
+    /// <param name="sequenceExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression Convolution(IReadOnlyCollection<SequenceExpression> sequenceExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceConvolutionExpression(sequenceExpressions, expressionName, settings);
@@ -484,6 +764,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Deconvolution(Sequence, Rational?, Rational?, ComputationSettings)"/>
     public static SequenceExpression Deconvolution(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Deconvolution(expressionR, expressionName, settings);
@@ -491,6 +776,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Deconvolution(Sequence, Rational?, Rational?, ComputationSettings)"/>
     public static SequenceExpression Deconvolution(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -499,6 +790,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the two sequences (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Deconvolution(Sequence, Rational?, Rational?, ComputationSettings)"/>
     public static SequenceExpression Deconvolution(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -507,6 +805,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the sequence <paramref name="sequenceL"/> (internally converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Deconvolution(Sequence, Rational?, Rational?, ComputationSettings)"/>
     public static SequenceExpression Deconvolution(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -519,6 +823,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression MaxPlusConvolution(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.MaxPlusConvolution(expressionR, expressionName, settings);
@@ -526,6 +835,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the expression and the sequence (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression MaxPlusConvolution(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -534,6 +849,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the two sequences (converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression MaxPlusConvolution(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -542,6 +864,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the sequence <paramref name="sequenceL"/> (converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression MaxPlusConvolution(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -550,6 +878,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
+    /// <param name="sequences">The operand sequences.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression MaxPlusConvolution(IReadOnlyCollection<Sequence> sequences,
         IReadOnlyCollection<string> names, string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMaxPlusConvolutionExpression(sequences, names, expressionName, settings);
@@ -557,6 +890,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the expressions passed as arguments.
     /// </summary>
+    /// <param name="sequenceExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
     public static SequenceExpression MaxPlusConvolution(IReadOnlyCollection<SequenceExpression> sequenceExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMaxPlusConvolutionExpression(sequenceExpressions, expressionName, settings);
@@ -568,6 +905,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusDeconvolution(Sequence, ComputationSettings)"/>
     public static SequenceExpression MaxPlusDeconvolution(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.MaxPlusDeconvolution(expressionR, expressionName, settings);
@@ -575,6 +917,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusDeconvolution(Sequence, ComputationSettings)"/>
     public static SequenceExpression MaxPlusDeconvolution(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -583,6 +931,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the two sequences (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusDeconvolution(Sequence, ComputationSettings)"/>
     public static SequenceExpression MaxPlusDeconvolution(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -591,6 +946,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the sequence <paramref name="sequenceL"/> (internally converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusDeconvolution(Sequence, ComputationSettings)"/>
     public static SequenceExpression MaxPlusDeconvolution(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -603,6 +964,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the composition between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Composition(Sequence)"/>
     public static SequenceExpression Composition(SequenceExpression expressionL, SequenceExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Composition(expressionR, expressionName, settings);
@@ -610,6 +976,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the composition between the expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Composition(Sequence)"/>
     public static SequenceExpression Composition(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -618,6 +990,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the composition between the two sequences (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Composition(Sequence)"/>
     public static SequenceExpression Composition(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -626,6 +1005,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the composition between the sequence <paramref name="sequenceL"/> (internally converted to <see cref="ConcreteSequenceExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Composition(Sequence)"/>
     public static SequenceExpression Composition(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -641,6 +1026,13 @@ public static partial class Expressions
     /// <remarks>
     /// <paramref name="preserveDelay"/> keeps the delay of the right operand as a gap, and <paramref name="preserveShift"/> keeps the value it starts from as a jump at the join.
     /// </remarks>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="preserveDelay">If true, preserve the delay of the second sequence with an infinite-valued segment.</param>
+    /// <param name="preserveShift">If true, preserve the starting value of the second sequence.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Concat(Sequence, Sequence, bool, bool)"/>
     public static SequenceExpression Concat(SequenceExpression expressionL, SequenceExpression expressionR,
         bool preserveDelay = false, bool preserveShift = false,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -652,6 +1044,14 @@ public static partial class Expressions
     /// <remarks>
     /// <paramref name="preserveDelay"/> keeps the delay of the right operand as a gap, and <paramref name="preserveShift"/> keeps the value it starts from as a jump at the join.
     /// </remarks>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="preserveDelay">If true, preserve the delay of the second sequence with an infinite-valued segment.</param>
+    /// <param name="preserveShift">If true, preserve the starting value of the second sequence.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Concat(Sequence, Sequence, bool, bool)"/>
     public static SequenceExpression Concat(SequenceExpression operand, Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         bool preserveDelay = false, bool preserveShift = false,
@@ -664,6 +1064,15 @@ public static partial class Expressions
     /// <remarks>
     /// <paramref name="preserveDelay"/> keeps the delay of the right operand as a gap, and <paramref name="preserveShift"/> keeps the value it starts from as a jump at the join.
     /// </remarks>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="sequenceR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="preserveDelay">If true, preserve the delay of the second sequence with an infinite-valued segment.</param>
+    /// <param name="preserveShift">If true, preserve the starting value of the second sequence.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Concat(Sequence, Sequence, bool, bool)"/>
     public static SequenceExpression Concat(Sequence sequenceL, Sequence sequenceR,
         [CallerArgumentExpression("sequenceL")] string nameL = "", [CallerArgumentExpression("sequenceR")] string nameR = "",
         bool preserveDelay = false, bool preserveShift = false,
@@ -676,6 +1085,14 @@ public static partial class Expressions
     /// <remarks>
     /// <paramref name="preserveDelay"/> keeps the delay of the right operand as a gap, and <paramref name="preserveShift"/> keeps the value it starts from as a jump at the join.
     /// </remarks>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="preserveDelay">If true, preserve the delay of the second sequence with an infinite-valued segment.</param>
+    /// <param name="preserveShift">If true, preserve the starting value of the second sequence.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Concat(Sequence, Sequence, bool, bool)"/>
     public static SequenceExpression Concat(Sequence sequenceL, SequenceExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         bool preserveDelay = false, bool preserveShift = false,
@@ -693,6 +1110,10 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the delay argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="Sequence.Delay"/>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression Delay(SequenceExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Delay(expressionR, expressionName, settings);
@@ -704,6 +1125,10 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the delay argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="Sequence.Delay"/>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="delay">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression Delay(SequenceExpression operand, Rational delay,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.Delay(delay, expressionName, settings);
@@ -715,6 +1140,11 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the delay argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="Sequence.Delay"/>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="delay">The amount of the delay.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression Delay(Sequence sequenceL, Rational delay,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -727,6 +1157,11 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the delay argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="Sequence.Delay"/>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression Delay(Sequence sequenceL, RationalExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -743,6 +1178,10 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the time argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="Sequence.Forward"/>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression Forward(SequenceExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Forward(expressionR, expressionName, settings);
@@ -754,6 +1193,10 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the time argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="Sequence.Forward"/>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="time">The amount of the anticipation.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression Forward(SequenceExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.Forward(time, expressionName, settings);
@@ -765,6 +1208,11 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the time argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="Sequence.Forward"/>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="time">The amount of the anticipation.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression Forward(Sequence sequenceL, Rational time,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -777,6 +1225,11 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the time argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="Sequence.Forward"/>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression Forward(Sequence sequenceL, RationalExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -793,6 +1246,10 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the shift argument turns out to be infinite.
     /// </remarks>
     /// <seealso cref="Sequence.HorizontalShift"/>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression HorizontalShift(SequenceExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.HorizontalShift(expressionR, expressionName, settings);
@@ -804,6 +1261,10 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the shift argument turns out to be infinite.
     /// </remarks>
     /// <seealso cref="Sequence.HorizontalShift"/>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="time">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression HorizontalShift(SequenceExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.HorizontalShift(time, expressionName, settings);
@@ -815,6 +1276,11 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the shift argument turns out to be infinite.
     /// </remarks>
     /// <seealso cref="Sequence.HorizontalShift"/>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="time">The amount of the shift.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression HorizontalShift(Sequence sequenceL, Rational time,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -827,6 +1293,11 @@ public static partial class Expressions
     /// Computing the expression will throw an <see cref="ArgumentException"/> if the shift argument turns out to be infinite.
     /// </remarks>
     /// <seealso cref="Sequence.HorizontalShift"/>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static SequenceExpression HorizontalShift(Sequence sequenceL, RationalExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -839,6 +1310,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that shifts the sequence expression <paramref name="expressionL"/> by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t) + K$.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalShift(Rational, bool)"/>
     public static SequenceExpression VerticalShift(SequenceExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.VerticalShift(expressionR, expressionName, settings);
@@ -846,6 +1322,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that shifts the sequence expression <paramref name="operand"/> by the rational <paramref name="shift"/>, i.e., computing $f(t) + K$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="shift">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalShift(Rational, bool)"/>
     public static SequenceExpression VerticalShift(SequenceExpression operand, Rational shift,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.VerticalShift(shift, expressionName, settings);
@@ -853,6 +1334,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that shifts the sequence <paramref name="sequenceL"/> by the rational <paramref name="shift"/>, i.e., computing $f(t) + K$.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="shift">The amount of the shift.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalShift(Rational, bool)"/>
     public static SequenceExpression VerticalShift(Sequence sequenceL, Rational shift,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -861,6 +1348,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that shifts the sequence <paramref name="sequenceL"/> by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t) + K$.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalShift(Rational, bool)"/>
     public static SequenceExpression VerticalShift(Sequence sequenceL, RationalExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -873,6 +1366,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that scales the sequence expression <paramref name="expressionL"/> by the rational expression <paramref name="expressionR"/>, i.e. $k \cdot f(t)$.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Scale(Rational)"/>
     public static SequenceExpression Scale(SequenceExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Scale(expressionR, expressionName, settings);
@@ -880,6 +1378,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that scales the sequence expression <paramref name="operand"/> by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Scale(Rational)"/>
     public static SequenceExpression Scale(SequenceExpression operand, Rational scaleFactor,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.Scale(scaleFactor, expressionName, settings);
@@ -887,6 +1390,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that scales the sequence <paramref name="sequenceL"/> by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Scale(Rational)"/>
     public static SequenceExpression Scale(Sequence sequenceL, Rational scaleFactor,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -895,6 +1404,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that scales the sequence <paramref name="sequenceL"/> by the rational expression <paramref name="expressionR"/>, i.e. $k \cdot f(t)$.
     /// </summary>
+    /// <param name="sequenceL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Scale(Rational)"/>
     public static SequenceExpression Scale(Sequence sequenceL, RationalExpression expressionR,
         [CallerArgumentExpression("sequenceL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -907,6 +1422,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates an expression that cuts this curve expression over the given interval, crossing from a curve expression to a sequence one.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="interval">The interval to cut.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Cut(Interval, ComputationSettings)"/>
     public static SequenceExpression Cut(CurveExpression expression, Interval interval,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.Cut(interval, expressionName, settings);
@@ -914,6 +1434,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates an expression that cuts the curve passed as argument over the given interval, crossing from a curve expression to a sequence one.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="interval">The interval to cut.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Cut(Interval, ComputationSettings)"/>
     public static SequenceExpression Cut(Curve curve, Interval interval,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -922,6 +1448,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates an expression that cuts this sequence expression over the given interval.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="interval">The interval to cut.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Cut(Interval, ComputationSettings)"/>
     public static SequenceExpression Cut(SequenceExpression expression, Interval interval,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.Cut(interval, expressionName, settings);
@@ -929,6 +1460,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates an expression that cuts the sequence passed as argument over the given interval.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="interval">The interval to cut.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Cut(Interval, ComputationSettings)"/>
     public static SequenceExpression Cut(Sequence sequence, Interval interval,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -941,6 +1478,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates an expression that cuts this curve expression over a neighbourhood of $[a, b]$, crossing from a curve expression to a sequence one.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="cutStart">Left endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="cutEnd">Right endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.CutToNeighbourhood(Rational, Rational, bool, bool)"/>
     public static SequenceExpression CutToNeighbourhood(CurveExpression expression, Rational cutStart, Rational cutEnd,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.CutToNeighbourhood(cutStart, cutEnd, expressionName, settings);
@@ -948,6 +1491,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates an expression that cuts the curve passed as argument over a neighbourhood of $[a, b]$, crossing from a curve expression to a sequence one.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="cutStart">Left endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="cutEnd">Right endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.CutToNeighbourhood(Rational, Rational, bool, bool)"/>
     public static SequenceExpression CutToNeighbourhood(Curve curve, Rational cutStart, Rational cutEnd,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -956,6 +1506,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates an expression that cuts this sequence expression over a neighbourhood of $[a, b]$.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="cutStart">Left endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="cutEnd">Right endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.CutToNeighbourhood(Rational, Rational, bool, bool)"/>
     public static SequenceExpression CutToNeighbourhood(SequenceExpression expression, Rational cutStart, Rational cutEnd,
         string expressionName = "", ExpressionSettings? settings = null)
         => expression.CutToNeighbourhood(cutStart, cutEnd, expressionName, settings);
@@ -963,6 +1519,13 @@ public static partial class Expressions
     /// <summary>
     /// Creates an expression that cuts the sequence passed as argument over a neighbourhood of $[a, b]$.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="cutStart">Left endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="cutEnd">Right endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.CutToNeighbourhood(Rational, Rational, bool, bool)"/>
     public static SequenceExpression CutToNeighbourhood(Sequence sequence, Rational cutStart, Rational cutEnd,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -975,6 +1538,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the value of the sequence expression passed as argument at <paramref name="time"/>.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="time">The time of sampling.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ValueAt(Rational)"/>
     public static RationalExpression ValueAt(SequenceExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.ValueAt(time, expressionName, settings);
@@ -982,6 +1550,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the value of the sequence expression passed as argument at the time given by <paramref name="timeExpression"/>.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="timeExpression">The expression for the time of sampling.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ValueAt(Rational)"/>
     public static RationalExpression ValueAt(SequenceExpression operand, RationalExpression timeExpression,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.ValueAt(timeExpression, expressionName, settings);
@@ -989,6 +1562,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the value of the sequence passed as argument at <paramref name="time"/>.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="time">The time of sampling.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ValueAt(Rational)"/>
     public static RationalExpression ValueAt(Sequence sequence, Rational time,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -997,6 +1576,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the value of the sequence passed as argument at the time given by <paramref name="timeExpression"/>.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="timeExpression">The expression for the time of sampling.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ValueAt(Rational)"/>
     public static RationalExpression ValueAt(Sequence sequence, RationalExpression timeExpression,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1009,6 +1594,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the sequence expression passed as argument at <paramref name="time"/>.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="time">The time at which to compute the limit.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.LeftLimitAt(Rational)"/>
     public static RationalExpression LeftLimitAt(SequenceExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.LeftLimitAt(time, expressionName, settings);
@@ -1016,6 +1606,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the sequence expression passed as argument at the time given by <paramref name="timeExpression"/>.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="timeExpression">The time at which to compute the limit.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.LeftLimitAt(Rational)"/>
     public static RationalExpression LeftLimitAt(SequenceExpression operand, RationalExpression timeExpression,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.LeftLimitAt(timeExpression, expressionName, settings);
@@ -1023,6 +1618,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the sequence passed as argument at <paramref name="time"/>.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="time">The time at which to compute the limit.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.LeftLimitAt(Rational)"/>
     public static RationalExpression LeftLimitAt(Sequence sequence, Rational time,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1031,6 +1632,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the sequence passed as argument at the time given by <paramref name="timeExpression"/>.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="timeExpression">The time at which to compute the limit.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.LeftLimitAt(Rational)"/>
     public static RationalExpression LeftLimitAt(Sequence sequence, RationalExpression timeExpression,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1043,6 +1650,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the sequence expression passed as argument at <paramref name="time"/>.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="time">The time at which to compute the limit.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.RightLimitAt(Rational)"/>
     public static RationalExpression RightLimitAt(SequenceExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.RightLimitAt(time, expressionName, settings);
@@ -1050,6 +1662,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the sequence expression passed as argument at the time given by <paramref name="timeExpression"/>.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="timeExpression">The time at which to compute the limit.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.RightLimitAt(Rational)"/>
     public static RationalExpression RightLimitAt(SequenceExpression operand, RationalExpression timeExpression,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.RightLimitAt(timeExpression, expressionName, settings);
@@ -1057,6 +1674,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the sequence passed as argument at <paramref name="time"/>.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="time">The time at which to compute the limit.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.RightLimitAt(Rational)"/>
     public static RationalExpression RightLimitAt(Sequence sequence, Rational time,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1065,6 +1688,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the sequence passed as argument at the time given by <paramref name="timeExpression"/>.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="timeExpression">The time at which to compute the limit.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.RightLimitAt(Rational)"/>
     public static RationalExpression RightLimitAt(Sequence sequence, RationalExpression timeExpression,
         [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
