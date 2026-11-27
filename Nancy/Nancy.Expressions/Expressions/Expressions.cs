@@ -13,6 +13,8 @@ public static partial class Expressions
     /// <summary>
     /// Creates a <see cref="ConcreteCurveExpression"/> object from a <see cref="Curve"/> object.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name of the expression.</param>
     public static ConcreteCurveExpression FromCurve(Curve curve,
         [CallerArgumentExpression("curve")] string name = "") =>
         new(curve, name);
@@ -20,6 +22,8 @@ public static partial class Expressions
     /// <summary>
     /// Creates a <see cref="RationalNumberExpression"/> object from a <see cref="Rational"/> object.
     /// </summary>
+    /// <param name="number">The rational number.</param>
+    /// <param name="name">The name of the expression.</param>
     public static RationalNumberExpression FromRational(Rational number,
         [CallerArgumentExpression("number")] string name = "") =>
         new(number, name);
@@ -29,6 +33,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the opposite operator to the expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Negate()"/>
     public static CurveExpression Negate(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Negate(expressionName, settings);
@@ -37,6 +45,11 @@ public static partial class Expressions
     /// Adds the opposite operator to the curve passed as argument (internally converted to
     /// <see cref="ConcreteCurveExpression"/>.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Negate()"/>
     public static CurveExpression Negate(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new NegateExpression(curve, name, expressionName, settings);
@@ -48,6 +61,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its non-negative version.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToNonNegative()"/>
     public static CurveExpression ToNonNegative(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToNonNegative(expressionName, settings);
@@ -55,6 +72,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the curve passed as argument the operation to compute its non-negative version.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToNonNegative()"/>
     public static CurveExpression ToNonNegative(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new ToNonNegativeExpression(curve, name, expressionName, settings);
@@ -66,6 +88,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its floor, $\lfloor f(t) \rfloor$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Floor()"/>
     public static CurveExpression Floor(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Floor(expressionName, settings);
@@ -73,6 +99,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the curve passed as argument the operation to compute its floor, $\lfloor f(t) \rfloor$.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Floor()"/>
     public static CurveExpression Floor(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new FloorExpression(curve, name, expressionName, settings);
@@ -84,6 +115,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its ceiling, $\lceil f(t) \rceil$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Ceil()"/>
     public static CurveExpression Ceil(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Ceil(expressionName, settings);
@@ -91,6 +126,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the curve passed as argument the operation to compute its ceiling, $\lceil f(t) \rceil$.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Ceil()"/>
     public static CurveExpression Ceil(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new CeilExpression(curve, name, expressionName, settings);
@@ -102,6 +142,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the sub-additive closure operator to the expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.SubAdditiveClosure(ComputationSettings)"/>
     public static CurveExpression SubAdditiveClosure(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.SubAdditiveClosure(expressionName, settings);
@@ -110,6 +154,11 @@ public static partial class Expressions
     /// Adds the sub-additive closure operator to the curve passed as argument
     /// (internally converted to <see cref="ConcreteCurveExpression"/>).
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.SubAdditiveClosure(ComputationSettings)"/>
     public static CurveExpression SubAdditiveClosure(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SubAdditiveClosureExpression(curve, name, expressionName, settings);
@@ -121,6 +170,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the super-additive closure operator to the expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.SuperAdditiveClosure(ComputationSettings)"/>
     public static CurveExpression SuperAdditiveClosure(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.SuperAdditiveClosure(expressionName, settings);
@@ -129,6 +182,11 @@ public static partial class Expressions
     /// Adds the super-additive closure operator to the curve passed as argument (internally converted
     /// to <see cref="ConcreteCurveExpression"/>).
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.SuperAdditiveClosure(ComputationSettings)"/>
     public static CurveExpression SuperAdditiveClosure(Curve curve,
         [CallerArgumentExpression("curve")] string name = "", string expressionName = "",
         ExpressionSettings? settings = null)
@@ -141,6 +199,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its upper non-decreasing version.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToUpperNonDecreasing(ComputationSettings)"/>
     public static CurveExpression ToUpperNonDecreasing(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToUpperNonDecreasing(expressionName, settings);
@@ -148,6 +210,11 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the curve passed as argument the operation to compute its upper non-decreasing version.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToUpperNonDecreasing(ComputationSettings)"/>
     public static CurveExpression ToUpperNonDecreasing(Curve curve,
         [CallerArgumentExpression("curve")] string name = "", string expressionName = "",
         ExpressionSettings? settings = null)
@@ -160,6 +227,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its lower non-decreasing version.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLowerNonDecreasing(ComputationSettings)"/>
     public static CurveExpression ToLowerNonDecreasing(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToLowerNonDecreasing(expressionName, settings);
@@ -168,6 +239,11 @@ public static partial class Expressions
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
     /// compute its lower non-decreasing version.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLowerNonDecreasing(ComputationSettings)"/>
     public static CurveExpression ToLowerNonDecreasing(Curve curve,
         [CallerArgumentExpression("curve")] string name = "", string expressionName = "",
         ExpressionSettings? settings = null)
@@ -180,6 +256,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its upper non-increasing version.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToUpperNonIncreasing(ComputationSettings)"/>
     public static CurveExpression ToUpperNonIncreasing(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToUpperNonIncreasing(expressionName, settings);
@@ -188,6 +268,11 @@ public static partial class Expressions
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
     /// compute its upper non-increasing version.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToUpperNonIncreasing(ComputationSettings)"/>
     public static CurveExpression ToUpperNonIncreasing(Curve curve,
         [CallerArgumentExpression("curve")] string name = "", string expressionName = "",
         ExpressionSettings? settings = null)
@@ -200,6 +285,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute its lower non-increasing version.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLowerNonIncreasing(ComputationSettings)"/>
     public static CurveExpression ToLowerNonIncreasing(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToLowerNonIncreasing(expressionName, settings);
@@ -208,6 +297,11 @@ public static partial class Expressions
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
     /// compute its lower non-increasing version.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLowerNonIncreasing(ComputationSettings)"/>
     public static CurveExpression ToLowerNonIncreasing(Curve curve,
         [CallerArgumentExpression("curve")] string name = "", string expressionName = "",
         ExpressionSettings? settings = null)
@@ -220,6 +314,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute a left continuous version of it.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLeftContinuous()"/>
     public static CurveExpression ToLeftContinuous(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToLeftContinuous(expressionName, settings);
@@ -228,6 +326,11 @@ public static partial class Expressions
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
     /// compute a left continuous version of it.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToLeftContinuous()"/>
     public static CurveExpression ToLeftContinuous(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new ToLeftContinuousExpression(curve, name, expressionName, settings);
@@ -239,6 +342,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument the operation to compute a right continuous version of it.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToRightContinuous()"/>
     public static CurveExpression ToRightContinuous(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.ToRightContinuous(expressionName, settings);
@@ -247,6 +354,11 @@ public static partial class Expressions
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/>) the operation to
     /// compute a right continuous version of it.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ToRightContinuous()"/>
     public static CurveExpression ToRightContinuous(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new ToRightContinuousExpression(curve, name, expressionName, settings);
@@ -258,6 +370,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds to the expression passed as argument an operation which enforces it to assume 0 at time 0.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.WithZeroOrigin()"/>
     public static CurveExpression WithZeroOrigin(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.WithZeroOrigin(expressionName, settings);
@@ -266,6 +382,11 @@ public static partial class Expressions
     /// Adds to the curve passed as argument (converted to <see cref="ConcreteCurveExpression"/> an operation which
     /// enforces it to assume 0 at time 0.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.WithZeroOrigin()"/>
     public static CurveExpression WithZeroOrigin(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new WithZeroOriginExpression(curve, name, expressionName, settings);
@@ -278,6 +399,10 @@ public static partial class Expressions
     /// Adds to the expression passed as argument the operation to compute the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.LowerPseudoInverse()"/>
     public static CurveExpression LowerPseudoInverse(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.LowerPseudoInverse(expressionName, settings);
@@ -287,6 +412,11 @@ public static partial class Expressions
     /// compute the lower pseudo-inverse function,
     /// $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.LowerPseudoInverse()"/>
     public static CurveExpression LowerPseudoInverse(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new LowerPseudoInverseExpression(curve, name, expressionName, settings);
@@ -299,6 +429,10 @@ public static partial class Expressions
     /// Adds to the expression passed as argument the operation to compute the upper pseudo-inverse function,
     /// $f^{-1}_\uparrow(x) = \inf\{ t : f(t) > x \} = \sup\{ t : f(t) \le x \}$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.UpperPseudoInverse()"/>
     public static CurveExpression UpperPseudoInverse(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.UpperPseudoInverse(expressionName, settings);
@@ -308,6 +442,11 @@ public static partial class Expressions
     /// compute the upper pseudo-inverse function,
     /// $f^{-1}_\uparrow(x) = \inf\{ t : f(t) > x \} = \sup\{ t : f(t) \le x \}$.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.UpperPseudoInverse()"/>
     public static CurveExpression UpperPseudoInverse(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new UpperPseudoInverseExpression(curve, name, expressionName, settings);
@@ -319,6 +458,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public static CurveExpression Addition(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Addition(expressionR, expressionName, settings);
@@ -327,6 +471,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the expression and the curve (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public static CurveExpression Addition(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -336,6 +486,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the two curves (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public static CurveExpression Addition(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -345,6 +502,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the curve <paramref name="curveL"/> (converted to
     /// <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public static CurveExpression Addition(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -354,6 +517,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the curves passed as argument in the collection
     /// <paramref name="curves"/>.
     /// </summary>
+    /// <param name="curves">The operand curves.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public static CurveExpression Addition(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new AdditionExpression(curves, names, expressionName, settings);
@@ -361,6 +529,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the expressions passed as arguments.
     /// </summary>
+    /// <param name="curveExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
     public static CurveExpression Addition(IReadOnlyCollection<CurveExpression> curveExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new AdditionExpression(curveExpressions, expressionName, settings);
@@ -372,6 +544,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     public static CurveExpression Subtraction(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Subtraction(expressionR, expressionName, settings);
@@ -380,6 +557,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the subtraction between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     public static CurveExpression Subtraction(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -389,6 +572,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the subtraction between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     public static CurveExpression Subtraction(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -399,6 +589,12 @@ public static partial class Expressions
     /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     public static CurveExpression Subtraction(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -407,6 +603,12 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static CurveExpression Subtraction(CurveExpression expressionL, CurveExpression expressionR, bool nonNegative,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -416,6 +618,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the subtraction between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static CurveExpression Subtraction(CurveExpression operand, Curve curve, bool nonNegative,
         [CallerArgumentExpression("curve")] string name = "",
@@ -426,6 +635,14 @@ public static partial class Expressions
     /// Creates a new expression composed of the subtraction between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static CurveExpression Subtraction(Curve curveL, Curve curveR, bool nonNegative,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
@@ -437,6 +654,13 @@ public static partial class Expressions
     /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Subtraction(Curve, ComputationSettings)"/>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public static CurveExpression Subtraction(Curve curveL, CurveExpression expressionR, bool nonNegative,
         [CallerArgumentExpression("curveL")] string nameL = "",
@@ -450,6 +674,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Minimum(Curve, Curve, ComputationSettings)"/>
     public static CurveExpression Minimum(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Minimum(expressionR, expressionName, settings);
@@ -458,6 +687,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the expression and the curve (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Minimum(Curve, Curve, ComputationSettings)"/>
     public static CurveExpression Minimum(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -467,6 +702,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the two curves (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Minimum(Curve, Curve, ComputationSettings)"/>
     public static CurveExpression Minimum(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -476,6 +718,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the curve <paramref name="curveL"/> (converted to
     /// <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Minimum(Curve, Curve, ComputationSettings)"/>
     public static CurveExpression Minimum(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -485,6 +733,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the curves passed as argument in the collection
     /// <paramref name="curves"/>.
     /// </summary>
+    /// <param name="curves">The operand curves.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Minimum(IReadOnlyCollection{Curve}, ComputationSettings)"/>
     public static CurveExpression Minimum(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new MinimumExpression(curves, names, expressionName, settings);
@@ -492,6 +745,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="curveExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Minimum(IReadOnlyCollection{Curve}, ComputationSettings)"/>
     public static CurveExpression Minimum(IReadOnlyCollection<CurveExpression> curveExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new MinimumExpression(curveExpressions, expressionName, settings);
@@ -503,6 +760,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Maximum(Curve, Curve, ComputationSettings)"/>
     public static CurveExpression Maximum(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Maximum(expressionR, expressionName, settings);
@@ -511,6 +773,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the expression and the curve (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Maximum(Curve, Curve, ComputationSettings)"/>
     public static CurveExpression Maximum(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -520,6 +788,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the two curves (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Maximum(Curve, Curve, ComputationSettings)"/>
     public static CurveExpression Maximum(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -529,6 +804,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the curve <paramref name="curveL"/> (converted to
     /// <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Maximum(Curve, Curve, ComputationSettings)"/>
     public static CurveExpression Maximum(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -538,6 +819,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the curves passed as argument in the collection
     /// <paramref name="curves"/>.
     /// </summary>
+    /// <param name="curves">The operand curves.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Maximum(IReadOnlyCollection{Curve}, ComputationSettings)"/>
     public static CurveExpression Maximum(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new MaximumExpression(curves, names, expressionName, settings);
@@ -545,6 +831,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="curveExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Maximum(IReadOnlyCollection{Curve}, ComputationSettings)"/>
     public static CurveExpression Maximum(IReadOnlyCollection<CurveExpression> curveExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new MaximumExpression(curveExpressions, expressionName, settings);
@@ -556,6 +846,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the convolution between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
     public static CurveExpression Convolution(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Convolution(expressionR, expressionName, settings);
@@ -564,6 +859,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the convolution between the expression and the curve (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
     public static CurveExpression Convolution(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -573,6 +874,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the convolution between the two curves (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
     public static CurveExpression Convolution(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -582,6 +890,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the convolution between the curve <paramref name="curveL"/> (converted to
     /// <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
     public static CurveExpression Convolution(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -591,6 +905,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the convolution between the curves passed as argument in the collection
     /// <paramref name="curves"/>.
     /// </summary>
+    /// <param name="curves">The operand curves.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
     public static CurveExpression Convolution(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new ConvolutionExpression(curves, names, expressionName, settings);
@@ -598,6 +917,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the convolution between the expressions passed as arguments.
     /// </summary>
+    /// <param name="curveExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
     public static CurveExpression Convolution(IReadOnlyCollection<CurveExpression> curveExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new ConvolutionExpression(curveExpressions, expressionName, settings);
@@ -609,6 +932,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Deconvolution(Curve, ComputationSettings)"/>
     public static CurveExpression Deconvolution(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Deconvolution(expressionR, expressionName, settings);
@@ -617,6 +945,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the deconvolution between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Deconvolution(Curve, ComputationSettings)"/>
     public static CurveExpression Deconvolution(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -626,6 +960,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the deconvolution between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Deconvolution(Curve, ComputationSettings)"/>
     public static CurveExpression Deconvolution(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -636,6 +977,12 @@ public static partial class Expressions
     /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Deconvolution(Curve, ComputationSettings)"/>
     public static CurveExpression Deconvolution(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -648,6 +995,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusConvolution(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.MaxPlusConvolution(expressionR, expressionName, settings);
@@ -656,6 +1008,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the max-plus convolution between the expression and the curve
     /// (converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusConvolution(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -665,6 +1023,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the max-plus convolution between the two curves (converted to
     /// <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusConvolution(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -674,6 +1039,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the max-plus convolution between the curve <paramref name="curveL"/> (converted
     /// to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusConvolution(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -683,6 +1054,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the max-plus convolution between the curves passed as argument in the
     /// collection <paramref name="curves"/>.
     /// </summary>
+    /// <param name="curves">The operand curves.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusConvolution(IReadOnlyCollection<Curve> curves,
         IReadOnlyCollection<string> names, string expressionName = "", ExpressionSettings? settings = null)
         => new MaxPlusConvolutionExpression(curves, names, expressionName, settings);
@@ -690,6 +1066,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the expressions passed as arguments.
     /// </summary>
+    /// <param name="curveExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusConvolution(IReadOnlyCollection<CurveExpression> curveExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new MaxPlusConvolutionExpression(curveExpressions, expressionName, settings);
@@ -701,6 +1081,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusDeconvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusDeconvolution(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.MaxPlusDeconvolution(expressionR, expressionName, settings);
@@ -709,6 +1094,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the max-plus deconvolution between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusDeconvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusDeconvolution(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -718,6 +1109,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the max-plus deconvolution between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusDeconvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusDeconvolution(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -728,6 +1126,12 @@ public static partial class Expressions
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/>
     /// passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxPlusDeconvolution(Curve, ComputationSettings)"/>
     public static CurveExpression MaxPlusDeconvolution(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -740,6 +1144,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the composition between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Composition(Curve, ComputationSettings)"/>
     public static CurveExpression Composition(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Composition(expressionR, expressionName, settings);
@@ -748,6 +1157,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the composition between the expression and the curve (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Composition(Curve, ComputationSettings)"/>
     public static CurveExpression Composition(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -757,6 +1172,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the composition between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Composition(Curve, ComputationSettings)"/>
     public static CurveExpression Composition(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -767,6 +1189,12 @@ public static partial class Expressions
     /// converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Composition(Curve, ComputationSettings)"/>
     public static CurveExpression Composition(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -779,6 +1207,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the horizontal deviation operation between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.HorizontalDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression HorizontalDeviation(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => new HorizontalDeviationExpression(expressionL, expressionR, expressionName, settings);
@@ -787,6 +1220,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the horizontal deviation operation between the expression and the curve
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.HorizontalDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression HorizontalDeviation(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -797,6 +1236,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the horizontal deviation operation between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.HorizontalDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression HorizontalDeviation(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -807,6 +1253,12 @@ public static partial class Expressions
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/>
     /// passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.HorizontalDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression HorizontalDeviation(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -819,6 +1271,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the vertical deviation operation between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression VerticalDeviation(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => new VerticalDeviationExpression(expressionL, expressionR, expressionName, settings);
@@ -827,6 +1284,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the vertical deviation operation between the expression and the curve
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression VerticalDeviation(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -837,6 +1300,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the vertical deviation operation between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression VerticalDeviation(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -847,6 +1317,12 @@ public static partial class Expressions
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/>
     /// passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression VerticalDeviation(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -859,6 +1335,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the z-deviation operation between the two expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ZDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression ZDeviation(CurveExpression expressionL, CurveExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => new ZDeviationExpression(expressionL, expressionR, expressionName, settings);
@@ -867,6 +1348,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the z-deviation operation between the expression and the curve
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ZDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression ZDeviation(CurveExpression operand, Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -877,6 +1364,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the z-deviation operation between the two curves (internally
     /// converted to <see cref="ConcreteCurveExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="curveR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ZDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression ZDeviation(Curve curveL, Curve curveR,
         [CallerArgumentExpression("curveL")] string nameL = "", [CallerArgumentExpression("curveR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -887,6 +1381,12 @@ public static partial class Expressions
     /// (internally converted to <see cref="ConcreteCurveExpression"/>) and the expression <paramref name="expressionR"/>
     /// passed as arguments.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.ZDeviation(Curve, Curve, ComputationSettings)"/>
     public static RationalExpression ZDeviation(Curve curveL, CurveExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -899,6 +1399,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the supremum of the curve expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.SupValue(ComputationSettings)"/>
     public static RationalExpression SupValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.SupValue(expressionName, settings);
@@ -907,6 +1411,11 @@ public static partial class Expressions
     /// Creates a new expression that computes the supremum of the curve passed as argument (internally
     /// converted to <see cref="ConcreteCurveExpression"/>).
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.SupValue(ComputationSettings)"/>
     public static RationalExpression SupValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SupValueExpression(curve, name, expressionName, settings);
@@ -918,6 +1427,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the infimum of the curve expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.InfValue(ComputationSettings)"/>
     public static RationalExpression InfValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.InfValue(expressionName, settings);
@@ -926,6 +1439,11 @@ public static partial class Expressions
     /// Creates a new expression that computes the infimum of the curve passed as argument (internally
     /// converted to <see cref="ConcreteCurveExpression"/>).
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.InfValue(ComputationSettings)"/>
     public static RationalExpression InfValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new InfValueExpression(curve, name, expressionName, settings);
@@ -937,6 +1455,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the maximum value attained by the curve expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxValue(ComputationSettings)"/>
     public static RationalExpression MaxValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.MaxValue(expressionName, settings);
@@ -945,6 +1467,11 @@ public static partial class Expressions
     /// Creates a new expression that computes the maximum value attained by the curve passed as argument (internally
     /// converted to <see cref="ConcreteCurveExpression"/>).
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MaxValue(ComputationSettings)"/>
     public static RationalExpression MaxValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new MaxValueExpression(curve, name, expressionName, settings);
@@ -956,6 +1483,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression that computes the minimum value attained by the curve expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MinValue(ComputationSettings)"/>
     public static RationalExpression MinValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.MinValue(expressionName, settings);
@@ -964,6 +1495,11 @@ public static partial class Expressions
     /// Creates a new expression that computes the minimum value attained by the curve passed as argument (internally
     /// converted to <see cref="ConcreteCurveExpression"/>).
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.MinValue(ComputationSettings)"/>
     public static RationalExpression MinValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new MinValueExpression(curve, name, expressionName, settings);
@@ -1406,6 +1942,10 @@ public static partial class Expressions
     /// <seealso cref="Curve.DelayBy"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression DelayBy(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.DelayBy(expressionR, expressionName, settings);
@@ -1421,6 +1961,10 @@ public static partial class Expressions
     /// <seealso cref="Curve.DelayBy"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="delay">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression DelayBy(CurveExpression operand, Rational delay,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.DelayBy(delay, expressionName, settings);
@@ -1436,6 +1980,11 @@ public static partial class Expressions
     /// <seealso cref="Curve.DelayBy"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Numerics.Rational,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Numerics.Rational,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="delay">The amount of the delay.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression DelayBy(Curve curveL, Rational delay,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1452,6 +2001,11 @@ public static partial class Expressions
     /// <seealso cref="Curve.DelayBy"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Expressions.RationalExpression,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Expressions.RationalExpression,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression DelayBy(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1472,6 +2026,10 @@ public static partial class Expressions
     /// <seealso cref="Curve.ForwardBy"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression ForwardBy(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.ForwardBy(expressionR, expressionName, settings);
@@ -1487,6 +2045,10 @@ public static partial class Expressions
     /// <seealso cref="Curve.ForwardBy"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="time">The amount of the anticipation.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression ForwardBy(CurveExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.ForwardBy(time, expressionName, settings);
@@ -1502,6 +2064,11 @@ public static partial class Expressions
     /// <seealso cref="Curve.ForwardBy"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Numerics.Rational,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Numerics.Rational,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="time">The amount of the anticipation.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression ForwardBy(Curve curveL, Rational time,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1518,6 +2085,11 @@ public static partial class Expressions
     /// <seealso cref="Curve.ForwardBy"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Expressions.RationalExpression,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Expressions.RationalExpression,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression ForwardBy(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1539,6 +2111,10 @@ public static partial class Expressions
     /// <seealso cref="Curve.HorizontalShift"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Expressions.RationalExpression,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression HorizontalShift(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.HorizontalShift(expressionR, expressionName, settings);
@@ -1555,6 +2131,10 @@ public static partial class Expressions
     /// <seealso cref="Curve.HorizontalShift"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.Expressions.CurveExpression,Unipi.Nancy.Numerics.Rational,string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="time">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression HorizontalShift(CurveExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.HorizontalShift(time, expressionName, settings);
@@ -1571,6 +2151,11 @@ public static partial class Expressions
     /// <seealso cref="Curve.HorizontalShift"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Numerics.Rational,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Numerics.Rational,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="time">The amount of the shift.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression HorizontalShift(Curve curveL, Rational time,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1588,6 +2173,11 @@ public static partial class Expressions
     /// <seealso cref="Curve.HorizontalShift"/>
     /// <seealso cref="DelayBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Expressions.RationalExpression,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
     /// <seealso cref="ForwardBy(Unipi.Nancy.MinPlusAlgebra.Curve,Unipi.Nancy.Expressions.RationalExpression,string, string,Unipi.Nancy.Expressions.ExpressionSettings?)"/>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression HorizontalShift(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1601,6 +2191,11 @@ public static partial class Expressions
     /// Creates a new expression that shifts the curve expression
     /// <paramref name="expressionL"/> by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t) + K$.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalShift(Rational, bool, ComputationSettings)"/>
     public static CurveExpression VerticalShift(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.VerticalShift(expressionR, expressionName, settings);
@@ -1609,6 +2204,11 @@ public static partial class Expressions
     /// Creates a new expression that shifts the curve expression
     /// <paramref name="operand"/> by the rational <paramref name="time"/>, i.e., computing $f(t) + K$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="time">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalShift(Rational, bool, ComputationSettings)"/>
     public static CurveExpression VerticalShift(CurveExpression operand, Rational time,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.VerticalShift(time, expressionName, settings);
@@ -1617,6 +2217,12 @@ public static partial class Expressions
     /// Creates a new expression that shifts the curve <paramref name="curveL"/>
     /// by the rational <paramref name="time"/>, i.e., computing $f(t) + K$.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="time">The amount of the shift.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalShift(Rational, bool, ComputationSettings)"/>
     public static CurveExpression VerticalShift(Curve curveL, Rational time,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1626,6 +2232,12 @@ public static partial class Expressions
     /// Creates a new expression that shifts the curve <paramref name="curveL"/>
     /// by the rational expression <paramref name="expressionR"/>, i.e., computing $f(t) + K$.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.VerticalShift(Rational, bool, ComputationSettings)"/>
     public static CurveExpression VerticalShift(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1639,6 +2251,11 @@ public static partial class Expressions
     /// Creates a new expression that scales the curve expression
     /// <paramref name="expressionL"/> by the rational expression <paramref name="expressionR"/>, i.e. $k \cdot f(t)$. 
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Scale(Rational)"/>
     public static CurveExpression Scale(CurveExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Scale(expressionR, expressionName, settings);
@@ -1647,6 +2264,11 @@ public static partial class Expressions
     /// Creates a new expression that scales the curve expression
     /// <paramref name="operand"/> by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Scale(Rational)"/>
     public static CurveExpression Scale(CurveExpression operand, Rational scaleFactor,
         string expressionName = "", ExpressionSettings? settings = null)
         => operand.Scale(scaleFactor, expressionName, settings);
@@ -1655,6 +2277,12 @@ public static partial class Expressions
     /// Creates a new expression that scales the curve <paramref name="curveL"/>
     /// by the rational <paramref name="scaleFactor"/>, i.e. $k \cdot f(t)$.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Scale(Rational)"/>
     public static CurveExpression Scale(Curve curveL, Rational scaleFactor,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1664,6 +2292,12 @@ public static partial class Expressions
     /// Creates a new expression that scales the curve <paramref name="curveL"/>
     /// by the rational expression <paramref name="expressionR"/>, i.e. $k \cdot f(t)$.
     /// </summary>
+    /// <param name="curveL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Curve.Scale(Rational)"/>
     public static CurveExpression Scale(Curve curveL, RationalExpression expressionR,
         [CallerArgumentExpression("curveL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1677,6 +2311,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Add(Rational, Rational)"/>
     public static RationalExpression RationalAddition(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1685,6 +2325,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the addition between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Add(Rational, Rational)"/>
     public static RationalExpression RationalAddition(RationalExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Addition(expressionR, expressionName, settings);
@@ -1693,6 +2338,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the two rational numbers passed as arguments
     /// (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="rationalR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Add(Rational, Rational)"/>
     public static RationalExpression RationalAddition(Rational rationalL, Rational rationalR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "", [CallerArgumentExpression("rationalR")] string nameR = "",
@@ -1703,6 +2355,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the rational number <paramref name="rationalL"/> and the
     /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Add(Rational, Rational)"/>
     public static RationalExpression RationalAddition(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "",
@@ -1713,6 +2371,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the rational numbers passed as
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
+    /// <param name="numbers">The operand rational numbers.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Add(Rational, Rational)"/>
     public static RationalExpression RationalAddition(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1725,6 +2388,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the subtraction between the two rational expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Subtract(Rational, Rational)"/>
     public static RationalExpression RationalSubtraction(RationalExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Subtraction(expressionR, expressionName, settings);
@@ -1733,6 +2401,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the subtraction between the expression and the number (internally
     /// converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Subtract(Rational, Rational)"/>
     public static RationalExpression RationalSubtraction(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1742,6 +2416,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the subtraction between the two numbers (internally
     /// converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="numberL">The left operand.</param>
+    /// <param name="numberR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Subtract(Rational, Rational)"/>
     public static RationalExpression RationalSubtraction(Rational numberL, Rational numberR,
         [CallerArgumentExpression("numberL")] string nameL = "", [CallerArgumentExpression("numberR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1752,6 +2433,12 @@ public static partial class Expressions
     /// converted to <see cref="RationalNumberExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
+    /// <param name="numberL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Subtract(Rational, Rational)"/>
     public static RationalExpression RationalSubtraction(Rational numberL, RationalExpression expressionR,
         [CallerArgumentExpression("numberL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1765,6 +2452,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Min(Rational, Rational)"/>
     public static RationalExpression RationalMinimum(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1773,6 +2466,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Min(Rational, Rational)"/>
     public static RationalExpression RationalMinimum(RationalExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Min(expressionR, expressionName, settings);
@@ -1781,6 +2479,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the two rational numbers passed as arguments
     /// (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="rationalR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Min(Rational, Rational)"/>
     public static RationalExpression RationalMinimum(Rational rationalL, Rational rationalR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "", [CallerArgumentExpression("rationalR")] string nameR = "",
@@ -1791,6 +2496,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the rational number <paramref name="rationalL"/> and the
     /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Min(Rational, Rational)"/>
     public static RationalExpression RationalMinimum(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "",
@@ -1801,6 +2512,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the rational numbers passed as
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
+    /// <param name="numbers">The operand rational numbers.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Min(Rational, Rational)"/>
     public static RationalExpression RationalMinimum(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1809,6 +2525,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the minimum between the rational expressions passed as arguments.
     /// </summary>
+    /// <param name="rationalExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Min(Rational, Rational)"/>
     public static RationalExpression RationalMinimum(IReadOnlyCollection<RationalExpression> rationalExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new RationalMinimumExpression(rationalExpressions, expressionName, settings);
@@ -1821,6 +2541,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Max(Rational, Rational)"/>
     public static RationalExpression RationalMaximum(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1829,6 +2555,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Max(Rational, Rational)"/>
     public static RationalExpression RationalMaximum(RationalExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Max(expressionR, expressionName, settings);
@@ -1837,6 +2568,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the two rational numbers passed as arguments
     /// (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="rationalR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Max(Rational, Rational)"/>
     public static RationalExpression RationalMaximum(Rational rationalL, Rational rationalR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "", [CallerArgumentExpression("rationalR")] string nameR = "",
@@ -1847,6 +2585,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the rational number <paramref name="rationalL"/> and the
     /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Max(Rational, Rational)"/>
     public static RationalExpression RationalMaximum(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "",
@@ -1857,6 +2601,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the rational numbers passed as
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
+    /// <param name="numbers">The operand rational numbers.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Max(Rational, Rational)"/>
     public static RationalExpression RationalMaximum(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1865,6 +2614,10 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the maximum between the rational expressions passed as arguments.
     /// </summary>
+    /// <param name="rationalExpressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Max(Rational, Rational)"/>
     public static RationalExpression RationalMaximum(IReadOnlyCollection<RationalExpression> rationalExpressions,
         string expressionName = "", ExpressionSettings? settings = null)
         => new RationalMaximumExpression(rationalExpressions, expressionName, settings);
@@ -1877,6 +2630,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the product between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.operator *(Rational, Rational)"/>
     public static RationalExpression Product(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1885,6 +2644,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the product between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.operator *(Rational, Rational)"/>
     public static RationalExpression Product(RationalExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Product(expressionR, expressionName, settings);
@@ -1893,6 +2657,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the product between the two rational numbers passed as arguments
     /// (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="rationalR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.operator *(Rational, Rational)"/>
     public static RationalExpression Product(Rational rationalL, Rational rationalR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "", [CallerArgumentExpression("rationalR")] string nameR = "",
@@ -1903,6 +2674,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the product between the rational number <paramref name="rationalL"/> and the
     /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.operator *(Rational, Rational)"/>
     public static RationalExpression Product(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "",
@@ -1913,6 +2690,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the product between the rational numbers passed as
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
+    /// <param name="numbers">The operand rational numbers.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Multiply(Rational, Rational)"/>
     public static RationalExpression RationalProduct(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1925,6 +2707,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the division between the two rational expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.operator /(Rational, Rational)"/>
     public static RationalExpression Division(RationalExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.Division(expressionR, expressionName, settings);
@@ -1933,6 +2720,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the division between the expression and the number (internally
     /// converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.operator /(Rational, Rational)"/>
     public static RationalExpression Division(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1942,6 +2735,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the division between the two numbers (internally
     /// converted to <see cref="RationalNumberExpression"/>) passed as arguments.
     /// </summary>
+    /// <param name="numberL">The left operand.</param>
+    /// <param name="numberR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.operator /(Rational, Rational)"/>
     public static RationalExpression Division(Rational numberL, Rational numberR,
         [CallerArgumentExpression("numberL")] string nameL = "", [CallerArgumentExpression("numberR")] string nameR = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1952,6 +2752,12 @@ public static partial class Expressions
     /// converted to <see cref="RationalNumberExpression"/>) and the expression <paramref name="expressionR"/> passed as
     /// arguments.
     /// </summary>
+    /// <param name="numberL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.operator /(Rational, Rational)"/>
     public static RationalExpression Division(Rational numberL, RationalExpression expressionR,
         [CallerArgumentExpression("numberL")] string nameL = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1965,6 +2771,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the l.c.m. between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.LeastCommonMultiple(Rational, Rational)"/>
     public static RationalExpression LeastCommonMultiple(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -1973,6 +2785,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the l.c.m. between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.LeastCommonMultiple(Rational, Rational)"/>
     public static RationalExpression LeastCommonMultiple(RationalExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.LeastCommonMultiple(expressionR, expressionName, settings);
@@ -1981,6 +2798,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the l.c.m. between the two rational numbers passed as arguments
     /// (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="rationalR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.LeastCommonMultiple(Rational, Rational)"/>
     public static RationalExpression LeastCommonMultiple(Rational rationalL, Rational rationalR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "", [CallerArgumentExpression("rationalR")] string nameR = "",
@@ -1991,6 +2815,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the l.c.m. between the rational number <paramref name="rationalL"/> and the
     /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.LeastCommonMultiple(Rational, Rational)"/>
     public static RationalExpression LeastCommonMultiple(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "",
@@ -2001,6 +2831,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the l.c.m. between the rational numbers passed as
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
+    /// <param name="numbers">The operand rational numbers.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.LeastCommonMultiple(Rational, Rational)"/>
     public static RationalExpression LeastCommonMultiple(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -2014,6 +2849,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the g.c.d. between the expression passed as first argument and the
     /// rational number passed as second argument (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.GreatestCommonDivisor(Rational, Rational)"/>
     public static RationalExpression GreatestCommonDivisor(RationalExpression operand, Rational number,
         [CallerArgumentExpression("number")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
@@ -2022,6 +2863,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a new expression composed of the g.c.d. between the expressions passed as arguments.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.GreatestCommonDivisor(Rational, Rational)"/>
     public static RationalExpression GreatestCommonDivisor(RationalExpression expressionL, RationalExpression expressionR,
         string expressionName = "", ExpressionSettings? settings = null)
         => expressionL.GreatestCommonDivisor(expressionR, expressionName, settings);
@@ -2030,6 +2876,13 @@ public static partial class Expressions
     /// Creates a new expression composed of the g.c.d. between the two rational numbers passed as arguments
     /// (converted to <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="rationalR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.GreatestCommonDivisor(Rational, Rational)"/>
     public static RationalExpression GreatestCommonDivisor(Rational rationalL, Rational rationalR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "", [CallerArgumentExpression("rationalR")] string nameR = "",
@@ -2040,6 +2893,12 @@ public static partial class Expressions
     /// Creates a new expression composed of the g.c.d. between the rational number <paramref name="rationalL"/> and the
     /// expression <paramref name="expressionR"/> passed as arguments.
     /// </summary>
+    /// <param name="rationalL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.GreatestCommonDivisor(Rational, Rational)"/>
     public static RationalExpression GreatestCommonDivisor(Rational rationalL, RationalExpression expressionR,
         [CallerArgumentExpression("rationalL")]
         string nameL = "",
@@ -2050,6 +2909,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the g.c.d. between the rational numbers passed as
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
+    /// <param name="numbers">The operand rational numbers.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.GreatestCommonDivisor(Rational, Rational)"/>
     public static RationalExpression GreatestCommonDivisor(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -2062,6 +2926,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the negation operator to the expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Negate(Rational)"/>
     public static RationalExpression Negate(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Negate(expressionName, settings);
@@ -2070,6 +2938,10 @@ public static partial class Expressions
     /// Adds the negation operator to the number passed as argument (which is converted to
     /// <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Negate(Rational)"/>
     public static RationalExpression Negate(Rational number, string expressionName = "",
         ExpressionSettings? settings = null)
         => new NegateRationalExpression(number, expressionName, settings);
@@ -2081,6 +2953,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the inversion operator to the expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Invert(Rational)"/>
     public static RationalExpression Invert(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Invert(expressionName, settings);
@@ -2089,6 +2965,10 @@ public static partial class Expressions
     /// Adds the inversion operator to the number passed as argument (which is converted to
     /// <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Invert(Rational)"/>
     public static RationalExpression Invert(Rational number, string expressionName = "",
         ExpressionSettings? settings = null)
         => new InvertRationalExpression(number, expressionName, settings);
@@ -2100,6 +2980,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the absolute value operator to the expression passed as argument.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Abs(Rational)"/>
     public static RationalExpression AbsoluteValue(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.AbsoluteValue(expressionName, settings);
@@ -2108,6 +2992,10 @@ public static partial class Expressions
     /// Adds the absolute value operator to the number passed as argument (which is converted to
     /// <see cref="RationalNumberExpression"/>).
     /// </summary>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Abs(Rational)"/>
     public static RationalExpression AbsoluteValue(Rational number, string expressionName = "",
         ExpressionSettings? settings = null)
         => new RationalAbsoluteValueExpression(number, expressionName, settings);
@@ -2119,6 +3007,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the floor operator to the expression passed as argument, $\lfloor x \rfloor$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Floor()"/>
     public static RationalExpression Floor(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Floor(expressionName, settings);
@@ -2127,6 +3019,10 @@ public static partial class Expressions
     /// Adds the floor operator to the number passed as argument (which is converted to
     /// <see cref="RationalNumberExpression"/>), $\lfloor x \rfloor$.
     /// </summary>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Floor()"/>
     public static RationalExpression Floor(Rational number, string expressionName = "",
         ExpressionSettings? settings = null)
         => new RationalFloorExpression(number, expressionName, settings);
@@ -2138,6 +3034,10 @@ public static partial class Expressions
     /// <summary>
     /// Adds the ceiling operator to the expression passed as argument, $\lceil x \rceil$.
     /// </summary>
+    /// <param name="operand">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Ceil()"/>
     public static RationalExpression Ceil(RationalExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.Ceil(expressionName, settings);
@@ -2146,6 +3046,10 @@ public static partial class Expressions
     /// Adds the ceiling operator to the number passed as argument (which is converted to
     /// <see cref="RationalNumberExpression"/>), $\lceil x \rceil$.
     /// </summary>
+    /// <param name="number">The operand rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Ceil()"/>
     public static RationalExpression Ceil(Rational number, string expressionName = "",
         ExpressionSettings? settings = null)
         => new RationalCeilExpression(number, expressionName, settings);
@@ -2157,6 +3061,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates the remainder (modulo) of the division of <paramref name="dividend"/> by <paramref name="divisor"/>.
     /// </summary>
+    /// <param name="dividend">The dividend.</param>
+    /// <param name="divisor">The divisor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Remainder(Rational, Rational)"/>
     public static RationalExpression Remainder(RationalExpression dividend, RationalExpression divisor,
         string expressionName = "", ExpressionSettings? settings = null)
         => dividend.Remainder(divisor, expressionName, settings);
@@ -2164,6 +3073,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates the remainder (modulo) of the division of <paramref name="dividend"/> by <paramref name="divisor"/>.
     /// </summary>
+    /// <param name="dividend">The dividend.</param>
+    /// <param name="divisor">The divisor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Remainder(Rational, Rational)"/>
     public static RationalExpression Remainder(RationalExpression dividend, Rational divisor,
         string expressionName = "", ExpressionSettings? settings = null)
         => dividend.Remainder(divisor, expressionName:expressionName, settings:settings);
@@ -2175,6 +3089,11 @@ public static partial class Expressions
     /// <summary>
     /// Creates a power expression: <paramref name="base"/> raised to <paramref name="exponent"/>.
     /// </summary>
+    /// <param name="base">The base of the power.</param>
+    /// <param name="exponent">The exponent of the power.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Rational.Pow(Rational, System.Numerics.BigInteger)"/>
     public static RationalExpression Pow(RationalExpression @base, RationalExpression exponent,
         string expressionName = "", ExpressionSettings? settings = null)
         => @base.Pow(exponent, expressionName, settings);
@@ -2184,18 +3103,23 @@ public static partial class Expressions
     /// <summary>
     /// Creates a placeholder expression for a curve expression.
     /// </summary>
+    /// <param name="name">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static CurveExpression Placeholder(string name, ExpressionSettings? settings = null)
         => new CurvePlaceholderExpression(name, settings);
 
     /// <summary>
     /// Creates a placeholder expression for a rational expression.
     /// </summary>
+    /// <param name="name">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public static RationalExpression RationalPlaceholder(string name, ExpressionSettings? settings = null)
         => new RationalPlaceholderExpression(name, settings);
 
     /// <summary>
     /// Computes the value of the expression (rational or curve expression) passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
     public static T Compute<T>(IGenericExpression<T> expression)
         => expression.Compute();
 
@@ -2203,6 +3127,8 @@ public static partial class Expressions
     /// Verifies if two curve expressions (<paramref name="e1"/> and <paramref name="e2"/>) are equivalent, i.e., their
     /// values are equivalent.
     /// </summary>
+    /// <param name="e1">The left operand.</param>
+    /// <param name="e2">The right operand.</param>
     public static bool Equivalent(CurveExpression e1, CurveExpression e2)
         => e1.Equivalent(e2);
     
