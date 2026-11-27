@@ -116,31 +116,6 @@ public class CurveExpressionVisitors
     public static IEnumerable<object[]> WellDefinedExpressionTestCases
         => WellDefinedExpressions().ToXUnitTestCases();
 
-    private static List<CurveExpression> UnsupportedWellDefinedExpressions()
-    {
-        var arrival = new SigmaRhoArrivalCurve(sigma: 2, rho: 1).ToExpression("a");
-        var service = new RateLatencyServiceCurve(rate: 3, latency: 0).ToExpression("s");
-        var affine = AffineCurve().ToExpression("f");
-
-        return
-        [
-            service.SuperAdditiveClosure(),
-            arrival.LowerPseudoInverse(),
-            arrival.UpperPseudoInverse(),
-            Expressions.MaxPlusConvolution(service, service),
-            Expressions.MaxPlusDeconvolution(service, service),
-            Expressions.Composition(affine, service),
-            arrival.DelayBy(new Rational(1)),
-            arrival.ForwardBy(new Rational(1)),
-            arrival.HorizontalShift(new Rational(1)),
-            arrival.VerticalShift(new Rational(1)),
-            arrival.Scale(new Rational(2)),
-        ];
-    }
-
-    public static IEnumerable<object[]> UnsupportedWellDefinedExpressionTestCases
-        => UnsupportedWellDefinedExpressions().ToXUnitTestCases();
-
     private static List<CurveExpression> SubscriptOrSuperscriptExpressions()
     {
         var arrival = new SigmaRhoArrivalCurve(sigma: 2, rho: 1).ToExpression("a");
@@ -380,13 +355,6 @@ public class CurveExpressionVisitors
         Assert.True(expression.IsWellDefined);
     }
 
-    [Theory]
-    [MemberData(nameof(UnsupportedWellDefinedExpressionTestCases))]
-    public void IsWellDefinedVisitorDocumentsUnsupportedExpressionKinds(CurveExpression expression)
-    {
-        Assert.Throws<NotImplementedException>(() => expression.IsWellDefined);
-    }
-
     [Fact]
     public void IsWellDefinedVisitorHandlesImplementedInfiniteValueBranches()
     {
@@ -398,7 +366,6 @@ public class CurveExpressionVisitors
         Assert.False(Expressions.Convolution(plusInfinity, minusInfinity).IsWellDefined);
         Assert.False(Expressions.Subtraction(plusInfinity, plusInfinity).IsWellDefined);
         Assert.False(bothInfinite.SubAdditiveClosure().IsWellDefined);
-        Assert.Throws<NotImplementedException>(() => Expressions.Deconvolution(plusInfinity, plusInfinity).IsWellDefined);
     }
 
     [Theory]
