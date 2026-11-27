@@ -12,6 +12,11 @@ public record SequenceValueAtExpression : RationalBinaryExpression<Sequence, Rat
     /// <summary>
     /// Creates the value of a sequence at a time expression.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="value">The time of sampling.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceValueAtExpression(
         Sequence sequence,
         string name,
@@ -25,6 +30,10 @@ public record SequenceValueAtExpression : RationalBinaryExpression<Sequence, Rat
     /// <summary>
     /// Creates the value of a sequence at a time expression.
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The time of sampling.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceValueAtExpression(
         SequenceExpression leftOperand,
         RationalExpression rightOperand,

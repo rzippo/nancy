@@ -17,6 +17,9 @@ public abstract record
     /// <summary>
     /// Creates the n-ary expression starting from a collection of expression operands.
     /// </summary>
+    /// <param name="expressions">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceNAryExpression(
         IReadOnlyCollection<IGenericExpression<Sequence>> expressions,
         string expressionName = "", ExpressionSettings? settings = null) : base(expressionName, settings)
@@ -27,6 +30,10 @@ public abstract record
     /// <summary>
     /// Creates the n-ary expression starting from a collection of operands of type <see cref="Sequence"/> (converted to <see cref="ConcreteSequenceExpression"/> objects).
     /// </summary>
+    /// <param name="sequences">The operand sequences.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceNAryExpression(
         IReadOnlyCollection<Sequence> sequences,
         IReadOnlyCollection<string> names,

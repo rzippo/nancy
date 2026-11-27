@@ -12,6 +12,11 @@ public record SequenceDelayExpression : SequenceBinaryExpression<Sequence, Ratio
     /// <summary>
     /// Creates the delay of a sequence expression.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="value">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceDelayExpression(
         Sequence sequence,
         string name,
@@ -25,6 +30,10 @@ public record SequenceDelayExpression : SequenceBinaryExpression<Sequence, Ratio
     /// <summary>
     /// Creates the delay of a sequence expression.
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceDelayExpression(
         SequenceExpression leftOperand,
         RationalExpression rightOperand,

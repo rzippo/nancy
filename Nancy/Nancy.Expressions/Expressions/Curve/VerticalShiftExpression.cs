@@ -16,6 +16,11 @@ public record VerticalShiftExpression : CurveBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the $g(t) = f(t) + K$ expression.
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="value">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public VerticalShiftExpression(
         Curve curveL, 
         string nameL, 
@@ -29,6 +34,11 @@ public record VerticalShiftExpression : CurveBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the $g(t) = f(t) + K$ expression.
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightOperand">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public VerticalShiftExpression(
         Curve curveL, 
         string nameL, 

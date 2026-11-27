@@ -20,6 +20,9 @@ public abstract record
     /// <summary>
     /// Creates the n-ary expression starting from a collection of expression operands
     /// </summary>
+    /// <param name="operands">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveNAryExpression(
         IReadOnlyCollection<IGenericExpression<Curve>> operands,
         string expressionName = "", ExpressionSettings? settings = null) : base(expressionName, settings)
@@ -31,6 +34,10 @@ public abstract record
     /// Creates the n-ary expression starting from a collection of operands of type <see cref="Curve"/> (converted to
     /// <see cref="ConcreteCurveExpression"/> objects)
     /// </summary>
+    /// <param name="curves">The operand curves.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveNAryExpression(
         IReadOnlyCollection<Curve> curves,
         IReadOnlyCollection<string> names,

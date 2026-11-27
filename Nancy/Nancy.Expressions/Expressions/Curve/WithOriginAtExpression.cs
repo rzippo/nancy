@@ -12,6 +12,11 @@ public record WithOriginAtExpression : CurveUnaryExpression<Curve>
     /// <summary>
     /// Creates the "with-origin-at" expression.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="value">The value at the origin.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public WithOriginAtExpression(
         Curve curve,
         string name,
@@ -25,6 +30,10 @@ public record WithOriginAtExpression : CurveUnaryExpression<Curve>
     /// <summary>
     /// Creates the "with-origin-at" expression.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="value">The value at the origin.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public WithOriginAtExpression(
         CurveExpression expression,
         Rational value,

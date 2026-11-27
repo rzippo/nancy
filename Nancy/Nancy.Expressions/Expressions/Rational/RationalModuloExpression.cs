@@ -11,6 +11,10 @@ public record RationalModuloExpression : RationalBinaryExpression<Rational, Rati
     /// <summary>
     /// Creates a rational modulo expression.
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The right operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalModuloExpression(
         IGenericExpression<Rational> leftOperand,
         IGenericExpression<Rational> rightOperand,

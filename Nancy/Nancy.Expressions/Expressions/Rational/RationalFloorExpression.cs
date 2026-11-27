@@ -11,6 +11,9 @@ public record RationalFloorExpression : RationalUnaryExpression<Rational>
     /// <summary>
     /// Creates a "rational floor expression"
     /// </summary>
+    /// <param name="number">The rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalFloorExpression(
         Rational number,
         string expressionName = "",
@@ -22,6 +25,9 @@ public record RationalFloorExpression : RationalUnaryExpression<Rational>
     /// <summary>
     /// Class representing an expression whose root operation is the floor of a rational number, $\lfloor x \rfloor$.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalFloorExpression(
         RationalExpression expression,
         string expressionName = "",

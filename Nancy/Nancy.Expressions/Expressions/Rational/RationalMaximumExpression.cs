@@ -12,6 +12,9 @@ public record RationalMaximumExpression : RationalNAryExpression
     /// <summary>
     /// Creates an expression for maximum of rational numbers.
     /// </summary>
+    /// <param name="operands">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalMaximumExpression(
         IReadOnlyCollection<IGenericExpression<Rational>> operands,
         string expressionName = "",
@@ -23,6 +26,10 @@ public record RationalMaximumExpression : RationalNAryExpression
     /// <summary>
     /// Creates an expression for maximum of rational numbers.
     /// </summary>
+    /// <param name="rationals">The operand rational numbers.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalMaximumExpression(
         IReadOnlyCollection<Rational> rationals,
         IReadOnlyCollection<string> names,

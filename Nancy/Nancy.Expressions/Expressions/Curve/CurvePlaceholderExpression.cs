@@ -10,6 +10,8 @@ public record CurvePlaceholderExpression : CurveExpression, IPlaceholderExpressi
     /// <summary>
     /// Class describing a placeholder for any curve expression (used for equivalences)
     /// </summary>
+    /// <param name="curveName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurvePlaceholderExpression(
         string curveName,
         ExpressionSettings? settings = null) 

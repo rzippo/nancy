@@ -11,6 +11,9 @@ public record RationalCeilExpression : RationalUnaryExpression<Rational>
     /// <summary>
     /// Creates a "rational ceiling expression"
     /// </summary>
+    /// <param name="number">The rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalCeilExpression(
         Rational number,
         string expressionName = "",
@@ -22,6 +25,9 @@ public record RationalCeilExpression : RationalUnaryExpression<Rational>
     /// <summary>
     /// Class representing an expression whose root operation is the ceiling of a rational number, $\lceil x \rceil$.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalCeilExpression(
         RationalExpression expression,
         string expressionName = "",

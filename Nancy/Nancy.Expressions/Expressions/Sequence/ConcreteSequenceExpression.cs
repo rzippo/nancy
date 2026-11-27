@@ -20,6 +20,9 @@ public record ConcreteSequenceExpression : SequenceExpression, IExpressionLeaf
     /// <summary>
     /// Creates a concrete sequence expression starting from a <see cref="Sequence"/> object.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ConcreteSequenceExpression(Sequence sequence,
         [CallerArgumentExpression("sequence")] string name = "",
         ExpressionSettings? settings = null) : base(name, settings)

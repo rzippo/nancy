@@ -10,6 +10,8 @@ public record RationalPlaceholderExpression : RationalExpression, IPlaceholderEx
     /// <summary>
     /// Class describing a placeholder for any rational expression (used for equivalences)
     /// </summary>
+    /// <param name="rationalName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalPlaceholderExpression(
         string rationalName,
         ExpressionSettings? settings = null)

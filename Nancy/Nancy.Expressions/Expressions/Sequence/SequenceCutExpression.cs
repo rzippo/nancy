@@ -18,6 +18,11 @@ public record SequenceCutExpression : SequenceUnaryExpression<Sequence>
     /// <summary>
     /// Creates a cut expression from a concrete sequence.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="interval">The interval to cut.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceCutExpression(
         Sequence sequence,
         string name,
@@ -31,6 +36,10 @@ public record SequenceCutExpression : SequenceUnaryExpression<Sequence>
     /// <summary>
     /// Creates a cut expression from an existing sequence expression.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="interval">The interval to cut.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceCutExpression(
         SequenceExpression expression,
         Interval interval,

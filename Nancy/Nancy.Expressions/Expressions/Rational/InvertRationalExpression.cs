@@ -11,6 +11,9 @@ public record InvertRationalExpression : RationalUnaryExpression<Rational>
     /// <summary>
     /// Creates a rational inversion expression.
     /// </summary>
+    /// <param name="number">The rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public InvertRationalExpression(
         Rational number,
         string expressionName = "",
@@ -22,6 +25,9 @@ public record InvertRationalExpression : RationalUnaryExpression<Rational>
     /// <summary>
     /// Creates a rational inversion expression.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public InvertRationalExpression(
         RationalExpression expression,
         string expressionName = "",

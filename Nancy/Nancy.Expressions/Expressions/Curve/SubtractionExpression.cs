@@ -16,6 +16,12 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a subtraction expression
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="curveR">The right operand curve.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SubtractionExpression(
         Curve curveL, 
         string nameL, 
@@ -30,6 +36,11 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a subtraction expression
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightOperand">The right operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SubtractionExpression(
         Curve curveL, 
         string nameL, 
@@ -43,6 +54,10 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a subtraction expression
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The right operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SubtractionExpression(
         CurveExpression leftOperand,
         CurveExpression rightOperand,
@@ -56,6 +71,13 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a subtraction expression
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="curveR">The right operand curve.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public SubtractionExpression(
         Curve curveL, 
@@ -72,6 +94,12 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a subtraction expression
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightOperand">The right operand expression.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public SubtractionExpression(
         Curve curveL, 
@@ -87,6 +115,11 @@ public record SubtractionExpression : CurveBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a subtraction expression
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The right operand expression.</param>
+    /// <param name="nonNegative">If true, replace negative values of the result with zero.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     [Obsolete("Subtraction with implicit handling of negative values is going to be removed in a later version.")]
     public SubtractionExpression(
         CurveExpression leftOperand,

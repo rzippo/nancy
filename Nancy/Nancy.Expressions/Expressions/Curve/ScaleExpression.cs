@@ -12,6 +12,11 @@ public record ScaleExpression : CurveBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the "scale" expression
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="delay">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ScaleExpression(
         Curve curveL,
         string nameL,
@@ -25,6 +30,11 @@ public record ScaleExpression : CurveBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the "scale" expression
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightOperand">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ScaleExpression(
         Curve curveL,
         string nameL,
@@ -38,6 +48,10 @@ public record ScaleExpression : CurveBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the "scale" expression
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ScaleExpression(
         CurveExpression leftOperand,
         RationalExpression rightOperand,

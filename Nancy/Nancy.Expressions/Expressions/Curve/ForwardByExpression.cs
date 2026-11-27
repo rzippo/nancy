@@ -22,6 +22,11 @@ public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
     /// if the time argument turns out to be either negative or infinite.
     /// </remarks>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="time">The amount to forward by.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ForwardByExpression(
         Curve curveL, 
         string nameL, 
@@ -40,6 +45,11 @@ public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
     /// if the time argument turns out to be either negative or infinite.
     /// </remarks>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightOperand">The amount to forward by.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ForwardByExpression(
         Curve curveL, 
         string nameL, 
@@ -58,6 +68,10 @@ public record ForwardByExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
     /// if the time argument turns out to be either negative or infinite.
     /// </remarks>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The amount to forward by.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ForwardByExpression(
         CurveExpression leftOperand,
         RationalExpression rightOperand,

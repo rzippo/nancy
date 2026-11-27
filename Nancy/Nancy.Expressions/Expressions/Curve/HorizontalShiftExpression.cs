@@ -22,6 +22,11 @@ public record HorizontalShiftExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/>
     /// if the shift argument turns out to be infinite.
     /// </remarks>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="delay">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public HorizontalShiftExpression(
         Curve curveL,
         string nameL,
@@ -40,6 +45,11 @@ public record HorizontalShiftExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/>
     /// if the shift argument turns out to be infinite.
     /// </remarks>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightOperand">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public HorizontalShiftExpression(
         Curve curveL,
         string nameL,
@@ -58,6 +68,10 @@ public record HorizontalShiftExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/>
     /// if the shift argument turns out to be infinite.
     /// </remarks>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public HorizontalShiftExpression(
         CurveExpression leftOperand,
         RationalExpression rightOperand,

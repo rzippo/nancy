@@ -12,6 +12,11 @@ public record RightLimitAtExpression : RationalBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the "scale" expression
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="x">The target time of the limit.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RightLimitAtExpression(
         Curve curve,
         string name,
@@ -25,6 +30,11 @@ public record RightLimitAtExpression : RationalBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the "scale" expression
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="x">The target time of the limit.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RightLimitAtExpression(
         Curve curve,
         string name,
@@ -38,6 +48,10 @@ public record RightLimitAtExpression : RationalBinaryExpression<Curve, Rational>
     /// <summary>
     /// Creates the "scale" expression
     /// </summary>
+    /// <param name="curve">The operand curve expression.</param>
+    /// <param name="x">The target time of the limit.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RightLimitAtExpression(
         CurveExpression curve,
         RationalExpression x,

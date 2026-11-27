@@ -19,6 +19,9 @@ public record ConcreteCurveExpression : CurveExpression, IExpressionLeaf
     /// <summary>
     /// Creates a concrete curve expression starting from a <see cref="Curve"/> object
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ConcreteCurveExpression(Curve curve,
         [CallerArgumentExpression("curve")] string name = "",
         ExpressionSettings? settings = null) : base(name, settings)

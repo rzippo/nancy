@@ -12,6 +12,10 @@ public record ToLowerNonIncreasingExpression : CurveUnaryExpression<Curve>
     /// <summary>
     /// Creates the lower non-increasing closure, $\mathrm{LNI}$, expression
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ToLowerNonIncreasingExpression(
         Curve curve,
         string name,
@@ -25,6 +29,9 @@ public record ToLowerNonIncreasingExpression : CurveUnaryExpression<Curve>
     /// Class representing an expression whose root operation is the lower non-increasing closure, $\mathrm{LNI}$, of a curve
     /// (<see cref="Curve.ToLowerNonIncreasing"/>)
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ToLowerNonIncreasingExpression(
         CurveExpression expression,
         string expressionName = "",

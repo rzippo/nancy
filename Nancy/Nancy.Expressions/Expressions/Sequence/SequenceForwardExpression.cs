@@ -12,6 +12,11 @@ public record SequenceForwardExpression : SequenceBinaryExpression<Sequence, Rat
     /// <summary>
     /// Creates the forward shift of a sequence expression.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="value">The amount to forward by.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceForwardExpression(
         Sequence sequence,
         string name,
@@ -25,6 +30,10 @@ public record SequenceForwardExpression : SequenceBinaryExpression<Sequence, Rat
     /// <summary>
     /// Creates the forward shift of a sequence expression.
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The amount to forward by.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceForwardExpression(
         SequenceExpression leftOperand,
         RationalExpression rightOperand,

@@ -23,6 +23,12 @@ public record SequenceCutToNeighbourhoodExpression : SequenceUnaryExpression<Seq
     /// <summary>
     /// Creates a cut expression from a concrete sequence.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="cutStart">Left endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="cutEnd">Right endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceCutToNeighbourhoodExpression(
         Sequence sequence,
         string name,
@@ -37,6 +43,11 @@ public record SequenceCutToNeighbourhoodExpression : SequenceUnaryExpression<Seq
     /// <summary>
     /// Creates a cut expression from an existing sequence expression.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="cutStart">Left endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="cutEnd">Right endpoint of the interval the result is a neighbourhood of.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceCutToNeighbourhoodExpression(
         SequenceExpression expression,
         Rational cutStart,

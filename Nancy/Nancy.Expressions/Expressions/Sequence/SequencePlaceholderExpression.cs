@@ -11,6 +11,8 @@ public record SequencePlaceholderExpression : SequenceExpression, IPlaceholderEx
     /// <summary>
     /// Class describing a placeholder for any sequence expression (used for equivalences).
     /// </summary>
+    /// <param name="sequenceName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequencePlaceholderExpression(
         string sequenceName,
         ExpressionSettings? settings = null)

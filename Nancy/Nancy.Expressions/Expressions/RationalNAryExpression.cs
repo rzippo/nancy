@@ -22,6 +22,9 @@ public abstract record
     /// <summary>
     /// Creates the n-ary operation starting from a collection of expression operands.
     /// </summary>
+    /// <param name="operands">The operand expressions.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalNAryExpression(
         IReadOnlyCollection<IGenericExpression<Rational>> operands,
         string expressionName = "", ExpressionSettings? settings = null) : base(expressionName, settings)
@@ -33,6 +36,10 @@ public abstract record
     /// Creates the n-ary expression starting from a collection of operands of type <see cref="Rational"/> (converted to
     /// <see cref="RationalNumberExpression"/> objects).
     /// </summary>
+    /// <param name="rationals">The operand rational numbers.</param>
+    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalNAryExpression(
         IReadOnlyCollection<Rational> rationals,
         IReadOnlyCollection<string> names,

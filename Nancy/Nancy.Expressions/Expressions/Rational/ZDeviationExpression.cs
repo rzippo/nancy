@@ -11,6 +11,12 @@ public record ZDeviationExpression : RationalBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a z-deviation expression
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="curveR">The right operand curve.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ZDeviationExpression(
         Curve curveL,
         string nameL,
@@ -25,6 +31,11 @@ public record ZDeviationExpression : RationalBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a z-deviation expression
     /// </summary>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightOperand">The right operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ZDeviationExpression(
         Curve curveL,
         string nameL,
@@ -38,6 +49,10 @@ public record ZDeviationExpression : RationalBinaryExpression<Curve, Curve>
     /// <summary>
     /// Class representing an expression whose root operation is the z-deviation between two curve expressions
     /// </summary>
+    /// <param name="LeftExpression">The left operand expression.</param>
+    /// <param name="RightExpression">The right operand expression.</param>
+    /// <param name="ExpressionName">The name of the expression.</param>
+    /// <param name="Settings">Settings for the expression definition and evaluation.</param>
     public ZDeviationExpression(
         CurveExpression LeftExpression,
         CurveExpression RightExpression,
@@ -50,6 +65,11 @@ public record ZDeviationExpression : RationalBinaryExpression<Curve, Curve>
     /// <summary>
     /// Creates a z-deviation expression
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="curveR">The right operand curve.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ZDeviationExpression(
         CurveExpression leftOperand,
         Curve curveR,

@@ -25,6 +25,20 @@ public record SequenceConcatExpression : SequenceBinaryExpression<Sequence, Sequ
     /// <summary>
     /// Creates a concatenation expression.
     /// </summary>
+    /// <param name="sequenceL">The left operand sequence.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="sequenceR">The right operand sequence.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="preserveDelay">
+    /// If true, preserve the delay of the second sequence with an infinite-valued segment.
+    /// Otherwise, remove the delay as if the second sequence started at $t = 0$.
+    /// </param>
+    /// <param name="preserveShift">
+    /// If true, preserve the starting value of the second sequence.
+    /// Otherwise, remove the shift as if the second sequence started at value zero.
+    /// </param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceConcatExpression(
         Sequence sequenceL,
         string nameL,
@@ -42,6 +56,19 @@ public record SequenceConcatExpression : SequenceBinaryExpression<Sequence, Sequ
     /// <summary>
     /// Creates a concatenation expression.
     /// </summary>
+    /// <param name="sequenceL">The left operand sequence.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightExpression">The right operand expression.</param>
+    /// <param name="preserveDelay">
+    /// If true, preserve the delay of the second sequence with an infinite-valued segment.
+    /// Otherwise, remove the delay as if the second sequence started at $t = 0$.
+    /// </param>
+    /// <param name="preserveShift">
+    /// If true, preserve the starting value of the second sequence.
+    /// Otherwise, remove the shift as if the second sequence started at value zero.
+    /// </param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceConcatExpression(
         Sequence sequenceL,
         string nameL,
@@ -58,6 +85,18 @@ public record SequenceConcatExpression : SequenceBinaryExpression<Sequence, Sequ
     /// <summary>
     /// Creates a concatenation expression.
     /// </summary>
+    /// <param name="leftExpression">The left operand expression.</param>
+    /// <param name="rightExpression">The right operand expression.</param>
+    /// <param name="preserveDelay">
+    /// If true, preserve the delay of the second sequence with an infinite-valued segment.
+    /// Otherwise, remove the delay as if the second sequence started at $t = 0$.
+    /// </param>
+    /// <param name="preserveShift">
+    /// If true, preserve the starting value of the second sequence.
+    /// Otherwise, remove the shift as if the second sequence started at value zero.
+    /// </param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceConcatExpression(
         SequenceExpression leftExpression,
         SequenceExpression rightExpression,

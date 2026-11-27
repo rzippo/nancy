@@ -12,6 +12,10 @@ public record ToUpperNonIncreasingExpression : CurveUnaryExpression<Curve>
     /// <summary>
     /// Creates the upper non-increasing closure, $\mathrm{UNI}$, expression
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ToUpperNonIncreasingExpression(
         Curve curve,
         string name,
@@ -25,6 +29,9 @@ public record ToUpperNonIncreasingExpression : CurveUnaryExpression<Curve>
     /// Class representing an expression whose root operation is the upper non-increasing closure, $\mathrm{UNI}$, of a curve
     /// (<see cref="Curve.ToUpperNonIncreasing"/>)
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ToUpperNonIncreasingExpression(
         CurveExpression expression,
         string expressionName = "",

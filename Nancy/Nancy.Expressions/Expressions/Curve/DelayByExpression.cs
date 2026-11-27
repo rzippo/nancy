@@ -22,6 +22,11 @@ public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
     /// if the delay argument turns out to be either negative or infinite.
     /// </remarks>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="delay">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public DelayByExpression(
         Curve curveL,
         string nameL,
@@ -40,6 +45,11 @@ public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
     /// if the delay argument turns out to be either negative or infinite.
     /// </remarks>
+    /// <param name="curveL">The left operand curve.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="rightOperand">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public DelayByExpression(
         Curve curveL,
         string nameL,
@@ -58,6 +68,10 @@ public record DelayByExpression : CurveBinaryExpression<Curve, Rational>
     /// Computing the expression will throw an <see cref="ArgumentException"/> 
     /// if the delay argument turns out to be either negative or infinite.
     /// </remarks>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public DelayByExpression(
         CurveExpression leftOperand,
         RationalExpression rightOperand,

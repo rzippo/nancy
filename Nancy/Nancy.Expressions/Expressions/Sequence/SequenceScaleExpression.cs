@@ -12,6 +12,11 @@ public record SequenceScaleExpression : SequenceBinaryExpression<Sequence, Ratio
     /// <summary>
     /// Creates the scaling of a sequence by a rational expression.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="value">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceScaleExpression(
         Sequence sequence,
         string name,
@@ -25,6 +30,10 @@ public record SequenceScaleExpression : SequenceBinaryExpression<Sequence, Ratio
     /// <summary>
     /// Creates the scaling of a sequence by a rational expression.
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceScaleExpression(
         SequenceExpression leftOperand,
         RationalExpression rightOperand,

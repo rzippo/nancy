@@ -18,6 +18,11 @@ public record CurveCutExpression : SequenceUnaryExpression<Curve>
     /// <summary>
     /// Creates the cut expression.
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="interval">The interval to cut.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public CurveCutExpression(
         Curve curve,
         string name,
@@ -31,6 +36,10 @@ public record CurveCutExpression : SequenceUnaryExpression<Curve>
     /// <summary>
     /// Creates the cut expression.
     /// </summary>
+    /// <param name="Expression">The operand expression.</param>
+    /// <param name="interval">The interval to cut.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="Settings">Settings for the expression definition and evaluation.</param>
     public CurveCutExpression(
         CurveExpression Expression,
         Interval interval,

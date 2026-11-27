@@ -12,6 +12,10 @@ public record FloorExpression : CurveUnaryExpression<Curve>
     /// <summary>
     /// Creates the floor expression
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public FloorExpression(
         Curve curve,
         string name,
@@ -25,6 +29,9 @@ public record FloorExpression : CurveUnaryExpression<Curve>
     /// Class representing an expression whose root operation is the floor of a curve, $\lfloor f(t) \rfloor$
     /// (<see cref="Curve.Floor"/>)
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public FloorExpression(
         CurveExpression expression,
         string expressionName = "",

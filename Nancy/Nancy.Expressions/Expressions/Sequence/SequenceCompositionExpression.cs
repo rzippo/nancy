@@ -11,6 +11,12 @@ public record SequenceCompositionExpression : SequenceBinaryExpression<Sequence,
     /// <summary>
     /// Creates a composition expression.
     /// </summary>
+    /// <param name="sequenceL">The left operand sequence.</param>
+    /// <param name="nameL">The name to assign to the left operand.</param>
+    /// <param name="sequenceR">The right operand sequence.</param>
+    /// <param name="nameR">The name to assign to the right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceCompositionExpression(
         Sequence sequenceL,
         string nameL,
@@ -25,6 +31,10 @@ public record SequenceCompositionExpression : SequenceBinaryExpression<Sequence,
     /// <summary>
     /// Creates a composition expression.
     /// </summary>
+    /// <param name="leftOperand">The left operand expression.</param>
+    /// <param name="rightOperand">The right operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceCompositionExpression(
         SequenceExpression leftOperand,
         SequenceExpression rightOperand,

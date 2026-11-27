@@ -12,6 +12,9 @@ public record RationalNumberExpression : RationalExpression, IExpressionLeaf
     /// <summary>
     /// Creates a rational number expression starting from a <see cref="Rational"/> object
     /// </summary>
+    /// <param name="number">The rational number.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public RationalNumberExpression(
         Rational number,
         [CallerArgumentExpression("number")] string expressionName = "", 

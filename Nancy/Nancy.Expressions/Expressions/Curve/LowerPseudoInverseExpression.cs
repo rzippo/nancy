@@ -23,6 +23,10 @@ public record LowerPseudoInverseExpression : CurveUnaryExpression<Curve>
     /// <summary>
     /// Creates the lower pseudo-inverse expression
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public LowerPseudoInverseExpression(
         Curve curve, 
         string name, 
@@ -36,6 +40,9 @@ public record LowerPseudoInverseExpression : CurveUnaryExpression<Curve>
     /// Creates the lower pseudo-inverse expression
     /// (<see cref="Curve.LowerPseudoInverse"/>)
     /// </summary>
+    /// <param name="Expression">The operand expression.</param>
+    /// <param name="ExpressionName">The name of the expression.</param>
+    /// <param name="Settings">Settings for the expression definition and evaluation.</param>
     public LowerPseudoInverseExpression(
         CurveExpression Expression, 
         string ExpressionName = "", 

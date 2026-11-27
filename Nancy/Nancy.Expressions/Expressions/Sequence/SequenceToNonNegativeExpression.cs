@@ -11,6 +11,10 @@ public record SequenceToNonNegativeExpression : SequenceUnaryExpression<Sequence
     /// <summary>
     /// Creates the non-negative closure expression.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceToNonNegativeExpression(
         Sequence sequence,
         string name,
@@ -23,6 +27,9 @@ public record SequenceToNonNegativeExpression : SequenceUnaryExpression<Sequence
     /// <summary>
     /// Class representing an expression whose root operation is the non-negative closure of a sequence, see <see cref="Sequence.ToNonNegative"/>.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceToNonNegativeExpression(
         SequenceExpression expression,
         string expressionName = "",

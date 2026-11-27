@@ -12,6 +12,10 @@ public record ToNonNegativeExpression : CurveUnaryExpression<Curve>
     /// <summary>
     /// Creates the non-negative closure expression
     /// </summary>
+    /// <param name="curve">The operand curve.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ToNonNegativeExpression(
         Curve curve,
         string name,
@@ -25,6 +29,9 @@ public record ToNonNegativeExpression : CurveUnaryExpression<Curve>
     /// Class representing an expression whose root operation is the non-negative closure of a curve
     /// (<see cref="Curve.ToNonNegative"/>)
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public ToNonNegativeExpression(
         CurveExpression expression,
         string expressionName = "",
