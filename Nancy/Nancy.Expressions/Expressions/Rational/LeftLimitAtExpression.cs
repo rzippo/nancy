@@ -10,7 +10,7 @@ namespace Unipi.Nancy.Expressions.Nodes;
 public record LeftLimitAtExpression : RationalBinaryExpression<Curve, Rational>
 {
     /// <summary>
-    /// Creates the "scale" expression
+    /// Creates an expression that computes the left limit at a given time.
     /// </summary>
     /// <param name="curve">The operand curve.</param>
     /// <param name="name">The name to assign to the operand.</param>
@@ -28,7 +28,7 @@ public record LeftLimitAtExpression : RationalBinaryExpression<Curve, Rational>
     }
 
     /// <summary>
-    /// Creates the "scale" expression
+    /// Creates an expression that computes the left limit at a given time.
     /// </summary>
     /// <param name="curve">The operand curve.</param>
     /// <param name="name">The name to assign to the operand.</param>
@@ -46,7 +46,7 @@ public record LeftLimitAtExpression : RationalBinaryExpression<Curve, Rational>
     }
 
     /// <summary>
-    /// Creates the "scale" expression
+    /// Creates an expression that computes the left limit at a given time.
     /// </summary>
     /// <param name="curve">The operand curve expression.</param>
     /// <param name="x">The target time of the limit.</param>

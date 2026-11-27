@@ -897,14 +897,14 @@ public static partial class Expressions
     #region SupValue
 
     /// <summary>
-    /// Creates a new expression that computes the supremum value attained by the curve expression passed as argument.
+    /// Creates a new expression that computes the supremum of the curve expression passed as argument.
     /// </summary>
     public static RationalExpression SupValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.SupValue(expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that computes the supremum value attained by the curve passed as argument (internally
+    /// Creates a new expression that computes the supremum of the curve passed as argument (internally
     /// converted to <see cref="ConcreteCurveExpression"/>).
     /// </summary>
     public static RationalExpression SupValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
@@ -916,14 +916,14 @@ public static partial class Expressions
     #region InfValue
 
     /// <summary>
-    /// Creates a new expression that computes the infimum value attained by the curve expression passed as argument.
+    /// Creates a new expression that computes the infimum of the curve expression passed as argument.
     /// </summary>
     public static RationalExpression InfValue(CurveExpression operand, string expressionName = "",
         ExpressionSettings? settings = null)
         => operand.InfValue(expressionName, settings);
 
     /// <summary>
-    /// Creates a new expression that computes the infimum value attained by the curve passed as argument (internally
+    /// Creates a new expression that computes the infimum of the curve passed as argument (internally
     /// converted to <see cref="ConcreteCurveExpression"/>).
     /// </summary>
     public static RationalExpression InfValue(Curve curve, [CallerArgumentExpression("curve")] string name = "",
