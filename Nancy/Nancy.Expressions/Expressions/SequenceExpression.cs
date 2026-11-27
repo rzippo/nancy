@@ -304,6 +304,8 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Clears this node's own cached <see cref="Value"/>, and, per <paramref name="scope"/>, its descendants', mutating them in place.
     /// </summary>
+    /// <param name="scope">Whether to clear this node alone or its subtree.</param>
+    /// <param name="force">If true, discard all value and predicate caches in the selected scope, including cheap caches and retained exceptions.</param>
     public void ClearValueCache(CacheClearScope scope = CacheClearScope.Subtree, bool force = false)
     {
         if (this is IExpressionLeaf leaf)
@@ -339,6 +341,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// Each arity overrides this further with its own operand comparison, on top of this base check.
     /// The synthesized equality a record would otherwise use compares the cache fields too, which makes an expression's hash change the moment its value is read.
     /// </remarks>
+    /// <param name="other">The expression to compare with.</param>
     public virtual bool Equals(SequenceExpression? other)
         => other is not null;
 
@@ -356,30 +359,44 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Adds the opposite operator to the expression.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Negate()"/>
     public SequenceExpression Negate(string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceNegateExpression(this, expressionName, settings);
 
     /// <summary>
     /// Implementation of the unary - operator as the negation of a <see cref="SequenceExpression"/>.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <seealso cref="Sequence.operator -(Sequence)"/>
     public static SequenceExpression operator -(SequenceExpression expression)
         => expression.Negate();
 
     /// <summary>
     /// Creates a new expression composed of the floor of the current expression.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Floor()"/>
     public SequenceExpression Floor(string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceFloorExpression(this, expressionName, settings);
 
     /// <summary>
     /// Creates a new expression composed of the ceiling of the current expression.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Ceil()"/>
     public SequenceExpression Ceil(string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceCeilExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute its non-negative version.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToNonNegative()"/>
     public SequenceExpression ToNonNegative(string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceToNonNegativeExpression(this, expressionName, settings);
 
@@ -390,12 +407,18 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Adds to the expression the operation to compute a left continuous version of it.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToLeftContinuous()"/>
     public SequenceExpression ToLeftContinuous(string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceToLeftContinuousExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute a right continuous version of it.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.ToRightContinuous()"/>
     public SequenceExpression ToRightContinuous(string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceToRightContinuousExpression(this, expressionName, settings);
 
@@ -403,12 +426,18 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Adds to the expression the operation to compute the lower pseudo-inverse function, $f^{-1}_\downarrow(x) = \inf \left\{ t : f(t) \ge x \right\} = \sup \left\{ t : f(t) &lt; x \right\}$.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.LowerPseudoInverse(bool)"/>
     public SequenceExpression LowerPseudoInverse(string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceLowerPseudoInverseExpression(this, expressionName, settings);
 
     /// <summary>
     /// Adds to the expression the operation to compute the upper pseudo-inverse function, $f^{-1}_\uparrow(x) = \inf\{ t : f(t) > x \} = \sup\{ t : f(t) \le x \}$.
     /// </summary>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.UpperPseudoInverse(bool)"/>
     public SequenceExpression UpperPseudoInverse(string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceUpperPseudoInverseExpression(this, expressionName, settings);
 
@@ -417,6 +446,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the addition between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public SequenceExpression Addition(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(SequenceAdditionExpression), this, expression) switch
@@ -429,6 +462,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the addition between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public SequenceExpression Addition(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
@@ -440,6 +478,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the addition between the expression <paramref name="left"/> and the sequence <paramref name="right"/> (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Addition(Sequence)"/>
     public static SequenceExpression Addition(SequenceExpression left, Sequence right, string expressionName = "",
         ExpressionSettings? settings = null)
         => left.Addition(right, expressionName:expressionName, settings: settings);
@@ -447,12 +490,18 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Implementation of the + operator as the addition between <see cref="SequenceExpression"/> objects.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <seealso cref="Sequence.operator +(Sequence, Sequence)"/>
     public static SequenceExpression operator +(SequenceExpression left, Sequence right)
         => Addition(left, right);
 
     /// <summary>
     /// Implementation of the + operator as the addition between <see cref="SequenceExpression"/> objects.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <seealso cref="Sequence.operator +(Sequence, Sequence)"/>
     public static SequenceExpression operator +(SequenceExpression left, SequenceExpression right)
         => left.Addition(right);
 
@@ -463,6 +512,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the subtraction between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Subtraction(Sequence)"/>
     public SequenceExpression Subtraction(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceSubtractionExpression(this, expression, expressionName, settings);
@@ -470,6 +523,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the subtraction between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Subtraction(Sequence)"/>
     public SequenceExpression Subtraction(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => Subtraction(new ConcreteSequenceExpression(sequence, name), expressionName, settings);
@@ -477,12 +535,18 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Implementation of the - operator as the subtraction between <see cref="SequenceExpression"/> objects.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <seealso cref="Sequence.operator -(Sequence, Sequence)"/>
     public static SequenceExpression operator -(SequenceExpression left, SequenceExpression right)
         => left.Subtraction(right);
 
     /// <summary>
     /// Implementation of the - operator as the subtraction between <see cref="SequenceExpression"/> objects.
     /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <seealso cref="Sequence.operator -(Sequence, Sequence)"/>
     public static SequenceExpression operator -(SequenceExpression left, Sequence right)
         => left.Subtraction(right);
 
@@ -497,6 +561,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The order matters, so this is not the same expression as concatenating the two the other way round.
     /// </remarks>
+    /// <seealso cref="Sequence.Concat(Sequence, Sequence, bool, bool)"/>
     public SequenceExpression Concat(
         SequenceExpression expression,
         bool preserveDelay = false,
@@ -528,6 +593,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the minimum between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
     public SequenceExpression Minimum(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(SequenceMinimumExpression), this, expression) switch
@@ -540,6 +609,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the minimum between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
     public SequenceExpression Minimum(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
     {
@@ -555,6 +629,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the maximum between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
     public SequenceExpression Maximum(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(SequenceMaximumExpression), this, expression) switch
@@ -567,6 +645,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the maximum between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
     public SequenceExpression Maximum(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         {
@@ -582,6 +665,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the convolution between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
     public SequenceExpression Convolution(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(SequenceConvolutionExpression), this, expression) switch
@@ -594,6 +681,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the convolution between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
     public SequenceExpression Convolution(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         {
@@ -609,6 +701,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Deconvolution(Sequence, Rational?, Rational?, ComputationSettings)"/>
     public SequenceExpression Deconvolution(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceDeconvolutionExpression(this, expression, expressionName, settings);
@@ -616,6 +712,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the deconvolution between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Deconvolution(Sequence, Rational?, Rational?, ComputationSettings)"/>
     public SequenceExpression Deconvolution(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => Deconvolution(new ConcreteSequenceExpression(sequence, name), expressionName, settings);
@@ -627,6 +728,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
     public SequenceExpression MaxPlusConvolution(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => CheckNAryExpressionTypes(typeof(SequenceMaxPlusConvolutionExpression), this, expression) switch
@@ -639,6 +744,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the max-plus convolution between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
     public SequenceExpression MaxPlusConvolution(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         {
@@ -655,6 +765,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusDeconvolution(Sequence, ComputationSettings)"/>
     public SequenceExpression MaxPlusDeconvolution(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceMaxPlusDeconvolutionExpression(this, expression, expressionName, settings);
@@ -662,6 +776,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the max-plus deconvolution between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.MaxPlusDeconvolution(Sequence, ComputationSettings)"/>
     public SequenceExpression MaxPlusDeconvolution(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => MaxPlusDeconvolution(new ConcreteSequenceExpression(sequence, name), expressionName, settings);
@@ -673,6 +792,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the composition between the current expression and the one passed as argument.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Composition(Sequence)"/>
     public SequenceExpression Composition(SequenceExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceCompositionExpression(this, expression, expressionName, settings);
@@ -680,6 +803,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the composition between the current expression and the sequence (internally converted to <see cref="ConcreteSequenceExpression"/>) passed as argument.
     /// </summary>
+    /// <param name="sequence">The operand sequence.</param>
+    /// <param name="name">The name to assign to the operand.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Composition(Sequence)"/>
     public SequenceExpression Composition(Sequence sequence, [CallerArgumentExpression("sequence")] string name = "",
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceCompositionExpression(this, new ConcreteSequenceExpression(sequence, name), expressionName, settings);
@@ -696,6 +824,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// if the delay argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="HorizontalShift(RationalExpression,string,ExpressionSettings)"/>
+    /// <param name="expression">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Delay(Rational, bool)"/>
     public SequenceExpression Delay(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceDelayExpression(this, expression, expressionName, settings);
@@ -708,6 +840,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// if the delay argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Numerics.Rational,string,ExpressionSettings)"/>
+    /// <param name="delay">The amount of the delay.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Delay(Rational, bool)"/>
     public SequenceExpression Delay(Rational delay, string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceDelayExpression(this, new RationalNumberExpression(delay), expressionName, settings);
 
@@ -723,6 +859,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// if the time argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="HorizontalShift(RationalExpression,string,ExpressionSettings)"/>
+    /// <param name="expression">The amount of the anticipation.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Forward(Rational)"/>
     public SequenceExpression Forward(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceForwardExpression(this, expression, expressionName, settings);
@@ -735,6 +875,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// if the time argument turns out to be either negative or infinite.
     /// </remarks>
     /// <seealso cref="HorizontalShift(Unipi.Nancy.Numerics.Rational,string,ExpressionSettings)"/>
+    /// <param name="time">The amount of the anticipation.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Forward(Rational)"/>
     public SequenceExpression Forward(Rational time, string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceForwardExpression(this, new RationalNumberExpression(time), expressionName, settings);
 
@@ -750,6 +894,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// if the shift argument turns out to be infinite.
     /// </remarks>
     /// <seealso cref="Sequence.HorizontalShift"/>
+    /// <param name="expression">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceExpression HorizontalShift(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceHorizontalShiftExpression(this, expression, expressionName, settings);
@@ -762,6 +909,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// if the shift argument turns out to be infinite.
     /// </remarks>
     /// <seealso cref="Sequence.HorizontalShift"/>
+    /// <param name="value">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
     public SequenceExpression HorizontalShift(Rational value, string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceHorizontalShiftExpression(this, new RationalNumberExpression(value), expressionName, settings);
 
@@ -775,6 +925,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
+    /// <param name="expression">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalShift(Rational, bool)"/>
     public SequenceExpression VerticalShift(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceVerticalShiftExpression(this, expression, expressionName, settings);
@@ -785,6 +939,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
+    /// <param name="value">The amount of the shift.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.VerticalShift(Rational, bool)"/>
     public SequenceExpression VerticalShift(Rational value, string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceVerticalShiftExpression(this, new RationalNumberExpression(value), expressionName, settings);
 
@@ -795,6 +953,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the operation to scale the sequence corresponding to the current expression by the rational number described by the argument <paramref name="expression"/> of type <see cref="RationalExpression"/>.
     /// </summary>
+    /// <param name="expression">The operand expression.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Scale(Rational)"/>
     public SequenceExpression Scale(RationalExpression expression, string expressionName = "",
         ExpressionSettings? settings = null)
         => new SequenceScaleExpression(this, expression, expressionName, settings);
@@ -802,6 +964,10 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression composed of the operation to scale the sequence corresponding to the current expression by the rational number <paramref name="scaleFactor"/>.
     /// </summary>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="expressionName">The name of the expression.</param>
+    /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <seealso cref="Sequence.Scale(Rational)"/>
     public SequenceExpression Scale(Rational scaleFactor, string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceScaleExpression(this, new RationalNumberExpression(scaleFactor), expressionName, settings);
 
@@ -809,6 +975,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// Implementation of the * operator to scale a sequence expression by a rational number.
     /// Computes $g(t) = k \cdot f(t)$.
     /// </summary>
+    /// <param name="sequence">The operand sequence expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <seealso cref="Sequence.operator *(Sequence, Rational)"/>
     public static SequenceExpression operator *(SequenceExpression sequence, Rational scaleFactor)
         => sequence.Scale(scaleFactor);
 
@@ -816,6 +985,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// Implementation of the * operator to scale a sequence expression by a rational number.
     /// Computes $g(t) = k \cdot f(t)$.
     /// </summary>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="sequence">The operand sequence expression.</param>
+    /// <seealso cref="Sequence.operator *(Sequence, Rational)"/>
     public static SequenceExpression operator *(Rational scaleFactor, SequenceExpression sequence)
         => sequence.Scale(scaleFactor);
 
@@ -823,6 +995,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// Implementation of the * operator to scale a sequence expression by a rational expression.
     /// Computes $g(t) = k \cdot f(t)$.
     /// </summary>
+    /// <param name="sequence">The operand sequence expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <seealso cref="Sequence.operator *(Sequence, Rational)"/>
     public static SequenceExpression operator *(SequenceExpression sequence, RationalExpression scaleFactor)
         => sequence.Scale(scaleFactor);
 
@@ -830,6 +1005,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// Implementation of the * operator to scale a sequence expression by a rational expression.
     /// Computes $g(t) = k \cdot f(t)$.
     /// </summary>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <param name="sequence">The operand sequence expression.</param>
+    /// <seealso cref="Sequence.operator *(Sequence, Rational)"/>
     public static SequenceExpression operator *(RationalExpression scaleFactor, SequenceExpression sequence)
         => sequence.Scale(scaleFactor);
 
@@ -837,6 +1015,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// Implementation of the / operator to scale down a sequence expression by a rational number.
     /// Computes $g(t) = f(t) / k$.
     /// </summary>
+    /// <param name="sequence">The operand sequence expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <seealso cref="Sequence.operator /(Sequence, Rational)"/>
     public static SequenceExpression operator /(SequenceExpression sequence, Rational scaleFactor)
         => sequence.Scale(1 / scaleFactor);
 
@@ -844,6 +1025,9 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// Implementation of the / operator to scale down a sequence expression by a rational expression.
     /// Computes $g(t) = f(t) / k$.
     /// </summary>
+    /// <param name="sequence">The operand sequence expression.</param>
+    /// <param name="scaleFactor">The scaling factor.</param>
+    /// <seealso cref="Sequence.operator /(Sequence, Rational)"/>
     public static SequenceExpression operator /(SequenceExpression sequence, RationalExpression scaleFactor)
         => sequence.Scale(scaleFactor.Invert());
 
@@ -858,6 +1042,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Sequence.ValueAt(Rational)"/>
     public RationalExpression ValueAt(
         Rational time,
         string expressionName = "",
@@ -871,6 +1056,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Sequence.ValueAt(Rational)"/>
     public RationalExpression ValueAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -880,10 +1066,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the sequence expression at <paramref name="time"/>.
     /// </summary>
-    /// <param name="time">The time value.</param>
+    /// <param name="time">The time at which to compute the limit.</param>
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Sequence.LeftLimitAt(Rational)"/>
     public RationalExpression LeftLimitAt(
         Rational time,
         string expressionName = "",
@@ -893,10 +1080,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression that computes the left-limit value of the sequence expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
-    /// <param name="timeExpression">The expression that provides the time value.</param>
+    /// <param name="timeExpression">The time at which to compute the limit.</param>
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Sequence.LeftLimitAt(Rational)"/>
     public RationalExpression LeftLimitAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -906,10 +1094,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the sequence expression at <paramref name="time"/>.
     /// </summary>
-    /// <param name="time">The time value.</param>
+    /// <param name="time">The time at which to compute the limit.</param>
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Sequence.RightLimitAt(Rational)"/>
     public RationalExpression RightLimitAt(
         Rational time,
         string expressionName = "",
@@ -919,10 +1108,11 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Creates a new expression that computes the right-limit value of the sequence expression at the time given by <paramref name="timeExpression"/>.
     /// </summary>
-    /// <param name="timeExpression">The expression that provides the time value.</param>
+    /// <param name="timeExpression">The time at which to compute the limit.</param>
     /// <param name="expressionName">The name to assign to the expression.</param>
     /// <param name="settings">Optional settings for the operation.</param>
     /// <returns>The result.</returns>
+    /// <seealso cref="Sequence.RightLimitAt(Rational)"/>
     public RationalExpression RightLimitAt(
         RationalExpression timeExpression,
         string expressionName = "",
@@ -1259,6 +1449,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <summary>
     /// Checks if two expressions are equivalent by computing their values.
     /// </summary>
+    /// <param name="other">The expression to compare with.</param>
     public bool Equivalent(IGenericExpression<Sequence> other)
         => Sequence.Equivalent(Compute(),
             other.Compute());
@@ -1385,18 +1576,26 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// The grammar in <c>NetCalG.g4</c> describes curves and rationals only, so there is nothing for a sequence expression to be written as.
     /// Returning the plain <see cref="ToString"/> instead would hand back something that looks like mppg and does not parse, which is worse than refusing.
     /// </remarks>
+    /// <param name="depth">Level of the expression tree up to which to print the expression fully expanded.</param>
+    /// <param name="showRationalsAsName">If true, shows rational numbers with their expression name in place of their value.</param>
     public string ToMppgString(int depth = 20, bool showRationalsAsName = false)
         => throw new NotSupportedException("The mppg language has no syntax for sequence expressions.");
 
     /// <summary>
     /// This operator returns true if the value of a sequence expression is below or equal than the value of another one.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <seealso cref="Sequence.operator &lt;=(Sequence, Sequence)"/>
     public static bool operator <=(SequenceExpression expressionL, SequenceExpression expressionR)
         => expressionL.Compute() <= expressionR.Compute();
 
     /// <summary>
     /// This operator returns true if the value of a sequence expression is greater or equal than the value of another one.
     /// </summary>
+    /// <param name="expressionL">The left operand.</param>
+    /// <param name="expressionR">The right operand.</param>
+    /// <seealso cref="Sequence.operator >=(Sequence, Sequence)"/>
     public static bool operator >=(SequenceExpression expressionL, SequenceExpression expressionR)
         => expressionL.Compute() >= expressionR.Compute();
 
@@ -1410,6 +1609,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
+    /// <seealso cref="Sequence.operator +(Sequence, Rational)"/>
     public static SequenceExpression operator +(SequenceExpression sequenceExpression, RationalExpression rationalExpression)
         => sequenceExpression.VerticalShift(rationalExpression);
 
@@ -1423,6 +1623,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
+    /// <seealso cref="Sequence.operator +(Sequence, Rational)"/>
     public static SequenceExpression operator +(SequenceExpression sequenceExpression, Rational rational)
         => sequenceExpression.VerticalShift(rational);
 
@@ -1436,6 +1637,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
+    /// <seealso cref="Sequence.operator -(Sequence, Rational)"/>
     public static SequenceExpression operator -(SequenceExpression sequenceExpression, RationalExpression rationalExpression)
         => sequenceExpression.VerticalShift(rationalExpression.Negate());
 
@@ -1449,6 +1651,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
+    /// <seealso cref="Sequence.operator -(Sequence, Rational)"/>
     public static SequenceExpression operator -(SequenceExpression sequenceExpression, Rational rational)
         => sequenceExpression.VerticalShift(-rational);
 
@@ -1462,6 +1665,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
+    /// <seealso cref="Sequence.operator +(Rational, Sequence)"/>
     public static SequenceExpression operator +(RationalExpression rationalExpression, SequenceExpression sequenceExpression)
         => sequenceExpression.VerticalShift(rationalExpression);
 
@@ -1475,6 +1679,7 @@ public abstract record SequenceExpression : IGenericExpression<Sequence>, IVisit
     /// <remarks>
     /// The shift moves every element, including a point at the origin where the sequence has one.
     /// </remarks>
+    /// <seealso cref="Sequence.operator +(Rational, Sequence)"/>
     public static SequenceExpression operator +(Rational rational, SequenceExpression sequenceExpression)
         => sequenceExpression.VerticalShift(rational);
 
