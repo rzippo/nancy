@@ -29,6 +29,7 @@ public record MaxPlusConvolutionExpression : CurveNAryExpression
     /// <param name="names">Collection of the names of the curves operands</param>
     /// <param name="expressionName">The name of the expression</param>
     /// <param name="settings">Settings for the expression definition and evaluation</param>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public MaxPlusConvolutionExpression(
         IReadOnlyCollection<Curve> curves,
         IReadOnlyCollection<string> names,

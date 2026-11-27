@@ -433,10 +433,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the addition between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
     /// <param name="sequences">The operand sequences.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Sequence.Addition(Sequence)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static SequenceExpression Addition(IReadOnlyCollection<Sequence> sequences, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceAdditionExpression(sequences, names, expressionName, settings);
@@ -574,10 +575,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the minimum between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
     /// <param name="sequences">The operand sequences.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Sequence.Minimum(Sequence, bool, ComputationSettings)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static SequenceExpression Minimum(IReadOnlyCollection<Sequence> sequences, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMinimumExpression(sequences, names, expressionName, settings);
@@ -656,10 +658,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the maximum between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
     /// <param name="sequences">The operand sequences.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Sequence.Maximum(Sequence, bool, ComputationSettings)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static SequenceExpression Maximum(IReadOnlyCollection<Sequence> sequences, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMaximumExpression(sequences, names, expressionName, settings);
@@ -738,10 +741,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the convolution between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
     /// <param name="sequences">The operand sequences.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Sequence.Convolution(Sequence, ComputationSettings, Rational?)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static SequenceExpression Convolution(IReadOnlyCollection<Sequence> sequences, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceConvolutionExpression(sequences, names, expressionName, settings);
@@ -879,10 +883,11 @@ public static partial class Expressions
     /// Creates a new expression composed of the max-plus convolution between the sequences passed as argument in the collection <paramref name="sequences"/>.
     /// </summary>
     /// <param name="sequences">The operand sequences.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Sequence.MaxPlusConvolution(Sequence, ComputationSettings, Rational?)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static SequenceExpression MaxPlusConvolution(IReadOnlyCollection<Sequence> sequences,
         IReadOnlyCollection<string> names, string expressionName = "", ExpressionSettings? settings = null)
         => new SequenceMaxPlusConvolutionExpression(sequences, names, expressionName, settings);

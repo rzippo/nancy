@@ -27,9 +27,10 @@ public record RationalAdditionExpression : RationalNAryExpression
     /// Creates an expression for addition of rational numbers.
     /// </summary>
     /// <param name="rationals">The operand rational numbers.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public RationalAdditionExpression(
         IReadOnlyCollection<Rational> rationals,
         IReadOnlyCollection<string> names,

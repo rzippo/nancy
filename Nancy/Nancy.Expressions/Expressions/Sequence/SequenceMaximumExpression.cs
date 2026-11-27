@@ -27,6 +27,7 @@ public record SequenceMaximumExpression : SequenceNAryExpression
     /// <param name="names">Collection of the names of the sequences operands</param>
     /// <param name="expressionName">The name of the expression</param>
     /// <param name="settings">Settings for the expression definition and evaluation</param>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public SequenceMaximumExpression(IReadOnlyCollection<Sequence> sequences,
         IReadOnlyCollection<string> names, string expressionName = "", ExpressionSettings? settings = null) : base(
         sequences, names, expressionName, settings)

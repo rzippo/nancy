@@ -31,15 +31,21 @@ public abstract record
     /// Creates the n-ary expression starting from a collection of operands of type <see cref="Sequence"/> (converted to <see cref="ConcreteSequenceExpression"/> objects).
     /// </summary>
     /// <param name="sequences">The operand sequences.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public SequenceNAryExpression(
         IReadOnlyCollection<Sequence> sequences,
         IReadOnlyCollection<string> names,
         string expressionName = "",
         ExpressionSettings? settings = null) : base(expressionName, settings)
     {
+        ArgumentNullException.ThrowIfNull(sequences);
+        ArgumentNullException.ThrowIfNull(names);
+        if (sequences.Count != names.Count)
+            throw new ArgumentException("The number of names must equal the number of operands.", nameof(names));
+
         List<IGenericExpression<Sequence>> expressions = [];
         foreach (var (sequence, name) in sequences.Zip(names, (c, n) => (sequence: c, name: n)))
             expressions.Add(new ConcreteSequenceExpression(sequence, name));

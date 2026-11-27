@@ -35,15 +35,21 @@ public abstract record
     /// <see cref="ConcreteCurveExpression"/> objects)
     /// </summary>
     /// <param name="curves">The operand curves.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public CurveNAryExpression(
         IReadOnlyCollection<Curve> curves,
         IReadOnlyCollection<string> names,
         string expressionName = "", 
         ExpressionSettings? settings = null) : base(expressionName, settings)
     {
+        ArgumentNullException.ThrowIfNull(curves);
+        ArgumentNullException.ThrowIfNull(names);
+        if (curves.Count != names.Count)
+            throw new ArgumentException("The number of names must equal the number of operands.", nameof(names));
+
         List<IGenericExpression<Curve>> operands = [];
         foreach (var (curve, name) in curves.Zip(names, (c, n) => (curve: c, name: n)))
             operands.Add(new ConcreteCurveExpression(curve, name));

@@ -518,10 +518,11 @@ public static partial class Expressions
     /// <paramref name="curves"/>.
     /// </summary>
     /// <param name="curves">The operand curves.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Curve.Addition(Curve, ComputationSettings)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static CurveExpression Addition(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new AdditionExpression(curves, names, expressionName, settings);
@@ -734,10 +735,11 @@ public static partial class Expressions
     /// <paramref name="curves"/>.
     /// </summary>
     /// <param name="curves">The operand curves.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Curve.Minimum(IReadOnlyCollection{Curve}, ComputationSettings)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static CurveExpression Minimum(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new MinimumExpression(curves, names, expressionName, settings);
@@ -820,10 +822,11 @@ public static partial class Expressions
     /// <paramref name="curves"/>.
     /// </summary>
     /// <param name="curves">The operand curves.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Curve.Maximum(IReadOnlyCollection{Curve}, ComputationSettings)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static CurveExpression Maximum(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new MaximumExpression(curves, names, expressionName, settings);
@@ -906,10 +909,11 @@ public static partial class Expressions
     /// <paramref name="curves"/>.
     /// </summary>
     /// <param name="curves">The operand curves.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Curve.Convolution(Curve, ComputationSettings)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static CurveExpression Convolution(IReadOnlyCollection<Curve> curves, IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
         => new ConvolutionExpression(curves, names, expressionName, settings);
@@ -1055,10 +1059,11 @@ public static partial class Expressions
     /// collection <paramref name="curves"/>.
     /// </summary>
     /// <param name="curves">The operand curves.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Curve.MaxPlusConvolution(Curve, ComputationSettings)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static CurveExpression MaxPlusConvolution(IReadOnlyCollection<Curve> curves,
         IReadOnlyCollection<string> names, string expressionName = "", ExpressionSettings? settings = null)
         => new MaxPlusConvolutionExpression(curves, names, expressionName, settings);
@@ -2372,10 +2377,11 @@ public static partial class Expressions
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     /// <param name="numbers">The operand rational numbers.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Rational.Add(Rational, Rational)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static RationalExpression RationalAddition(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -2513,10 +2519,11 @@ public static partial class Expressions
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     /// <param name="numbers">The operand rational numbers.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Rational.Min(Rational, Rational)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static RationalExpression RationalMinimum(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -2602,10 +2609,11 @@ public static partial class Expressions
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     /// <param name="numbers">The operand rational numbers.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Rational.Max(Rational, Rational)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static RationalExpression RationalMaximum(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -2691,10 +2699,11 @@ public static partial class Expressions
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     /// <param name="numbers">The operand rational numbers.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Rational.Multiply(Rational, Rational)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static RationalExpression RationalProduct(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -2832,10 +2841,11 @@ public static partial class Expressions
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     /// <param name="numbers">The operand rational numbers.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Rational.LeastCommonMultiple(Rational, Rational)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static RationalExpression LeastCommonMultiple(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
@@ -2910,10 +2920,11 @@ public static partial class Expressions
     /// arguments using the collection <paramref name="numbers"/>.
     /// </summary>
     /// <param name="numbers">The operand rational numbers.</param>
-    /// <param name="names">The names to assign to the operands, in the same order.</param>
+    /// <param name="names">The names to assign to the operands, one per operand and in the same order.</param>
     /// <param name="expressionName">The name of the expression.</param>
     /// <param name="settings">Settings for the expression definition and evaluation.</param>
     /// <seealso cref="Rational.GreatestCommonDivisor(Rational, Rational)"/>
+    /// <exception cref="ArgumentException">The number of names differs from the number of operands.</exception>
     public static RationalExpression GreatestCommonDivisor(IReadOnlyCollection<Rational> numbers,
         IReadOnlyCollection<string> names,
         string expressionName = "", ExpressionSettings? settings = null)
